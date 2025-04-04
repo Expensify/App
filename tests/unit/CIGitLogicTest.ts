@@ -64,6 +64,7 @@ function getVersion(): string {
 function initGitServer() {
     Log.info('Initializing git server...');
     if (fs.existsSync(GIT_REMOTE)) {
+        Log.info(`${GIT_REMOTE} exists, remove it now...`);
         fs.rmSync(GIT_REMOTE, {recursive: true});
     }
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
@@ -77,7 +78,7 @@ function initGitServer() {
     exec('git commit -m "Initial commit"');
     exec('git switch -c staging');
     exec(`git tag ${getVersion()}`);
-    exec('git switch -c production');
+    exec('git branch production');
     exec('git config --local receive.denyCurrentBranch ignore');
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
 }
@@ -354,7 +355,8 @@ describe('CIGitLogic', () => {
         mergePR(2);
     });
 
-    test('Merge a pull request with the checklist locked and CP it to staging', async () => {
+    test('Merge a pull request with the checklist locked and CP it', async () => {
+        updateProductionFromStaging();
         createBasicPR(3);
         cherryPickPRToProduction(3);
 
@@ -364,194 +366,4 @@ describe('CIGitLogic', () => {
         // Verify output for deploy comment
         await assertPRsMergedBetween('1.0.0-1', '1.0.0-2', [3]);
     });
-/**
-    test('Close the checklist', async () => {
-        deployProduction();
-
-        // Verify output for release body and production deploy comments
-        await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
-
-        // Verify output for new checklist and staging deploy comments
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-0', [2]);
-    });
-
-    test('Merging another pull request when the checklist is unlocked', async () => {
-        createBasicPR(5);
-        mergePR(5);
-        deployStaging();
-
-        // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-1', [2, 5]);
-
-        // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.1-0', '1.0.1-1', [5]);
-    });
-
-    test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
-        Log.info('Creating myFile.txt in PR #6');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-6');
-        const initialFileContent = 'Changes from PR #6';
-        fs.appendFileSync('myFile.txt', 'Changes from PR #6');
-        exec('git add myFile.txt');
-        exec('git commit -m "Add myFile.txt in PR #6"');
-
-        mergePR(6);
-        deployStaging();
-
-        // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-2', [2, 5, 6]);
-
-        // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.1-1', '1.0.1-2', [6]);
-
-        Log.info('Appending and prepending content to myFile.txt in PR #7');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-7');
-        const newFileContent = `
-Prepended content
-${initialFileContent}
-Appended content
-`;
-        fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
-        exec('git add myFile.txt');
-        exec('git commit -m "Append and prepend content in myFile.txt"');
-        mergePR(7);
-        deployStaging();
-
-        // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-3', [2, 5, 6, 7]);
-
-        // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.1-2', '1.0.1-3', [7]);
-
-        Log.info('Making an unrelated change in PR #8');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-8');
-        fs.appendFileSync('anotherFile.txt', 'some content');
-        exec('git add anotherFile.txt');
-        exec('git commit -m "Create another file"');
-        mergePR(8);
-
-        Log.info('Reverting the append + prepend on main in PR #9');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-9');
-        console.log('RORY_DEBUG BEFORE:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
-        fs.writeFileSync('myFile.txt', initialFileContent);
-        console.log('RORY_DEBUG AFTER:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
-        exec('git add myFile.txt');
-        exec('git commit -m "Revert append and prepend"');
-        cherryPickPRToStaging(9);
-
-        Log.info('Verifying that the revert is present on staging, but the unrelated change is not');
-        expect(fs.readFileSync('myFile.txt', {encoding: 'utf8'})).toBe(initialFileContent);
-        expect(fs.existsSync('anotherFile.txt')).toBe(false);
-
-        Log.info('Repeating previously reverted append + prepend on main in PR #10');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-10');
-        fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
-        exec('git add myFile.txt');
-        exec('git commit -m "Append and prepend content in myFile.txt"');
-
-        mergePR(10);
-        deployProduction();
-
-        // Verify production release list
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-4', [2, 5, 6, 7, 9]);
-
-        // Verify PR list for the new checklist
-        await assertPRsMergedBetween('1.0.1-4', '1.0.2-0', [8, 10]);
-    });
-
-    test('Force-pushing to a branch after rebasing older commits', async () => {
-        createBasicPR(11);
-        exec('git push origin pr-11');
-        createBasicPR(12);
-        mergePR(12);
-        deployStaging();
-
-        // Verify PRs for checklist
-        await assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
-
-        // Verify PRs for deploy comments
-        await assertPRsMergedBetween('1.0.2-0', '1.0.2-1', [12]);
-
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git fetch origin pr-11');
-        exec('git switch pr-11');
-        exec('git rebase main -Xours');
-        exec('git push --force origin pr-11');
-        mergePR(11);
-
-        deployProduction();
-
-        // Verify PRs for deploy comments / release
-        await assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
-
-        // Verify PRs for new checklist
-        await assertPRsMergedBetween('1.0.2-1', '1.0.3-0', [11]);
-    });
-
-    test('Manual version bump', async () => {
-        Log.info('Creating manual version bump in PR #13');
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git pull');
-        exec('git switch -c "pr-13"');
-        for (let i = 0; i < 3; i++) {
-            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
-        }
-        exec('git add package.json');
-        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #13"`);
-        Log.success('Created manual version bump in PR #13 in branch pr-13');
-
-        mergePR(13);
-        Log.info('Deploying staging...');
-        checkoutRepo();
-        updateStagingFromMain();
-        tagStaging();
-        Log.success(`Deployed v${getVersion()} to staging!`);
-
-        // Verify PRs for deploy comments / release and new checklist
-        await assertPRsMergedBetween('1.0.3-0', '4.0.0-0', [13]);
-
-        Log.info('Creating manual version bump in PR #14');
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git pull');
-        exec('git switch -c "pr-14"');
-        for (let i = 0; i < 3; i++) {
-            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
-        }
-        exec('git add package.json');
-        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #14"`);
-        Log.success('Created manual version bump in PR #14 in branch pr-14');
-
-        const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
-        cherryPickPRToStaging(
-            14,
-            () => {
-                fs.writeFileSync('package.json', packageJSONBefore);
-                exec('git add package.json');
-                exec('git cherry-pick --no-edit --continue');
-            },
-            () => {
-                exec('git commit --no-edit --allow-empty');
-            },
-        );
-
-        // Verify PRs for deploy comments
-        await assertPRsMergedBetween('4.0.0-0', '7.0.0-0', [14]);
-
-        // Verify PRs for the deploy checklist
-        await assertPRsMergedBetween('1.0.3-0', '7.0.0-0', [13, 14]);
-    });
-    */
 });
