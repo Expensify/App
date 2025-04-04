@@ -67,7 +67,6 @@ import {
     isCardTransaction,
     isPartialMerchant,
     isPending,
-    isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
@@ -181,7 +180,6 @@ function MoneyRequestReportPreviewContent({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
