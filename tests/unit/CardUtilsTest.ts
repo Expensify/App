@@ -494,6 +494,11 @@ describe('CardUtils', () => {
             const maskedCardNumber = maskCardNumber('', CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD);
             expect(maskedCardNumber).toBe('');
         });
+
+        it('Should return card name without last 4 numbers', () => {
+            const maskedCardNumber = maskCardNumber('Business Card Cash - 3001', undefined);
+            expect(maskedCardNumber).toBe('Business Card Cash');
+        });
     });
 
     describe('getCardFeedName', () => {

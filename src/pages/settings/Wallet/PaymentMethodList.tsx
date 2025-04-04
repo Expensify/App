@@ -20,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -111,6 +111,7 @@ type PaymentMethodListProps = {
 type PaymentMethodItem = PaymentMethod & {
     key?: string;
     title?: string;
+    hintText?: string;
     description: string;
     onPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void;
     isGroupedCardDomain?: boolean;
@@ -226,7 +227,8 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: maskCardNumber(card.cardName, card.bank),
-                        description: getDescriptionForPolicyDomainCard(card.domainName),
+                        description: lastFourNumbersFromCardName(card.cardName),
+                        hintText: getDescriptionForPolicyDomainCard(card.domainName),
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
@@ -417,6 +419,7 @@ function PaymentMethodList({
                     onPress={item.onPress}
                     title={item.title}
                     description={item.description}
+                    hintText={item.hintText}
                     icon={item.icon}
                     disabled={item.disabled}
                     displayInDefaultIconColor
