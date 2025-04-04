@@ -34,6 +34,7 @@ import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -382,7 +383,13 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(backTo);
+
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+                        
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                     shouldShowThreeDotsButton
                     threeDotsMenuItems={threeDotsMenuItems}
