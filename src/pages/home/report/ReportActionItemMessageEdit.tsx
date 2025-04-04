@@ -45,6 +45,7 @@ import setShouldShowComposeInputKeyboardAware from '@libs/setShouldShowComposeIn
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import KeyboardUtils from '@src/utils/keyboard';
 import * as ReportActionContextMenu from './ContextMenu/ReportActionContextMenu';
 import getCursorPosition from './ReportActionCompose/getCursorPosition';
 import getScrollPosition from './ReportActionCompose/getScrollPosition';
@@ -255,9 +256,8 @@ function ReportActionItemMessageEdit(
 
         // Scroll to the last comment after editing to make sure the whole comment is clearly visible in the report.
         if (index === 0) {
-            const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            KeyboardUtils.dismiss().then(() => {
                 reportScrollManager.scrollToIndex(index, false);
-                keyboardDidHideListener.remove();
             });
         }
     }, [action, index, reportID, reportScrollManager, isActive]);
