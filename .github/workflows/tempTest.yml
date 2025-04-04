@@ -1,7 +1,7 @@
 name: Temp test workflow
 on: pull_request
 jobs:
-  test:
+  testDepth0:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
@@ -9,3 +9,15 @@ jobs:
           fetch-depth: 0
           submodules: true
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - run: git config -f .git/modules/Mobile-Expensify/config remote.origin.fetch
+
+  testDepth1:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
+        with:
+          submodules: true
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - run: git config -f .git/modules/Mobile-Expensify/config remote.origin.fetch
