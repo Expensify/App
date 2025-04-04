@@ -120,7 +120,7 @@ function ReportActionItemSingle({
     const isTripRoom = isTripRoomReportUtils(report);
 
     const icons = getIcons(iouReport ?? null, personalDetails);
-    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report) && (!icons || icons.length > 1);
+    const displayAllActors = isReportPreviewAction && !isTripRoom && !isPolicyExpenseChat(report);
 
     const isInvoiceReport = isInvoiceReportUtils(iouReport ?? null);
     const isWorkspaceActor = isInvoiceReport || (isPolicyExpenseChat(report) && (!actorAccountID || displayAllActors));
