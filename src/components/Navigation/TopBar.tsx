@@ -94,7 +94,12 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     </PressableWithoutFeedback>
                 )}
                 {shouldDisplayHelpButton && <HelpButton />}
-                {displaySearch && <SearchButton style={canUseLeftHandBar && [styles.ml3, {width: variables.iconSizeNormal}]} />}
+                {displaySearch && (
+                    <SearchButton
+                        shouldUseAutoHitSlop={canUseLeftHandBar}
+                        style={canUseLeftHandBar && [styles.ml3, {width: variables.iconSizeNormal}]}
+                    />
+                )}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />
         </View>
