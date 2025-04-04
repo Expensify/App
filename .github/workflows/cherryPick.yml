@@ -49,7 +49,7 @@ jobs:
         id: getVersionBumpCommit
         run: |
           git switch main
-          VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
+          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           if [ -z "$VERSION_BUMP_COMMIT" ]; then
             echo "::error::❌ Could not find version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
             git log --oneline
@@ -63,7 +63,7 @@ jobs:
         working-directory: Mobile-Expensify
         run: |
           git switch main
-          VERSION_BUMP_COMMIT="$(git log --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
+          VERSION_BUMP_COMMIT="$(git log -1 --format='%H' --author='OSBotify' --grep 'Update version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}')"
           if [ -z "$VERSION_BUMP_COMMIT" ]; then
             echo "::error::❌ Could not find version bump commit for ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
             git log --oneline
