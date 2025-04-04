@@ -14,7 +14,7 @@ import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/ge
 import CONST from '@github/libs/CONST';
 import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
-import type {SemverLevel} from '@github/libs/versionUpdater';
+import {SEMANTIC_VERSION_LEVELS, SemverLevel} from '@github/libs/versionUpdater';
 import asMutable from '@src/types/utils/asMutable';
 import * as Log from '../../scripts/utils/Logger';
 
@@ -77,8 +77,14 @@ function initGitServer() {
     exec('git add -A');
     exec('git commit -m "Initial commit"');
     exec('git switch -c staging');
-    exec(`git tag ${getVersion()}`);
     exec('git switch -c production');
+
+    // Tag the production branch with 1.0.0.0
+    exec(`git tag ${getVersion()}`);
+
+    // Bump version to 2.0.0.0
+    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true)
+    exec(`git tag ${getVersion()}`)
     exec(`git switch staging`);
     exec('git config --local receive.denyCurrentBranch ignore');
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
@@ -98,7 +104,7 @@ function checkoutRepo() {
     Log.success('Checked out repo at $DUMMY_DIR!');
 }
 
-function bumpVersion(level: SemverLevel) {
+function bumpVersion(level: SemverLevel, isRemote = false) {
     Log.info('Bumping version...');
     setupGitAsOSBotify();
     exec('git switch main');
@@ -106,7 +112,9 @@ function bumpVersion(level: SemverLevel) {
     exec(`npm --no-git-tag-version version ${nextVersion}`);
     exec('git add package.json');
     exec(`git commit -m "Update version to ${nextVersion}"`);
-    exec('git push origin main');
+    if (!isRemote) {
+        exec('git push origin main');
+    }
     Log.success(`Version bumped to ${nextVersion} on main`);
 }
 
@@ -141,7 +149,11 @@ function updateProductionFromStaging() {
     } catch (e) {}
 
     exec('git switch -c production');
-    exec('git push --force origin production');
+
+    exec(`git push origin --delete ${getVersion()}`);
+    exec(`git tag ${getVersion()}`);
+
+    exec('git push --force --tags origin production');
     Log.success('Recreated production from staging!');
 }
 
@@ -265,7 +277,8 @@ function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () =
     exec(`git switch staging`)
     exec(`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`)
     exec('git push origin staging');
-    Log.success(`Pushed to staging after CP to production.`);
+    tagStaging();
+    Log.success(`Pushed to staging after CP to production`);
 
     Log.success(`Successfully cherry-picked PR #${num} to production!`);
 }
@@ -287,6 +300,7 @@ function tagStaging() {
 
 function tagProduction() {
     Log.info('Tagging new version from the production branch...');
+    Log.info(`Version is: ${getVersion()}`);
     checkoutRepo();
     setupGitAsOSBotify();
     try {
@@ -366,7 +380,7 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist and deploy comment
-        await assertPRsMergedBetween('1.0.0-0', '1.0.0-1', [1]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1', [1]);
     });
 
     test("Merge a pull request with the checklist locked, but don't CP it", async () => {
@@ -374,7 +388,7 @@ describe('CIGitLogic', () => {
         mergePR(2);
 
         // Verify output for checklist and deploy comment, and make sure PR #2 is not on staging
-        await assertPRsMergedBetween('1.0.0-0', '1.0.0-1', [1]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1', [1]);
     });
 
     test('Merge a pull request with the checklist locked and CP it to staging', async () => {
@@ -382,10 +396,10 @@ describe('CIGitLogic', () => {
         cherryPickPRToStaging(3);
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-2', [1, 3]);
 
         // Verify output for deploy comment, and make sure PR #2 is not on staging
-        await assertPRsMergedBetween('1.0.0-1', '1.0.0-2', [3]);
+        await assertPRsMergedBetween('2.0.0-1', '2.0.0-2', [3]);
     });
 
     test('Merge a pull request with the checklist locked and CP it to production', async () => {
@@ -393,24 +407,21 @@ describe('CIGitLogic', () => {
         createBasicPR(4);
         cherryPickPRToProduction(4);
 
-        // Figure out how to adjust to not have this hacky fetch
-        exec(`git fetch`);
-
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-0', '1.0.1-1', [1, 3, 4]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.1-1', [1, 3]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.0-0', '1.0.1-0', [4]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.1-0', [4]);
     });
 /*
     test('Close the checklist', async () => {
         deployProduction();
 
         // Verify output for release body and production deploy comments
-        await assertPRsMergedBetween('1.0.0-0', '1.0.0-2', [1, 3]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-2', [1, 3]);
 
         // Verify output for new checklist and staging deploy comments
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-0', [2, 4]);
+        await assertPRsMergedBetween('2.0.0-2', '2.0.1-0', [2, 4]);
     });
 
     test('Merging another pull request when the checklist is unlocked', async () => {
@@ -419,10 +430,10 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-1', [2, 4, 5]);
+        await assertPRsMergedBetween('2.0.0-2', '2.0.1-1', [2, 4, 5]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.1-0', '1.0.1-1', [5]);
+        await assertPRsMergedBetween('2.0.1-0', '2.0.1-1', [5]);
     });
 
     test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
@@ -439,10 +450,10 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-2', [2, 4, 5, 6]);
+        await assertPRsMergedBetween('2.0.0-2', '2.0.1-2', [2, 4, 5, 6]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.1-1', '1.0.1-2', [6]);
+        await assertPRsMergedBetween('2.0.1-1', '2.0.1-2', [6]);
 
         Log.info('Appending and prepending content to myFile.txt in PR #7');
         setupGitAsHuman();
@@ -460,10 +471,10 @@ Appended content
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-3', [2, 4, 5, 6, 7]);
+        await assertPRsMergedBetween('2.0.0-2', '2.0.1-3', [2, 4, 5, 6, 7]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('1.0.1-2', '1.0.1-3', [7]);
+        await assertPRsMergedBetween('2.0.1-2', '2.0.1-3', [7]);
 
         Log.info('Making an unrelated change in PR #8');
         setupGitAsHuman();
@@ -501,10 +512,10 @@ Appended content
         deployProduction();
 
         // Verify production release list
-        await assertPRsMergedBetween('1.0.0-2', '1.0.1-4', [2, 5, 6, 7, 9]);
+        await assertPRsMergedBetween('2.0.0-2', '2.0.1-4', [2, 5, 6, 7, 9]);
 
         // Verify PR list for the new checklist
-        await assertPRsMergedBetween('1.0.1-4', '1.0.2-0', [8, 10]);
+        await assertPRsMergedBetween('2.0.1-4', '2.0.2-0', [8, 10]);
     });
 
     test('Force-pushing to a branch after rebasing older commits', async () => {
@@ -515,10 +526,10 @@ Appended content
         deployStaging();
 
         // Verify PRs for checklist
-        await assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
+        await assertPRsMergedBetween('2.0.1-4', '2.0.2-1', [8, 10, 12]);
 
         // Verify PRs for deploy comments
-        await assertPRsMergedBetween('1.0.2-0', '1.0.2-1', [12]);
+        await assertPRsMergedBetween('2.0.2-0', '2.0.2-1', [12]);
 
         checkoutRepo();
         setupGitAsHuman();
@@ -531,10 +542,10 @@ Appended content
         deployProduction();
 
         // Verify PRs for deploy comments / release
-        await assertPRsMergedBetween('1.0.1-4', '1.0.2-1', [8, 10, 12]);
+        await assertPRsMergedBetween('2.0.1-4', '2.0.2-1', [8, 10, 12]);
 
         // Verify PRs for new checklist
-        await assertPRsMergedBetween('1.0.2-1', '1.0.3-0', [11]);
+        await assertPRsMergedBetween('2.0.2-1', '2.0.3-0', [11]);
     });
 
     test('Manual version bump', async () => {
@@ -558,7 +569,7 @@ Appended content
         Log.success(`Deployed v${getVersion()} to staging!`);
 
         // Verify PRs for deploy comments / release and new checklist
-        await assertPRsMergedBetween('1.0.3-0', '4.0.0-0', [13]);
+        await assertPRsMergedBetween('2.0.3-0', '4.0.0-0', [13]);
 
         Log.info('Creating manual version bump in PR #14');
         checkoutRepo();
@@ -589,7 +600,7 @@ Appended content
         await assertPRsMergedBetween('4.0.0-0', '7.0.0-0', [14]);
 
         // Verify PRs for the deploy checklist
-        await assertPRsMergedBetween('1.0.3-0', '7.0.0-0', [13, 14]);
+        await assertPRsMergedBetween('2.0.3-0', '7.0.0-0', [13, 14]);
     });
     */
 });

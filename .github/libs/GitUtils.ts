@@ -113,9 +113,18 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
     // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
-    fetchTag(fromTag, previousPatchVersion);
-    fetchTag(toTag, previousPatchVersion);
+    // TODO: Add check for if tag is off by at least a minor, fetch the minor
+
+    // const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.MINOR);
+    // fetchTag(fromTag, `${fromTag}~1`);
+    // fetchTag(toTag, `${fromTag}~1`);
+
+    // execSync(`git fetch origin tag --no-tags ${fromTag}`);
+    // execSync(`git fetch origin tag --no-tags ${toTag}`);
+    // const hashForFromTag = execSync(`git rev-parse ${fromTag}`).toString().trim();
+
+    // TODO: Make this fast 🚀
+    execSync(`git fetch --tags`);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise<string>((resolve, reject) => {
