@@ -7,7 +7,6 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
@@ -25,7 +24,6 @@ type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const policiesConnectedToSageIntacct = getAdminPoliciesConnectedToSageIntacct();
     const policyID: string = route.params.policyID;
 
