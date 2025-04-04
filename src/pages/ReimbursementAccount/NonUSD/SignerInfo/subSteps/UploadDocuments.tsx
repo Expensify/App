@@ -19,11 +19,11 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type UploadDocumentsProps = SubStepProps & {directorID?: string};
+type UploadDocumentsProps = SubStepProps;
 
-const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE, DIRECTOR_PREFIX} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {ADDRESS_PROOF, PROOF_OF_DIRECTORS, COPY_OF_ID, CODICE_FISCALE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function UploadDocuments({onNext, isEditing, directorID}: UploadDocumentsProps) {
+function UploadDocuments({onNext, isEditing}: UploadDocumentsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
@@ -36,16 +36,16 @@ function UploadDocuments({onNext, isEditing, directorID}: UploadDocumentsProps) 
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
 
-    const copyOfIDInputID = `${DIRECTOR_PREFIX}_${directorID}_${COPY_OF_ID}` as const;
-    const addressProofInputID = `${DIRECTOR_PREFIX}_${directorID}_${ADDRESS_PROOF}` as const;
-    const directorsProofInputID = `${DIRECTOR_PREFIX}_${directorID}_${PROOF_OF_DIRECTORS}` as const;
-    const codiceFiscaleInputID = `${DIRECTOR_PREFIX}_${directorID}_${CODICE_FISCALE}` as const;
+    const copyOfIDInputID = COPY_OF_ID;
+    const addressProofInputID = ADDRESS_PROOF;
+    const directorsProofInputID = PROOF_OF_DIRECTORS;
+    const codiceFiscaleInputID = CODICE_FISCALE;
 
     const defaultValues: Record<string, FileObject[]> = {
-        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID] as FileObject[]) ?? [] : [],
-        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID] as FileObject[]) ?? [] : [],
-        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? (reimbursementAccountDraft?.[directorsProofInputID] as FileObject[]) ?? [] : [],
-        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID] as FileObject[]) ?? [] : [],
+        [copyOfIDInputID]: Array.isArray(reimbursementAccountDraft?.[copyOfIDInputID]) ? (reimbursementAccountDraft?.[copyOfIDInputID]) ?? [] : [],
+        [addressProofInputID]: Array.isArray(reimbursementAccountDraft?.[addressProofInputID]) ? (reimbursementAccountDraft?.[addressProofInputID]) ?? [] : [],
+        [directorsProofInputID]: Array.isArray(reimbursementAccountDraft?.[directorsProofInputID]) ? (reimbursementAccountDraft?.[directorsProofInputID]) ?? [] : [],
+        [codiceFiscaleInputID]: Array.isArray(reimbursementAccountDraft?.[codiceFiscaleInputID]) ? (reimbursementAccountDraft?.[codiceFiscaleInputID]) ?? [] : [],
     };
 
     const [uploadedIDs, setUploadedID] = useState<FileObject[]>(defaultValues[copyOfIDInputID]);

@@ -5,7 +5,6 @@ import useLocalize from '@hooks/useLocalize';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getNeededDocumentsStatusForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getNeededDocumentsStatusForSignerInfo';
 import getValuesForSignerInfo from '@pages/ReimbursementAccount/NonUSD/utils/getValuesForSignerInfo';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -19,15 +18,13 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const isUserOwner = reimbursementAccount?.achData?.corpay?.[OWNS_MORE_THAN_25_PERCENT] ?? reimbursementAccountDraft?.[OWNS_MORE_THAN_25_PERCENT] ?? false;
-    const values = useMemo(() => getValuesForSignerInfo(['currentUser'], reimbursementAccountDraft), [reimbursementAccountDraft]);
+    const values = useMemo(() => getValuesForSignerInfo(reimbursementAccountDraft), [reimbursementAccountDraft]);
 
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const currency = policy?.outputCurrency ?? '';
     const countryStepCountryValue = reimbursementAccount?.achData?.[INPUT_IDS.ADDITIONAL_DATA.COUNTRY] ?? '';
     const isDocumentNeededStatus = getNeededDocumentsStatusForSignerInfo(currency, countryStepCountryValue);
-
-    const currentUserDirector = values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY);
 
     const summaryItems = [
         {
@@ -38,19 +35,11 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
                 onMove(0);
             },
         },
-        {
-            title: String(values.directors.find((director) => director.directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY)?.occupation),
-            description: translate('signerInfoStep.occupation'),
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(1);
-            },
-        },
     ];
 
-    if (isDocumentNeededStatus.isCopyOfIDNeeded && currentUserDirector?.copyOfId && currentUserDirector.copyOfId.length > 0) {
+    if (isDocumentNeededStatus.isCopyOfIDNeeded && values.copyOfId.length > 0) {
         summaryItems.push({
-            title: currentUserDirector.copyOfId.map((id) => id.name).join(', '),
+            title: values.copyOfId.map((id) => id.name).join(', '),
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -59,9 +48,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isAddressProofNeeded && currentUserDirector?.addressProof && currentUserDirector.addressProof.length > 0) {
+    if (isDocumentNeededStatus.isAddressProofNeeded && values.addressProof.length > 0) {
         summaryItems.push({
-            title: currentUserDirector.addressProof.map((proof) => proof.name).join(', '),
+            title: values.addressProof.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -70,9 +59,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && currentUserDirector?.proofOfDirectors && currentUserDirector.proofOfDirectors.length > 0) {
+    if (isDocumentNeededStatus.isProofOfDirecorsNeeded && values.proofOfDirectors.length > 0) {
         summaryItems.push({
-            title: currentUserDirector.proofOfDirectors.map((proof) => proof.name).join(', '),
+            title: values.proofOfDirectors.map((proof) => proof.name).join(', '),
             description: translate('signerInfoStep.proofOfDirectors'),
             shouldShowRightIcon: true,
             onPress: () => {
@@ -81,9 +70,9 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
         });
     }
 
-    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && currentUserDirector?.codiceFisclaleTaxID && currentUserDirector.codiceFisclaleTaxID.length > 0) {
+    if (isDocumentNeededStatus.isCodiceFiscaleNeeded && values.codiceFiscale.length > 0) {
         summaryItems.push({
-            title: currentUserDirector.proofOfDirectors.map((proof) => proof.name).join(', '),
+            title: values.codiceFiscale.map((fiscale) => fiscale.name).join(', '),
             description: translate('signerInfoStep.codiceFiscale'),
             shouldShowRightIcon: true,
             onPress: () => {

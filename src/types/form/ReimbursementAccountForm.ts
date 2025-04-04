@@ -59,10 +59,12 @@ const INPUT_IDS = {
         SIGNER_STATE: 'signer_state',
         SIGNER_ZIP_CODE: 'signer_zipCode',
         SIGNER_COUNTRY: 'signer_nationality',
+        SIGNER_COPY_OF_ID: 'signerCopyOfID',
+        SIGNER_ADDRESS_PROOF: 'signerAddressProof',
+        SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+        PROOF_OF_DIRECTORS: 'proofOfDirectors',
+        DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
         SECOND_SIGNER_EMAIL: 'secondSignerEmail',
-        DIRECTOR_OCCUPATION: 'occupation',
-        DIRECTOR_FULL_NAME: 'fullName',
-        DIRECTOR_JOB_TITLE: 'jobTitle',
     },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
@@ -216,10 +218,7 @@ type ReimbursementAccountProps = {
     [INPUT_IDS.AMOUNT3]: string;
 };
 
-type SignerInfoStepBaseProps = {
-    [INPUT_IDS.SIGNER_INFO_STEP.DIRECTOR_FULL_NAME]: string;
-    [INPUT_IDS.SIGNER_INFO_STEP.DIRECTOR_JOB_TITLE]: string;
-    [INPUT_IDS.SIGNER_INFO_STEP.DIRECTOR_OCCUPATION]: string;
+type SignerInfoStepProps = {
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_FULL_NAME]: string;
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_DATE_OF_BIRTH]: string;
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_JOB_TITLE]: string;
@@ -229,13 +228,13 @@ type SignerInfoStepBaseProps = {
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STATE]: string;
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ZIP_CODE]: string;
     [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.DOWNLOADED_PDS_AND_FSG]: boolean;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COPY_OF_ID]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ADDRESS_PROOF]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CODICE_FISCALE]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.PROOF_OF_DIRECTORS]: FileObject[];
     [INPUT_IDS.SIGNER_INFO_STEP.SECOND_SIGNER_EMAIL]: FileObject[];
 };
-
-type SignerInfoDirectorDataKey = `director_${string}_${string}`;
-type SignerInfoStepExtraProps = Record<SignerInfoDirectorDataKey, string | FileObject[]>;
-
-type SignerInfoStepProps = SignerInfoStepBaseProps & SignerInfoStepExtraProps;
 
 /** Additional props for non-USD reimbursement account */
 type NonUSDReimbursementAccountAdditionalProps = {
@@ -423,7 +422,6 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
 export type {
     ReimbursementAccountForm,
     BeneficialOwnerDataKey,
-    SignerInfoDirectorDataKey,
     BankAccountStepProps,
     CompanyStepProps,
     RequestorStepProps,
