@@ -290,11 +290,8 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
             if (SessionUtils.didUserLogInDuringSession() || delegatorEmail) {
                 if (delegatorEmail) {
                     connect(delegatorEmail, true)
-                        ?.then(() => {
-                            App.setAppLoading(true);
-                        })
-                        .catch(() => {
-                            App.setAppLoading(false);
+                        ?.then((success) => {
+                            App.setAppLoading(!!success);
                         })
                         .finally(() => {
                             setIsDelegatorFromOldDotIsReady(true);
