@@ -45,6 +45,7 @@ describe('actions/Policy', () => {
             const fakePolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
             Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
             Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
+            Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
             await waitForBatchedUpdates();
 
             let adminReportID;
