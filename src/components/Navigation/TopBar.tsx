@@ -13,6 +13,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SignInButton from '@pages/home/sidebar/SignInButton';
+import variables from '@styles/variables';
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -93,7 +94,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     </PressableWithoutFeedback>
                 )}
                 {shouldDisplayHelpButton && <HelpButton />}
-                {displaySearch && <SearchButton />}
+                {displaySearch && <SearchButton style={canUseLeftHandBar && [styles.ml3, {width: variables.iconSizeNormal}]} />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />
         </View>
