@@ -14,10 +14,10 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {clearUpdateSubscriptionSizeError, updateSubscriptionType} from '@libs/actions/Subscription';
 import Navigation from '@libs/Navigation/Navigation';
 import TaxExemptActions from '@pages/settings/Subscription/TaxExemptActions';
 import variables from '@styles/variables';
-import {clearUpdateSubscriptionSizeError, updateSubscriptionType} from '@userActions/Subscription';
 import type {SubscriptionType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -75,9 +75,7 @@ function SubscriptionDetails() {
                 <OfflineWithFeedback
                     pendingAction={privateSubscription?.pendingFields?.userCount}
                     errors={privateSubscription?.errorFields?.userCount}
-                    onClose={() => {
-                        clearUpdateSubscriptionSizeError();
-                    }}
+                    onClose={clearUpdateSubscriptionSizeError}
                 >
                     <MenuItemWithTopDescription
                         description={translate('subscription.details.subscriptionSize')}

@@ -7,6 +7,7 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -402,6 +403,85 @@ describe('TransactionUtils', () => {
             const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('getMerchant', () => {
+        it('should return merchant if transaction has merchant', () => {
+            const transaction = generateTransaction({
+                merchant: 'Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Merchant');
+        });
+
+        it('should return (none) if transaction has no merchant', () => {
+            const transaction = generateTransaction();
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('(none)');
+        });
+
+        it('should return modified merchant if transaction has modified merchant', () => {
+            const transaction = generateTransaction({
+                modifiedMerchant: 'Modified Merchant',
+                merchant: 'Original Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Modified Merchant');
+        });
+
+        it('should return distance merchant if transaction is distance expense and pending create', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Pending...');
+        });
+
+        it('should return distance merchant if transaction is created distance expense', () => {
+            return waitForBatchedUpdates()
+                .then(async () => {
+                    const fakePolicy: Policy = {
+                        ...createRandomPolicy(0),
+                        customUnits: {
+                            Unit1: {
+                                customUnitID: 'Unit1',
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                rates: {
+                                    Rate1: {
+                                        customUnitRateID: 'Rate1',
+                                        currency: CONST.CURRENCY.USD,
+                                        rate: 100,
+                                    },
+                                },
+                                enabled: true,
+                                attributes: {
+                                    unit: 'mi',
+                                },
+                            },
+                        },
+                        outputCurrency: CONST.CURRENCY.USD,
+                    };
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
+                })
+                .then(() => {
+                    const transaction = generateTransaction({
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'Unit1',
+                                customUnitRateID: 'Rate1',
+                                quantity: 100,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            },
+                        },
+                        reportID: FAKE_OPEN_REPORT_ID,
+                    });
+                    const merchant = TransactionUtils.getMerchant(transaction);
+                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
+                });
         });
     });
 });

@@ -128,11 +128,20 @@ import {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getPolicyChangeLogDefaultBillableMessage,
+    getPolicyChangeLogDefaultTitleEnforcedMessage,
+    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
     getReportActionMessageText,
     getReportActionText,
+    getWorkspaceCurrencyUpdateMessage,
+    getWorkspaceFrequencyUpdateMessage,
+    getWorkspaceReportFieldAddMessage,
+    getWorkspaceReportFieldDeleteMessage,
+    getWorkspaceReportFieldUpdateMessage,
+    getWorkspaceUpdateFieldMessage,
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
@@ -4505,6 +4514,12 @@ function getSearchReportName(props: GetReportNameParams): string {
     return getReportNameInternal(props);
 }
 
+function getInvoiceReportName(report: OnyxEntry<Report>, policy?: OnyxEntry<Policy | SearchPolicy>, invoiceReceiverPolicy?: OnyxEntry<Policy | SearchPolicy>): string {
+    const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
+    const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
+    return isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+}
+
 function getReportNameInternal({
     report,
     policy,
@@ -4559,6 +4574,42 @@ function getReportNameInternal({
     if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         return getDowngradeWorkspaceMessage();
     }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CURRENCY) {
+        return getWorkspaceCurrencyUpdateMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD) {
+        return getWorkspaceUpdateFieldMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
+        return translateLocal('systemMessage.mergedWithCashTransaction');
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME) {
+        return Str.htmlDecode(getWorkspaceNameUpdatedMessage(parentReportAction));
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REPORTING_FREQUENCY) {
+        return getWorkspaceFrequencyUpdateMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD) {
+        return getWorkspaceReportFieldAddMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD) {
+        return getWorkspaceReportFieldUpdateMessage(parentReportAction);
+    }
+    if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD) {
+        return getWorkspaceReportFieldDeleteMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
+        return getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(parentReportAction);
+    }
+
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
+        return getPolicyChangeLogDefaultBillableMessage(parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_TITLE_ENFORCED)) {
+        return getPolicyChangeLogDefaultTitleEnforcedMessage(parentReportAction);
+    }
+
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.APPROVED)) {
         const {automaticAction} = getOriginalMessage(parentReportAction) ?? {};
         if (automaticAction) {
@@ -4575,7 +4626,7 @@ function getReportNameInternal({
     }
 
     if (isTaskReport(report)) {
-        return Parser.htmlToText(report?.reportName ?? '');
+        return Parser.htmlToText(report?.reportName ?? '').trim();
     }
 
     if (isChatThread(report)) {
@@ -4653,9 +4704,7 @@ function getReportNameInternal({
     }
 
     if (isInvoiceReport(report)) {
-        const moneyRequestReportName = getMoneyRequestReportName({report, policy, invoiceReceiverPolicy});
-        const oldDotInvoiceName = report?.reportName ?? moneyRequestReportName;
-        formattedName = isNewDotInvoice(report?.chatReportID) ? moneyRequestReportName : oldDotInvoiceName;
+        formattedName = getInvoiceReportName(report, policy, invoiceReceiverPolicy);
     }
 
     if (isInvoiceRoom(report)) {
@@ -8296,6 +8345,13 @@ function getTaskAssigneeChatOnyxData(
             },
             {
                 onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${assigneeChatReportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${assigneeChatReportID}`,
                 value: {[optimisticChatCreatedReportAction.reportActionID]: optimisticChatCreatedReportAction as Partial<ReportAction>},
             },
@@ -8311,6 +8367,13 @@ function getTaskAssigneeChatOnyxData(
                     },
                     // BE will send a different participant. We clear the optimistic one to avoid duplicated entries
                     participants: {[assigneeAccountID]: null},
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${assigneeChatReportID}`,
+                value: {
+                    isOptimisticReport: false,
                 },
             },
             {
@@ -9488,6 +9551,17 @@ function getGroupChatDraft() {
     return newGroupChatDraft;
 }
 
+function getChatListItemReportName(action: ReportAction & {reportName?: string}, report: SearchReport | undefined): string {
+    if (report && isInvoiceReport(report)) {
+        const properInvoiceReport = report;
+        properInvoiceReport.chatReportID = report.parentReportID;
+
+        return getInvoiceReportName(properInvoiceReport);
+    }
+
+    return action?.reportName ?? '';
+}
+
 export {
     addDomainToShortMention,
     completeShortMention,
@@ -9842,6 +9916,8 @@ export {
     getTitleReportField,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
+    getInvoiceReportName,
+    getChatListItemReportName,
 };
 
 export type {

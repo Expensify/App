@@ -179,6 +179,9 @@ type Receipt = {
 
     /** Collection of reservations */
     reservationList?: Reservation[];
+
+    /** Receipt is manager_mctest@expensify.com testing receipt */
+    isTestReceipt?: true;
 };
 
 /** Model of route */

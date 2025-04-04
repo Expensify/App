@@ -571,13 +571,13 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
                     navigateToConfirmationStep(file, source, false, true);
                 },
                 (error) => {
                     console.error('Error reading test receipt:', error);
                 },
-                'image/png',
+                CONST.TEST_RECEIPT.FILE_TYPE,
             );
         } catch (error) {
             console.error('Error in setTestReceiptAndNavigate:', error);
@@ -590,7 +590,7 @@ function IOURequestStepScan({
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
             },
         },
     );

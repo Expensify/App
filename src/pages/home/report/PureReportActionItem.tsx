@@ -107,14 +107,17 @@ import {
     chatIncludesConcierge,
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
+    getDowngradeWorkspaceMessage,
     getIconsForParticipants,
     getIOUApprovedMessage,
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getPolicyChangeMessage,
+    getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
+    getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     isArchivedNonExpenseReport,
@@ -874,7 +877,7 @@ function PureReportActionItem({
             const wasSubmittedViaHarvesting = getOriginalMessage(action)?.harvesting ?? false;
             if (wasSubmittedViaHarvesting) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${getReportAutomaticallySubmittedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -885,7 +888,7 @@ function PureReportActionItem({
             const wasAutoApproved = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoApproved) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${getReportAutomaticallyApprovedMessage(action, report)}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -898,7 +901,7 @@ function PureReportActionItem({
             const wasAutoForwarded = getOriginalMessage(action)?.automaticAction ?? false;
             if (wasAutoForwarded) {
                 children = (
-                    <ReportActionItemBasicMessage message="">
+                    <ReportActionItemBasicMessage>
                         <RenderHTML html={`<comment><muted-text>${reportAutomaticallyForwardedMessage}</muted-text></comment>`} />
                     </ReportActionItemBasicMessage>
                 );
@@ -906,11 +909,11 @@ function PureReportActionItem({
                 children = <ReportActionItemBasicMessage message={getIOUForwardedMessage(action, report)} />;
             }
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REJECTED) {
-            children = <ReportActionItemBasicMessage message={translate('iou.rejectedThisReport')} />;
+            children = <ReportActionItemBasicMessage message={getRejectedReportMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.CORPORATE_UPGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.upgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getUpgradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
-            children = <ReportActionItemBasicMessage message={translate('workspaceActions.downgradedWorkspace')} />;
+            children = <ReportActionItemBasicMessage message={getDowngradeWorkspaceMessage()} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
             children = <ReportActionItemBasicMessage message={translate('iou.heldExpense')} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD_COMMENT) {
