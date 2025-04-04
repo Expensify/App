@@ -73,7 +73,7 @@ function MoneyRequestReportPreview({
         />
     );
 
-    return transactions.length > 0 ? (
+    return (
         <MoneyRequestReportPreviewContent
             containerStyles={[reportPreviewStyles.componentStyle, containerStyles]}
             contextMenuAnchor={contextMenuAnchor}
@@ -101,8 +101,6 @@ function MoneyRequestReportPreview({
             }}
             reportPreviewStyles={reportPreviewStyles}
         />
-    ) : (
-        <EmptyRequestReport />
     );
 }
 

@@ -1,20 +1,15 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {FlatList, View} from 'react-native';
+import React, {useState} from 'react';
+import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
-import Button from '@components/Button';
-import Icon from '@components/Icon';
+import Folder from '@assets/images/folder.svg';
+import Badge from '@components/Badge';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
-import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
-import TransactionPreviewContent from '@components/ReportActionItem/TransactionPreview/TransactionPreviewContent';
-import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
+import * as Expensicon from '@components/Icon/Expensicons';
+import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {submitReport} from '@userActions/IOU';
-import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 function EmptyRequestReport() {
     const StyleUtils = useStyleUtils();
@@ -24,6 +19,19 @@ function EmptyRequestReport() {
     const [currentWidth, setCurrentWidth] = useState(256);
 
     const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, true);
+
+    const TransactionContent = (
+        <View style={[styles.border, styles.reportContainerBorderRadius]}>
+            <View style={[[styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius, styles.moneyRequestPreviewBox]]}>
+                <Badge
+                    icon={Expensicon.Folder}
+                    text=""
+                    success
+                />
+            </View>
+        </View>
+    );
+
     return (
         <View style={[reportPreviewStyles.wrapperStyle]}>
             <View style={[reportPreviewStyles.contentContainerStyle]}>
@@ -40,8 +48,8 @@ function EmptyRequestReport() {
                                         testID="MoneyRequestReportPreview-reportName"
                                     >
                                         REPORT ACTION NAME
+                                        {TransactionContent}
                                     </Text>
-                                    {/* {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>} */}
                                 </Text>
                             </Animated.View>
                         </View>

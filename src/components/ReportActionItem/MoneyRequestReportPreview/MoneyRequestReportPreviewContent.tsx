@@ -1,3 +1,4 @@
+import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
@@ -6,6 +7,7 @@ import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes'
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -438,245 +440,290 @@ function MoneyRequestReportPreviewContent({
     );
 
     return (
-        transactions.length > 0 && (
-            <OfflineWithFeedback
-                pendingAction={iouReport?.pendingFields?.preview}
-                shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
-                needsOffscreenAlphaCompositing
-                style={styles.mt1}
+        <OfflineWithFeedback
+            pendingAction={iouReport?.pendingFields?.preview}
+            shouldDisableOpacity={!!(action.pendingAction ?? action.isOptimisticAction)}
+            needsOffscreenAlphaCompositing
+            style={styles.mt1}
+        >
+            <View
+                style={[styles.chatItemMessage, containerStyles]}
+                onLayout={getCurrentWidth}
             >
-                <View
-                    style={[styles.chatItemMessage, containerStyles]}
-                    onLayout={getCurrentWidth}
+                <PressableWithoutFeedback
+                    onPress={() => {}}
+                    onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
+                    onPressOut={() => ControlSelection.unblock()}
+                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    shouldUseHapticsOnLongPress
+                    style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
+                    role={getButtonRole(true)}
+                    isNested
+                    accessibilityLabel={translate('iou.viewDetails')}
                 >
-                    <PressableWithoutFeedback
-                        onPress={() => {}}
-                        onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-                        onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
-                        shouldUseHapticsOnLongPress
-                        style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
-                        role={getButtonRole(true)}
-                        isNested
-                        accessibilityLabel={translate('iou.viewDetails')}
+                    <View
+                        style={[
+                            StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                            styles.reportContainerBorderRadius,
+                            styles.w100,
+                            (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
+                        ]}
                     >
-                        <View
-                            style={[
-                                StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                                styles.reportContainerBorderRadius,
-                                styles.w100,
-                                (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
-                            ]}
-                        >
-                            {/* cokolwiek */}
-                            <View style={[reportPreviewStyles.wrapperStyle]}>
-                                <View style={[reportPreviewStyles.contentContainerStyle]}>
-                                    <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, (isApproved || iouSettled) && styles.mtn1]}>
-                                                <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
+                        {/* cokolwiek */}
+                        <View style={[reportPreviewStyles.wrapperStyle]}>
+                            <View style={[reportPreviewStyles.contentContainerStyle]}>
+                                <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
+                                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
+                                        <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, (isApproved || iouSettled) && styles.mtn1]}>
+                                            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
+                                                <Text
+                                                    onLayout={onTextLayoutChange}
+                                                    style={[styles.lh20]}
+                                                    numberOfLines={3}
+                                                >
+                                                    {FixIconPadding}
                                                     <Text
-                                                        onLayout={onTextLayoutChange}
-                                                        style={[styles.lh20]}
-                                                        numberOfLines={3}
+                                                        style={[styles.headerText]}
+                                                        testID="MoneyRequestReportPreview-reportName"
                                                     >
-                                                        {FixIconPadding}
-                                                        <Text
-                                                            style={[styles.headerText]}
-                                                            testID="MoneyRequestReportPreview-reportName"
-                                                        >
-                                                            {action.childReportName}
-                                                        </Text>
-                                                        {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
+                                                        {action.childReportName}
                                                     </Text>
-                                                    {doesReportNameOverflow && (
-                                                        <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
-                                                            {approvedOrSettledicon}
-                                                        </View>
-                                                    )}
-                                                </Animated.View>
-                                            </View>
-                                            {!shouldUseNarrowLayout && transactions.length > 2 && (
-                                                <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                    <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
-                                                    <PressableWithFeedback
-                                                        accessibilityRole="button"
-                                                        accessible
-                                                        accessibilityLabel="button"
-                                                        style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
-                                                        onPress={() => handleChange(currentIndex - 1)}
-                                                        disabled={currentIndex === 0}
-                                                        disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
-                                                    >
-                                                        <Icon
-                                                            src={Expensicons.BackArrow}
-                                                            small
-                                                            fill={theme.icon}
-                                                            isButtonIcon
-                                                        />
-                                                    </PressableWithFeedback>
-                                                    <PressableWithFeedback
-                                                        accessibilityRole="button"
-                                                        accessible
-                                                        accessibilityLabel="button"
-                                                        style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
-                                                        onPress={() => handleChange(currentIndex + 1)}
-                                                        disabled={lastVisibleIndex === Math.min(transactions.length - 1, 10)}
-                                                        disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
-                                                    >
-                                                        <Icon
-                                                            src={Expensicons.ArrowRight}
-                                                            small
-                                                            fill={theme.icon}
-                                                            isButtonIcon
-                                                        />
-                                                    </PressableWithFeedback>
-                                                </View>
-                                            )}
-                                        </View>
-                                        {shouldShowRBR && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                <Icon
-                                                    src={Expensicons.DotIndicator}
-                                                    fill={theme.danger}
-                                                />
-                                                <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>
-                                                    {translate('violations.reviewRequired')}
+                                                    {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                 </Text>
-                                            </View>
-                                        )}
-                                    </View>
-                                    <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
-                                        <FlatList
-                                            snapToAlignment="start"
-                                            decelerationRate="fast"
-                                            snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
-                                            horizontal
-                                            data={transactions.slice(0, 11)}
-                                            ref={carouselRef}
-                                            nestedScrollEnabled
-                                            scrollEnabled={transactions.length > 1}
-                                            keyExtractor={(item) => item.transactionID}
-                                            contentContainerStyle={[styles.gap2]}
-                                            style={reportPreviewStyles.flatListStyle}
-                                            showsHorizontalScrollIndicator={false}
-                                            renderItem={renderFlatlistItem}
-                                            onViewableItemsChanged={onViewableItemsChanged}
-                                            viewabilityConfig={viewabilityConfig}
-                                            ListFooterComponent={<View style={styles.pl2} />}
-                                            ListHeaderComponent={<View style={styles.pr2} />}
-                                        />
-                                    </View>
-                                    {shouldUseNarrowLayout && transactions.length > 1 && (
-                                        <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
-                                            {transactions.slice(0, 11).map((item, index) => (
+                                                {doesReportNameOverflow && (
+                                                    <View style={[styles.mtn0Half, (transactions.length < 3 || shouldUseNarrowLayout) && styles.alignSelfStart]}>
+                                                        {approvedOrSettledicon}
+                                                    </View>
+                                                )}
+                                            </Animated.View>
+                                        </View>
+                                        {!shouldUseNarrowLayout && transactions.length > 2 && (
+                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                                <Text style={[styles.textLabelSupporting, styles.textLabelSupporting, styles.lh20, styles.mr1]}>{supportText}</Text>
                                                 <PressableWithFeedback
                                                     accessibilityRole="button"
                                                     accessible
                                                     accessibilityLabel="button"
-                                                    style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
-                                                    onPress={() => handleChange(index)}
-                                                />
-                                            ))}
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(currentIndex - 1)}
+                                                    disabled={currentIndex === 0}
+                                                    disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.BackArrow}
+                                                        small
+                                                        fill={theme.icon}
+                                                        isButtonIcon
+                                                    />
+                                                </PressableWithFeedback>
+                                                <PressableWithFeedback
+                                                    accessibilityRole="button"
+                                                    accessible
+                                                    accessibilityLabel="button"
+                                                    style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
+                                                    onPress={() => handleChange(currentIndex + 1)}
+                                                    disabled={lastVisibleIndex === Math.min(transactions.length - 1, 10)}
+                                                    disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
+                                                >
+                                                    <Icon
+                                                        src={Expensicons.ArrowRight}
+                                                        small
+                                                        fill={theme.icon}
+                                                        isButtonIcon
+                                                    />
+                                                </PressableWithFeedback>
+                                            </View>
+                                        )}
+                                    </View>
+                                    {shouldShowRBR && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            <Icon
+                                                src={Expensicons.DotIndicator}
+                                                fill={theme.danger}
+                                            />
+                                            <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>{translate('violations.reviewRequired')}</Text>
                                         </View>
                                     )}
-                                    {shouldShowSettlementButton && !shouldShowRBR && (
-                                        <AnimatedSettlementButton
-                                            onlyShowPayElsewhere={onlyShowPayElsewhere}
-                                            isPaidAnimationRunning={isPaidAnimationRunning}
-                                            isApprovedAnimationRunning={isApprovedAnimationRunning}
-                                            canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
-                                            onAnimationFinish={stopAnimation}
-                                            formattedAmount={getSettlementAmount() ?? ''}
-                                            currency={iouReport?.currency}
-                                            policyID={policyID}
-                                            chatReportID={chatReportID}
-                                            iouReport={iouReport}
-                                            wrapperStyle={buttonMaxWidth}
-                                            onPress={confirmPayment}
-                                            onPaymentOptionsShow={onPaymentOptionsShow}
-                                            onPaymentOptionsHide={onPaymentOptionsHide}
-                                            confirmApproval={confirmApproval}
-                                            enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
-                                            addBankAccountRoute={bankAccountRoute}
-                                            shouldHidePaymentOptions={!shouldShowPayButton}
-                                            shouldShowApproveButton={shouldShowApproveButton}
-                                            shouldDisableApproveButton={shouldDisableApproveButton}
-                                            kycWallAnchorAlignment={{
-                                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                            }}
-                                            paymentMethodDropdownAnchorAlignment={{
-                                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                            }}
-                                            isDisabled={isOffline && !canAllowSettlement}
-                                            isLoading={!isOffline && !canAllowSettlement}
-                                        />
-                                    )}
-                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && shouldShowRBR && (
-                                        <ExportWithDropdownMenu
-                                            policy={policy}
-                                            report={iouReport}
-                                            connectionName={connectedIntegration}
-                                            wrapperStyle={[buttonMaxWidth, styles.flexReset]}
-                                            dropdownAnchorAlignment={{
-                                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-                                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
-                                            }}
-                                        />
-                                    )}
-                                    {!shouldShowSubmitButton && shouldShowRBR && (shouldShowSettlementButton || !!shouldShowExportIntegrationButton) && (
-                                        <Button
-                                            icon={Expensicons.DotIndicator}
-                                            iconFill={theme.danger}
-                                            iconHoverFill={theme.danger}
-                                            text={translate('common.review', {amount: shouldShowSettlementButton ? getSettlementAmount() : ''})}
-                                            onPress={() => {}}
-                                            style={buttonMaxWidth}
-                                        />
-                                    )}
-                                    {shouldShowSubmitButton && (
-                                        <Button
-                                            success={isWaitingForSubmissionFromCurrentUser}
-                                            text={translate('common.submit')}
-                                            style={buttonMaxWidth}
-                                            onPress={() => iouReport && submitReport(iouReport)}
-                                            isDisabled={shouldDisableSubmitButton}
-                                        />
-                                    )}
                                 </View>
+                                <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
+                                    <FlatList
+                                        snapToAlignment="start"
+                                        decelerationRate="fast"
+                                        snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
+                                        horizontal
+                                        data={transactions.slice(0, 11)}
+                                        ref={carouselRef}
+                                        nestedScrollEnabled
+                                        scrollEnabled={transactions.length > 1}
+                                        keyExtractor={(item) => item.transactionID}
+                                        contentContainerStyle={[styles.gap2]}
+                                        style={reportPreviewStyles.flatListStyle}
+                                        showsHorizontalScrollIndicator={false}
+                                        renderItem={renderFlatlistItem}
+                                        onViewableItemsChanged={onViewableItemsChanged}
+                                        viewabilityConfig={viewabilityConfig}
+                                        ListFooterComponent={<View style={styles.pl2} />}
+                                        ListHeaderComponent={<View style={styles.pr2} />}
+                                    />
+                                </View>
+                                {shouldUseNarrowLayout && transactions.length > 1 && (
+                                    <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
+                                        {transactions.slice(0, 11).map((item, index) => (
+                                            <PressableWithFeedback
+                                                accessibilityRole="button"
+                                                accessible
+                                                accessibilityLabel="button"
+                                                style={[styles.reportPreviewCarouselDots, {backgroundColor: index === currentIndex ? theme.icon : theme.buttonDefaultBG}]}
+                                                onPress={() => handleChange(index)}
+                                            />
+                                        ))}
+                                    </View>
+                                )}
+                                {shouldShowSettlementButton && !shouldShowRBR && (
+                                    <AnimatedSettlementButton
+                                        onlyShowPayElsewhere={onlyShowPayElsewhere}
+                                        isPaidAnimationRunning={isPaidAnimationRunning}
+                                        isApprovedAnimationRunning={isApprovedAnimationRunning}
+                                        canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
+                                        onAnimationFinish={stopAnimation}
+                                        formattedAmount={getSettlementAmount() ?? ''}
+                                        currency={iouReport?.currency}
+                                        policyID={policyID}
+                                        chatReportID={chatReportID}
+                                        iouReport={iouReport}
+                                        wrapperStyle={buttonMaxWidth}
+                                        onPress={confirmPayment}
+                                        onPaymentOptionsShow={onPaymentOptionsShow}
+                                        onPaymentOptionsHide={onPaymentOptionsHide}
+                                        confirmApproval={confirmApproval}
+                                        enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
+                                        addBankAccountRoute={bankAccountRoute}
+                                        shouldHidePaymentOptions={!shouldShowPayButton}
+                                        shouldShowApproveButton={shouldShowApproveButton}
+                                        shouldDisableApproveButton={shouldDisableApproveButton}
+                                        kycWallAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        paymentMethodDropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                        isDisabled={isOffline && !canAllowSettlement}
+                                        isLoading={!isOffline && !canAllowSettlement}
+                                    />
+                                )}
+                                {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && shouldShowRBR && (
+                                    <ExportWithDropdownMenu
+                                        policy={policy}
+                                        report={iouReport}
+                                        connectionName={connectedIntegration}
+                                        wrapperStyle={[buttonMaxWidth, styles.flexReset]}
+                                        dropdownAnchorAlignment={{
+                                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                                        }}
+                                    />
+                                )}
+                                {!shouldShowSubmitButton && shouldShowRBR && (shouldShowSettlementButton || !!shouldShowExportIntegrationButton) && (
+                                    <Button
+                                        icon={Expensicons.DotIndicator}
+                                        iconFill={theme.danger}
+                                        iconHoverFill={theme.danger}
+                                        text={translate('common.review', {amount: shouldShowSettlementButton ? getSettlementAmount() : ''})}
+                                        onPress={() => {}}
+                                        style={buttonMaxWidth}
+                                    />
+                                )}
+                                {shouldShowSubmitButton && (
+                                    <Button
+                                        success={isWaitingForSubmissionFromCurrentUser}
+                                        text={translate('common.submit')}
+                                        style={buttonMaxWidth}
+                                        onPress={() => iouReport && submitReport(iouReport)}
+                                        isDisabled={shouldDisableSubmitButton}
+                                    />
+                                )}
                             </View>
                         </View>
-                    </PressableWithoutFeedback>
-                </View>
-                <DelegateNoAccessModal
-                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                />
+                        {isEmpty(transactions) && (
+                            <View
+                                style={[
+                                    {minWidth: 335, backgroundColor: theme.highlightBG, marginLeft: 0, marginRight: 0, gap: 16, paddingBottom: 16},
+                                    styles.alignItemsCenter,
+                                    styles.reportContainerBorderRadius,
+                                ]}
+                            >
+                                <View
+                                    style={[
+                                        {
+                                            borderWidth: 1,
+                                            borderColor: theme.border,
+                                            borderRadius: 16,
+                                            height: 168,
+                                            width: 303,
+                                        },
+                                        styles.justifyContentCenter,
+                                        styles.alignItemsCenter,
+                                    ]}
+                                >
+                                    <View style={[{margin: 4}, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                                        {/* <EmptyStateComponent */}
+                                        {/*     subtitle="This report has no expenses" */}
+                                        {/*     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION} */}
+                                        {/*     headerMedia={Expensicons.Folder} */}
+                                        {/*     headerStyles={[{maxHeight: 64, maxWidth: 64, fill: theme.border}]} */}
+                                        {/*     cardStyles={[styles.alignItemsCenter, {backgroundColor: theme.highlightBG, maxHeight: 50}]} */}
+                                        {/*     cardContentStyles={[{maxHeight: 30}]} */}
+                                        {/*     containerStyles={[styles.justifyContentStart]} */}
+                                        {/* /> */}
+                                        <ImageSVG
+                                            fill={theme.border}
+                                            height={64}
+                                            width={64}
+                                            src={Expensicons.Folder}
+                                        />
+                                        <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>This report has no expenses</Text>
+                                    </View>
+                                </View>
+                                <Button
+                                    success
+                                    text="PLACEHOLDER BUTTON"
+                                    style={[{width: 303, height: 40}]}
+                                    onPress={() => {}}
+                                    isDisabled={false}
+                                />
+                            </View>
+                        )}
+                    </View>
+                </PressableWithoutFeedback>
+            </View>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
 
-                {isHoldMenuVisible && !!iouReport && !!requestType && (
-                    <ProcessMoneyReportHoldMenu
-                        nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
-                        requestType={requestType}
-                        fullAmount={fullAmount}
-                        onClose={() => setIsHoldMenuVisible(false)}
-                        isVisible={isHoldMenuVisible}
-                        paymentType={paymentType}
-                        chatReport={chatReport}
-                        moneyRequestReport={iouReport}
-                        transactionCount={numberOfRequests}
-                        startAnimation={() => {
-                            if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
-                                startApprovedAnimation();
-                            } else {
-                                startAnimation();
-                            }
-                        }}
-                    />
-                )}
-            </OfflineWithFeedback>
-        )
+            {isHoldMenuVisible && !!iouReport && !!requestType && (
+                <ProcessMoneyReportHoldMenu
+                    nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
+                    requestType={requestType}
+                    fullAmount={fullAmount}
+                    onClose={() => setIsHoldMenuVisible(false)}
+                    isVisible={isHoldMenuVisible}
+                    paymentType={paymentType}
+                    chatReport={chatReport}
+                    moneyRequestReport={iouReport}
+                    transactionCount={numberOfRequests}
+                    startAnimation={() => {
+                        if (requestType === CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {
+                            startApprovedAnimation();
+                        } else {
+                            startAnimation();
+                        }
+                    }}
+                />
+            )}
+        </OfflineWithFeedback>
     );
 }
 
