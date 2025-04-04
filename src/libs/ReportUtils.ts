@@ -4216,6 +4216,10 @@ function getModifiedExpenseOriginalMessage(
         originalMessage.oldAttendees = getAttendees(oldTransaction);
         originalMessage.newAttendees = transactionChanges?.attendees;
     }
+    if ('waypoints' in transactionChanges) {
+        originalMessage.oldMerchant = getMerchant(oldTransaction);
+        originalMessage.merchant = translateLocal('iou.updatedTheDistanceOptimistically');
+    }
 
     // The amount is always a combination of the currency and the number value so when one changes we need to store both
     // to match how we handle the modified expense action in oldDot

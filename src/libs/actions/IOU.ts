@@ -176,7 +176,6 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
     isExpensifyCardTransaction,
-    isFetchingWaypointsFromServer,
     isOnHold,
     isPartialMerchant,
     isPending,
@@ -3720,12 +3719,11 @@ function getUpdateMoneyRequestParams(
 
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if:
-    // - we're updating the waypoints
     // - we're updating the distance rate while the waypoints are still pending
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
-    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction))) {
+    if (!hasModifiedDistanceRate) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -3755,7 +3753,7 @@ function getUpdateMoneyRequestParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: {pendingAction: null},
+                [updatedReportAction.reportActionID]: hasPendingWaypoints ? null : {pendingAction: null},
             },
         });
         failureData.push({
@@ -4112,12 +4110,11 @@ function getUpdateTrackExpenseParams(
 
     // Step 3: Build the modified expense report actions
     // We don't create a modified report action if:
-    // - we're updating the waypoints
     // - we're updating the distance rate while the waypoints are still pending
     // In these cases, there isn't a valid optimistic mileage data we can use,
     // and the report action is created on the server with the distance-related response from the MapBox API
     const updatedReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction);
-    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction))) {
+    if (!hasModifiedDistanceRate) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -4131,7 +4128,7 @@ function getUpdateTrackExpenseParams(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
             value: {
-                [updatedReportAction.reportActionID]: {pendingAction: null},
+                [updatedReportAction.reportActionID]: hasPendingWaypoints ? null : {pendingAction: null},
             },
         });
         failureData.push({
