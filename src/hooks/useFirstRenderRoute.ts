@@ -2,22 +2,22 @@ import {useEffect, useRef} from 'react';
 import Navigation from '@navigation/Navigation';
 
 function useFirstRenderRoute(focusExceptionRoutes?: string[]) {
-  const initialRoute = useRef<string | null>(null);
+    const initialRoute = useRef<string | null>(null);
 
-  useEffect(() => {
-    initialRoute.current = Navigation.getActiveRouteWithoutParams();
-  }, []);
+    useEffect(() => {
+        initialRoute.current = Navigation.getActiveRouteWithoutParams();
+    }, []);
 
-  return {
-    get isFocused() {
-      const activeRoute = Navigation.getActiveRouteWithoutParams();
-      const allRoutesToConsider = [initialRoute.current, ...(focusExceptionRoutes ?? [])];
-      return allRoutesToConsider.includes(activeRoute);
-    },
-    get firstRenderRoute() {
-      return initialRoute.current;
-    },
-  };
+    return {
+        get isFocused() {
+            const activeRoute = Navigation.getActiveRouteWithoutParams();
+            const allRoutesToConsider = [initialRoute.current, ...(focusExceptionRoutes ?? [])];
+            return allRoutesToConsider.includes(activeRoute);
+        },
+        get firstRenderRoute() {
+            return initialRoute.current;
+        },
+    };
 }
 
 export default useFirstRenderRoute;
