@@ -1594,14 +1594,15 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
  * Note: Prefer `ReportActionsUtils.isCurrentActionUnread` over this method, if applicable.
  * Check whether a specific report action is unread.
  */
-function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string) {
+function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string, report?: OnyxEntry<Report>) {
     if (!lastReadTime) {
         return !isCreatedAction(reportAction);
     }
 
-    // Only a limited number of actions should ever cause a chat to be marked unread.
-    if (reportAction && !ACTIONABLE_ACTIONS.includes(reportAction.actionName)) {
-        return false;
+    // Since most kinds of report actions should not mark a chat unread, we only update the lastVisibleActionCreate when
+    // a new report action should mark it unread. If we have access to the lVAC time, then let's use that.
+    if (report && report.lastVisibleActionCreated) {
+        return !!(lastReadTime && lastReadTime < report.lastVisibleActionCreated);
     }
 
     return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
@@ -1619,7 +1620,7 @@ function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAc
         return false;
     }
     const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
-    return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
+    return isReportActionUnread(reportAction, lastReadTime, report) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime, report));
 }
 
 /**
