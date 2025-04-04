@@ -64,7 +64,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 });
             }
         },
-        [insets, shouldHideOnScroll],
+        [insets, shouldHideOnScroll, isNative],
     );
 
     useLayoutEffect(() => {
