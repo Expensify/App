@@ -552,20 +552,6 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 }
 
 /**
- * Get the last actor last name from last actor details.
- */
-function getLastActorLastName(lastActorDetails: Partial<PersonalDetails> | null) {
-    if (!lastActorDetails) {
-        return '';
-    }
-
-    return lastActorDetails.accountID !== currentUserAccountID
-        ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-          lastActorDetails.lastName || ''
-        : '';
-}
-
-/**
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
@@ -716,7 +702,6 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             true,
             lastReportAction,
         );
-
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});

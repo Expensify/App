@@ -4149,6 +4149,7 @@ function getReportPreviewMessage(
     // if we have the amount in the originalMessage and lastActorID, we can use that to display the preview message for the latest expense
     if (amount !== undefined && lastActorID && !isPreviewMessageForParentChatReport) {
         const amountToDisplay = convertToDisplayString(Math.abs(amount), currency);
+
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== currentUserAccountID ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport}) : '';
