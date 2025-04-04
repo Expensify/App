@@ -13,6 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
+import {setOnboardingErrorMessage, updateOnboardingShouldValidate} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
@@ -80,9 +81,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
                 progressBarPercentage={40}
                 onBackButtonPress={() => {
-                    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
-                        shouldValidate: false,
-                    });
+                    updateOnboardingShouldValidate(false);
 
                     Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
                 }}
@@ -103,7 +102,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         style={[styles.mb5]}
                         text={translate('common.buttonConfirm')}
                         onPress={() => {
-                            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, null);
+                            setOnboardingErrorMessage('');
                             if (isVsb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                                 return;
@@ -120,9 +119,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         validateCodeAction={validateCodeAction}
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
-                        clearError={() => {
-                            Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, null);
-                        }}
+                        clearError={() => setOnboardingErrorMessage('')}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
