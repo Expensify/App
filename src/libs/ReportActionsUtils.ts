@@ -141,18 +141,6 @@ const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
 
 const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
 
-/**
- * The only actions that should ever allow a chat to be marked unread in the LHN.
- */
-const ACTIONABLE_ACTIONS = [
-    CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
-    CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER,
-    CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER,
-    CONST.REPORT.ACTIONS.TYPE.CLOSED,
-    CONST.REPORT.ACTIONS.TYPE.CREATED,
-    CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM,
-] as ReportActionName[];
-
 function isCreatedAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
 }
