@@ -85,7 +85,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 {!!cancelSearch && (
                     <PressableWithoutFeedback
                         accessibilityLabel={translate('common.cancel')}
-                        style={[styles.textBlue, styles.ph2]}
+                        style={[styles.textBlue, !canUseLeftHandBar && styles.ph2]}
                         onPress={() => {
                             cancelSearch();
                         }}
