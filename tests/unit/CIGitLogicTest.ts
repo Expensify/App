@@ -326,12 +326,6 @@ describe('CIGitLogic', () => {
     beforeAll(() => {
         Log.info('Starting setup');
         startingDir = process.cwd();
-
-        if (fs.existsSync(startingDir)) {
-            Log.warn(`Found existing directory at ${startingDir}, deleting it to simulate a fresh test instance...`);
-            fs.rmSync(startingDir, {recursive: true});
-        }
-
         initGitServer();
         checkoutRepo();
         Log.success('Setup complete!');
