@@ -93,11 +93,11 @@ Onyx.connect({
     },
 });
 
-let isTeamPricing2025: OnyxEntry<boolean>;
+let hasTeamPricing2025: OnyxEntry<boolean>;
 Onyx.connect({
     key: ONYXKEYS.NVP_PRIVATE_TEAM_PRICING_2025,
     callback: (value) => {
-        isTeamPricing2025 = value;
+        hasTeamPricing2025 = value;
     },
 });
 
@@ -570,7 +570,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 }
 
 function checkIfNewSubscription() {
-    if (isTeamPricing2025) {
+    if (hasTeamPricing2025) {
         return true;
     }
 
@@ -589,7 +589,7 @@ function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, prefe
     const isNewSubscription = checkIfNewSubscription();
 
     if (isNewSubscription && plan === CONST.POLICY.TYPE.TEAM) {
-        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.NEW_PRICE_2025];
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][privateSubscriptionType];

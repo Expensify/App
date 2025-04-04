@@ -17,7 +17,7 @@ function useSubscriptionPrice(): number {
     }
 
     if (isNewSubscription && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][CONST.SUBSCRIPTION.NEW_PRICE_2025];
+        return CONST.SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
     }
 
     return CONST.SUBSCRIPTION_PRICES[preferredCurrency][subscriptionPlan][subscriptionType];
