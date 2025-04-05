@@ -123,7 +123,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
-    const {canUseTalkToAISales} = usePermissions();
+    const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
     const shouldShowTalkToSales = canUseTalkToAISales && isAdminRoom(report);
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
@@ -268,7 +268,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
