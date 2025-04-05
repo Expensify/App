@@ -10,14 +10,18 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ExpensifyCardSettings} from '@src/types/onyx';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListHeaderProps = {
     /** ID of the current policy */
     policyID: string;
+
+    /** Card settings */
+    cardSettings: ExpensifyCardSettings | undefined;
 };
 
-function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
+function WorkspaceCardListHeader({policyID, cardSettings}: WorkspaceCardListHeaderProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -26,7 +30,6 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
 
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
