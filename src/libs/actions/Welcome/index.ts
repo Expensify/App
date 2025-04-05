@@ -122,6 +122,10 @@ function updateOnboardingLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
 }
 
+function updateOnboardingShouldValidate(shouldValidate: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {shouldValidate});
+}
+
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -236,4 +240,5 @@ export {
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,
+    updateOnboardingShouldValidate,
 };
