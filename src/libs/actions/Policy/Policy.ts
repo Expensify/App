@@ -1844,6 +1844,7 @@ function buildPolicyData(
                     enabled: !shouldEnableWorkflowsByDefault,
                 },
                 customUnits,
+                reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO,
                 areCategoriesEnabled: true,
                 areCompanyCardsEnabled: true,
                 areTagsEnabled: false,
