@@ -8,7 +8,7 @@ import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
-import ImageView from './ImageView';
+import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
 
@@ -79,9 +79,9 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 accessibilityLabel="Image Thumbnail"
             >
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
-                    <ImageView
-                        url={source}
-                        fileName={fileName ?? ''}
+                    <Image
+                        source={{uri: source}}
+                        style={[[styles.w100, styles.h100], styles.overflowHidden]}
                     />
                 </View>
             </PressableWithFeedback>
