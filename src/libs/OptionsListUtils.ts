@@ -845,9 +845,10 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
+        const reportNameValuePairs = getReportNameValuePairs(report.reportID);
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
-        result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
+        result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
@@ -890,6 +891,7 @@ function createOption(
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
             shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
