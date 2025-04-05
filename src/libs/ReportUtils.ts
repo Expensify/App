@@ -24,6 +24,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     IntroSelected,
@@ -182,6 +183,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
+    shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -8229,6 +8231,29 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
+function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
+    const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWrite);
+
+    if (isInNarrowPaneModal) {
+        Navigation.navigate(
+            ROUTES.SEARCH_REPORT.getRoute({
+                reportID: ancestor.report.reportID,
+                reportActionID: ancestor.reportAction.reportActionID,
+                backTo: SCREENS.SEARCH.REPORT_RHP,
+            }),
+        );
+        return;
+    }
+
+    // Pop the thread report screen before navigating to the chat report.
+    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
+
+    if (isVisibleAction && !isOffline) {
+        // Pop the chat report screen before navigating to the linked report action.
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
+    }
+}
+
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
     const reportErrors = getCreationReportErrors(report);
 
@@ -10517,6 +10542,7 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    navigateToLinkedReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
     getTitleReportField,
