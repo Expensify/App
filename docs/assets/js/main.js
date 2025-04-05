@@ -349,3 +349,23 @@ window.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
+
+window.addEventListener('DOMContentLoaded', function () {
+    const containers = document.querySelectorAll('.video-container');
+
+    containers.forEach((container) => {
+        const video = container.querySelector('.video-player');
+        const playWrapper = container.querySelector('.play-button-wrapper');
+
+        const playButton = playWrapper.querySelector('.play-button');
+
+        playButton.addEventListener('click', () => {
+            playWrapper.style.display = 'none';
+            video.play();
+        });
+
+        video.addEventListener('play', () => {
+            playWrapper.style.display = 'none';
+        });
+    });
+});
