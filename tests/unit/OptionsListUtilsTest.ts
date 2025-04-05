@@ -22,7 +22,7 @@ import {
     orderOptions,
     orderWorkspaceOptions,
 } from '@src/libs/OptionsListUtils';
-import type {OptionList, Options} from '@src/libs/OptionsListUtils';
+import type {OptionList, Options, SearchOption} from '@src/libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -608,167 +608,213 @@ describe('OptionsListUtils', () => {
         expect(results.personalDetails.at(3)?.text).toBe('Invisible Woman');
     });
 
-    it('getValidOptions()', () => {
-        // When we don't include personal detail to the result
-        let results = getValidOptions({
-            personalDetails: [],
-            reports: [],
+    describe('getValidOptions()', () => {
+        it('should correctly filter personal details and special users based on provided options', () => {
+            // When we don't include personal detail to the result
+            let results = getValidOptions({
+                personalDetails: [],
+                reports: [],
+            });
+
+            // Then no personal detail options will be returned
+            expect(results.personalDetails.length).toBe(0);
+
+            // Test for Concierge's existence in chat options
+
+            results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
+
+            // Concierge is included in the results by default. We should expect all the personalDetails to show
+            // (minus the currently logged in user)
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
+            expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+
+            // Test by excluding Concierge from the results
+            results = getValidOptions(
+                {
+                    reports: OPTIONS_WITH_CONCIERGE.reports,
+                    personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
+                },
+                {
+                    excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                },
+            );
+
+            // All the personalDetails should be returned minus the currently logged in user and Concierge
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+
+            // Test by excluding Chronos from the results
+            results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
+
+            // All the personalDetails should be returned minus the currently logged in user and Concierge
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
+
+            // Test by excluding Receipts from the results
+            results = getValidOptions(
+                {
+                    reports: OPTIONS_WITH_RECEIPTS.reports,
+                    personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
+                },
+                {
+                    excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                },
+            );
+
+            // All the personalDetails should be returned minus the currently logged in user and Concierge
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+
+            // Test for check if Manager McTest is correctly included or excluded from the results
+            let options = getValidOptions(
+                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+            );
+            expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+            // Manager McTest should be included to recipients when the user has already submitted an expense
+            options = getValidOptions(
+                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+            );
+
+            expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
+                .then(() => {
+                    // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
+                    const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
+                        {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                        {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                    );
+                    expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+                });
         });
 
-        // Then no personal detail options will be returned
-        expect(results.personalDetails.length).toBe(0);
+        it('should work for group Chat', () => {
+            // When we call getValidOptions() with no search value
+            let results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
 
-        // Test for Concierge's existence in chat options
+            // We should expect all the personalDetails to show except the currently logged in user
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
 
-        results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
+            // And none of our personalDetails should include any of the users with recent reports
+            const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
+            const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
+            expect(personalDetailsOverlapWithReports).toBe(false);
 
-        // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the currently logged in user)
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
-        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+            // When we provide a "selected" option to getValidOptions()
+            results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
 
-        // Test by excluding Concierge from the results
-        results = getValidOptions(
-            {
-                reports: OPTIONS_WITH_CONCIERGE.reports,
-                personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
-            },
-            {
-                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-            },
-        );
+            // Then the option should not appear anywhere in either list
+            expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
+            expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
 
-        // All the personalDetails should be returned minus the currently logged in user and Concierge
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+            // Test Concierge's existence in new group options
+            results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
 
-        // Test by excluding Chronos from the results
-        results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
+            // Concierge is included in the results by default. We should expect all the personalDetails to show
+            // (minus the currently logged in user)
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
+            expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
-        // All the personalDetails should be returned minus the currently logged in user and Concierge
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
+            // Test by excluding Concierge from the results
+            results = getValidOptions(
+                {
+                    reports: OPTIONS_WITH_CONCIERGE.reports,
+                    personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
+                },
+                {
+                    excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
+                },
+            );
 
-        // Test by excluding Receipts from the results
-        results = getValidOptions(
-            {
-                reports: OPTIONS_WITH_RECEIPTS.reports,
-                personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
-            },
-            {
-                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-            },
-        );
+            // We should expect all the personalDetails to show (minus
+            // the currently logged in user and Concierge)
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
+            expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
 
-        // All the personalDetails should be returned minus the currently logged in user and Concierge
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+            // Test by excluding Chronos from the results
+            results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
 
-        // Test for check if Manager McTest is correctly included or excluded from the results
-        let options = getValidOptions(
-            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-            {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
-        );
-        expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+            // We should expect all the personalDetails to show (minus
+            // the currently logged in user and Concierge)
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
+            expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
 
-        // Manager McTest should be included to recipients when the user has already submitted an expense
-        options = getValidOptions(
-            {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-            {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
-        );
+            // Test by excluding Receipts from the results
+            results = getValidOptions(
+                {
+                    reports: OPTIONS_WITH_RECEIPTS.reports,
+                    personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
+                },
+                {
+                    excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
+                },
+            );
 
-        expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+            // We should expect all the personalDetails to show (minus
+            // the currently logged in user and Concierge)
+            // Filtering of personalDetails that have reports is done in filterOptions
+            expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
+            expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+            expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+        });
 
-        return waitForBatchedUpdates()
-            .then(() => Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: new Date() as unknown as string}))
-            .then(() => {
-                // Manager McTest shouldn't be included to recipients when the user has already submitted an expense
-                const optionsWhenUserAlreadySubmittedExpense = getValidOptions(
-                    {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                    {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
-                );
-                expect(optionsWhenUserAlreadySubmittedExpense.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
-            });
-    });
+        it('should keep admin rooms if specified', () => {
+            const adminRoom: SearchOption<Report> = {
+                item: {
+                    chatType: 'policyAdmins',
+                    currency: 'USD',
+                    errorFields: {},
+                    lastActionType: 'CREATED',
+                    lastReadTime: '2025-03-21 07:25:46.279',
+                    lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                    lastVisibleActionLastModified: '2024-12-15 21:13:24.317',
+                    ownerAccountID: 0,
+                    permissions: ['read', 'write'],
+                    policyID: '52A5ABD88FBBD18F',
+                    policyName: "David's Playground",
+                    reportID: '1455140530846319',
+                    reportName: '#admins',
+                    type: 'chat',
+                    writeCapability: 'all',
+                },
+                text: '#admins',
+                alternateText: "David's Playground",
+                allReportErrors: {},
+                subtitle: "David's Playground",
+                participantsList: [],
+                reportID: '1455140530846319',
+                keyForList: '1455140530846319',
+                isDefaultRoom: true,
+                isChatRoom: true,
+                policyID: '52A5ABD88FBBD18F',
+                lastMessageText: '',
+                lastVisibleActionCreated: '2024-12-15 21:13:24.317',
+                notificationPreference: 'hidden',
+            };
 
-    it('getValidOptions() for group Chat', () => {
-        // When we call getValidOptions() with no search value
-        let results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
-
-        // We should expect all the personalDetails to show except the currently logged in user
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS.personalDetails).length - 1);
-
-        // And none of our personalDetails should include any of the users with recent reports
-        const reportLogins = results.recentReports.map((reportOption) => reportOption.login);
-        const personalDetailsOverlapWithReports = results.personalDetails.every((personalDetailOption) => reportLogins.includes(personalDetailOption.login));
-        expect(personalDetailsOverlapWithReports).toBe(false);
-
-        // When we provide a "selected" option to getValidOptions()
-        results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: {'peterparker@expensify.com': true}});
-
-        // Then the option should not appear anywhere in either list
-        expect(results.recentReports.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-        expect(results.personalDetails.every((option) => option.login !== 'peterparker@expensify.com')).toBe(true);
-
-        // Test Concierge's existence in new group options
-        results = getValidOptions({reports: OPTIONS_WITH_CONCIERGE.reports, personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails});
-
-        // Concierge is included in the results by default. We should expect all the personalDetails to show
-        // (minus the currently logged in user)
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 1);
-        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
-
-        // Test by excluding Concierge from the results
-        results = getValidOptions(
-            {
-                reports: OPTIONS_WITH_CONCIERGE.reports,
-                personalDetails: OPTIONS_WITH_CONCIERGE.personalDetails,
-            },
-            {
-                excludeLogins: {[CONST.EMAIL.CONCIERGE]: true},
-            },
-        );
-
-        // We should expect all the personalDetails to show (minus
-        // the currently logged in user and Concierge)
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CONCIERGE.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
-        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'concierge@expensify.com'})]));
-
-        // Test by excluding Chronos from the results
-        results = getValidOptions({reports: OPTIONS_WITH_CHRONOS.reports, personalDetails: OPTIONS_WITH_CHRONOS.personalDetails}, {excludeLogins: {[CONST.EMAIL.CHRONOS]: true}});
-
-        // We should expect all the personalDetails to show (minus
-        // the currently logged in user and Concierge)
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_CHRONOS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
-        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'chronos@expensify.com'})]));
-
-        // Test by excluding Receipts from the results
-        results = getValidOptions(
-            {
-                reports: OPTIONS_WITH_RECEIPTS.reports,
-                personalDetails: OPTIONS_WITH_RECEIPTS.personalDetails,
-            },
-            {
-                excludeLogins: {[CONST.EMAIL.RECEIPTS]: true},
-            },
-        );
-
-        // We should expect all the personalDetails to show (minus
-        // the currently logged in user and Concierge)
-        // Filtering of personalDetails that have reports is done in filterOptions
-        expect(results.personalDetails.length).toBe(Object.values(OPTIONS_WITH_RECEIPTS.personalDetails).length - 2);
-        expect(results.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
-        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({login: 'receipts@expensify.com'})]));
+            const results = getValidOptions(
+                {reports: [adminRoom], personalDetails: OPTIONS.personalDetails},
+                {
+                    includeMultipleParticipantReports: true,
+                },
+            );
+            const adminRoomOption = results.recentReports.find((report) => report.reportID === '1455140530846319');
+            expect(adminRoomOption).toBeDefined();
+        });
     });
 
     it('getShareDestinationsOptions()', () => {
