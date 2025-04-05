@@ -10,6 +10,7 @@ import {addDelegate, clearDelegateErrorsByField} from '@userActions/Delegate';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DelegateMagicCodeModalProps = {
     login: string;
@@ -42,7 +43,7 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
     };
 
     const clearError = () => {
-        if (!validateLoginError) {
+        if (isEmptyObject(validateLoginError) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
         clearDelegateErrorsByField(currentDelegate?.email ?? '', 'addDelegate');
@@ -54,11 +55,11 @@ function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModal
             shouldHandleNavigationBack={shouldHandleNavigationBack}
             clearError={clearError}
             onClose={onBackButtonPress}
+            validateCodeActionErrorField="addDelegate"
             validateError={validateLoginError}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={(validateCode) => addDelegate(login, role, validateCode)}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
