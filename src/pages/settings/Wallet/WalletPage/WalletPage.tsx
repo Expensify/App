@@ -388,6 +388,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
         />
     );
 

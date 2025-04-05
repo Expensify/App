@@ -23,6 +23,7 @@ import {clearInviteDraft} from '@libs/actions/Policy/Member';
 import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -180,7 +181,14 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={() => Navigation.goBack(backTo)}
+            onBackButtonPress={() => {
+                if (backTo) {
+                    Navigation.goBack(backTo);
+                    return;
+                }
+
+                goBackFromWorkspaceCentralScreen(policy?.id);
+            }}
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
