@@ -27,7 +27,11 @@ jobs:
       # This command is necessary to fetch any branch other than main in the submodule.
       # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
       - name: Enable branch-switching in submodules
-        run: git submodule foreach 'git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"'
+        run: |
+          git submodule foreach '\
+            git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
+            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production" && \
+            git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"'
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
