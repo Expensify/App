@@ -312,6 +312,28 @@ describe('actions/Policy', () => {
                 callback: (policy) => {
                     // Then the autoReportingFrequency should be set to manually
                     expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    expect(policy?.harvesting?.enabled).toBe(false);
+                },
+            });
+        });
+
+        it('create a new workspace with delayed submission set to manually if the onboarding choice is not selected', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: undefined});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the autoReportingFrequency should be set to manually
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    expect(policy?.harvesting?.enabled).toBe(false);
                 },
             });
         });
