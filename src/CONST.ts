@@ -772,6 +772,7 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
     },
     BUTTON_STATES: {
@@ -1205,7 +1206,7 @@ const CONST = {
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
@@ -1325,6 +1326,7 @@ const CONST = {
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
+            USER: 'CANCEL_REASON_USER',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
@@ -2314,6 +2316,7 @@ const CONST = {
         '_brazil',
         '_bulgaria',
         '_canada',
+        '_chile',
         '_china',
         '_costaRica',
         '_croatia',
@@ -3421,7 +3424,7 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
@@ -3542,7 +3545,9 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        MERCHANT: "Taco Todd's",
         FILENAME: 'test_receipt',
+        FILE_TYPE: 'image/png',
     },
 
     AVATAR_CROP_MODAL: {
@@ -5347,31 +5352,6 @@ const CONST = {
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
                         `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
-                },
-                {
-                    type: 'addExpenseApprovals',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({workspaceMoreFeaturesLink}) => `Add [expense approvals](${workspaceMoreFeaturesLink})`,
-                    description: ({workspaceMoreFeaturesLink}) =>
-                        '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
-                        '\n' +
-                        'Here’s how to add expense approvals:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *More features*.\n' +
-                        '5. Enable *Workflows*.\n' +
-                        '6. Navigate to *Workflows* in the workspace editor.\n' +
-                        '7. Enable *Add approvals*.\n' +
-                        '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
-                        '\n' +
-                        `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
-                        '\n' +
-                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4)`,
                 },
                 {
                     type: 'inviteTeam',

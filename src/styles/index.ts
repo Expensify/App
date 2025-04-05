@@ -151,6 +151,18 @@ const webViewStyles = (theme: ThemeColors) =>
         // styles from the renderer, just pass the "style" prop to the underlying
         // component.
         tagStyles: {
+            em: {
+                // We set fontFamily and fontStyle directly in order to avoid overriding fontWeight.
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontFamily,
+                fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
+            },
+
+            strong: {
+                // We set fontFamily and fontWeight directly in order to avoid overriding fontStyle.
+                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
+                fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+            },
+
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
@@ -168,17 +180,6 @@ const webViewStyles = (theme: ThemeColors) =>
 
             li: {
                 flexShrink: 1,
-            },
-
-            blockquote: {
-                borderLeftColor: theme.border,
-                borderLeftWidth: 4,
-                paddingLeft: 12,
-                marginTop: 4,
-                marginBottom: 4,
-
-                // Overwrite default HTML margin for blockquotes
-                marginLeft: 0,
             },
 
             pre: {
@@ -218,6 +219,8 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
+                fontSize: undefined,
+                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -263,6 +266,16 @@ const styles = (theme: ThemeColors) =>
             boxShadow: variables.popoverMenuShadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
+        blockquote: {
+            borderLeftColor: theme.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
+        },
 
         h1: {
             fontSize: variables.fontSizeLarge,
@@ -274,11 +287,6 @@ const styles = (theme: ThemeColors) =>
         strong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
             fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
-        },
-
-        em: {
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontFamily,
-            fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
         autoCompleteSuggestionContainer: {
@@ -2738,6 +2746,12 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        blockingErrorViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
+            alignSelf: 'center',
+        },
+
         forcedBlockingViewContainer: {
             ...positioning.pFixed,
             top: 0,
@@ -3490,13 +3504,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
             ...spacing.ml4,
-        },
-
-        blockquote: {
-            borderLeftColor: theme.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginVertical: 4,
         },
 
         noSelect: {

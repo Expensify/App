@@ -18,16 +18,17 @@ import Navigation from '@navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 function SearchFiltersCardPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const illustrations = useThemeIllustrations();
 
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList, userCardListMetadata] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds, workspaceCardFeedsMetadata] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm, searchAdvancedFiltersFormMetadata] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const personalDetails = usePersonalDetails();
 
     const [selectedCards, setSelectedCards] = useState<string[]>([]);
@@ -166,34 +167,37 @@ function SearchFiltersCardPage() {
             offlineIndicatorStyle={styles.mtAuto}
             shouldEnableMaxHeight
         >
-            <HeaderWithBackButton
-                title={translate('common.card')}
-                onBackButtonPress={() => {
-                    Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-                }}
-            />
-            <View style={[styles.flex1]}>
-                <SelectionList<CardFilterItem>
-                    sections={sections}
-                    onSelectRow={updateNewCards}
-                    footerContent={footerContent}
-                    headerMessage={headerMessage}
-                    shouldStopPropagation
-                    shouldShowTooltips
-                    canSelectMultiple
-                    shouldPreventDefaultFocusOnSelectRow={false}
-                    shouldKeepFocusedItemAtTopOfViewableArea={false}
-                    shouldScrollToFocusedIndex={false}
-                    ListItem={CardListItem}
-                    shouldShowTextInput={shouldShowSearchInput}
-                    textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
-                    textInputValue={searchTerm}
-                    onChangeText={(value) => {
-                        setSearchTerm(value);
-                    }}
-                    showLoadingPlaceholder
-                />
-            </View>
+            {({didScreenTransitionEnd}) => (
+                <>
+                    <HeaderWithBackButton
+                        title={translate('common.card')}
+                        onBackButtonPress={() => {
+                            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+                        }}
+                    />
+                    <View style={[styles.flex1]}>
+                        <SelectionList<CardFilterItem>
+                            sections={sections}
+                            onSelectRow={updateNewCards}
+                            footerContent={footerContent}
+                            headerMessage={headerMessage}
+                            shouldStopPropagation
+                            shouldShowTooltips
+                            canSelectMultiple
+                            shouldPreventDefaultFocusOnSelectRow={false}
+                            shouldKeepFocusedItemAtTopOfViewableArea={false}
+                            ListItem={CardListItem}
+                            shouldShowTextInput={shouldShowSearchInput}
+                            textInputLabel={shouldShowSearchInput ? translate('common.search') : undefined}
+                            textInputValue={searchTerm}
+                            onChangeText={(value) => {
+                                setSearchTerm(value);
+                            }}
+                            showLoadingPlaceholder={isLoadingOnyxValue(userCardListMetadata, workspaceCardFeedsMetadata, searchAdvancedFiltersFormMetadata) || !didScreenTransitionEnd}
+                        />
+                    </View>
+                </>
+            )}
         </ScreenWrapper>
     );
 }
