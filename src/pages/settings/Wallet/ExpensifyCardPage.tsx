@@ -14,6 +14,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -79,6 +80,7 @@ function ExpensifyCardPage({
     const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual;
     const domain = cardList?.[cardID]?.domainName ?? '';
     const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
+    const {displayName} = useCurrentUserPersonalDetails();
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -288,6 +290,7 @@ function ExpensifyCardPage({
                     <RNAddToWalletButton
                         card={cardToAdd}
                         buttonStyle={{alignSelf: 'center'}}
+                        cardHolderName={displayName}
                     />
                 )}
             </ScrollView>
