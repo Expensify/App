@@ -1801,6 +1801,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [SCREENS.SUBMIT_EXPENSE]: undefined;
     [SCREENS.ATTACHMENTS]: {
         reportID: string;
+        attachmentID?: string;
         source: string;
         type: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
         accountID: string;
@@ -1841,6 +1842,8 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;

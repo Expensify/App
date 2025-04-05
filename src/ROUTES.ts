@@ -415,6 +415,7 @@ const ROUTES = {
         route: 'attachment',
         getRoute: (
             reportID: string | undefined,
+            attachmentID: string | undefined,
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
             url: string,
             accountID?: number,
@@ -427,8 +428,11 @@ const ROUTES = {
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+            const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type as string}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}&type=${
+                type as string
+            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -1830,15 +1834,17 @@ const ROUTES = {
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
     TRANSACTION_RECEIPT: {
-        route: 'r/:reportID/transaction/:transactionID/receipt',
-        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false) => {
+        route: 'r/:reportID/transaction/:transactionID/receipt/:action?/:iouType?',
+        getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false, action?: IOUAction, iouType?: IOUType) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the TRANSACTION_RECEIPT route');
             }
             if (!transactionID) {
                 Log.warn('Invalid transactionID is used to build the TRANSACTION_RECEIPT route');
             }
-            return `r/${reportID}/transaction/${transactionID}/receipt?readonly=${readonly}${isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''}` as const;
+            return `r/${reportID}/transaction/${transactionID}/receipt${action ? `/${action}` : ''}${iouType ? `/${iouType}` : ''}?readonly=${readonly}${
+                isFromReviewDuplicates ? '&isFromReviewDuplicates=true' : ''
+            }` as const;
         },
     },
 
