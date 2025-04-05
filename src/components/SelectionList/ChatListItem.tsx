@@ -60,6 +60,7 @@ function ChatListItem<TItem extends ListItem>({
         action: undefined,
         transactionThreadReport: undefined,
         checkIfContextMenuActive: () => {},
+        onShowContextMenu: () => {},
         isDisabled: true,
     };
 
