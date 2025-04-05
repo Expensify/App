@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidRoutingNumber} from '@libs/ValidationUtils';
 import ExampleCheckImage from '@pages/ReimbursementAccount/USD/BankInfo/ExampleCheck';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,11 +33,11 @@ function Manual({onNext}: ManualProps) {
         [BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER]: reimbursementAccount?.achData?.[BANK_INFO_STEP_KEYS.ACCOUNT_NUMBER] ?? '',
     };
 
-    const hasBankAccountData = !!(reimbursementAccount?.achData?.bankAccountID ?? '');
+    const hasBankAccountData = !!reimbursementAccount?.achData?.bankAccountID;
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
             const routingNumber = values.routingNumber?.trim();
 
             if (
@@ -49,7 +49,7 @@ function Manual({onNext}: ManualProps) {
             } else if (values.accountNumber && values.accountNumber === routingNumber) {
                 errors.accountNumber = translate('bankAccount.error.routingAndAccountNumberCannotBeSame');
             }
-            if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !ValidationUtils.isValidRoutingNumber(routingNumber))) {
+            if (routingNumber && (!CONST.BANK_ACCOUNT.REGEX.SWIFT_BIC.test(routingNumber) || !isValidRoutingNumber(routingNumber))) {
                 errors.routingNumber = translate('bankAccount.error.routingNumber');
             }
 
