@@ -15,8 +15,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {
+    clearGetValidateCodeForAccountMerge,
     clearMergeWithValidateCode,
-    clearRequestValidationCodeForAccountMerge,
     mergeWithValidateCode as mergeWithValidateCodeAction,
     requestValidationCodeForAccountMerge,
 } from '@userActions/MergeAccounts';
@@ -73,7 +73,7 @@ function AccountValidatePage() {
     const mergeWithValidateCode = account?.mergeWithValidateCode;
     const getValidateCodeForAccountMerge = account?.getValidateCodeForAccountMerge;
 
-    const accountMerged = mergeWithValidateCode?.accountMerged;
+    const isAccountMerged = mergeWithValidateCode?.isAccountMerged;
 
     const latestError = getLatestErrorMessage(mergeWithValidateCode);
     const errorKey = getMergeErrorKey(latestError);
@@ -83,11 +83,11 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!accountMerged || !email) {
+            if (!isAccountMerged || !email) {
                 return;
             }
             return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, 'success'), {forceReplace: true});
-        }, [accountMerged, email]),
+        }, [isAccountMerged, email]),
     );
 
     useFocusEffect(
@@ -103,7 +103,7 @@ function AccountValidatePage() {
         useCallback(() => {
             return () => {
                 clearMergeWithValidateCode();
-                clearRequestValidationCodeForAccountMerge();
+                clearGetValidateCodeForAccountMerge();
             };
         }, []),
     );
@@ -140,7 +140,7 @@ function AccountValidatePage() {
                 sendValidateCode={() => {
                     requestValidationCodeForAccountMerge(email);
                 }}
-                skipInitialValidation
+                shouldSkipInitialValidation
                 clearError={() => clearMergeWithValidateCode()}
                 validateError={!errorKey ? mergeWithValidateCode?.errors : undefined}
                 hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}

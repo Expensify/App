@@ -20,7 +20,7 @@ function ValidateCodeActionForm({
     isLoading,
     submitButtonText,
     forwardedRef,
-    skipInitialValidation,
+    shouldSkipInitialValidation,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
 
@@ -29,7 +29,7 @@ function ValidateCodeActionForm({
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        if (!skipInitialValidation) {
+        if (!shouldSkipInitialValidation) {
             sendValidateCode();
         }
 
@@ -37,7 +37,7 @@ function ValidateCodeActionForm({
             isUnmounted.current = true;
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [skipInitialValidation]);
+    }, [shouldSkipInitialValidation]);
 
     useEffect(() => {
         return () => {

@@ -22,7 +22,7 @@ import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigat
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
-import {clearRequestValidationCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
+import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -87,7 +87,7 @@ function AccountDetailsPage() {
     useFocusEffect(
         useCallback(() => {
             return () => {
-                clearRequestValidationCodeForAccountMerge();
+                clearGetValidateCodeForAccountMerge();
             };
         }, []),
     );

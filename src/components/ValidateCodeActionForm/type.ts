@@ -37,7 +37,7 @@ type ValidateCodeActionFormProps = {
     submitButtonText?: string;
 
     /** Skip the call to sendValidateCode fn on initial render */
-    skipInitialValidation?: boolean;
+    shouldSkipInitialValidation?: boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

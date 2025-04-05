@@ -196,7 +196,7 @@ type Account = {
         isLoading?: boolean;
 
         /** Whether the account was merged successfully */
-        accountMerged?: boolean;
+        isAccountMerged?: boolean;
 
         /** Errors while merging the account */
         errors: OnyxCommon.Errors;

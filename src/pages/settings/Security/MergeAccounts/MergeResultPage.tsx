@@ -90,9 +90,7 @@ function MergeResultPage() {
                         {translate('mergeAccountsPage.mergeFailure2FA.oldAccount2FAEnabled.afterSecondEmail')}
                     </>
                 ),
-                cta: (
-                    <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>
-                ),
+                cta: <TextLink href={CONST.MERGE_ACCOUNT_HELP_URL}>{translate('mergeAccountsPage.mergeFailure2FA.learnMore')}</TextLink>,
                 ctaStyle: {...styles.mt2, ...styles.textSupporting},
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
                 buttonText: translate('common.buttonConfirm'),
@@ -276,7 +274,6 @@ function MergeResultPage() {
                 illustrationStyle={illustrationStyle}
                 cta={cta}
                 ctaStyle={ctaStyle}
-
             />
         </ScreenWrapper>
     );
