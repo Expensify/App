@@ -120,6 +120,16 @@ type DeleteTransactionParams = {
     merchant: string;
 };
 
+type MovedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
+};
+
+type UnreportedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -790,6 +800,8 @@ export type {
     RequestAmountParams,
     RequestCountParams,
     DeleteTransactionParams,
+    MovedTransactionParams,
+    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,

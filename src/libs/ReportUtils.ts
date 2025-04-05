@@ -9,7 +9,13 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {
+    OriginalMessageChangePolicy,
+    OriginalMessageIOU,
+    OriginalMessageModifiedExpense,
+    OriginalMessageMovedTransaction,
+    OriginalMessageUnreportedTransaction,
+} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
@@ -68,6 +74,7 @@ import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
+import {getEnvironmentURL} from './Environment/Environment';
 import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import isReportMessageAttachment from './isReportMessageAttachment';
@@ -813,6 +820,9 @@ Onyx.connect({
         conciergeChatReportID = value;
     },
 });
+
+let environmentURL: string;
+getEnvironmentURL().then((url: string) => (environmentURL = url));
 
 const defaultAvatarBuildingIconTestID = 'SvgDefaultAvatarBuilding Icon';
 Onyx.connect({
@@ -5583,6 +5593,28 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
+function getMovedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
+    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`]?.reportName ?? '';
+    const message = translateLocal('iou.movedTransaction', {
+        reportUrl: `${environmentURL}/r/${toReportID}`,
+        reportName,
+    });
+    return message;
+}
+
+function getUnreportedTransactionMessage(action: ReportAction) {
+    const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
+    const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`]?.reportName ?? '';
+    const message = translateLocal('iou.unreportedTransaction', {
+        reportUrl: `${environmentURL}/r/${fromReportID}`,
+        reportName,
+    });
+    return message;
+}
+
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -5926,6 +5958,84 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
         created: DateUtils.getDBTime(),
         originalMessage,
         message: changePolicyReportActionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we change the workspace of a report.
+ */
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string): ReportAction {
+    const originalMessage = {
+        toReportID,
+    };
+
+    const reportName = allReports?.[toReportID]?.reportName;
+    const movedTransactionMessage = [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            html: `moved this expense to <a href='${environmentURL}r/${toReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+            text: `moved this expense to ${reportName}`,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+        reportID: transactionThreadReportID,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage,
+        message: movedTransactionMessage,
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we unreport a transaction.
+ */
+function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string): ReportAction {
+    const originalMessage = {
+        fromReportID,
+    };
+
+    const reportName = allReports?.[fromReportID]?.reportName;
+    const unreportedTransactionMessage = [
+        {
+            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+            html: `removed this expense from <a href='${environmentURL}r/${fromReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
+            text: `removed this expense from ${reportName}`,
+        },
+    ];
+
+    return {
+        actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+        reportID: transactionThreadReportID,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage,
+        message: unreportedTransactionMessage,
         person: [
             {
                 style: 'strong',
@@ -9911,9 +10021,13 @@ export {
     isTestTransactionReport,
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
+    getMovedTransactionMessage,
+    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
-    buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
+    buildOptimisticMovedTransactionAction,
+    buildOptimisticUnreportedTransactionAction,
+    buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
