@@ -150,7 +150,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Profile,
                     screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                     brickRoadIndicator: profileBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE),
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
                 },
                 {
                     translationKey: 'common.wallet',
