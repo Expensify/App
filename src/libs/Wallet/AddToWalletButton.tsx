@@ -52,7 +52,7 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     if (isInWallet) {
         return (
             <View style={buttonStyle}>
-                <Text style={[{color: 'green'}]}>Card is already in wallet</Text>;
+                <Text>Card is already in wallet</Text>;
             </View>
         );
     }
