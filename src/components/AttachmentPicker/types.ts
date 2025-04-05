@@ -55,6 +55,9 @@ type AttachmentPickerProps = {
 
     /** Whether to allow multiple files to be selected. */
     fileLimit?: number;
+
+    /** A callback that will be called when the picker is opened. */
+    onOpenPicker?: () => void;
 };
 
 export default AttachmentPickerProps;
