@@ -100,15 +100,19 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 pc.addTrack(audioTrack);
 
                 const dc = pc.createDataChannel('openai-control');
-                dc.onerror = () => {
-                    throw new Error('Data channel error');
+                dc.onerror = (error: RTCErrorEvent) => {
+                    stopConnection();
+                    console.error('Data channel error', error);
+                    reject(new Error('Data channel error'));
                 };
                 dataChannel = dc;
 
                 // eslint-disable-next-line rulesdir/prefer-early-return
                 pc.oniceconnectionstatechange = () => {
                     if (pc.iceConnectionState === 'failed') {
-                        throw new Error('ICE connection failed');
+                        stopConnection();
+                        console.error('ICE connection failed');
+                        reject(new Error('ICE connection failed'));
                     }
                 };
 
@@ -117,7 +121,10 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                     if (event.track.kind === 'audio') {
                         const audioStream = event.streams.at(0);
                         if (!audioStream) {
-                            throw new Error('Failed to get stream');
+                            stopConnection();
+                            console.error('Failed to get audio stream');
+                            reject(new Error('Failed to get audio stream'));
+                            return;
                         }
                         playStreamSound(audioStream);
                     }
