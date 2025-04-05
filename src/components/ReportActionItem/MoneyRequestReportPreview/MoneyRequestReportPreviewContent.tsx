@@ -61,15 +61,7 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import {
-    getMerchant,
-    hasPendingUI,
-    isCardTransaction,
-    isPartialMerchant,
-    isPending,
-    isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolationForMultipleTransactions,
-} from '@libs/TransactionUtils';
+import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -181,7 +173,6 @@ function MoneyRequestReportPreviewContent({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
@@ -334,12 +325,10 @@ function MoneyRequestReportPreviewContent({
         }
         return {
             supportText: translate('iou.expenseCount', {
-                scanningReceipts: numberOfScanningReceipts,
-                pendingReceipts: numberOfPendingRequests,
                 count: numberOfRequests,
             }),
         };
-    }, [translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+    }, [translate, numberOfRequests]);
 
     /*
      * Manual export

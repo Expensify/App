@@ -456,7 +456,7 @@ function ReportPreview({
             };
         }
         return {
-            supportText: translate('iou.expenseCount', {
+            supportText: translate('iou.expenseCountWithStatus', {
                 scanningReceipts: numberOfScanningReceipts,
                 pendingReceipts: numberOfPendingRequests,
                 count: numberOfRequests,
