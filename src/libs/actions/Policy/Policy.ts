@@ -387,13 +387,13 @@ function deleteWorkspace(policyID: string, policyName: string) {
             },
         });
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
-            value: {
-                private_isArchived: currentTime,
-            },
-        });
+        // optimisticData.push({
+        //     onyxMethod: Onyx.METHOD.MERGE,
+        //     key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+        //     value: {
+        //         private_isArchived: currentTime,
+        //     },
+        // });
 
         optimisticData.push({
             onyxMethod: Onyx.METHOD.SET,
