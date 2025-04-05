@@ -20,7 +20,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, isExpensifyCard, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -226,7 +226,7 @@ function PaymentMethodList({
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: maskCardNumber(card.cardName, card.bank),
-                        description: getDescriptionForPolicyDomainCard(card.domainName),
+                        description: `${lastFourNumbersFromCardName(card.cardName)} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
@@ -279,7 +279,7 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: getDescriptionForPolicyDomainCard(card.domainName),
+                    description: `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,

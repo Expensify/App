@@ -198,7 +198,7 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
-        return cardName;
+        return cardName.replace(/ - \d{4}$/, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
@@ -206,6 +206,22 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     }
 
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
+ * Returns last 4 number from company card name
+ *
+ * @param cardName - card name with dash in the middle and 4 numbers in the end.
+ * @returns - Last 4 numbers
+ */
+function lastFourNumbersFromCardName(cardName: string | undefined): string {
+    const name = cardName ?? '';
+    const hasSpace = /\s/.test(name);
+    const match = name.match(/(\d{4})$/);
+    if (!cardName || cardName === '' || !hasSpace || !match) {
+        return '';
+    }
+    return match[1];
 }
 
 /**
@@ -601,6 +617,7 @@ export {
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
+    lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
