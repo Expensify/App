@@ -122,6 +122,7 @@ function ExpensifyCardPage({
             })
             .catch((error: string) => {
                 // Displaying magic code errors is handled in the modal, no need to set it on the card
+                // TODO: remove setValidateError once backend deploys https://github.com/Expensify/Web-Expensify/pull/46007
                 if (error === 'validateCodeForm.error.incorrectMagicCode') {
                     setValidateError(() => getMicroSecondOnyxErrorWithTranslationKey('validateCodeForm.error.incorrectMagicCode'));
                     return;
