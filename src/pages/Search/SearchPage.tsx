@@ -381,6 +381,13 @@ function SearchPage({route}: SearchPageProps) {
             </>
         );
     }
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+
+    const isDataLoaded =
+        searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && Array.isArray(status)
+            ? searchResults?.search?.status === status.join(',')
+            : searchResults?.search?.status === status;
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     return (
         <ScreenWrapper
@@ -401,6 +408,7 @@ function SearchPage({route}: SearchPageProps) {
                                 <View style={styles.flex1}>
                                     <HeaderGap />
                                     <TopBar
+                                        forceShowLoadingBar={shouldShowLoadingState}
                                         activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
