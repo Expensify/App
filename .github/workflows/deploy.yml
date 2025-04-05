@@ -161,12 +161,11 @@ jobs:
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+          # The Play Store is slow to review Android releases. To avoid halting production rollouts, we must wait for the previous release to finish rolling out before uploading a new one.
+          # Skip this release if the current prod release is not fully rolled out.
           if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-              echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
+            echo "Skipping Android release because the current prod release ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} has not fully rolled out"
+            exit 0
           fi
 
           # Submit the new version for review and slow rollout when it's approved
