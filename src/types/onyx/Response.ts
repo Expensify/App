@@ -13,6 +13,10 @@ type Data = {
 type ClientSecret = {
     /** The short lived secret value */
     value: string;
+
+    /** The expiration time in epoch time */
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    expires_at: number;
 };
 
 /** Model of server response */
