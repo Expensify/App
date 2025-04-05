@@ -12,6 +12,7 @@ import {useSearchContext} from '@components/Search/SearchContext';
 import type {ChatSearchStatus, ExpenseSearchStatus, InvoiceSearchStatus, SearchQueryJSON, TripSearchStatus} from '@components/Search/types';
 import SearchStatusSkeleton from '@components/Skeletons/SearchStatusSkeleton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -135,13 +136,13 @@ const chatOptions: Array<{type: SearchDataTypes; status: ChatSearchStatus; icon:
     {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         status: CONST.SEARCH.STATUS.CHAT.ATTACHMENTS,
-        icon: Expensicons.Document,
+        icon: Expensicons.Paperclip,
         text: 'common.attachments',
     },
     {
         type: CONST.SEARCH.DATA_TYPES.CHAT,
         status: CONST.SEARCH.STATUS.CHAT.LINKS,
-        icon: Expensicons.Paperclip,
+        icon: Expensicons.Link,
         text: 'common.links',
     },
     {
@@ -179,16 +180,25 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
+    const {hash} = queryJSON;
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const {isOffline} = useNetwork();
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
     const shouldShowSelectedDropdown = headerButtonsOptions.length > 0 && (!shouldUseNarrowLayout || (!!selectionMode && selectionMode.isEnabled));
+
+    const hasErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    if (hasErrors) {
+        return null;
+    }
 
     if (shouldShowStatusBarLoading) {
         return <SearchStatusSkeleton shouldAnimate />;
     }
 
     return (
-        <View style={[shouldShowSelectedDropdown ? styles.ph5 : styles.pr5, styles.mb2, styles.searchStatusBarContainer]}>
+        <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
             {shouldShowSelectedDropdown ? (
                 <ButtonWithDropdownMenu
                     onPress={() => null}

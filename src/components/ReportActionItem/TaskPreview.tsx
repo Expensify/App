@@ -24,6 +24,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import {isCanceledTaskReport, isOpenTaskReport, isReportManager} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
@@ -64,6 +65,9 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
     const {translate} = useLocalize();
     const theme = useTheme();
     const [taskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`);
+    const taskTitle = action?.childReportName ?? taskReport?.reportName ?? '';
+
+    const taskTitleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitle), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
 
     // The reportAction might not contain details regarding the taskReport
     // Only the direct parent reportAction will contain details about the taskReport
@@ -87,10 +91,10 @@ function TaskPreview({taskReportID, action, contextMenuAnchor, chatReportID, che
 
     const getTaskHTML = () => {
         if (isTaskCompleted) {
-            return `<del><comment>${action?.childReportName ?? taskReport?.reportName ?? ''}</comment></del>`;
+            return `<del><comment center>${taskTitleWithoutImage}</comment></del>`;
         }
 
-        return `<comment>${action?.childReportName ?? taskReport?.reportName ?? ''}</comment>`;
+        return `<comment center>${taskTitleWithoutImage}</comment>`;
     };
 
     return (

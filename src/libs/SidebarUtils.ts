@@ -18,7 +18,7 @@ import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translate, translateLocal} from './Localize';
-import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs} from './OptionsListUtils';
+import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
@@ -515,8 +515,7 @@ function getOptionData({
             : null;
     }
 
-    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails, hasMultipleParticipants);
-
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy);
@@ -552,7 +551,7 @@ function getOptionData({
                     accountID: lastAction.actorAccountID,
                 };
             }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, hasMultipleParticipants) : undefined;
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails) : undefined;
             const lastActionOriginalMessage = lastAction?.actionName ? getOriginalMessage(lastAction) : null;
             const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
             const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0;
@@ -562,7 +561,7 @@ function getOptionData({
                     : translate(preferredLocale, 'workspace.invite.removed');
             const users = translate(preferredLocale, targetAccountIDsLength > 1 ? 'workspace.invite.users' : 'workspace.invite.user');
             result.alternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName} ${verb} ${targetAccountIDsLength} ${users}`);
-            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]);
+            const roomName = getReportName(allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${lastActionOriginalMessage?.reportID}`]) || lastActionOriginalMessage?.roomName;
             if (roomName) {
                 const preposition =
                     lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM
@@ -645,7 +644,12 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+
+        if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
+            result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
+        } else {
+            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+        }
     }
 
     result.isIOUReportOwner = isIOUOwnedByCurrentUser(result as Report);
