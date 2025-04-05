@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import ONYXKEYS from '@src/ONYXKEYS';
 import conciergeChatReportIDConfig from './configs/conciergeChatReportID';
-import type {OnyxDerivedValueConfig} from './types';
+import type OnyxDerivedValueConfig from './types';
 
 /**
  * Global map of derived configs.
