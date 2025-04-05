@@ -2137,7 +2137,7 @@ function hasOnlyNonReimbursableTransactions(iouReportID: string | undefined): bo
  */
 function isOneTransactionReport(reportID: string | undefined): boolean {
     const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? ([] as ReportAction[]);
-    return getOneTransactionThreadReportID(reportID, reportActions) !== null;
+    return !!getOneTransactionThreadReportID(reportID, reportActions);
 }
 
 /*
@@ -2919,7 +2919,7 @@ function getIcons(
         };
         const isManager = currentUserAccountID === report?.managerID;
 
-        // For one transaction IOUs, display a simplified report icon
+        // For one transaction IOUs, display a simplified report icon.
         if (isOneTransactionReport(report?.reportID)) {
             return [ownerIcon];
         }
