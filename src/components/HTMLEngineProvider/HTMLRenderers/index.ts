@@ -1,6 +1,7 @@
 import type {CustomTagRendererRecord} from 'react-native-render-html';
 import AnchorRenderer from './AnchorRenderer';
 import CodeRenderer from './CodeRenderer';
+import CustomEmojiRenderer from './CustomEmojiRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
@@ -38,6 +39,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
+    'custom-emoji': CustomEmojiRenderer,
     'mention-short': ShortMentionRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
