@@ -26,7 +26,7 @@ import GenericFeaturesView from './GenericFeaturesView';
 type Props = {
     buttonDisabled?: boolean;
     loading?: boolean;
-    feature?: ValueOf<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING>;
+    feature?: ValueOf<Omit<typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING, typeof CONST.UPGRADE_FEATURE_INTRO_MAPPING.policyPreventMemberChangingTitle.id>>;
     onUpgrade: () => void;
     isCategorizing?: boolean;
     policyID?: string;
