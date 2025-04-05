@@ -27,7 +27,11 @@ jobs:
       # This command is necessary to fetch any branch other than main in the submodule.
       # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
       - name: Enable branch-switching in submodules
-        run: git submodule foreach 'git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"'
+        run: |
+          git submodule foreach '\
+            git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
+            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production" && \
+            git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"'
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
@@ -92,15 +96,15 @@ jobs:
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getMobileExpensifyVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
           git push origin staging
 
-      - name: Update the Mobile-Expensify submodule on E/App staging
-        run: |
-          git add Mobile-Expensify
-          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
-
       - name: Cherry-pick the E/App version-bump to staging
         run: |
           git switch staging
           git cherry-pick -S -x --mainline 1 --strategy=recursive -Xtheirs ${{ steps.getVersionBumpCommit.outputs.VERSION_BUMP_SHA }}
+
+      - name: Update the Mobile-Expensify submodule on E/App staging
+        run: |
+          git add Mobile-Expensify
+          git commit -m "Update Mobile-Expensify submodule version to ${{ needs.createNewVersion.outputs.NEW_VERSION }}"
 
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
