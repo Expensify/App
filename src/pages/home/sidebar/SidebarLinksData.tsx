@@ -5,9 +5,10 @@ import {useOnyx} from 'react-native-onyx';
 import type {EdgeInsets} from 'react-native-safe-area-context';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import {useReportIDs} from '@hooks/useReportIDs';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Policy from '@userActions/Policy/Policy';
+import {getAssignedSupportData, openWorkspace} from '@libs/actions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SidebarLinks from './SidebarLinks';
@@ -27,12 +28,15 @@ function SidebarLinksData({insets}: SidebarLinksDataProps) {
 
     const {orderedReportIDs, currentReportID, policyMemberAccountIDs} = useReportIDs();
 
+    const previousActiveWorkspaceID = usePrevious(activeWorkspaceID);
+
     useEffect(() => {
-        if (!activeWorkspaceID) {
+        if (!activeWorkspaceID || previousActiveWorkspaceID === activeWorkspaceID) {
             return;
         }
 
-        Policy.openWorkspace(activeWorkspaceID, policyMemberAccountIDs);
+        openWorkspace(activeWorkspaceID, policyMemberAccountIDs);
+        getAssignedSupportData(activeWorkspaceID);
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [activeWorkspaceID]);
 
