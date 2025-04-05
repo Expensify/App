@@ -1,5 +1,5 @@
 import {AddToWalletButton} from '@expensify/react-native-wallet';
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import Text from '@components/Text';
@@ -16,7 +16,7 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
 
-    useEffect(() => {
+    const checkIfCardIsInWallet = useCallback(() => {
         isCardInWallet(card)
             .then((result) => {
                 setIsInWallet(result);
@@ -25,6 +25,15 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
                 setIsInWallet(false);
             });
     }, [card]);
+
+    const handleOnPress = useCallback(() => {
+        handleAddCardToWallet(card, cardHolderName ?? '');
+        checkIfCardIsInWallet();
+    }, [card, cardHolderName, checkIfCardIsInWallet]);
+
+    useEffect(() => {
+        checkIfCardIsInWallet();
+    }, [checkIfCardIsInWallet]);
 
     useEffect(() => {
         checkIfWalletIsAvailable()
@@ -52,7 +61,7 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
         <AddToWalletButton
             buttonStyle={buttonStyle}
             locale="en"
-            onPress={() => handleAddCardToWallet(card, cardHolderName ?? '')}
+            onPress={handleOnPress}
         />
     );
 }

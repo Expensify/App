@@ -1,6 +1,7 @@
 import {addCardToAppleWallet, checkWalletAvailability, getCardStatus} from '@expensify/react-native-wallet';
 import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
 import {Alert} from 'react-native';
+import Log from '@libs/__mocks__/Log';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import type {Card} from '@src/types/onyx';
 
@@ -8,19 +9,20 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName?: string) {
+function handleAddCardToWallet(card: Card, cardHolderName: string) {
     const data = {
         network: 'VISA',
         lastDigits: card.lastFourPAN,
         cardDescription: card.nameValuePairs?.isVirtual ? 'Expensify Virtual Card' : 'Expensify Physical Card',
-        cardHolderName: cardHolderName ?? 'Test',
+        cardHolderName,
     } as IOSCardData;
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
         .then(() => {
-            Alert.alert('Card added to wallet successfully');
+            //
         })
         .catch((e) => {
+            Log.warn(`Error adding card to wallet: ${e}`);
             Alert.alert('Failed to add card to wallet', 'Please try again later.');
         });
 }
@@ -32,6 +34,7 @@ function isCardInWallet(card: Card): Promise<boolean> {
                 return status === 'active';
             })
             .catch((e) => {
+                Log.warn(`Error getting card status: ${e}`);
                 return Promise.resolve(card.state === 6);
             });
     }
