@@ -36,7 +36,10 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
+    const [user] = useOnyx(ONYXKEYS.USER);
+
+    const isOnPrivateDomainAndHasAccessiblePolicies = !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
@@ -68,10 +71,14 @@ function OnboardingModalNavigator() {
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.PURPOSE}
-                                component={OnboardingPurpose}
-                            />
+                            {/* The OnboardingPurpose screen is shown after the workspace step when the user is on a private domain and has accessible policies.
+                             */}
+                            {!isOnPrivateDomainAndHasAccessiblePolicies && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PURPOSE}
+                                    component={OnboardingPurpose}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
@@ -84,6 +91,14 @@ function OnboardingModalNavigator() {
                                 name={SCREENS.ONBOARDING.WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
+                            {/* The OnboardingPurpose screen is only shown after the workspace step when the user is on a private domain and has accessible policies
+                             */}
+                            {!!isOnPrivateDomainAndHasAccessiblePolicies && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PURPOSE}
+                                    component={OnboardingPurpose}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.EMPLOYEES}
                                 component={OnboardingEmployees}

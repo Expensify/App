@@ -111,6 +111,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
+import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -257,4 +258,5 @@ export type {
     SidePane,
     LastPaymentMethodType,
     TalkToAISales,
+    ValidateUserAndGetAccessiblePolicies,
 };

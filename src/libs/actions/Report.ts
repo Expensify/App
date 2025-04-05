@@ -244,6 +244,7 @@ const addNewMessageWithText = new Set<string>([WRITE_COMMANDS.ADD_COMMENT, WRITE
 let conciergeChatReportID: string | undefined;
 let currentUserAccountID = -1;
 let currentUserEmail: string | undefined;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -3243,7 +3244,7 @@ function openReportFromDeepLink(url: string) {
                         }
                         // We need skip deeplinking if the user hasn't completed the guided setup flow.
                         isOnboardingFlowCompleted({
-                            onNotCompleted: startOnboardingFlow,
+                            onNotCompleted: () => startOnboardingFlow(),
                             onCompleted: handleDeeplinkNavigation,
                             onCanceled: handleDeeplinkNavigation,
                         });

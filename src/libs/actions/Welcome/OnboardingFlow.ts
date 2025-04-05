@@ -37,9 +37,9 @@ Onyx.connect({
 /**
  * Start a new onboarding flow or continue from the last visited onboarding page.
  */
-function startOnboardingFlow(isPrivateDomain?: boolean) {
+function startOnboardingFlow() {
     const currentRoute = navigationRef.getCurrentRoute();
-    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config, false);
+    const adaptedState = getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config, false);
     const focusedRoute = findFocusedRoute(adaptedState as PartialState<NavigationState<RootNavigatorParamList>>);
     if (focusedRoute?.name === currentRoute?.name) {
         return;
@@ -51,7 +51,7 @@ function startOnboardingFlow(isPrivateDomain?: boolean) {
     } as PartialState<NavigationState>);
 }
 
-function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
+function getOnboardingInitialPath(): string {
     const state = getStateFromPath(onboardingInitialPath, linkingConfig.config);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
@@ -59,10 +59,6 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
         Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
         Onyx.set(ONYXKEYS.ONBOARDING_COMPANY_SIZE, CONST.ONBOARDING_COMPANY_SIZE.MICRO);
         return `/${ROUTES.ONBOARDING_ACCOUNTING.route}`;
-    }
-
-    if (isPrivateDomain) {
-        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
 
     const isIndividual = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL;
