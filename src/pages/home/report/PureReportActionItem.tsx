@@ -46,6 +46,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import isReportMessageAttachment from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -123,7 +124,6 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
-    isReportMessageAttachment,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';

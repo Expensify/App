@@ -63,7 +63,7 @@ import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyReques
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
 import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
-import {handleReportChanged, prepareOnboardingOnyxData} from './actions/Report';
+import {handleReportChanged} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
@@ -9405,10 +9405,15 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions>) {
+function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
     }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isExportIntegrationAction(action));
+    }
+
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -9710,6 +9715,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
@@ -9817,7 +9823,6 @@ export {
     isReportFieldDisabled,
     isReportFieldOfTypeTitle,
     isReportManager,
-    isReportMessageAttachment,
     isReportOwner,
     isReportParticipant,
     isSelfDM,
@@ -9906,7 +9911,6 @@ export {
     getReportMetadata,
     buildOptimisticSelfDMReport,
     isHiddenForCurrentUser,
-    prepareOnboardingOnyxData,
     isSelectedManagerMcTest,
     isTestTransactionReport,
     getReportSubtitlePrefix,
