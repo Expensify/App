@@ -1,23 +1,25 @@
 import type {NavigationAction} from '@react-navigation/native';
-import React, {memo, useCallback, useRef, useState} from 'react';
+import {useNavigation} from '@react-navigation/native';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import ConfirmModal from '@components/ConfirmModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import navigationRef from '@libs/Navigation/navigationRef';
-
-type DiscardChangesConfirmationProps = {
-    getHasUnsavedChanges: () => boolean;
-};
+import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import type DiscardChangesConfirmationProps from './types';
 
 function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
+    const navigation = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
     const blockedNavigationAction = useRef<NavigationAction>();
+    const shouldNavigateBack = useRef(false);
 
     useBeforeRemove(
         useCallback(
             (e) => {
-                if (!getHasUnsavedChanges()) {
+                if (!getHasUnsavedChanges() || shouldNavigateBack.current) {
                     return;
                 }
 
@@ -28,6 +30,21 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
             [getHasUnsavedChanges],
         ),
     );
+
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('transitionStart', () => {
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            if (!getHasUnsavedChanges() || blockedNavigationAction.current || shouldNavigateBack.current) {
+                return;
+            }
+
+            window.history.go(1);
+            setIsVisible(true);
+            shouldNavigateBack.current = true;
+        });
+
+        return unsubscribe;
+    }, [navigation, getHasUnsavedChanges]);
 
     return (
         <ConfirmModal
@@ -41,10 +58,18 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
                 setIsVisible(false);
                 if (blockedNavigationAction.current) {
                     navigationRef.current?.dispatch(blockedNavigationAction.current);
+                    return;
                 }
+                if (!shouldNavigateBack.current) {
+                    return;
+                }
+                navigationRef.current?.goBack();
             }}
-            onCancel={() => setIsVisible(false)}
-            shouldHandleNavigationBack
+            onCancel={() => {
+                setIsVisible(false);
+                blockedNavigationAction.current = undefined;
+                shouldNavigateBack.current = false;
+            }}
         />
     );
 }
