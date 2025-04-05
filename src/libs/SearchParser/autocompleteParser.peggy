@@ -70,6 +70,8 @@ autocompleteKey "key"
       / cardID
       / feed
       / groupBy
+      / reimbursable
+      / billable
     )
 
 filterKey
