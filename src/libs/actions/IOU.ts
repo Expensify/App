@@ -60,6 +60,7 @@ import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
 import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
+    getDistanceRateCustomUnit,
     getPerDiemCustomUnit,
     getPersonalPolicy,
     getPolicy,
@@ -4577,6 +4578,7 @@ type ConvertTrackedWorkspaceParams = {
     policyID: string;
     receipt: Receipt | undefined;
     waypoints?: string;
+    customUnitID?: string;
     customUnitRateID?: string;
 };
 
@@ -4754,6 +4756,8 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
+        customUnitID: createdWorkspaceParams?.customUnitID,
+        customUnitRateID: createdWorkspaceParams?.customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4816,6 +4820,8 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
+        customUnitID: createdWorkspaceParams?.customUnitID,
+        customUnitRateID: createdWorkspaceParams?.customUnitRateID,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4918,6 +4924,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                           billable,
                           policyID: chatReport.policyID,
                           waypoints: sanitizedWaypoints,
+                          customUnitID: getDistanceRateCustomUnit(policyParams?.policy)?.customUnitID,
                           customUnitRateID,
                       }
                     : undefined;
