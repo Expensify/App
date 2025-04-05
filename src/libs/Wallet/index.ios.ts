@@ -9,7 +9,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string) {
+function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
     const data = {
         network: 'VISA',
         lastDigits: card.lastFourPAN,
@@ -19,7 +19,7 @@ function handleAddCardToWallet(card: Card, cardHolderName: string) {
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
         .then(() => {
-            //
+            onFinished?.();
         })
         .catch((e) => {
             Log.warn(`Error adding card to wallet: ${e}`);

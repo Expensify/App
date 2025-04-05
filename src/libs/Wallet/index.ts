@@ -5,7 +5,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function handleAddCardToWallet(_card: Card, _cardHolderName: string) {
+function handleAddCardToWallet(_card: Card, _cardHolderName: string, _onFinished?: () => void) {
     // no op for other platforms
 }
 
