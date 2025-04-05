@@ -625,7 +625,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
-                {isDistanceRequest ? (
+                {isDistanceRequest && transaction?.comment?.waypoints ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
