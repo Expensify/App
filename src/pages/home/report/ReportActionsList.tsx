@@ -1,7 +1,5 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import {useIsFocused, useRoute} from '@react-navigation/native';
-// eslint-disable-next-line lodash/import-scope
-import type {DebouncedFunc} from 'lodash';
 import React, {memo, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
@@ -65,8 +63,6 @@ import FloatingMessageCounter from './FloatingMessageCounter';
 import getInitialNumToRender from './getInitialNumReportActionsToRender';
 import ListBoundaryLoader from './ListBoundaryLoader';
 import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-
-type LoadNewerChats = DebouncedFunc<(params: {distanceFromStart: number}) => void>;
 
 type ReportActionsListProps = {
     /** The report currently being looked at */
@@ -283,8 +279,8 @@ function ReportActionsList({
             return !isNewMessage || scrollingVerticalOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
         };
 
-        // If there are message that were recevied while offline,
-        // we can skip checking all messages later than the earliest recevied offline message.
+        // If there are message that were received while offline,
+        // we can skip checking all messages later than the earliest received offline message.
         const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
@@ -774,4 +770,4 @@ ReportActionsList.displayName = 'ReportActionsList';
 
 export default memo(ReportActionsList);
 
-export type {LoadNewerChats, ReportActionsListProps};
+export type {ReportActionsListProps};

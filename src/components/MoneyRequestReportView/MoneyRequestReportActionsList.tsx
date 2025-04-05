@@ -1,10 +1,11 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import type {FlatList as RNFlatList} from 'react-native/Libraries/Lists/FlatList';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
 import useLoadReportActions from '@hooks/useLoadReportActions';
@@ -13,6 +14,7 @@ import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
 import {
@@ -33,7 +35,7 @@ import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostF
 import Navigation from '@navigation/Navigation';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
 import ReportActionsListItemRenderer from '@pages/home/report/ReportActionsListItemRenderer';
-import {openReport, readNewestAction} from '@userActions/Report';
+import {openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -85,6 +87,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
     const {isOffline, lastOfflineAt, lastOnlineAt} = useNetworkWithOfflineStatus();
+    const reportScrollManager = useReportScrollManager();
 
     const reportID = report?.reportID;
 
@@ -104,8 +107,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
-
-    const reportScrollManager = useReportScrollManager();
+    // const [isScrollToBottomEnabled, setIsScrollToBottomEnabled] = useState(false);
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -122,6 +124,19 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         return filteredActions.toReversed();
     }, [reportActions, isOffline, canPerformWriteAction]);
 
+    const reportActionSize = useRef(visibleReportActions.length);
+    const lastAction = visibleReportActions.at(-1);
+    const lastActionIndex = lastAction?.reportActionID;
+    const previousLastIndex = useRef(lastActionIndex);
+
+    const scrollingVerticalOffset = useRef(0);
+    const readActionSkipped = useRef(false);
+    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
+    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
+    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    const userActiveSince = useRef<string>(DateUtils.getDBTime());
+    const myFlatlistRef = useRef<RNFlatList | null>(null);
+
     const reportActionIDs = useMemo(() => {
         return reportActions?.map((action) => action.reportActionID) ?? [];
     }, [reportActions]);
@@ -137,27 +152,16 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
     const onStartReached = useCallback(() => {
         if (!isSearchTopmostFullScreenRoute()) {
-            loadNewerChats(false);
+            loadOlderChats(false);
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadNewerChats(false)));
-    }, [loadNewerChats]);
-
-    const onEndReached = useCallback(() => {
-        loadOlderChats(false);
+        InteractionManager.runAfterInteractions(() => requestAnimationFrame(() => loadOlderChats(false)));
     }, [loadOlderChats]);
 
-    const reportActionSize = useRef(visibleReportActions.length);
-    const lastAction = visibleReportActions.at(-1);
-    const lastActionIndex = lastAction?.reportActionID;
-    const previousLastIndex = useRef(lastActionIndex);
-
-    const scrollingVerticalOffset = useRef(0);
-    const readActionSkipped = useRef(false);
-    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
-    const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
-    const hasNewestReportActionRef = useRef(hasNewestReportAction);
+    const onEndReached = useCallback(() => {
+        loadNewerChats(false);
+    }, [loadNewerChats]);
 
     useEffect(() => {
         if (
@@ -217,8 +221,10 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
      */
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
-            const nextMessage = visibleReportActions.at(index + 1);
+            const nextMessage = visibleReportActions.at(index - 1);
             const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
+            const log = nextMessage ? nextMessage.message : 'no message';
+            console.log(log, 'is unread:', isNextMessageUnread);
 
             // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
@@ -264,14 +270,19 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
         // If there are message that were recevied while offline,
         // we can skip checking all messages later than the earliest recevied offline message.
-        const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
+        // const startIndex = earliestReceivedOfflineMessageIndex ?? 0;
+        const startIndex = visibleReportActions.length - 1;
 
         // Scan through each visible report action until we find the appropriate action to show the unread marker
-        for (let index = startIndex; index < visibleReportActions.length; index++) {
+        console.group('---- loop');
+
+        for (let index = startIndex; index >= 0; index--) {
             const reportAction = visibleReportActions.at(index);
+            console.log(index, reportAction?.originalMessage);
 
             // eslint-disable-next-line react-compiler/react-compiler
             if (reportAction && shouldDisplayNewMarker(reportAction, index)) {
+                console.groupEnd('---- loop');
                 return reportAction.reportActionID;
             }
         }
@@ -279,6 +290,56 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         return null;
     }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
+
+    /**
+     * Subscribe to read/unread events and update our unreadMarkerTime
+     */
+    useEffect(() => {
+        const unreadActionSubscription = DeviceEventEmitter.addListener(`unreadAction_${report.reportID}`, (newLastReadTime: string) => {
+            setUnreadMarkerTime(newLastReadTime);
+            userActiveSince.current = DateUtils.getDBTime();
+        });
+        const readNewestActionSubscription = DeviceEventEmitter.addListener(`readNewestAction_${report.reportID}`, (newLastReadTime: string) => {
+            setUnreadMarkerTime(newLastReadTime);
+        });
+
+        return () => {
+            unreadActionSubscription.remove();
+            readNewestActionSubscription.remove();
+        };
+    }, [report.reportID]);
+
+    const scrollToBottomForCurrentUserAction = useCallback(
+        (isFromCurrentUser: boolean) => {
+            InteractionManager.runAfterInteractions(() => {
+                setIsFloatingMessageCounterVisible(false);
+                // If a new comment is added from the current user, scroll to the bottom, otherwise leave the user position unchanged
+                if (!isFromCurrentUser) {
+                    return;
+                }
+
+                setTimeout(() => {
+                    reportScrollManager.scrollToEnd();
+                }, 20);
+            });
+        },
+        [reportScrollManager],
+    );
+
+    useEffect(() => {
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
+        // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
+        const unsubscribe = subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
+
+        return () => {
+            if (!unsubscribe) {
+                return;
+            }
+            unsubscribe();
+        };
+
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [report.reportID]);
 
     const renderItem = useCallback(
         ({item: reportAction, index}: ListRenderItemInfo<OnyxTypes.ReportAction>) => {
@@ -309,6 +370,8 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
 
     const scrollToBottomAndMarkReportAsRead = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
+
+        console.log(hasNewestReportAction);
 
         if (!hasNewestReportAction) {
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(report.reportID));
@@ -378,7 +441,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}
-                        ref={reportScrollManager.ref}
+                        ref={myFlatlistRef}
                     />
                 )}
             </View>
