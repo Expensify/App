@@ -5,6 +5,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
@@ -16,6 +17,7 @@ type Enable2FACardProps = {
 function Enable2FACard({policyID}: Enable2FACardProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <Section
@@ -31,8 +33,7 @@ function Enable2FACard({policyID}: Enable2FACardProps) {
                     },
                     icon: Expensicons.Shield,
                     shouldShowRightIcon: true,
-                    iconRight: Expensicons.NewWindow,
-                    wrapperStyle: [styles.cardMenuItem],
+                    outerWrapperStyle: shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8,
                 },
             ]}
         >
