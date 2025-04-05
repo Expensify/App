@@ -526,6 +526,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [prevIsFocused, report?.participants, isFocused, isSingleTransactionView, reportID]);
 
+    const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
     useEffect(() => {
         // We don't want this effect to run on the first render.
         if (firstRenderRef.current) {
@@ -554,7 +555,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             const currentRoute = navigationRef.getCurrentRoute();
             const isReportDetailOpenInRHP =
                 isTopMostReportId &&
-                [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)].find((r) => r === currentRoute?.name) &&
+                reportDetailScreens.find((r) => r === currentRoute?.name) &&
                 !!currentRoute?.params &&
                 'reportID' in currentRoute.params &&
                 reportIDFromRoute === currentRoute.params.reportID;
