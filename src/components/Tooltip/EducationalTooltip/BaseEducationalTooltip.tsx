@@ -5,6 +5,7 @@ import {DeviceEventEmitter, Dimensions} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import getPlatform from '@libs/getPlatform';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import measureTooltipCoordinate, {getTooltipCoordinates} from './measureTooltipCoordinate';
@@ -28,6 +29,8 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const navigator = useContext(NavigationContext);
     const insets = useSafeAreaInsets();
 
+    const isNative = getPlatform() === CONST.PLATFORM.IOS || getPlatform() === CONST.PLATFORM.ANDROID;
+
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
             if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElementRef.current) {
@@ -43,7 +46,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                     const {y, height} = bounds;
 
                     const offset = 10; // Tooltip hides when content moves 10px past header/footer.
-                    const dimensions = Dimensions.get('screen');
+                    const dimensions = isNative ? Dimensions.get('screen') : Dimensions.get('window');
                     const top = y - (insets.top || 0);
                     const bottom = y + height + insets.bottom || 0;
 
@@ -61,7 +64,7 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
                 });
             }
         },
-        [insets, shouldHideOnScroll],
+        [insets, shouldHideOnScroll, isNative],
     );
 
     useLayoutEffect(() => {
