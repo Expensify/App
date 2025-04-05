@@ -1306,9 +1306,19 @@ function navigateToAndOpenReportWithAccountIDs(participantAccountIDs: number[]) 
  * @param parentReportAction the parent comment of a thread
  * @param parentReportID The reportID of the parent
  */
-function navigateToAndOpenChildReport(childReportID: string | undefined, parentReportAction: Partial<ReportAction> = {}, parentReportID?: string) {
+function navigateToAndOpenChildReport(
+    childReportID: string | undefined,
+    parentReportAction: Partial<ReportAction> = {},
+    parentReportID?: string,
+    backTo?: Route,
+    isInNarrowPaneModal = false,
+) {
     const childReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`];
     if (childReport?.reportID) {
+        if (backTo && isInNarrowPaneModal) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+            return;
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
     } else {
         const participantAccountIDs = [...new Set([currentUserAccountID, Number(parentReportAction.actorAccountID)])];
@@ -1334,7 +1344,10 @@ function navigateToAndOpenChildReport(childReportID: string | undefined, parentR
         } else {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${childReportID}`, newChat);
         }
-
+        if (backTo && isInNarrowPaneModal) {
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID, undefined, undefined, undefined, undefined, Navigation.getActiveRoute()));
+            return;
+        }
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(newChat.reportID));
     }
 }

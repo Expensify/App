@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
@@ -141,6 +142,7 @@ import {isBlockedFromConcierge} from '@userActions/User';
 import CONST from '@src/CONST';
 import type {IOUAction} from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
@@ -391,6 +393,8 @@ function PureReportActionItem({
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {canUseTableReportView} = usePermissions();
 
+    const route = useRoute();
+    const backTo = route.params && 'backTo' in route.params ? (route.params.backTo as Route) : undefined;
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -568,6 +572,7 @@ function PureReportActionItem({
                     setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
                 },
                 disabledOptions: disabledActions,
+                backTo,
             });
         },
         [
@@ -581,6 +586,7 @@ function PureReportActionItem({
             isArchivedRoom,
             isChronosReport,
             isThreadReportParentAction,
+            backTo,
         ],
     );
 
@@ -1262,6 +1268,7 @@ function PureReportActionItem({
                                 isVisible={hovered && draftMessage === undefined && !hasErrors}
                                 isThreadReportParentAction={isThreadReportParentAction}
                                 draftMessage={draftMessage}
+                                backTo={backTo}
                                 isChronosReport={isChronosReport}
                                 checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                                 setIsEmojiPickerActive={setIsEmojiPickerActive}

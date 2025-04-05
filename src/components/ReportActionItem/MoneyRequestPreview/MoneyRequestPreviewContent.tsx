@@ -210,12 +210,13 @@ function MoneyRequestPreviewContent({
         }
         return translate('iou.settledExpensify');
     };
+    const backTo = route.params.backTo;
 
     const showContextMenu = (event: GestureResponderEvent) => {
         if (!shouldDisplayContextMenu) {
             return;
         }
-        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive);
+        showContextMenuForReport(event, contextMenuAnchor, reportID, action, checkIfContextMenuActive, false, backTo);
     };
 
     const getPreviewHeaderText = (): string => {
@@ -323,8 +324,6 @@ function MoneyRequestPreviewContent({
     );
 
     const navigateToReviewFields = () => {
-        const backTo = route.params.backTo;
-
         // Clear the draft before selecting a different expense to prevent merging fields from the previous expense
         // (e.g., category, tag, tax) that may be not enabled/available in the new expense's policy.
         abandonReviewDuplicateTransactions();
