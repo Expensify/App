@@ -100,9 +100,9 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 pc.addTrack(audioTrack);
 
                 const dc = pc.createDataChannel('openai-control');
-                dc.onerror = (error: RTCErrorEvent) => {
+                dc.onerror = () => {
                     stopConnection();
-                    console.error('Data channel error', error);
+                    console.error('Data channel error');
                     reject(new Error('Data channel error'));
                 };
                 dataChannel = dc;
