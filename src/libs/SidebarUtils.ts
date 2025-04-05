@@ -364,19 +364,17 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     if (shouldDisplayViolationsRBRInLHN(report, transactionViolations)) {
         let threadReportAction: OnyxEntry<ReportAction>;
 
-        for (const transactionViolationKey in transactionViolations) {
-            if (transactionViolationKey in transactionViolations) {
-                const transactionID = extractCollectionItemID(transactionViolationKey as typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+        for (const transactionViolationKey of Object.keys(transactionViolations ?? {})) {
+            const transactionID = extractCollectionItemID(transactionViolationKey as typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
 
-                const reportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
+            const reportID = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]?.reportID;
 
-                if (reportID) {
-                    const {parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
+            if (reportID) {
+                const {parentReportID, parentReportActionID} = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? {};
 
-                    if (parentReportID === report.reportID && parentReportActionID) {
-                        threadReportAction = reportActions?.[parentReportActionID];
-                        break;
-                    }
+                if (parentReportID === report.reportID && parentReportActionID) {
+                    threadReportAction = reportActions?.[parentReportActionID];
+                    break;
                 }
             }
         }
