@@ -71,13 +71,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
-    useEffect(() => {
-        if (isFocusedScreen) {
-            return;
-        }
-        setSelectedMembers([]);
-    }, [isFocusedScreen]);
-
     /**
      * Get members for the current room
      */
@@ -172,6 +165,26 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     };
 
     const participants = useMemo(() => getParticipantsList(report, personalDetails, true), [report, personalDetails]);
+
+    useEffect(() => {
+        if (selectedMembers.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedMembers((prevSelectedMembers) => {
+            const updatedSelectedMembers = prevSelectedMembers.filter((accountID) => {
+                const isInParticipants = participants.includes(accountID);
+                const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+
+                const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                // Keep the member only if they're still in the room and not pending removal
+                return isInParticipants && !isPendingDelete;
+            });
+
+            return updatedSelectedMembers;
+        });
+    }, [participants, reportMetadata?.pendingChatMembers, canSelectMultiple, selectedMembers.length]);
 
     /** Include the search bar when there are 8 or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
