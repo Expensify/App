@@ -8,12 +8,12 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string) {
+function handleAddCardToWallet(card: Card, cardHolderName?: string) {
     const data = {
         network: 'VISA',
         lastDigits: card.lastFourPAN,
-        cardDescription: card.nameValuePairs?.cardTitle,
-        cardHolderName,
+        cardDescription: card.nameValuePairs?.isVirtual ? 'Expensify Virtual Card' : 'Expensify Physical Card',
+        cardHolderName: cardHolderName ?? 'Test',
     } as IOSCardData;
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
@@ -21,7 +21,6 @@ function handleAddCardToWallet(card: Card, cardHolderName: string) {
             Alert.alert('Card added to wallet successfully');
         })
         .catch((e) => {
-            console.log('ADD ERROR: ', e);
             Alert.alert('Failed to add card to wallet', 'Please try again later.');
         });
 }
@@ -33,7 +32,6 @@ function isCardInWallet(card: Card): Promise<boolean> {
                 return status === 'active';
             })
             .catch((e) => {
-                console.log('STATUS ERROR', e);
                 return Promise.resolve(card.state === 6);
             });
     }
