@@ -10,8 +10,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {convertReimbursementAccountDataToAchAccountData} from '@libs/actions/BankAccounts';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {requestResetBankAccount, resetReimbursementAccount} from '@userActions/ReimbursementAccount';
 import type {ReimbursementAccount} from '@src/types/onyx';
@@ -58,6 +60,9 @@ function ConnectedVerifiedBankAccount({
     const pendingAction = reimbursementAccount?.pendingAction;
     const shouldShowResetModal = reimbursementAccount?.shouldShowResetModal ?? false;
 
+    useBeforeRemove(() => {
+        convertReimbursementAccountDataToAchAccountData(reimbursementAccount);
+    });
     return (
         <ScreenWrapper
             testID={ConnectedVerifiedBankAccount.displayName}
