@@ -2,6 +2,7 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import * as Localize from '@libs/Localize';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
@@ -78,7 +79,11 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const {setActiveWorkspaceID} = useActiveWorkspace();
+    const {setActiveWorkspaceID: setActiveWorkspaceIDUtils} = useActiveWorkspace();
+    const setActiveWorkspaceID = (workspaceID: string | undefined) => {
+        setActiveWorkspaceIDUtils?.(workspaceID);
+        updateLastAccessedWorkspaceSwitcher(workspaceID);
+    };
 
     return {
         ...stackRouter,
