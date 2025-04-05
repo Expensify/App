@@ -2157,6 +2157,8 @@ const translations = {
             validationAmounts: 'Los importes de validación que introduciste son incorrectos. Por favor, comprueba tu cuenta bancaria e inténtalo de nuevo.',
             fullName: 'Please enter a valid full name.',
             ownershipPercentage: 'Por favor, ingrese un número de porcentaje válido.',
+            // TODO: add translation
+            occupation: 'Please enter a valid occupation.',
         },
     },
     addPersonalBankAccount: {
@@ -2593,7 +2595,6 @@ const translations = {
         jobTitle: 'Título profesional',
         whatsYourDOB: '¿Cual es tu fecha de nacimiento?',
         uploadID: 'Subir documento de identidad y prueba de domicilio',
-        id: 'Identificación (licencia de conducir o pasaporte)',
         personalAddress: 'Prueba de domicilio personal (por ejemplo, factura de servicios públicos)',
         letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
         legalName: 'Nombre legal',
@@ -2605,6 +2606,25 @@ const translations = {
         sendReminder: 'Enviar un recordatorio',
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
+        // TODO: translate it:
+        id: 'Copy of ID',
+        occupation: 'Occupation',
+        whatsYourOccupation: "What's your occupation?",
+        proofOfDirectors: 'Proof of director(s)',
+        codiceFiscale: 'Codice Fiscale',
+        codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
+        PDSandFSG: 'PDS + FSG disclosure paperwork',
+        PDSandFSGDescription:
+            "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
+        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a signer or director of the business entity.',
+        proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
+        regulationRequiresUsToCollectAtLeastOneDirector: 'Regulations requires us to collect information about at least one director of the company.',
+        directors: 'Directors',
+        whatsDirectorsName: "What is director's name?",
+        whatsDirectorsJobTitle: "What is director's job title?",
+        whatsDirectorsOccupation: "What is director's occupation?",
+        areYouDirectorAdditional: 'Are you a director?',
+        weNeedAtLeastOneDirector: 'If you are not director, we need to collect additional information about at least one director in the company.',
     },
     agreementsStep: {
         agreements: 'Acuerdos',

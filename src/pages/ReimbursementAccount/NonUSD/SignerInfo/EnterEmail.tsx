@@ -41,7 +41,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
-            if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(values[SECOND_SIGNER_EMAIL])) {
+            if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
                 errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
