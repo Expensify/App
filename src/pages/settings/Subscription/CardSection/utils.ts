@@ -6,6 +6,7 @@ import DateUtils from '@libs/DateUtils';
 import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 import CONST from '@src/CONST';
 import type {AccountData} from '@src/types/onyx/Fund';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BillingStatusResult = {
@@ -46,7 +47,7 @@ function getBillingStatus(translate: LocaleContextProps['translate'], accountDat
                 title: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.title'),
                 subtitle: translate('subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle'),
                 isError: true,
-                isRetryAvailable: true,
+                isRetryAvailable: !isEmptyObject(accountData) ? true : undefined,
             };
 
         case PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:
