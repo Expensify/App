@@ -61,6 +61,9 @@ type PopoverMenuItem = MenuItemProps & {
     rightIcon?: React.FC<SvgProps>;
 
     key?: string;
+
+    /** Test identifier used to find elements in unit and e2e tests */
+    testID?: string;
 };
 
 type PopoverModalProps = Pick<ModalProps, 'animationIn' | 'animationOut' | 'animationInTiming' | 'animationOutTiming'> &
@@ -198,8 +201,8 @@ function PopoverMenu({
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
     shouldUseNewModal,
-    testID,
     shouldAvoidSafariException = false,
+    testID,
 }: PopoverMenuProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -278,7 +281,7 @@ function PopoverMenu({
     };
 
     const renderedMenuItems = currentMenuItems.map((item, menuIndex) => {
-        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, ...menuItemProps} = item;
+        const {text, onSelected, subMenuItems, shouldCallAfterModalHide, key, testID: menuItemTestID, ...menuItemProps} = item;
         return (
             <OfflineWithFeedback
                 // eslint-disable-next-line react/no-array-index-key
@@ -288,7 +291,7 @@ function PopoverMenu({
                 <FocusableMenuItem
                     // eslint-disable-next-line react/no-array-index-key
                     key={key ?? `${item.text}_${menuIndex}`}
-                    pressableTestID={`PopoverMenuItem-${item.text}`}
+                    pressableTestID={menuItemTestID ?? `PopoverMenuItem-${item.text}`}
                     title={text}
                     onPress={() => selectItem(menuIndex)}
                     focused={focusedIndex === menuIndex}
