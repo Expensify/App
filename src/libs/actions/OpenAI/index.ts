@@ -5,6 +5,7 @@ import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {playStreamSound} from '@libs/Sound';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {TalkToAISales} from '@src/types/onyx';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 type ConnectionResult = {
@@ -28,12 +29,36 @@ type Recap = {
 
 let currentAdminsReportID: number | null = null;
 let mediaStream: MediaStream | null = null;
+let clientSecret: TalkToAISales['clientSecret'];
 
 const connections: WebRTCConnections = {
     openai: null,
 };
 
+Onyx.connect({
+    key: ONYXKEYS.TALK_TO_AI_SALES,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        clientSecret = value.clientSecret;
+    },
+});
+
+function isExpiredToken(expiresAt: number): boolean {
+    const currentUTCEpochTime = Math.floor(Date.now() / 1000);
+    return currentUTCEpochTime >= expiresAt;
+}
+
 function getEmphemeralToken(): Promise<string> {
+    if (clientSecret && !isExpiredToken(clientSecret.expiresAt)) {
+        Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
+            isLoading: true,
+        });
+        return Promise.resolve(clientSecret.ephemeralToken);
+    }
+
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -44,20 +69,18 @@ function getEmphemeralToken(): Promise<string> {
                 },
             },
         ],
-        finallyData: [
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.TALK_TO_AI_SALES}`,
-                value: {
-                    isLoading: false,
-                },
-            },
-        ],
     };
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, {}, onyxData)
         .then((response) => {
+            Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
+                clientSecret: {
+                    ephemeralToken: response?.client_secret?.value ?? '',
+                    expiresAt: response?.client_secret?.expires_at ?? 0,
+                },
+            });
+
             return response?.client_secret?.value ?? '';
         })
         .catch((error) => {
@@ -162,6 +185,9 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 console.error(error);
                 stopConnection();
                 reject(error);
+            })
+            .finally(() => {
+                Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isLoading: false});
             });
     });
 }
