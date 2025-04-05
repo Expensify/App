@@ -60,7 +60,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         ],
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1200,
+        priority: 1950,
         shouldShow: () => true,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
@@ -76,13 +76,12 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 800,
+        priority: 1800,
         shouldShow: () => true,
     },
     [SCAN_TEST_TOOLTIP]: {
