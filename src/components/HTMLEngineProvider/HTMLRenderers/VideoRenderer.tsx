@@ -31,7 +31,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({report}) => (
                 <AttachmentContext.Consumer>
-                    {({accountID, type}) => (
+                    {({accountID, type, hashKey}) => (
                         <VideoPlayerPreview
                             key={key}
                             videoUrl={sourceURL}
@@ -46,7 +46,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                     return;
                                 }
                                 const isAuthTokenRequired = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, attachmentID, type, sourceURL, accountID, isAuthTokenRequired);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, attachmentID, type, sourceURL, accountID, isAuthTokenRequired, undefined, undefined, hashKey);
                                 Navigation.navigate(route);
                             }}
                         />
