@@ -34,7 +34,7 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
@@ -73,6 +73,8 @@ type SearchAutocompleteListProps = {
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
+
+    onHighlightFirstItem?: () => void;
 };
 
 const defaultListOptions = {
@@ -132,6 +134,7 @@ function SearchAutocompleteList(
         setTextQuery,
         updateAutocompleteSubstitutions,
         shouldSubscribeToArrowKeyEvents,
+        onHighlightFirstItem,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -520,6 +523,17 @@ function SearchAutocompleteList(
         },
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
+
+    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
+
+    useEffect(() => {
+        const targetText = autocompleteQueryValue;
+
+        if (shouldHighlight(normalizedReferenceText, targetText)) {
+            onHighlightFirstItem?.();
+        }
+    }, [autocompleteQueryValue, onHighlightFirstItem, ref, normalizedReferenceText]);
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
