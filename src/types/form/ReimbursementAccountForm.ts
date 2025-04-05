@@ -37,6 +37,7 @@ const INPUT_IDS = {
         INCORPORATION_TYPE: 'incorporationType',
         INCORPORATION_DATE: 'incorporationDate',
         INCORPORATION_STATE: 'incorporationState',
+        INCORPORATION_CODE: 'industryCode',
         HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
     },
     COMPLETE_VERIFICATION: {
@@ -184,6 +185,7 @@ type CompanyStepProps = {
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_TYPE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE]: string;
+    [INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_CODE]: string;
     [INPUT_IDS.BUSINESS_INFO_STEP.HAS_NO_CONNECTION_TO_CANNABIS]: boolean;
 };
 
