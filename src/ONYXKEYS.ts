@@ -563,7 +563,7 @@ const ONYXKEYS = {
         /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
 
-        /** Expensify cards bank account settings */
+        /** Expensify cards bank account for a given workspace */
         EXPENSIFY_CARD_BANK_ACCOUNT_SETTINGS: 'expensifyCardBankAccountSettings_',
 
         /** Expensify cards manual billing setting */
