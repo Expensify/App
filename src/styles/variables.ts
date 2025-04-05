@@ -275,6 +275,8 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     bottomTabInboxTooltipShiftHorizontal: 36,
+    accountSwitcherTooltipShiftVertical: 7,
+    accountSwitcherTooltipShiftHorizontal: 4,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
