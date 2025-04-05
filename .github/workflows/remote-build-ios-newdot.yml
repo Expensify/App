@@ -1,0 +1,28 @@
+name: Remote Build iOS Newdot
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  # TODO: remove before merging
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      - name: RNEF Remote Build - iOS
+        uses: callstackincubator/ios@v1
+        with:
+          destination: simulator
+          scheme: New Expensify Dev
+          configuration: DebugDevelopment
+          github-token: ${{ secrets.GITHUB_TOKEN }}
