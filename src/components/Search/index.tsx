@@ -408,7 +408,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
-                    key={`${type}-${isFocused}`}
+                    key={`${isFocused}`}
                     type={type}
                     hasResults={searchResults.search.hasResults}
                 />
