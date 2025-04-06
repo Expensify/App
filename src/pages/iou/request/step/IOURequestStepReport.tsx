@@ -57,12 +57,12 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((item) => item !== undefined)
-            .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
+            .filter((report) => report && (!debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase())))
             .map((report) => ({
-                text: report?.reportName,
-                value: report?.reportID,
-                keyForList: report?.reportID,
-                isSelected: report?.reportID === transaction?.reportID,
+                text: report.reportName,
+                value: report.reportID,
+                keyForList: report.reportID,
+                isSelected: report.reportID === transaction?.reportID,
             }));
     }, [allReports, debouncedSearchValue, transaction?.reportID]);
 
