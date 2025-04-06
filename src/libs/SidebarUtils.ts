@@ -40,7 +40,6 @@ import {
     getReportAction,
     getReportActionMessageText,
     getSortedReportActions,
-    getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceCustomUnitRateAddedMessage,
