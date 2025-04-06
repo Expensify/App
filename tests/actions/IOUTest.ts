@@ -5144,8 +5144,8 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
-                        const updatedTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
-                        resolve(updatedTransaction);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
+                        resolve(newTransaction);
                     },
                 });
             });
@@ -5202,8 +5202,8 @@ describe('actions/IOU', () => {
                     waitForCollectionCallback: true,
                     callback: (transactions) => {
                         Onyx.disconnect(connection);
-                        const updatedTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
-                        resolve(updatedTransaction);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
+                        resolve(newTransaction);
                     },
                 });
             });
