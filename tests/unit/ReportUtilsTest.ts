@@ -476,13 +476,14 @@ describe('ReportUtils', () => {
                 };
                 const submittedParentReportAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    adminAccountID: 1,
                     originalMessage: {
                         amount: 169,
                         currency: 'USD',
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('Ragnar Lothbrok submitted');
             });
 
             test('Invited/Removed Room Member Action', () => {
