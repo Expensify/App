@@ -65,7 +65,7 @@ function EmojiSuggestions({
 
             return (
                 <View style={styles.autoCompleteSuggestionContainer}>
-                    <Text style={[styles.emojiSuggestionsEmoji, {fontFamily: "Custom Emoji Font", fontSize: 24}]}>{EmojiUtils.getEmojiCodeWithSkinColor(item, preferredSkinToneIndex)}</Text>
+                    <Text style={[styles.emojiSuggestionsEmoji, {fontFamily: "Custom Emoji Font"}]}>{EmojiUtils.getEmojiCodeWithSkinColor(item, preferredSkinToneIndex)}</Text>
                     <Text
                         numberOfLines={2}
                         style={styles.emojiSuggestionsText}
