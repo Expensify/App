@@ -5613,7 +5613,7 @@ const enEmojis: EmojisList = {
     '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
         keywords: ['flag'],
     },
-    '\uE001': {
+    '\uE100': {
         keywords: ['fab', 'floating', 'action', 'button', 'green', 'plus'],
     },
 };

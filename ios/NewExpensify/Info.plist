@@ -99,7 +99,7 @@
 		<string>ExpensifyNeue-BoldItalic.otf</string>
 		<string>ExpensifyNeue-Italic.otf</string>
 		<string>ExpensifyNeue-Regular.otf</string>
-		<string>CustomEmojiFont.ttf</string>
+		<string>CustomEmojiNativeFont.ttf</string>
 	</array>
 	<key>UIBackgroundModes</key>
 	<array>

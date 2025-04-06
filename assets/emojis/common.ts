@@ -7869,7 +7869,7 @@ const emojis: PickerEmojis = [
     },
     {
         name: 'global_create',
-        code: '\uE001',
+        code: '\uE100',
     },
 ];
 

@@ -2,8 +2,8 @@
   "migIndex": 2,
   "data": [
     {
-      "path": "assets/fonts/native/CustomEmojiFont.ttf",
-      "sha1": "6932656efc2faf880b0ddc115d60072baf9e12f7"
+      "path": "assets/fonts/native/CustomEmojiNativeFont.ttf",
+      "sha1": "83acdb6db84b418c51037af51f96ff9c18273a62"
     },
     {
       "path": "assets/fonts/native/ExpensifyMono-Bold.otf",
