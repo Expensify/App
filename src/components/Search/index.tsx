@@ -428,7 +428,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return;
         }
 
-        if (item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+        if (item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
             const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
             item.transactions.forEach((transaction) => {
@@ -457,10 +457,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = shouldGroupByReports;
-        const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
-        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+        const totalSelected = Object.keys(selectedTransactions).length;
 
-        if (isAllSelected) {
+        if (totalSelected > 0) {
             clearSelectedTransactions();
             return;
         }
@@ -508,6 +507,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             contentContainerStyle={[contentContainerStyle, styles.pb3]}
             containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
             shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+            shouldGroupByReports={shouldGroupByReports}
             onScroll={onSearchListScroll}
             onEndReachedThreshold={0.75}
             onEndReached={fetchMoreResults}

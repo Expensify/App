@@ -235,6 +235,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
         }
+        const totalSelectable = allOptions.length - disabledOptionsIndexes.length;
 
         return {
             allOptions,
@@ -242,7 +243,8 @@ function BaseSelectionList<TItem extends ListItem>(
             disabledOptionsIndexes,
             disabledArrowKeyOptionsIndexes,
             itemLayouts,
-            allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
+            allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
+            someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
     }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, itemHeights, getItemHeight]);
 
@@ -514,6 +516,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={flattenedSections.allSelected}
+                            isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                         />
