@@ -652,7 +652,7 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key="report"
+                    key={translate('common.report')}
                     shouldShowRightIcon
                     title={reportName}
                     description={translate('common.report')}
