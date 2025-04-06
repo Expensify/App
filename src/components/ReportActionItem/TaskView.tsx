@@ -71,6 +71,8 @@ function TaskView({report}: TaskViewProps) {
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);
 
+    console.log("Task report?.description ", report?.description);
+
     return (
         <ShowContextMenuContext.Provider value={contextValue}>
             <AttachmentContext.Provider value={attachmentContextValue}>
