@@ -68,8 +68,7 @@ const fontFamily: FontFamilyStyles = {
     },
     CUSTOM_EMOJI_FONT: {
         fontFamily: 'Custom Emoji Font',
-    }
-
+    },
 };
 
 if (getOperatingSystem() === CONST.OS.WINDOWS) {
