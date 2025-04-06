@@ -617,7 +617,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
     transactions.forEach((transaction) => {
         const oldIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
-        if (!oldIOUAction?.reportActionID) {
+        if (!oldIOUAction?.reportActionID || !transaction.reportID) {
             return;
         }
 
@@ -789,7 +789,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         // 6. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
         const movedAction =
             reportID === CONST.REPORT.UNREPORTED_REPORTID
-                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, transaction.reportID ?? '')
+                ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, transaction.reportID)
                 : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
 
         optimisticData.push({
