@@ -2035,6 +2035,10 @@ const translations = {
         noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
         goBackHome: 'Volver a la página principal',
     },
+    errorPage: {
+        title: ({isBreakline}: {isBreakline: boolean}) => `Ups... ${isBreakline ? '\n' : ''}Algo no ha ido bien`,
+        subtitle: 'No se ha podido completar la acción. Por favor, inténtalo más tarde.',
+    },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu contraseña',
@@ -2657,6 +2661,8 @@ const translations = {
             travelTermsAndConditions: 'términos y condiciones',
             agree: 'Acepto los ',
             error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
+            defaultWorkspaceError:
+                'Debes establecer un espacio de trabajo predeterminado para habilitar Expensify Travel. Ve a Configuración > Espacios de trabajo > haz clic en los tres puntos verticales junto a un espacio de trabajo > Establecer como espacio de trabajo predeterminado y luego inténtalo de nuevo.',
         },
         flight: 'Vuelo',
         flightDetails: {
