@@ -310,7 +310,7 @@ function ExpensifyCardPage({
             )}
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
-                clearError={() => {}}
+                clearError={() => setValidateError({})}
                 validateError={validateError}
                 validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
