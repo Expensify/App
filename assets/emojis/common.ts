@@ -8,6 +8,7 @@ import AnimalsAndNature from '@assets/images/emojiCategoryIcons/plant.svg';
 import Activities from '@assets/images/emojiCategoryIcons/soccer-ball.svg';
 import FrequentlyUsed from '@assets/images/history.svg';
 import type {HeaderEmoji, PickerEmojis} from './types';
+import CONST from '@src/CONST';
 
 const skinTones = [
     {
@@ -7869,7 +7870,7 @@ const emojis: PickerEmojis = [
     },
     {
         name: 'global_create',
-        code: '\uE100',
+        code: CONST.CUSTOM_EMOJIS.GLOBAL_CREATE,
     },
 ];
 
