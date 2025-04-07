@@ -221,12 +221,7 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
 
 function getFilterWorkspaceDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>) {
     const workspaceFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
-
-    if (!policies) {
-        return '';
-    }
-
-    return policies[`${ONYXKEYS.COLLECTION.POLICY}${workspaceFilter}`]?.name;
+    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceFilter}`]?.name ?? workspaceFilter;
 }
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
@@ -421,17 +416,17 @@ function AdvancedSearchFilters() {
     const {canUseLeftHandBar} = usePermissions();
 
     // If users have access to the leftHandBar beta, then the workspace filter is displyed in the first section of the advanced search filters
-    const typeFiltersKeysWithPermissionCheck = useMemo(
+    const typeFiltersKeysWithOptionalPolicy = useMemo(
         () =>
             canUseLeftHandBar
                 ? Object.fromEntries(
                       Object.entries(typeFiltersKeys).map(([key, arrays]) => {
-                          const firstArray = arrays.at(0);
-                          if (!firstArray) {
+                          const firstFiltersSection = arrays.at(0);
+                          if (!firstFiltersSection) {
                               return [key, arrays];
                           }
 
-                          const modifiedFirstArray = [...firstArray, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
+                          const modifiedFirstArray = [...firstFiltersSection, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
                           return [key, [modifiedFirstArray, ...arrays.slice(1)]];
                       }),
                   )
@@ -475,7 +470,7 @@ function AdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    if (!Object.keys(typeFiltersKeysWithPermissionCheck).includes(currentType)) {
+    if (!Object.keys(typeFiltersKeysWithOptionalPolicy).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
@@ -507,7 +502,7 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeysWithPermissionCheck[currentType]
+    const filters = typeFiltersKeysWithOptionalPolicy[currentType]
         .map((section) => {
             return section
                 .map((key) => {
