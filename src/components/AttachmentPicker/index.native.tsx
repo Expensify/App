@@ -106,7 +106,6 @@ function AttachmentPicker({
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
@@ -163,28 +162,37 @@ function AttachmentPicker({
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    ImageManipulator.manipulate(targetAssetUri)
-                                        .renderAsync()
-                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
-                                        .then((manipResult) => {
-                                            const uri = manipResult.uri;
-                                            const convertedAsset = {
-                                                uri,
-                                                name: uri
-                                                    .substring(uri.lastIndexOf('/') + 1)
-                                                    .split('?')
-                                                    .at(0),
-                                                type: 'image/jpeg',
-                                                width: manipResult.width,
-                                                height: manipResult.height,
-                                            };
+                                    const manipulateContext = ImageManipulator.manipulate(targetAssetUri);
 
-                                            return resolve([convertedAsset]);
-                                        })
-                                        .catch((err) => reject(err));
-                                } else {
-                                    return resolve(response.assets);
+                                    manipulateContext.renderAsync().then((image) =>
+                                        image
+                                            .saveAsync({format: SaveFormat.JPEG})
+                                            .then((result) => {
+                                                manipulateContext.release();
+                                                image.release();
+                                                return result;
+                                            })
+                                            .then((manipResult) => {
+                                                const uri = manipResult.uri;
+                                                const convertedAsset = {
+                                                    uri,
+                                                    name: uri
+                                                        .substring(uri.lastIndexOf('/') + 1)
+                                                        .split('?')
+                                                        .at(0),
+                                                    type: 'image/jpeg',
+                                                    width: manipResult.width,
+                                                    height: manipResult.height,
+                                                };
+                                                return resolve([convertedAsset]);
+                                            })
+                                            .catch(() => {
+                                                manipulateContext?.release();
+                                                resolve(response.assets ?? []);
+                                            }),
+                                    );
                                 }
+                                return resolve(response.assets);
                             })
                             .catch((err) => reject(err));
                     } else {
