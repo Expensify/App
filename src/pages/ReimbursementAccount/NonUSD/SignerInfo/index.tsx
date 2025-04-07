@@ -58,17 +58,13 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const submit = useCallback(() => {
         const {signerDetails, signerFiles} = getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft, account?.primaryLogin ?? '', isUserOwner);
 
-        if (currency === CONST.CURRENCY.AUD) {
-            setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
-        } else {
-            saveCorpayOnboardingDirectorInformation({
-                inputs: JSON.stringify(signerDetails),
-                ...signerFiles,
-                bankAccountID,
-                directorIDs: `${directorKeys.toString()}`,
-            });
-        }
-    }, [account?.primaryLogin, bankAccountID, currency, directorKeys, isUserOwner, reimbursementAccountDraft]);
+        saveCorpayOnboardingDirectorInformation({
+            inputs: JSON.stringify(signerDetails),
+            ...signerFiles,
+            bankAccountID,
+            directorIDs: `${directorKeys.toString()}`,
+        });
+    }, [account?.primaryLogin, bankAccountID, directorKeys, isUserOwner, reimbursementAccountDraft]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -79,12 +75,16 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         if (reimbursementAccount?.isSuccess) {
             onSubmit();
             clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+
+            if (currency === CONST.CURRENCY.AUD) {
+                setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+            }
         }
 
         return () => {
             clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
         };
-    }, [reimbursementAccount, onSubmit]);
+    }, [reimbursementAccount, onSubmit, currency]);
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {

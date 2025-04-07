@@ -762,7 +762,7 @@ const CONST = {
                 COPY_OF_ID: 'signerCopyOfID',
                 ADDRESS_PROOF: 'signerAddressProof',
                 CODICE_FISCALE: 'signerCodiceFiscale',
-                DONWLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
+                DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',

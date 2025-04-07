@@ -50,7 +50,7 @@ function getValuesForSignerInfo(reimbursementAccountDraft: OnyxEntry<Reimburseme
         copyOfId: reimbursementAccountDraft[signerInfoKeys.COPY_OF_ID] ?? [],
         addressProof: reimbursementAccountDraft[signerInfoKeys.ADDRESS_PROOF] ?? [],
         codiceFiscale: reimbursementAccountDraft[signerInfoKeys.CODICE_FISCALE] ?? [],
-        downloadedPdsAndFSG: reimbursementAccountDraft[signerInfoKeys.DONWLOADED_PDS_AND_FSG] ?? false,
+        downloadedPdsAndFSG: reimbursementAccountDraft[signerInfoKeys.DOWNLOADED_PDS_AND_FSG] ?? false,
     } as SignerInfoValues;
 }
 

@@ -18,6 +18,7 @@ const {
     ADDRESS_PROOF,
     COPY_OF_ID,
     CODICE_FISCALE,
+    DOWNLOADED_PDS_AND_FSG,
 } = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 const {
     PREFIX: BENEFICIAL_PREFIX,
@@ -30,7 +31,7 @@ const {
     ZIP_CODE: BENEFICIAL_ZIP_CODE,
 } = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE];
+const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE, DOWNLOADED_PDS_AND_FSG];
 const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE];
 const beneficialOwnerFields = [FIRST_NAME, LAST_NAME, DOB, BENEFICIAL_STREET, BENEFICIAL_CITY, BENEFICIAL_STATE, BENEFICIAL_ZIP_CODE];
 
@@ -40,12 +41,17 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
     isUserBeneficialOwner: boolean,
 ) {
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
-    const signerFiles: Record<string, string | FileObject> = {};
+    const signerFiles: Record<string, string | FileObject | boolean> = {};
 
     signerDetailsFields.forEach((fieldName: keyof SignerInfoStepProps) => {
         if (fieldName === EMAIL) {
             signerDetails[fieldName] = signerEmail;
             return;
+        }
+
+        if (fieldName === DOWNLOADED_PDS_AND_FSG) {
+            // hardcoded "true" temporarily - it will be handled properly in separate PR
+            signerDetails[fieldName] = true;
         }
 
         if (!reimbursementAccountDraft?.[fieldName]) {
@@ -56,6 +62,7 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
             signerDetails[ADDRESS] = signerDetails[ADDRESS] ? `${String(signerDetails[ADDRESS])}, ${String(reimbursementAccountDraft?.[fieldName])}` : reimbursementAccountDraft?.[fieldName];
             return;
         }
+
 
         signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
     });
