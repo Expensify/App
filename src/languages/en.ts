@@ -2318,7 +2318,7 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
-        whatIndustryIsTheBusinessClassifiedAs: 'What industry is the business classify as?',
+        industryClassification: 'Which industry is the business classified under?',
         industryClassificationCodePlaceholder: 'Search for industry classification code',
     },
     requestorStep: {

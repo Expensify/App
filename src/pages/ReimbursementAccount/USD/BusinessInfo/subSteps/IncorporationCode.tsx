@@ -48,7 +48,7 @@ function IncorporationCode({onNext, isEditing}: SubStepProps) {
             style={[styles.mh0, styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
         >
-            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('companyStep.whatIndustryIsTheBusinessClassifiedAs')}</Text>
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('companyStep.industryClassification')}</Text>
             <InputWrapper
                 InputComponent={IndustryCodeSelector}
                 inputID={COMPANY_INCORPORATION_CODE_KEY}

@@ -2340,7 +2340,7 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Propietario único',
             OTHER: 'Otra',
         },
-        whatIndustryIsTheBusinessClassifiedAs: '¿En qué industria se clasifica el negocio?',
+        industryClassification: '¿A qué categoría pertenece el negocio?',
         industryClassificationCodePlaceholder: 'Buscar código de clasificación industrial',
     },
     requestorStep: {
