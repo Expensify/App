@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -32,6 +32,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+
+    const isClosing = useRef(false);
 
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -118,16 +120,18 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
+    if (isClosing.current || (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata))) {
         return;
     }
 
     const spreadsheetColumns = spreadsheet?.data;
+
     if (hasAccountingConnections || !spreadsheetColumns) {
         return <NotFoundPage />;
     }
 
     const closeImportPageAndModal = () => {
+        isClosing.current = true;
         setIsImportingCategories(false);
         closeImportPage();
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
