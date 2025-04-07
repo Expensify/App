@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -27,7 +26,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import RNAddToWalletButton from '@libs/Wallet/AddToWalletButton';
-// powinno byc from '@libs/Wallet
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
