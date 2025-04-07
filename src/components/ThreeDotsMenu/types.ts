@@ -1,4 +1,4 @@
-import type {LayoutRectangle, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
@@ -23,9 +23,6 @@ type ThreeDotsMenuProps = {
 
     /** menuItems that'll show up on toggle of the popup menu */
     menuItems: PopoverMenuItem[];
-
-    /** The anchor position of the menu */
-    anchorPosition: AnchorPosition;
 
     /** The anchor alignment of the menu */
     anchorAlignment?: AnchorAlignment;
@@ -55,7 +52,20 @@ type ThreeDotsMenuProps = {
     threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>;
 };
 
-type LayoutChangeEventWithTarget = NativeSyntheticEvent<{layout: LayoutRectangle; target: HTMLElement}>;
+type ThreeDotsMenuWithOptionalAnchorProps =
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition: AnchorPosition;
 
-export type {LayoutChangeEventWithTarget};
-export default ThreeDotsMenuProps;
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition?: never;
+      })
+    | (ThreeDotsMenuProps & {
+          /** The anchor position of the menu */
+          anchorPosition?: never;
+
+          /** A callback to get the anchor position dynamically */
+          getAnchorPosition: () => Promise<AnchorPosition>;
+      });
+
+export default ThreeDotsMenuWithOptionalAnchorProps;

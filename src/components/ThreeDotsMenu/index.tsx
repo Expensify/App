@@ -13,6 +13,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobile} from '@libs/Browser';
+import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,6 +31,7 @@ function ThreeDotsMenu({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    getAnchorPosition,
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
@@ -44,6 +46,7 @@ function ThreeDotsMenu({
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
+    const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
@@ -78,10 +81,17 @@ function ThreeDotsMenu({
         }
         hideProductTrainingTooltip?.();
         buttonRef.current?.blur();
-        showPopoverMenu();
-        if (onIconPress) {
-            onIconPress();
+
+        if (getAnchorPosition) {
+            getAnchorPosition().then((value) => {
+                setPosition(value);
+                showPopoverMenu();
+            });
+        } else {
+            showPopoverMenu();
         }
+
+        onIconPress?.();
     };
 
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
@@ -131,7 +141,7 @@ function ThreeDotsMenu({
             <PopoverMenu
                 onClose={hidePopoverMenu}
                 isVisible={isPopupMenuVisible && !isBehindModal}
-                anchorPosition={anchorPosition}
+                anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
