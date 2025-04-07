@@ -45,30 +45,14 @@ function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsP
     const {translate} = useLocalize();
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
 
-    const handleCopyToClipboard = () => {
-        Clipboard.setString(pan);
-    };
-
     return (
         <>
             {pan?.length > 0 && (
                 <MenuItemWithTopDescription
                     description={translate('cardPage.cardDetails.cardNumber')}
                     title={pan}
-                    shouldShowRightComponent
-                    rightComponent={
-                        <View style={styles.justifyContentCenter}>
-                            <PressableWithDelayToggle
-                                tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-                                tooltipTextChecked={translate('reportActionContextMenu.copied')}
-                                icon={Expensicons.Copy}
-                                onPress={handleCopyToClipboard}
-                                accessible={false}
-                                text=""
-                            />
-                        </View>
-                    }
                     interactive={false}
+                    copyValue={pan}
                 />
             )}
             {expiration?.length > 0 && (
