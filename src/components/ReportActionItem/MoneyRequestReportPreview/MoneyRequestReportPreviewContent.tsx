@@ -555,7 +555,7 @@ function MoneyRequestReportPreviewContent({
                                             ref={carouselRef}
                                             nestedScrollEnabled
                                             scrollEnabled={transactions.length > 1}
-                                            keyExtractor={(item) => item.transactionID}
+                                            keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
                                             contentContainerStyle={[styles.gap2]}
                                             style={reportPreviewStyles.flatListStyle}
                                             showsHorizontalScrollIndicator={false}
