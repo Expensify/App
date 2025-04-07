@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -46,7 +46,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem) => void;
+    onSelectRow: (item: SearchListItem, isOpenedAsReport?: boolean) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
@@ -65,6 +65,12 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Whether to prevent long press of options */
     shouldPreventLongPressRow?: boolean;
+
+    /** The hash of the queryJSON */
+    queryJSONHash: number;
+
+    /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
+    onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 };
 
 function SearchList(
@@ -84,6 +90,8 @@ function SearchList(
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
+        queryJSONHash,
+        onViewableItemsChanged,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
@@ -290,10 +298,11 @@ function SearchList(
                         ...item,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    queryJSONHash={queryJSONHash}
                 />
             );
         },
-        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
+        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
     );
 
     return (
@@ -334,6 +343,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 removeClippedSubviews
+                onViewableItemsChanged={onViewableItemsChanged}
             />
             <Modal
                 isVisible={isModalVisible}

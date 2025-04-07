@@ -32,6 +32,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import filterArrayByMatch from './filterArrayByMatch';
+import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translate, translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -61,7 +62,7 @@ import {
     isMoneyRequestAction,
     isOldDotReportAction,
     isPendingRemove,
-    isReimbursementDeQueuedAction,
+    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isReportPreviewAction,
     isTaskAction,
@@ -86,7 +87,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getParticipantsAccountIDsForDisplay,
     getPolicyName,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
@@ -106,6 +107,7 @@ import {
     isArchivedReport,
     isChatThread,
     isDefaultRoom,
+    isDM,
     isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -113,7 +115,6 @@ import {
     isIOUOwnedByCurrentUser,
     isMoneyRequest,
     isPolicyAdmin,
-    isReportMessageAttachment,
     isUnread,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
@@ -496,7 +497,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
     const displayName = formatPhoneNumber(getDisplayNameOrDefault(detail, login || participant.text));
 
     return {
-        keyForList: String(detail?.accountID),
+        keyForList: String(detail?.accountID ?? login),
         login,
         accountID: detail?.accountID,
         text: displayName,
@@ -549,6 +550,23 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
         ? // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           lastActorDetails.firstName || formatPhoneNumber(getDisplayNameOrDefault(lastActorDetails))
         : translateLocal('common.you');
+}
+
+/**
+ * Should show the last actor display name from last actor details.
+ */
+function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails || reportUtilsIsSelfDM(report) || (isDM(report) && lastActorDetails.accountID !== currentUserAccountID)) {
+        return false;
+    }
+
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+
+    if (!lastActorDisplayName) {
+        return false;
+    }
+
+    return true;
 }
 
 /**
@@ -705,8 +723,8 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         lastMessageTextFromReport = formatReportLastMessageText(reportPreviewMessage);
     } else if (isReimbursementQueuedAction(lastReportAction)) {
         lastMessageTextFromReport = getReimbursementQueuedActionMessage({reportAction: lastReportAction, reportOrID: report});
-    } else if (isReimbursementDeQueuedAction(lastReportAction)) {
-        lastMessageTextFromReport = getReimbursementDeQueuedActionMessage(lastReportAction, report, true);
+    } else if (isReimbursementDeQueuedOrCanceledAction(lastReportAction)) {
+        lastMessageTextFromReport = getReimbursementDeQueuedOrCanceledActionMessage(lastReportAction, report, true);
     } else if (isDeletedParentAction(lastReportAction) && reportUtilsIsChatReport(report)) {
         lastMessageTextFromReport = getDeletedParentActionMessageForChatReport(lastReportAction);
     } else if (isPendingRemove(lastReportAction) && report?.reportID && isThreadParentMessage(lastReportAction, report.reportID)) {
@@ -862,14 +880,17 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
-        const lastActorDetails = report.lastActorAccountID ? personalDetailMap[report.lastActorAccountID] : null;
+        const lastActorDetails = report.lastActorAccountID ? personalDetails?.[report.lastActorAccountID] ?? null : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = lastVisibleReportActions[report.reportID];
-        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
-
+        const shouldDisplayLastActorName =
+            lastAction &&
+            lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+            lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
@@ -1518,6 +1539,13 @@ function getIsUserSubmittedExpenseOrScannedReceipt(): boolean {
 }
 
 /**
+ * Whether the report is a Manager McTest report
+ */
+function isManagerMcTestReport(report: SearchOption<Report>): boolean {
+    return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
+}
+
+/**
  * Helper method to check if participant email is Manager McTest
  */
 function isSelectedManagerMcTest(email: string | null | undefined): boolean {
@@ -1591,12 +1619,14 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
 ): Options {
+    const userHasReportWithManagerMcTest = canShowManagerMcTest && Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
         [CONST.EMAIL.NOTIFICATIONS]: true,
         ...excludeLogins,
-        // Exclude Manager McTest if user submitted expense or scanned receipt and when selection is made from Create or Submit flow
-        [CONST.EMAIL.MANAGER_MCTEST]: !(!getIsUserSubmittedExpenseOrScannedReceipt() && canShowManagerMcTest && Permissions.canUseManagerMcTest(config.betas)),
+        // Exclude Manager McTest if selection is made from Create or Submit flow
+        [CONST.EMAIL.MANAGER_MCTEST]: (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -2305,6 +2335,7 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     isSelectedManagerMcTest,
+    shouldShowLastActorDisplayName,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

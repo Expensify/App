@@ -74,7 +74,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
@@ -98,7 +98,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -128,7 +128,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -155,7 +155,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
@@ -180,7 +180,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 0,
                 };
@@ -209,6 +209,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     paddingTop: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
+                    boxShadow: theme.shadow,
                 };
 
                 shouldAddBottomSafeAreaPadding = true;
@@ -232,7 +233,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderColor: theme.border,
                     justifyContent: 'center',
                     overflow: 'hidden',
-                    boxShadow: variables.popoverMenuShadow,
+                    boxShadow: theme.shadow,
                 };
 
                 hideBackdrop = true;
