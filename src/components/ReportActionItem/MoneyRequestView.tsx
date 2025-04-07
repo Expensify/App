@@ -380,7 +380,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                         );
                     }}
-                    copyValue={!canEditDistance ? distanceToDisplay : undefined}
+                    copyValue={distanceToDisplay}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
@@ -648,7 +648,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
-                            copyValue={!canEditMerchant ? updatedMerchantTitle : undefined}
+                            copyValue={updatedMerchantTitle}
                         />
                     </OfflineWithFeedback>
                 )}
