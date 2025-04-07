@@ -8,12 +8,15 @@ type TextWithMiddleEllipsisProps = {
 
     /** Additional styles */
     style?: StyleProp<TextStyle>;
+
+    /** Additional text styles */
+    textStyle?: StyleProp<TextStyle>;
 };
 
-function TextWithMiddleEllipsis({text, style}: TextWithMiddleEllipsisProps) {
+function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsisProps) {
     return (
         <Text
-            style={style}
+            style={[style, textStyle]}
             ellipsizeMode="middle"
             numberOfLines={1}
         >
