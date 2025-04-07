@@ -40,7 +40,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
 
     // Web back button: push history state and close side pane on popstate
     useEffect(() => {
-        window.history.pushState({isSidePaneOpen: true}, '', null);
+        window.history.pushState({isSidePanelOpen: true}, '', null);
         const handlePopState = () => {
             if (isExtraLargeScreenWidth) {
                 return;
