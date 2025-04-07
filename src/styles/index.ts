@@ -262,7 +262,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             justifyContent: 'center',
             overflow: 'hidden',
-            boxShadow: variables.popoverMenuShadow,
+            boxShadow: theme.shadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
         },
         blockquote: {
@@ -804,7 +804,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonSuccessText: {
-            color: theme.textLight,
+            color: theme.buttonSuccessText,
         },
 
         buttonDangerText: {
@@ -1917,7 +1917,7 @@ const styles = (theme: ThemeColors) =>
 
         popoverInnerContainer: {
             paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
-            maxHeight: '95%',
+            backgroundColor: theme.modalBackground,
         },
 
         menuItemTextContainer: {
@@ -2729,6 +2729,12 @@ const styles = (theme: ThemeColors) =>
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 400,
+            alignSelf: 'center',
+        },
+
+        blockingErrorViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
             alignSelf: 'center',
         },
 

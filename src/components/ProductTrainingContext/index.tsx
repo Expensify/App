@@ -189,9 +189,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
-        if (shouldShow) {
-            registerTooltip(tooltipName);
+        if (!shouldShow) {
+            return;
         }
+        registerTooltip(tooltipName);
         return () => {
             unregisterTooltip(tooltipName);
         };

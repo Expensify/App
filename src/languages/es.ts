@@ -26,6 +26,7 @@ import type {
     BillingBannerCardOnDisputeParams,
     BillingBannerDisputePendingParams,
     BillingBannerInsufficientFundsParams,
+    BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -494,6 +495,7 @@ const translations = {
         filterLogs: 'Registros de filtrado',
         network: 'La red',
         reportID: 'ID del informe',
+        longID: 'ID largo',
         bankAccounts: 'Cuentas bancarias',
         chooseFile: 'Elegir archivo',
         dropTitle: 'Suéltalo',
@@ -980,7 +982,7 @@ const translations = {
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
-        submitAmount: ({amount}: RequestAmountParams) => `solicitar ${amount}`,
+        submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
             `se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
@@ -1387,6 +1389,88 @@ const translations = {
         enterDefaultContact: 'Tu método de contacto predeterminado',
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
+    },
+    mergeAccountsPage: {
+        mergeAccount: 'Fusionar cuentas',
+        accountDetails: {
+            accountToMergeInto: `Introduce la cuenta en la que deseas fusionar `,
+            notReversibleConsent: 'Entiendo que esto no es reversible',
+        },
+        accountValidate: {
+            confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
+            lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
+            enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+        },
+        mergeSuccess: {
+            accountsMerged: '¡Cuentas fusionadas!',
+            successfullyMergedAllData: {
+                beforeFirstEmail: 'Has fusionado exitosamente todos los datos de ',
+                beforeSecondEmail: ' en ',
+                afterSecondEmail: '. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.',
+            },
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'Estamos trabajando en ello',
+            limitedSupport: 'Todavía no es posible fusionar cuentas en New Expensify. Por favor, realiza esta acción en Expensify Classic en su lugar',
+            reachOutForHelp: {
+                beforeLink: '¡No dudes en ',
+                linkText: 'comunicarte con Concierge',
+                afterLink: ' si tienes alguna pregunta!',
+            },
+            goToExpensifyClassic: 'Dirígete a Expensify Classic',
+        },
+        mergeFailureSAMLDomainControl: {
+            beforeFirstEmail: 'No puedes fusionar ',
+            beforeDomain: ' porque está controlado por ',
+            afterDomain: '. Póngase ',
+            linkText: 'en contacto con Conserjería',
+            afterLink: ' si necesita ayuda.',
+        },
+        mergeFailureSAMLAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: {
+                beforeFirstEmail: 'No puedes fusionar cuentas porque ',
+                beforeSecondEmail: ' tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ',
+                afterSecondEmail: ' e inténtalo nuevamente.',
+            },
+            learnMore: 'Aprende más sobre cómo fusionar cuentas.',
+        },
+        mergeFailureAccountLocked: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' porque está bloqueado. Póngase ',
+            linkText: 'en contacto con Conserjería',
+            afterLink: ` si necesita ayuda.`,
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: {
+                beforeEmail: 'No puedes fusionar cuentas porque ',
+                afterEmail: ' no tiene una cuenta de Expensify.',
+            },
+            addContactMethod: {
+                beforeLink: 'Por favor, ',
+                linkText: 'añádela como método de contacto',
+                afterLink: ' en su lugar.',
+            },
+        },
+        mergeFailureSmartScannerAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailureInvoicedAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailureTooManyAttempts: {
+            heading: 'Inténtalo de nuevo más tarde',
+            description: 'Hubo demasiados intentos de fusionar cuentas. Por favor, inténtalo de nuevo más tarde.',
+        },
+        mergeFailureUnvalidatedAccount: {
+            description: 'No puedes fusionarte con otras cuentas porque no está validada. Por favor, valida la cuenta e inténtalo de nuevo.',
+        },
+        mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
     },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
@@ -2029,6 +2113,10 @@ const translations = {
         noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
         goBackHome: 'Volver a la página principal',
     },
+    errorPage: {
+        title: ({isBreakline}: {isBreakline: boolean}) => `Ups... ${isBreakline ? '\n' : ''}Algo no ha ido bien`,
+        subtitle: 'No se ha podido completar la acción. Por favor, inténtalo más tarde.',
+    },
     setPasswordPage: {
         enterPassword: 'Escribe una contraseña',
         setPassword: 'Configura tu contraseña',
@@ -2651,6 +2739,8 @@ const translations = {
             travelTermsAndConditions: 'términos y condiciones',
             agree: 'Acepto los ',
             error: 'Debes aceptar los términos y condiciones de Expensify Travel para continuar',
+            defaultWorkspaceError:
+                'Debes establecer un espacio de trabajo predeterminado para habilitar Expensify Travel. Ve a Configuración > Espacios de trabajo > haz clic en los tres puntos verticales junto a un espacio de trabajo > Establecer como espacio de trabajo predeterminado y luego inténtalo de nuevo.',
         },
         flight: 'Vuelo',
         flightDetails: {
@@ -4916,7 +5006,7 @@ const translations = {
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `eliminó la etiqueta "${tagName}" de la lista "${tagListName}"`,
-        deleteMultipleTags: ({tagListName}: UpdatedPolicyTagParams) => `eliminó múltiples etiquetas de la lista "${tagListName}"`,
+        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `eliminó "${count}" etiquetas de la lista "${tagListName}"`,
         updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
             if (oldValue) {
                 return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" cambiando el ${updatedField} a "${newValue}" (previamente "${oldValue}")`;
@@ -6120,8 +6210,11 @@ const translations = {
                 subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Actualiza tu tarjeta de pago antes del ${date} para continuar utilizando todas tus herramientas favoritas`,
             },
             policyOwnerAmountOwedOverdue: {
-                title: 'Tu información de pago está desactualizada',
-                subtitle: 'Por favor, actualiza tu información de pago.',
+                title: 'No se pudo procesar tu pago',
+                subtitle: ({date, purchaseAmountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                    date && purchaseAmountOwed
+                        ? `No se ha podido procesar tu cargo de ${purchaseAmountOwed} del día ${date}. Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.`
+                        : 'Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.',
             },
             policyOwnerUnderInvoicing: {
                 title: 'Tu información de pago está desactualizada',
