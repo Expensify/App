@@ -22,10 +22,7 @@ class ReactNativeBackgroundTaskModule internal constructor(context: ReactApplica
     override fun onReceive(context: Context?, intent: Intent?) {
       val taskName = intent?.getStringExtra("taskName")
       Log.d("ReactNativeBackgroundTaskModule", "Received task: $taskName")
-      // onReceive runs on main thread.
-      reactApplicationContext.runOnJSQueueThread {
-          emitOnBackgroundTaskExecution(taskName);
-      }
+      emitOnBackgroundTaskExecution(taskName)
     }
   }
 
