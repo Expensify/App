@@ -26,9 +26,9 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
         }
 
         putOnHold(firstTransactionID, values.comment, reportID);
-        // It's needed so the actions in header are recalculated
-        setSelectedTransactionsID([...selectedTransactionsID]);
 
+        // We need to do this so the actions in header are correctly updated
+        setSelectedTransactionsID([...selectedTransactionsID]);
         Navigation.goBack();
     };
 
