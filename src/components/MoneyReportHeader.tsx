@@ -89,7 +89,7 @@ import type {MoneyRequestHeaderStatusBarProps} from './MoneyRequestHeaderStatusB
 import MoneyRequestHeaderStatusBar from './MoneyRequestHeaderStatusBar';
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
-import SettlementButton from './SettlementButton';
+import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -143,7 +143,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
 
-    const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation} = usePaymentAnimations();
+    const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -364,9 +364,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             />
         ),
         [CONST.REPORT.PRIMARY_ACTIONS.PAY]: (
-            <SettlementButton
+            <AnimatedSettlementButton
+                isPaidAnimationRunning={isPaidAnimationRunning}
+                isApprovedAnimationRunning={isApprovedAnimationRunning}
+                onAnimationFinish={stopAnimation}
+                canIOUBePaid
                 onlyShowPayElsewhere={onlyShowPayElsewhere}
                 currency={moneyRequestReport?.currency}
+                confirmApproval={confirmApproval}
                 policyID={moneyRequestReport?.policyID}
                 chatReportID={chatReport?.reportID}
                 iouReport={moneyRequestReport}
@@ -374,6 +379,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                 addBankAccountRoute={bankAccountRoute}
                 shouldHidePaymentOptions={!shouldShowPayButton}
+                shouldShowApproveButton={shouldShowApproveButton}
                 shouldDisableApproveButton={shouldDisableApproveButton}
                 formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
                 isDisabled={isOffline && !canAllowSettlement}
