@@ -149,10 +149,7 @@ function updateProductionFromStaging() {
     } catch (e) {}
 
     exec('git switch -c production');
-
-    exec(`git push origin --delete ${getVersion()}`);
     exec(`git tag ${getVersion()}`);
-
     exec('git push --force --tags origin production');
     Log.success('Recreated production from staging!');
 }
@@ -293,7 +290,7 @@ function tagStaging() {
         exec('git fetch origin staging --depth=1');
     }
     exec('git switch staging');
-    exec(`git tag ${getVersion()}`);
+    exec(`git tag ${getVersion()}-staging`);
     exec('git push --tags');
     Log.success(`Created new tag ${getVersion()}`);
 }
@@ -380,7 +377,7 @@ describe('CIGitLogic', () => {
         deployStaging();
 
         // Verify output for checklist and deploy comment
-        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1', [1]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1-staging', [1]);
     });
 
     test("Merge a pull request with the checklist locked, but don't CP it", async () => {
@@ -388,7 +385,7 @@ describe('CIGitLogic', () => {
         mergePR(2);
 
         // Verify output for checklist and deploy comment, and make sure PR #2 is not on staging
-        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1', [1]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-1-staging', [1]);
     });
 
     test('Merge a pull request with the checklist locked and CP it to staging', async () => {
@@ -396,10 +393,10 @@ describe('CIGitLogic', () => {
         cherryPickPRToStaging(3);
 
         // Verify output for checklist
-        await assertPRsMergedBetween('2.0.0-0', '2.0.0-2', [1, 3]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.0-2-staging', [1, 3]);
 
         // Verify output for deploy comment, and make sure PR #2 is not on staging
-        await assertPRsMergedBetween('2.0.0-1', '2.0.0-2', [3]);
+        await assertPRsMergedBetween('2.0.0-1-staging', '2.0.0-2-staging', [3]);
     });
 
     test('Merge a pull request with the checklist locked and CP it to production', async () => {
@@ -408,22 +405,22 @@ describe('CIGitLogic', () => {
         cherryPickPRToProduction(4);
 
         // Verify output for checklist
-        await assertPRsMergedBetween('2.0.0-0', '2.0.1-1', [1, 3]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.1-1-staging', [1, 3]);
 
         // Verify output for deploy comment
         await assertPRsMergedBetween('2.0.0-0', '2.0.1-0', [4]);
     });
-/*
-    test('Close the checklist', async () => {
+
+    test('Close the checklist, deploy production and staging', async () => {
         deployProduction();
 
         // Verify output for release body and production deploy comments
-        await assertPRsMergedBetween('2.0.0-0', '2.0.0-2', [1, 3]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.1-1', [1, 3]);
 
         // Verify output for new checklist and staging deploy comments
-        await assertPRsMergedBetween('2.0.0-2', '2.0.1-0', [2, 4]);
+        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-0-staging', [2, 4]);
     });
-
+/*
     test('Merging another pull request when the checklist is unlocked', async () => {
         createBasicPR(5);
         mergePR(5);

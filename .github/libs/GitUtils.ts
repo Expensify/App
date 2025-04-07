@@ -124,7 +124,7 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
     // const hashForFromTag = execSync(`git rev-parse ${fromTag}`).toString().trim();
 
     // TODO: Make this fast 🚀
-    execSync(`git fetch --tags`);
+    execSync(`git fetch --tags --unshallow`);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise<string>((resolve, reject) => {
