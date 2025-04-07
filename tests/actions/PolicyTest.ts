@@ -39,6 +39,10 @@ describe('actions/Policy', () => {
     });
 
     describe('createWorkspace', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
         it('creates a new workspace', async () => {
             (fetch as MockFetch)?.pause?.();
             await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
