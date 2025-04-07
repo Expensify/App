@@ -201,6 +201,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     onSubmit={sendInvitation}
                     submitButtonText={translate('common.invite')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}
