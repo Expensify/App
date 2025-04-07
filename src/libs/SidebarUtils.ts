@@ -18,7 +18,7 @@ import {hasValidDraftComment} from './DraftCommentUtils';
 import localeCompare from './LocaleCompare';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translate, translateLocal} from './Localize';
-import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs} from './OptionsListUtils';
+import {getLastActorDisplayName, getLastMessageTextForReport, getPersonalDetailsForAccountIDs, shouldShowLastActorDisplayName} from './OptionsListUtils';
 import Parser from './Parser';
 import Performance from './Performance';
 import {getCleanedTagName, getPolicy} from './PolicyUtils';
@@ -89,7 +89,6 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
-    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -518,7 +517,6 @@ function getOptionData({
     }
 
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy);
@@ -647,12 +645,11 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        if (isDM(report) && lastActorDisplayName !== translateLocal('common.you')) {
-            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+
+        if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
+            result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
         } else {
-            result.alternateText = lastActorDisplayName
-                ? `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`
-                : formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
+            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
         }
     }
 
