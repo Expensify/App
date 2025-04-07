@@ -5,7 +5,7 @@ import type {ReportAttributes} from '@src/types/onyx';
 
 /**
  * This derived value is used to get the report attributes for the report.
- * Dependency on ONYXKEYS.PERSONAL_DETAILS_LIST is to ensure that the report attributes are updated when the personal details are updated.
+ * Dependency on ONYXKEYS.PERSONAL_DETAILS_LIST is to ensure that the report attributes are generated after the personal details are available.
  */
 
 export default createOnyxDerivedValueConfig({
