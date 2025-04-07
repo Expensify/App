@@ -388,6 +388,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag list name */
     tagListName?: string;
 
+    /** Count of elements updated */
+    count?: string;
+
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
 

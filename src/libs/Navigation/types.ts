@@ -106,7 +106,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
-    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
+        email?: string;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
+        login: string;
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
+        backTo?: Routes;
+        result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>;
+        login: string;
+    };
     [SCREENS.SETTINGS.CONSOLE]: {
         backTo: Routes;
     };
@@ -1756,6 +1768,7 @@ type SharedScreensParamList = {
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
+        delegatorEmail?: string;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -1855,6 +1868,12 @@ type SearchReportParamList = {
 
         /** Hash that includes info about what is searched for */
         searchHash?: number;
+    };
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
+        /** Link to previous page */
+        backTo: Routes;
+        /** Selected transactions' report ID  */
+        reportID: string;
     };
 };
 
