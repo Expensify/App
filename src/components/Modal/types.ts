@@ -122,7 +122,7 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
          * Whether the modal should apply the side pane offset.
          * This is used to adjust the modal position when the side pane is open.
          */
-        shouldApplySidePaneOffset?: boolean;
+        shouldApplySidePanelOffset?: boolean;
     };
 
 export default BaseModalProps;

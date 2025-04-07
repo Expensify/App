@@ -1,4 +1,4 @@
-type SidePane = {
+type SidePanel = {
     /** Whether the side pane is open on large screens */
     open: boolean;
 
@@ -6,4 +6,4 @@ type SidePane = {
     openNarrowScreen: boolean;
 };
 
-export default SidePane;
+export default SidePanel;

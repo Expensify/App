@@ -3,8 +3,9 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {triggerSidePane} from '@libs/actions/SidePane';
+import {triggerSidePanel} from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -16,11 +17,11 @@ import useWindowDimensions from './useWindowDimensions';
 /**
  * Hook to get the display status of the side pane
  */
-function useSidePaneDisplayStatus() {
+function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [sidePaneNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANE);
+    const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [canUseHelpSidePanel = false] = useOnyx(ONYXKEYS.BETAS, {selector: (betas) => !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL)});
+    const [canUseHelpSidePanel = false] = useOnyx(ONYXKEYS.BETAS, {selector: Permissions.canUseHelpSidePanel});
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
         selector: (modal) =>
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
@@ -30,73 +31,79 @@ function useSidePaneDisplayStatus() {
     });
 
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
-    const isSidePaneVisible = isExtraLargeScreenWidth ? sidePaneNVP?.open : sidePaneNVP?.openNarrowScreen;
+    const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
 
     // The side pane is hidden when:
     // - NVP is not set or it is false
     // - language is unsupported
     // - modal centered is visible
-    const shouldHideSidePane = !isSidePaneVisible || isLanguageUnsupported || isModalCenteredVisible || !canUseHelpSidePanel;
-    const isSidePaneHiddenOrLargeScreen = !isSidePaneVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !canUseHelpSidePanel;
+    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !canUseHelpSidePanel;
+    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !canUseHelpSidePanel;
 
     // The help button is hidden when:
     // - the user is not part of the corresponding beta
     // - side pane is displayed currently
     // - language is unsupported
-    const shouldHideHelpButton = !canUseHelpSidePanel || !shouldHideSidePane || isLanguageUnsupported;
-    const shouldHideSidePaneBackdrop = shouldHideSidePane || isExtraLargeScreenWidth || shouldUseNarrowLayout;
+    const shouldHideHelpButton = !canUseHelpSidePanel || !shouldHideSidePanel || isLanguageUnsupported;
+    const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
-    return {shouldHideSidePane, isSidePaneHiddenOrLargeScreen, shouldHideHelpButton, shouldHideSidePaneBackdrop, sidePaneNVP};
+    return {
+        shouldHideSidePanel,
+        isSidePanelHiddenOrLargeScreen,
+        shouldHideHelpButton,
+        shouldHideSidePanelBackdrop,
+        sidePanelNVP,
+    };
 }
 
 /**
  * Hook to get the animated position of the side pane and the margin of the navigator
  */
-function useSidePane() {
+function useSidePanel() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
-    const sidePaneWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
+    const sidePanelWidth = shouldUseNarrowLayout ? windowWidth : variables.sideBarWidth;
 
-    const [isSidePaneTransitionEnded, setIsSidePaneTransitionEnded] = useState(false);
-    const {shouldHideSidePane, shouldHideSidePaneBackdrop, shouldHideHelpButton, sidePaneNVP} = useSidePaneDisplayStatus();
-    const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePaneTransitionEnded : !shouldHideSidePane;
+    const [isSidePanelTransitionEnded, setIsSidePanelTransitionEnded] = useState(false);
+    const {shouldHideSidePanel, shouldHideSidePanelBackdrop, shouldHideHelpButton, sidePanelNVP} = useSidePanelDisplayStatus();
+    const shouldHideToolTip = isExtraLargeScreenWidth ? !isSidePanelTransitionEnded : !shouldHideSidePanel;
 
-    const shouldApplySidePaneOffset = isExtraLargeScreenWidth && !shouldHideSidePane;
-    const sidePaneOffset = useRef(new Animated.Value(shouldApplySidePaneOffset ? variables.sideBarWidth : 0));
-    const sidePaneTranslateX = useRef(new Animated.Value(shouldHideSidePane ? sidePaneWidth : 0));
+    const shouldApplySidePanelOffset = isExtraLargeScreenWidth && !shouldHideSidePanel;
+    const sidePanelOffset = useRef(new Animated.Value(shouldApplySidePanelOffset ? variables.sideBarWidth : 0));
+    const sidePanelTranslateX = useRef(new Animated.Value(shouldHideSidePanel ? sidePanelWidth : 0));
 
     useEffect(() => {
-        setIsSidePaneTransitionEnded(false);
+        setIsSidePanelTransitionEnded(false);
 
         Animated.parallel([
-            Animated.timing(sidePaneOffset.current, {
-                toValue: shouldApplySidePaneOffset ? variables.sideBarWidth : 0,
+            Animated.timing(sidePanelOffset.current, {
+                toValue: shouldApplySidePanelOffset ? variables.sideBarWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-            Animated.timing(sidePaneTranslateX.current, {
-                toValue: shouldHideSidePane ? sidePaneWidth : 0,
+            Animated.timing(sidePanelTranslateX.current, {
+                toValue: shouldHideSidePanel ? sidePanelWidth : 0,
                 duration: CONST.ANIMATED_TRANSITION,
                 useNativeDriver: true,
             }),
-        ]).start(() => setIsSidePaneTransitionEnded(true));
-    }, [shouldHideSidePane, shouldApplySidePaneOffset, sidePaneWidth]);
+        ]).start(() => setIsSidePanelTransitionEnded(true));
+    }, [shouldHideSidePanel, shouldApplySidePanelOffset, sidePanelWidth]);
 
-    const openSidePane = useCallback(() => {
-        setIsSidePaneTransitionEnded(false);
+    const openSidePanel = useCallback(() => {
+        setIsSidePanelTransitionEnded(false);
         KeyboardUtils.dismiss();
 
-        triggerSidePane({
+        triggerSidePanel({
             isOpen: true,
             isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : true,
         });
     }, [isExtraLargeScreenWidth]);
 
-    const closeSidePane = useCallback(
+    const closeSidePanel = useCallback(
         (shouldUpdateNarrow = false) => {
-            setIsSidePaneTransitionEnded(false);
+            setIsSidePanelTransitionEnded(false);
             const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
-            triggerSidePane({
+            triggerSidePanel({
                 isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
                 isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
             });
@@ -108,18 +115,18 @@ function useSidePane() {
     );
 
     return {
-        sidePane: sidePaneNVP,
-        isSidePaneTransitionEnded,
-        shouldHideSidePane,
-        shouldHideSidePaneBackdrop,
+        sidePanelNVP,
+        isSidePanelTransitionEnded,
+        shouldHideSidePanel,
+        shouldHideSidePanelBackdrop,
         shouldHideHelpButton,
         shouldHideToolTip,
-        sidePaneOffset,
-        sidePaneTranslateX,
-        openSidePane,
-        closeSidePane,
+        sidePanelOffset,
+        sidePanelTranslateX,
+        openSidePanel,
+        closeSidePanel,
     };
 }
 
-export default useSidePane;
-export {useSidePaneDisplayStatus};
+export default useSidePanel;
+export {useSidePanelDisplayStatus};

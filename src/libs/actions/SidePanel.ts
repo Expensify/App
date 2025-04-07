@@ -11,8 +11,8 @@ type Options = {
 };
 
 /** Updates the side pane state in Onyx */
-function triggerSidePane({isOpen, isOpenNarrowScreen}: Options) {
-    const value: OnyxMergeInput<typeof ONYXKEYS.NVP_SIDE_PANE> = {};
+function triggerSidePanel({isOpen, isOpenNarrowScreen}: Options) {
+    const value: OnyxMergeInput<typeof ONYXKEYS.NVP_SIDE_PANEL> = {};
 
     if (isOpen !== undefined) {
         value.open = isOpen;
@@ -21,8 +21,8 @@ function triggerSidePane({isOpen, isOpenNarrowScreen}: Options) {
         value.openNarrowScreen = isOpenNarrowScreen;
     }
 
-    Onyx.merge(ONYXKEYS.NVP_SIDE_PANE, value);
+    Onyx.merge(ONYXKEYS.NVP_SIDE_PANEL, value);
 }
 
 // eslint-disable-next-line import/prefer-default-export
-export {triggerSidePane};
+export {triggerSidePanel};

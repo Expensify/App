@@ -97,7 +97,7 @@ import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
-import type SidePane from './SidePane';
+import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
@@ -256,7 +256,7 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
-    SidePane,
+    SidePanel,
     LastPaymentMethodType,
     TalkToAISales,
 };

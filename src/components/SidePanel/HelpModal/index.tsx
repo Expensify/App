@@ -6,8 +6,8 @@ import {useOnyx} from 'react-native-onyx';
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
-import HelpOverlay from '@components/SidePane/HelpComponents/HelpOverlay';
+import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
+import HelpOverlay from '@components/SidePanel/HelpComponents/HelpOverlay';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -16,7 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type HelpProps from './types';
 
-function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: HelpProps) {
+function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: HelpProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
@@ -27,11 +27,11 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
             return;
         }
 
-        closeSidePane();
+        closeSidePanel();
     };
 
     // Close side pane on escape key press
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePane(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
 
     // Close side pane on small screens when navigation keyboard shortcuts are used
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
@@ -46,7 +46,7 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
                 return;
             }
 
-            closeSidePane();
+            closeSidePanel();
         };
 
         window.addEventListener('popstate', handlePopState);
@@ -57,19 +57,19 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     return (
         <ModalPortal>
             <FocusTrapForModal active={!isExtraLargeScreenWidth}>
-                <View style={styles.sidePaneContainer}>
+                <View style={styles.sidePanelContainer}>
                     <View>
-                        {!shouldHideSidePaneBackdrop && (
+                        {!shouldHideSidePanelBackdrop && (
                             <HelpOverlay
-                                onBackdropPress={closeSidePane}
+                                onBackdropPress={closeSidePanel}
                                 isRHPVisible={isRHPVisible}
                             />
                         )}
                     </View>
                     <Animated.View
-                        style={[styles.sidePaneContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
+                        style={[styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom}]}
                     >
-                        <HelpContent closeSidePane={closeSidePane} />
+                        <HelpContent closeSidePanel={closeSidePanel} />
                     </Animated.View>
                 </View>
             </FocusTrapForModal>
