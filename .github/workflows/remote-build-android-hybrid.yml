@@ -1,0 +1,29 @@
+name: Remote Build Android Hybrid
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+  # TODO: remove before merging
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest-xl
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Setup NodeJS
+        uses: ./.github/actions/composite/setupNode
+
+      - name: RNEF Remote Build - Android
+        uses: callstackincubator/android@v1
+        env:
+          PROJECT_ROOT_PATH: "Mobile-Expensify/"
+        with:
+          variant: Debug
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-bot: false
