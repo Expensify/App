@@ -12,6 +12,7 @@ import useSidePane from '@hooks/useSidePane';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
@@ -261,9 +262,20 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
-                            onPress={() => {
-                                hideTooltip(true);
-                            }}
+                            onPress={
+                                getPlatform() !== CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          hideTooltip(true);
+                                      }
+                                    : undefined
+                            }
+                            onPressIn={
+                                getPlatform() === CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          hideTooltip(true);
+                                      }
+                                    : undefined
+                            }
                             shouldUseAutoHitSlop
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}
