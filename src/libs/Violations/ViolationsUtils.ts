@@ -230,7 +230,8 @@ const ViolationsUtils = {
         const shouldDisplayFutureDateViolation = !isInvoiceTransaction && DateUtils.isFutureDay(inputDate) && isControlPolicy;
         const hasReceiptRequiredViolation = transactionViolations.some((violation) => violation.name === 'receiptRequired');
         const hasOverLimitViolation = transactionViolations.some((violation) => violation.name === 'overLimit');
-        const amount = updatedTransaction.modifiedAmount ?? updatedTransaction.amount;
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const amount = updatedTransaction.modifiedAmount || updatedTransaction.amount;
         const shouldShowReceiptRequiredViolation =
             !isInvoiceTransaction &&
             policy.maxExpenseAmountNoReceipt &&
@@ -395,6 +396,10 @@ const ViolationsUtils = {
                 return translate('violations.taxRequired');
             case 'hold':
                 return translate('violations.hold');
+            case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
+                return translate('violations.prohibitedExpense', {
+                    prohibitedExpenseType: violation.data?.prohibitedExpenseRule ?? '',
+                });
             default:
                 // The interpreter should never get here because the switch cases should be exhaustive.
                 // If typescript is showing an error on the assertion below it means the switch statement is out of

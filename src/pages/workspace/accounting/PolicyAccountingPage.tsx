@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -22,18 +21,17 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import {getRouteParamForConnection} from '@libs/AccountingUtils';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, removePolicyConnection, syncConnection} from '@libs/actions/connections';
+import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
-import {getConciergeReportID} from '@libs/actions/Report';
+import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -70,14 +68,14 @@ type RouteParams = {
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUseNetSuiteUSATax, canUseNSQS} = usePermissions();
-    const {windowWidth} = useWindowDimensions();
+    const {canUseNetSuiteUSATax} = usePermissions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -93,12 +91,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
 
     const connectionNames = CONST.POLICY.CONNECTIONS.NAME;
-    const accountingIntegrations = Object.values(connectionNames).filter((integration) => {
-        if (integration === CONST.POLICY.CONNECTIONS.NAME.NSQS && !canUseNSQS) {
-            return false;
-        }
-        return true;
-    });
+    const accountingIntegrations = Object.values(connectionNames);
     const connectedIntegration = getConnectedIntegration(policy, accountingIntegrations) ?? connectionSyncProgress?.connectionName;
     const synchronizationError = connectedIntegration && getSynchronizationErrorMessage(policy, connectedIntegration, isSyncInProgress, translate, styles);
 
@@ -118,7 +111,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const currentXeroOrganization = findCurrentXeroOrganization(tenants, policy?.connections?.xero?.config?.tenantID);
     const shouldShowSynchronizationError = !!synchronizationError;
     const shouldShowReinstallConnectorMenuItem = shouldShowSynchronizationError && connectedIntegration === CONST.POLICY.CONNECTIONS.NAME.QBD;
-    const shouldShowCardReconciliationOption = policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID;
+    const shouldShowCardReconciliationOption = isExpensifyCardFullySetUp(policy, cardSettings);
 
     const overflowMenu: ThreeDotsMenuProps['menuItems'] = useMemo(
         () => [
@@ -191,6 +184,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         getAssignedSupportData(policyID);
     }, [policyID]);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
@@ -284,15 +291,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         return undefined;
                     }
 
-                    const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-
-                    // The multi connector is currently only used for NSQS (which is behind beta)
-                    const shouldUseMultiConnectionSelector = !!canUseNSQS && !!designatedDisplayConnection;
-                    if (shouldUseMultiConnectionSelector && designatedDisplayConnection !== integration) {
-                        return;
-                    }
-
-                    const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+                    const iconProps = integrationData?.icon
+                        ? {
+                              icon: integrationData.icon,
+                              iconType: CONST.ICON_TYPE_AVATAR,
+                          }
+                        : {};
 
                     return {
                         ...iconProps,
@@ -302,15 +306,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         title: integrationData?.title,
                         rightComponent: (
                             <Button
-                                onPress={() => {
-                                    if (shouldUseMultiConnectionSelector) {
-                                        Navigation.navigate(
-                                            ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)),
-                                        );
-                                        return;
-                                    }
-                                    startIntegrationFlow({name: integration});
-                                }}
+                                onPress={() => startIntegrationFlow({name: integration})}
                                 text={translate('workspace.accounting.setup')}
                                 style={styles.justifyContentCenter}
                                 small
@@ -354,7 +350,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 title: translate('workspace.accounting.export'),
                 wrapperStyle: [styles.sectionMenuItemTopDescription],
                 onPress: integrationData?.onExportPagePress,
-                brickRoadIndicator: areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                brickRoadIndicator:
+                    areSettingsInErrorFields(integrationData?.subscribedExportSettings, integrationData?.errorFields) || shouldShowQBOReimbursableExportDestinationAccountError(policy)
+                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                        : undefined,
                 pendingAction: settingsPendingAction(integrationData?.subscribedExportSettings, integrationData?.pendingFields),
             },
             ...(shouldShowCardReconciliationOption
@@ -401,22 +400,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         color={theme.spinner}
                     />
                 ) : (
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        onLayout={(e: LayoutChangeEvent) => {
-                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                            target?.measureInWindow((x, y, width) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y,
-                                });
-                            });
-                        }}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={overflowMenu}
-                            anchorPosition={threeDotsMenuPosition}
-                            anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP}}
+                            anchorAlignment={{
+                                horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                            }}
                         />
                     </View>
                 ),
@@ -441,7 +432,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         theme.spinner,
         overflowMenu,
-        threeDotsMenuPosition,
+        calculateAndSetThreeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
         isOffline,
@@ -449,7 +440,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         popoverAnchorRefs,
         canUseNetSuiteUSATax,
         shouldShowCardReconciliationOption,
-        canUseNSQS,
     ]);
 
     const otherIntegrationsItems = useMemo(() => {
@@ -466,17 +456,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     return undefined;
                 }
 
-                const designatedDisplayConnection = CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING[integration];
-                const otherLinkedConnections = designatedDisplayConnection
-                    ? CONST.POLICY.CONNECTIONS.MULTI_CONNECTIONS_MAPPING_INVERTED[designatedDisplayConnection]?.filter((connection) => connection !== connectedIntegration) ?? []
-                    : [];
-
-                // The multi connector is currently only used for NSQS (which is behind beta)
-                const shouldUseMultiConnectionSelector = !!canUseNSQS && !!designatedDisplayConnection && otherLinkedConnections.length > 1;
-                if (shouldUseMultiConnectionSelector && designatedDisplayConnection !== integration) {
-                    return;
-                }
-
                 const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
                 return {
@@ -484,18 +463,13 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     title: integrationData?.title,
                     rightComponent: (
                         <Button
-                            onPress={() => {
-                                const shouldDisconnect = true;
-                                if (shouldUseMultiConnectionSelector) {
-                                    Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.getRoute(policyID, getRouteParamForConnection(designatedDisplayConnection)));
-                                    return;
-                                }
+                            onPress={() =>
                                 startIntegrationFlow({
                                     name: integration,
                                     integrationToDisconnect: connectedIntegration,
-                                    shouldDisconnectIntegrationBeforeConnecting: shouldDisconnect,
-                                });
-                            }}
+                                    shouldDisconnectIntegrationBeforeConnecting: true,
+                                })
+                            }
                             text={translate('workspace.accounting.setup')}
                             style={styles.justifyContentCenter}
                             small
@@ -527,7 +501,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         isOffline,
         startIntegrationFlow,
         popoverAnchorRefs,
-        canUseNSQS,
     ]);
 
     const [chatTextLink, chatReportID] = useMemo(() => {
@@ -541,8 +514,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
             return [translate('workspace.accounting.talkYourAccountManager'), account?.accountManagerReportID];
         }
         // Else, display the following and link to their Concierge DM.
-        return [translate('workspace.accounting.talkToConcierge'), getConciergeReportID()];
-    }, [account, translate]);
+        return [translate('workspace.accounting.talkToConcierge'), conciergeChatReportID];
+    }, [account, conciergeChatReportID, translate]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -560,7 +533,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     shouldShowBackButton={shouldUseNarrowLayout}
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 />
                 <ScrollView contentContainerStyle={styles.pt3}>
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

@@ -471,6 +471,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
         ignore = all
     ```
     This ensures that submodule changes are ignored unless you deliberately update them.
+3. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
 
 
 > [!Note]  
@@ -849,3 +850,14 @@ In order to compile a production iOS build, run `npm run ios-build`, this will g
 
 #### Local production build the Android app
 To build an APK to share run (e.g. via Slack), run `npm run android-build`, this will generate a new APK in the `android/app` folder.
+
+# Onyx derived values
+Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
+
+## Creating new Onyx derived values
+1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
+2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
+3. Add the derived value config to `ONYX_DERIVED_VALUES` in `src/libs/OnyxDerived.ts`. A derived value config is defined by:
+   1. The Onyx key for the derived value
+   2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
+   3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`

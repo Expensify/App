@@ -22,8 +22,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -45,6 +45,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
@@ -147,7 +148,7 @@ function NewChatPage() {
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const {insets, safeAreaPaddingBottomStyle} = useStyledSafeAreaInsets();
+    const {insets, safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
@@ -214,7 +215,9 @@ function NewChatPage() {
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
-            selectionListRef.current?.focusTextInput();
+            if (!canUseTouchScreen()) {
+                selectionListRef.current?.focusTextInput();
+            }
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],
@@ -228,7 +231,11 @@ function NewChatPage() {
     const selectOption = useCallback(
         (option?: Option) => {
             if (option?.isSelfDM) {
-                Navigation.dismissModal(option.reportID);
+                if (!option.reportID) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
             if (selectedOptions.length && option) {
@@ -247,7 +254,7 @@ function NewChatPage() {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            navigateToAndOpenReport([login]);
+            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
         },
         [selectedOptions, toggleOption],
     );

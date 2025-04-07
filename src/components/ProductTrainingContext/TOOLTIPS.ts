@@ -6,13 +6,12 @@ import type {TranslationPaths} from '@src/languages/types';
 const {
     CONCEIRGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    WORKSAPCE_CHAT_CREATE,
-    QUICK_ACTION_BUTTON,
-    SEARCH_FILTER_BUTTON_TOOLTIP,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
     SCAN_TEST_TOOLTIP,
+    SCAN_TEST_TOOLTIP_MANAGER,
+    SCAN_TEST_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
@@ -39,7 +38,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+        shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
@@ -60,37 +61,6 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
         priority: 1200,
-        shouldShow: () => true,
-    },
-    [QUICK_ACTION_BUTTON]: {
-        content: [
-            {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
-            {text: 'productTrainingTooltip.quickActionButton.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(QUICK_ACTION_BUTTON),
-        name: QUICK_ACTION_BUTTON,
-        priority: 1150,
-        shouldShow: () => true,
-    },
-    [WORKSAPCE_CHAT_CREATE]: {
-        content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
-        name: WORKSAPCE_CHAT_CREATE,
-        priority: 1100,
-        shouldShow: () => true,
-    },
-    [SEARCH_FILTER_BUTTON_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
-        name: SEARCH_FILTER_BUTTON_TOOLTIP,
-        priority: 1000,
         shouldShow: () => true,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
@@ -119,18 +89,34 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         content: [
             {text: 'productTrainingTooltip.scanTestTooltip.part1', isBold: false},
             {text: 'productTrainingTooltip.scanTestTooltip.part2', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part6', isBold: false},
-            {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
-            {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP),
         name: SCAN_TEST_TOOLTIP,
         priority: 900,
-        shouldShow: () => false,
+        shouldShow: () => true,
         shouldRenderActionButtons: true,
+    },
+    [SCAN_TEST_TOOLTIP_MANAGER]: {
+        content: [
+            {text: 'productTrainingTooltip.scanTestTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER),
+        name: SCAN_TEST_TOOLTIP_MANAGER,
+        priority: 1000,
+        shouldShow: () => true,
+    },
+    [SCAN_TEST_CONFIRMATION]: {
+        content: [
+            {text: 'productTrainingTooltip.scanTestTooltip.part6', isBold: false},
+            {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
+            {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(SCAN_TEST_CONFIRMATION),
+        name: SCAN_TEST_CONFIRMATION,
+        priority: 1100,
+        shouldShow: () => true,
     },
 };
 

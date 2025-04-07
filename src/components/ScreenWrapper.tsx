@@ -1,29 +1,38 @@
-import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation, useRoute} from '@react-navigation/native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import {UNSTABLE_usePreventRemove, useIsFocused, useNavigation} from '@react-navigation/native';
 import type {ForwardedRef, ReactNode} from 'react';
 import React, {createContext, forwardRef, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {Keyboard, NativeModules, PanResponder, View} from 'react-native';
+import {Keyboard, PanResponder, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import {PickerAvoidingView} from 'react-native-picker-select';
 import type {EdgeInsets} from 'react-native-safe-area-context';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useInitialDimensions from '@hooks/useInitialWindowDimensions';
+import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTackInputFocus from '@hooks/useTackInputFocus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
+import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import CustomDevMenu from './CustomDevMenu';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FocusTrapForScreens from './FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from './FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import HeaderGap from './HeaderGap';
 import ImportedStateIndicator from './ImportedStateIndicator';
+import {InitialURLContext} from './InitialURLContextProvider';
 import {useInputBlurContext} from './InputBlurContext';
 import KeyboardAvoidingView from './KeyboardAvoidingView';
 import ModalContext from './Modal/ModalContext';
@@ -108,6 +117,25 @@ type ScreenWrapperProps = {
 
     /** Overrides the focus trap default settings */
     focusTrapSettings?: FocusTrapForScreenProps['focusTrapSettings'];
+
+    /**
+     * Temporary flag to disable safe area bottom spacing in the ScreenWrapper and to allow edge-to-edge content
+     * The ScreenWrapper should not always apply bottom safe area padding, instead it should be applied to the scrollable/bottom-docked content directly.
+     * This flag can be removed, once all components/screens have switched to edge-to-edge safe area handling.
+     */
+    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
+
+    /**
+     * Whether the KeyboardAvoidingView should compensate for the bottom safe area padding.
+     * The KeyboardAvoidingView will use a negative keyboardVerticalOffset.
+     */
+    shouldKeyboardOffsetBottomSafeAreaPadding?: boolean;
+
+    /** Whether to use a sticky mobile offline indicator. */
+    shouldMobileOfflineIndicatorStickToBottom?: boolean;
+
+    /** Whether the offline indicator should be translucent. */
+    isOfflineIndicatorTranslucent?: boolean;
 };
 
 type ScreenWrapperStatusContextType = {
@@ -124,7 +152,7 @@ function ScreenWrapper(
         shouldEnableMinHeight = false,
         includePaddingTop = true,
         keyboardAvoidingViewBehavior = 'padding',
-        includeSafeAreaPaddingBottom = true,
+        includeSafeAreaPaddingBottom: includeSafeAreaPaddingBottomProp = true,
         shouldEnableKeyboardAvoidingView = true,
         shouldEnablePickerAvoiding = true,
         headerGapStyles,
@@ -141,6 +169,10 @@ function ScreenWrapper(
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
         bottomContent,
+        enableEdgeToEdgeBottomSafeAreaPadding = false,
+        shouldMobileOfflineIndicatorStickToBottom = enableEdgeToEdgeBottomSafeAreaPadding,
+        shouldKeyboardOffsetBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding,
+        isOfflineIndicatorTranslucent = enableEdgeToEdgeBottomSafeAreaPadding,
     }: ScreenWrapperProps,
     ref: ForwardedRef<View>,
 ) {
@@ -154,29 +186,35 @@ function ScreenWrapper(
     const navigationFallback = useNavigation<PlatformStackNavigationProp<RootNavigatorParamList>>();
     const navigation = navigationProp ?? navigationFallback;
     const isFocused = useIsFocused();
+    const {isOffline} = useNetwork();
     const {windowHeight} = useWindowDimensions(shouldUseCachedViewportHeight);
     // since Modals are drawn in separate native view hierarchy we should always add paddings
     const ignoreInsetsConsumption = !useContext(ModalContext).default;
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const {initialURL} = useContext(InitialURLContext);
+
+    const [isSingleNewDotEntry] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+
+    const includeSafeAreaPaddingBottom = enableEdgeToEdgeBottomSafeAreaPadding ? false : includeSafeAreaPaddingBottomProp;
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout for a case where we want to show the offline indicator only on small screens
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {initialHeight} = useInitialDimensions();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {isDevelopment} = useEnvironment();
     const [didScreenTransitionEnd, setDidScreenTransitionEnd] = useState(false);
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
 
-    const route = useRoute();
-    const shouldReturnToOldDot = useMemo(() => {
-        return !!route?.params && 'singleNewDotEntry' in route.params && route.params.singleNewDotEntry === 'true';
-    }, [route?.params]);
     const {isBlurred, setIsBlurred} = useInputBlurContext();
 
-    UNSTABLE_usePreventRemove(shouldReturnToOldDot, () => {
-        NativeModules.HybridAppModule?.closeReactNativeApp(false, false);
+    UNSTABLE_usePreventRemove((isSingleNewDotEntry ?? false) && initialURL === Navigation.getActiveRouteWithoutParams(), () => {
+        if (!CONFIG.IS_HYBRID_APP) {
+            return;
+        }
+        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
         setRootStatusBarEnabled(false);
     });
 
@@ -261,25 +299,101 @@ function ScreenWrapper(
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useStyledSafeAreaInsets();
-    const paddingTopStyle: StyleProp<ViewStyle> = {};
-    const paddingBottomStyle: StyleProp<ViewStyle> = {};
+    const {insets, paddingTop, paddingBottom, safeAreaPaddingBottomStyle, unmodifiedPaddings} = useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding);
+    const navigationBarType = useMemo(() => StyleUtils.getNavigationBarType(insets), [StyleUtils, insets]);
+    const isSoftKeyNavigation = navigationBarType === CONST.NAVIGATION_BAR_TYPE.SOFT_KEYS;
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
-    if (includePaddingTop) {
-        paddingTopStyle.paddingTop = paddingTop;
-    }
-    if (includePaddingTop && ignoreInsetsConsumption) {
-        paddingTopStyle.paddingTop = unmodifiedPaddings.top;
-    }
+    const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
+        if (includePaddingTop && ignoreInsetsConsumption) {
+            return {paddingTop: unmodifiedPaddings.top};
+        }
+        if (includePaddingTop) {
+            return {paddingTop};
+        }
+        return {};
+    }, [ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
-    // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-    if (includeSafeAreaPaddingBottom) {
-        paddingBottomStyle.paddingBottom = paddingBottom;
-    }
-    if (includeSafeAreaPaddingBottom && ignoreInsetsConsumption) {
-        paddingBottomStyle.paddingBottom = unmodifiedPaddings.bottom;
-    }
+    const showBottomContent = enableEdgeToEdgeBottomSafeAreaPadding ? !!bottomContent : true;
+    const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+    const legacyBottomContentStyle: StyleProp<ViewStyle> = useMemo(() => {
+        const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
+        if (shouldUseUnmodifiedPaddings) {
+            return {
+                paddingBottom: unmodifiedPaddings.bottom,
+            };
+        }
+
+        return {
+            // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+            paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
+        };
+    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
+
+    const bottomContentStyle = useMemo(
+        () => (enableEdgeToEdgeBottomSafeAreaPadding ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle),
+        [enableEdgeToEdgeBottomSafeAreaPadding, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
+    );
+
+    /**
+     * This style applies the background color of the mobile offline indicator.
+     * When there is not bottom content, and the device either has soft keys or is offline,
+     * the background style is applied.
+     * By default, the background color of the mobile offline indicator is translucent.
+     * If `isOfflineIndicatorTranslucent` is set to true, an opaque background color is applied.
+     */
+    const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
+        const showOfflineIndicatorBackground = !bottomContent && (isSoftKeyNavigation || isOffline);
+        if (!showOfflineIndicatorBackground) {
+            return undefined;
+        }
+        return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
+    }, [bottomContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
+
+    /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
+    const hasMobileOfflineIndicatorBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPadding ? true : !includeSafeAreaPaddingBottom;
+
+    /**
+     * This style includes the bottom safe area padding for the mobile offline indicator.
+     * If the device has soft keys, the mobile offline indicator will stick to the navigation bar (bottom of the screen)
+     * The mobile offline indicator container will have a translucent background. Therefore, we want to offset it
+     * by the bottom safe area padding rather than adding padding to the container, so that there are not
+     * two overlapping layers of translucent background.
+     * If the device does not have soft keys, the bottom safe area padding is applied as `paddingBottom`.
+     */
+    const mobileOfflineIndicatorBottomSafeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: hasMobileOfflineIndicatorBottomSafeAreaPadding,
+        styleProperty: isSoftKeyNavigation ? 'bottom' : 'paddingBottom',
+    });
+
+    /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
+    const displayStickyMobileOfflineIndicator = shouldMobileOfflineIndicatorStickToBottom && !bottomContent;
+
+    /**
+     * This style includes all styles applied to the container of the mobile offline indicator.
+     * It always applies the bottom safe area padding as well as the background style, if the device has soft keys.
+     * In this case, we want the whole container (including the bottom safe area padding) to have translucent/opaque background.
+     */
+    const mobileOfflineIndicatorContainerStyle = useMemo(
+        () => [mobileOfflineIndicatorBottomSafeAreaStyle, displayStickyMobileOfflineIndicator && styles.stickToBottom, !isSoftKeyNavigation && mobileOfflineIndicatorBackgroundStyle],
+        [mobileOfflineIndicatorBottomSafeAreaStyle, displayStickyMobileOfflineIndicator, styles.stickToBottom, isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle],
+    );
+
+    /**
+     * This style includes the styles applied to the mobile offline indicator component.
+     * If the device has soft keys, we only want to apply the background style to the mobile offline indicator component,
+     * rather than the whole container, because otherwise the navigation bar would be extra opaque, since it already has a translucent background.
+     */
+    const mobileOfflineIndicatorStyle = useMemo(
+        () => [styles.pl5, isSoftKeyNavigation && mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle],
+        [isSoftKeyNavigation, mobileOfflineIndicatorBackgroundStyle, offlineIndicatorStyle, styles.pl5],
+    );
+
+    const displayMobileOfflineIndicator = isSmallScreenWidth && shouldShowOfflineIndicator;
+    const displayWidescreenOfflineIndicator = !shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen;
+
+    /** If we currently show the offline indicator and it has bottom safe area padding, we need to offset the bottom safe area padding in the KeyboardAvoidingView. */
+    const shouldOffsetMobileOfflineIndicator = displayMobileOfflineIndicator && hasMobileOfflineIndicatorBottomSafeAreaPadding && isOffline;
 
     const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
     const contextValue = useMemo(
@@ -306,6 +420,9 @@ function ScreenWrapper(
                         style={[styles.w100, styles.h100, !isBlurred ? {maxHeight} : undefined, isAvoidingViewportScroll ? [styles.overflowAuto, styles.overscrollBehaviorContain] : {}]}
                         behavior={keyboardAvoidingViewBehavior}
                         enabled={shouldEnableKeyboardAvoidingView}
+                        // Whether the mobile offline indicator or the content in general
+                        // should be offset by the bottom safe area padding when the keyboard is open.
+                        shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
                     >
                         <PickerAvoidingView
                             style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
@@ -324,25 +441,22 @@ function ScreenWrapper(
                                           })
                                         : children
                                 }
-                                {isSmallScreenWidth && shouldShowOfflineIndicator && (
+                                {displayMobileOfflineIndicator && (
                                     <>
-                                        <OfflineIndicator
-                                            style={[offlineIndicatorStyle]}
-                                            containerStyles={
-                                                includeSafeAreaPaddingBottom
-                                                    ? [styles.offlineIndicatorMobile]
-                                                    : [styles.offlineIndicatorMobile, {paddingBottom: paddingBottom + styles.offlineIndicatorMobile.paddingBottom}]
-                                            }
-                                        />
-                                        {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                        {isOffline && (
+                                            <View style={[mobileOfflineIndicatorContainerStyle]}>
+                                                <OfflineIndicator style={mobileOfflineIndicatorStyle} />
+                                                {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
+                                            </View>
+                                        )}
                                         <ImportedStateIndicator />
                                     </>
                                 )}
-                                {!shouldUseNarrowLayout && shouldShowOfflineIndicatorInWideScreen && (
+                                {displayWidescreenOfflineIndicator && (
                                     <>
                                         <OfflineIndicator
-                                            containerStyles={[]}
-                                            style={[styles.pl5, styles.offlineIndicatorRow, offlineIndicatorStyle]}
+                                            style={[styles.pl5, offlineIndicatorStyle]}
+                                            addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding ? !bottomContent : true}
                                         />
                                         {/* Since import state is tightly coupled to the offline state, it is safe to display it when showing offline indicator */}
                                         <ImportedStateIndicator />
@@ -352,7 +466,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                <View style={paddingBottomStyle}>{bottomContent}</View>
+                {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
             </View>
         </FocusTrapForScreens>
     );

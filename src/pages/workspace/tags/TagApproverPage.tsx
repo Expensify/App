@@ -3,13 +3,14 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import WorkspaceMembersSelectionList from '@components/WorkspaceMembersSelectionList';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setPolicyTagApprover} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getTagApproverRule} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Tag from '@userActions/Policy/Tag';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -21,8 +22,9 @@ function TagApproverPage({route}: TagApproverPageProps) {
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const policy = usePolicy(policyID);
 
-    const tagApprover = PolicyUtils.getTagApproverRule(policyID, tagName)?.approver;
+    const tagApprover = getTagApproverRule(policy, tagName)?.approver;
     const isQuickSettingsFlow = !!backTo;
 
     const goBack = () => {
@@ -51,7 +53,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
                     policyID={policyID}
                     selectedApprover={tagApprover ?? ''}
                     setApprover={(email) => {
-                        Tag.setPolicyTagApprover(policyID, tagName, email);
+                        setPolicyTagApprover(policyID, tagName, email);
                         Navigation.setNavigationActionToMicrotaskQueue(goBack);
                     }}
                 />

@@ -208,6 +208,8 @@ type UserIsAlreadyMemberParams = {login: string; name: string};
 
 type GoToRoomParams = {roomName: string};
 
+type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
+
 type RoomNameReservedErrorParams = {reservedName: string};
 
 type RenamedRoomActionParams = {oldName: string; newName: string};
@@ -271,6 +273,8 @@ type ViolationsRterParams = {
 
 type ViolationsTagOutOfPolicyParams = {tagName?: string} | undefined;
 
+type ViolationsProhibitedExpenseParams = {prohibitedExpenseType: string};
+
 type ViolationsTaxOutOfPolicyParams = {taxName?: string} | undefined;
 
 type PaySomeoneParams = {name?: string} | undefined;
@@ -291,7 +295,7 @@ type HeldRequestParams = {comment: string};
 
 type ChangeFieldParams = {oldValue?: string; newValue: string; fieldName: string};
 
-type ChangePolicyParams = {fromPolicy: string; toPolicy: string};
+type ChangeReportPolicyParams = {fromPolicyName?: string; toPolicyName: string};
 
 type UpdatedPolicyDescriptionParams = {oldDescription: string; newDescription: string};
 
@@ -299,7 +303,7 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
-type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
+type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
@@ -444,6 +448,8 @@ type BadgeFreeTrialParams = {numOfDays: number};
 
 type BillingBannerSubtitleWithDateParams = {date: string};
 
+type BillingBannerOwnerAmountOwedOverdueParams = {date?: string; purchaseAmountOwed?: string};
+
 type BillingBannerDisputePendingParams = {amountOwed: number; cardEnding: string};
 
 type BillingBannerCardAuthenticationRequiredParams = {cardEnding: string};
@@ -576,7 +582,8 @@ type ImportedTagsMessageParams = {
 };
 
 type ImportMembersSuccessfullDescriptionParams = {
-    members: number;
+    added: number;
+    updated: number;
 };
 
 type ImportPerDiemRatesSuccessfullDescriptionParams = {
@@ -654,6 +661,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReviewParams = {
+    amount: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -697,6 +708,7 @@ export type {
     SubscriptionSettingsRenewsOnParams,
     BadgeFreeTrialParams,
     BillingBannerSubtitleWithDateParams,
+    BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerDisputePendingParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerInsufficientFundsParams,
@@ -819,6 +831,7 @@ export type {
     ViolationsCustomRulesParams,
     ViolationsRterParams,
     ViolationsTagOutOfPolicyParams,
+    ViolationsProhibitedExpenseParams,
     ViolationsTaxOutOfPolicyParams,
     WaitingOnBankAccountParams,
     WalletProgramParams,
@@ -827,7 +840,7 @@ export type {
     WelcomeToRoomParams,
     ZipCodeExampleFormatParams,
     ChangeFieldParams,
-    ChangePolicyParams,
+    ChangeReportPolicyParams,
     ChangeTypeParams,
     ExportedToIntegrationParams,
     DelegateSubmitParams,
@@ -878,6 +891,7 @@ export type {
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
     UpdatedPolicyTagParams,
@@ -888,4 +902,5 @@ export type {
     SettlementDateParams,
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
+    ReviewParams,
 };

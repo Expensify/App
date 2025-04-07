@@ -11,7 +11,6 @@ import {changeMoneyRequestHoldStatus} from '@libs/ReportUtils';
 import {joinRoom, navigateToAndOpenReport, navigateToAndOpenReportWithAccountIDs} from '@userActions/Report';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import type OnyxReport from '@src/types/onyx/Report';
 import Button from './Button';
@@ -63,13 +62,13 @@ const PromotedActions = {
         text: translateLocal('common.message'),
         onSelected: () => {
             if (reportID) {
-                Navigation.dismissModal(reportID);
+                Navigation.navigateToReportWithPolicyCheck({reportID});
                 return;
             }
 
             // The accountID might be optimistic, so we should use the login if we have it
             if (login) {
-                navigateToAndOpenReport([login]);
+                navigateToAndOpenReport([login], false);
                 return;
             }
             if (accountID) {
@@ -77,7 +76,7 @@ const PromotedActions = {
             }
         },
     }),
-    hold: ({isTextHold, reportAction, reportID, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
+    hold: ({isTextHold, reportAction, isDelegateAccessRestricted, setIsNoDelegateAccessMenuVisible, currentSearchHash}) => ({
         key: CONST.PROMOTED_ACTIONS.HOLD,
         icon: Expensicons.Stopwatch,
         text: translateLocal(`iou.${isTextHold ? 'hold' : 'unhold'}`),
@@ -90,14 +89,13 @@ const PromotedActions = {
             if (!isTextHold) {
                 Navigation.goBack();
             }
-            const targetedReportID = reportID ?? reportAction?.childReportID ?? '';
 
-            if (!isSearchTopmostFullScreenRoute() && isTextHold) {
-                changeMoneyRequestHoldStatus(reportAction, ROUTES.REPORT_WITH_ID.getRoute(targetedReportID));
+            if (!isSearchTopmostFullScreenRoute()) {
+                changeMoneyRequestHoldStatus(reportAction);
                 return;
             }
 
-            changeMoneyRequestHoldStatus(reportAction, ROUTES.SEARCH_REPORT.getRoute({reportID: targetedReportID}), currentSearchHash);
+            changeMoneyRequestHoldStatus(reportAction, currentSearchHash);
         },
     }),
 } satisfies PromotedActionsType;

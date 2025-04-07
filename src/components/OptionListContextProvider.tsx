@@ -151,10 +151,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [personalDetails, reports]);
 
     const initializeOptions = useCallback(() => {
-        if (areOptionsInitialized.current) {
-            return;
-        }
-
         loadOptions();
         areOptionsInitialized.current = true;
     }, [loadOptions]);

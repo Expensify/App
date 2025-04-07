@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
@@ -387,6 +388,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag list name */
     tagListName?: string;
 
+    /** Count of elements updated */
+    count?: string;
+
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
 
@@ -406,13 +410,16 @@ type OriginalMessagePolicyChangeLog = {
     oldValue?: boolean | string;
 };
 
-/** Model of `join policy changelog` report action */
-type OriginalMessageJoinPolicyChangeLog = {
+/** Model of `join policy` report action */
+type OriginalMessageJoinPolicy = {
     /** What was the invited user decision */
     choice: JoinWorkspaceResolution;
 
     /** ID of the affected policy */
     policyID: string;
+
+    /** AccountID for the user requesting to join the policy */
+    accountID?: number;
 };
 
 /** Model of `modified expense` report action */
@@ -489,11 +496,11 @@ type OriginalMessageModifiedExpense = {
     /** The ID of moved report */
     movedToReportID?: string;
 
-    /** The old stringify list of attendees */
-    oldAttendees?: string;
+    /** The old list of attendees */
+    oldAttendees?: Attendee[];
 
-    /** The stringify list of attendees */
-    attendees?: string;
+    /** The list of attendees */
+    newAttendees?: Attendee[];
 };
 
 /** Model of the `deleted transaction` report action */
@@ -539,6 +546,15 @@ type OriginalMessageReimbursementDequeued = {
 
     /** Currency of the money that wasn't reimbursed */
     currency: string;
+};
+
+/** Model of `CHANGEPOLICY` report action */
+type OriginalMessageChangePolicy = {
+    /** ID of the old policy */
+    fromPolicy: string | undefined;
+
+    /** ID of the new policy */
+    toPolicy: string;
 };
 
 /** Model of `moved` report action */
@@ -719,14 +735,14 @@ type IssueNewCardOriginalMessage = OriginalMessage<
 /* eslint-disable jsdoc/require-jsdoc */
 type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_ADD_PAYMENT_CARD]: OriginalMessageAddPaymentCard;
-    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicyChangeLog;
+    [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_JOIN_REQUEST]: OriginalMessageJoinPolicy;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_MENTION_WHISPER]: OriginalMessageActionableMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_REPORT_MENTION_WHISPER]: OriginalMessageActionableReportMentionWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_TRACK_EXPENSE_WHISPER]: OriginalMessageActionableTrackedExpenseWhisper;
     [CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT]: OriginalMessageAddComment;
     [CONST.REPORT.ACTIONS.TYPE.APPROVED]: OriginalMessageApproved;
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_FIELD]: never;
-    [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: never;
+    [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: OriginalMessageChangePolicy;
     [CONST.REPORT.ACTIONS.TYPE.CHANGE_TYPE]: never;
     [CONST.REPORT.ACTIONS.TYPE.CHRONOS_OOO_LIST]: OriginalMessageChronosOOOList;
     [CONST.REPORT.ACTIONS.TYPE.CLOSED]: OriginalMessageClosed;
@@ -750,7 +766,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
@@ -760,6 +776,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
+    [CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES]: never;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
@@ -811,4 +828,5 @@ export type {
     OriginalMessageModifiedExpense,
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
+    OriginalMessageChangePolicy,
 };

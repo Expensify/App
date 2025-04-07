@@ -11529,6 +11529,7 @@ function getTestBuildMessage() {
     const message = `:test_tube::test_tube: Use the links below to test this adhoc build on Android, iOS, Desktop, and Web. Happy testing! :test_tube::test_tube:
 | Android :robot:  | iOS :apple: |
 | ------------- | ------------- |
+| Android :robot::arrows_counterclockwise:  | iOS :apple::arrows_counterclockwise: |
 | ${result.ANDROID.link}  | ${result.IOS.link}  |
 | ${result.ANDROID.qrCode}  | ${result.IOS.qrCode}  |
 | Desktop :computer: | Web :spider_web: |

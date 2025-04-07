@@ -127,7 +127,7 @@ function ReportListItem<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
-                onSelectRow={onSelectRow}
+                onSelectRow={(_item) => onSelectRow(_item, true)}
                 onFocus={onFocus}
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
@@ -196,7 +196,7 @@ function ReportListItem<TItem extends ListItem>({
                         </View>
                     </View>
                     {isLargeScreenWidth && (
-                        <View style={StyleUtils.getSearchTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
+                        <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                             <ActionCell
                                 action={reportItem.action}
                                 goToItem={handleOnButtonPress}

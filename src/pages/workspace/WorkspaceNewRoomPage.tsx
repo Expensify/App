@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -29,9 +29,9 @@ import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
-import {isExistingRoomName, isReservedRoomName, isValidRoomName} from '@libs/ValidationUtils';
+import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
+import {addPolicyReport, clearNewRoomFormError, setNewRoomFormLoading} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,25 +92,27 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
+        setNewRoomFormLoading();
         const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
-        const policyReport = buildOptimisticChatReport(
-            participants,
-            values.roomName,
-            CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+        const policyReport = buildOptimisticChatReport({
+            participantList: participants,
+            reportName: values.roomName,
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
             policyID,
-            CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
-            false,
-            '',
+            ownerAccountID: CONST.REPORT.OWNER_ACCOUNT_ID_FAKE,
             visibility,
-            writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
-            CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
-            '',
-            '',
-            parsedDescription,
-        );
-        setNewRoomReportID(policyReport.reportID);
-        addPolicyReport(policyReport);
+            writeCapability: writeCapability || CONST.REPORT.WRITE_CAPABILITIES.ALL,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.DAILY,
+            description: parsedDescription,
+        });
+
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                setNewRoomReportID(policyReport.reportID);
+                addPolicyReport(policyReport);
+            });
+        });
     };
 
     useEffect(() => {
@@ -135,7 +137,11 @@ function WorkspaceNewRoomPage() {
         if (!(((wasLoading && !isLoading) || (isOffline && isLoading)) && isEmptyObject(errorFields))) {
             return;
         }
-        Navigation.dismissModal(newRoomReportID);
+        if (!newRoomReportID) {
+            Navigation.dismissModal();
+            return;
+        }
+        Navigation.dismissModalWithReport({reportID: newRoomReportID});
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want this to update on changing the form State
     }, [isLoading, errorFields]);
 
@@ -158,7 +164,7 @@ function WorkspaceNewRoomPage() {
             if (!values.roomName || values.roomName === CONST.POLICY.ROOM_PREFIX) {
                 // We error if the user doesn't enter a room name or left blank
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.pleaseEnterRoomName'));
-            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !isValidRoomName(values.roomName)) {
+            } else if (values.roomName !== CONST.POLICY.ROOM_PREFIX && !isValidRoomNameWithoutLimits(values.roomName)) {
                 // We error if the room name has invalid characters
                 addErrorMessage(errors, 'roomName', translate('newRoomPage.roomNameInvalidError'));
             } else if (isReservedRoomName(values.roomName)) {
@@ -222,7 +228,7 @@ function WorkspaceNewRoomPage() {
                 success
                 large
                 text={translate('footer.learnMore')}
-                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES)}
+                onPress={() => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route)}
                 style={[styles.mh5, styles.mb5]}
             />
             {isSmallScreenWidth && (
@@ -282,7 +288,6 @@ function WorkspaceNewRoomPage() {
                                 role={CONST.ROLE.PRESENTATION}
                                 autoGrowHeight
                                 maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
-                                maxLength={CONST.REPORT_DESCRIPTION.MAX_LENGTH}
                                 autoCapitalize="none"
                                 shouldInterceptSwipe
                                 type="markdown"
