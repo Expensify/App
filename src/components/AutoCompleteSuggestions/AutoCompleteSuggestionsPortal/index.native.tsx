@@ -12,7 +12,6 @@ type GetBottomSuggestionPaddingAndroid = (bottom: number) => number;
 function AutoCompleteSuggestionsPortal<TSuggestion>({left = 0, width = 0, bottom = 0, resetSuggestions = () => {}, ...props}: AutoCompleteSuggestionsPortalProps<TSuggestion>) {
     const StyleUtils = useStyleUtils();
     const bottomPadding = Platform.OS === 'android' ? (getBottomSuggestionPadding as GetBottomSuggestionPaddingAndroid)(bottom) : getBottomSuggestionPadding();
-
     const styles = useMemo(() => StyleUtils.getBaseAutoCompleteSuggestionContainerStyle({left, width, bottom: bottom + bottomPadding}), [StyleUtils, left, width, bottom, bottomPadding]);
 
     if (!width) {
