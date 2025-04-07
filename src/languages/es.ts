@@ -525,6 +525,7 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
     },
     supportalNoAccess: {
