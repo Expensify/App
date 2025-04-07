@@ -23,7 +23,7 @@ jobs:
         uses: callstackincubator/ios@v1
         with:
           destination: simulator
-          scheme: New Expensify Dev
+          scheme: "New Expensify Dev"
           configuration: DebugDevelopment
           github-token: ${{ secrets.GITHUB_TOKEN }}
           comment-bot: false
