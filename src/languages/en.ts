@@ -5957,6 +5957,7 @@ const translations = {
         notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
         notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
+        copilotAccess: 'Copilot access',
     },
     debug: {
         debug: 'Debug',

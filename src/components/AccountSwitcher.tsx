@@ -27,6 +27,7 @@ import type {PopoverMenuItem} from './PopoverMenu';
 import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
+import Tooltip from './Tooltip';
 
 function AccountSwitcher() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -156,14 +157,16 @@ function AccountSwitcher() {
                                     : currentUserPersonalDetails?.displayName}
                             </Text>
                             {!!canSwitchAccounts && (
-                                <View style={styles.justifyContentCenter}>
-                                    <Icon
-                                        fill={theme.icon}
-                                        src={Expensicons.CaretUpDown}
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
-                                    />
-                                </View>
+                                <Tooltip text={translate('delegate.copilotAccess')}>
+                                    <View style={styles.justifyContentCenter}>
+                                        <Icon
+                                            fill={theme.icon}
+                                            src={Expensicons.CaretUpDown}
+                                            height={variables.iconSizeSmall}
+                                            width={variables.iconSizeSmall}
+                                        />
+                                    </View>
+                                </Tooltip>
                             )}
                         </View>
                         <Text
