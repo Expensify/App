@@ -50,29 +50,13 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const handleCopyToClipboard = () => {
-        Clipboard.setString(pan);
-    };
-
     return (
         <>
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.cardNumber')}
                 title={pan}
-                shouldShowRightComponent
-                rightComponent={
-                    <View style={styles.justifyContentCenter}>
-                        <PressableWithDelayToggle
-                            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-                            tooltipTextChecked={translate('reportActionContextMenu.copied')}
-                            icon={Expensicons.Copy}
-                            onPress={handleCopyToClipboard}
-                            accessible={false}
-                            text=""
-                        />
-                    </View>
-                }
                 interactive={false}
+                copyValue={pan}
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.expiration')}
