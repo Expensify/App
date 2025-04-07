@@ -33,6 +33,12 @@ function isEmptyString(value: string): boolean {
 function removeInvisibleCharacters(value: string): string {
     let result = value;
 
+    // We implemented a custom emoji on this Unicode Private Use Area (PUA) code point
+    // so we should not remove it.
+    // Temporarily replace \uE100 with a placeholder
+    const PLACEHOLDER = '<<KEEP_E100>>';
+    result = result.replace(/\uE100/g, PLACEHOLDER);
+
     // Remove spaces:
     // - \u200B: zero-width space
     // - \u2060: word joiner
@@ -56,6 +62,9 @@ function removeInvisibleCharacters(value: string): string {
 
     // Remove all characters from the 'Separator' (Z) category except for Space Separator (Zs)
     result = result.replace(/[\p{Zl}\p{Zp}]/gu, '');
+
+    // Restore \uE100 from placeholder
+    result = result.replace(new RegExp(PLACEHOLDER, 'g'), '\uE100');
 
     // If the result consist of only invisible characters, return an empty string
     if (isEmptyString(result)) {
