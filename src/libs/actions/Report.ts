@@ -788,7 +788,9 @@ function addComment(reportID: string, text: string) {
                 if (transactionThreadReportID) {
                     const transactionThreadReportActions = allReportActions?.[transactionThreadReportID];
                     if (transactionThreadReportActions) {
-                        const conciergeCategoryOptionsAction = Object.values(transactionThreadReportActions).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
+                        const conciergeCategoryOptionsAction = Object.values(transactionThreadReportActions).find(
+                            (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS,
+                        );
                         if (conciergeCategoryOptionsAction && !ReportActionsUtils.isResolvedConciergeCategoryOptions(conciergeCategoryOptionsAction)) {
                             addActions(transactionThreadReportID, text);
                             return;
