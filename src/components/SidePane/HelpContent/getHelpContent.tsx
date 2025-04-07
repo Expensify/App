@@ -2,6 +2,7 @@
 import type {ReactNode} from 'react';
 import React from 'react';
 import {View} from 'react-native';
+import HelpDiagnosticData from '@components/SidePane/HelpComponents/HelpDiagnosticData';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
@@ -92,38 +93,6 @@ const helpContentMap: HelpContent = {
     },
 };
 
-type DiagnosticDataProps = {
-    /** The styles to apply to the diagnostic data */
-    styles: ThemeStyles;
-
-    /** The route that was attempted to be accessed */
-    route: string;
-
-    /** Whether the route is an exact match */
-    isExactMatch?: boolean;
-
-    /** Help content to display */
-    children?: ReactNode;
-};
-
-function DiagnosticData({styles, route, children, isExactMatch}: DiagnosticDataProps) {
-    const diagnosticTitle = isExactMatch ? 'Help content found for route:' : 'Missing help content for route:';
-
-    return (
-        <>
-            {!!children && (
-                <>
-                    {children}
-                    <View style={[styles.sectionDividerLine, styles.mv5]} />
-                </>
-            )}
-            <Text style={[styles.textLabelSupportingNormal, styles.mb4]}>Diagnostic data (visible only on staging)</Text>
-            <Text style={[styles.textHeadlineH1, styles.mb4]}>{diagnosticTitle}</Text>
-            <Text style={styles.textNormal}>{route}</Text>
-        </>
-    );
-}
-
 function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean): ReactNode {
     const routeParts = route.substring(1).split('/');
     const helpContentComponents: ContentComponent[] = [];
@@ -162,14 +131,14 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
     }
 
     return (
-        <DiagnosticData
+        <HelpDiagnosticData
             key="diagnostic-data"
             styles={styles}
             route={route}
             isExactMatch={isExactMatch}
         >
             {content}
-        </DiagnosticData>
+        </HelpDiagnosticData>
     );
 }
 
