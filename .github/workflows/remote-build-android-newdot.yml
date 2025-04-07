@@ -24,3 +24,4 @@ jobs:
         with:
           variant: developmentDebug
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          comment-bot: false
