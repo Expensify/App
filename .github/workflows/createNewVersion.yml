@@ -120,8 +120,8 @@ jobs:
           NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
 
       - name: Commit new Mobile-Expensify version
+        working-directory: Mobile-Expensify
         run: |
-          cd Mobile-Expensify
           git add \
             ./Android/AndroidManifest.xml \
             ./app/config/config.json \
