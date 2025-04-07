@@ -619,7 +619,7 @@ function getSortedSections(
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
     if (type === CONST.SEARCH.DATA_TYPES.TASK) {
-        return getSortedReportData(data as ReportListItemType[]);
+        return getSortedTaskData(data as TaskListItemType[], sortBy, sortOrder);
     }
     if (!shouldGroupByReports) {
         return getSortedTransactionData(data as TransactionListItemType[], sortBy, sortOrder);
@@ -680,6 +680,25 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
  */
 function getReportNewestTransactionDate(report: ReportListItemType) {
     return report.transactions?.reduce((max, curr) => (curr.modifiedCreated ?? curr.created > (max?.created ?? '') ? curr : max), report.transactions.at(0))?.created;
+}
+
+function getSortedTaskData(data: TaskListItemType[], sortBy?: SearchColumnType, sortOrder?: SortOrder) {
+    if (!sortBy || !sortOrder) {
+        return data;
+    }
+
+    const sortingProperty = columnNamesToSortingProperty[sortBy];
+
+    if (!sortingProperty) {
+        return data;
+    }
+
+    return data.sort((a, b) => {
+        const aValue = a[sortingProperty as keyof TaskListItemType];
+        const bValue = b[sortingProperty as keyof TaskListItemType];
+
+        return compareValues(aValue, bValue, sortOrder, sortingProperty);
+    });
 }
 
 /**

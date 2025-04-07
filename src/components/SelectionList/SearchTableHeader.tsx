@@ -150,10 +150,6 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
-            if (metadata.type === CONST.SEARCH.DATA_TYPES.TASK) {
-                return true;
-            }
-
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun(data, metadata);
         },

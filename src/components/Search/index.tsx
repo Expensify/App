@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -78,7 +78,7 @@ function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, se
 }
 
 function mapToItemWithSelectionInfo(
-    item: TransactionListItemType | ReportListItemType | ReportActionListItemType,
+    item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType,
     selectedTransactions: SelectedTransactions,
     canSelectMultiple: boolean,
     shouldAnimateInHighlight: boolean,
@@ -300,7 +300,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType, isOpenedAsReport?: boolean) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -424,8 +424,11 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         );
     }
 
-    const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+    const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType) => {
         if (isReportActionListItemType(item)) {
+            return;
+        }
+        if (isTaskListItemType(item)) {
             return;
         }
         if (isTransactionListItemType(item)) {
@@ -500,10 +503,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
             // JACK_TODO: Fix this so that checkmarks can be disabled, without removing hte header
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && canSelectMultiple}
             shouldPreventLongPressRow={isChat}
             SearchTableHeader={
-                !isLargeScreenWidth ? undefined : (
+                !isLargeScreenWidth || type === CONST.SEARCH.DATA_TYPES.CHAT ? undefined : (
                     <SearchTableHeader
                         data={searchResults?.data}
                         metadata={searchResults?.search}
