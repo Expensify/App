@@ -259,7 +259,7 @@ function TransactionPreviewContent({
                                                 {shouldShowMerchantOrDescription && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough]}
+                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                         numberOfLines={1}
                                                     >
                                                         {merchantOrDescription}
