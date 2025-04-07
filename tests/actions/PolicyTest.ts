@@ -41,11 +41,11 @@ describe('actions/Policy', () => {
     describe('createWorkspace', () => {
         it('creates a new workspace', async () => {
             (fetch as MockFetch)?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
-            Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
+            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
             let adminReportID;
@@ -137,7 +137,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Each of the three reports should have a a `CREATED` action.
+            // Each of the three reports should have a `CREATED` action.
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
@@ -147,30 +147,36 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
-            // Created Report Action, MANAGE_TEAM tasks (minus tasks that requires integrations to be enabled) and signoff message
-            const manageTeamDefaultTaskCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
-            expect(adminReportActions.length).toBe(2 + manageTeamDefaultTaskCount);
-            let createdTaskReportActions = 0;
-            let signingOffMessage = 0;
-            let taskReportActions = 0;
+
+            // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
+            const expectedManageTeamDefaultTasksCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 3;
+
+            // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
+            const expectedReportActionsOfTypeCreatedCount = 1;
+            const expectedSignOffMessagesCount = 1;
+            expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
+
+            let reportActionsOfTypeCreatedCount = 0;
+            let signOffMessagesCount = 0;
+            let manageTeamTasksCount = 0;
             adminReportActions.forEach((reportAction) => {
                 if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                    createdTaskReportActions++;
+                    reportActionsOfTypeCreatedCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
                     return;
                 }
                 if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
-                    taskReportActions++;
+                    manageTeamTasksCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     // we dont check actorAccountID as it will be a random account id for the guide
                     return;
                 }
-                signingOffMessage++;
+                signOffMessagesCount++;
             });
-            expect(createdTaskReportActions).toBe(1);
-            expect(signingOffMessage).toBe(1);
-            expect(taskReportActions).toBe(manageTeamDefaultTaskCount);
+            expect(reportActionsOfTypeCreatedCount).toBe(expectedReportActionsOfTypeCreatedCount);
+            expect(signOffMessagesCount).toBe(expectedSignOffMessagesCount);
+            expect(manageTeamTasksCount).toBe(expectedManageTeamDefaultTasksCount);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
