@@ -1816,6 +1816,10 @@ const styles = (theme: ThemeColors) =>
             marginVertical: -7,
         },
 
+        customEmojiFontAlignment: {
+            marginTop: -variables.fontSizeNormal,
+        },
+
         emojisFontFamily: {
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
         },

@@ -64,6 +64,8 @@ const fontFamily: FontFamilyStyles = {
     },
     CUSTOM_EMOJI_FONT: {
         fontFamily: 'Custom Emoji Font',
+        fontStyle: 'normal',
+        fontWeight: fontWeight.normal,
     },
 };
 
