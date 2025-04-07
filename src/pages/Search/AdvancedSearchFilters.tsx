@@ -426,8 +426,8 @@ function AdvancedSearchFilters() {
                               return [key, arrays];
                           }
 
-                          const modifiedFirstArray = [...firstFiltersSection, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
-                          return [key, [modifiedFirstArray, ...arrays.slice(1)]];
+                          const modifiedFirstFiltersSection = [...firstFiltersSection, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
+                          return [key, [modifiedFirstFiltersSection, ...arrays.slice(1)]];
                       }),
                   )
                 : typeFiltersKeys,
