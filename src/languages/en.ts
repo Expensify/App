@@ -27,6 +27,7 @@ import type {
     BillingBannerCardOnDisputeParams,
     BillingBannerDisputePendingParams,
     BillingBannerInsufficientFundsParams,
+    BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerSubtitleWithDateParams,
     CanceledRequestParams,
     CardEndingParams,
@@ -290,7 +291,7 @@ const translations = {
         wallet: 'Wallet',
         preferences: 'Preferences',
         view: 'View',
-        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount && ' '}${reviewParams?.amount}}`,
+        review: (reviewParams?: ReviewParams) => `Review${reviewParams?.amount ? ` ${reviewParams?.amount}` : ''}`,
         not: 'Not',
         signIn: 'Sign in',
         signInWithGoogle: 'Sign in with Google',
@@ -389,6 +390,7 @@ const translations = {
             invalidRateError: 'Please enter a valid rate.',
             lowRateError: 'Rate must be greater than 0.',
             email: 'Please enter a valid email address.',
+            login: 'An error occurred while logging in. Please try again.',
         },
         comma: 'comma',
         semicolon: 'semicolon',
@@ -500,6 +502,7 @@ const translations = {
         filterLogs: 'Filter Logs',
         network: 'Network',
         reportID: 'Report ID',
+        longID: 'Long ID',
         bankAccounts: 'Bank accounts',
         chooseFile: 'Choose file',
         dropTitle: 'Let it go',
@@ -2024,6 +2027,10 @@ const translations = {
         noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
         goBackHome: 'Go back to home page',
     },
+    errorPage: {
+        title: ({isBreakline}: {isBreakline: boolean}) => `Oops... ${isBreakline ? '\n' : ''}Something went wrong`,
+        subtitle: 'Your request could not be completed. Please try again later.',
+    },
     setPasswordPage: {
         enterPassword: 'Enter a password',
         setPassword: 'Set password',
@@ -2627,6 +2634,8 @@ const translations = {
             travelTermsAndConditions: 'terms & conditions',
             agree: 'I agree to the ',
             error: 'You must agree to the Expensify Travel terms & conditions to continue',
+            defaultWorkspaceError:
+                'You need to set a default workspace to enable Expensify Travel. Go to Settings > Workspaces > click the three vertical dots next to a workspace > Set as default workspace, then try again!',
         },
         flight: 'Flight',
         flightDetails: {
@@ -4864,7 +4873,7 @@ const translations = {
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
         deleteTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `removed the tag "${tagName}" from the list "${tagListName}"`,
-        deleteMultipleTags: ({tagListName}: UpdatedPolicyTagParams) => `removed multiple tags from the list "${tagListName}"`,
+        deleteMultipleTags: ({count, tagListName}: UpdatedPolicyTagParams) => `removed "${count}" tags from the list "${tagListName}"`,
         updateTag: ({tagListName, newValue, tagName, updatedField, oldValue}: UpdatedPolicyTagFieldParams) => {
             if (oldValue) {
                 return `updated the tag "${tagName}" on the list "${tagListName}" by changing the ${updatedField} to "${newValue}" (previously "${oldValue}")`;
@@ -5603,8 +5612,11 @@ const translations = {
                 subtitle: ({date}: BillingBannerSubtitleWithDateParams) => `Update your payment card by ${date} to continue using all of your favorite features.`,
             },
             policyOwnerAmountOwedOverdue: {
-                title: 'Your payment info is outdated',
-                subtitle: 'Please update your payment information.',
+                title: 'Your payment could not be processed',
+                subtitle: ({date, purchaseAmountOwed}: BillingBannerOwnerAmountOwedOverdueParams) =>
+                    date && purchaseAmountOwed
+                        ? `Your ${date} charge of ${purchaseAmountOwed} could not be processed. Please add a payment card to clear the amount owed.`
+                        : 'Please add a payment card to clear the amount owed.',
             },
             policyOwnerUnderInvoicing: {
                 title: 'Your payment info is outdated',

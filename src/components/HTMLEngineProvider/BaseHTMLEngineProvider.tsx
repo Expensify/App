@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {TextProps} from 'react-native';
 import {HTMLContentModel, HTMLElementModel, RenderHTMLConfigProvider, TRenderEngineProvider} from 'react-native-render-html';
+import type {TNode} from 'react-native-render-html';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
@@ -61,6 +62,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
+                        if (tnode.attributes.center === undefined) {
+                            return {whiteSpace: 'pre'};
+                        }
                         return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
@@ -108,9 +112,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return;
+                        return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
-                    return styles.onlyEmojisTextLineHeight;
+                    return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
         }),
@@ -126,6 +130,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
             styles.taskTitleMenuItem,
+            styles.blockquote,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */
