@@ -1,13 +1,16 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Avatar from '@components/Avatar';
 import Badge from '@components/Badge';
 import Button from '@components/Button';
+import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {TaskListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -27,6 +30,7 @@ type TaskListItemRowProps = {
 };
 
 type CellProps = {
+    // eslint-disable-next-line react/no-unused-prop-types
     showTooltip: boolean;
     isLargeScreenWidth: boolean;
 };
@@ -43,8 +47,8 @@ function DateCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={showTooltip}
             text={date}
+            shouldShowTooltip={showTooltip}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
@@ -56,9 +60,9 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={showTooltip}
             text={taskTitle}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+            shouldShowTooltip={showTooltip}
+            style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
     );
 }
@@ -77,17 +81,14 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
 }
 
 function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
-    const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
+
+    const {translate} = useLocalize();
     const {isOffline} = useNetwork();
 
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
-
-    const completeTaskCall = callFunctionIfActionIsAllowed(() => {
-        completeTask(taskItem, taskItem.reportID);
-    });
 
     if (isTaskCompleted) {
         return (
@@ -119,77 +120,94 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             text={translate('task.action')}
             style={[styles.w100]}
             isDisabled={isOffline}
-            onPress={completeTaskCall}
+            onPress={callFunctionIfActionIsAllowed(() => {
+                completeTask(taskItem, taskItem.reportID);
+            })}
         />
     );
 }
 
 function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
     const styles = useThemeStyles();
-    // const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
-    // const theme = useTheme();
+    const theme = useTheme();
+    const {isLargeScreenWidth} = useResponsiveLayout();
 
-    // if (!isLargeScreenWidth) {
-    //     return (
-    //         <View style={containerStyle}>
-    //             {showItemHeaderOnNarrowLayout && (
-    //                 <ExpenseItemHeaderNarrow
-    //                     text={item.text}
-    //                     participantFrom={item.from}
-    //                     participantFromDisplayName={item.formattedFrom}
-    //                     participantTo={item.to}
-    //                     participantToDisplayName={item.formattedTo}
-    //                     onButtonPress={onButtonPress}
-    //                     action={item.action}
-    //                     isSelected={item.isSelected}
-    //                     isDisabled={item.isDisabled}
-    //                     isLoading={isLoading}
-    //                 />
-    //             )}
+    if (!isLargeScreenWidth) {
+        return (
+            <View style={[containerStyle, styles.gap3]}>
+                {/* Header */}
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                    {/* Header avatars and arrow */}
+                    <View style={[styles.flex1, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
+                        <View style={[styles.mw50]}>
+                            <UserInfoCell
+                                accountID={item.createdBy.accountID}
+                                avatar={item.createdBy.avatar}
+                                displayName={item.formattedCreatedBy}
+                                // textStyle={infoCellsTextStyle}
+                                // avatarStyle={infoCellsAvatarStyle}
+                            />
+                        </View>
 
-    //             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
+                        <Icon
+                            src={Expensicons.ArrowRightLong}
+                            width={variables.iconSizeXXSmall}
+                            height={variables.iconSizeXXSmall}
+                            fill={theme.icon}
+                        />
 
-    //                 <View style={[styles.flex2, !item.category && styles.justifyContentCenter, styles.gap1]}>
-    //                     <MerchantCell
-    //                         transactionItem={item}
-    //                         showTooltip={showTooltip}
-    //                         isLargeScreenWidth={false}
-    //                     />
-    //                     {!!item.category && (
-    //                         <View style={[styles.flexRow, styles.flex1, styles.alignItemsEnd]}>
-    //                             <CategoryCell
-    //                                 isLargeScreenWidth={false}
-    //                                 showTooltip={showTooltip}
-    //                                 transactionItem={item}
-    //                             />
-    //                         </View>
-    //                     )}
-    //                 </View>
-    //                 <View style={[styles.alignItemsEnd, styles.flex1, styles.gap1, styles.justifyContentBetween]}>
-    //                     <TotalCell
-    //                         showTooltip={showTooltip}
-    //                         transactionItem={item}
-    //                         isLargeScreenWidth={false}
-    //                         isChildListItem={isChildListItem}
-    //                     />
-    //                     <View style={[styles.flexRow, styles.gap1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-    //                         <TypeCell
-    //                             transactionItem={item}
-    //                             isLargeScreenWidth={false}
-    //                             showTooltip={false}
-    //                         />
-    //                         <DateCell
-    //                             transactionItem={item}
-    //                             showTooltip={showTooltip}
-    //                             isLargeScreenWidth={false}
-    //                         />
-    //                     </View>
-    //                 </View>
-    //             </View>
-    //         </View>
-    //     );
-    // }
+                        <View style={[styles.flex1, styles.mw50]}>
+                            <ReportInfoCell reportID={item.parentReportID} />
+                        </View>
+                    </View>
+
+                    <View style={[StyleUtils.getWidthStyle(variables.w80)]}>
+                        <ActionCell
+                            taskItem={item}
+                            showTooltip={showTooltip}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                    </View>
+                </View>
+
+                {/* Content */}
+                <View style={[styles.alignItemsCenter, styles.gap4, styles.flexRow]}>
+                    {/* Left Col */}
+                    <View style={[styles.gap1, styles.flex1]}>
+                        <TitleCell
+                            taskItem={item}
+                            showTooltip={showTooltip}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                        <DescriptionCell
+                            taskItem={item}
+                            showTooltip={showTooltip}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                    </View>
+
+                    {/* Right Col */}
+                    <View style={[styles.gap2, styles.alignItemsEnd]}>
+                        <Avatar
+                            imageStyles={[styles.alignSelfCenter]}
+                            size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                            source={item.assignee.avatar}
+                            name={item.formattedAssignee}
+                            type={CONST.ICON_TYPE_AVATAR}
+                            avatarID={item.assignee.accountID}
+                        />
+
+                        <DateCell
+                            taskItem={item}
+                            showTooltip={showTooltip}
+                            isLargeScreenWidth={isLargeScreenWidth}
+                        />
+                    </View>
+                </View>
+            </View>
+        );
+    }
 
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
