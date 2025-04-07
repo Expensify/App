@@ -1,11 +1,11 @@
 import React from 'react';
-import type {StyleProp, ViewStyle } from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { splitExtensionFromFileName } from '@libs/fileDownload/FileUtils';
+import {splitExtensionFromFileName} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {FileObject} from './AttachmentModal';
 import AttachmentPicker from './AttachmentPicker';

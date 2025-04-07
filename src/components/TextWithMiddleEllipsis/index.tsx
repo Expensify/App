@@ -15,52 +15,48 @@ type TextWithMiddleEllipsisProps = {
     textStyle?: StyleProp<TextStyle>;
 };
 
-function TextWithMiddleEllipsis({
-    text, 
-    style, 
-    textStyle,
-}: TextWithMiddleEllipsisProps) {
+function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsisProps) {
     const styles = useThemeStyles();
 
     const firstPart = text.substring(0, Math.ceil(text.length / 2));
     const secondPart = text.substring(Math.ceil(text.length / 2));
-    
+
     return (
         <View
             style={[
                 style,
-                styles.flexShrink1, 
+                styles.flexShrink1,
                 {
                     width: '100%',
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
                     display: 'flex',
                     flexDirection: 'row',
-                }
+                },
             ]}
         >
-            <Text 
+            <Text
                 style={[
-                    textStyle, 
+                    textStyle,
                     {
                         overflow: 'hidden',
                         textOverflow: 'clip',
                         whiteSpace: 'nowrap',
-                    }
-                ]} 
+                    },
+                ]}
                 numberOfLines={1}
             >
                 {firstPart}
             </Text>
-            <Text 
+            <Text
                 style={[
-                    textStyle, 
+                    textStyle,
                     {
                         overflow: 'hidden',
                         direction: 'rtl',
                         textOverflow: 'ellipsis',
-                    }
-                ]} 
+                    },
+                ]}
                 numberOfLines={1}
             >
                 {secondPart}
