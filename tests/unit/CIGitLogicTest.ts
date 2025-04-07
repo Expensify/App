@@ -420,19 +420,19 @@ describe('CIGitLogic', () => {
         // Verify output for new checklist and staging deploy comments
         await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-0-staging', [2, 4]);
     });
-/*
+
     test('Merging another pull request when the checklist is unlocked', async () => {
         createBasicPR(5);
         mergePR(5);
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('2.0.0-2', '2.0.1-1', [2, 4, 5]);
+        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-1-staging', [2, 4, 5]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('2.0.1-0', '2.0.1-1', [5]);
+        await assertPRsMergedBetween('2.0.2-0-staging', '2.0.2-1-staging', [5]);
     });
-
+/*
     test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
         Log.info('Creating myFile.txt in PR #6');
         setupGitAsHuman();
