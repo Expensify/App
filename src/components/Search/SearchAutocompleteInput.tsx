@@ -141,7 +141,7 @@ function SearchAutocompleteInput(
         setLocalValue(value);
     }, [value]);
 
-    const debouncedOnSearchQueryChange = useMemo(() => lodashDebounce(onSearchQueryChange, 150), [onSearchQueryChange]);
+    const debouncedOnSearchQueryChange = useMemo(() => lodashDebounce(onSearchQueryChange, 50), [onSearchQueryChange]);
 
     const handleChangeText = useCallback(
         (text: string) => {
