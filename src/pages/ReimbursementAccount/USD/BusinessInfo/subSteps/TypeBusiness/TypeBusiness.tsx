@@ -48,6 +48,7 @@ function TypeBusiness({onNext, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.selectYourCompanysType')}</Text>
             <InputWrapper
