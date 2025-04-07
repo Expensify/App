@@ -48,6 +48,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import type {OnyxDataWithErrors} from '@libs/ErrorUtils';
 import {getLatestErrorMessageField, isReceiptError} from '@libs/ErrorUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
+import {isReportMessageAttachment} from '@libs/isReportMessageAttachment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import Permissions from '@libs/Permissions';
@@ -126,7 +127,6 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
-    isReportMessageAttachment,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -333,6 +333,18 @@ type PureReportActionItemProps = {
 const emptyHTML = <RenderHTML html="" />;
 const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
 
+const useNewTableReportViewActionRenderConditionals = ({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: OnyxTypes.ReportAction) => {
+    const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
+
+    return !(
+        actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE &&
+        childMoneyRequestCount === 0 &&
+        (childVisibleActionCount ?? 0) > 0 &&
+        (previousChildMoneyRequestCount ?? 0) > 0
+    );
+};
+
 /**
  * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
  * Since the search result has a separate Onyx key under the 'snapshot_' prefix, we should not connect this component with Onyx.
@@ -395,7 +407,7 @@ function PureReportActionItem({
     const [isEmojiPickerActive, setIsEmojiPickerActive] = useState<boolean | undefined>();
     const [isPaymentMethodPopoverActive, setIsPaymentMethodPopoverActive] = useState<boolean | undefined>();
     const {canUseTableReportView} = usePermissions();
-
+    const shouldRenderViewBasedOnAction = useNewTableReportViewActionRenderConditionals(action);
     const [isHidden, setIsHidden] = useState(false);
     const [moderationDecision, setModerationDecision] = useState<OnyxTypes.DecisionName>(CONST.MODERATION.MODERATOR_DECISION_APPROVED);
     const reactionListRef = useContext(ReactionListContext);
@@ -1145,8 +1157,8 @@ function PureReportActionItem({
     const renderReportActionItem = (hovered: boolean, isWhisper: boolean, hasErrors: boolean): React.JSX.Element => {
         const content = renderItemContent(hovered || isContextMenuActive || isEmojiPickerActive, isWhisper, hasErrors);
 
-        if (canUseTableReportView && isEmptyHTML(content)) {
-            return content;
+        if (canUseTableReportView && (isEmptyHTML(content) || (!shouldRenderViewBasedOnAction && !isClosedExpenseReportWithNoExpenses))) {
+            return emptyHTML;
         }
 
         if (draftMessage !== undefined) {
