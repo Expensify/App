@@ -207,8 +207,7 @@ function ReportActionsView({
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
 
     const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
-    const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
-    const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
+    const isReportDataIncomplete = isSingleExpenseReport;
     const isMissingReportActions = visibleReportActions.length === 0;
 
     useEffect(() => {
