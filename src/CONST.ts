@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
-// eslint-disable-next-line lodash/import-scope
-import type {Dictionary} from 'lodash';
-import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -69,7 +66,6 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
     xero: 'Xero',
     netsuite: 'NetSuite',
-    netsuiteQuickStart: 'NSQS',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
 };
@@ -342,6 +338,7 @@ const EMAIL = {
     SVFG: 'svfg@expensify.com',
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
 };
 
@@ -363,7 +360,7 @@ const CONST = {
         BILLABLE: 'billable',
         NON_BILLABLE: 'nonBillable',
     },
-
+    TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
@@ -773,9 +770,9 @@ const CONST = {
         NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
-        NSQS: 'nsqs',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
     },
     BUTTON_STATES: {
@@ -1122,6 +1119,7 @@ const CONST = {
         TRACK_DISTANCE: 'trackDistance',
         ASSIGN_TASK: 'assignTask',
         SEND_MONEY: 'sendMoney',
+        CREATE_REPORT: 'createReport',
     },
 
     RECEIPT: {
@@ -1208,7 +1206,7 @@ const CONST = {
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
@@ -1257,6 +1255,7 @@ const CONST = {
                     DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
                     DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    DELETE_MULTIPLE_TAGS: 'POLICYCHANGELOG_DELETE_MULTIPLE_TAGS',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
@@ -1307,6 +1306,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
@@ -1315,6 +1315,9 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+            // Used when displaying reportActions list to handle of unread messages icon/button
+            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            ACTION_VISIBLE_THRESHOLD: 250,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
@@ -1323,6 +1326,7 @@ const CONST = {
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
+            USER: 'CANCEL_REASON_USER',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
@@ -1518,6 +1522,7 @@ const CONST = {
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
+        PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1788,6 +1793,7 @@ const CONST = {
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -2314,6 +2320,7 @@ const CONST = {
         '_brazil',
         '_bulgaria',
         '_canada',
+        '_chile',
         '_china',
         '_costaRica',
         '_croatia',
@@ -2383,31 +2390,6 @@ const CONST = {
         '_vietnam',
         '_vietNam',
     ] as string[],
-
-    NSQS_EXPORT_DATE: {
-        LAST_EXPENSE: 'LAST_EXPENSE',
-        EXPORTED: 'EXPORTED',
-        SUBMITTED: 'SUBMITTED',
-    },
-
-    NSQS_INTEGRATION_ENTITY_MAP_TYPES: {
-        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
-        REPORT_FIELD: 'REPORT_FIELD',
-        TAG: 'TAG',
-    },
-
-    NSQS_CONFIG: {
-        AUTO_SYNC: 'autoSync',
-        SYNC_OPTIONS: {
-            MAPPING: {
-                CUSTOMERS: 'syncOptions.mapping.customers',
-                PROJECTS: 'syncOptions.mapping.projects',
-            },
-        },
-        EXPORTER: 'exporter',
-        EXPORT_DATE: 'exportDate',
-        PAYMENT_ACCOUNT: 'paymentAccount',
-    },
 
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
@@ -2921,20 +2903,17 @@ const CONST = {
                 QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
-                NSQS: 'netsuiteQuickStart',
                 SAGE_INTACCT: 'intacct',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
-                NSQS: 'nsqs',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
-                netsuiteQuickStart: 'NSQS',
                 quickbooksOnline: 'QuickBooks Online',
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
@@ -3012,12 +2991,6 @@ const CONST = {
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
                 NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
                 NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
-                NSQS_SYNC_CONNECTION: 'nsqsSyncConnection',
-                NSQS_SYNC_ACCOUNTS: 'nsqsSyncAccounts',
-                NSQS_SYNC_EMPLOYEES: 'nsqsSyncEmployees',
-                NSQS_SYNC_CUSTOMERS: 'nsqsSyncCustomers',
-                NSQS_SYNC_PROJECTS: 'nsqsSyncProjects',
-                NSQS_SYNC_CURRENCY: 'nsqsSyncCurrency',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
@@ -3026,19 +2999,6 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
-
-            // Map each connection to its designated display connection
-            get MULTI_CONNECTIONS_MAPPING() {
-                return {
-                    [this.NAME.NETSUITE]: this.NAME.NETSUITE,
-                    [this.NAME.NSQS]: this.NAME.NETSUITE,
-                } as Record<ValueOf<typeof this.NAME>, ValueOf<typeof this.NAME> | undefined>;
-            },
-
-            // Get linked connections by the designated display connection
-            get MULTI_CONNECTIONS_MAPPING_INVERTED() {
-                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<Array<ValueOf<typeof this.NAME>> | undefined>;
-            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -3526,6 +3486,7 @@ const CONST = {
         EMAIL.RECEIPTS,
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
+        EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -3575,7 +3536,6 @@ const CONST = {
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-    TAG_NAME_LIMIT: 256,
     WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
@@ -6433,6 +6393,10 @@ const CONST = {
         },
         GROUP_BY: {
             REPORTS: 'reports',
+        },
+        TABLE_COLUMN_SIZES: {
+            NORMAL: 'normal',
+            WIDE: 'wide',
         },
         STATUS: {
             EXPENSE: {

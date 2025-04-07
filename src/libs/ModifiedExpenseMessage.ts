@@ -14,7 +14,7 @@ import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
-import {getTagArrayFromName} from './TransactionUtils';
+import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -344,17 +344,11 @@ function getForReportAction({
         );
     }
 
-    const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'attendees' in reportActionOriginalMessage;
+    const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
-        buildMessageFragmentForValue(
-            reportActionOriginalMessage.oldAttendees ?? '',
-            reportActionOriginalMessage.attendees ?? '',
-            translateLocal('iou.attendees'),
-            false,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
+
+        buildMessageFragmentForValue(oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
     const message =
