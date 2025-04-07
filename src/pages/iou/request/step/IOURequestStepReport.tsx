@@ -6,7 +6,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import {changeTransactionsReport} from '@libs/actions/Transaction';
+import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
 import {isExpenseReport} from '@libs/ReportUtils';
@@ -90,8 +90,12 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-
-        changeTransactionsReport([transaction.transactionID], item.value, isEditing);
+        if (item.reportID !== transaction.reportID) {
+            setTransactionReport(transaction.transactionID, item.value, !isEditing);
+            if (isEditing) {
+                changeTransactionsReport([transaction.transactionID], item.value);
+            }
+        }
         Navigation.goBack(backTo);
     };
 

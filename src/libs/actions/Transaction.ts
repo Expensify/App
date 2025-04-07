@@ -601,7 +601,11 @@ function getAllTransactions() {
     return Object.keys(allTransactions ?? {}).length;
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string, isEditing = false) {
+function setTransactionReport(transactionID: string, reportID: string, isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {reportID});
+}
+
+function changeTransactionsReport(transactionIDs: string[], reportID: string) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!newReport) {
         return;
@@ -842,15 +846,12 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, is
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
-    if (isEditing) {
-        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
-            optimisticData,
-            successData,
-            failureData,
-        });
-    } else {
-        Onyx.update(optimisticData);
-    }
+
+    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
+        optimisticData,
+        successData,
+        failureData,
+    });
 }
 
 export {
@@ -873,4 +874,5 @@ export {
     getLastModifiedExpense,
     revert,
     changeTransactionsReport,
+    setTransactionReport,
 };
