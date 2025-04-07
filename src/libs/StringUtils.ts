@@ -75,15 +75,6 @@ function normalizeAccents(text: string) {
 }
 
 /**
- * Capitalizes the first letter of a given string.
- * @param text - The string to be capitalized.
- * @returns The string with the first letter capitalized.
- */
-function capitalize(text: string) {
-    return text.charAt(0).toUpperCase() + text.slice(1);
-}
-
-/**
  *  Replace all CRLF with LF
  *  @param value - The input string
  *  @returns The string with all CRLF replaced with LF
@@ -122,15 +113,4 @@ function removePreCodeBlock(text = '') {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 
-export default {
-    sanitizeString,
-    isEmptyString,
-    removeInvisibleCharacters,
-    normalizeAccents,
-    normalizeCRLF,
-    lineBreaksToSpaces,
-    getFirstLine,
-    removeDoubleQuotes,
-    removePreCodeBlock,
-    capitalize,
-};
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes, removePreCodeBlock};
