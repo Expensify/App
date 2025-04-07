@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest-xl
+    runs-on: macos-15-xlarge
     steps:
       - name: Checkout
         # v4
