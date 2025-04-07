@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
@@ -12,6 +13,8 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from './withFullTransactionOrNotFound';
@@ -22,8 +25,7 @@ type ReportListItem = ListItem & {
     value: string;
 };
 
-type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM>;
+type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
 
 /**
  * Check if a report has any forwarded actions
@@ -33,11 +35,25 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+/**
+ * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component.
+ * This helps minimize re-rendering and makes the entire component more performant.
+ */
+const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
+    report && {
+        reportID: report.reportID,
+        reportName: report.reportName,
+        stateNum: report.stateNum,
+        statusNum: report.statusNum,
+        type: report.type,
+    };
+
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
-    const {backTo} = route.params;
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const {backTo, action} = route.params;
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
@@ -75,7 +91,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return;
         }
 
-        changeTransactionsReport([transaction.transactionID], item.value);
+        changeTransactionsReport([transaction.transactionID], item.value, isEditing);
         Navigation.goBack(backTo);
     };
 

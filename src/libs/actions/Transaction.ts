@@ -601,7 +601,7 @@ function getAllTransactions() {
     return Object.keys(allTransactions ?? {}).length;
 }
 
-function changeTransactionsReport(transactionIDs: string[], reportID: string) {
+function changeTransactionsReport(transactionIDs: string[], reportID: string, isEditing = false) {
     const newReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
     if (!newReport) {
         return;
@@ -842,12 +842,15 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
     };
-
-    API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    if (isEditing) {
+        API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+    } else {
+        Onyx.update(optimisticData);
+    }
 }
 
 export {
