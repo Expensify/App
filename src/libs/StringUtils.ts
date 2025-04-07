@@ -15,6 +15,12 @@ function sanitizeString(str: string): string {
  *  Check if the string would be empty if all invisible characters were removed.
  */
 function isEmptyString(value: string): boolean {
+    // We implemented a custom emoji on this Unicode Private Use Area (PUA) code point
+    // so we should not remove it.
+    // Temporarily replace \uE100 with a placeholder
+    const PLACEHOLDER = '<<KEEP_E100>>';
+    value = value.replace(/\uE100/g, PLACEHOLDER);
+
     // \p{C} matches all 'Other' characters
     // \p{Z} matches all separators (spaces etc.)
     // Source: http://www.unicode.org/reports/tr18/#General_Category_Property
@@ -22,6 +28,8 @@ function isEmptyString(value: string): boolean {
 
     // Remove other invisible characters that are not in the above unicode categories
     transformed = transformed.replace(CONST.REGEX.OTHER_INVISIBLE_CHARACTERS, '');
+
+    transformed = transformed.replace(new RegExp(PLACEHOLDER, 'g'), '\uE100');
 
     // Check if after removing invisible characters the string is empty
     return transformed === '';
