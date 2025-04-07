@@ -1,5 +1,4 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
-import {format} from 'date-fns';
 import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
@@ -8,8 +7,6 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import MoneyReportView from '@components/ReportActionItem/MoneyReportView';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
@@ -32,7 +29,7 @@ import {
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isReportFieldDisabled} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated} from '@libs/ReportUtils';
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@navigation/Navigation';
 import FloatingMessageCounter from '@pages/home/report/FloatingMessageCounter';
@@ -44,6 +41,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
+import MoneyRequestViewReportFields from './MoneyRequestViewReportfields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
@@ -358,11 +356,9 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                <MoneyReportView
+                <MoneyRequestViewReportFields
                     report={report}
                     policy={policy}
-                    shouldShowTotal={false}
-                    shouldHideThreadDividerLine={false}
                 />
                 {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
                     <SearchMoneyRequestReportEmptyState />
