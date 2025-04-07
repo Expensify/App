@@ -7,7 +7,6 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import type {ThemeStyles} from '@styles/index';
-import CONST from '@src/CONST';
 import BulletList from './HelpComponents/HelpBulletList';
 import HelpDiagnosticData from './HelpComponents/HelpDiagnosticData';
 import ExpandableHelp from './HelpComponents/HelpExpandable';
@@ -149,7 +148,7 @@ const helpContentMap: HelpContent = {
                 </>
             ),
             children: {
-                [`:${CONST.REPORT.HELP_TYPE.POLICY_ADMINS}`]: {
+                ':policyAdmins': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <>
                             <Text style={[styles.textHeadlineH1, styles.mb4]}>#admins</Text>
@@ -179,7 +178,7 @@ const helpContentMap: HelpContent = {
                         </>
                     ),
                 },
-                [`:${CONST.REPORT.HELP_TYPE.CHAT_CONCIERGE}`]: {
+                ':concierge': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <>
                             <Text style={[styles.textHeadlineH1, styles.mb4]}>Concierge</Text>
@@ -190,7 +189,7 @@ const helpContentMap: HelpContent = {
                         </>
                     ),
                 },
-                [`:${CONST.REPORT.HELP_TYPE.POLICY_EXPENSE_CHAT}`]: {
+                ':policyExpenseChat': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <>
                             <Text style={[styles.textHeadlineH1, styles.mb4]}>Workspace</Text>
@@ -217,7 +216,7 @@ const helpContentMap: HelpContent = {
                         </>
                     ),
                 },
-                [`:${CONST.REPORT.HELP_TYPE.EXPENSE_REPORT}`]: {
+                ':expenseReport': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <>
                             <Text style={[styles.textHeadlineH1, styles.mb4]}>Expense Report</Text>
@@ -240,7 +239,7 @@ const helpContentMap: HelpContent = {
                         </>
                     ),
                 },
-                [`:${CONST.REPORT.HELP_TYPE.EXPENSE}`]: {
+                ':expense': {
                     content: ({styles}: {styles: ThemeStyles}) => (
                         <>
                             <Text style={[styles.textHeadlineH1, styles.mb4]}>Expense</Text>
@@ -276,7 +275,7 @@ const helpContentMap: HelpContent = {
                         </>
                     ),
                     children: {
-                        [`:${CONST.IOU.EXPENSE_TYPE.MANUAL}`]: {
+                        ':manual': {
                             content: ({styles}: {styles: ThemeStyles}) => (
                                 <>
                                     <Text style={[styles.textHeadlineH1, styles.mb4]}>Manual</Text>
@@ -286,7 +285,7 @@ const helpContentMap: HelpContent = {
                                 </>
                             ),
                         },
-                        [`:${CONST.IOU.EXPENSE_TYPE.SCAN}`]: {
+                        ':scan': {
                             content: ({styles}: {styles: ThemeStyles}) => (
                                 <>
                                     <Text style={[styles.textHeadlineH1, styles.mb4]}>Scanned</Text>
@@ -294,7 +293,7 @@ const helpContentMap: HelpContent = {
                                 </>
                             ),
                         },
-                        [`:${CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD}`]: {
+                        ':expensifyCard': {
                             content: ({styles}: {styles: ThemeStyles}) => (
                                 <>
                                     <Text style={[styles.textHeadlineH1, styles.mb4]}>Expensify Card</Text>
@@ -305,7 +304,7 @@ const helpContentMap: HelpContent = {
                                 </>
                             ),
                         },
-                        [`:${CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD}`]: {
+                        ':pendingExpensifyCard': {
                             content: ({styles}: {styles: ThemeStyles}) => (
                                 <>
                                     <Text style={[styles.textHeadlineH1, styles.mb4]}>Expensify Card (pending)</Text>
@@ -730,7 +729,7 @@ const helpContentMap: HelpContent = {
 };
 
 function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean): ReactNode {
-    const routeParts = route.substring(1).split('/');
+    const routeParts = route.split('/');
     const helpContentComponents: ContentComponent[] = [];
     let activeHelpContent = helpContentMap;
     let isExactMatch = true;
