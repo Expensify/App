@@ -555,7 +555,7 @@ function MoneyRequestReportPreviewContent({
                                             ref={carouselRef}
                                             nestedScrollEnabled
                                             scrollEnabled={transactions.length > 1}
-                                            keyExtractor={(item) => item.transactionID}
+                                            keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
                                             contentContainerStyle={[styles.gap2]}
                                             style={reportPreviewStyles.flatListStyle}
                                             showsHorizontalScrollIndicator={false}
@@ -613,7 +613,7 @@ function MoneyRequestReportPreviewContent({
                                             isLoading={!isOffline && !canAllowSettlement}
                                         />
                                     )}
-                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && shouldShowRBR && (
+                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && !shouldShowRBR && (
                                         <ExportWithDropdownMenu
                                             policy={policy}
                                             report={iouReport}
@@ -638,7 +638,7 @@ function MoneyRequestReportPreviewContent({
                                     {shouldShowSubmitButton && (
                                         <Button
                                             success={isWaitingForSubmissionFromCurrentUser}
-                                            text={translate('common.submit')}
+                                            text={translate('iou.submitAmount', {amount: getSettlementAmount()})}
                                             style={buttonMaxWidth}
                                             onPress={() => iouReport && submitReport(iouReport)}
                                             isDisabled={shouldDisableSubmitButton}

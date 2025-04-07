@@ -22,7 +22,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
-import isReportMessageAttachment from './isReportMessageAttachment';
+import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
@@ -1877,12 +1877,6 @@ function isPolicyChangeLogDeleteMemberMessage(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
 }
 
-function getWorkspaceNameUpdatedMessage(action: ReportAction) {
-    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
-    return message;
-}
-
 function getWorkspaceDescriptionUpdatedMessage(action: ReportAction) {
     const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
     const message =
@@ -1963,7 +1957,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceTagUpdateMessage(action: ReportAction): string {
-    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField} =
+    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
@@ -1980,8 +1974,9 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         });
     }
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && tagListName) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
         return translateLocal('workspaceActions.deleteMultipleTags', {
+            count,
             tagListName,
         });
     }
@@ -2456,7 +2451,6 @@ export {
     shouldShowAddMissingDetails,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
-    getWorkspaceNameUpdatedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,

@@ -144,6 +144,7 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
                 submitButtonText={translate('common.confirm')}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline={false}
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={CheckboxWithLabel}
