@@ -56,8 +56,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
 
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
-            .filter((item) => item !== undefined)
-            .filter((report) => report && (!debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase())))
+            .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
+            .filter((report) => report !== undefined)
             .map((report) => ({
                 text: report.reportName,
                 value: report.reportID,
