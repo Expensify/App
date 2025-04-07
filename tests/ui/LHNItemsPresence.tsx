@@ -532,7 +532,7 @@ describe('SidebarLinksData', () => {
         it('should not display an empty submitted report having only a CREATED action', async () => {
             // Given the SidebarLinks are rendered
             LHNTestUtils.getDefaultRenderedSidebarLinks();
-            
+
             // When creating a report with total = 0, stateNum = SUBMITTED, statusNum = SUBMITTED
             const report = {
                 ...createReport(false, [1, 2], 0),
