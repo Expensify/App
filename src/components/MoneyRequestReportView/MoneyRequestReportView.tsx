@@ -179,6 +179,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
                 {shouldUseSingleTransactionView ? (
+                    // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
                     <ReportActionsView
                         report={report}
                         reportActions={reportActions}
