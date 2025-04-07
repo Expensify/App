@@ -7,7 +7,6 @@ import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes'
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import EmptyStateComponent from '@components/EmptyStateComponent';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';

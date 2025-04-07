@@ -7,6 +7,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import Text from '@components/Text';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -141,7 +142,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    debugger;
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -365,6 +367,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
+        debugger;
         const baseKey = isChat
             ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
             : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;

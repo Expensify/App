@@ -519,7 +519,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
     }
 
     // Filter out reports with no transactions to prevent the wrong number of the selected options
-    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
+    return Object.values(reportIDToTransactions);
 }
 
 /**
@@ -559,6 +559,7 @@ function getSortedSections(
     sortOrder?: SortOrder,
     shouldGroupByReports = false,
 ) {
+    debugger;
     if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
         return getSortedReportActionData(data as ReportActionListItemType[]);
     }
