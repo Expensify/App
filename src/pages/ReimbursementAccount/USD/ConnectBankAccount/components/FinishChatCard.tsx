@@ -1,5 +1,5 @@
 import React from 'react';
-import {Concierge, Pencil, RotateLeft} from '@components/Icon/Expensicons';
+import {ChatBubble, Pencil, RotateLeft} from '@components/Icon/Expensicons';
 import {ConciergeBubble} from '@components/Icon/Illustrations';
 import MenuItem from '@components/MenuItem';
 import ScrollView from '@components/ScrollView';
@@ -44,7 +44,7 @@ function FinishChatCard({requiresTwoFactorAuth, reimbursementAccount, setUSDBank
             >
                 <Text style={styles.mb6}>{translate('connectBankAccountStep.letsChatText')}</Text>
                 <MenuItem
-                    icon={Concierge}
+                    icon={ChatBubble}
                     title={translate('workspace.bankAccount.finishInChat')}
                     onPress={handleNavigateToConciergeChat}
                     outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
