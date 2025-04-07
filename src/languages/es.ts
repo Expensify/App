@@ -1390,6 +1390,88 @@ const translations = {
         defaultContact: 'Método de contacto predeterminado:',
         enterYourDefaultContactMethod: 'Por favor, introduce tu método de contacto predeterminado para cerrar tu cuenta.',
     },
+    mergeAccountsPage: {
+        mergeAccount: 'Fusionar cuentas',
+        accountDetails: {
+            accountToMergeInto: `Introduce la cuenta en la que deseas fusionar `,
+            notReversibleConsent: 'Entiendo que esto no es reversible',
+        },
+        accountValidate: {
+            confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
+            lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
+            enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+        },
+        mergeSuccess: {
+            accountsMerged: '¡Cuentas fusionadas!',
+            successfullyMergedAllData: {
+                beforeFirstEmail: 'Has fusionado exitosamente todos los datos de ',
+                beforeSecondEmail: ' en ',
+                afterSecondEmail: '. De ahora en adelante, puedes usar cualquiera de los inicios de sesión para esta cuenta.',
+            },
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'Estamos trabajando en ello',
+            limitedSupport: 'Todavía no es posible fusionar cuentas en New Expensify. Por favor, realiza esta acción en Expensify Classic en su lugar',
+            reachOutForHelp: {
+                beforeLink: '¡No dudes en ',
+                linkText: 'comunicarte con Concierge',
+                afterLink: ' si tienes alguna pregunta!',
+            },
+            goToExpensifyClassic: 'Dirígete a Expensify Classic',
+        },
+        mergeFailureSAMLDomainControl: {
+            beforeFirstEmail: 'No puedes fusionar ',
+            beforeDomain: ' porque está controlado por ',
+            afterDomain: '. Póngase ',
+            linkText: 'en contacto con Conserjería',
+            afterLink: ' si necesita ayuda.',
+        },
+        mergeFailureSAMLAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas porque tu administrador de dominio la ha establecido como tu inicio de sesión principal. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: {
+                beforeFirstEmail: 'No puedes fusionar cuentas porque ',
+                beforeSecondEmail: ' tiene habilitada la autenticación de dos factores (2FA). Por favor, deshabilita 2FA para ',
+                afterSecondEmail: ' e inténtalo nuevamente.',
+            },
+            learnMore: 'Aprende más sobre cómo fusionar cuentas.',
+        },
+        mergeFailureAccountLocked: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' porque está bloqueado. Póngase ',
+            linkText: 'en contacto con Conserjería',
+            afterLink: ` si necesita ayuda.`,
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: {
+                beforeEmail: 'No puedes fusionar cuentas porque ',
+                afterEmail: ' no tiene una cuenta de Expensify.',
+            },
+            addContactMethod: {
+                beforeLink: 'Por favor, ',
+                linkText: 'añádela como método de contacto',
+                afterLink: ' en su lugar.',
+            },
+        },
+        mergeFailureSmartScannerAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailureInvoicedAccount: {
+            beforeEmail: 'No puedes fusionar ',
+            afterEmail: ' en otras cuentas porque es el propietario de facturación de una cuenta facturada. Por favor, fusiona otras cuentas en esta en su lugar.',
+        },
+        mergeFailureTooManyAttempts: {
+            heading: 'Inténtalo de nuevo más tarde',
+            description: 'Hubo demasiados intentos de fusionar cuentas. Por favor, inténtalo de nuevo más tarde.',
+        },
+        mergeFailureUnvalidatedAccount: {
+            description: 'No puedes fusionarte con otras cuentas porque no está validada. Por favor, valida la cuenta e inténtalo de nuevo.',
+        },
+        mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
+    },
     passwordPage: {
         changePassword: 'Cambiar contraseña',
         changingYourPasswordPrompt: 'El cambio de contraseña va a afectar tanto a la cuenta de Expensify.com como la de New Expensify.',

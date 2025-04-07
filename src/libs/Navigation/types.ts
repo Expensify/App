@@ -106,7 +106,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
-    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
+        email?: string;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
+        login: string;
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
+        backTo?: Routes;
+        result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>;
+        login: string;
+    };
     [SCREENS.SETTINGS.CONSOLE]: {
         backTo: Routes;
     };

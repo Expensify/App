@@ -1391,6 +1391,88 @@ const translations = {
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
     },
+    mergeAccountsPage: {
+        mergeAccount: 'Merge accounts',
+        accountDetails: {
+            accountToMergeInto: 'Enter the account you want to merge into ',
+            notReversibleConsent: 'I understand this is not reversible',
+        },
+        accountValidate: {
+            confirmMerge: 'Are you sure you want to merge accounts?',
+            lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
+            enterMagicCode: `To continue, please enter the magic code sent to `,
+        },
+        mergeSuccess: {
+            accountsMerged: 'Accounts merged!',
+            successfullyMergedAllData: {
+                beforeFirstEmail: `You've successfully merged all data from `,
+                beforeSecondEmail: ` into `,
+                afterSecondEmail: `. Moving forward, you can use either login for this account.`,
+            },
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'We’re working on it',
+            limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
+            reachOutForHelp: {
+                beforeLink: 'Feel free to ',
+                linkText: 'reach out to Concierge',
+                afterLink: ' if you have any questions!',
+            },
+            goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergeFailureSAMLDomainControl: {
+            beforeFirstEmail: 'You can’t merge ',
+            beforeDomain: ' because it’s controlled by ',
+            afterDomain: '. Please ',
+            linkText: 'reach out to Concierge',
+            afterLink: ' for assistance.',
+        },
+        mergeFailureSAMLAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.',
+        },
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: {
+                beforeFirstEmail: 'You can’t merge accounts because ',
+                beforeSecondEmail: ' has two-factor authentication (2FA) enabled. Please disable 2FA for ',
+                afterSecondEmail: ' and try again.',
+            },
+            learnMore: 'Learn more about merging accounts.',
+        },
+        mergeFailureAccountLocked: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' because it’s locked. Please ',
+            linkText: 'reach out to Concierge ',
+            afterLink: `for assistance.`,
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: {
+                beforeEmail: 'You can’t merge accounts because ',
+                afterEmail: ' doesn’t have an Expensify account.',
+            },
+            addContactMethod: {
+                beforeLink: 'Please ',
+                linkText: 'add it as a contact method',
+                afterLink: ' instead.',
+            },
+        },
+        mergeFailureSmartScannerAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts. Please merge other accounts into it instead.',
+        },
+        mergeFailureInvoicedAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.',
+        },
+        mergeFailureTooManyAttempts: {
+            heading: 'Try again later',
+            description: 'There were too many attempts to merge accounts. Please try again later.',
+        },
+        mergeFailureUnvalidatedAccount: {
+            description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
+        },
+        mergeFailureGenericHeading: 'Can’t merge accounts',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
