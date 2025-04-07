@@ -19,12 +19,12 @@ function isEmptyString(value: string): boolean {
     // so we should not remove it.
     // Temporarily replace \uE100 with a placeholder
     const PLACEHOLDER = '<<KEEP_E100>>';
-    value = value.replace(/\uE100/g, PLACEHOLDER);
+    let transformed = value.replace(/\uE100/g, PLACEHOLDER);
 
     // \p{C} matches all 'Other' characters
     // \p{Z} matches all separators (spaces etc.)
     // Source: http://www.unicode.org/reports/tr18/#General_Category_Property
-    let transformed = value.replace(CONST.REGEX.INVISIBLE_CHARACTERS_GROUPS, '');
+    transformed = value.replace(CONST.REGEX.INVISIBLE_CHARACTERS_GROUPS, '');
 
     // Remove other invisible characters that are not in the above unicode categories
     transformed = transformed.replace(CONST.REGEX.OTHER_INVISIBLE_CHARACTERS, '');
