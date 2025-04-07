@@ -14,7 +14,7 @@ import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/ge
 import CONST from '@github/libs/CONST';
 import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
-import {SemverLevel} from '@github/libs/versionUpdater';
+import type {SemverLevel} from '@github/libs/versionUpdater';
 import asMutable from '@src/types/utils/asMutable';
 import * as Log from '../../scripts/utils/Logger';
 
