@@ -54,9 +54,9 @@ Onyx.registerLogger(({level, message, parameters}) => {
 
         // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
         // when they doesn't return data.
-        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters;
+        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
         if (Environment.isDevelopment() && shouldShowAlert) {
-            alert(message);
+            alert(`${message} Key: ${parameters.key as string}`);
         }
     } else if (level === 'hmmm') {
         Log.hmmm(message, parameters);
