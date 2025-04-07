@@ -181,17 +181,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 flexShrink: 1,
             },
 
-            blockquote: {
-                borderLeftColor: theme.border,
-                borderLeftWidth: 4,
-                paddingLeft: 12,
-                marginTop: 4,
-                marginBottom: 4,
-
-                // Overwrite default HTML margin for blockquotes
-                marginLeft: 0,
-            },
-
             pre: {
                 ...baseCodeTagStyles(theme),
                 paddingVertical: 8,
@@ -273,8 +262,18 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             justifyContent: 'center',
             overflow: 'hidden',
-            boxShadow: variables.popoverMenuShadow,
+            boxShadow: theme.shadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+        blockquote: {
+            borderLeftColor: theme.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         h1: {
@@ -2733,6 +2732,12 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'center',
         },
 
+        blockingErrorViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
+            alignSelf: 'center',
+        },
+
         forcedBlockingViewContainer: {
             ...positioning.pFixed,
             top: 0,
@@ -3485,13 +3490,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
             ...spacing.ml4,
-        },
-
-        blockquote: {
-            borderLeftColor: theme.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginVertical: 4,
         },
 
         noSelect: {
