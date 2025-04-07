@@ -52,6 +52,7 @@ import {
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
     isActionableAddPaymentCard,
@@ -787,8 +788,10 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
 
+    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // so we reconstruct the last message text of the report from the last report action.
     if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
-        lastMessageTextFromReport = Parser.htmlToText(report?.lastMessageHtml ?? '');
+        lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
     }
 
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
