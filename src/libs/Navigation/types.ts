@@ -1756,6 +1756,7 @@ type SharedScreensParamList = {
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
+        delegatorEmail?: string;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -1830,6 +1831,8 @@ type AuthScreensParamList = SharedScreensParamList & {
         transactionID: string;
         readonly?: string;
         isFromReviewDuplicates?: string;
+        action?: IOUAction;
+        iouType?: IOUType;
     };
     [SCREENS.CONNECTION_COMPLETE]: undefined;
     [NAVIGATORS.SHARE_MODAL_NAVIGATOR]: NavigatorScreenParams<ShareNavigatorParamList>;
