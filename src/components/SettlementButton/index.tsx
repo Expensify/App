@@ -160,7 +160,7 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType, canUseGlobalReimbursementsOnND ?? false);
+            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',

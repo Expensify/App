@@ -255,8 +255,16 @@ function updateLastAccessedWorkspace(policyID: OnyxEntry<string>) {
 
 /**
  * Checks if the currency is supported for direct reimbursement
+ * USD currency is the only one supported in NewDot for now
  */
-function isCurrencySupportedForDirectReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
+function isCurrencySupportedForDirectReimbursement(currency: string) {
+    return currency === CONST.CURRENCY.USD;
+}
+
+/**
+ * Checks if the currency is supported for global reimbursement
+ */
+function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
     return canUseGlobalReimbursementsOnND ? CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency) : currency === CONST.CURRENCY.USD;
 }
 
@@ -5122,6 +5130,7 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForGlobalReimbursement,
     getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
