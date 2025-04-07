@@ -5,7 +5,9 @@ index dc2465a..04d8af1 100644
 @@ -8,6 +8,13 @@ export function getContext(canvas: HTMLCanvasElement): CanvasRenderingContext2D
    return ctx;
  }
-
+ 
++const SAFARI_MOBILE_CANVAS_LIMIT = 4096; 
++
 +const isMobileIOS = () => {
 +    const userAgent = navigator.userAgent;
 +    return /iP(ad|od|hone)/i.test(userAgent) && /(WebKit|CriOS|FxiOS|OPiOS|mercury)/i.test(userAgent);
@@ -17,7 +19,7 @@ index dc2465a..04d8af1 100644
 @@ -19,17 +26,49 @@ export async function blobToBase64String(blob: Blob): Promise<string> {
    return dataURL.replace(/^data:image\/\w+;base64,/, '');
  }
-
+ 
 +function getAdjustedCanvasSize(originalWidth, originalHeight) {
 +    if(!isMobileIOS()) return { width: originalWidth, height: originalHeight };
 +
@@ -60,10 +62,10 @@ index dc2465a..04d8af1 100644
 +
 +      canvas.width = adjudstedCanvasSize.width;
 +      canvas.height = adjudstedCanvasSize.height;
-
+ 
        const context = getContext(canvas);
 -      context.drawImage(imageSource, 0, 0, imageSource.naturalWidth, imageSource.naturalHeight);
 +      context.drawImage(imageSource, 0, 0, adjudstedCanvasSize.width, adjudstedCanvasSize.height);
-
+ 
        resolve(canvas);
      };
