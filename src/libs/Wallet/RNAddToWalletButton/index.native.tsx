@@ -4,7 +4,7 @@ import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import Text from '@components/Text';
 import type {Card} from '@src/types/onyx';
-import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from './index';
+import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '..';
 
 type AddToWalletButtonProps = {
     card: Card;
@@ -67,3 +67,4 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
 }
 
 export default RNAddToWalletButton;
+export type {AddToWalletButtonProps};
