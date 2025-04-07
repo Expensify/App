@@ -4,7 +4,15 @@ import {flush} from '@libs/Network/SequentialQueue';
 
 const BACKGROUND_FETCH_TASK = 'FLUSH-SEQUENTIAL-QUEUE-BACKGROUND-FETCH';
 
-TaskManager.defineTask(BACKGROUND_FETCH_TASK, () => {
-    Log.info('BackgroundTask', true, `Executing ${BACKGROUND_FETCH_TASK} background task at ${new Date().toISOString()}`);
-    flush();
-});
+let backgroundTasksInitialized = false;
+
+export default function registerBackgroundTasks() {
+    if(backgroundTasksInitialized) {
+        return;
+    }
+    TaskManager.defineTask(BACKGROUND_FETCH_TASK, () => {
+        Log.info('BackgroundTask', true, `Executing ${BACKGROUND_FETCH_TASK} background task at ${new Date().toISOString()}`);
+        flush();
+    });
+    backgroundTasksInitialized = true;
+}
