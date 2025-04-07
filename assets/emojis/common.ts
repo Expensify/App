@@ -7,8 +7,8 @@ import TravelAndPlaces from '@assets/images/emojiCategoryIcons/plane.svg';
 import AnimalsAndNature from '@assets/images/emojiCategoryIcons/plant.svg';
 import Activities from '@assets/images/emojiCategoryIcons/soccer-ball.svg';
 import FrequentlyUsed from '@assets/images/history.svg';
-import type {HeaderEmoji, PickerEmojis} from './types';
 import CONST from '@src/CONST';
+import type {HeaderEmoji, PickerEmojis} from './types';
 
 const skinTones = [
     {

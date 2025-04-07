@@ -4,8 +4,8 @@ import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import * as EmojiUtils from '@libs/EmojiUtils';
-import type TextWithEmojiFragmentProps from './types';
 import variables from '@styles/variables';
+import type TextWithEmojiFragmentProps from './types';
 
 function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps) {
     const styles = useThemeStyles();
@@ -13,20 +13,20 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
 
     return (
         <Text style={style}>
-        {processedTextArray.map(({text, isEmoji}, index) => {
-            const textContainsCustomEmoji = EmojiUtils.containsCustomEmoji(text);
-            return isEmoji ? (
-                <View
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={index}
-                >
-                    <Text style={[styles.emojisWithTextFontSizeAligned, textContainsCustomEmoji && styles.customEmojiFontAlignment]}>{text}</Text>
-                </View>
-            ) : (
-                convertToLTR(text)
-            );
-})}
-    </Text>
+            {processedTextArray.map(({text, isEmoji}, index) => {
+                const textContainsCustomEmoji = EmojiUtils.containsCustomEmoji(text);
+                return isEmoji ? (
+                    <View
+                        // eslint-disable-next-line react/no-array-index-key
+                        key={index}
+                    >
+                        <Text style={[styles.emojisWithTextFontSizeAligned, textContainsCustomEmoji && styles.customEmojiFontAlignment]}>{text}</Text>
+                    </View>
+                ) : (
+                    convertToLTR(text)
+                );
+            })}
+        </Text>
     );
 }
 

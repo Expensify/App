@@ -1,7 +1,7 @@
 import Text from '@components/Text';
-import type EmojiWithTooltipProps from './types';
-import * as EmojiUtils from '@libs/EmojiUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import * as EmojiUtils from '@libs/EmojiUtils';
+import type EmojiWithTooltipProps from './types';
 
 function EmojiWithTooltip({emojiCode, style = {}}: EmojiWithTooltipProps) {
     const styles = useThemeStyles();

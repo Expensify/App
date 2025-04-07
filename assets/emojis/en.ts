@@ -1,5 +1,5 @@
-import type {EmojisList} from './types';
 import CONST from '@src/CONST';
+import type {EmojisList} from './types';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 const enEmojis: EmojisList = {
@@ -5614,7 +5614,7 @@ const enEmojis: EmojisList = {
     '🏴󠁧󠁢󠁷󠁬󠁳󠁿': {
         keywords: ['flag'],
     },
-    '\uE100' : {
+    '\uE100': {
         keywords: ['fab', 'floating', 'action', 'button', 'green', 'plus'],
     },
 };
