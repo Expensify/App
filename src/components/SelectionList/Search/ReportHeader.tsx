@@ -1,99 +1,28 @@
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
-import BrokenConnectionDescription from '@components/BrokenConnectionDescription';
 import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
-import type {PaymentMethod} from '@components/KYCWall/types';
-import type {MoneyRequestHeaderStatusBarProps} from '@components/MoneyRequestHeaderStatusBar';
-import type {ReportListItemType} from '@components/SelectionList/types';
+import {useSearchContext} from '@components/Search/SearchContext';
+import type {ListItem, ReportListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
-import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getOriginalMessage, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {
-    canBeExported,
-    canDeleteTransaction,
-    getArchiveReason,
-    getBankAccountRoute,
-    getMoneyRequestSpendBreakdown,
-    getNonHeldAndFullAmount,
-    getTransactionsWithReceipts,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
-    hasUpdatedTotal,
-    isAllowedToApproveExpenseReport,
-    isAllowedToSubmitDraftExpenseReport,
-    isArchivedReportWithID,
-    isInvoiceReport,
-    isReportApproved,
-    isReportOwner,
-    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
-    navigateBackOnDeleteTransaction,
-    reportTransactionsSelector,
-} from '@libs/ReportUtils';
-import {
-    allHavePendingRTERViolation,
-    checkIfShouldShowMarkAsCashButton,
-    hasDuplicateTransactions,
-    isDuplicate as isDuplicateTransactionUtils,
-    isExpensifyCardTransaction,
-    isOnHold as isOnHoldTransactionUtils,
-    isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
-    isPending,
-    isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolationForMultipleTransactions,
-    shouldShowRTERViolationMessage,
-} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
-import variables from '@styles/variables';
-import {
-    approveMoneyRequest,
-    canApproveIOU,
-    canIOUBePaid as canIOUBePaidAction,
-    canSubmitReport,
-    deleteMoneyRequest,
-    deleteTrackExpense,
-    getNextApproverAccountID,
-    payInvoice,
-    payMoneyRequest,
-    submitReport,
-} from '@userActions/IOU';
 import {handleActionButtonPress} from '@userActions/Search';
-import {markAsCash as markAsCashAction} from '@userActions/Transaction';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import type IconAsset from '@src/types/utils/IconAsset';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import ActionCell from './ActionCell';
 
-type MoneyReportHeaderProps = {
+type MoneyReportHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
     /** The policy tied to the expense report */
     policy: OnyxEntry<OnyxTypes.Policy>;
-
-    /** Array of report actions for the report */
-    reportActions: OnyxTypes.ReportAction[];
 
     /** The reportID of the transaction thread report associated with this current report, if any */
     // eslint-disable-next-line react/no-unused-prop-types
@@ -107,13 +36,17 @@ type MoneyReportHeaderProps = {
 
     shouldDisplaySearchIcon?: boolean;
 
-    rightComponent?: React.ReactNode;
+    /** The section list item */
+    item: TItem;
 
-    item: any;
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem) => void;
 
-    currentSearchHash: any;
+    /** Callback to fire when a checkbox is pressed */
+    onCheckboxPress?: (item: TItem) => void;
 
-    onSelectRow: any;
+    /** Whether this section items disabled for selection */
+    isDisabled?: boolean | null;
 };
 
 type CellProps = {
@@ -146,19 +79,17 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function ReportHeader({
+function ReportHeader<TItem extends ListItem>({
     policy,
     report: moneyRequestReport,
-    transactionThreadReportID,
-    reportActions,
     shouldDisplayBackButton = false,
     onBackButtonPress,
     shouldDisplaySearchIcon = true,
-    rightComponent,
     item,
-    currentSearchHash,
     onSelectRow,
-}: MoneyReportHeaderProps) {
+    onCheckboxPress,
+    isDisabled,
+}: MoneyReportHeaderProps<TItem>) {
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
 
@@ -168,6 +99,7 @@ function ReportHeader({
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
     const StyleUtils = useStyleUtils();
     const reportItem = item as unknown as ReportListItemType;
+    const {currentSearchHash} = useSearchContext();
 
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
@@ -178,10 +110,11 @@ function ReportHeader({
         <View style={[styles.pt0, styles.borderBottom, {flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', paddingRight: 12, paddingLeft: 12, gap: 12}]}>
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40, styles.flex5]}>
                 <Checkbox
-                    onPress={() => {}}
-                    isChecked={false}
+                    onPress={() => onCheckboxPress?.(item)}
+                    isChecked={item.isSelected}
                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
-                    disabled={false}
+                    disabled={!!isDisabled || item.isDisabledCheckbox}
+                    accessibilityLabel={item.text ?? ''}
                     shouldStopMouseDownPropagation
                     style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                 />
@@ -195,7 +128,6 @@ function ReportHeader({
                     shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                     onBackButtonPress={onBackButtonPress}
                     shouldShowBorderBottom={false}
-                    style={[{maxWidth: 250}]}
                 />
                 <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
                     <TotalCell
