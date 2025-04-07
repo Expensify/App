@@ -1,4 +1,3 @@
-import CONST from '@src/CONST';
 import type {EmojisList} from './types';
 
 /* eslint-disable @typescript-eslint/naming-convention */

@@ -7,7 +7,6 @@ import useTheme from '@hooks/useTheme';
 import {containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import type {FontUtilsType} from '@styles/utils/FontUtils';
 import FontUtils from '@styles/utils/FontUtils';
-import fontFamily from '@styles/utils/FontUtils/fontFamily/multiFontFamily';
 import variables from '@styles/variables';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import {CustomStylesForChildrenContext} from './CustomStylesForChildrenProvider';

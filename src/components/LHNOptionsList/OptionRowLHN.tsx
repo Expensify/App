@@ -12,7 +12,6 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {useSession} from '@components/OnyxProvider';
 import PressableWithSecondaryInteraction from '@components/PressableWithSecondaryInteraction';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
-import RenderHTML from '@components/RenderHTML';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
@@ -304,7 +303,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                     </Tooltip>
                                                 )}
                                             </View>
-                                            {optionItem.alternateText && !alternateTextContainsCustomEmoji && (
+                                            {!!optionItem.alternateText && !alternateTextContainsCustomEmoji && (
                                                 <Text
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
@@ -313,7 +312,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                     {Parser.htmlToText(optionItem.alternateText)}
                                                 </Text>
                                             )}
-                                            {optionItem.alternateText && alternateTextContainsCustomEmoji && (
+                                            {!!optionItem.alternateText && alternateTextContainsCustomEmoji && (
                                                 <Text numberOfLines={1}>
                                                     <TextWithEmojiFragment
                                                         message={optionItem.alternateText}
