@@ -9,7 +9,7 @@ import {useOnyx} from 'react-native-onyx';
 import Animated, {scrollTo, useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {ToddBehindCloud} from '@components/Icon/Illustrations';
 import {useFullScreenContext} from '@components/VideoPlayerContexts/FullScreenContext';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -51,7 +51,7 @@ function DeviceAwareGestureDetector({canUseTouchScreen, gesture, children}: Devi
     return canUseTouchScreen ? <GestureDetector gesture={gesture}>{children}</GestureDetector> : children;
 }
 
-function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
+function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownloadButtonVisibility, type, accountID, onClose, attachmentLink}: AttachmentCarouselProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
@@ -72,7 +72,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     );
     const [page, setPage] = useState(0);
     const [attachments, setAttachments] = useState<Attachment[]>([]);
-    const [activeSource, setActiveSource] = useState<AttachmentSource | null>(source);
+    const [activeAttachmentID, setActiveAttachmentID] = useState<AttachmentSource | null>(attachmentID ?? source);
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
 
@@ -83,7 +83,11 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         setShouldShowArrows(true);
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
-    const compareImage = useCallback((attachment: Attachment) => attachment.source === source && (!attachmentLink || attachment.attachmentLink === attachmentLink), [attachmentLink, source]);
+    const compareImage = useCallback(
+        (attachment: Attachment) =>
+            (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink),
+        [attachmentLink, attachmentID, source],
+    );
 
     useEffect(() => {
         const parentReportAction = report.parentReportActionID && parentReportActions ? parentReportActions[report.parentReportActionID] : undefined;
@@ -158,14 +162,14 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             // to get the index of the current page
             const entry = viewableItems.at(0);
             if (!entry) {
-                setActiveSource(null);
+                setActiveAttachmentID(null);
                 return;
             }
 
             const item = entry.item as Attachment;
             if (entry.index !== null) {
                 setPage(entry.index);
-                setActiveSource(item.source);
+                setActiveAttachmentID(item.attachmentID ?? item.source);
             }
 
             if (onNavigate) {
@@ -195,7 +199,10 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
     );
 
     const extractItemKey = useCallback(
-        (item: Attachment) => (typeof item.source === 'string' || typeof item.source === 'number' ? `source-${item.source}|${item.attachmentLink}` : `reportActionID-${item.reportActionID}`),
+        (item: Attachment) =>
+            !!item.attachmentID || (typeof item.source !== 'string' && typeof item.source !== 'number')
+                ? `attachmentID-${item.attachmentID}`
+                : `source-${item.source}|${item.attachmentLink}`,
         [],
     );
 
@@ -229,14 +236,14 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
             <View style={[styles.h100, {width: cellWidth}]}>
                 <CarouselItem
                     item={item}
-                    isFocused={activeSource === item.source}
+                    isFocused={activeAttachmentID === (item.attachmentID ?? item.source)}
                     onPress={canUseTouchScreen ? handleTap : undefined}
                     isModalHovered={shouldShowArrows}
                     reportID={report.reportID}
                 />
             </View>
         ),
-        [activeSource, canUseTouchScreen, cellWidth, handleTap, report.reportID, shouldShowArrows, styles.h100],
+        [activeAttachmentID, canUseTouchScreen, cellWidth, handleTap, report.reportID, shouldShowArrows, styles.h100],
     );
     /** Pan gesture handing swiping through attachments on touch screen devices */
     const pan = useMemo(
@@ -288,7 +295,7 @@ function AttachmentCarousel({report, source, onNavigate, setDownloadButtonVisibi
         >
             {page === -1 ? (
                 <BlockingView
-                    icon={Illustrations.ToddBehindCloud}
+                    icon={ToddBehindCloud}
                     iconColor={theme.offline}
                     iconWidth={variables.modalTopIconWidth}
                     iconHeight={variables.modalTopIconHeight}
