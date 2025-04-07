@@ -3,10 +3,12 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -148,6 +150,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
+    const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const {canUseTableReportView} = usePermissions();
@@ -297,18 +300,26 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
-            let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+            const isTransactionItem = isTransactionListItemType(item);
+
+            let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
 
             if (!reportID) {
                 return;
             }
 
             const backTo = Navigation.getActiveRoute();
+            const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
+
+            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                return;
+            }
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+            if (isTransactionItem && reportID === '0' && item.moneyRequestReportActionID) {
                 reportID = generateReportID();
                 updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
                 Navigation.navigate(
@@ -319,11 +330,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         transactionID: item.transactionID,
                     }),
                 );
-                return;
-            }
-
-            if (canUseTableReportView && isReportListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
                 return;
             }
 
@@ -392,7 +398,22 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    if (hasErrors) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <FullPageErrorView
+                    shouldShow
+                    subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
+                />
+            </View>
+        );
+    }
+
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type) && isFocused) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
@@ -507,6 +528,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     />
                 ) : undefined
             }
+            queryJSONHash={hash}
             onViewableItemsChanged={onViewableItemsChanged}
         />
     );
