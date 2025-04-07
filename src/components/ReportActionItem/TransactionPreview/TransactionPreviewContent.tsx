@@ -254,6 +254,7 @@ function TransactionPreviewContent({
                                                     styles.flexRow,
                                                     styles.alignItemsCenter,
                                                     isBillSplit && !shouldShowMerchantOrDescription ? styles.justifyContentEnd : styles.justifyContentBetween,
+                                                    styles.gap2,
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription && (
