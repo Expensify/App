@@ -26,13 +26,16 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const domainFundID = useDomainFundID(policyID);
+    const domainFundIDs = useDomainFundID(policyID);
 
     // TODO: add logic for choosing between the domain and workspace feed when both available
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const fundID = domainFundID || workspaceAccountID;
+    const fundID = domainFundIDs?.[0] || workspaceAccountID;
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    console.log(cardSettings);
+    console.log(cardsList);
+    console.log(domainFundIDs, workspaceAccountID);
 
     const fetchExpensifyCards = useCallback(() => {
         openPolicyExpensifyCardsPage(policyID, fundID);
@@ -46,7 +49,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID && !domainFundID) {
+        if (!!isLoading && !paymentBankAccountID && !domainFundIDs) {
             return (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -55,7 +58,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!!paymentBankAccountID || domainFundID) {
+        if (!!paymentBankAccountID || domainFundIDs) {
             return (
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}

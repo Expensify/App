@@ -35,10 +35,10 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const domainFundID = useDomainFundID(policyID);
+    const domainFundIDs = useDomainFundID(policyID);
     // TODO: add logic for choosing between the domain and workspace feed when both available
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const fundID = domainFundID || workspaceAccountID;
+    const fundID = domainFundIDs?.[0] || workspaceAccountID;
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
