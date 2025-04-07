@@ -713,7 +713,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             : undefined;
         const reportPreviewMessage = getReportPreviewMessage(
             !isEmptyObject(iouReport) ? iouReport : null,
-            lastIOUMoneyReportAction,
+            lastIOUMoneyReportAction ?? lastReportAction,
             true,
             reportUtilsIsChatReport(report),
             null,

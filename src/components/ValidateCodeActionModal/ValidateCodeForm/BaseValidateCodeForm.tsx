@@ -67,6 +67,9 @@ type ValidateCodeFormProps = {
     /** Whether to show the verify button  */
     hideSubmitButton?: boolean;
 
+    /** Text for the verify button  */
+    submitButtonText?: string;
+
     /** Function is called when validate code modal is mounted and on magic code resend */
     sendValidateCode: () => void;
 
@@ -92,6 +95,7 @@ function BaseValidateCodeForm({
     sendValidateCode,
     buttonStyles,
     hideSubmitButton,
+    submitButtonText,
     isLoading,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
@@ -301,7 +305,7 @@ function BaseValidateCodeForm({
                 {!hideSubmitButton && (
                     <Button
                         isDisabled={isOffline}
-                        text={translate('common.verify')}
+                        text={submitButtonText ?? translate('common.verify')}
                         onPress={validateAndSubmitForm}
                         style={[styles.mt4]}
                         success
