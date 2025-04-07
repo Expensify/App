@@ -4689,6 +4689,10 @@ function getReportNameInternal({
         reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
     }
 
+    if (!!reportNameValuePairs?.private_isArchived && (isAdminRoom(report) || isAnnounceRoom(report))) {
+        formattedName += ` (${translateLocal('common.archived')})`;
+    }
+
     return formattedName;
 }
 
