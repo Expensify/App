@@ -86,7 +86,6 @@ function ReportActionsView({
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
     const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
-    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
 
@@ -207,6 +206,11 @@ function ReportActionsView({
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
 
+    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
+    const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
+    const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
+    const isMissingReportActions = visibleReportActions.length === 0;
+
     useEffect(() => {
         // update ref with current state
         prevShouldUseNarrowLayoutRef.current = shouldUseNarrowLayout;
@@ -272,11 +276,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && (isSingleExpenseReport || visibleReportActions.length === 0) && !isOffline) ?? isLoadingApp) {
+    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
         return <ReportActionsSkeletonView />;
     }
 
-    if (visibleReportActions.length === 0) {
+    if (isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
