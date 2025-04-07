@@ -6,8 +6,8 @@ import {useOnyx} from 'react-native-onyx';
 // Modal from react-native can't be used here, as it would block interactions with the rest of the app
 import ModalPortal from 'react-native-web/dist/exports/Modal/ModalPortal';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
-import HelpOverlay from '@components/SidePane/HelpComponents/HelpOverlay';
+import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
+import HelpOverlay from '@components/SidePanel/HelpComponents/HelpOverlay';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
@@ -16,37 +16,37 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type HelpProps from './types';
 
-function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: HelpProps) {
+function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}: HelpProps) {
     const styles = useThemeStyles();
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED});
 
-    const onCloseSidePaneOnSmallScreens = () => {
+    const onCloseSidePanelOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {
             return;
         }
 
-        closeSidePane();
+        closeSidePanel();
     };
 
-    // Close side pane on escape key press
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePane(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
+    // Close Side Panel on escape key press
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
 
-    // Close side pane on small screens when navigation keyboard shortcuts are used
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
+    // Close Side Panel on small screens when navigation keyboard shortcuts are used
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
 
-    // Web back button: push history state and close side pane on popstate
+    // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
-        window.history.pushState({isSidePaneOpen: true}, '', null);
+        window.history.pushState({isSidePanelOpen: true}, '', null);
         const handlePopState = () => {
             if (isExtraLargeScreenWidth) {
                 return;
             }
 
-            closeSidePane();
+            closeSidePanel();
         };
 
         window.addEventListener('popstate', handlePopState);
@@ -57,19 +57,19 @@ function Help({sidePaneTranslateX, closeSidePane, shouldHideSidePaneBackdrop}: H
     return (
         <ModalPortal>
             <FocusTrapForModal active={!isExtraLargeScreenWidth}>
-                <View style={styles.sidePaneContainer}>
+                <View style={styles.sidePanelContainer}>
                     <View>
-                        {!shouldHideSidePaneBackdrop && (
+                        {!shouldHideSidePanelBackdrop && (
                             <HelpOverlay
-                                onBackdropPress={closeSidePane}
+                                onBackdropPress={closeSidePanel}
                                 isRHPVisible={isRHPVisible}
                             />
                         )}
                     </View>
                     <Animated.View
-                        style={[styles.sidePaneContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePaneTranslateX.current}], paddingTop, paddingBottom}]}
+                        style={[styles.sidePanelContent(shouldUseNarrowLayout, isExtraLargeScreenWidth), {transform: [{translateX: sidePanelTranslateX.current}], paddingTop, paddingBottom}]}
                     >
-                        <HelpContent closeSidePane={closeSidePane} />
+                        <HelpContent closeSidePanel={closeSidePanel} />
                     </Animated.View>
                 </View>
             </FocusTrapForModal>

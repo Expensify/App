@@ -1867,11 +1867,6 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
-        createMenuPositionRightSidepane: {
-            right: 18,
-            bottom: 75,
-        },
-
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -5541,9 +5536,9 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-        // We have to use 10000 here as sidePane has to be displayed on top of modals which have z-index of 9999
-        sidePaneContainer: {zIndex: 10000},
-        sidePaneOverlay: (isOverlayVisible: boolean) => ({
+        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
+        sidePanelContainer: {zIndex: 10000},
+        sidePanelOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,
             bottom: 0,
@@ -5552,7 +5547,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
-        sidePaneContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+        sidePanelContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
             bottom: 0,

@@ -5,7 +5,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
-import useSidePane from '@hooks/useSidePane';
+import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -17,7 +17,7 @@ function HelpButton({style}: HelpButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {openSidePane, shouldHideHelpButton} = useSidePane();
+    const {openSidePanel, shouldHideHelpButton} = useSidePanel();
 
     if (shouldHideHelpButton) {
         return null;
@@ -28,7 +28,7 @@ function HelpButton({style}: HelpButtonProps) {
             <PressableWithoutFeedback
                 accessibilityLabel={translate('common.help')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
-                onPress={openSidePane}
+                onPress={openSidePanel}
             >
                 <Icon
                     src={Expensicons.QuestionMark}

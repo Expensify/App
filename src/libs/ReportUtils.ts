@@ -2089,7 +2089,7 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchRepor
 }
 
 /**
- * Determines the help pane report type based on the given report.
+ * Determines the Help Panel report type based on the given report.
  */
 function getHelpPaneReportType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.HELP_TYPE> | undefined {
     if (!report) {
