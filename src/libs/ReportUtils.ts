@@ -10010,10 +10010,15 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions>) {
+function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
     }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isExportIntegrationAction(action));
+    }
+
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -10317,6 +10322,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
