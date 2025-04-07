@@ -1837,9 +1837,13 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
-    // If allReportMetadata is empty we'll return most recent report created by user
+    // If allReportMetadata is empty we'll return most recent report owned by user
     if (isEmptyObject(allReportMetadata)) {
-        return lodashMaxBy(reportsValues.filter(a => a?.ownerAccountID === currentUserAccountID), (a) => a?.lastReadTime ?? '');
+        let ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
+        if (ownedReports.length > 0) {
+            return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
+        }
+        return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
     } else {
         return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
     }
