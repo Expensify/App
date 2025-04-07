@@ -1867,11 +1867,6 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
-        createMenuPositionRightSidepane: {
-            right: 18,
-            bottom: 75,
-        },
-
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,

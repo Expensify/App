@@ -22,7 +22,7 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     const {paddingTop, paddingBottom} = useSafeAreaPaddings();
     const [isRHPVisible = false] = useOnyx(ONYXKEYS.MODAL, {selector: (modal) => modal?.type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED});
 
-    const onCloseSidePaneOnSmallScreens = () => {
+    const onCloseSidePanelOnSmallScreens = () => {
         if (isExtraLargeScreenWidth) {
             return;
         }
@@ -34,9 +34,9 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
 
     // Close side pane on small screens when navigation keyboard shortcuts are used
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
-    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePaneOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
 
     // Web back button: push history state and close side pane on popstate
     useEffect(() => {
