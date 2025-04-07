@@ -36,7 +36,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
-
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
 
     useEffect(() => {
@@ -66,10 +66,12 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
 
     const validateAccountAndMerge = useCallback(
         (validateCode: string) => {
+            setOnboardingErrorMessage('');
             MergeIntoAccountAndLogin(workEmail, validateCode, session?.accountID);
         },
         [workEmail, session?.accountID],
     );
+    console.log('onboardingErrorMessage', onboardingErrorMessage);
 
     return (
         <ScreenWrapper
@@ -123,6 +125,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
+                            setOnboardingErrorMessage('');
                             if (isVsb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                                 return;
@@ -130,6 +133,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                             Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
                         }}
                         isLoading={isValidateCodeFormSubmitting}
+                        validateError={onboardingErrorMessage ? {invalidCodeError: onboardingErrorMessage} : undefined}
                     />
                 </View>
             )}

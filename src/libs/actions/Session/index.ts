@@ -1370,9 +1370,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: {
-                errorMessage: null,
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1388,9 +1386,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ONBOARDING_ERROR_MESSAGE,
-            value: {
-                errorMessage: null,
-            },
+            value: null,
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
