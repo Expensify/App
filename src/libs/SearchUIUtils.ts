@@ -814,8 +814,7 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
             type: CONST.SEARCH.DATA_TYPES.TASK,
             icon: Expensicons.Task,
             getRoute: (policyID?: string) => {
-                // JACK_TODO: Change the status
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TASK, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TASK, status: CONST.SEARCH.STATUS.TASK.ALL, policyID});
                 return ROUTES.SEARCH_ROOT.getRoute({query});
             },
         },

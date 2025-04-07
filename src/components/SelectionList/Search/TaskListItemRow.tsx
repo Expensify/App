@@ -1,15 +1,23 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
+import Badge from '@components/Badge';
+import Button from '@components/Button';
+import * as Expensicons from '@components/Icon/Expensicons';
 import type {TaskListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
+import {completeTask} from '@libs/actions/Task';
 import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import RoomInfoCell from './RoomInfoCell';
+import ReportInfoCell from './ReportInfoCell';
 import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {
@@ -19,9 +27,7 @@ type TaskListItemRowProps = {
 };
 
 type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
     showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
     isLargeScreenWidth: boolean;
 };
 
@@ -66,6 +72,54 @@ function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellPr
             shouldShowTooltip={showTooltip}
             text={taskDescription}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
+    );
+}
+
+function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
+    const StyleUtils = useStyleUtils();
+    const {translate} = useLocalize();
+    const theme = useTheme();
+    const styles = useThemeStyles();
+    const {isOffline} = useNetwork();
+
+    const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
+
+    const completeTaskCall = callFunctionIfActionIsAllowed(() => {
+        completeTask(taskItem, taskItem.reportID);
+    });
+
+    if (isTaskCompleted) {
+        return (
+            <View style={[StyleUtils.getHeight(variables.h28), styles.justifyContentCenter]}>
+                <Badge
+                    success
+                    text={translate('task.completed')}
+                    icon={Expensicons.Checkmark}
+                    badgeStyles={[
+                        styles.ml0,
+                        styles.ph2,
+                        styles.gap1,
+                        isLargeScreenWidth ? styles.alignSelfCenter : styles.alignSelfEnd,
+                        StyleUtils.getHeight(variables.h20),
+                        StyleUtils.getMinimumHeight(variables.h20),
+                        StyleUtils.getBorderColorStyle(theme.border),
+                    ]}
+                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
+                    iconStyles={styles.mr0}
+                />
+            </View>
+        );
+    }
+
+    return (
+        <Button
+            small
+            success
+            text={translate('task.action')}
+            style={[styles.w100]}
+            isDisabled={isOffline}
+            onPress={completeTaskCall}
         />
     );
 }
@@ -169,13 +223,20 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.IN)]}>
-                    <RoomInfoCell reportID={item.parentReportID} />
+                    <ReportInfoCell reportID={item.parentReportID} />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         accountID={item.assignee.accountID}
                         avatar={item.assignee.avatar}
                         displayName={item.formattedAssignee}
+                    />
+                </View>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)]}>
+                    <ActionCell
+                        taskItem={item}
+                        showTooltip={showTooltip}
+                        isLargeScreenWidth
                     />
                 </View>
             </View>

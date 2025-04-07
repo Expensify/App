@@ -530,7 +530,7 @@ const translations = {
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         comments: 'Comentarios',
-        createdIn: 'Creado en',
+        sharedIn: 'Compartido en',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -5013,6 +5013,7 @@ const translations = {
         description: 'Descripción',
         assignee: 'Miembro asignado',
         completed: 'Completada',
+        action: 'Completa',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',

@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getPolicy} from '@libs/PolicyUtils';
-import {getIcons, getReportOrDraftReport} from '@libs/ReportUtils';
+import {getIcons, getReportName, getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -17,7 +17,7 @@ type RoomInfoCellProps = {
 function RoomInfoCell({reportID}: RoomInfoCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
 
     const report = getReportOrDraftReport(reportID);
 
@@ -26,6 +26,7 @@ function RoomInfoCell({reportID}: RoomInfoCellProps) {
     }
 
     const policy = getPolicy(report.policyID);
+    const reportName = getReportName(report, policy, undefined, undefined);
     const icons = getIcons(report, personalDetails, null, '', -1, policy);
 
     const icon = icons?.at(0);
@@ -35,11 +36,11 @@ function RoomInfoCell({reportID}: RoomInfoCellProps) {
             {!!icon && (
                 <Avatar
                     source={icon.source}
-                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     name={icon.name}
                     avatarID={icon.id}
                     type={icon.type}
                     fallbackIcon={icon.fallbackIcon}
+                    size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
                     containerStyles={[styles.pr2]}
                 />
             )}
@@ -48,7 +49,7 @@ function RoomInfoCell({reportID}: RoomInfoCellProps) {
                 numberOfLines={1}
                 style={[isLargeScreenWidth ? styles.themeTextColor : styles.textMicroBold, styles.flexShrink1]}
             >
-                {report.reportName}
+                {reportName}
             </Text>
         </View>
     );

@@ -426,6 +426,12 @@ type SearchTask = {
 
     /** The title of the task */
     reportName: string;
+
+    /** The state of the task */
+    stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM>;
+
+    /** The status of the task */
+    statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM>;
 };
 
 /** Types of searchable transactions */

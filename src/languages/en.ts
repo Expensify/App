@@ -539,7 +539,7 @@ const translations = {
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
         comments: 'Comments',
-        createdIn: 'Created in',
+        sharedIn: 'Shared in',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -4960,6 +4960,7 @@ const translations = {
         description: 'Description',
         assignee: 'Assignee',
         completed: 'Completed',
+        action: 'Complete',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',

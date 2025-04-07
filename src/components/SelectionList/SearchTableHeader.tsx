@@ -112,7 +112,7 @@ const taskHeaders: SearchColumnConfig[] = [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
-        translationKey: 'common.createdIn',
+        translationKey: 'common.sharedIn',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
