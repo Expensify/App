@@ -613,7 +613,7 @@ function MoneyRequestReportPreviewContent({
                                             isLoading={!isOffline && !canAllowSettlement}
                                         />
                                     )}
-                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && shouldShowRBR && (
+                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && !shouldShowRBR && (
                                         <ExportWithDropdownMenu
                                             policy={policy}
                                             report={iouReport}
