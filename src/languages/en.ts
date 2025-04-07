@@ -539,6 +539,7 @@ const translations = {
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
         comments: 'Comments',
+        createdIn: 'Created in',
     },
     supportalNoAccess: {
         title: 'Not so fast',

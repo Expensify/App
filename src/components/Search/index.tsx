@@ -499,6 +499,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             onSelectRow={openReport}
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
+            // JACK_TODO: Fix this so that checkmarks can be disabled, without removing hte header
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
             shouldPreventLongPressRow={isChat}
             SearchTableHeader={

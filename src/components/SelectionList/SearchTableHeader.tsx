@@ -89,10 +89,42 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
+const taskHeaders: SearchColumnConfig[] = [
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        translationKey: 'common.date',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+        translationKey: 'common.title',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+        translationKey: 'common.description',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CREATED_BY,
+        translationKey: 'common.createdBy',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
+        translationKey: 'common.createdIn',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
+        translationKey: 'common.assignee',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+    },
+];
+
 const SearchColumns = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.TASK]: taskHeaders,
     [CONST.SEARCH.DATA_TYPES.CHAT]: null,
 };
 
@@ -114,6 +146,10 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
 
     const shouldShowColumn = useCallback(
         (columnName: SortableColumnName) => {
+            if (metadata.type === CONST.SEARCH.DATA_TYPES.TASK) {
+                return true;
+            }
+
             const shouldShowFun = shouldShowColumnConfig[columnName];
             return shouldShowFun(data, metadata);
         },

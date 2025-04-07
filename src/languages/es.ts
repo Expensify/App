@@ -530,6 +530,7 @@ const translations = {
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
         comments: 'Comentarios',
+        createdIn: 'Creado en',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

@@ -6418,6 +6418,10 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
+            IN: 'in',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
