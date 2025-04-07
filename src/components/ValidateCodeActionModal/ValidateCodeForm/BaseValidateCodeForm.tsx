@@ -205,6 +205,10 @@ function BaseValidateCodeForm({
      * Check that all the form fields are valid, then trigger the submit callback
      */
     const validateAndSubmitForm = useCallback(() => {
+        // Clear flow specific error
+        clearError();
+
+        // Clear "incorrect magic" code error
         clearValidateCodeActionError(validateCodeActionErrorField);
         setCanShowError(true);
         if (!validateCode.trim()) {
@@ -219,7 +223,7 @@ function BaseValidateCodeForm({
 
         setFormError({});
         handleSubmitForm(validateCode);
-    }, [validateCode, handleSubmitForm, validateCodeActionErrorField]);
+    }, [validateCode, handleSubmitForm, validateCodeActionErrorField, clearError]);
 
     const errorText = useMemo(() => {
         if (!canShowError) {
