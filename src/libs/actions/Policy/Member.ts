@@ -978,7 +978,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
  * Invite member to the specified policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
+function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
     const optimisticMembersState = {policyID, inviterEmail};
@@ -1028,6 +1028,31 @@ function joinAccessiblePolicy(policyID: string) {
     ];
 
     API.write(WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY, {policyID}, {optimisticData, failureData});
+}
+
+/**
+ * Ask the policy admin to add member to the selected private domain workspace based on policyID
+ */
+function askToJoinPolicy(policyID: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.ASK_TO_JOIN_POLICY, {policyID}, {optimisticData, failureData});
 }
 
 /**
@@ -1242,6 +1267,7 @@ export {
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
     joinAccessiblePolicy,
+    askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
