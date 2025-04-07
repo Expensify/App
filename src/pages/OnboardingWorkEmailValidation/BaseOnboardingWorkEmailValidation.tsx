@@ -71,7 +71,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         },
         [workEmail, session?.accountID],
     );
-    console.log('onboardingErrorMessage', onboardingErrorMessage);
 
     return (
         <ScreenWrapper
