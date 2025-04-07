@@ -1,7 +1,7 @@
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
-import * as VersionUpdater from './versionUpdater';
+import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
 
 type CommitType = {
@@ -55,7 +55,7 @@ function tagExists(tag: string) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag: string, level: SemverLevel) {
-    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let previousVersion = getPreviousVersion(tag, level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
@@ -63,7 +63,7 @@ function getPreviousExistingTag(tag: string, level: SemverLevel) {
             break;
         }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+        previousVersion = getPreviousVersion(previousVersion, level);
     }
     return previousVersion;
 }
@@ -113,7 +113,7 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
     // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    const previousPatchVersion = getPreviousExistingTag(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
 
