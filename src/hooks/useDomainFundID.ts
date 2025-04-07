@@ -2,8 +2,8 @@ import {useOnyx} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-function useDomainCardsID(policyID: string | undefined) {
-    const [domainCardsID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
+function useDomainFundID(policyID: string | undefined) {
+    const [domainFundID] = useOnyx(ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS, {
         selector: (cardSettings) => {
             const matchingEntry = Object.entries(cardSettings ?? {}).find(
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -28,7 +28,7 @@ function useDomainCardsID(policyID: string | undefined) {
         },
     });
 
-    return domainCardsID;
+    return domainFundID;
 }
 
-export default useDomainCardsID;
+export default useDomainFundID;

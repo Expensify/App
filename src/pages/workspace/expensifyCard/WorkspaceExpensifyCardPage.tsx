@@ -2,7 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import useDomainCardsID from '@hooks/useDomainCardsID';
+import useDomainFundID from '@hooks/useDomainFundID';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -26,17 +26,17 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const domainCardsID = useDomainCardsID(policyID);
+    const domainFundID = useDomainFundID(policyID);
 
     // TODO: add logic for choosing between the domain and workspace feed when both available
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const cardsID = domainCardsID || workspaceAccountID;
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${cardsID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${cardsID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const fundID = domainFundID || workspaceAccountID;
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const fetchExpensifyCards = useCallback(() => {
-        openPolicyExpensifyCardsPage(policyID, cardsID);
-    }, [policyID, cardsID]);
+        openPolicyExpensifyCardsPage(policyID, fundID);
+    }, [policyID, fundID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
@@ -46,7 +46,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID && !domainCardsID) {
+        if (!!isLoading && !paymentBankAccountID && !domainFundID) {
             return (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -55,11 +55,11 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!!paymentBankAccountID || domainCardsID) {
+        if (!!paymentBankAccountID || domainFundID) {
             return (
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}
-                    cardsID={cardsID}
+                    fundID={fundID}
                     route={route}
                 />
             );
