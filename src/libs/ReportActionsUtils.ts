@@ -2395,6 +2395,7 @@ export {
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
     isConciergeCategoryOptions,
+    isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isChronosOOOListAction,
