@@ -68,6 +68,10 @@ const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION]: 'comment' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: null,
     [CONST.SEARCH.TABLE_COLUMNS.RECEIPT]: null,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: 'reportName' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: 'formattedCreatedBy' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: 'formattedAssignee' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.IN]: 'parentReportID' as const,
 };
 
 let currentAccountID: number | undefined;
@@ -216,17 +220,22 @@ function isReportActionListItemType(item: TransactionListItemType | ReportListIt
 /**
  * Checks if the date of transactions or reports indicate the need to display the year because they are from a past year.
  */
-function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | OnyxTypes.SearchResults['data']) {
+function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] | TaskListItemType[] | OnyxTypes.SearchResults['data']) {
     const currentYear = new Date().getFullYear();
 
     if (Array.isArray(data)) {
-        return data.some((item: TransactionListItemType | ReportListItemType) => {
+        return data.some((item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
             if (isReportListItemType(item)) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
                     const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
                     return transactionYear !== currentYear;
                 });
+            }
+
+            if (isTaskListItemType(item)) {
+                const taskYear = new Date(item.created).getFullYear();
+                return taskYear !== currentYear;
             }
 
             const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
@@ -425,6 +434,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             const createdBy = taskItem.accountID ? data.personalDetailsList?.[taskItem.accountID] : emptyPersonalDetails;
             const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
             const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
+            const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
             return {
                 ...taskItem,
@@ -433,6 +443,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                 createdBy,
                 formattedCreatedBy,
                 keyForList: taskItem.reportID,
+                shouldShowYear: doesDataContainAPastYearTransaction,
             };
         });
 }
@@ -656,8 +667,8 @@ function getSortedTransactionData(data: TransactionListItemType[], sortBy?: Sear
     }
 
     return data.sort((a, b) => {
-        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty];
-        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty];
+        const aValue = sortingProperty === 'comment' ? a.comment?.comment : a[sortingProperty as keyof TransactionListItemType];
+        const bValue = sortingProperty === 'comment' ? b.comment?.comment : b[sortingProperty as keyof TransactionListItemType];
 
         return compareValues(aValue, bValue, sortOrder, sortingProperty);
     });

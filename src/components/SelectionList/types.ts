@@ -284,6 +284,12 @@ type TaskListItemType = ListItem &
 
         /** Key used internally by React */
         keyForList: string;
+
+        /**
+         * Whether we should show the transaction year.
+         * This is true if at least one transaction in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
     };
 
 type ReportListItemType = ListItem &

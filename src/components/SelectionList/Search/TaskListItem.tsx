@@ -69,7 +69,7 @@ function TaskListItem<TItem extends ListItem>({
         >
             <TaskListItemRow
                 item={taskItem}
-                // showTooltip={showTooltip}
+                showTooltip={showTooltip}
                 // onButtonPress={() => {
                 //     // handleActionButtonPress(currentSearchHash, taskItem, () => onSelectRow(item));
                 // }}

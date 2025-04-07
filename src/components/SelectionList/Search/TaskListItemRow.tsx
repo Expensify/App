@@ -2,17 +2,70 @@ import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import type {TaskListItemType} from '@components/SelectionList/types';
+import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {
     item: TaskListItemType;
+    showTooltip: boolean;
     containerStyle?: StyleProp<ViewStyle>;
 };
 
-function TaskListItemRow({item, containerStyle}: TaskListItemRowProps) {
+type CellProps = {
+    // eslint-disable-next-line react/no-unused-prop-types
+    showTooltip: boolean;
+    // eslint-disable-next-line react/no-unused-prop-types
+    isLargeScreenWidth: boolean;
+};
+
+type TaskCellProps = {
+    taskItem: TaskListItemType;
+} & CellProps;
+
+function DateCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
+    const styles = useThemeStyles();
+
+    const created = taskItem.created;
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={date}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
+    );
+}
+
+function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={taskItem.reportName}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
+    );
+}
+
+function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <TextWithTooltip
+            shouldShowTooltip={showTooltip}
+            text={taskItem.description}
+            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
+        />
+    );
+}
+
+function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowProps) {
     const styles = useThemeStyles();
     // const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
@@ -82,13 +135,28 @@ function TaskListItemRow({item, containerStyle}: TaskListItemRowProps) {
     return (
         <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, containerStyle]}>
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                {/* <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        transactionItem={item}
+                        taskItem={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
-                </View> */}
+                </View>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TITLE)]}>
+                    <TitleCell
+                        taskItem={item}
+                        showTooltip={showTooltip}
+                        isLargeScreenWidth
+                    />
+                </View>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION)]}>
+                    <DescriptionCell
+                        taskItem={item}
+                        showTooltip={showTooltip}
+                        isLargeScreenWidth
+                    />
+                </View>
+
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         accountID={item.createdBy.accountID}
