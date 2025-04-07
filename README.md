@@ -882,14 +882,11 @@ Onyx derived values are special Onyx keys which contain values derived from othe
    - The computation is trivial (e.g., simple string manipulation, basic math)
    - The value is only used in one component
 
-2. **High-Frequency Updates**
-   - The dependencies change very frequently
-
-3. **Component-Specific Logic**
+2. **Component-Specific Logic**
    - The computation is specific to a single component's UI state
    - The logic involves component-local state
 
-4. **Temporary or Volatile Data**
+3. **Temporary or Volatile Data**
    - The computed value is only needed temporarily
    - The data doesn't need to persist across component unmounts
    - The computation depends on non-Onyx values
