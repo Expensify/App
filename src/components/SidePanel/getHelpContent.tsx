@@ -29,14 +29,11 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
 
     const content = helpContentComponents.reverse().map((HelpContentNode, index) => {
         return (
-            <>
-                <HelpContentNode
-                    // eslint-disable-next-line react/no-array-index-key
-                    key={`help-content-${index}`}
-                    styles={styles}
-                />
+            // eslint-disable-next-line react/no-array-index-key
+            <React.Fragment key={`help-content-${index}`}>
+                <HelpContentNode styles={styles} />
                 {index < helpContentComponents.length - 1 && <View style={[styles.sectionDividerLine, styles.mv5]} />}
-            </>
+            </React.Fragment>
         );
     });
 
@@ -46,7 +43,7 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
 
     return (
         <HelpDiagnosticData
-            key="diagnostic-data"
+            key={`help-diagnostic-data-${route}`}
             styles={styles}
             route={route}
             isExactMatch={isExactMatch}
