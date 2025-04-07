@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 type HelpOverlayProps = {
-    /** Whether the side pane is displayed over RHP */
+    /** Whether the Side Panel is displayed over RHP */
     isRHPVisible: boolean;
 
     /** Callback fired when pressing the backdrop */

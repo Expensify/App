@@ -15,7 +15,7 @@ import useResponsiveLayout from './useResponsiveLayout';
 import useWindowDimensions from './useWindowDimensions';
 
 /**
- * Hook to get the display status of the side pane
+ * Hook to get the display status of the Side Panel
  */
 function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -33,7 +33,7 @@ function useSidePanelDisplayStatus() {
     const isLanguageUnsupported = language !== CONST.LOCALES.EN;
     const isSidePanelVisible = isExtraLargeScreenWidth ? sidePanelNVP?.open : sidePanelNVP?.openNarrowScreen;
 
-    // The side pane is hidden when:
+    // The Side Panel is hidden when:
     // - NVP is not set or it is false
     // - language is unsupported
     // - modal centered is visible
@@ -42,7 +42,7 @@ function useSidePanelDisplayStatus() {
 
     // The help button is hidden when:
     // - the user is not part of the corresponding beta
-    // - side pane is displayed currently
+    // - Side Panel is displayed currently
     // - language is unsupported
     const shouldHideHelpButton = !canUseHelpSidePanel || !shouldHideSidePanel || isLanguageUnsupported;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
@@ -57,7 +57,7 @@ function useSidePanelDisplayStatus() {
 }
 
 /**
- * Hook to get the animated position of the side pane and the margin of the navigator
+ * Hook to get the animated position of the Side Panel and the margin of the navigator
  */
 function useSidePanel() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
@@ -108,7 +108,7 @@ function useSidePanel() {
                 isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
             });
 
-            // Focus the composer after closing the side pane
+            // Focus the composer after closing the Side Panel
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
         },
         [isExtraLargeScreenWidth],

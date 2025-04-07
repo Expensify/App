@@ -3,14 +3,14 @@ import Onyx from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type Options = {
-    /** Determines whether the side pane should be open or closed */
+    /** Determines whether the Side Panel should be open or closed */
     isOpen?: boolean;
 
-    /** Determines whether the side pane should be open or closed on narrow screens */
+    /** Determines whether the Side Panel should be open or closed on narrow screens */
     isOpenNarrowScreen?: boolean;
 };
 
-/** Updates the side pane state in Onyx */
+/** Updates the Side Panel state in Onyx */
 function triggerSidePanel({isOpen, isOpenNarrowScreen}: Options) {
     const value: OnyxMergeInput<typeof ONYXKEYS.NVP_SIDE_PANEL> = {};
 

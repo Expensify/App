@@ -30,15 +30,15 @@ function Help({sidePanelTranslateX, closeSidePanel, shouldHideSidePanelBackdrop}
         closeSidePanel();
     };
 
-    // Close side pane on escape key press
+    // Close Side Panel on escape key press
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, () => closeSidePanel(), {isActive: !isExtraLargeScreenWidth, shouldBubble: false});
 
-    // Close side pane on small screens when navigation keyboard shortcuts are used
+    // Close Side Panel on small screens when navigation keyboard shortcuts are used
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SEARCH, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.NEW_CHAT, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
     useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.SHORTCUTS, onCloseSidePanelOnSmallScreens, {shouldBubble: true});
 
-    // Web back button: push history state and close side pane on popstate
+    // Web back button: push history state and close Side Panel on popstate
     useEffect(() => {
         window.history.pushState({isSidePanelOpen: true}, '', null);
         const handlePopState = () => {

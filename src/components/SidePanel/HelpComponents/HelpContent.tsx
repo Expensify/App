@@ -50,7 +50,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
-        // Close the side pane when the screen size changes from large to small
+        // Close the Side Panel when the screen size changes from large to small
         if (!isExtraLargeScreenWidth && !wasPreviousNarrowScreen.current) {
             closeSidePanel(true);
             wasPreviousNarrowScreen.current = true;

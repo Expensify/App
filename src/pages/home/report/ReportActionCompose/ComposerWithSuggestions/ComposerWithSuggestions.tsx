@@ -594,7 +594,7 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            // Do not focus the composer if the side pane is visible
+            // Do not focus the composer if the Side Panel is visible
             if (!isSidePanelHiddenOrLargeScreen) {
                 return;
             }
@@ -667,7 +667,7 @@ function ComposerWithSuggestions(
             return;
         }
 
-        // Do not focus the composer if the side pane is visible
+        // Do not focus the composer if the Side Panel is visible
         if (!isSidePanelHiddenOrLargeScreen) {
             return;
         }
