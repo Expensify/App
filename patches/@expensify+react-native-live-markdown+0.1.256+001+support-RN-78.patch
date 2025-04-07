@@ -11,9 +11,17 @@ index f608576..5671af7 100644
  #include <react/renderer/core/ComponentDescriptor.h>
  #include <yoga/Yoga.h>
 diff --git a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm
-index 0249590..02a3ed8 100644
+index 0249590..7e41d4b 100644
 --- a/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm
 +++ b/node_modules/@expensify/react-native-live-markdown/apple/MarkdownTextInputDecoratorShadowNode.mm
+@@ -1,6 +1,6 @@
+ #include "MarkdownTextInputDecoratorShadowNode.h"
+ 
+-#include <react/renderer/components/iostextinput/TextInputState.h>
++#include <react/renderer/components/textinput/TextInputState.h>
+ 
+ #include <React/RCTUtils.h>
+ #include <react/renderer/components/view/conversions.h>
 @@ -88,7 +88,9 @@ Size MarkdownTextInputDecoratorShadowNode::measureContent(
        std::const_pointer_cast<TextInputShadowNode>(child);
    applyMarkdownFormattingToTextInputState(mutableChild, layoutContext);
@@ -26,7 +34,7 @@ index 0249590..02a3ed8 100644
  
  void MarkdownTextInputDecoratorShadowNode::layout(LayoutContext layoutContext) {
 diff --git a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
-index 348b6d5..56b713d 100644
+index 348b6d5..a93833a 100644
 --- a/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
 +++ b/node_modules/@expensify/react-native-live-markdown/src/MarkdownTextInput.web.tsx
 @@ -133,7 +133,7 @@ const MarkdownTextInput = React.forwardRef<MarkdownTextInput, MarkdownTextInputP
@@ -34,7 +42,7 @@ index 348b6d5..56b713d 100644
      const contentSelection = useRef<Selection | null>(null);
      const className = `react-native-live-markdown-input-${multiline ? 'multiline' : 'singleline'}`;
 -    const history = useRef<InputHistory>();
-+    const history = useRef<InputHistory>(null);
++    const history = useRef<InputHistory | null>(null);
      const dimensions = useRef<Dimensions | null>(null);
      const pasteContent = useRef<string | null>(null);
      const hasJustBeenFocused = useRef<boolean>(false);
