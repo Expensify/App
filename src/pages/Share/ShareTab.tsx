@@ -1,5 +1,4 @@
 import React, {useEffect, useMemo} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
@@ -103,22 +102,20 @@ function ShareTab() {
     };
 
     return (
-        <View style={[styles.flex1, styles.overflowHidden]}>
-            <SelectionList
-                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                textInputValue={textInputValue}
-                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                textInputHint={offlineMessage}
-                onChangeText={setTextInputValue}
-                headerMessage={header}
-                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-                ListItem={InviteMemberListItem}
-                showLoadingPlaceholder={showLoadingPlaceholder}
-                shouldSingleExecuteRowSelect
-                onSelectRow={onSelectRow}
-                isLoadingNewOptions={!!isSearchingForReports}
-            />
-        </View>
+        <SelectionList
+            sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+            textInputValue={textInputValue}
+            textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+            textInputHint={offlineMessage}
+            onChangeText={setTextInputValue}
+            headerMessage={header}
+            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+            ListItem={InviteMemberListItem}
+            showLoadingPlaceholder={showLoadingPlaceholder}
+            shouldSingleExecuteRowSelect
+            onSelectRow={onSelectRow}
+            isLoadingNewOptions={!!isSearchingForReports}
+        />
     );
 }
 
