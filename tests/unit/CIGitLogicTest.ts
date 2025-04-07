@@ -14,7 +14,7 @@ import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/ge
 import CONST from '@github/libs/CONST';
 import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
-import {SEMANTIC_VERSION_LEVELS, SemverLevel} from '@github/libs/versionUpdater';
+import {SemverLevel} from '@github/libs/versionUpdater';
 import asMutable from '@src/types/utils/asMutable';
 import * as Log from '../../scripts/utils/Logger';
 
@@ -83,8 +83,8 @@ function initGitServer() {
     exec(`git tag ${getVersion()}`);
 
     // Bump version to 2.0.0.0
-    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true)
-    exec(`git tag ${getVersion()}`)
+    bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true);
+    exec(`git tag ${getVersion()}`);
     exec(`git switch staging`);
     exec('git config --local receive.denyCurrentBranch ignore');
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
@@ -270,9 +270,9 @@ function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () =
 
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    exec(`git fetch origin staging --depth=1`)
-    exec(`git switch staging`)
-    exec(`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`)
+    exec(`git fetch origin staging --depth=1`);
+    exec(`git switch staging`);
+    exec(`git cherry-pick -x --mainline 1 -Xtheirs ${versionBumpCommit}`);
     exec('git push origin staging');
     tagStaging();
     Log.success(`Pushed to staging after CP to production`);
@@ -310,7 +310,6 @@ function tagProduction() {
     exec('git push --tags');
     Log.success(`Created new tag ${getVersion()}`);
 }
-
 
 function deployStaging() {
     Log.info('Deploying staging...');
@@ -598,5 +597,5 @@ Appended content
 
         // Verify PRs for the deploy checklist
         await assertPRsMergedBetween('2.0.4-0-staging', '8.0.0-0-staging', [13, 14]);
-    })
+    });
 });
