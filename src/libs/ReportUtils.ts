@@ -1808,6 +1808,9 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
     }
+    if (adminReport) {
+        return adminReport;
+    }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
@@ -1834,8 +1837,12 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
-    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
-    return adminReport ?? lastRead;
+    // If allReportMetadata is empty we'll return most recent report created by user
+    if (isEmptyObject(allReportMetadata)) {
+        return lodashMaxBy(reportsValues.filter(a => a?.ownerAccountID === currentUserAccountID), (a) => a?.lastReadTime ?? '');
+    } else {
+        return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
+    }
 }
 
 /**
