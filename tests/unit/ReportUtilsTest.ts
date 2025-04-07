@@ -2015,7 +2015,6 @@ describe('ReportUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-
             // Add reports to Onyx
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownedReport.reportID}`, ownedReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${nonOwnedReport.reportID}`, nonOwnedReport);
