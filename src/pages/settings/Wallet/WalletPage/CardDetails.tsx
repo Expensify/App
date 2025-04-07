@@ -1,13 +1,9 @@
 import React from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
