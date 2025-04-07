@@ -507,8 +507,7 @@ Appended content
         deployProduction();
 
         // Verify production release list
-        // TODO: Fix this case
-        // await assertPRsMergedBetween('2.0.1-0', '2.0.2-4', [2, 4, 5, 6, 7, 9]);
+        await assertPRsMergedBetween('2.0.1-1', '2.0.2-4', [2, 4, 5, 6, 7, 9]);
 
         // Verify PR list for the new checklist
         await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-0-staging', [8, 10]);
