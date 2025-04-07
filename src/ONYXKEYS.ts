@@ -277,6 +277,9 @@ const ONYXKEYS = {
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
+    /** Stores information about the user's purchases */
+    PURCHASE_LIST: 'purchaseList',
+
     /** Stores information about the active personal bank account being set up */
     PERSONAL_BANK_ACCOUNT: 'personalBankAccount',
 
@@ -562,6 +565,9 @@ const ONYXKEYS = {
 
         /** Expensify cards settings */
         PRIVATE_EXPENSIFY_CARD_SETTINGS: 'private_expensifyCardSettings_',
+
+        /** Expensify cards bank account for a given workspace */
+        EXPENSIFY_CARD_BANK_ACCOUNT_METADATA: 'expensifyCardBankAccountMetadata_',
 
         /** Expensify cards manual billing setting */
         PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING: 'private_expensifyCardManualBilling_',
@@ -925,6 +931,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END]: OnyxTypes.BillingGraceEndPeriod;
     [ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER]: OnyxTypes.CardFeeds;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS]: OnyxTypes.ExpensifyCardSettings;
+    [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA]: OnyxTypes.ExpensifyCardBankAccountMetadata;
     [ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING]: boolean;
     [ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST]: OnyxTypes.WorkspaceCardsList;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
@@ -1020,6 +1027,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.FUND_LIST]: OnyxTypes.FundList;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
+    [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
     [ONYXKEYS.REIMBURSEMENT_ACCOUNT]: OnyxTypes.ReimbursementAccount;
     [ONYXKEYS.PREFERRED_EMOJI_SKIN_TONE]: string | number;
