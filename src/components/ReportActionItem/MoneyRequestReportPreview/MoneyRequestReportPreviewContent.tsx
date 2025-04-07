@@ -638,7 +638,7 @@ function MoneyRequestReportPreviewContent({
                                     {shouldShowSubmitButton && (
                                         <Button
                                             success={isWaitingForSubmissionFromCurrentUser}
-                                            text={translate('common.submit')}
+                                            text={translate('iou.submitAmount', {amount: getSettlementAmount()})}
                                             style={buttonMaxWidth}
                                             onPress={() => iouReport && submitReport(iouReport)}
                                             isDisabled={shouldDisableSubmitButton}
