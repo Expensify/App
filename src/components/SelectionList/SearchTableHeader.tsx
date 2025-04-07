@@ -30,6 +30,10 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };

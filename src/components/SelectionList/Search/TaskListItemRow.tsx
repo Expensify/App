@@ -6,7 +6,10 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
+import Parser from '@libs/Parser';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
+import RoomInfoCell from './RoomInfoCell';
 import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {
@@ -43,11 +46,12 @@ function DateCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
 
 function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
+    const taskTitle = Parser.replace(Parser.htmlToText(taskItem.reportName));
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={taskItem.reportName}
+            text={taskTitle}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
@@ -55,11 +59,12 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
 
 function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
+    const taskDescription = Parser.replace(Parser.htmlToText(taskItem.description));
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={taskItem.description}
+            text={taskDescription}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
@@ -156,13 +161,15 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth
                     />
                 </View>
-
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
                         accountID={item.createdBy.accountID}
                         avatar={item.createdBy.avatar}
                         displayName={item.formattedCreatedBy}
                     />
+                </View>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.IN)]}>
+                    <RoomInfoCell reportID={item.parentReportID} />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
                     <UserInfoCell
