@@ -8,7 +8,7 @@ import type {ContentComponent} from './HelpContent/helpContentMap';
 import helpContentMap from './HelpContent/helpContentMap';
 
 function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean): ReactNode {
-    const routeParts = route.substring(1).split('/');
+    const routeParts = route.split('/');
     const helpContentComponents: ContentComponent[] = [];
     let activeHelpContent = helpContentMap;
     let isExactMatch = true;

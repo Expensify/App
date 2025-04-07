@@ -12,13 +12,14 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getHelpPaneReportType} from '@libs/ReportUtils';
-import {substituteRouteParameters} from '@libs/SidePanelUtils';
 import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Screen} from '@src/SCREENS';
 
 type HelpContentProps = {
     closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
@@ -30,9 +31,18 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
-    const routeParams = useRootNavigationState((state) => (findFocusedRoute(state)?.params as Record<string, string>) ?? {});
-    const reportID = routeParams.reportID || CONST.DEFAULT_NUMBER_ID;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const {params, routeName} = useRootNavigationState((state) => {
+        const focusedRoute = findFocusedRoute(state);
+
+        return {
+            routeName: (focusedRoute?.name ?? '') as Screen,
+            params: focusedRoute?.params as Record<string, string>,
+        };
+    });
+    console.log(`%%% routeName`, routeName);
+
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || CONST.DEFAULT_NUMBER_ID}`);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID || CONST.DEFAULT_NUMBER_ID}`, {
         canEvict: false,
@@ -42,11 +52,18 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${linkedTransactionID ?? CONST.DEFAULT_NUMBER_ID}`);
 
     const route = useMemo(() => {
-        const expenseType = getExpenseType(transaction);
-        const overrides = {reportID: expenseType ? `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}` : `:${getHelpPaneReportType(report)}`};
+        const path = normalizedConfigs[routeName]?.path;
         const activeRoute = Navigation.getActiveRouteWithoutParams();
-        return substituteRouteParameters(activeRoute, routeParams, overrides);
-    }, [transaction, report, routeParams]);
+
+        if (!path) {
+            return undefined;
+        }
+
+        const cleanedPath = path.replaceAll('?', '');
+        const expenseType = getExpenseType(transaction);
+        const reportOverride = expenseType ? `:${CONST.REPORT.HELP_TYPE.EXPENSE}/:${expenseType}` : `:${getHelpPaneReportType(report)}`;
+        return cleanedPath.replaceAll(':reportID', reportOverride);
+    }, [routeName, transaction, report]);
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
@@ -61,6 +78,10 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             wasPreviousNarrowScreen.current = false;
         }
     }, [isExtraLargeScreenWidth, closeSidePanel]);
+
+    if (!route) {
+        return null;
+    }
 
     return (
         <>
