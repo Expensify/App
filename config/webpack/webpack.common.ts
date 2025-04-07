@@ -41,6 +41,7 @@ const includeModules = [
     '@react-native/assets',
     'expo',
     'expo-av',
+    'expo-image',
     'expo-image-manipulator',
     'expo-modules-core',
     'react-native-webrtc-web-shim',
@@ -203,12 +204,16 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                 test: /\.(png|jpe?g|gif)$/i,
                 type: 'asset',
             },
-
-            // Load svg images
+            // Load svg images, include images from react-native-wallet
             {
                 test: /\.svg$/,
                 resourceQuery: {not: [/raw/]},
-                exclude: /node_modules/,
+                exclude: (p) => {
+                    if (/node_modules/.test(p)) {
+                        return !/node_modules\/@expensify\/react-native-wallet/.test(p);
+                    }
+                    return false;
+                },
                 use: [
                     {
                         loader: '@svgr/webpack',
