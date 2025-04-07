@@ -251,6 +251,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
         reportActionIDRef.current = undefined;
         originalReportIDRef.current = undefined;
         instanceIDRef.current = '';
+        selectionRef.current = '';
 
         onPopoverHide.current = runAndResetCallback(onPopoverHide.current);
         onPopoverHideActionCallback.current = runAndResetCallback(onPopoverHideActionCallback.current);
@@ -265,7 +266,6 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
             onPopoverHideActionCallback.current = onHideActionCallback;
         }
 
-        selectionRef.current = '';
         reportActionDraftMessageRef.current = undefined;
         setIsPopoverVisible(false);
     };
