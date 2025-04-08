@@ -6,7 +6,7 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import getHelpContent from '@components/SidePane/HelpContent/getHelpContent';
+import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -15,16 +15,16 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getHelpPaneReportType} from '@libs/ReportUtils';
-import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import {substituteRouteParameters} from '@libs/SidePanelUtils';
 import {getExpenseType} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type HelpContentProps = {
-    closeSidePane: (shouldUpdateNarrow?: boolean) => void;
+    closeSidePanel: (shouldUpdateNarrow?: boolean) => void;
 };
 
-function HelpContent({closeSidePane}: HelpContentProps) {
+function HelpContent({closeSidePanel}: HelpContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
@@ -50,9 +50,9 @@ function HelpContent({closeSidePane}: HelpContentProps) {
 
     const wasPreviousNarrowScreen = useRef(!isExtraLargeScreenWidth);
     useEffect(() => {
-        // Close the side pane when the screen size changes from large to small
+        // Close the Side Panel when the screen size changes from large to small
         if (!isExtraLargeScreenWidth && !wasPreviousNarrowScreen.current) {
-            closeSidePane(true);
+            closeSidePanel(true);
             wasPreviousNarrowScreen.current = true;
         }
 
@@ -60,7 +60,7 @@ function HelpContent({closeSidePane}: HelpContentProps) {
         if (isExtraLargeScreenWidth) {
             wasPreviousNarrowScreen.current = false;
         }
-    }, [isExtraLargeScreenWidth, closeSidePane]);
+    }, [isExtraLargeScreenWidth, closeSidePanel]);
 
     return (
         <>
@@ -68,8 +68,8 @@ function HelpContent({closeSidePane}: HelpContentProps) {
             <HeaderWithBackButton
                 title={translate('common.help')}
                 style={styles.headerBarDesktopHeight}
-                onBackButtonPress={() => closeSidePane(false)}
-                onCloseButtonPress={() => closeSidePane(false)}
+                onBackButtonPress={() => closeSidePanel(false)}
+                onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
                 shouldShowCloseButton={isExtraLargeScreenWidth}
                 shouldDisplayHelpButton={false}

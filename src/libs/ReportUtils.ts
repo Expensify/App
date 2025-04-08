@@ -2089,7 +2089,7 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchRepor
 }
 
 /**
- * Determines the help pane report type based on the given report.
+ * Determines the Help Panel report type based on the given report.
  */
 function getHelpPaneReportType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.HELP_TYPE> | undefined {
     if (!report) {
@@ -4876,7 +4876,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID.at(0), backTo));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID.at(0), isSelfDMReport ? Navigation.getActiveRoute() : backTo));
         return;
     }
 
@@ -7325,7 +7325,11 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // If any report has a violation, then it should have a RBR
     const potentialReports = reportsByPolicyID[report.policyID] ?? [];
     return potentialReports.some((potentialReport) => {
-        return hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations);
+        return (
+            hasViolations(potentialReport.reportID, transactionViolations, true) ||
+            hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
+            hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true)
+        );
     });
 }
 
@@ -7520,6 +7524,16 @@ function reasonForReportToBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report))
     ) {
+        return null;
+    }
+
+    const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
+    const reportActionValues = Object.values(currentReportActions);
+    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+
+    // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
+    // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
+    if (report?.total === 0 && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && hasOnlyCreatedAction) {
         return null;
     }
 

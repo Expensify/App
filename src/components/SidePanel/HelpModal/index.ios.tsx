@@ -1,20 +1,20 @@
 import React from 'react';
 import Modal from '@components/Modal';
-import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
+import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
 import CONST from '@src/CONST';
 import type HelpProps from './types';
 
-function Help({shouldHideSidePane, closeSidePane}: HelpProps) {
+function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
     return (
         <Modal
-            onClose={() => closeSidePane()}
-            isVisible={!shouldHideSidePane}
+            onClose={() => closeSidePanel()}
+            isVisible={!shouldHideSidePanel}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
             propagateSwipe
             swipeDirection={CONST.SWIPE_DIRECTION.RIGHT}
         >
-            <HelpContent closeSidePane={closeSidePane} />
+            <HelpContent closeSidePanel={closeSidePanel} />
         </Modal>
     );
 }

@@ -18,6 +18,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Modal from '@components/Modal';
+import {useMoneyRequestReportContext} from '@components/MoneyRequestReportView/MoneyRequestReportContext';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
@@ -177,6 +178,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
+
+    const {removeTransaction} = useMoneyRequestReportContext(report.parentReportID);
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
@@ -810,8 +813,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             deleteTrackExpense(moneyRequestReport?.reportID, iouTransactionID, requestParentReportAction, isSingleTransactionView);
         } else {
             deleteMoneyRequest(iouTransactionID, requestParentReportAction, isSingleTransactionView);
+            removeTransaction(iouTransactionID);
         }
-    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, report, requestParentReportAction]);
+    }, [caseID, iouTransactionID, isSingleTransactionView, moneyRequestReport?.reportID, removeTransaction, report, requestParentReportAction]);
 
     // A flag to indicate whether the user chose to delete the transaction or not
     const isTransactionDeleted = useRef<boolean>(false);

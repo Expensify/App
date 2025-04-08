@@ -2,32 +2,32 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {BackHandler} from 'react-native';
 import Modal from '@components/Modal';
-import HelpContent from '@components/SidePane/HelpComponents/HelpContent';
+import HelpContent from '@components/SidePanel/HelpComponents/HelpContent';
 import CONST from '@src/CONST';
 import type HelpProps from './types';
 
-function Help({shouldHideSidePane, closeSidePane}: HelpProps) {
-    // SidePane isn't a native screen, this handles the back button press on Android
+function Help({shouldHideSidePanel, closeSidePanel}: HelpProps) {
+    // SidePanel isn't a native screen, this handles the back button press on Android
     useFocusEffect(
         useCallback(() => {
             const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
-                closeSidePane();
+                closeSidePanel();
                 // Return true to indicate that the back button press is handled here
                 return true;
             });
 
             return () => backHandler.remove();
-        }, [closeSidePane]),
+        }, [closeSidePanel]),
     );
 
     return (
         <Modal
-            onClose={() => closeSidePane()}
-            isVisible={!shouldHideSidePane}
+            onClose={() => closeSidePanel()}
+            isVisible={!shouldHideSidePanel}
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
             shouldHandleNavigationBack
         >
-            <HelpContent closeSidePane={closeSidePane} />
+            <HelpContent closeSidePanel={closeSidePanel} />
         </Modal>
     );
 }

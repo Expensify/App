@@ -3956,6 +3956,7 @@ function getUpdateMoneyRequestParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
+            ...transaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
@@ -4191,6 +4192,7 @@ function getUpdateTrackExpenseParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
+            ...transaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,

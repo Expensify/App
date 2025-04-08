@@ -313,6 +313,9 @@ const ONYXKEYS = {
     /** The policyID of the last workspace whose settings were accessed by the user */
     LAST_ACCESSED_WORKSPACE_POLICY_ID: 'lastAccessedWorkspacePolicyID',
 
+    /** The policyID of the last workspace whose were accessed by the user via workspace switcher */
+    LAST_ACCESSED_WORKSPACE_SWITCHER_ID: 'lastAccessedWorkspaceSwitcherID',
+
     /** Whether we should show the compose input or not */
     SHOULD_SHOW_COMPOSE_INPUT: 'shouldShowComposeInput',
 
@@ -489,7 +492,7 @@ const ONYXKEYS = {
     TRAVEL_PROVISIONING: 'travelProvisioning',
 
     /** Stores the information about the state of side panel */
-    NVP_SIDE_PANE: 'nvp_sidePanel',
+    NVP_SIDE_PANEL: 'nvp_sidePanel',
 
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
@@ -1041,6 +1044,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.HAS_LOADED_APP]: boolean;
     [ONYXKEYS.WALLET_TRANSFER]: OnyxTypes.WalletTransfer;
     [ONYXKEYS.LAST_ACCESSED_WORKSPACE_POLICY_ID]: string;
+    [ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID]: string;
     [ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT]: boolean;
     [ONYXKEYS.IS_BETA]: boolean;
     [ONYXKEYS.IS_CHECKING_PUBLIC_ROOM]: boolean;
@@ -1107,7 +1111,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
-    [ONYXKEYS.NVP_SIDE_PANE]: OnyxTypes.SidePane;
+    [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
 };
 
 type OnyxDerivedValuesMapping = {

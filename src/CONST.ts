@@ -1805,6 +1805,7 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -6931,7 +6932,7 @@ const CONST = {
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
-        TYPE_FAILED_2018: 'typeFailed2018',
+        TYPE_FAILED_2018: 'failed_2018',
     },
 } as const;
 
