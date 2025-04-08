@@ -471,6 +471,7 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
         ignore = all
     ```
     This ensures that submodule changes are ignored unless you deliberately update them.
+3. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
 
 
 > [!Note]  
