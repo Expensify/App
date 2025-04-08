@@ -529,6 +529,10 @@ export default {
         paddingRight: 0,
     },
 
+    pr0half: {
+        paddingRight: 2,
+    },
+
     pr1: {
         paddingRight: 4,
     },
@@ -563,6 +567,10 @@ export default {
 
     pl0: {
         paddingLeft: 0,
+    },
+
+    pl0half: {
+        paddingLeft: 2,
     },
 
     pl1: {
