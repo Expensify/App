@@ -522,17 +522,6 @@ function MoneyRequestReportPreviewContent({
                                                 </View>
                                             )}
                                         </View>
-                                        {shouldShowRBR && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                <Icon
-                                                    src={Expensicons.DotIndicator}
-                                                    fill={theme.danger}
-                                                />
-                                                <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>
-                                                    {translate('violations.reviewRequired')}
-                                                </Text>
-                                            </View>
-                                        )}
                                     </View>
                                     <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
                                         <FlatList
