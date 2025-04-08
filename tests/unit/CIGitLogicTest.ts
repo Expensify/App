@@ -262,6 +262,7 @@ function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () =
     Log.info(`Merged PR #${num + 1} into production`);
     tagProduction();
 
+    checkoutRepo();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     exec(`git fetch origin staging --depth=1`);
