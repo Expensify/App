@@ -1,11 +1,13 @@
-import type * as OnyxCommon from './OnyxCommon';
+type NestedNumberArray = number | NestedNumberArray[];
 
-type Attachment = OnyxCommon.OnyxValueWithOfflineFeedback<{
+type Attachment = {
     attachmentID?: string;
 
-    localSource?: string | Uint8Array;
+    localSource?: NestedNumberArray[];
+
+    localSourceType?: string;
 
     remoteSource?: string;
-}>;
+};
 
 export default Attachment;

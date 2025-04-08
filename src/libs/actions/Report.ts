@@ -67,6 +67,7 @@ import type EnvironmentType from '@libs/Environment/getEnvironment/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import HttpUtils from '@libs/HttpUtils';
 import isPublicScreenRoute from '@libs/isPublicScreenRoute';
@@ -178,6 +179,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import type {NotificationPreference, Participants, Participant as ReportParticipant, RoomVisibility, WriteCapability} from '@src/types/onyx/Report';
 import type {Message, ReportActions} from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {fetchFile} from './Attachment';
 import {clearByKey} from './CachedPDFPaths';
 import {close} from './Modal';
 import navigateFromNotification from './navigateFromNotification';
@@ -592,10 +594,19 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         const attachment = buildOptimisticAddCommentReportAction(text, file, attachmentID, undefined, undefined, undefined, reportID);
         attachmentAction = attachment.reportAction;
 
-        optimisticAttachment = {
-            attachmentID,
-            localSource: file.uri,
-        };
+        readFileAsync(file.uri ?? '', file?.name ?? '', (file) => {
+            fetchFile({
+                file,
+            })?.then((arrayBuffer) => {
+                const uint8Array = new Uint8Array(arrayBuffer ?? []);
+                const plainArray = Array.from(uint8Array);
+                Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+                    localSource: plainArray,
+                    localSourceType: file.type,
+                    attachmentID,
+                });
+            });
+        });
     }
 
     if (text && file) {
@@ -649,12 +660,12 @@ function addActions(reportID: string, text = '', file?: FileObject) {
         idempotencyKey: Str.guid(),
     };
 
-    if (file) {
-        parameters.attachmentID = attachmentID;
-    }
-
     if (reportIDDeeplinkedFromOldDot === reportID && isConciergeChatReport(report)) {
         parameters.isOldDotConciergeChat = true;
+    }
+
+    if (file) {
+        parameters.attachmentID = attachmentID;
     }
 
     const optimisticData: OnyxUpdate[] = [
@@ -669,14 +680,6 @@ function addActions(reportID: string, text = '', file?: FileObject) {
             value: optimisticReportActions as ReportActions,
         },
     ];
-
-    if (file) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`,
-            value: optimisticAttachment,
-        });
-    }
 
     const successReportActions: OnyxCollection<NullishDeep<ReportAction>> = {};
 

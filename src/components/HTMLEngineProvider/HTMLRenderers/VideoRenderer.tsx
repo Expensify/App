@@ -30,8 +30,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const isDeleted = isDeletedNode(tnode);
 
-    const videoSource = getAttachmentSource(attachmentID) || sourceURL;
-
+    const videoSource = getAttachmentSource(attachmentID, sourceURL) || sourceURL;
     return (
         <ShowContextMenuContext.Consumer>
             {({report}) => (

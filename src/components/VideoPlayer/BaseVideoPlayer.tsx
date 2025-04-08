@@ -479,9 +479,7 @@ function BaseVideoPlayer({
                                             style={[styles.w100, styles.h100, videoPlayerStyle]}
                                             videoStyle={[styles.w100, styles.h100, videoStyle]}
                                             source={{
-                                                // if video is loading and is offline, we want to change uri to "" to
-                                                // reset the video player after connection is back
-                                                uri: !isLoading || (isLoading && !isOffline) ? sourceURL : '',
+                                                uri: sourceURL,
                                             }}
                                             shouldPlay={shouldPlay}
                                             useNativeControls={false}
@@ -510,11 +508,9 @@ function BaseVideoPlayer({
                                     </View>
                                 )}
                             </PressableWithoutFeedback>
-                            {hasError && !isBuffering && !isOffline && <VideoErrorIndicator isPreview={isPreview} />}
-                            {((isLoading && !isOffline && !hasError) || (isBuffering && !isPlaying && !hasError)) && (
-                                <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />
-                            )}
-                            {isLoading && (isOffline || !isBuffering) && <AttachmentOfflineIndicator isPreview={isPreview} />}
+                            {hasError && !isBuffering && <VideoErrorIndicator isPreview={isPreview} />}
+                            {((isLoading && !hasError) || (isBuffering && !isPlaying && !hasError)) && <FullScreenLoadingIndicator style={[styles.opacity1, styles.bgTransparent]} />}
+
                             {controlStatusState !== CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE && !isLoading && (isPopoverVisible || isHovered || canUseTouchScreen || isEnded) && (
                                 <VideoPlayerControls
                                     duration={duration}

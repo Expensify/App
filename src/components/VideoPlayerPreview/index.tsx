@@ -67,8 +67,7 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
         }
         Attachment.cacheAttachment({
             attachmentID,
-            src: videoUrl,
-            fileName,
+            url: videoUrl,
         });
     };
 
@@ -80,15 +79,22 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     };
 
     useEffect(() => {
+        if (isDeleted || thumbnailUrl) {
+            return;
+        }
+
+        updateCurrentlyPlayingURL(videoUrl);
+    });
+
+    useEffect(() => {
         if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
             return;
         }
         setIsThumbnail(false);
     }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID]);
-
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {shouldUseNarrowLayout || isThumbnail || isDeleted ? (
+            {((shouldUseNarrowLayout || isThumbnail) && thumbnailUrl) || isDeleted ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}
