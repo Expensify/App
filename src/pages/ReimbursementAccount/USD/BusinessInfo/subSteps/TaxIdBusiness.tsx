@@ -26,7 +26,7 @@ function TaxIdBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const defaultCompanyTaxID = reimbursementAccount?.achData?.companyTaxID ?? '';
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID;
     const bankAccountState = reimbursementAccount?.achData?.state ?? '';
-    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxID && ![BankAccount.STATE.VERIFYING, BankAccount.STATE.PENDING].includes(bankAccountState));
+    const shouldDisableCompanyTaxID = !!(bankAccountID && defaultCompanyTaxID && ![BankAccount.STATE.SETUP, BankAccount.STATE.VERIFYING].includes(bankAccountState));
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
