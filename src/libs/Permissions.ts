@@ -66,6 +66,10 @@ function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
+function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -81,4 +85,5 @@ export default {
     canUseHelpSidePanel,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
+    canUseLeftHandBar,
 };
