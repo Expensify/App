@@ -25,7 +25,7 @@ type Onboarding = {
     isMergingAccountBlocked?: boolean;
 
     /** A Boolean that informs whether the user has successfully merged their work email */
-    isMergeAccountSuccessful?: boolean;
+    isMergeAccountStepCompleted?: boolean;
 };
 
 export default Onboarding;

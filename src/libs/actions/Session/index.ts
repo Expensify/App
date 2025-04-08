@@ -1392,7 +1392,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_ONBOARDING,
             value: {
-                isMergeAccountSuccessful: true,
+                isMergeAccountStepCompleted: true,
             },
         },
         {

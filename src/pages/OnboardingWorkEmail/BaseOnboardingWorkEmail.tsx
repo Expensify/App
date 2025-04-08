@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import {PUBLIC_DOMAINS, Str} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
@@ -23,7 +24,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import Navigation from '@libs/Navigation/Navigation';
 import {AddWorkEmail} from '@userActions/Session';
-import {setOnboardingErrorMessage} from '@userActions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,13 +54,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const {isOffline} = useNetwork();
     const ICON_SIZE = 48;
     const operatingSystem = getOperatingSystem();
+    const isFocused = useIsFocused();
 
     useEffect(() => {
         setOnboardingErrorMessage('');
     }, []);
 
     useEffect(() => {
-        if (onboardingValues?.shouldValidate === undefined) {
+        if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
 
@@ -74,7 +76,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingValues?.shouldValidate, isVsb, formValue?.isLoading]);
+    }, [onboardingValues?.shouldValidate, isVsb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
 
     const validatePrivateDomain = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
@@ -147,6 +149,9 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                             large
                             text={translate('common.skip')}
                             onPress={() => {
+                                setOnboardingErrorMessage('');
+
+                                setOnboardingMergeAccountStepValue(true);
                                 if (isVsb) {
                                     Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                                     return;

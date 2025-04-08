@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -13,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
-import {setOnboardingErrorMessage, updateOnboardingShouldValidate} from '@libs/actions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingShouldValidate} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
@@ -38,9 +39,10 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     const isValidateCodeFormSubmitting = AccountUtils.isValidateCodeFormSubmitting(account);
+    const isFocused = useIsFocused();
 
     useEffect(() => {
-        if (onboardingValues?.isMergeAccountSuccessful === undefined) {
+        if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
 
@@ -55,7 +57,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         }
 
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
-    }, [onboardingValues, isVsb]);
+    }, [onboardingValues, isVsb, isFocused]);
 
     const sendValidateCode = useCallback(() => {
         if (!credentials?.login) {
@@ -125,6 +127,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
                             setOnboardingErrorMessage('');
+                            setOnboardingMergeAccountStepValue(true);
                             if (isVsb) {
                                 Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
                                 return;

@@ -122,10 +122,13 @@ function updateOnboardingLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
 }
 
-function updateOnboardingShouldValidate(shouldValidate: boolean) {
-    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {shouldValidate});
+function updateOnboardingShouldValidate(value: boolean | undefined) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {shouldValidate: value});
 }
 
+function setOnboardingMergeAccountStepValue(value: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value});
+}
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -241,4 +244,5 @@ export {
     setOnboardingCompanySize,
     setSelfTourViewed,
     updateOnboardingShouldValidate,
+    setOnboardingMergeAccountStepValue,
 };
