@@ -84,6 +84,9 @@ function initGitServer() {
 
     // Bump version to 2.0.0.0
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true);
+    exec('git branch -D staging production');
+    exec('git switch -c staging');
+    exec('git switch -c production');
     exec(`git tag ${getVersion()}`);
     exec(`git switch staging`);
     exec('git config --local receive.denyCurrentBranch ignore');
@@ -391,15 +394,15 @@ describe('CIGitLogic', () => {
     });
 
     test('Merge a pull request with the checklist locked and CP it to production', async () => {
-        createBasicPR(4);
-        mergePR(4);
-        cherryPickPRToProduction(4);
+        createBasicPR(5);
+        mergePR(5);
+        cherryPickPRToProduction(5);
 
         // Verify output for checklist
         await assertPRsMergedBetween('2.0.0-0', '2.0.1-1-staging', [1, 3]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('2.0.0-0', '2.0.1-0', [4]);
+        await assertPRsMergedBetween('2.0.0-0', '2.0.1-0', [5]);
     });
 
     test('Close the checklist, deploy production and staging', async () => {
@@ -409,44 +412,44 @@ describe('CIGitLogic', () => {
         await assertPRsMergedBetween('2.0.0-0', '2.0.1-1', [1, 3]);
 
         // Verify output for new checklist and staging deploy comments
-        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-0-staging', [2, 4]);
+        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-0-staging', [2, 5]);
     });
 
     test('Merging another pull request when the checklist is unlocked', async () => {
-        createBasicPR(5);
-        mergePR(5);
-        deployStaging();
-
-        // Verify output for checklist
-        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-1-staging', [2, 4, 5]);
-
-        // Verify output for deploy comment
-        await assertPRsMergedBetween('2.0.2-0-staging', '2.0.2-1-staging', [5]);
-    });
-
-    test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
-        Log.info('Creating myFile.txt in PR #6');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-6');
-        const initialFileContent = 'Changes from PR #6';
-        fs.appendFileSync('myFile.txt', 'Changes from PR #6');
-        exec('git add myFile.txt');
-        exec('git commit -m "Add myFile.txt in PR #6"');
-
+        createBasicPR(6);
         mergePR(6);
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-2-staging', [2, 4, 5, 6]);
+        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-1-staging', [2, 5, 6]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('2.0.2-1-staging', '2.0.2-2-staging', [6]);
+        await assertPRsMergedBetween('2.0.2-0-staging', '2.0.2-1-staging', [6]);
+    });
 
-        Log.info('Appending and prepending content to myFile.txt in PR #7');
+    test('Deploying a PR, then CPing a revert, then adding the same code back again before the next production deploy results in the correct code on staging and production', async () => {
+        Log.info('Creating myFile.txt in PR #7');
         setupGitAsHuman();
         exec('git switch main');
         exec('git switch -c pr-7');
+        const initialFileContent = 'Changes from PR #7';
+        fs.appendFileSync('myFile.txt', 'Changes from PR #7');
+        exec('git add myFile.txt');
+        exec('git commit -m "Add myFile.txt in PR #7"');
+
+        mergePR(7);
+        deployStaging();
+
+        // Verify output for checklist
+        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-2-staging', [2, 5, 6, 7]);
+
+        // Verify output for deploy comment
+        await assertPRsMergedBetween('2.0.2-1-staging', '2.0.2-2-staging', [7]);
+
+        Log.info('Appending and prepending content to myFile.txt in PR #8');
+        setupGitAsHuman();
+        exec('git switch main');
+        exec('git switch -c pr-8');
         const newFileContent = `
 Prepended content
 ${initialFileContent}
@@ -455,35 +458,35 @@ Appended content
         fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
         exec('git add myFile.txt');
         exec('git commit -m "Append and prepend content in myFile.txt"');
-        mergePR(7);
+        mergePR(8);
         deployStaging();
 
         // Verify output for checklist
-        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-3-staging', [2, 4, 5, 6, 7]);
+        await assertPRsMergedBetween('2.0.0-2-staging', '2.0.2-3-staging', [2, 5, 6, 7, 8]);
 
         // Verify output for deploy comment
-        await assertPRsMergedBetween('2.0.2-2-staging', '2.0.2-3-staging', [7]);
+        await assertPRsMergedBetween('2.0.2-2-staging', '2.0.2-3-staging', [8]);
 
-        Log.info('Making an unrelated change in PR #8');
-        setupGitAsHuman();
-        exec('git switch main');
-        exec('git switch -c pr-8');
-        fs.appendFileSync('anotherFile.txt', 'some content');
-        exec('git add anotherFile.txt');
-        exec('git commit -m "Create another file"');
-        mergePR(8);
-
-        Log.info('Reverting the append + prepend on main in PR #9');
+        Log.info('Making an unrelated change in PR #9');
         setupGitAsHuman();
         exec('git switch main');
         exec('git switch -c pr-9');
+        fs.appendFileSync('anotherFile.txt', 'some content');
+        exec('git add anotherFile.txt');
+        exec('git commit -m "Create another file"');
+        mergePR(9);
+
+        Log.info('Reverting the append + prepend on main in PR #10');
+        setupGitAsHuman();
+        exec('git switch main');
+        exec('git switch -c pr-10');
         console.log('RORY_DEBUG BEFORE:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
         fs.writeFileSync('myFile.txt', initialFileContent);
         console.log('RORY_DEBUG AFTER:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
         exec('git add myFile.txt');
         exec('git commit -m "Revert append and prepend"');
-        mergePR(9);
-        cherryPickPRToStaging(9);
+        mergePR(10);
+        cherryPickPRToStaging(10);
 
         Log.info('Verifying that the revert is present on staging, but the unrelated change is not');
         expect(fs.readFileSync('myFile.txt', {encoding: 'utf8'})).toBe(initialFileContent);
@@ -492,74 +495,52 @@ Appended content
         Log.info('Repeating previously reverted append + prepend on main in PR #10');
         setupGitAsHuman();
         exec('git switch main');
-        exec('git switch -c pr-10');
+        exec('git switch -c pr-11');
         fs.writeFileSync('myFile.txt', newFileContent, {encoding: 'utf-8'});
         exec('git add myFile.txt');
         exec('git commit -m "Append and prepend content in myFile.txt"');
 
-        mergePR(10);
+        mergePR(11);
         deployProduction();
 
         // Verify production release list
-        await assertPRsMergedBetween('2.0.1-1', '2.0.2-4', [2, 4, 5, 6, 7, 9]);
+        await assertPRsMergedBetween('2.0.1-1', '2.0.2-4', [2, 5, 6, 7, 8, 10]);
 
         // Verify PR list for the new checklist
-        await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-0-staging', [8, 10]);
+        await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-0-staging', [9, 11]);
     });
 
     test('Force-pushing to a branch after rebasing older commits', async () => {
-        createBasicPR(11);
-        exec('git push origin pr-11');
         createBasicPR(12);
-        mergePR(12);
+        exec('git push origin pr-12');
+        createBasicPR(13);
+        mergePR(13);
         deployStaging();
 
         // Verify PRs for checklist
-        await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-1-staging', [8, 10, 12]);
+        await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-1-staging', [9, 11, 13]);
 
         // Verify PRs for deploy comments
-        await assertPRsMergedBetween('2.0.3-0-staging', '2.0.3-1-staging', [12]);
+        await assertPRsMergedBetween('2.0.3-0-staging', '2.0.3-1-staging', [13]);
 
         checkoutRepo();
         setupGitAsHuman();
-        exec('git fetch origin pr-11');
-        exec('git switch pr-11');
+        exec('git fetch origin pr-12');
+        exec('git switch pr-12');
         exec('git rebase main -Xours');
-        exec('git push --force origin pr-11');
-        mergePR(11);
+        exec('git push --force origin pr-12');
+        mergePR(12);
 
         deployProduction();
 
         // Verify PRs for deploy comments / release
-        await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-1-staging', [8, 10, 12]);
+        await assertPRsMergedBetween('2.0.2-4-staging', '2.0.3-1-staging', [9, 11, 13]);
 
         // Verify PRs for new checklist
-        await assertPRsMergedBetween('2.0.3-1-staging', '2.0.4-0-staging', [11]);
+        await assertPRsMergedBetween('2.0.3-1-staging', '2.0.4-0-staging', [12]);
     });
 
     test('Manual version bump', async () => {
-        Log.info('Creating manual version bump in PR #13');
-        checkoutRepo();
-        setupGitAsHuman();
-        exec('git pull');
-        exec('git switch -c "pr-13"');
-        for (let i = 0; i < 3; i++) {
-            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
-        }
-        exec('git add package.json');
-        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #13"`);
-        Log.success('Created manual version bump in PR #13 in branch pr-13');
-
-        mergePR(13);
-        Log.info('Deploying staging...');
-        checkoutRepo();
-        updateStagingFromMain();
-        tagStaging();
-        Log.success(`Deployed v${getVersion()} to staging!`);
-
-        // Verify PRs for deploy comments / release and new checklist
-        await assertPRsMergedBetween('2.0.4-0-staging', '5.0.0-0-staging', [13]);
-
         Log.info('Creating manual version bump in PR #14');
         checkoutRepo();
         setupGitAsHuman();
@@ -570,12 +551,34 @@ Appended content
         }
         exec('git add package.json');
         exec(`git commit -m "Manually bump version to ${getVersion()} in PR #14"`);
-        Log.success('Created manual version bump in PR #14 in branch pr-14');
+        Log.success('Created manual version bump in PR #13 in branch pr-14');
+
+        mergePR(14);
+        Log.info('Deploying staging...');
+        checkoutRepo();
+        updateStagingFromMain();
+        tagStaging();
+        Log.success(`Deployed v${getVersion()} to staging!`);
+
+        // Verify PRs for deploy comments / release and new checklist
+        await assertPRsMergedBetween('2.0.4-0-staging', '5.0.0-0-staging', [14]);
+
+        Log.info('Creating manual version bump in PR #15');
+        checkoutRepo();
+        setupGitAsHuman();
+        exec('git pull');
+        exec('git switch -c "pr-15"');
+        for (let i = 0; i < 3; i++) {
+            exec(`npm --no-git-tag-version version ${VersionUpdater.incrementVersion(getVersion(), VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR)}`);
+        }
+        exec('git add package.json');
+        exec(`git commit -m "Manually bump version to ${getVersion()} in PR #15"`);
+        Log.success('Created manual version bump in PR #15 in branch pr-15');
 
         const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
-        mergePR(14);
+        mergePR(15);
         cherryPickPRToStaging(
-            14,
+            15,
             () => {
                 fs.writeFileSync('package.json', packageJSONBefore);
                 exec('git add package.json');
@@ -587,9 +590,9 @@ Appended content
         );
 
         // Verify PRs for deploy comments
-        await assertPRsMergedBetween('5.0.0-0-staging', '8.0.0-0-staging', [14]);
+        await assertPRsMergedBetween('5.0.0-0-staging', '8.0.0-0-staging', [15]);
 
         // Verify PRs for the deploy checklist
-        await assertPRsMergedBetween('2.0.4-0-staging', '8.0.0-0-staging', [13, 14]);
+        await assertPRsMergedBetween('2.0.4-0-staging', '8.0.0-0-staging', [14, 15]);
     });
 });

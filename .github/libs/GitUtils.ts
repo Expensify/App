@@ -55,11 +55,16 @@ function tagExists(tag: string) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag: string, level: SemverLevel) {
-    let previousVersion = getPreviousVersion(tag, level);
+    let previousVersion = getPreviousVersion(tag.replace('-staging', ''), level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
             tagExistsForPreviousVersion = true;
+            break;
+        }
+        if (tagExists(`${previousVersion}-staging`)) {
+            tagExistsForPreviousVersion = true;
+            previousVersion = `${previousVersion}-staging`;
             break;
         }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
@@ -112,13 +117,10 @@ function fetchTag(tag: string, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitType[]> {
-    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? SEMANTIC_VERSION_LEVELS.PATCH : SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
-
-    // TODO: Make this fast by removing this line and relying on fetchTag above.
-    execSync(`git repack -d && git fetch --tags --unshallow`);
 
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     return new Promise<string>((resolve, reject) => {
