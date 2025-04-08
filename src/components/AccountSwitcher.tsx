@@ -127,35 +127,39 @@ function AccountSwitcher() {
 
     return (
         <>
-            <PressableWithFeedback
-                accessible
-                accessibilityLabel={translate('common.profile')}
-                onPress={() => {
-                    setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
-                }}
-                ref={buttonRef}
-                interactive={canSwitchAccounts}
-                pressDimmingValue={canSwitchAccounts ? undefined : 1}
-                wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+            <Tooltip
+                text={translate('delegate.copilotAccess')}
+                shiftVertical={8}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
             >
-                <View style={[styles.flexRow, styles.gap3]}>
-                    <Avatar
-                        type={CONST.ICON_TYPE_AVATAR}
-                        size={CONST.AVATAR_SIZE.DEFAULT}
-                        avatarID={currentUserPersonalDetails?.accountID}
-                        source={currentUserPersonalDetails?.avatar}
-                        fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                    />
-                    <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
-                        <View style={[styles.flexRow, styles.gap1]}>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
-                            >
-                                {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
-                            </Text>
-                            {!!canSwitchAccounts && (
-                                <Tooltip text={translate('delegate.copilotAccess')}>
+                <PressableWithFeedback
+                    accessible
+                    accessibilityLabel={translate('common.profile')}
+                    onPress={() => {
+                        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+                    }}
+                    ref={buttonRef}
+                    interactive={canSwitchAccounts}
+                    pressDimmingValue={canSwitchAccounts ? undefined : 1}
+                    wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                >
+                    <View style={[styles.flexRow, styles.gap3]}>
+                        <Avatar
+                            type={CONST.ICON_TYPE_AVATAR}
+                            size={CONST.AVATAR_SIZE.DEFAULT}
+                            avatarID={currentUserPersonalDetails?.accountID}
+                            source={currentUserPersonalDetails?.avatar}
+                            fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                        />
+                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                            <View style={[styles.flexRow, styles.gap1]}>
+                                <Text
+                                    numberOfLines={1}
+                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
+                                >
+                                    {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
+                                </Text>
+                                {!!canSwitchAccounts && (
                                     <View style={styles.justifyContentCenter}>
                                         <Icon
                                             fill={theme.icon}
@@ -164,26 +168,26 @@ function AccountSwitcher() {
                                             width={variables.iconSizeSmall}
                                         />
                                     </View>
-                                </Tooltip>
+                                )}
+                            </View>
+                            <Text
+                                numberOfLines={1}
+                                style={[styles.colorMuted, styles.fontSizeLabel]}
+                            >
+                                {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
+                            </Text>
+                            {!!user?.isDebugModeEnabled && (
+                                <Text
+                                    style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                    numberOfLines={1}
+                                >
+                                    AccountID: {session?.accountID}
+                                </Text>
                             )}
                         </View>
-                        <Text
-                            numberOfLines={1}
-                            style={[styles.colorMuted, styles.fontSizeLabel]}
-                        >
-                            {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
-                        </Text>
-                        {!!user?.isDebugModeEnabled && (
-                            <Text
-                                style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
-                                numberOfLines={1}
-                            >
-                                AccountID: {session?.accountID}
-                            </Text>
-                        )}
                     </View>
-                </View>
-            </PressableWithFeedback>
+                </PressableWithFeedback>
+            </Tooltip>
             {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
