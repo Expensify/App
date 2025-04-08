@@ -199,7 +199,7 @@ function MoneyRequestPreviewContent({
 
     let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
-        merchantOrDescription = description || '';
+        merchantOrDescription = Parser.htmlToText(Parser.replace(description || ''));
     }
 
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];

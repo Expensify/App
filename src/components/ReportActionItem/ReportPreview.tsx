@@ -447,7 +447,11 @@ function ReportPreview({
             return {supportText: truncate(formattedMerchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
         }
         if (formattedDescription ?? moneyRequestComment) {
-            return {supportText: truncate(StringUtils.lineBreaksToSpaces(formattedDescription ?? moneyRequestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH})};
+            return {
+                supportText: truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(Parser.replace(formattedDescription ?? moneyRequestComment))), {
+                    length: CONST.REQUEST_PREVIEW.MAX_LENGTH,
+                }),
+            };
         }
 
         if (numberOfRequests === 1) {
