@@ -291,7 +291,14 @@ function MoneyRequestConfirmationListFooter({
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
         .at(0);
 
-    let reportName = outstandingReport?.reportName;
+    let reportName: string | undefined;
+    if (transaction?.reportID) {
+        const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
+        reportName = transactionReport?.reportName;
+    } else {
+        reportName = outstandingReport?.reportName;
+    }
+
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
