@@ -9,9 +9,10 @@ import {ALL_NAICS, NAICS, NAICS_MAPPING_WITH_ID} from '@src/NAICS';
 type IndustryCodeSelectorProps = {
     onInputChange?: (value: string | undefined) => void;
     value?: string;
+    errorText?: string;
 };
 
-function IndustryCodeSelector({onInputChange, value}: IndustryCodeSelectorProps) {
+function IndustryCodeSelector({onInputChange, value, errorText}: IndustryCodeSelectorProps) {
     const styles = useThemeStyles();
     const [searchValue, setSearchValue] = useState<string | undefined>(value);
 
@@ -49,7 +50,7 @@ function IndustryCodeSelector({onInputChange, value}: IndustryCodeSelectorProps)
 
         return [
             {
-                data: ALL_NAICS.filter((item) => item.id.toString().toLowerCase().includes(searchValue.toLowerCase())).map((item) => {
+                data: ALL_NAICS.filter((item) => item.id.toString().toLowerCase().startsWith(searchValue.toLowerCase())).map((item) => {
                     return {
                         value: `${item.id}`,
                         text: `${item.id} - ${item.value}`,
@@ -82,6 +83,7 @@ function IndustryCodeSelector({onInputChange, value}: IndustryCodeSelectorProps)
                     onInputChange?.(val);
                 }}
                 textInputValue={searchValue}
+                errorText={errorText}
             />
         </View>
     );
