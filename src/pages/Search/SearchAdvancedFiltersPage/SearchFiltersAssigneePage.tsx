@@ -7,7 +7,7 @@ import SearchFiltersParticipantsSelector from '@components/Search/SearchFiltersP
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as SearchActions from '@userActions/Search';
+import {updateAdvancedFilters} from '@userActions/Search';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
@@ -35,7 +35,7 @@ function SearchFiltersAssigneePage() {
                 <SearchFiltersParticipantsSelector
                     initialAccountIDs={searchAdvancedFiltersForm?.assignee ?? []}
                     onFiltersUpdate={(selectedAccountIDs) => {
-                        SearchActions.updateAdvancedFilters({
+                        updateAdvancedFilters({
                             assignee: selectedAccountIDs,
                         });
                     }}

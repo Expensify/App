@@ -379,7 +379,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
-    const canSelectMultiple = !isChat && !isTask;
+    const canSelectMultiple = !isChat && !isTask && isLargeScreenWidth;
 
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat

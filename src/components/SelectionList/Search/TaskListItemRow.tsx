@@ -69,7 +69,7 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
 
 function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
-    const taskDescription = Parser.replace(Parser.htmlToText(taskItem.description));
+    const taskDescription = Parser.replace(Parser.htmlToText(taskItem.description)).replaceAll('<br />', ' ');
 
     return (
         <TextWithTooltip
