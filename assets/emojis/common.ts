@@ -7864,11 +7864,6 @@ const emojis: PickerEmojis = [
         code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
     },
     {
-        header: true,
-        icon: Flags,
-        code: 'customEmojis',
-    },
-    {
         name: 'global_create',
         code: CONST.CUSTOM_EMOJIS.GLOBAL_CREATE,
     },
