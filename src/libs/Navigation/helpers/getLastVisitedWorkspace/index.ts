@@ -9,19 +9,23 @@ function saveSettingsTabPathToSessionStorage(url: string) {
 }
 
 function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> | undefined {
-    const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH) as Route;
+    const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH);
     if (!lastVisitedSettingsPath) {
         return undefined;
     }
-    return getStateFromPath(lastVisitedSettingsPath);
+    return getStateFromPath(lastVisitedSettingsPath as Route);
 }
 
 function getWorkspaceScreenNameFromState(state?: PartialState<NavigationState>) {
     return state?.routes.at(-1)?.state?.routes.at(-1)?.name;
 }
 
-function getLastVisitedSettingsPath(state?: NavigationState | PartialState<NavigationState> | undefined): Route | undefined {
-    return state ? (findFocusedRoute(state)?.path as Route) : undefined;
+function getLastVisitedSettingsPath(state: NavigationState | PartialState<NavigationState>): Route | undefined {
+    const lastVisitedSettingsPath = findFocusedRoute(state)?.path;
+    if (!lastVisitedSettingsPath) {
+        return undefined;
+    }
+    return lastVisitedSettingsPath as Route;
 }
 
 function getLastVisitedWorkspaceScreen() {

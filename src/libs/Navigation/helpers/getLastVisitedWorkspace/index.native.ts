@@ -9,7 +9,7 @@ function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> 
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function getLastVisitedSettingsPath(state?: NavigationState | PartialState<NavigationState> | undefined): Route | undefined {
+function getLastVisitedSettingsPath(state: NavigationState | PartialState<NavigationState>): Route | undefined {
     return undefined;
 }
 

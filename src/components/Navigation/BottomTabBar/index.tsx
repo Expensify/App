@@ -165,14 +165,14 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                 return;
             }
 
-            // If the path stored in session session storage leads to a settings screen, we just navigate to it on a wide layout.
+            // If the path stored in the session storage leads to a settings screen, we just navigate to it on a wide layout.
             // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
             if (settingsTabState && !shouldUseNarrowLayout) {
                 const lastVisitedSettingsRoute = getLastVisitedSettingsPath(settingsTabState);
                 if (lastVisitedSettingsRoute) {
                     Navigation.navigate(lastVisitedSettingsRoute);
+                    return;
                 }
-                return;
             }
             // If there is settings workspace screen in the settings navigator, then we should open the settings workspaces as it should be "remembered".
             if (settingsTabState?.routes?.at(-1)?.name === SCREENS.SETTINGS.WORKSPACES) {
