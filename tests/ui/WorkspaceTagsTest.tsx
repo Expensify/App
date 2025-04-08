@@ -42,21 +42,32 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialPara
     );
 };
 
-describe('WorkspaceTags', () => {
-    const FIRST_TAG = 'Tag One';
-    const SECOND_TAG = 'Tag Two';
+const FIRST_TAG = 'Tag One';
+const SECOND_TAG = 'Tag Two';
 
+const tags = {
+    TagListOne: {
+        name: 'TagListOne',
+        required: true,
+        orderWeight: 1,
+        tags: {
+            [FIRST_TAG]: {
+                name: FIRST_TAG,
+                enabled: true,
+            },
+            [SECOND_TAG]: {
+                name: SECOND_TAG,
+                enabled: true,
+            },
+        },
+    },
+};
+
+describe('WorkspaceTags', () => {
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
         });
-    });
-
-    beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: true,
-            shouldUseNarrowLayout: true,
-        } as ResponsiveLayoutResult);
     });
 
     afterEach(async () => {
@@ -67,6 +78,11 @@ describe('WorkspaceTags', () => {
     });
 
     it('should show select option when the item is not selected and deselect option when the item is selected', async () => {
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            isSmallScreenWidth: true,
+            shouldUseNarrowLayout: true,
+        } as ResponsiveLayoutResult);
+
         await TestHelper.signInWithTestUser();
 
         const policy = {
@@ -74,24 +90,6 @@ describe('WorkspaceTags', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             areTagsEnabled: true,
             requiresTag: true,
-        };
-
-        const tags = {
-            TagListOne: {
-                name: 'TagListOne',
-                required: true,
-                orderWeight: 1,
-                tags: {
-                    [FIRST_TAG]: {
-                        name: FIRST_TAG,
-                        enabled: true,
-                    },
-                    [SECOND_TAG]: {
-                        name: SECOND_TAG,
-                        enabled: true,
-                    },
-                },
-            },
         };
 
         await act(async () => {
@@ -105,6 +103,9 @@ describe('WorkspaceTags', () => {
 
         await waitFor(() => {
             expect(screen.getByText(FIRST_TAG)).toBeOnTheScreen();
+        });
+
+        await waitFor(() => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
@@ -130,6 +131,11 @@ describe('WorkspaceTags', () => {
 
     // 👇 This is your new test case from the feature branch
     it('should show a blocking modal when trying to disable the only enabled tag when policy has requiresTag set to true', async () => {
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
+            isSmallScreenWidth: false,
+            shouldUseNarrowLayout: false,
+        } as ResponsiveLayoutResult);
+
         await TestHelper.signInWithTestUser();
 
         const policy = {
@@ -137,24 +143,6 @@ describe('WorkspaceTags', () => {
             role: CONST.POLICY.ROLE.ADMIN,
             areTagsEnabled: true,
             requiresTag: true,
-        };
-
-        const tags = {
-            TagListOne: {
-                name: 'TagListOne',
-                required: true,
-                orderWeight: 1,
-                tags: {
-                    ['tagOne']: {
-                        name: 'tagOne',
-                        enabled: true,
-                    },
-                    ['tagTwo']: {
-                        name: 'tagTwo',
-                        enabled: true,
-                    },
-                },
-            },
         };
 
         await act(async () => {
@@ -166,12 +154,15 @@ describe('WorkspaceTags', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText('tagOne')).toBeOnTheScreen();
-            expect(screen.getByText('tagTwo')).toBeOnTheScreen();
+            expect(screen.getByText(FIRST_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-tagOne`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-tagTwo`));
+        await waitFor(() => {
+            expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
 
         const dropdownMenuButtonTestID = `${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`;
 

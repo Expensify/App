@@ -171,7 +171,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, policy?.requiresCategory]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, policy?.requiresCategory, shouldPreventDisable]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
