@@ -3,6 +3,9 @@ import type {RefObject} from 'react';
 import type {View} from 'react-native';
 import {ScreenWrapperStatusContext} from '@components/ScreenWrapper';
 
+// This mutable ref holds the currently focused item's ref.
+// It enables external actions like calling .focus() from outside this hook,
+// as demonstrated in this PR: https://github.com/Expensify/App/pull/59206
 // eslint-disable-next-line import/no-mutable-exports
 let focusedItemRef: View | HTMLElement | null;
 
