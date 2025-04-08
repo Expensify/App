@@ -97,6 +97,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                     success
                     text={translate('task.completed')}
                     icon={Expensicons.Checkmark}
+                    iconStyles={styles.mr0}
+                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
                     badgeStyles={[
                         styles.ml0,
                         styles.ph2,
@@ -106,8 +108,6 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
                         StyleUtils.getMinimumHeight(variables.h20),
                         StyleUtils.getBorderColorStyle(theme.border),
                     ]}
-                    textStyles={StyleUtils.getFontSizeStyle(variables.fontSizeExtraSmall)}
-                    iconStyles={styles.mr0}
                 />
             </View>
         );
@@ -136,17 +136,13 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     if (!isLargeScreenWidth) {
         return (
             <View style={[containerStyle, styles.gap3]}>
-                {/* Header */}
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
-                    {/* Header avatars and arrow */}
                     <View style={[styles.flex1, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
                         <View style={[styles.mw50]}>
                             <UserInfoCell
                                 accountID={item.createdBy.accountID}
                                 avatar={item.createdBy.avatar}
                                 displayName={item.formattedCreatedBy}
-                                // textStyle={infoCellsTextStyle}
-                                // avatarStyle={infoCellsAvatarStyle}
                             />
                         </View>
 
@@ -171,9 +167,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                     </View>
                 </View>
 
-                {/* Content */}
                 <View style={[styles.alignItemsCenter, styles.gap4, styles.flexRow]}>
-                    {/* Left Col */}
                     <View style={[styles.gap1, styles.flex1]}>
                         <TitleCell
                             taskItem={item}
@@ -233,7 +227,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         isLargeScreenWidth
                     />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.CREATED_BY)]}>
                     <UserInfoCell
                         accountID={item.createdBy.accountID}
                         avatar={item.createdBy.avatar}
@@ -243,7 +237,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.IN)]}>
                     <ReportInfoCell reportID={item.parentReportID} />
                 </View>
-                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.FROM)]}>
+                <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>
                     <UserInfoCell
                         accountID={item.assignee.accountID}
                         avatar={item.assignee.avatar}

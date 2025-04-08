@@ -70,12 +70,6 @@ function TaskListItem<TItem extends ListItem>({
             <TaskListItemRow
                 item={taskItem}
                 showTooltip={showTooltip}
-                // onButtonPress={() => {
-                //     // handleActionButtonPress(currentSearchHash, taskItem, () => onSelectRow(item));
-                // }}
-                // isDisabled={!!isDisabled}
-                // isButtonSelected={item.isSelected}
-                // isLoading={isLoading ?? taskItem.isActionLoading}
             />
         </BaseListItem>
     );

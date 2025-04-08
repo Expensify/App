@@ -154,7 +154,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const {canUseTableReportView} = usePermissions();
-    const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
     useEffect(() => {
         clearSelectedTransactions(hash);
@@ -379,6 +378,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
 
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isTask = type === CONST.SEARCH.DATA_TYPES.TASK;
+    const canSelectMultiple = !isChat && !isTask;
+
     const sortedSelectedData = sortedData.map((item) => {
         const baseKey = isChat
             ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
@@ -502,8 +504,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             onSelectRow={openReport}
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
-            // JACK_TODO: Fix this so that checkmarks can be disabled, without removing hte header
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && type !== CONST.SEARCH.DATA_TYPES.TASK && canSelectMultiple}
+            canSelectMultiple={canSelectMultiple}
             shouldPreventLongPressRow={isChat}
             SearchTableHeader={
                 !isLargeScreenWidth || type === CONST.SEARCH.DATA_TYPES.CHAT ? undefined : (
@@ -515,6 +516,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                         sortBy={sortBy}
                         shouldShowYear={shouldShowYear}
                         shouldShowSorting={shouldShowSorting}
+                        canSelectMultiple={canSelectMultiple}
                     />
                 )
             }
