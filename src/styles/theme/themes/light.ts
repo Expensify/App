@@ -43,7 +43,7 @@ const lightTheme = {
     // Additional keys
     overlay: colors.productLight400,
     inverse: colors.productLight900,
-    shadow: colors.black,
+    shadow: '0px 4px 12px 0px rgba(2,18,4,0.06)',
     componentBG: colors.productLight100,
     messageHighlightBG: colors.yellow100,
     hoverComponentBG: colors.productLight300,
