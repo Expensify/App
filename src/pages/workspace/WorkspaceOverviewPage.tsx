@@ -27,7 +27,7 @@ import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicy
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getUserFriendlyWorkspaceType, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, goBackFromInvalidPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
@@ -167,6 +167,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
         }
+        goBackFromInvalidPolicy();
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
     return (
