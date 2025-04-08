@@ -59,6 +59,10 @@ export default {
         marginHorizontal: -8,
     },
 
+    mhn4: {
+        marginHorizontal: -16,
+    },
+
     mhn5: {
         marginHorizontal: -20,
     },
@@ -623,6 +627,10 @@ export default {
 
     pt5: {
         paddingTop: 20,
+    },
+
+    pt6: {
+        paddingTop: 24,
     },
 
     pt8: {
