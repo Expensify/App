@@ -5,7 +5,7 @@ import Breadcrumbs from '@components/Breadcrumbs';
 import LoadingBar from '@components/LoadingBar';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import Text from '@components/Text';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
