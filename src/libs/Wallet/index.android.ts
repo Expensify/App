@@ -4,8 +4,12 @@ import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import type {Card} from '@src/types/onyx';
 
+function checkIfWalletIsAvailable(): Promise<boolean> {
+    return checkWalletAvailability();
+}
+
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export default function handleAddCardToWallet(card: Card, cardHolderName: string) {
+function handleAddCardToWallet(card: Card, cardHolderName: string) {
     checkWalletAvailability()
         .then(() =>
             getSecureWalletInfo().then((data: AndroidWalletData) => {
@@ -20,3 +24,10 @@ export default function handleAddCardToWallet(card: Card, cardHolderName: string
         )
         .catch((error) => Log.warn(`checkWalletAvailability error: ${error}`));
 }
+
+function isCardInWallet(card: Card): Promise<boolean> {
+    // TODO: Add check based on tokenRefID
+    return Promise.resolve(card.state === 6);
+}
+
+export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};
