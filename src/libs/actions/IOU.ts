@@ -168,6 +168,7 @@ import {
     getMerchant,
     getTransaction,
     getUpdatedTransaction,
+    hasAnyTransactionWithoutRTERViolation,
     hasDuplicateTransactions,
     hasReceipt as hasReceiptTransactionUtils,
     isAmountMissing,
@@ -184,7 +185,6 @@ import {
     isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanRequest as isScanRequestTransactionUtils,
     removeSettledAndApprovedTransactions,
-    shouldShowBrokenConnectionViolationForMultipleTransactions,
 } from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
@@ -934,9 +934,10 @@ function setSplitPayer(transactionID: string, payerAccountID: number) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        receipt: {source, type: type ?? ''},
+        // isTestReceipt = false is being converted to null because we don't really need to store it in Onyx in that case
+        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null},
         filename,
     });
 }
@@ -1287,7 +1288,34 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
     );
+
+    if (isNewChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
+    if (shouldCreateNewMoneyRequestReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
 
     if (!isEmptyObject(transactionThreadCreatedReportAction)) {
         optimisticData.push({
@@ -1333,14 +1361,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
     if (isMoneyRequestToManagerMcTest) {
         const date = new Date();
+        const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
         const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
         const optimisticIOUReportAction = buildOptimisticIOUReportAction({
-            type: isScanRequest ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
             amount: iou.report?.total ?? 0,
             currency: iou.report?.currency ?? '',
             comment: '',
             participants: [managerMcTestParticipant],
-            paymentType: isScanRequest ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             iouReportID: iou.report.reportID,
             transactionID: transaction.transactionID,
         });
@@ -1356,7 +1385,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
                 value: {
                     ...iou.report,
-                    ...(!isScanRequest ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
+                    ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
                     hasOutstandingChildRequest: false,
                     lastActorAccountID: currentUserPersonalDetails?.accountID,
                 },
@@ -1673,10 +1702,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     );
 
     if (violationsOnyxData) {
+        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+
         optimisticData.push(violationsOnyxData, {
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
             onyxMethod: Onyx.METHOD.SET,
-            value: buildNextStep(iou.report, iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN, true),
+            value: buildNextStep(iou.report, iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN, shouldFixViolations),
         });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1704,6 +1735,13 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
                 pendingFields: {
                     createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
             },
         },
         {
@@ -1740,6 +1778,13 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
             key: `${ONYXKEYS.COLLECTION.REPORT}${transactionParams.threadReport.reportID}`,
             value: transactionParams.threadReport,
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionParams.threadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
     ];
 
     if (transactionParams.threadCreatedReportAction?.reportActionID) {
@@ -1766,6 +1811,16 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
                 ...(chat.isNewReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
         });
+
+        if (chat.isNewReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+        }
     }
 
     if (optimisticDataParams.policyRecentlyUsedCategories.length) {
@@ -2210,6 +2265,15 @@ function buildOnyxDataForTrackExpense({
                 },
             },
         );
+        if (shouldCreateNewMoneyRequestReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+        }
     } else {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2232,6 +2296,13 @@ function buildOnyxDataForTrackExpense({
             value: {
                 ...transactionThreadReport,
                 pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
             },
         },
     );
@@ -2282,6 +2353,15 @@ function buildOnyxDataForTrackExpense({
                 },
             },
         );
+        if (shouldCreateNewMoneyRequestReport) {
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            });
+        }
     } else {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3878,6 +3958,7 @@ function getUpdateMoneyRequestParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
+            ...transaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
@@ -4113,6 +4194,7 @@ function getUpdateTrackExpenseParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
+            ...transaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
@@ -5511,6 +5593,17 @@ function createSplitsAndOnyxData({
             value: splitTransaction,
         },
     ];
+
+    if (!existingSplitChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -5526,6 +5619,16 @@ function createSplitsAndOnyxData({
             value: {pendingAction: null, pendingFields: null},
         },
     ];
+
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        });
+    }
 
     const redundantParticipants: Record<number, null> = {};
     if (!existingSplitChatReport) {
@@ -6097,6 +6200,16 @@ function startSplitBill({
         },
     ];
 
+    if (!existingSplitChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -6112,6 +6225,16 @@ function startSplitBill({
             value: {pendingAction: null},
         },
     ];
+
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        });
+    }
 
     const redundantParticipants: Record<number, null> = {};
     if (!existingSplitChatReport) {
@@ -7655,6 +7778,23 @@ function getSendMoneyParams(
           }
         : undefined;
 
+    const optimisticMetaData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTransactionThread.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+    ];
+
     const successData: OnyxUpdate[] = [];
 
     // Add optimistic personal details for recipient
@@ -7839,6 +7979,7 @@ function getSendMoneyParams(
         optimisticIOUReportActionsData,
         optimisticTransactionData,
         optimisticTransactionThreadData,
+        ...optimisticMetaData,
     ];
 
     if (optimisticTransactionThreadReportActionsData) {
@@ -8596,8 +8737,7 @@ function canSubmitReport(
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
     const transactionIDList = transactions.map((transaction) => transaction.transactionID);
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
-    const hasBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDList, report, policy, allViolations);
-
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
         transactions.length > 0 &&
         transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
@@ -8608,7 +8748,7 @@ function canSubmitReport(
         !isArchived &&
         !hasOnlyPendingCardOrScanFailTransactions &&
         !hasAllPendingRTERViolations &&
-        !hasBrokenConnectionViolation &&
+        hasTransactionWithoutRTERViolation &&
         (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
     );
 }

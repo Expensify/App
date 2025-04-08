@@ -18,7 +18,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
-
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -772,6 +771,7 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
     },
     BUTTON_STATES: {
@@ -1059,6 +1059,7 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1787,6 +1788,7 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -2315,6 +2317,7 @@ const CONST = {
         '_brazil',
         '_bulgaria',
         '_canada',
+        '_chile',
         '_china',
         '_costaRica',
         '_croatia',
@@ -3422,7 +3425,7 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
@@ -3543,7 +3546,9 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        MERCHANT: "Taco Todd's",
         FILENAME: 'test_receipt',
+        FILE_TYPE: 'image/png',
     },
 
     AVATAR_CROP_MODAL: {
@@ -4973,6 +4978,19 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MERGE_ACCOUNT_RESULTS: {
+        SUCCESS: 'success',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_SAML_PRIMARY_LOGIN: 'err_saml_primary_login',
+        ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
+        ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        TOO_MANY_ATTEMPTS: 'too_many_attempts',
+        ACCOUNT_UNVALIDATED: 'account_unvalidated',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
@@ -5348,31 +5366,6 @@ const CONST = {
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
                         `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
-                },
-                {
-                    type: 'addExpenseApprovals',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({workspaceMoreFeaturesLink}) => `Add [expense approvals](${workspaceMoreFeaturesLink})`,
-                    description: ({workspaceMoreFeaturesLink}) =>
-                        '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
-                        '\n' +
-                        'Here’s how to add expense approvals:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *More features*.\n' +
-                        '5. Enable *Workflows*.\n' +
-                        '6. Navigate to *Workflows* in the workspace editor.\n' +
-                        '7. Enable *Add approvals*.\n' +
-                        '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
-                        '\n' +
-                        `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
-                        '\n' +
-                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4)`,
                 },
                 {
                     type: 'inviteTeam',
@@ -6928,6 +6921,10 @@ const CONST = {
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,
+
+    BILLING: {
+        TYPE_FAILED_2018: 'failed_2018',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
