@@ -15,6 +15,10 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: true
+          ref: ${{ github.event.pull_request.head.sha }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup NodeJS
         uses: ./.github/actions/composite/setupNode
