@@ -137,13 +137,14 @@ function hasWorkspaceSettingsRBR(policy: Policy) {
     );
 }
 
-function getChatTabBrickRoadReport(policyID: string | undefined, orderedReports: Array<OnyxEntry<Report>> = []): OnyxEntry<Report> {
-    if (!orderedReports.length) {
+function getChatTabBrickRoadReport(policyID: string | undefined, orderedReportIDs: string[] = []): OnyxEntry<Report> {
+    if (!orderedReportIDs.length) {
         return undefined;
     }
 
+    const allReports = orderedReportIDs.map((reportID) => reportsCollection?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]);
     // If policyID is undefined, then all reports are checked whether they contain any brick road
-    const policyReports = policyID ? orderedReports.filter((report) => report?.policyID === policyID) : orderedReports;
+    const policyReports = policyID ? Object.values(allReports).filter((report) => report?.policyID === policyID) : Object.values(allReports);
 
     let reportWithGBR: OnyxEntry<Report>;
 
@@ -167,8 +168,8 @@ function getChatTabBrickRoadReport(policyID: string | undefined, orderedReports:
     return undefined;
 }
 
-function getChatTabBrickRoad(policyID: string | undefined, orderedReports: Array<OnyxEntry<Report>>): BrickRoad | undefined {
-    const report = getChatTabBrickRoadReport(policyID, orderedReports);
+function getChatTabBrickRoad(policyID: string | undefined, orderedReportIDs: string[]): BrickRoad | undefined {
+    const report = getChatTabBrickRoadReport(policyID, orderedReportIDs);
     return report ? getBrickRoadForPolicy(report) : undefined;
 }
 

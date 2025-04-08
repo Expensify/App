@@ -107,7 +107,6 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
     const {orderedReportIDs} = useReportIDs();
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
 
     const message = useMemo((): TranslationPaths | undefined => {
         if (selectedTab === BOTTOM_TABS.HOME) {
@@ -141,7 +140,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
 
     const navigateTo = useCallback(() => {
         if (selectedTab === BOTTOM_TABS.HOME && !!chatTabBrickRoad) {
-            const report = getChatTabBrickRoadReport(activeWorkspaceID, reports);
+            const report = getChatTabBrickRoadReport(activeWorkspaceID, orderedReportIDs);
 
             if (report) {
                 Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID));
@@ -154,7 +153,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
                 Navigation.navigate(route);
             }
         }
-    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, reports, status, reimbursementAccount, policyIDWithErrors]);
+    }, [selectedTab, chatTabBrickRoad, activeWorkspaceID, orderedReportIDs, status, reimbursementAccount, policyIDWithErrors]);
 
     if (!([BOTTOM_TABS.HOME, BOTTOM_TABS.SETTINGS] as string[]).includes(selectedTab ?? '') || !indicator) {
         return null;
