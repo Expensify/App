@@ -594,7 +594,7 @@ function getFilterDisplayValue(
 
 /**
  * A copy of `buildUserReadableQueryString` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to buildUserReadableQueryString and will replace the old method.
+ * When this beta is no longer needed, this method will be renamed to `buildUserReadableQueryString` and will replace the old method.
  * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
  * This format of query is the one which we want to display to users.
  * We try to replace every numeric id value with a display version of this value,
@@ -751,7 +751,7 @@ function buildCannedSearchQuery({
 
 /**
  * A copy of `isCannedSearchQuery` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to buildUserReadableQueryString and will replace the old method.
+ * When this beta is no longer needed, this method will be renamed to `isCannedSearchQuery` and will replace the old method.
  *
  * Returns whether a given search query is a Canned query.
  *
@@ -776,7 +776,7 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 
 /**
  * A copy of `isDefaultExpensesQuery` handling the policy ID, used if you have access to the leftHandBar beta.
- * When this beta is no longer needed, this method will be renamed to buildUserReadableQueryString and will replace the old method.
+ * When this beta is no longer needed, this method will be renamed to `isDefaultExpensesQuery` and will replace the old method.
  *
  */
 function isDefaultExpensesQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
