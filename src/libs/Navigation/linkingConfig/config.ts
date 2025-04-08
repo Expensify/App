@@ -1570,7 +1570,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                    path: ROUTES.SETTINGS_PROFILE,
+                    path: ROUTES.SETTINGS_PROFILE.route,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SECURITY]: {
