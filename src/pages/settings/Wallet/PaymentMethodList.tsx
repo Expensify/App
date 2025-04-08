@@ -282,9 +282,10 @@ function PaymentMethodList({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                     title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description: !card?.nameValuePairs?.issuedBy
-                        ? getDescriptionForPolicyDomainCard(card.domainName)
-                        : `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
+                    description:
+                        !card?.nameValuePairs?.issuedBy || !card?.lastFourPAN
+                            ? getDescriptionForPolicyDomainCard(card.domainName)
+                            : `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
