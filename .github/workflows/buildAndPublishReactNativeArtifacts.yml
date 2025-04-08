@@ -10,12 +10,12 @@ on:
       - Mobile-Expensify
 
 jobs:
-  verifyNewDotPatchesAndReactNativeVersionBump:
+  verifyNewDotPatchesAndReactNativeVersion:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check if NewDot patches or react-native version bump have changed
+      - name: Check if NewDot patches or react-native version have changed
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
           HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
