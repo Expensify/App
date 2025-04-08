@@ -9,13 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
-import {
-    getIOUActionForReportID,
-    getLinkedTransactionID,
-    isSplitBillAction as isSplitBillActionReportActionsUtils,
-    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
-} from '@libs/ReportActionsUtils';
-import {getTransaction} from '@libs/TransactionUtils';
+import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -34,7 +28,6 @@ function MoneyRequestReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
-    isSelfDM = false,
     isInvoice = false,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
@@ -48,9 +41,7 @@ function MoneyRequestReportPreview({
         selector: (personalDetails) =>
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
     });
-    const [iouReport, transactionsFromReport, violations] = useReportWithTransactionsAndViolations(iouReportID);
-    const linkedTransaction = getTransaction(getLinkedTransactionID(action));
-    const transactions = !isSelfDM || !linkedTransaction ? transactionsFromReport : [linkedTransaction];
+    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
@@ -108,7 +99,6 @@ function MoneyRequestReportPreview({
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
             reportPreviewStyles={reportPreviewStyles}
-            isSelfDM={isSelfDM}
             isInvoice={isInvoice}
         />
     );

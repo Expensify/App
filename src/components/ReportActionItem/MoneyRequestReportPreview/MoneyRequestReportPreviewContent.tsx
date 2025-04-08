@@ -108,7 +108,6 @@ function MoneyRequestReportPreviewContent({
     renderItem,
     getCurrentWidth,
     reportPreviewStyles,
-    isSelfDM,
     isInvoice,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
@@ -430,15 +429,10 @@ function MoneyRequestReportPreviewContent({
     );
 
     const getPreviewName = () => {
-        // If preview is inside Self-DM it has only 1 transaction
-        const firstTransaction = transactions.at(0);
         const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) ? getOriginalMessage(action) : undefined;
 
         if (isInvoice && !!originalMessage) {
             return translate('iou.invoiceReportName', originalMessage);
-        }
-        if (isSelfDM && firstTransaction) {
-            return translate('iou.selfDMTrackReportName', firstTransaction);
         }
         return action.childReportName;
     };

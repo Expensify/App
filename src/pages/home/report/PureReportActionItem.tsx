@@ -30,6 +30,7 @@ import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequest
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
@@ -97,8 +98,10 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
@@ -419,6 +422,8 @@ function PureReportActionItem({
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
+
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, true);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -774,20 +779,19 @@ function PureReportActionItem({
             if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
                     children = (
-                        <MoneyRequestReportPreview
-                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                            iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
-                            policyID={report?.policyID}
-                            chatReportID={reportID}
-                            action={action}
-                            contextMenuAnchor={popoverAnchorRef.current}
-                            isHovered={hovered}
-                            isSelfDM
-                            isWhisper={isWhisper}
-                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
-                            onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
-                            onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
-                        />
+                        <View style={[styles.mt2]}>
+                            <TransactionPreview
+                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                                iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                                chatReportID={reportID}
+                                reportID={reportID}
+                                action={action}
+                                isBillSplit={isSplitBillActionReportActionsUtils(action)}
+                                wrapperStyles={reportPreviewStyles.transactionPreviewStyle}
+                                onPreviewPressed={() => {}}
+                                isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                            />
+                        </View>
                     );
                 } else {
                     children = emptyHTML;

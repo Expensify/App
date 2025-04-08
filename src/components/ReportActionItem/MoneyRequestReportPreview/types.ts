@@ -46,9 +46,6 @@ type MoneyRequestReportPreviewProps = {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 
-    /** Whether the preview is inside Self-DM chat */
-    isSelfDM?: boolean;
-
     /** Whether it is an invoice preview */
     isInvoice?: boolean;
 };
