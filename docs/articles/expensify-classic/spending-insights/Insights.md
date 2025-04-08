@@ -12,9 +12,9 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 ## Review Your Insights Data
 
-1. Navigate to your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) in the left-hand menu.
-2. Select a date range (default is the current month).
-3. Apply filters for categories, tags, employees, or other parameters.
+1. Open your [Insights page](https://www.expensify.com/expenses?param={"fromInsightsTab":true,"viewMode":"charts"}) from the left-hand menu.
+2. Choose a date range (default is the current month).
+3. Apply filters to narrow down data by categories, tags, employees, or other criteria.
 4. Click **View Raw Data** to see a detailed dataset.
 
 ---
@@ -23,7 +23,7 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 1. Click **View Raw Data** next to the dataset you want to export.
 2. Select individual expenses or use the **Select All** checkbox.
-3. Click **Export To** in the top-right corner to download the data as a CSV file.
+3. Click **Export To** in the top-right corner, then choose CSV to download the file.
 
 ---
 
@@ -38,7 +38,8 @@ The Insights dashboard in Expensify provides a real-time overview of company spe
 
 1. Navigate to **Settings > Workspaces > Group > [Workspace Name] > Export Formats**.
 2. Build a report using these [report-level formulas](https://help.expensify.com/articles/expensify-classic/spending-insights/Custom-Templates#report-level).
-3. Need help? Click **Support** to contact Concierge or your Account Manager.
+
+If you need help creating a custom export report, click **Support** to contact the Concierge or your Account Manager.
 
 ---
 
@@ -65,7 +66,7 @@ Yes! We offer [seven default reports](https://help.expensify.com/articles/expens
 - **Per Diem Export**: Exports Per Diem details.
 - **Tag Export**: Similar to Category Export, but for Tags.
 
-*Note: These reports will be emailed to you rather than automatically downloaded.*
+**Note:** These reports will be emailed to you rather than automatically downloaded.
 
 ## How many expenses can I export in one report?
 
@@ -74,8 +75,7 @@ Yes! We offer [seven default reports](https://help.expensify.com/articles/expens
 
 ## What types of custom reports can my Account Manager help create?
 
-We offer various custom reports, including:
-
+**We offer various custom reports, including:**
 - Accrual Reports
 - Aged Approval Reports
 - Audit Reports
@@ -85,4 +85,4 @@ We offer various custom reports, including:
 - Invoice Reconciliation Reports
 - Vendor Spend Analysis
 
-Need something specific? Contact your Account Manager for assistance!
+Looking for a custom report? Reach out to your Account Manager for assistance! 

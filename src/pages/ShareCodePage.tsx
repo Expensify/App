@@ -20,10 +20,20 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    getChatRoomSubtitle,
+    getDefaultWorkspaceAvatar,
+    getDisplayNameForParticipant,
+    getParentNavigationSubtitle,
+    getParticipantsAccountIDsForDisplay,
+    getPolicyName,
+    getReportName,
+    isExpenseReport,
+    isMoneyRequestReport,
+} from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import * as Url from '@libs/Url';
-import * as UserUtils from '@libs/UserUtils';
+import {addTrailingForwardSlash} from '@libs/Url';
+import {getAvatarUrl} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy, Report} from '@src/types/onyx';
@@ -68,29 +78,29 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const subtitle = useMemo(() => {
         if (isReport) {
-            if (ReportUtils.isExpenseReport(report)) {
-                return ReportUtils.getPolicyName({report});
+            if (isExpenseReport(report)) {
+                return getPolicyName({report});
             }
-            if (ReportUtils.isMoneyRequestReport(report)) {
+            if (isMoneyRequestReport(report)) {
                 // generate subtitle from participants
-                return ReportUtils.getParticipantsAccountIDsForDisplay(report, true)
-                    .map((accountID) => ReportUtils.getDisplayNameForParticipant({accountID}))
+                return getParticipantsAccountIDsForDisplay(report, true)
+                    .map((accountID) => getDisplayNameForParticipant({accountID}))
                     .join(' & ');
             }
 
-            return ReportUtils.getParentNavigationSubtitle(report).workspaceName ?? ReportUtils.getChatRoomSubtitle(report);
+            return getParentNavigationSubtitle(report).workspaceName ?? getChatRoomSubtitle(report);
         }
 
         return currentUserPersonalDetails.login;
     }, [report, currentUserPersonalDetails, isReport]);
 
-    const title = isReport ? ReportUtils.getReportName(report) : currentUserPersonalDetails.displayName ?? '';
-    const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
+    const title = isReport ? getReportName(report) : currentUserPersonalDetails.displayName ?? '';
+    const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
-        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? -1)}`;
+        : `${urlWithTrailingSlash}${ROUTES.PROFILE.getRoute(currentUserPersonalDetails.accountID ?? CONST.DEFAULT_NUMBER_ID)}`;
 
-    const logo = isReport ? getLogoForWorkspace(report, policy) : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
+    const logo = isReport ? getLogoForWorkspace(report, policy) : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType);
 
     // Default logos (avatars) are SVG and they require some special logic to display correctly
     let svgLogo: React.FC<SvgProps> | undefined;
@@ -98,7 +108,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
     let svgLogoFillColor: string | undefined;
 
     if (!logo && policy && !policy.avatarURL) {
-        svgLogo = ReportUtils.getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
+        svgLogo = getDefaultWorkspaceAvatar(policy.name) || Expensicons.FallbackAvatar;
 
         const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policy.id);
         logoBackgroundColor = defaultWorkspaceAvatarColors.backgroundColor?.toString();
@@ -119,7 +129,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         url={url}
                         title={title}
                         subtitle={subtitle}
-                        logo={isReport ? expensifyLogo : (UserUtils.getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
+                        logo={isReport ? expensifyLogo : (getAvatarUrl(currentUserPersonalDetails?.avatar, currentUserPersonalDetails?.accountID) as ImageSourcePropType)}
                         logoRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_SIZE_RATIO : CONST.QR.DEFAULT_LOGO_SIZE_RATIO}
                         logoMarginRatio={isReport ? CONST.QR.EXPENSIFY_LOGO_MARGIN_RATIO : CONST.QR.DEFAULT_LOGO_MARGIN_RATIO}
                         svgLogo={svgLogo}
@@ -152,7 +162,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                     )}
 
                     <MenuItem
-                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText1`)}
+                        title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={Expensicons.Cash}
                         onPress={() => Navigation.navigate(ROUTES.REFERRAL_DETAILS_MODAL.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE, Navigation.getActiveRoute()))}
                         shouldShowRightIcon

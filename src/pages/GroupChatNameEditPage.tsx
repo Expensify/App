@@ -12,8 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {NewChatNavigatorParamList} from '@libs/Navigation/types';
-import {getGroupChatName} from '@libs/ReportUtils';
-import {isValidReportName} from '@libs/ValidationUtils';
+import {getGroupChatDraft, getGroupChatName} from '@libs/ReportUtils';
 import {setGroupDraft, updateChatName} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -32,7 +31,7 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     // In this case its better to use empty string as the reportID if there is no reportID
     const reportID = report?.reportID;
     const isUpdatingExistingReport = !!reportID;
-    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT);
+    const [groupChatDraft] = useOnyx(ONYXKEYS.NEW_GROUP_CHAT_DRAFT, {initialValue: getGroupChatDraft()});
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -45,8 +44,11 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_CHAT_NAME_FORM>): Errors => {
             const errors: Errors = {};
-            if (!isValidReportName(values[INPUT_IDS.NEW_CHAT_NAME] ?? '')) {
-                errors.newChatName = translate('common.error.characterLimit', {limit: CONST.REPORT_NAME_LIMIT});
+            const name = values[INPUT_IDS.NEW_CHAT_NAME] ?? '';
+            // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
+            const nameLength = [...name.trim()].length;
+            if (nameLength > CONST.REPORT_NAME_LIMIT) {
+                errors.newChatName = translate('common.error.characterLimitExceedCounter', {length: nameLength, limit: CONST.REPORT_NAME_LIMIT});
             }
 
             return errors;
@@ -89,10 +91,10 @@ function GroupChatNameEditPage({report}: GroupChatNameEditPageProps) {
                 validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <InputWrapper
                     InputComponent={TextInput}
-                    maxLength={CONST.REPORT_NAME_LIMIT}
                     defaultValue={currentChatName}
                     label={translate('common.name')}
                     accessibilityLabel={translate('common.name')}

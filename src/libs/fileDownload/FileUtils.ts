@@ -1,13 +1,15 @@
 import {Str} from 'expensify-common';
 import {Alert, Linking, Platform} from 'react-native';
 import ImageSize from 'react-native-image-size';
+import type {TupleToUnion} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import DateUtils from '@libs/DateUtils';
 import getPlatform from '@libs/getPlatform';
-import * as Localize from '@libs/Localize';
+import {translateLocal} from '@libs/Localize';
 import Log from '@libs/Log';
 import saveLastRoute from '@libs/saveLastRoute';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import getImageManipulator from './getImageManipulator';
 import getImageResolution from './getImageResolution';
 import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
@@ -18,13 +20,13 @@ import type {ReadFileAsync, SplitExtensionFromFileName} from './types';
  */
 function showSuccessAlert(successMessage?: string) {
     Alert.alert(
-        Localize.translateLocal('fileDownload.success.title'),
+        translateLocal('fileDownload.success.title'),
         // successMessage can be an empty string and we want to default to `Localize.translateLocal('fileDownload.success.message')`
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        successMessage || Localize.translateLocal('fileDownload.success.message'),
+        successMessage || translateLocal('fileDownload.success.message'),
         [
             {
-                text: Localize.translateLocal('common.ok'),
+                text: translateLocal('common.ok'),
                 style: 'cancel',
             },
         ],
@@ -36,9 +38,9 @@ function showSuccessAlert(successMessage?: string) {
  * Show alert on attachment download error
  */
 function showGeneralErrorAlert() {
-    Alert.alert(Localize.translateLocal('fileDownload.generalError.title'), Localize.translateLocal('fileDownload.generalError.message'), [
+    Alert.alert(translateLocal('fileDownload.generalError.title'), translateLocal('fileDownload.generalError.message'), [
         {
-            text: Localize.translateLocal('common.cancel'),
+            text: translateLocal('common.cancel'),
             style: 'cancel',
         },
     ]);
@@ -48,13 +50,13 @@ function showGeneralErrorAlert() {
  * Show alert on attachment download permissions error
  */
 function showPermissionErrorAlert() {
-    Alert.alert(Localize.translateLocal('fileDownload.permissionError.title'), Localize.translateLocal('fileDownload.permissionError.message'), [
+    Alert.alert(translateLocal('fileDownload.permissionError.title'), translateLocal('fileDownload.permissionError.message'), [
         {
-            text: Localize.translateLocal('common.cancel'),
+            text: translateLocal('common.cancel'),
             style: 'cancel',
         },
         {
-            text: Localize.translateLocal('common.settings'),
+            text: translateLocal('common.settings'),
             onPress: () => {
                 Linking.openSettings();
             },
@@ -67,15 +69,15 @@ function showPermissionErrorAlert() {
  */
 function showCameraPermissionsAlert() {
     Alert.alert(
-        Localize.translateLocal('attachmentPicker.cameraPermissionRequired'),
-        Localize.translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
+        translateLocal('attachmentPicker.cameraPermissionRequired'),
+        translateLocal('attachmentPicker.expensifyDoesntHaveAccessToCamera'),
         [
             {
-                text: Localize.translateLocal('common.cancel'),
+                text: translateLocal('common.cancel'),
                 style: 'cancel',
             },
             {
-                text: Localize.translateLocal('common.settings'),
+                text: translateLocal('common.settings'),
                 onPress: () => {
                     Linking.openSettings();
                     // In the case of ios, the App reloads when we update camera permission from settings
@@ -346,6 +348,36 @@ const createFile = (file: File): FileObject => {
     });
 };
 
+const validateReceipt = (file: FileObject, setUploadReceiptError: (isInvalid: boolean, title: TranslationPaths, reason: TranslationPaths) => void) => {
+    return validateImageForCorruption(file)
+        .then(() => {
+            const {fileExtension} = splitExtensionFromFileName(file?.name ?? '');
+            if (
+                !CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(
+                    fileExtension.toLowerCase() as TupleToUnion<typeof CONST.API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS>,
+                )
+            ) {
+                setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
+                return false;
+            }
+
+            if (!Str.isImage(file.name ?? '') && (file?.size ?? 0) > CONST.API_ATTACHMENT_VALIDATIONS.RECEIPT_MAX_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooLarge', 'attachmentPicker.sizeExceededWithLimit');
+                return false;
+            }
+
+            if ((file?.size ?? 0) < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setUploadReceiptError(true, 'attachmentPicker.attachmentTooSmall', 'attachmentPicker.sizeNotMet');
+                return false;
+            }
+            return true;
+        })
+        .catch(() => {
+            setUploadReceiptError(true, 'attachmentPicker.attachmentError', 'attachmentPicker.errorWhileSelectingCorruptedAttachment');
+            return false;
+        });
+};
+
 export {
     showGeneralErrorAlert,
     showSuccessAlert,
@@ -367,4 +399,5 @@ export {
     getImageDimensionsAfterResize,
     resizeImageIfNeeded,
     createFile,
+    validateReceipt,
 };

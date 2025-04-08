@@ -1,13 +1,13 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {shouldShowBrokenConnectionViolation} from '@libs/TransactionUtils';
+import {shouldShowBrokenConnectionViolation, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
-import type {Policy, Transaction, TransactionViolation} from '../../src/types/onyx';
+import type {Policy, Transaction} from '../../src/types/onyx';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collections/policies';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
     const reportID = '1';
@@ -335,47 +335,17 @@ describe('TransactionUtils', () => {
     });
 
     describe('shouldShowBrokenConnectionViolation', () => {
-        it('should return false when the provided transaction is undefined', () => {
-            const transaction = undefined;
-            const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, undefined, undefined, transactionViolations);
-
-            expect(showBrokenConnectionViolation).toBe(false);
-        });
-
-        it('should throw an error when both transactionIDs and transactionViolations are arrays', () => {
-            const transactionIDs = ['FAKE_1', 'FAKE_2'];
-            const transactionViolations: TransactionViolation[] = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER}];
-
-            expect(() => {
-                shouldShowBrokenConnectionViolation(transactionIDs, undefined, undefined, transactionViolations);
-            }).toThrow('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
-        });
-
-        it('should throw an error when only one transaction is provided and transactionViolations are not an array', () => {
-            const transaction = generateTransaction();
-            const transactionViolations: OnyxCollection<TransactionViolation[]> = {
-                violationID: [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER}],
-            };
-
-            expect(() => {
-                shouldShowBrokenConnectionViolation(transaction, undefined, undefined, transactionViolations);
-            }).toThrow('Invalid argument combination. If a single transaction is passed in, then an array of violations for that transaction is expected');
-        });
-
         it('should return false when no broken connection violations are found for the provided transaction', () => {
-            const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, undefined, undefined, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, undefined, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
         });
 
         it('should return true when a broken connection violation exists for one transaction and the user is the policy member', () => {
             const policy = {role: CONST.POLICY.ROLE.USER} as Policy;
-            const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(undefined, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -394,7 +364,7 @@ describe('TransactionUtils', () => {
                     },
                 ],
             };
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transactionIDs, undefined, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, undefined, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -402,9 +372,8 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists and the user is the policy admin and the expense submitter', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
             const report = processingReport;
-            const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -412,9 +381,8 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists, the user is the policy admin and the expense report is in the open state', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
             const report = secondUserOpenReport;
-            const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -422,9 +390,8 @@ describe('TransactionUtils', () => {
         it('should return true when a broken connection violation exists, the user is the policy admin, the expense report is in the processing state and instant submit is enabled', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN, autoReporting: true, autoReportingFrequency: CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT} as Policy;
             const report = processingReport;
-            const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(true);
         });
@@ -432,11 +399,89 @@ describe('TransactionUtils', () => {
         it('should return false when a broken connection violation exists, the user is the policy admin but the expense report is in the approved state', () => {
             const policy = {role: CONST.POLICY.ROLE.ADMIN} as Policy;
             const report = approvedReport;
-            const transaction = generateTransaction();
             const transactionViolations = [{type: CONST.VIOLATION_TYPES.VIOLATION, name: CONST.VIOLATIONS.RTER, data: {rterType: CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION}}];
-            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(transaction, report, policy, transactionViolations);
+            const showBrokenConnectionViolation = shouldShowBrokenConnectionViolation(report, policy, transactionViolations);
 
             expect(showBrokenConnectionViolation).toBe(false);
+        });
+    });
+
+    describe('getMerchant', () => {
+        it('should return merchant if transaction has merchant', () => {
+            const transaction = generateTransaction({
+                merchant: 'Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Merchant');
+        });
+
+        it('should return (none) if transaction has no merchant', () => {
+            const transaction = generateTransaction();
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('(none)');
+        });
+
+        it('should return modified merchant if transaction has modified merchant', () => {
+            const transaction = generateTransaction({
+                modifiedMerchant: 'Modified Merchant',
+                merchant: 'Original Merchant',
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Modified Merchant');
+        });
+
+        it('should return distance merchant if transaction is distance expense and pending create', () => {
+            const transaction = generateTransaction({
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            });
+            const merchant = TransactionUtils.getMerchant(transaction);
+            expect(merchant).toBe('Pending...');
+        });
+
+        it('should return distance merchant if transaction is created distance expense', () => {
+            return waitForBatchedUpdates()
+                .then(async () => {
+                    const fakePolicy: Policy = {
+                        ...createRandomPolicy(0),
+                        customUnits: {
+                            Unit1: {
+                                customUnitID: 'Unit1',
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                rates: {
+                                    Rate1: {
+                                        customUnitRateID: 'Rate1',
+                                        currency: CONST.CURRENCY.USD,
+                                        rate: 100,
+                                    },
+                                },
+                                enabled: true,
+                                attributes: {
+                                    unit: 'mi',
+                                },
+                            },
+                        },
+                        outputCurrency: CONST.CURRENCY.USD,
+                    };
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_OPEN_REPORT_ID}`, {policyID: fakePolicy.id});
+                })
+                .then(() => {
+                    const transaction = generateTransaction({
+                        comment: {
+                            type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                            customUnit: {
+                                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                                customUnitID: 'Unit1',
+                                customUnitRateID: 'Rate1',
+                                quantity: 100,
+                                distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                            },
+                        },
+                        reportID: FAKE_OPEN_REPORT_ID,
+                    });
+                    const merchant = TransactionUtils.getMerchant(transaction);
+                    expect(merchant).toBe('100.00 mi @ USD 1.00 / mi');
+                });
         });
     });
 });

@@ -400,11 +400,11 @@ function BaseTextInput(
                                 </View>
                             )}
                             {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
-                            {!!inputProps.isLoading && (
+                            {inputProps.isLoading !== undefined && (
                                 <ActivityIndicator
                                     size="small"
                                     color={theme.iconSuccessFill}
-                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle]}
+                                    style={[styles.mt4, styles.ml1, loadingSpinnerStyle, StyleUtils.getOpacityStyle(inputProps.isLoading ? 1 : 0)]}
                                 />
                             )}
                             {!!inputProps.secureTextEntry && (
@@ -480,7 +480,8 @@ function BaseTextInput(
                         if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
                             return;
                         }
-                        setTextInputWidth(e.nativeEvent.layout.width);
+                        // Add +2 to width so that cursor is not cut off / covered at the end of text content
+                        setTextInputWidth(e.nativeEvent.layout.width + 2);
                         setTextInputHeight(e.nativeEvent.layout.height);
                     }}
                 >

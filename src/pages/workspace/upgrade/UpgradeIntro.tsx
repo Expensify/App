@@ -20,6 +20,7 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import GenericFeaturesView from './GenericFeaturesView';
 
 type Props = {
@@ -29,9 +30,10 @@ type Props = {
     onUpgrade: () => void;
     isCategorizing?: boolean;
     policyID?: string;
+    backTo?: Route;
 };
 
-function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID}: Props) {
+function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, policyID, backTo}: Props) {
     const styles = useThemeStyles();
     const {isExtraSmallScreenWidth} = useResponsiveLayout();
     const {translate} = useLocalize();
@@ -62,6 +64,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
                 formattedPrice={formattedPrice}
                 loading={loading}
                 policyID={policyID}
+                backTo={backTo}
             />
         );
     }

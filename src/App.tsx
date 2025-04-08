@@ -12,11 +12,13 @@ import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackgro
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
+import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
 import KeyboardProvider from './components/KeyboardProvider';
 import {LocaleContextProvider} from './components/LocaleContextProvider';
+import NavigationBar from './components/NavigationBar';
 import OnyxProvider from './components/OnyxProvider';
 import PopoverContextProvider from './components/PopoverProvider';
 import {ProductTrainingContextProvider} from './components/ProductTrainingContext';
@@ -42,10 +44,17 @@ import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
-/** Values passed to our top-level React Native component by HybridApp. Will always be undefined in "pure" NewDot builds. */
+/**
+ * Properties passed to the top-level React Native component by HybridApp.
+ * These will always be `undefined` in "pure" NewDot builds.
+ */
 type AppProps = {
-    /** URL containing all necessary data to run React Native app (e.g. login data) */
+    /** The URL specifying the initial navigation destination when the app opens */
     url?: Route;
+    /** Serialized configuration data required to initialize the React Native app (e.g. authentication details) */
+    hybridAppSettings?: string;
+    /** A timestamp indicating when the initial properties were last updated, used to detect changes */
+    timestamp?: string;
 };
 
 LogBox.ignoreLogs([
@@ -61,14 +70,18 @@ const fill = {flex: 1};
 
 const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode : ({children}: {children: React.ReactElement}) => children;
 
-function App({url}: AppProps) {
+function App({url, hybridAppSettings, timestamp}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
 
     return (
         <StrictModeWrapper>
             <SplashScreenStateContextProvider>
-                <InitialURLContextProvider url={url}>
+                <InitialURLContextProvider
+                    url={url}
+                    hybridAppSettings={hybridAppSettings}
+                    timestamp={timestamp}
+                >
                     <GestureHandlerRootView style={fill}>
                         <ComposeProviders
                             components={[
@@ -99,6 +112,7 @@ function App({url}: AppProps) {
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,
                                 FullScreenBlockingViewContextProvider,
+                                FullScreenLoaderContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />
@@ -107,6 +121,7 @@ function App({url}: AppProps) {
                                     <Expensify />
                                 </ColorSchemeWrapper>
                             </ErrorBoundary>
+                            <NavigationBar />
                         </ComposeProviders>
                     </GestureHandlerRootView>
                 </InitialURLContextProvider>
@@ -118,3 +133,5 @@ function App({url}: AppProps) {
 App.displayName = 'App';
 
 export default App;
+
+export type {AppProps};

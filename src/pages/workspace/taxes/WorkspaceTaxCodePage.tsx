@@ -26,7 +26,7 @@ type WorkspaceTaxCodePageProps = PlatformStackScreenProps<SettingsNavigatorParam
 function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const currentTaxCode = route.params.taxID;
 
     const policy = usePolicy(policyID);
@@ -84,6 +84,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -93,7 +94,6 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                             label={translate('workspace.taxes.taxCode')}
                             accessibilityLabel={translate('workspace.taxes.taxCode')}
                             defaultValue={currentTaxCode}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             ref={inputCallbackRef}
                         />
                     </View>

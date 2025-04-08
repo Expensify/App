@@ -121,7 +121,7 @@ function openSidebar() {
 // Function to adapt & fix cropped SVG viewBox from Google based on viewport (Mobile or Tablet-Desktop)
 function changeSVGViewBoxGoogle() {
     // Get all inline Google SVG elements on the page
-    const svgsGoogle = document.querySelectorAll('svg');
+    const svgsGoogle = document.querySelectorAll('svg:([data-source])');
 
     Array.from(svgsGoogle).forEach((svg) => {
         // Set the viewBox attribute to '0 0 13 13' to make the svg fit in the mobile view
@@ -347,5 +347,27 @@ window.addEventListener('DOMContentLoaded', () => {
 
         // Count property of y-axis to keep scroll position & reference it later for making the body fixed when sidebar opened
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
+    });
+});
+
+if (window.location.hash) {
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    const element = document.getElementById(lowerCaseHash.slice(1));
+
+    if (element) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+        });
+    }
+}
+
+// Handle hash changes (like back/forward navigation)
+window.addEventListener('hashchange', () => {
+    if (!window.location.hash) {
+        return;
+    }
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    document.getElementById(lowerCaseHash.slice(1))?.scrollIntoView({
+        behavior: 'smooth',
     });
 });

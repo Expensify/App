@@ -90,6 +90,7 @@ describe('SidebarUtils', () => {
                 policy,
                 parentReportAction,
                 hasViolations: false,
+                oneTransactionThreadReport: undefined,
             }),
         );
     });

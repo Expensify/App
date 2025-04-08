@@ -47,6 +47,7 @@ function Composer(
             end: 0,
         },
         isComposerFullSize = false,
+        onContentSizeChange,
         shouldContainScroll = true,
         isGroupPolicyReport = false,
         ...props
@@ -362,6 +363,7 @@ function Composer(
             onSelectionChange={addCursorPositionToSelectionChange}
             onContentSizeChange={(e) => {
                 setPrevHeight(e.nativeEvent.contentSize.height);
+                onContentSizeChange?.(e);
             }}
             disabled={isDisabled}
             onKeyPress={handleKeyPress}

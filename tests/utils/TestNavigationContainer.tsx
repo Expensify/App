@@ -4,7 +4,8 @@ import React from 'react';
 import createRootStackNavigator from '@libs/Navigation/AppNavigator/createRootStackNavigator';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {AuthScreensParamList, ReportsSplitNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {AuthScreensParamList, ReportsSplitNavigatorParamList, SearchFullscreenNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import createPlatformStackNavigator from '@navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
@@ -12,6 +13,9 @@ import SCREENS from '@src/SCREENS';
 const RootStack = createRootStackNavigator<AuthScreensParamList>();
 const ReportsSplit = createSplitNavigator<ReportsSplitNavigatorParamList>();
 const SettingsSplit = createSplitNavigator<SettingsSplitNavigatorParamList>();
+const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
+
+const getEmptyComponent = () => jest.fn();
 
 type TestNavigationContainerProps = {initialState: InitialState};
 
@@ -24,11 +28,11 @@ function TestReportsSplitNavigator() {
         >
             <ReportsSplit.Screen
                 name={SCREENS.HOME}
-                getComponent={() => jest.fn()}
+                getComponent={getEmptyComponent}
             />
             <ReportsSplit.Screen
                 name={SCREENS.REPORT}
-                getComponent={() => jest.fn()}
+                getComponent={getEmptyComponent}
             />
         </ReportsSplit.Navigator>
     );
@@ -43,21 +47,36 @@ function TestSettingsSplitNavigator() {
         >
             <SettingsSplit.Screen
                 name={SCREENS.SETTINGS.ROOT}
-                getComponent={() => jest.fn()}
+                getComponent={getEmptyComponent}
             />
             <SettingsSplit.Screen
                 name={SCREENS.SETTINGS.PROFILE.ROOT}
-                getComponent={() => jest.fn()}
+                getComponent={getEmptyComponent}
             />
             <SettingsSplit.Screen
                 name={SCREENS.SETTINGS.PREFERENCES.ROOT}
-                getComponent={() => jest.fn()}
+                getComponent={getEmptyComponent}
             />
             <SettingsSplit.Screen
                 name={SCREENS.SETTINGS.ABOUT}
-                getComponent={() => jest.fn()}
+                getComponent={getEmptyComponent}
             />
         </SettingsSplit.Navigator>
+    );
+}
+
+function TestSearchFullscreenNavigator() {
+    return (
+        <SearchStack.Navigator defaultCentralScreen={SCREENS.SEARCH.ROOT}>
+            <SearchStack.Screen
+                name={SCREENS.SEARCH.ROOT}
+                getComponent={getEmptyComponent()}
+            />
+            <SearchStack.Screen
+                name={SCREENS.SEARCH.MONEY_REQUEST_REPORT}
+                getComponent={getEmptyComponent()}
+            />
+        </SearchStack.Navigator>
     );
 }
 
@@ -77,8 +96,8 @@ function TestNavigationContainer({initialState}: TestNavigationContainerProps) {
                     component={TestSettingsSplitNavigator}
                 />
                 <RootStack.Screen
-                    name={SCREENS.SEARCH.ROOT}
-                    getComponent={() => jest.fn()}
+                    name={NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR}
+                    component={TestSearchFullscreenNavigator}
                 />
             </RootStack.Navigator>
         </NavigationContainer>

@@ -43,8 +43,8 @@ const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialPara
 };
 
 describe('WorkspaceTags', () => {
-    const FIRST_TAG = 'tagOne';
-    const SECOND_TAG = 'tagTwo';
+    const FIRST_TAG = 'Tag One';
+    const SECOND_TAG = 'Tag Two';
 
     beforeAll(() => {
         Onyx.init({
@@ -54,8 +54,8 @@ describe('WorkspaceTags', () => {
 
     beforeEach(() => {
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
+            isSmallScreenWidth: true,
+            shouldUseNarrowLayout: true,
         } as ResponsiveLayoutResult);
     });
 
@@ -66,7 +66,7 @@ describe('WorkspaceTags', () => {
         jest.clearAllMocks();
     });
 
-    it('should show a blocking modal when trying to disable the only enabled tag when policy has requiresTag set to true', async () => {
+    it('should show select option when the item is not selected and deselect option when the item is selected', async () => {
         await TestHelper.signInWithTestUser();
 
         const policy = {
@@ -105,46 +105,87 @@ describe('WorkspaceTags', () => {
 
         await waitFor(() => {
             expect(screen.getByText(FIRST_TAG)).toBeOnTheScreen();
-        });
-        await waitFor(() => {
             expect(screen.getByText(SECOND_TAG)).toBeOnTheScreen();
         });
 
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${FIRST_TAG}`));
-        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-${SECOND_TAG}`));
+        fireEvent(screen.getByTestId(`base-list-item-${FIRST_TAG}`), 'onLongPress');
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('common.select'))).toBeOnTheScreen();
+        });
+
+        const selectMenuItem = screen.getByText(translateLocal('common.select'));
+        const mockEvent = {nativeEvent: {}, type: 'press', target: selectMenuItem, currentTarget: selectMenuItem};
+        fireEvent.press(selectMenuItem, mockEvent);
+
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent(screen.getByTestId(`base-list-item-${FIRST_TAG}`), 'onLongPress');
+        await waitFor(() => {
+            expect(screen.getByText(translateLocal('common.deselect'))).toBeOnTheScreen();
+        });
+
+        unmount();
+        await waitForBatchedUpdatesWithAct();
+    });
+
+    // 👇 This is your new test case from the feature branch
+    it('should show a blocking modal when trying to disable the only enabled tag when policy has requiresTag set to true', async () => {
+        await TestHelper.signInWithTestUser();
+
+        const policy = {
+            ...LHNTestUtils.getFakePolicy(),
+            role: CONST.POLICY.ROLE.ADMIN,
+            areTagsEnabled: true,
+            requiresTag: true,
+        };
+
+        const tags = {
+            TagListOne: {
+                name: 'TagListOne',
+                required: true,
+                orderWeight: 1,
+                tags: {
+                    ['tagOne']: {
+                        name: 'tagOne',
+                        enabled: true,
+                    },
+                    ['tagTwo']: {
+                        name: 'tagTwo',
+                        enabled: true,
+                    },
+                },
+            },
+        };
+
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy.id}`, tags);
+        });
+
+        const {unmount} = renderPage(SCREENS.WORKSPACE.TAGS, {policyID: policy.id});
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByText('tagOne')).toBeOnTheScreen();
+            expect(screen.getByText('tagTwo')).toBeOnTheScreen();
+        });
+
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-tagOne`));
+        fireEvent.press(screen.getByTestId(`TableListItemCheckbox-tagTwo`));
 
         const dropdownMenuButtonTestID = `${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`;
 
+        fireEvent.press(screen.getByTestId(dropdownMenuButtonTestID));
         await waitFor(() => {
-            expect(screen.getByTestId(dropdownMenuButtonTestID)).toBeOnTheScreen();
-        });
-
-        const dropdownButton = screen.getByTestId(dropdownMenuButtonTestID);
-        fireEvent.press(dropdownButton);
-
-        await waitForBatchedUpdatesWithAct();
-
-        await waitFor(() => {
-            const disableText = translateLocal('workspace.tags.disableTags');
-            expect(screen.getByText(disableText)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('workspace.tags.disableTags'))).toBeOnTheScreen();
         });
 
         const disableMenuItem = screen.getByTestId('PopoverMenuItem-Disable tags');
-        expect(disableMenuItem).toBeOnTheScreen();
-
-        const mockEvent = {
-            nativeEvent: {},
-            type: 'press',
-            target: disableMenuItem,
-            currentTarget: disableMenuItem,
-        };
+        const mockEvent = {nativeEvent: {}, type: 'press', target: disableMenuItem, currentTarget: disableMenuItem};
         fireEvent.press(disableMenuItem, mockEvent);
 
-        await waitForBatchedUpdatesWithAct();
-
         await waitFor(() => {
-            const blockingPrompt = translateLocal('workspace.tags.cannotDisableAllTags.title');
-            expect(screen.getByText(blockingPrompt)).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('workspace.tags.cannotDisableAllTags.title'))).toBeOnTheScreen();
         });
 
         unmount();

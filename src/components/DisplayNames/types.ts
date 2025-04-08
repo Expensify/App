@@ -40,6 +40,9 @@ type DisplayNamesProps = {
     /** If the full title needs to be displayed */
     shouldUseFullTitle?: boolean;
 
+    /** If we should add an ellipsis after the participants list */
+    shouldAddEllipsis?: boolean;
+
     /** Additional Text component to render after the displayNames */
     renderAdditionalText?: () => React.ReactNode;
 };
