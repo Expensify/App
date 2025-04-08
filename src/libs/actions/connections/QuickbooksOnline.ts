@@ -1,7 +1,7 @@
 import type {CONST as COMMON_CONST} from 'expensify-common';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
