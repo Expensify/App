@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -28,9 +29,12 @@ type SubscriptionPlanCardActionButtonProps = {
 
     /** Closes comparison modal */
     closeComparisonModal?: () => void;
+
+    /** Additional style props */
+    style?: StyleProp<ViewStyle>;
 };
 
-function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal}: SubscriptionPlanCardActionButtonProps) {
+function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal, style}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const isNewSubscription = useIsNewSubscription();
@@ -61,8 +65,10 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     };
 
     const currentPlanLabel = (
-        <View style={[styles.button, styles.buttonContainer, styles.outlinedButton, styles.mh5]}>
-            <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
+        <View style={style}>
+            <View style={[styles.button, styles.buttonContainer, styles.outlinedButton]}>
+                <Text style={styles.textLabelSupporting}>{translate('subscription.yourPlan.thisIsYourCurrentPlan')}</Text>
+            </View>
         </View>
     );
 
@@ -74,7 +80,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             return (
                 <Button
                     text={translate('subscription.yourPlan.downgrade')}
-                    style={styles.ph5}
+                    style={style}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
                 />
             );
@@ -92,7 +98,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             return (
                 <Button
                     success
-                    style={styles.ph5}
+                    style={style}
                     text={translate('subscription.yourPlan.upgrade')}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
                 />
@@ -108,6 +114,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     return (
         <MenuItemWithTopDescription
             description={translate('subscription.subscriptionSettings.title')}
+            style={style}
             shouldShowRightIcon
             onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
             numberOfLinesTitle={3}

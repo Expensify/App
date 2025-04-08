@@ -42,8 +42,17 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 
     return (
-        <View style={[styles.borderedContentCard, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
-            <View style={styles.p5}>
+        <View
+            style={[
+                styles.borderedContentCard,
+                shouldUseNarrowLayout ? styles.borderRadiusComponentLarge : undefined,
+                styles.mt5,
+                styles.flex1,
+                isSelected && styles.borderColorFocus,
+                styles.justifyContentBetween,
+            ]}
+        >
+            <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
                         src={src}
@@ -62,13 +71,14 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                 <Text style={[styles.textLabelSupporting, styles.textSmall]}>{note}</Text>
                 <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>
                 <FlatList
-                    key={shouldUseNarrowLayout ? 1 : 2}
+                    key={benefitsColumns}
                     data={benefits}
+                    style={!shouldUseNarrowLayout ? styles.mt1 : null}
                     scrollEnabled={false}
                     keyExtractor={(item) => item}
                     numColumns={benefitsColumns}
                     renderItem={({item}) => (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.mt3]}>
+                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, shouldUseNarrowLayout ? styles.mt3 : styles.mt4]}>
                             <Icon
                                 src={Expensicons.Checkmark}
                                 fill={theme.iconSuccessFill}
@@ -80,11 +90,12 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                     )}
                 />
             </View>
-            <View style={styles.pb5}>
+            <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
                 <SubscriptionPlanCardActionButton
                     subscriptionPlan={subscriptionPlan}
                     isFromComparisonModal={isFromComparisonModal}
                     isSelected={isSelected}
+                    style={shouldUseNarrowLayout ? styles.ph5 : styles.ph8}
                     closeComparisonModal={closeComparisonModal}
                 />
             </View>

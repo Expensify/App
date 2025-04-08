@@ -24,6 +24,7 @@ function SubscriptionPlan() {
             <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter]}>
                 <Text style={[styles.textHeadline, styles.cardSectionTitle, styles.textStrong]}>{translate('subscription.yourPlan.title')}</Text>
                 <Button
+                    small
                     text={translate('subscription.yourPlan.exploreAllPlans')}
                     onPress={() => setIsModalVisible(true)}
                 />

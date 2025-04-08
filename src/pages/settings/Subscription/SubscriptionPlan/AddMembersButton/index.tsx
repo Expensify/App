@@ -16,7 +16,7 @@ function AddMembersButton() {
     return (
         <Button
             text={translate('subscription.yourPlan.addMembers')}
-            style={styles.ph5}
+            style={styles.ph8}
             icon={Expensicons.UserPlus}
             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(activePolicyID))}
         />
