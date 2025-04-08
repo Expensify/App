@@ -48,7 +48,7 @@ Global reimbursement allows companies to send payments to employees in different
 | **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 weeks post-verification | None                | Yes              |
 | **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ 1-2 weeks post-verification | <br>🇮🇹 **Italy:** Requires Tax ID<br>🇪🇸 **Spain:** No driver's license as ID | Yes              |
 | **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 business days post-verification | None              | Yes              |
-| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, memorandum & articles (M&A), certified ID copies | ⏳ ~3 weeks post-verification | <br>💡Pre-funding recommended | No               |
+| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, memorandum & articles (M&A), certified ID copies | ⏳ ~3 weeks post-verification | <br>💡Pre-funding recommended | Yes               |
 
 
 ---
