@@ -1,5 +1,5 @@
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 // Importing from the react-native-gesture-handler package instead of the `components/ScrollView` to fix scroll issue:
 // https://github.com/react-native-modal/react-native-modal/issues/236
 import {ScrollView} from 'react-native-gesture-handler';
@@ -30,9 +30,11 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
+    const [expandedIndex, setExpendedIndex] = useState(0);
 
     const {params, routeName} = useRootNavigationState(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
+        setExpendedIndex(0);
 
         return {
             routeName: (focusedRoute?.name ?? '') as Screen,
@@ -93,7 +95,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
                 style={[styles.ph5, styles.pb5]}
                 userSelect="auto"
             >
-                {getHelpContent(styles, route, isProduction)}
+                {getHelpContent(styles, route, isProduction, expandedIndex, setExpendedIndex)}
             </ScrollView>
         </>
     );

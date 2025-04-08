@@ -4,10 +4,11 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
 import HelpDiagnosticData from './HelpComponents/HelpDiagnosticData';
+import HelpExpandable from './HelpComponents/HelpExpandable';
 import type {ContentComponent} from './HelpContent/helpContentMap';
 import helpContentMap from './HelpContent/helpContentMap';
 
-function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean): ReactNode {
+function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean, expandedIndex: number, setExpendedIndex: (idx: number) => void): ReactNode {
     const routeParts = route.split('/');
     const helpContentComponents: ContentComponent[] = [];
     let activeHelpContent = helpContentMap;
@@ -27,15 +28,24 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
         }
     }
 
-    const content = helpContentComponents.reverse().map((HelpContentNode, index) => {
-        return (
-            // eslint-disable-next-line react/no-array-index-key
-            <React.Fragment key={`help-content-${index}`}>
-                <HelpContentNode styles={styles} />
-                {index < helpContentComponents.length - 1 && <View style={[styles.sectionDividerLine, styles.mv5]} />}
-            </React.Fragment>
-        );
-    });
+    const content = helpContentComponents
+        .reverse()
+        .slice(0, expandedIndex + 2)
+        .map((HelpContentNode, index) => {
+            return (
+                // eslint-disable-next-line react/no-array-index-key
+                <React.Fragment key={`help-content-${index}`}>
+                    {index > 0 && <View style={[styles.sectionDividerLine, styles.mv5]} />}
+                    <HelpExpandable
+                        styles={styles}
+                        isExpanded={index <= expandedIndex}
+                        setIsExpanded={() => setExpendedIndex(index)}
+                    >
+                        <HelpContentNode styles={styles} />
+                    </HelpExpandable>
+                </React.Fragment>
+            );
+        });
 
     if (isProduction) {
         return content;
