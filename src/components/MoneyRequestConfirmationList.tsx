@@ -737,7 +737,7 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: !!isCreateExpenseFlow,
+                isInteractive: !!isCreateExpenseFlow && !isTestReceipt,
                 shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt,
             }));
             options.push({
@@ -823,7 +823,7 @@ function MoneyRequestConfirmationList({
      * Navigate to the participant step
      */
     const navigateToParticipantPage = () => {
-        if (!isCreateExpenseFlow || isTestReceipt) {
+        if (!isCreateExpenseFlow) {
             return;
         }
 
