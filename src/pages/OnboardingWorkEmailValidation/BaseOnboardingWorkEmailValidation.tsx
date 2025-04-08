@@ -14,7 +14,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import {openOldDotLink} from '@libs/actions/Link';
-import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingShouldValidate} from '@libs/actions/Welcome';
+import {setOnboardingErrorMessage, setOnboardingMergeAccountStepValue, updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
 import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import {MergeIntoAccountAndLogin} from '@userActions/Session';
@@ -84,9 +84,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                 shouldShowBackButton={!onboardingValues?.isMergingAccountBlocked}
                 progressBarPercentage={40}
                 onBackButtonPress={() => {
-                    updateOnboardingShouldValidate(false);
-
-                    Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+                    updateOnboardingValuesAndNavigation(onboardingValues);
                 }}
             />
             {onboardingValues?.isMergingAccountBlocked ? (

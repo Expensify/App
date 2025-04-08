@@ -129,7 +129,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         >
             <HeaderWithBackButton
                 progressBarPercentage={1}
-                onBackButtonPress={Navigation.goBack}
                 shouldShowBackButton={false}
             />
             <FormProvider
