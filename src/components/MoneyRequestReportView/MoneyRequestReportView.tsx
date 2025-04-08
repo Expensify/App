@@ -96,16 +96,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const shouldUseSingleTransactionView = useMemo(
-        () =>
-            reportActions.reduce((acc, action) => {
-                if (action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU) {
-                    return acc + 1;
-                }
-                return acc;
-            }, 0) === 1,
-        [reportActions],
-    );
+    const shouldUseSingleTransactionView = useMemo(() => reportActions.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU).length === 1, [reportActions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
