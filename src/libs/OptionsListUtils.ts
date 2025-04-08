@@ -32,6 +32,7 @@ import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
 import filterArrayByMatch from './filterArrayByMatch';
+import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translate, translateLocal} from './Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from './LoginUtils';
@@ -108,6 +109,7 @@ import {
     isArchivedReport,
     isChatThread,
     isDefaultRoom,
+    isDM,
     isDraftReport,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -115,7 +117,6 @@ import {
     isIOUOwnedByCurrentUser,
     isMoneyRequest,
     isPolicyAdmin,
-    isReportMessageAttachment,
     isUnread,
     isAdminRoom as reportUtilsIsAdminRoom,
     isAnnounceRoom as reportUtilsIsAnnounceRoom,
@@ -554,6 +555,23 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 }
 
 /**
+ * Should show the last actor display name from last actor details.
+ */
+function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null) {
+    if (!lastActorDetails || reportUtilsIsSelfDM(report) || (isDM(report) && lastActorDetails.accountID !== currentUserAccountID)) {
+        return false;
+    }
+
+    const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
+
+    if (!lastActorDisplayName) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
  * Update alternate text for the option when applicable
  */
 function getAlternateText(option: OptionData, {showChatPreviewLine = false, forcePolicyNamePreview = false}: PreviewConfig) {
@@ -697,7 +715,7 @@ function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails
             : undefined;
         const reportPreviewMessage = getReportPreviewMessage(
             !isEmptyObject(iouReport) ? iouReport : null,
-            lastIOUMoneyReportAction,
+            lastIOUMoneyReportAction ?? lastReportAction,
             true,
             reportUtilsIsChatReport(report),
             null,
@@ -872,8 +890,11 @@ function createOption(
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = lastVisibleReportActions[report.reportID];
-        const shouldDisplayLastActorName = lastAction && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU;
-
+        const shouldDisplayLastActorName =
+            lastAction &&
+            lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
+            lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
@@ -2318,6 +2339,7 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     isSelectedManagerMcTest,
+    shouldShowLastActorDisplayName,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

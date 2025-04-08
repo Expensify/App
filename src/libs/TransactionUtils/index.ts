@@ -27,6 +27,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
     isOpenExpenseReport,
@@ -324,7 +325,7 @@ function isMerchantMissing(transaction: OnyxEntry<Transaction>) {
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boolean {
-    // return false;
+    return false;
     // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
     // Keep this disabled for per diem expense
     return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
@@ -638,6 +639,14 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
+    if (transaction && isDistanceRequest(transaction)) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        const policy = getPolicy(report?.policyID);
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+        const {unit, rate} = mileageRate;
+        const distanceInMeters = getDistanceInMeters(transaction, unit);
+        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) => toLocaleDigit(preferredLocale, digit));
+    }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
