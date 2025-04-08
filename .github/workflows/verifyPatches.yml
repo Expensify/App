@@ -10,17 +10,12 @@ on:
       - Mobile-Expensify
 
 jobs:
-  verifyNewDotPatchesAndReactNativeVersionBump:
+  verifyNewDotPatchesAndReactNativeVersion:
     runs-on: ubuntu-latest
-    if: >-
-        contains(github.event.head_commit.modified, 'package.json') || 
-        contains(github.event.head_commit.added, 'patches/react-native+') ||
-        contains(github.event.head_commit.modified, 'patches/react-native+') || 
-        contains(github.event.head_commit.removed, 'patches/react-native+')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Check if NewDot patches or react-native version bump have changed
+      - name: Check if NewDot patches or react-native version have changed
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
           HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
@@ -48,7 +43,6 @@ jobs:
           fi
   verifyHybridAppPatches:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'Mobile-Expensify')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
