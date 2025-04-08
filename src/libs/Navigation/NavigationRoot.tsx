@@ -28,7 +28,8 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
-import {saveSettingsStatePathToSessionStorage} from './helpers/getLastVisitedWorkspace';
+import {saveSettingsTabPathToSessionStorage} from './helpers/getLastVisitedWorkspace';
+import {isSettingsTabScreenName} from './helpers/isNavigatorName';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -73,9 +74,8 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
-
-    if (state.routes.at(-1)?.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || state.routes.at(-1)?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-        saveSettingsStatePathToSessionStorage(currentPath);
+    if (isSettingsTabScreenName(state.routes.at(-1)?.name)) {
+        saveSettingsTabPathToSessionStorage(currentPath);
     }
 
     // Fullstory Page navigation tracking

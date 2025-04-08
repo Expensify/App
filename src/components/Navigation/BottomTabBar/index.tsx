@@ -23,7 +23,7 @@ import {getLastVisitedSettingsPath, getLastVisitedWorkspaceScreen, getSettingsTa
 import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString} from '@libs/SearchQueryUtils';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 import {getChatTabBrickRoad} from '@libs/WorkspacesSettingsUtils';
-import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
+import {isFullScreenName, isSettingsTabScreenName} from '@navigation/helpers/isNavigatorName';
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -135,22 +135,18 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
 
         interceptAnonymousUser(() => {
             const state = getSettingsTabStateFromSessionStorage() ?? rootState;
-            const lastSettingsOrWorkspaceNavigatorRoute = state.routes.findLast(
-                (route) => route.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-            );
+            const lastSettingsOrWorkspaceNavigatorRoute = state.routes.findLast((route) => isSettingsTabScreenName(route.name));
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
             if (!lastSettingsOrWorkspaceNavigatorRoute) {
                 Navigation.navigate(ROUTES.SETTINGS);
                 return;
             }
 
-            // might comment later
             let settingsTabState = lastSettingsOrWorkspaceNavigatorRoute.state;
             if (!settingsTabState && lastSettingsOrWorkspaceNavigatorRoute.key) {
                 settingsTabState = getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key);
             }
 
-            // state = lastSettingsOrWorkspaceNavigatorRoute.state ?? getPreservedNavigatorState(lastSettingsOrWorkspaceNavigatorRoute.key ?? ''); // given so that eslint doesn't throw errors
             // If there is a workspace navigator route, then we should open the workspace initial screen as it should be "remembered".
             if (lastSettingsOrWorkspaceNavigatorRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
                 const params = settingsTabState?.routes.at(0)?.params as WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.INITIAL];
@@ -169,7 +165,8 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                 return;
             }
 
-            // If we have saved path and we don't navigate to workspace screen and we are on widescreen we just navigate to this url
+            // If the path stored in session session storage leads to a settings screen, we just navigate to it on a wide layout.
+            // On a small screen, we want to go to the page containing the bottom tab bar (ROUTES.SETTINGS or ROUTES.SETTINGS_WORKSPACES) when changing tabs
             if (settingsTabState && !shouldUseNarrowLayout) {
                 const lastVisitedSettingsRoute = getLastVisitedSettingsPath(settingsTabState);
                 if (lastVisitedSettingsRoute) {

@@ -57,6 +57,11 @@ type NavigationRoute = NavigationStateRoute | NavigationPartialRoute;
 
 type SplitNavigatorSidebarScreen = keyof typeof SIDEBAR_TO_SPLIT;
 
+type SettingsTabScreenName = {
+    [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
+    [NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR]: WorkspaceSplitNavigatorParamList;
+};
+
 type SplitNavigatorParamList = {
     [NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR]: SettingsSplitNavigatorParamList;
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: ReportsSplitNavigatorParamList;
@@ -1954,7 +1959,9 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
-type WorkspaceScreenName = typeof SCREENS.WORKSPACE;
+type SettingsTabScreen =  keyof SettingsTabScreenName;
+
+type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
@@ -2032,4 +2039,5 @@ export type {
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
     WorkspaceScreenName,
+    SettingsTabScreen,
 };
