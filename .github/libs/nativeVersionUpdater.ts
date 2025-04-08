@@ -7,12 +7,20 @@ import getMinorVersion from 'semver/functions/minor';
 import getPatchVersion from 'semver/functions/patch';
 import getBuildVersion from 'semver/functions/prerelease';
 
-// Filepath constants
+// Filepath constants (root project)
 const ROOT_DIR = path.resolve(__dirname, '../..');
 const BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, './android/app/build.gradle');
 const PLIST_PATH = path.resolve(ROOT_DIR, './ios/NewExpensify/Info.plist');
 const PLIST_PATH_NSE = path.resolve(ROOT_DIR, './ios/NotificationServiceExtension/Info.plist');
 const PLIST_PATH_SHARE = path.resolve(ROOT_DIR, './ios/ShareViewController/Info.plist');
+
+// Filepath constants (submodule)
+const MOBILE_EXPENSIFY_DIR = path.resolve(ROOT_DIR, './Mobile-Expensify');
+const MOBILE_EXPENSIFY_CONFIG_JSON = path.resolve(MOBILE_EXPENSIFY_DIR, './app/config/config.json');
+const MOBILE_EXPENSIFY_ANDROID_MANIFEST = path.resolve(MOBILE_EXPENSIFY_DIR, './Android/AndroidManifest.json');
+const MOBILE_EXPENSIFY_PLIST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, './iOS/Expensify/Expensify-Info.plist');
+const MOBILE_EXPENSIFY_PLIST_PATH_NSE = path.resolve(MOBILE_EXPENSIFY_DIR, './iOS/NotificationServiceExtension/Info.plist');
+const MOBILE_EXPENSIFY_PLIST_PATH_SS = path.resolve(MOBILE_EXPENSIFY_DIR, './iOS/SmartScanExtension/Info.plist');
 
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
