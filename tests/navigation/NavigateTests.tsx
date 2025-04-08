@@ -55,7 +55,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+                Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
             });
 
             // Then push a new page to the current split navigator
