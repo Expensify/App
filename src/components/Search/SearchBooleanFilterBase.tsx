@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -36,11 +36,9 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
     const booleanValues = Object.values(CONST.SEARCH.BOOLEAN);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
-    const initialSelection = useMemo(() => {
+    const selectedItem = useMemo(() => {
         return booleanValues.find((value) => searchAdvancedFiltersForm?.[booleanKey] === value) ?? null;
     }, [booleanKey, searchAdvancedFiltersForm, booleanValues]);
-
-    const [selectedItem, setSelectedItem] = useState<ValueOf<typeof CONST.SEARCH.BOOLEAN> | null>(initialSelection);
 
     const items = useMemo(() => {
         return booleanValues.map((value) => ({
@@ -51,19 +49,15 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
         }));
     }, [selectedItem, translate, booleanValues]);
 
-    const updateFilter = useCallback((selectedFilter: BooleanFilterItem) => {
-        if (selectedFilter.isSelected) {
-            setSelectedItem(null);
-            return;
-        }
+    const updateFilter = useCallback(
+        (selectedFilter: BooleanFilterItem) => {
+            const newValue = selectedFilter.isSelected ? null : selectedFilter.value;
 
-        setSelectedItem(selectedFilter.value);
-    }, []);
-
-    const saveChanges = useCallback(() => {
-        updateAdvancedFilters({[booleanKey]: selectedItem});
-        Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
-    }, [booleanKey, selectedItem]);
+            updateAdvancedFilters({[booleanKey]: newValue});
+            Navigation.goBack(ROUTES.SEARCH_ADVANCED_FILTERS);
+        },
+        [booleanKey],
+    );
 
     return (
         <ScreenWrapper
@@ -81,14 +75,10 @@ function SearchBooleanFilterBase({booleanKey, titleKey}: SearchBooleanFilterBase
             />
             <View style={[styles.flex1]}>
                 <SelectionList
-                    showConfirmButton
-                    shouldUpdateFocusedIndex
                     shouldSingleExecuteRowSelect
                     sections={[{data: items}]}
                     ListItem={RadioListItem}
-                    initiallyFocusedOptionKey={initialSelection}
-                    confirmButtonText={translate('common.save')}
-                    onConfirm={saveChanges}
+                    initiallyFocusedOptionKey={selectedItem}
                     onSelectRow={updateFilter}
                 />
             </View>
