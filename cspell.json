@@ -25,6 +25,7 @@
         "appleid",
         "applesignin",
         "applinks",
+        "approvalstatus",
         "appversion",
         "ARGB",
         "armeabi",
@@ -142,6 +143,7 @@
         "endcapture",
         "enddate",
         "endfor",
+        "entityid",
         "Entra",
         "ENVFILE",
         "ERECEIPT",
@@ -149,6 +151,7 @@
         "ethnicities",
         "evenodd",
         "eventmachine",
+        "exchangerate",
         "exchrate",
         "exfy",
         "exitstatus",
@@ -181,6 +184,7 @@
         "fnames",
         "focusvisible",
         "fontawesome",
+        "foreignamount",
         "formatjs",
         "Frederico",
         "frontpart",
@@ -228,6 +232,7 @@
         "isemojisonly",
         "islarge",
         "ismedium",
+        "isnonreimbursable",
         "ITSM",
         "Jakub",
         "janky",
@@ -267,6 +272,7 @@
         "Mapbox",
         "mapboxgl",
         "marcaaron",
+        "Marqeta",
         "mateusz",
         "McAfee",
         "mchmod",
@@ -496,6 +502,7 @@
         "touchables",
         "TQBQW",
         "Trainline",
+        "tranid",
         "Transpiles",
         "trivago",
         "Typeform",
@@ -619,7 +626,9 @@
         "src/libs/SearchParser/*",
         ".gitignore"
     ],
-    "ignoreRegExpList": ["@assets/.*"],
+    "ignoreRegExpList": [
+        "@assets/.*"
+    ],
     "useGitignore": true,
     "overrides": [
         {
