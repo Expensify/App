@@ -4,7 +4,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -69,6 +69,9 @@ type ChildrenProps = {
 type AttachmentModalProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
+
+    /** The id of the attachment. */
+    attachmentID?: string;
 
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: ((file: FileObject) => void) | null;
@@ -174,6 +177,7 @@ function AttachmentModal({
     isLoading = false,
     shouldShowNotFoundPage = false,
     type = undefined,
+    attachmentID,
     accountID = undefined,
     shouldDisableSendButton = false,
     draftTransactionID,
@@ -267,13 +271,13 @@ function AttachmentModal({
 
         if (typeof sourceURL === 'string') {
             const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
-            fileDownload(sourceURL, fileName ?? '');
+            fileDownload(sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, !draftTransactionID);
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, sourceState, file, type]);
+    }, [isAuthTokenRequiredState, sourceState, file, type, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -553,6 +557,11 @@ function AttachmentModal({
                         onCloseButtonPress={closeModal}
                         shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                         threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                        threeDotsAnchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        shouldSetModalVisibility={false}
                         threeDotsMenuItems={threeDotsMenuItems}
                         shouldOverlayDots
                         subTitleLink={currentAttachmentLink ?? ''}
@@ -577,6 +586,7 @@ function AttachmentModal({
                                 <AttachmentCarousel
                                     accountID={accountID}
                                     type={type}
+                                    attachmentID={attachmentID}
                                     report={report}
                                     onNavigate={onNavigate}
                                     onClose={closeModal}
@@ -611,28 +621,30 @@ function AttachmentModal({
                             ))}
                     </View>
                     {/* If we have an onConfirm method show a confirmation button */}
-                    {!!onConfirm && !isConfirmButtonDisabled && (
-                        <SafeAreaConsumer>
-                            {({safeAreaPaddingBottomStyle}) => (
-                                <Animated.View
-                                    style={safeAreaPaddingBottomStyle}
-                                    entering={FadeIn}
-                                >
-                                    <Button
-                                        ref={viewRef(submitRef)}
-                                        success
-                                        large
-                                        style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                        textStyles={[styles.buttonConfirmText]}
-                                        text={translate('common.send')}
-                                        onPress={submitAndClose}
-                                        isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                        pressOnEnter
-                                    />
-                                </Animated.View>
-                            )}
-                        </SafeAreaConsumer>
-                    )}
+                    <LayoutAnimationConfig skipEntering>
+                        {!!onConfirm && !isConfirmButtonDisabled && (
+                            <SafeAreaConsumer>
+                                {({safeAreaPaddingBottomStyle}) => (
+                                    <Animated.View
+                                        style={safeAreaPaddingBottomStyle}
+                                        entering={FadeIn}
+                                    >
+                                        <Button
+                                            ref={viewRef(submitRef)}
+                                            success
+                                            large
+                                            style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                            textStyles={[styles.buttonConfirmText]}
+                                            text={translate('common.send')}
+                                            onPress={submitAndClose}
+                                            isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                            pressOnEnter
+                                        />
+                                    </Animated.View>
+                                )}
+                            </SafeAreaConsumer>
+                        )}
+                    </LayoutAnimationConfig>
                     {isReceiptAttachment && (
                         <ConfirmModal
                             title={translate('receipt.deleteReceipt')}

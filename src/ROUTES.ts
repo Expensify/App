@@ -108,6 +108,13 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
+    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
+        route: 'search/r/:reportID/hold',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}/hold` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
     TRANSACTION_HOLD_REASON_RHP: 'search/hold',
 
     // This is a utility route used to go to the user's concierge chat, or the sign-in page if the user's not authenticated
@@ -158,7 +165,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
     },
     SETTINGS: 'settings',
-    SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_PROFILE: {
+        route: 'settings/profile',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
+    },
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
@@ -186,6 +196,18 @@ const ROUTES = {
     SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_MERGE_ACCOUNTS: {
+        route: 'settings/security/merge-accounts',
+        getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE: {
+        route: 'settings/security/merge-accounts/:login/magic-code',
+        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/magic-code` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_RESULT: {
+        route: 'settings/security/merge-accounts/:login/result/:result',
+        getRoute: (login: string, result: string, backTo?: string) => getUrlWithBackToParam(`settings/security/merge-accounts/${encodeURIComponent(login)}/result/${result}`, backTo),
+    },
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
@@ -403,6 +425,7 @@ const ROUTES = {
         route: 'attachment',
         getRoute: (
             reportID: string | undefined,
+            attachmentID: string | undefined,
             type: ValueOf<typeof CONST.ATTACHMENT_TYPE>,
             url: string,
             accountID?: number,
@@ -415,8 +438,11 @@ const ROUTES = {
             const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+            const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
 
-            return `attachment?source=${encodeURIComponent(url)}&type=${type as string}${reportParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            return `attachment?source=${encodeURIComponent(url)}&type=${
+                type as string
+            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
@@ -1237,10 +1263,6 @@ const ROUTES = {
             }
             return `settings/workspaces/${policyID}/accounting/${connection as string}/card-reconciliation/account` as const;
         },
-    },
-    WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR: {
-        route: 'settings/workspaces/:policyID/accounting/:connection/connection-selector',
-        getRoute: (policyID: string, connection: ValueOf<typeof CONST.POLICY.CONNECTIONS.ROUTE>) => `settings/workspaces/${policyID}/accounting/${connection}/connection-selector` as const,
     },
     WORKSPACE_CATEGORIES: {
         route: 'settings/workspaces/:policyID/categories',
@@ -2163,53 +2185,9 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/connections/netsuite/advanced/autosync/accounting-method',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/connections/netsuite/advanced/autosync/accounting-method` as const,
     },
-    POLICY_ACCOUNTING_NSQS_SETUP: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/setup',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/setup` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/customers',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/customers` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/customers/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/customers/displayed-as` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/projects',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/projects` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/import/projects/displayed-as',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/import/projects/displayed-as` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/preferred-exporter` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT_DATE: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export/date',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/date` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/export/payment-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/export/payment-account` as const,
-    },
-    POLICY_ACCOUNTING_NSQS_ADVANCED: {
-        route: 'settings/workspaces/:policyID/accounting/nsqs/advanced',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/nsqs/advanced` as const,
-    },
     POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/prerequisites',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const,
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/sage-intacct/prerequisites` as const, backTo),
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/enter-credentials',

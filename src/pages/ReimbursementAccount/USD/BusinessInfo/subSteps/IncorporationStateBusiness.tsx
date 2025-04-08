@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
@@ -17,7 +17,7 @@ const COMPANY_INCORPORATION_STATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATI
 const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
 
 const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> =>
-    ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+    getFieldRequiredErrors(values, STEP_FIELDS);
 
 function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
@@ -41,6 +41,7 @@ function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
             onSubmit={handleSubmit}
             style={[styles.mh0, styles.flexGrow1]}
             submitButtonStyles={[styles.ph5, styles.mb0]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5]}>{translate('businessInfoStep.pleaseSelectTheStateYourCompanyWasIncorporatedIn')}</Text>
             <InputWrapper

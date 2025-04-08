@@ -23,12 +23,11 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
     const {reportID, reportActionID} = useAttachmentContext();
     const fileName = getFileName(`${sourceURL}`);
     const thumbnailUrl = tryResolveUrlFromApiRoot(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_URL_ATTRIBUTE]);
-    const attachmentURLID = useMemo(() => `${reportID}_${reportActionID}`, [reportID, reportActionID]);
-    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || attachmentURLID;
     const width = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_WIDTH_ATTRIBUTE]);
     const height = Number(htmlAttribs[CONST.ATTACHMENT_THUMBNAIL_HEIGHT_ATTRIBUTE]);
     const duration = Number(htmlAttribs[CONST.ATTACHMENT_DURATION_ATTRIBUTE]);
     const isDeleted = isDeletedNode(tnode);
+    const attachmentID = htmlAttribs[CONST.ATTACHMENT_ID_ATTRIBUTE] || `${reportID}_${reportActionID}`;
 
     const videoSource = getAttachmentSource(attachmentID, sourceURL) || sourceURL;
     return (
@@ -50,7 +49,7 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
                                     return;
                                 }
                                 const isAuthTokenRequired = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
-                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, type, videoSource, accountID, isAuthTokenRequired);
+                                const route = ROUTES.ATTACHMENTS.getRoute(report?.reportID, attachmentID, type, videoSource, accountID, isAuthTokenRequired);
                                 Navigation.navigate(route);
                             }}
                         />

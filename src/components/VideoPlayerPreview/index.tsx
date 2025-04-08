@@ -1,17 +1,20 @@
+import {useNavigation} from '@react-navigation/native';
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import React, {useEffect, useState} from 'react';
-import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
+import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
+import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
 import * as Attachment from '@libs/actions/Attachment';
 import * as FileUtils from '@libs/fileDownload/FileUtils';
+import ROUTES from '@src/ROUTES';
 import VideoPlayerThumbnail from './VideoPlayerThumbnail';
 
 type VideoDimensions = {
@@ -56,6 +59,10 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
+    const navigation = useNavigation();
+
+    // We want to play the video only when the user is on the page where it was rendered
+    const firstRenderRoute = useFirstRenderRoute([`/${ROUTES.ATTACHMENTS.route}`]);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
@@ -87,11 +94,16 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     });
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
+        return navigation.addListener('blur', () => !firstRenderRoute.isFocused && setIsThumbnail(true));
+    }, [navigation, firstRenderRoute]);
+
+    useEffect(() => {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !firstRenderRoute.isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID]);
+    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute]);
+
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
             {((shouldUseNarrowLayout || isThumbnail) && thumbnailUrl) || isDeleted ? (
