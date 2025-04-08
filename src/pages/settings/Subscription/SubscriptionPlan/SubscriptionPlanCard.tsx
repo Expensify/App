@@ -45,7 +45,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
         <View
             style={[
                 styles.borderedContentCard,
-                shouldUseNarrowLayout ? styles.borderRadiusComponentLarge : undefined,
+                shouldUseNarrowLayout ? null : styles.borderRadiusComponentLarge,
                 styles.mt5,
                 styles.flex1,
                 isSelected && styles.borderColorFocus,
@@ -73,7 +73,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                 <FlatList
                     key={benefitsColumns}
                     data={benefits}
-                    style={!shouldUseNarrowLayout ? styles.mt1 : null}
+                    style={shouldUseNarrowLayout ? null : styles.mt1}
                     scrollEnabled={false}
                     keyExtractor={(item) => item}
                     numColumns={benefitsColumns}
