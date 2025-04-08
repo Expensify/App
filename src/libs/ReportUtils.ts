@@ -24,6 +24,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     IntroSelected,
@@ -155,7 +156,6 @@ import {
     isApprovedOrSubmittedReportAction,
     isCardIssuedAction,
     isClosedAction,
-    isCreatedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -182,6 +182,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
+    shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -7370,20 +7371,6 @@ function hasReportViolations(reportID: string | undefined) {
     return Object.values(reportViolations ?? {}).some((violations) => !isEmptyObject(violations));
 }
 
-/**
- * Checks if #admins room chan be shown
- * We show #admin rooms when a) More than one admin exists or b) There exists policy audit log for review.
- */
-function shouldAdminsRoomBeVisible(report: OnyxEntry<Report>): boolean {
-    const accountIDs = Object.entries(report?.participants ?? {}).map(([accountID]) => Number(accountID));
-    const adminAccounts = getLoginsByAccountIDs(accountIDs).filter((login) => !isExpensifyTeam(login));
-    const lastVisibleAction = getLastVisibleActionReportActionsUtils(report?.reportID);
-    if ((lastVisibleAction ? isCreatedAction(lastVisibleAction) : report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.CREATED) && adminAccounts.length <= 1) {
-        return false;
-    }
-    return true;
-}
-
 type ReportErrorsAndReportActionThatRequiresAttention = {
     errors: ErrorFields;
     reportAction?: OnyxEntry<ReportAction>;
@@ -7597,11 +7584,6 @@ function reasonForReportToBeInOptionList({
         return null;
     }
 
-    // Show #admins room only when it has some value to the user.
-    if (isAdminRoom(report) && !shouldAdminsRoomBeVisible(report)) {
-        return null;
-    }
-
     // Include reports that have errors from trying to add a workspace
     // If we excluded it, then the red-brock-road pattern wouldn't work for the user to resolve the error
     if (report.errorFields?.addWorkspaceRoom) {
@@ -7623,7 +7605,7 @@ function reasonForReportToBeInOptionList({
     }
 
     // Hide chats between two users that haven't been commented on from the LNH
-    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isChatRoom(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && !isGroupChat(report) && canHideReport) {
+    if (excludeEmptyChats && isEmptyChat && isChatReport(report) && !isPolicyExpenseChat(report) && !isSystemChat(report) && canHideReport) {
         return null;
     }
 
@@ -7648,8 +7630,7 @@ function reasonForReportToBeInOptionList({
  * for reports or the reports shown in the LHN).
  *
  * This logic is very specific and the order of the logic is very important. It should fail quickly in most cases and also
- * filter out the majority of reports before filtering out very spimport { accounts } from '../languages/en';
-ecific minority of reports.
+ * filter out the majority of reports before filtering out very specific minority of reports.
  */
 function shouldReportBeInOptionList(params: ShouldReportBeInOptionListParams) {
     return reasonForReportToBeInOptionList(params) !== null;
@@ -8243,6 +8224,29 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
+    if (isInNarrowPaneModal) {
+        Navigation.navigate(
+            ROUTES.SEARCH_REPORT.getRoute({
+                reportID: ancestor.report.reportID,
+                reportActionID: ancestor.reportAction.reportActionID,
+                backTo: SCREENS.SEARCH.REPORT_RHP,
+            }),
+        );
+        return;
+    }
+
+    // Pop the thread report screen before navigating to the chat report.
+    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
+
+    const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWrite);
+
+    if (isVisibleAction && !isOffline) {
+        // Pop the chat report screen before navigating to the linked report action.
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
+    }
 }
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
@@ -10069,6 +10073,10 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
         fullApprovalChain.push(approver);
     });
+
+    if (fullApprovalChain.at(-1) === submitterEmail && policy?.preventSelfApproval) {
+        fullApprovalChain.pop();
+    }
     return fullApprovalChain;
 }
 
@@ -10533,6 +10541,7 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    navigateToLinkedReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
     getTitleReportField,
