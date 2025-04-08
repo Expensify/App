@@ -26,6 +26,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -124,11 +125,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
         );
     }
 
-    const {status} = queryJSON ?? {};
-    const isDataLoaded =
-        searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && Array.isArray(status)
-            ? searchResults?.search?.status === status.join(',')
-            : searchResults?.search?.status === status;
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     return (
@@ -145,7 +142,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                     <View style={[StyleUtils.getSearchBottomTabHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
-                                forceShowLoadingBar={shouldShowLoadingState}
+                                shouldShowLoadingBar={shouldShowLoadingState}
                                 activeWorkspaceID={policyID}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
