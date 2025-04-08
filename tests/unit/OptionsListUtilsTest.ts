@@ -417,6 +417,23 @@ describe('OptionsListUtils', () => {
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
         },
+        18: {
+            lastReadTime: '2021-01-14 11:25:39.302',
+            lastVisibleActionCreated: '2022-11-22 03:26:02.022',
+            isPinned: false,
+            reportID: '18',
+            participants: {
+                2: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                1: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                10: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+                3: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN},
+            },
+            reportName: '',
+            oldPolicyName: 'Justice League Room',
+            chatType: CONST.REPORT.CHAT_TYPE.POLICY_ROOM,
+            isOwnPolicyExpenseChat: true,
+            type: CONST.REPORT.TYPE.CHAT,
+        },
     };
 
     const REPORTS_WITH_CHAT_ROOM: OnyxCollection<Report> = {
@@ -695,6 +712,32 @@ describe('OptionsListUtils', () => {
             });
     });
 
+    it('getValidOptions() for chat room', () => {
+        // When we call getValidOptions() with no `excludeHiddenChatRoom` flag
+        let results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {
+            includeRecentReports: true,
+            includeMultipleParticipantReports: true,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+        });
+
+        // We should expect all the reports to show
+        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
+        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '18'})]));
+
+        // When we call getValidOptions() with `excludeHiddenChatRoom` flag
+        results = getValidOptions(OPTIONS_WITH_WORKSPACE_ROOM, {
+            includeRecentReports: true,
+            includeMultipleParticipantReports: true,
+            includeP2P: true,
+            includeOwnedWorkspaceChats: true,
+            excludeHiddenChatRoom: true,
+        });
+
+        // We should expect only the reports with `notificationPreference` other than `HIDDEN` to show
+        expect(results.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: '14'})]));
+        expect(results.recentReports).not.toEqual(expect.arrayContaining([expect.objectContaining({reportID: '18'})]));
+    });
     it('getValidOptions() for group Chat', () => {
         // When we call getValidOptions() with no search value
         let results = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails});
