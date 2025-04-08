@@ -60,7 +60,7 @@ If your company’s business bank account is located in Australia, you can enabl
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Set the verified AUD account as the default reimbursement method.
-3. Employees should:
+3.  Instruct employees to connect their deposit account:
    - Navigate to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and input their bank details.
 
