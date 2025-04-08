@@ -276,7 +276,7 @@ function clearPhysicalCardError(cardID?: string) {
 
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[]): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_APPLE_WALLET, {
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'ios',
         appVersion: pkg.version,
         certificates: JSON.stringify({certificates}),
