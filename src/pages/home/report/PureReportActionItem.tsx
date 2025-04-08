@@ -779,7 +779,7 @@ function PureReportActionItem({
             if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
                     children = (
-                        <View style={[styles.mt2]}>
+                        <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
@@ -787,7 +787,7 @@ function PureReportActionItem({
                                 reportID={reportID}
                                 action={action}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                wrapperStyles={shouldUseNarrowLayout ? styles.w100 : reportPreviewStyles.transactionPreviewStyle}
+                                wrapperStyles={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
                                 onPreviewPressed={() => {}}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />

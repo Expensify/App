@@ -6,7 +6,7 @@ import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type TransactionPreviewStyleType = {
     width: number | string;
-    maxWidth?: number;
+    maxWidth?: number | string;
 };
 
 type TransactionPreviewProps = {
