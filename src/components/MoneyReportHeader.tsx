@@ -109,9 +109,8 @@ type MoneyReportHeaderProps = {
     /** Method to trigger when pressing close button of the header */
     onBackButtonPress: () => void;
 
+    /** Whether search icon should be displayed in header */
     shouldDisplaySearchIcon?: boolean;
-
-    rightComponent?: React.ReactNode;
 };
 
 function MoneyReportHeader({

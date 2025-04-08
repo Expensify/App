@@ -1,65 +1,58 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
-import Animated from 'react-native-reanimated';
-import Folder from '@assets/images/folder.svg';
-import Badge from '@components/Badge';
+import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import * as Expensicon from '@components/Icon/Expensicons';
-import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
+import ImageSVG from '@components/ImageSVG';
 import Text from '@components/Text';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 function EmptyRequestReport() {
-    const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [currentWidth, setCurrentWidth] = useState(256);
-
-    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, true);
-
-    const TransactionContent = (
-        <View style={[styles.border, styles.reportContainerBorderRadius]}>
-            <View style={[[styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius, styles.moneyRequestPreviewBox]]}>
-                <Badge
-                    icon={Expensicon.Folder}
-                    text=""
-                    success
-                />
-            </View>
-        </View>
-    );
+    const theme = useTheme();
 
     return (
-        <View style={[reportPreviewStyles.wrapperStyle]}>
-            <View style={[reportPreviewStyles.contentContainerStyle]}>
-                <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                    <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                        <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, true && styles.mtn1]}>
-                            <Animated.View style={[styles.flexRow, styles.alignItemsCenter, styles.flexShrink1]}>
-                                <Text
-                                    style={[styles.lh20]}
-                                    numberOfLines={3}
-                                >
-                                    <Text
-                                        style={[styles.headerText]}
-                                        testID="MoneyRequestReportPreview-reportName"
-                                    >
-                                        REPORT ACTION NAME
-                                        {TransactionContent}
-                                    </Text>
-                                </Text>
-                            </Animated.View>
-                        </View>
-                    </View>
+        <View
+            style={[
+                {minWidth: 335, backgroundColor: theme.highlightBG, marginLeft: 0, marginRight: 0, gap: 16, paddingBottom: 16},
+                styles.alignItemsCenter,
+                styles.reportContainerBorderRadius,
+            ]}
+        >
+            <View
+                style={[
+                    {
+                        borderWidth: 1,
+                        borderColor: theme.border,
+                        borderRadius: 16,
+                        height: 168,
+                        width: 303,
+                    },
+                    styles.justifyContentCenter,
+                    styles.alignItemsCenter,
+                ]}
+            >
+                <View style={[{margin: 4}, styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <ImageSVG
+                        fill={theme.border}
+                        height={64}
+                        width={64}
+                        src={Expensicons.Folder}
+                    />
+                    <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>This report has no expenses</Text>
                 </View>
-                <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]} />
             </View>
+            <Button
+                success
+                text="PLACEHOLDER BUTTON"
+                style={[{width: 303, height: 40}]}
+                onPress={() => {}}
+                isDisabled={false}
+            />
         </View>
     );
-    // return <Text>REPORT EMPTY</Text>;
 }
+
+EmptyRequestReport.displayName = 'EmptyRequestReport';
 
 export default EmptyRequestReport;
