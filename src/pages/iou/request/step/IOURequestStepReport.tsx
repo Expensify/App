@@ -33,6 +33,7 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
 const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     report && {
         reportID: report.reportID,
+        policyID: report.policyID,
         reportName: report.reportName,
         stateNum: report.stateNum,
         statusNum: report.statusNum,
@@ -50,9 +51,10 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!allReports) {
             return [];
         }
-
-        const expenseReports = getOutstandingReports(transaction?.participants?.[0]?.policyID, allReports ?? {});
-
+        // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
+        const policyID = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.participants?.at(0)?.reportID)?.policyID;
+        const expenseReports = getOutstandingReports(policyID, allReports ?? {});
+        const isTransactionReportCorrect = expenseReports.some((report) => report?.reportID === transaction?.reportID);
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
             .filter((report) => !debouncedSearchValue || report?.reportName?.toLowerCase().includes(debouncedSearchValue.toLowerCase()))
@@ -61,9 +63,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 text: report.reportName,
                 value: report.reportID,
                 keyForList: report.reportID,
-                isSelected: report.reportID === transaction?.reportID,
+                isSelected: isTransactionReportCorrect ? report.reportID === transaction?.reportID : expenseReports.at(0)?.reportID === report.reportID,
             }));
-    }, [allReports, debouncedSearchValue, transaction?.participants, transaction?.reportID]);
+    }, [allReports, debouncedSearchValue, transaction]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

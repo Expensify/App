@@ -278,16 +278,17 @@ function MoneyRequestConfirmationListFooter({
         return canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
     }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
 
-    const outstandingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {})
-        .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
-        .at(0);
+    const outstandingReports = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).sort(
+        (a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0,
+    );
 
+    const shouldUserTransactionReport = outstandingReports.some((report) => report?.reportID === transaction?.reportID);
     let reportName: string | undefined;
-    if (transaction?.reportID) {
+    if (transaction?.reportID && shouldUserTransactionReport) {
         const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
         reportName = transactionReport?.reportName;
     } else {
-        reportName = outstandingReport?.reportName;
+        reportName = outstandingReports.at(0)?.reportName;
     }
 
     if (!reportName) {
