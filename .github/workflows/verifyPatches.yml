@@ -1,0 +1,70 @@
+name: Build and publish React Native artifacts
+
+on:
+  push:
+    branches:
+      - testworkflows
+    paths:
+      - patches/react-native+*.patch
+      - Mobile-Expensify
+
+jobs:
+  verifyStandaloneNewDotPatches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check if standalone patches have changed
+        run: |
+          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
+          HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+
+          git fetch origin ${{ github.event.before }}
+          git checkout ${{ github.event.before }}
+
+          OLD_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+
+          if [ "$CURRENT_HASH" == "$OLD_HASH" ]; then
+            echo "No relevant changes in standalone patches"
+            exit 1
+          fi
+
+          echo "Detected changes in standalone patches"
+          exit 0
+  verifyHybridAppPatches:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+            submodules: true
+            fetch-depth: 0
+      - name: Check if hybrid patches have changed
+        run: |
+          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
+          cd Mobile-Expensify
+          CURRENT_SUBMODULE_COMMIT=$(git rev-parse HEAD)
+          CURRENT_PATCHES_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+          cd ..
+ 
+          git fetch origin
+          git checkout ${{ github.event.before }}
+
+          if [ "$CURRENT_SUBMODULE_COMMIT" == "$PREVIOUS_SUBMODULE_COMMIT" ]; then
+            echo "Submodule commit is the same as the previous one, skipping patch check"
+            exit 1
+          fi
+
+          git submodule update
+          
+          cd Mobile-Expensify
+          PREVIOUS_SUBMODULE_COMMIT=$(git rev-parse HEAD)
+          PREVIOUS_PATCHES_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+
+          if [ "$CURRENT_PATCHES_HASH" == "$PREVIOUS_PATCHES_HASH" ]; then
+            echo "No changes in hybrid patches content"
+            exit 1
+          fi
+
+          echo "Detected changes in hybrid patches"
+          exit 0
