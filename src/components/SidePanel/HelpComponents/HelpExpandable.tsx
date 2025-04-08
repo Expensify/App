@@ -1,20 +1,28 @@
-import React, {useState} from 'react';
+import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import type {ThemeStyles} from '@styles/index';
 
 type HelpExpandableProps = {
+    /** The content to be displayed when expanded. */
     children: React.ReactNode;
-    styles: ThemeStyles;
+
+    /** Whether the component is expanded or not. */
+    isExpanded: boolean;
+
+    /** Function to toggle the expanded state. */
+    setIsExpanded: () => void;
+
+    /** Optional additional styles for the container. */
     containerStyle?: StyleProp<ViewStyle>;
+    styles: ThemeStyles;
+
+    /** Title text to be displayed before the expandable content. */
     title?: string;
-    moreText?: string;
 };
 
-function HelpExpandable({children, styles, containerStyle, title, moreText = '(more)'}: HelpExpandableProps) {
-    const [isExpanded, setIsExpanded] = useState(false);
-
+function HelpExpandable({children, styles, containerStyle, title, isExpanded, setIsExpanded}: HelpExpandableProps) {
     return (
         <View style={containerStyle}>
             <Text style={styles.textNormal}>
@@ -22,9 +30,9 @@ function HelpExpandable({children, styles, containerStyle, title, moreText = '(m
                 {!isExpanded && (
                     <Text
                         style={styles.link}
-                        onPress={() => setIsExpanded(true)}
+                        onPress={setIsExpanded}
                     >
-                        {moreText}
+                        Show more
                     </Text>
                 )}
             </Text>
