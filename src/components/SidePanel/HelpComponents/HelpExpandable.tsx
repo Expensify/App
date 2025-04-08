@@ -16,27 +16,24 @@ type HelpExpandableProps = {
 
     /** Optional additional styles for the container. */
     containerStyle?: StyleProp<ViewStyle>;
-    styles: ThemeStyles;
 
-    /** Title text to be displayed before the expandable content. */
-    title?: string;
+    /** Styles object containing theme styles. */
+    styles: ThemeStyles;
 };
 
-function HelpExpandable({children, styles, containerStyle, title, isExpanded, setIsExpanded}: HelpExpandableProps) {
+function HelpExpandable({children, styles, containerStyle, isExpanded, setIsExpanded}: HelpExpandableProps) {
     return (
         <View style={containerStyle}>
-            <Text style={styles.textNormal}>
-                {!!title && `${title} `}
-                {!isExpanded && (
-                    <Text
-                        style={styles.link}
-                        onPress={setIsExpanded}
-                    >
-                        Show more
-                    </Text>
-                )}
-            </Text>
-            {isExpanded && children}
+            {isExpanded ? (
+                children
+            ) : (
+                <Text
+                    style={styles.link}
+                    onPress={setIsExpanded}
+                >
+                    Show more
+                </Text>
+            )}
         </View>
     );
 }
