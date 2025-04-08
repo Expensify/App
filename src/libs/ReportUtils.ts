@@ -10656,6 +10656,8 @@ export {
     getGroupChatDraft,
     getInvoiceReportName,
     getChatListItemReportName,
+    buildOptimisticMovedTransactionAction,
+    navigateToLinkedReportAction,
 };
 
 export type {
