@@ -1691,8 +1691,7 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
     if (!reportID || !transactionID) {
         return undefined;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportActions = getAllReportActions(report?.reportID);
+    const reportActions = getAllReportActions(reportID);
 
     return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
 }
