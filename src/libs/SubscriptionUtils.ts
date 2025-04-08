@@ -87,7 +87,7 @@ Onyx.connect({
 
 let firstPolicyDate: OnyxEntry<string>;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_DATE,
+    key: ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE,
     callback: (value) => {
         firstPolicyDate = value;
     },

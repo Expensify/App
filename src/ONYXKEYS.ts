@@ -232,7 +232,7 @@ const ONYXKEYS = {
     NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
 
     /** User's first policy creation date */
-    NVP_PRIVATE_FIRST_POLICY_DATE: 'nvp_private_firstPolicyDate',
+    NVP_PRIVATE_FIRST_POLICY_CREATED_DATE: 'nvp_private_firstPolicyCreatedDate',
 
     /** If user should see the new subscription pricing */
     NVP_PRIVATE_TEAM_PRICING_2025: 'nvp_private_manualTeamPricing2025',
@@ -1100,7 +1100,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
-    [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_DATE]: string;
+    [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
     [ONYXKEYS.NVP_PRIVATE_TEAM_PRICING_2025]: boolean;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
