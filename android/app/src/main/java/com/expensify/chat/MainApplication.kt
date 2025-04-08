@@ -1,7 +1,5 @@
 package com.expensify.chat
 
-import com.facebook.react.views.text.ReactFontManager
-
 import com.facebook.react.common.assets.ReactFontManager
 
 import android.app.ActivityManager
