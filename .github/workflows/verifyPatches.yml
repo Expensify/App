@@ -29,8 +29,7 @@ jobs:
           if [ "$CURRENT_HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
             echo "No relevant changes. Skipping artifacts build"
             exit 1
-          else
-
+          fi
 
           if [ "$VERSION" != "$OLD_VERSION" ]; then
             echo "Detected react-native version bump ($OLD_VERSION -> $VERSION)"
