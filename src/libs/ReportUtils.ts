@@ -60,7 +60,6 @@ import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/ony
 import type {Comment, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
-import {isReservedRoomName} from './ValidationUtils';
 import {createDraftTransaction, getIOUReportActionToApproveOrPay, setMoneyRequestParticipants, unholdRequest} from './actions/IOU';
 import {createDraftWorkspace} from './actions/Policy/Policy';
 import {autoSwitchToFocusMode} from './actions/PriorityMode';
@@ -231,6 +230,7 @@ import {
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
+import {isReservedRoomName} from './ValidationUtils';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -4554,7 +4554,12 @@ function getReportNameInternal({
 
     if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
-        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName && reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME && !isReservedRoomName(report?.reportName)) {
+        if (
+            reportNameFromCache?.reportName &&
+            reportNameFromCache.reportName === report?.reportName &&
+            reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
+            !isReservedRoomName(report?.reportName)
+        ) {
             return reportNameFromCache.reportName;
         }
     }
