@@ -10658,6 +10658,7 @@ export {
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
     navigateToLinkedReportAction,
+    populateOptimisticReportFormula,
 };
 
 export type {
