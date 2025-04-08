@@ -131,6 +131,7 @@ function AccountSwitcher() {
                 text={translate('delegate.copilotAccess')}
                 shiftVertical={8}
                 anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                shouldRender={canSwitchAccounts}
             >
                 <PressableWithFeedback
                     accessible
