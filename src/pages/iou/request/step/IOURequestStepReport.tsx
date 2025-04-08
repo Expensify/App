@@ -63,8 +63,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         const expenseReports = Object.values(allReports).filter(
             (report) =>
                 isExpenseReport(report) &&
-                report?.stateNum != null &&
-                report?.statusNum != null &&
+                report?.stateNum !== undefined &&
+                report?.statusNum !== undefined &&
                 report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
                 report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
                 !hasForwardedAction(report.reportID),
@@ -114,6 +114,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 onChangeText={setSearchValue}
                 textInputLabel={reportOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
+                initiallyFocusedOptionKey={transaction?.reportID}
                 ListItem={UserListItem}
             />
         </StepScreenWrapper>

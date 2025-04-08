@@ -282,8 +282,8 @@ function MoneyRequestConfirmationListFooter({
         .filter(
             (report) =>
                 isExpenseReport(report) &&
-                report?.stateNum &&
-                report?.statusNum &&
+                report?.stateNum !== undefined &&
+                report?.statusNum !== undefined &&
                 report?.policyID === selectedParticipants?.at(0)?.policyID &&
                 report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
                 report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED,
