@@ -61,7 +61,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const onLinkPress = useMemo(() => {
         if (internalNewExpensifyPath || internalExpensifyPath) {
-            return () => openLink(attrHref, environmentURL, isAttachment)
+            return () => openLink(attrHref, environmentURL, isAttachment);
         }
 
         if (isTourTask && !hasSeenTour) {
@@ -71,10 +71,10 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
                 if (viewTourTaskReport && canModifyViewTourTask && canActionViewTourTask) {
                     completeTask(viewTourTaskReport);
                 }
-            }
+            };
         }
 
-        return undefined
+        return undefined;
     }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment, isTourTask, hasSeenTour, viewTourTaskReport, canModifyViewTourTask, canActionViewTourTask]);
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
