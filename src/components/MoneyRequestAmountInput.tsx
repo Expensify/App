@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useThemeStyles from '@hooks/useThemeStyles';
 import * as Browser from '@libs/Browser';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -134,6 +135,7 @@ function MoneyRequestAmountInput(
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
     const {toLocaleDigit, numberFormat} = useLocalize();
+    const styles = useThemeStyles();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
 
@@ -333,7 +335,7 @@ function MoneyRequestAmountInput(
             style={props.inputStyle}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
-            prefixContainerStyle={props.prefixContainerStyle}
+            prefixContainerStyle={[styles.pb2half, props.prefixContainerStyle]}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}

@@ -1348,7 +1348,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             paddingTop: 23,
-            paddingBottom: 10,
+            paddingBottom: 8,
         },
 
         textInputSuffixWrapper: {

@@ -665,6 +665,10 @@ export default {
         paddingBottom: 8,
     },
 
+    pb2half: {
+        paddingBottom: 10,
+    },
+
     pb3: {
         paddingBottom: 12,
     },
