@@ -28,7 +28,6 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const navigator = useContext(NavigationContext);
     const insets = useSafeAreaInsets();
 
-
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
             if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElementRef.current) {
