@@ -103,6 +103,8 @@ const defaultReportMetadata = {
     isOptimisticReport: false,
 };
 
+const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
+
 /**
  * Check is the report is deleted.
  * We currently use useMemo to memorize every properties of the report
@@ -526,7 +528,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [prevIsFocused, report?.participants, isFocused, isSingleTransactionView, reportID]);
 
-    const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
     useEffect(() => {
         // We don't want this effect to run on the first render.
         if (firstRenderRef.current) {
