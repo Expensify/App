@@ -2698,15 +2698,15 @@ const translations = {
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
         // TODO: translate it:
-        id: 'Copy of ID',
-        proofOfDirectors: 'Proof of director(s)',
-        proofOfDirectorsDescription: 'Examples: Oncorp Corporate Profile or Business Registration.',
+        id: 'Copia del documento de identidad',
+        proofOfDirectors: 'Prueba del/de los director(es)',
+        proofOfDirectorsDescription: 'Ejemplos: Perfil corporativo de Oncorp o Registro comercial.',
         codiceFiscale: 'Codice Fiscale',
-        codiceFiscaleDescription: 'Codice Fiscale for Signatories, Authorized Users and Beneficial Owners.',
-        PDSandFSG: 'PDS + FSG disclosure paperwork',
+        codiceFiscaleDescription: 'Codice Fiscale para firmantes, usuarios autorizados y beneficiarios finales.',
+        PDSandFSG: 'Documentación de divulgación PDS + FSG',
         PDSandFSGDescription:
-            "Our partnership with Corpay utilizes an API connection to take advantage of their vast network of international banking partners to power Global Reimbursements in Expensify. As per Australian regulation we are providing you with Corpay's Financial Services Guide (FSG) and Product Disclosure Statement (PDS).\n\nPlease read the FSG and PDS documents carefully as they contain full details and important information on the products and services Corpay offers. Retain these documents for future reference.",
-        pleaseUpload: 'Please upload additional documentation below to help us verify your identity as a signer or director of the business entity.',
+            "Nuestra asociación con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y así impulsar los Reembolsos Globales en Expensify. Según la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG) y la Declaración de Divulgación del Producto (PDS) de Corpay.\n\nPor favor, lee detenidamente los documentos FSG y PDS, ya que contienen detalles completos e información importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.",
+        pleaseUpload: 'Por favor, sube documentación adicional a continuación para ayudarnos a verificar tu identidad como firmante o director de la entidad empresarial.',
     },
     agreementsStep: {
         agreements: 'Acuerdos',
