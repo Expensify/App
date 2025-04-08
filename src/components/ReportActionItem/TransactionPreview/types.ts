@@ -5,7 +5,7 @@ import type {PersonalDetailsList, Report, ReportAction, Transaction, Transaction
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
 type TransactionPreviewStyleType = {
-    width: number;
+    width: number | string;
     maxWidth?: number;
 };
 

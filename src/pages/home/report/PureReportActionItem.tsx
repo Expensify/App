@@ -787,7 +787,7 @@ function PureReportActionItem({
                                 reportID={reportID}
                                 action={action}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                wrapperStyles={reportPreviewStyles.transactionPreviewStyle}
+                                wrapperStyles={shouldUseNarrowLayout ? styles.w100 : reportPreviewStyles.transactionPreviewStyle}
                                 onPreviewPressed={() => {}}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
