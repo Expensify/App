@@ -110,7 +110,7 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
-type DuplicateParams = {
+type DuplicateTransactionParams = {
     isSubmitted: boolean;
 };
 
@@ -779,7 +779,7 @@ export type {
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
-    DuplicateParams,
+    DuplicateTransactionParams,
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
