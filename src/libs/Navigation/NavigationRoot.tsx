@@ -2,6 +2,7 @@ import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FABPopoverProvider from '@components/FABPopoverProvider';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentReportID from '@hooks/useCurrentReportID';
@@ -231,7 +232,9 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
                 enabled: false,
             }}
         >
-            <AppNavigator authenticated={authenticated} />
+            <FABPopoverProvider>
+                <AppNavigator authenticated={authenticated} />
+            </FABPopoverProvider>
         </NavigationContainer>
     );
 }
