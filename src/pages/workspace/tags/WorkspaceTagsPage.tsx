@@ -44,6 +44,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
+    getCountOfMultiLevelRequired,
     getCurrentConnectionName,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -167,7 +168,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 if (policyTagList.required && !areTagsEnabled) {
                     updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
                 }
-
+                console.log('getCountOfMultiLevelRequired(policyTags) ', getCountOfMultiLevelRequired(policyTags));
                 return {
                     value: policyTagList.name,
                     orderWeight: policyTagList.orderWeight,
@@ -181,9 +182,16 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <Switch
                             isOn={isSwitchEnabled}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
-                            onToggle={(newValue: boolean) => updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight)}
+                            onToggle={(newValue: boolean) => {
+                                if (getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && isSwitchEnabled) {
+                                    setShowCannotDisableLastTagModal(true);
+                                    return;
+                                }
+
+                                updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
+                            }}
                             disabled={isSwitchDisabled}
-                            showLockIcon={getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && policy?.requiresTag && isSwitchEnabled}
+                            showLockIcon={getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && isSwitchEnabled}
                         />
                     ),
                 };
