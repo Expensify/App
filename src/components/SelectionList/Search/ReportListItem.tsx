@@ -61,6 +61,34 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
+    const participantFrom = reportItem.from;
+    const participantTo = reportItem.to;
+
+    // These values should come as part of the item via SearchUIUtils.getSections() but ReportListItem is not yet 100% handled
+    // This will be simplified in future once sorting of ReportListItem is done
+    const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
+    const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
+
+    if (reportItem.transactions.length === 1) {
+        const transactionItem = reportItem.transactions.at(0);
+
+        return (
+            <TransactionListItem
+                item={transactionItem as unknown as TItem}
+                isFocused={isFocused}
+                showTooltip={showTooltip}
+                isDisabled={isDisabled}
+                canSelectMultiple={canSelectMultiple}
+                onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
+                onSelectRow={(_item) => onSelectRow(_item, true)}
+                onFocus={onFocus}
+                onLongPressRow={onLongPressRow}
+                shouldSyncFocus={shouldSyncFocus}
+                isLoading={reportItem.isActionLoading}
+            />
+        );
+    }
+
     return (
         <BaseListItem
             item={item}
