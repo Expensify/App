@@ -620,7 +620,7 @@ function buildUserReadableQueryStringWithPolicyID(
 
     if (policyID) {
         const workspace = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.name ?? policyID;
-        title += ` workspace:${workspace}`;
+        title += ` workspace:${sanitizeSearchValue(workspace)}`;
     }
 
     for (const filterObject of filters) {
