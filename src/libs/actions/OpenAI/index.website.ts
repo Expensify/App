@@ -35,7 +35,7 @@ const connections: WebRTCConnections = {
     openai: null,
 };
 
-function getEmphemeralToken(): Promise<string> {
+function getEmphemeralToken(ctaUsed: string): Promise<string> {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -58,7 +58,10 @@ function getEmphemeralToken(): Promise<string> {
     };
 
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, {}, onyxData)
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, {
+        adminsChatReportID: currentAdminsReportID ?? CONST.DEFAULT_NUMBER_ID,
+        ctaUsed,
+    }, onyxData)
         .then((response) => {
             return response?.client_secret?.value ?? '';
         })
@@ -138,7 +141,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 rtcOffer = offer;
             })
             .then(() => {
-                return getEmphemeralToken();
+                return getEmphemeralToken('Talk to sales');
             })
             .then((ephemeralToken: string) => {
                 return connectUsingSDP(ephemeralToken, rtcOffer);
