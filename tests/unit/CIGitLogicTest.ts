@@ -64,7 +64,7 @@ function getVersion(): string {
 function initGitServer() {
     Log.info('Initializing git server...');
     if (fs.existsSync(GIT_REMOTE)) {
-        Log.info(`${GIT_REMOTE} exists, remove it now...`);
+        Log.info(`${GIT_REMOTE} exists, removing it now...`);
         fs.rmSync(GIT_REMOTE, {recursive: true});
     }
     fs.mkdirSync(GIT_REMOTE, {recursive: true});
