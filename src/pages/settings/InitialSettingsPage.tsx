@@ -9,7 +9,7 @@ import type {ValueOf} from 'type-fest';
 import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -92,10 +92,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -154,7 +150,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Profile,
                     screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                     brickRoadIndicator: profileBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE),
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
                 },
                 {
                     translationKey: 'common.wallet',
@@ -256,10 +252,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                           }
                         : {
                               action() {
-                                  if (isActingAsDelegate) {
-                                      setIsNoDelegateAccessMenuVisible(true);
-                                      return;
-                                  }
                                   resetExitSurveyForm(() => {
                                       if (shouldOpenBookACall) {
                                           Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
@@ -298,7 +290,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, isActingAsDelegate, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -467,10 +459,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
             </ScrollView>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
         </ScreenWrapper>
     );
 }

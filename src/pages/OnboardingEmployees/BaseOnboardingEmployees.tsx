@@ -101,8 +101,8 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                             engagementChoice: onboardingPurposeSelected,
                             onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
                             adminsChatReportID,
-                            onboardingPolicyID,
-                            companySize: onboardingCompanySize,
+                            onboardingPolicyID: policyID,
+                            companySize: selectedCompanySize,
                         });
                     }
 

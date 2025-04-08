@@ -3,6 +3,7 @@ import {Str} from 'expensify-common';
 import type {ReactElement} from 'react';
 import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -12,7 +13,7 @@ import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
@@ -28,19 +29,27 @@ import TextLink from './TextLink';
 
 type BookTravelButtonProps = {
     text: string;
+
+    /** Whether to render the error message below the button */
+    shouldRenderErrorMessageBelowButton?: boolean;
 };
 
-const navigateToAcceptTerms = (domain: string) => {
+const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     // Remove the previous provision session infromation if any is cached.
     cleanupTravelProvisioningSession();
-    Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+    if (isUserValidated) {
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        return;
+    }
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
-function BookTravelButton({text}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const policy = usePolicy(activePolicyID);
     const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
@@ -49,7 +58,10 @@ function BookTravelButton({text}: BookTravelButtonProps) {
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {isBlockedFromSpotnanaTravel} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
-
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
@@ -81,8 +93,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
             return;
         }
 
-        if (!isPaidGroupPolicy(policy)) {
+        if (groupPaidPolicies.length < 1) {
             Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
+            return;
+        }
+
+        if (!isPaidGroupPolicy(policy)) {
+            setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
             return;
         }
 
@@ -119,17 +136,29 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                     // Spotnana requires an address anytime an entity is created for a policy
                     Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
                 } else {
-                    navigateToAcceptTerms(domain);
+                    navigateToAcceptTerms(domain, !!isUserValidated);
                 }
             } else {
                 Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
             }
         }
-    }, [policy, hybridApp?.isSingleNewDotEntry, travelSettings, translate, primaryContactMethod, isBlockedFromSpotnanaTravel, StyleUtils, styles]);
+    }, [
+        isBlockedFromSpotnanaTravel,
+        primaryContactMethod,
+        policy,
+        travelSettings?.hasAcceptedTerms,
+        styles.flexRow,
+        styles.link,
+        StyleUtils,
+        translate,
+        hybridApp?.isSingleNewDotEntry,
+        isUserValidated,
+        groupPaidPolicies.length,
+    ]);
 
     return (
         <>
-            {!!errorMessage && (
+            {!shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
                     style={styles.mb1}
                     messages={{error: errorMessage}}
@@ -144,6 +173,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 success
                 large
             />
+            {shouldRenderErrorMessageBelowButton && !!errorMessage && (
+                <DotIndicatorMessage
+                    style={[styles.mb1, styles.pt3]}
+                    messages={{error: errorMessage}}
+                    type="error"
+                />
+            )}
             <ConfirmModal
                 title={translate('travel.blockedFeatureModal.title')}
                 titleStyles={styles.textHeadlineH1}
