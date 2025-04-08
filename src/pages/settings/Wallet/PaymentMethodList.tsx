@@ -223,10 +223,13 @@ function PaymentMethodList({
 
                 if (!isExpensifyCard(card.cardID)) {
                     const pressHandler = onPress as CardPressHandler;
+                    const lastFourPAN = lastFourNumbersFromCardName(card.cardName);
                     assignedCardsGrouped.push({
                         key: card.cardID.toString(),
                         title: maskCardNumber(card.cardName, card.bank),
-                        description: `${lastFourNumbersFromCardName(card.cardName)} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`,
+                        description: lastFourPAN
+                            ? `${lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                            : getDescriptionForPolicyDomainCard(card.domainName),
                         interactive: !isDisabled,
                         disabled: isDisabled,
                         canDismissError: false,
