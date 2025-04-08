@@ -73,12 +73,13 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
         }
 
         if (reimbursementAccount?.isSuccess) {
-            onSubmit();
-            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
-
             if (currency === CONST.CURRENCY.AUD) {
                 setCurrentSubStep(SUBSTEP.ENTER_EMAIL);
+                clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
+                return;
             }
+            onSubmit();
+            clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation();
         }
 
         return () => {
