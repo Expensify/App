@@ -29,6 +29,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     canBeExported,
@@ -108,6 +109,7 @@ function MoneyRequestReportPreviewContent({
     getCurrentWidth,
     reportPreviewStyles,
     isSelfDM,
+    isInvoice,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -416,9 +418,6 @@ function MoneyRequestReportPreviewContent({
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
-    // If preview is inside Self-DM it has only 1 transaction
-    const firstTransaction = transactions.at(0);
-
     const approvedOrSettledicon = (iouSettled || isApproved) && (
         <ImageSVG
             src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
@@ -429,6 +428,20 @@ function MoneyRequestReportPreviewContent({
             contentFit="cover"
         />
     );
+
+    const getPreviewName = () => {
+        // If preview is inside Self-DM it has only 1 transaction
+        const firstTransaction = transactions.at(0);
+        const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) ? getOriginalMessage(action) : undefined;
+
+        if (isInvoice && !!originalMessage) {
+            return translate('iou.invoiceReportName', originalMessage);
+        }
+        if (isSelfDM && firstTransaction) {
+            return translate('iou.selfDMTrackReportName', firstTransaction);
+        }
+        return action.childReportName;
+    };
 
     return (
         transactions.length > 0 && (
@@ -477,7 +490,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {isSelfDM && firstTransaction ? translate('iou.selfDMTrackReportName', firstTransaction) : action.childReportName}
+                                                            {getPreviewName()}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>

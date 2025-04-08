@@ -48,6 +48,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether the preview is inside Self-DM chat */
     isSelfDM?: boolean;
+
+    /** Whether it is an invoice preview */
+    isInvoice?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

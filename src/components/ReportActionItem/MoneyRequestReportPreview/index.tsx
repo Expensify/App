@@ -35,6 +35,7 @@ function MoneyRequestReportPreview({
     onPaymentOptionsShow,
     onPaymentOptionsHide,
     isSelfDM = false,
+    isInvoice = false,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -107,6 +108,7 @@ function MoneyRequestReportPreview({
             }}
             reportPreviewStyles={reportPreviewStyles}
             isSelfDM={isSelfDM}
+            isInvoice={isInvoice}
         />
     );
 }
