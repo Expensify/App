@@ -12,6 +12,11 @@ on:
 jobs:
   verifyNewDotPatchesAndReactNativeVersionBump:
     runs-on: ubuntu-latest
+    if: >-
+        contains(github.event.head_commit.modified, 'package.json') || 
+        contains(github.event.head_commit.added, 'patches/react-native+') ||
+        contains(github.event.head_commit.modified, 'patches/react-native+') || 
+        contains(github.event.head_commit.removed, 'patches/react-native+')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,10 +39,9 @@ jobs:
 
           if [ "$VERSION" != "$OLD_VERSION" ]; then
             echo "Detected react-native version bump ($OLD_VERSION -> $VERSION)"
+            exit 0
           fi
 
-          echo "new hash: $HASH"
-          echo "old hash: $OLD_HASH"
           if [ "$HASH" != "$OLD_HASH" ]; then
             echo "Detected changes in NewDot patches:"
             git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- "patches/react-native+*.patch"
