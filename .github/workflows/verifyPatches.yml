@@ -26,7 +26,7 @@ jobs:
           OLD_VERSION=$(jq -r '.dependencies["react-native"]' package.json)
           OLD_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
 
-          if [ "$CURRENT_HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
+          if [ "$HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
             echo "No relevant changes Skipping artifacts build"
             exit 1
           fi
