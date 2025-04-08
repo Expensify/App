@@ -262,15 +262,18 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
-                            onPress={
-                                getPlatform() !== CONST.PLATFORM.ANDROID
+                            // On some Samsung devices, `onPress` is never triggered.
+                            // So, we use `onPressIn` for Android to ensure the button is pressable.
+                            onPressIn={
+                                getPlatform() === CONST.PLATFORM.ANDROID
                                     ? () => {
                                           hideTooltip(true);
                                       }
                                     : undefined
                             }
-                            onPressIn={
-                                getPlatform() === CONST.PLATFORM.ANDROID
+                            // For other platforms, we stick with `onPress`.
+                            onPress={
+                                getPlatform() !== CONST.PLATFORM.ANDROID
                                     ? () => {
                                           hideTooltip(true);
                                       }
