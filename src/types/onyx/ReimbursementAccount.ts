@@ -1,5 +1,4 @@
 import type {ValueOf} from 'type-fest';
-import type {FileObject} from '@components/AttachmentModal';
 import type CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
 import type {ACHContractStepProps, BeneficialOwnersStepProps, CompanyStepProps, ReimbursementAccountProps, RequestorStepProps} from '@src/types/form/ReimbursementAccountForm';
