@@ -144,6 +144,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
+
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 

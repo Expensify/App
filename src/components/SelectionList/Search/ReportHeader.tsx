@@ -38,9 +38,8 @@ type MoneyReportHeaderProps<TItem extends ListItem> = {
 };
 
 type CellProps = {
-    // eslint-disable-next-line react/no-unused-prop-types
     showTooltip: boolean;
-    // eslint-disable-next-line react/no-unused-prop-types
+
     isLargeScreenWidth: boolean;
 };
 
