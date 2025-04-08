@@ -132,7 +132,7 @@ function WorkspacesListRow({
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
 
     useEffect(() => {
-        if (!!isLoadingBill) {
+        if (isLoadingBill) {
             return;
         }
         resetLoadingSpinnerIconIndex?.();
