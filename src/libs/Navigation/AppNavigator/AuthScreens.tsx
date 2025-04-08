@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
+import {init, isClientTheLeader, isReady} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -298,6 +299,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setIsDelegatorFromOldDotIsReady(true);
                         });
                 } else {
+                    // Sometimes when we transition from old dot to new dot, the client is not the leader
+                    // so we need to initialize the client again
+                    if (!isClientTheLeader() && isTransitioning) {
+                        init();
+                    }
                     App.openApp();
                 }
             } else {
