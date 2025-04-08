@@ -131,7 +131,7 @@ function TransactionPreviewContent({
     const showCashOrCard = getTranslatedText(previewText.showCashOrCard);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
-    const iouData = getIOUData(managerID, ownerAccountID, iouReport, personalDetails, (transaction && transaction.amount) ?? 0);
+    const iouData = getIOUData(managerID, ownerAccountID, iouReport, personalDetails);
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
