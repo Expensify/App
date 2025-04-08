@@ -37,7 +37,7 @@ If your business operates in the European Union, you can send international reim
 
 ---
 
-# Step 2: Submit the DocuSign Form
+# Step 2: Complete the DocuSign Form and Submit Documents
 1. Complete the Global Reimbursement DocuSign form.
    - Our Compliance Team will review your form and may request additional documentation.
 2. **Upload required documentation:**
@@ -52,13 +52,11 @@ If your business operates in the European Union, you can send international reim
 
 # Step 3: Sign Direct Debit Authorization Mandate
 
-This is a signed document authorizing a client’s bank to pull payments via direct debit.
-
+**This is a signed document authorizing a client’s bank to pull payments via direct debit:**
 1. Expensify will send you a **Direct Debit Authorization** form to sign.
 3. Send the signed authorization form to your bank.
 4. Return the signed authorization form to Expensify.
 5. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), confirm the setup is complete with Expensify support.
-Expensify confirms setup with Corpay.
 
 ---
 
@@ -75,7 +73,7 @@ Expensify confirms setup with Corpay.
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Choose your verified EU account as the default reimbursement method.
-3. Employees should:
+3. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and input their account details.
 
