@@ -254,12 +254,13 @@ function TransactionPreviewContent({
                                                     styles.flexRow,
                                                     styles.alignItemsCenter,
                                                     isBillSplit && !shouldShowMerchantOrDescription ? styles.justifyContentEnd : styles.justifyContentBetween,
+                                                    styles.gap2,
                                                 ]}
                                             >
                                                 {shouldShowMerchantOrDescription && (
                                                     <Text
                                                         fontSize={variables.fontSizeNormal}
-                                                        style={[isDeleted && styles.lineThrough]}
+                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink1]}
                                                         numberOfLines={1}
                                                     >
                                                         {merchantOrDescription}
