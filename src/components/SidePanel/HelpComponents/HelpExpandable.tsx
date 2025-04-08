@@ -18,7 +18,7 @@ function HelpExpandable({children, styles, containerStyle, title, moreText = '(m
     return (
         <View style={containerStyle}>
             <Text style={styles.textNormal}>
-                {title}{' '}
+                {!!title && `${title} `}
                 {!isExpanded && (
                     <Text
                         style={styles.link}
