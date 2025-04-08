@@ -55,8 +55,7 @@ This is a signed document authorizing a client’s bank to pull payments via dir
 1. Expensify will send you a **Direct Debit Authorization** form to sign.
 3. Send the signed authorization form to your bank.
 4. Return the signed authorization form to Expensify.
-5. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), confirm the setup is complete with Expensify support.
-Expensify confirms setup with Corpay.
+5. Once the account is set up for direct debits (typically takes 10 to 12 business days to complete), communicate to Expensify support that is complete.
 
 ---
 
@@ -73,7 +72,7 @@ Expensify confirms setup with Corpay.
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Choose your verified EU account as the default reimbursement method.
-3. Employees should:
+3. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and input their account details.
 ---
