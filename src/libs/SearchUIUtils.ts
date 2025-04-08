@@ -211,8 +211,7 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
  * Type guard that check if something is a TaskListItemType
  */
 function isTaskListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is TaskListItemType {
-    const taskListItem = item as TaskListItemType;
-    return taskListItem.reportID !== undefined;
+    return 'type' in item && item.type === CONST.REPORT.TYPE.TASK;
 }
 
 /**

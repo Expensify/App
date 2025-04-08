@@ -406,6 +406,9 @@ type SearchTransaction = {
 
 /** Model of tasks search result */
 type SearchTask = {
+    /** The type of the response */
+    type: ValueOf<typeof CONST.SEARCH.DATA_TYPES>;
+
     /** The account ID of the user who created the task */
     accountID: number;
 
