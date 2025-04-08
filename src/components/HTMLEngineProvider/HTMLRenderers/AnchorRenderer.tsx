@@ -105,7 +105,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
-            // onPress={internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined}
             onPress={
                 internalNewExpensifyPath || internalExpensifyPath
                     ? () => openLink(attrHref, environmentURL, isAttachment)
