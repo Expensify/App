@@ -1,13 +1,12 @@
 import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {LinkCopy} from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Policy';
@@ -25,7 +24,6 @@ type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorPa
 function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
     const {translate, datetimeToRelative} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const policiesConnectedToSageIntacct = getAdminPoliciesConnectedToSageIntacct();
     const policyID: string = route.params.policyID;
 
@@ -63,13 +61,12 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.flex1]}>
+            <ScrollView style={[styles.flex1]}>
                 <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}</Text>
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={LinkCopy}
-                    iconFill={theme.white}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal, backgroundColor: theme.icon}}
+                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
                     shouldShowRightIcon
                     onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID, Navigation.getActiveRoute()))}
                 />
@@ -78,7 +75,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

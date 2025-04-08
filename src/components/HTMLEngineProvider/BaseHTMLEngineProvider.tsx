@@ -62,7 +62,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 tagName: 'comment',
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.islarge === undefined) {
-                        return {whiteSpace: 'pre'};
+                        if (tnode.attributes.center === undefined) {
+                            return {whiteSpace: 'pre'};
+                        }
+                        return {whiteSpace: 'pre', flex: 1, justifyContent: 'center'};
                     }
                     return {whiteSpace: 'pre', ...styles.onlyEmojisText};
                 },
@@ -91,7 +94,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             h1: HTMLElementModel.fromCustomModel({
                 tagName: 'h1',
                 getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
-                contentModel: HTMLContentModel.textual,
+                contentModel: HTMLContentModel.block,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
@@ -119,9 +122,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return;
+                        return isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
-                    return styles.onlyEmojisTextLineHeight;
+                    return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
         }),
@@ -141,6 +144,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.em,
             styles.strong,
             styles.h1,
+            styles.blockquote,
         ],
     );
     /* eslint-enable @typescript-eslint/naming-convention */

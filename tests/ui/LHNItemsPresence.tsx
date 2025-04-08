@@ -528,5 +528,40 @@ describe('SidebarLinksData', () => {
             // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
         });
+
+        it('should not display an empty submitted report having only a CREATED action', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // When creating a report with total = 0, stateNum = SUBMITTED, statusNum = SUBMITTED
+            const report = {
+                ...createReport(false, [1, 2], 0),
+                total: 0,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // And setting up a report action collection with only a CREATED action
+            const reportActionID = '1';
+            const reportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            };
+
+            // When the Onyx state is initialized with this report
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // And a report action collection with only a CREATED action is added
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportActionID]: reportAction,
+            });
+
+            // Then the report should not be displayed in the sidebar
+            expect(getOptionRows()).toHaveLength(0);
+            expect(getDisplayNames()).toHaveLength(0);
+        });
     });
 });
