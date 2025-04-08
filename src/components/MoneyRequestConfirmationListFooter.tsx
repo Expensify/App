@@ -17,7 +17,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, isExpenseReport, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
