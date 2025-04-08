@@ -227,7 +227,7 @@ This can occur due to missing **Location**, **Class**, or **Department** setting
 The Invite Employees & Set Approval Workflow setting will not overwrite manual changes to the approval table so if an employee was added before this setting was enabled, the integration will not automatically update their approver to their NetSuite approver/supervisor.
 
 **Fix**:
-1. Remove the employee from the workspace **Settings > Workspaces > Group > [Workspace Name] > Members**.
+1. Remove the employee from the workspace from **Settings > Workspaces > Group > [Workspace Name] > Members**.
 2. Sync the connection from **Settings > Workspaces > Group > [Workspace Name] > Connections > Sync Now** to import the employee and their designated NetSuite approver.
 
 **Alternative fix:**
