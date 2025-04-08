@@ -98,7 +98,16 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const isCannedQuery = queryJSON && (canUseLeftHandBar ? isCannedSearchQueryWithPolicyIDCheck(queryJSON) : isCannedSearchQuery(queryJSON));
+    let isCannedQuery = false;
+
+    if (queryJSON) {
+        if (canUseLeftHandBar) {
+            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
+        } else {
+            isCannedQuery = isCannedSearchQuery(queryJSON);
+        }
+    }
+
     const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!isCannedQuery || searchRouterListVisible);
     const cancelSearchCallback = useCallback(() => {
         if (searchRouterListVisible) {
