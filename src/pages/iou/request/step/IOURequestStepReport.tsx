@@ -63,8 +63,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         const expenseReports = Object.values(allReports).filter(
             (report) =>
                 isExpenseReport(report) &&
-                report?.stateNum &&
-                report?.statusNum &&
+                report?.stateNum != null &&
+                report?.statusNum != null &&
                 report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
                 report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
                 !hasForwardedAction(report.reportID),
