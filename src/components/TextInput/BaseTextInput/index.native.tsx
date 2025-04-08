@@ -264,7 +264,7 @@ function BaseTextInput(
         isAutoGrowHeightMarkdown && styles.pb2,
     ]);
 
-    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
+    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl0half.paddingLeft);
     const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(prefixCharacterPadding + styles.pr1.paddingRight);
 
     // Height fix is needed only for Text single line inputs
