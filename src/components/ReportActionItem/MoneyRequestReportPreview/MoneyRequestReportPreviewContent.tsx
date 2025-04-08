@@ -107,6 +107,7 @@ function MoneyRequestReportPreviewContent({
     renderItem,
     getCurrentWidth,
     reportPreviewStyles,
+    isSelfDM,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -415,6 +416,9 @@ function MoneyRequestReportPreviewContent({
     // The button should expand up to transaction width
     const buttonMaxWidth = !shouldUseNarrowLayout ? {maxWidth: reportPreviewStyles.transactionPreviewStyle.width} : {};
 
+    // If preview is inside Self-DM it has only 1 transaction
+    const firstTransaction = transactions.at(0);
+
     const approvedOrSettledicon = (iouSettled || isApproved) && (
         <ImageSVG
             src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
@@ -473,7 +477,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {action.childReportName}
+                                                            {isSelfDM && firstTransaction ? translate('iou.selfDMTrackReportName', firstTransaction) : action.childReportName}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>

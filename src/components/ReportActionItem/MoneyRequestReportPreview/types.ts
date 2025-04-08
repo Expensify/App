@@ -45,6 +45,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Whether the preview is inside Self-DM chat */
+    isSelfDM?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

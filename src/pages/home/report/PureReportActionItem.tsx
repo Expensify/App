@@ -770,9 +770,28 @@ function PureReportActionItem({
                 />
             );
 
-            // Table Report View does not display these components as separate messages
-            if (canUseTableReportView) {
-                children = emptyHTML;
+            // Table Report View does not display these components as separate messages, except for self-DM
+            if (canUseTableReportView && report?.type === 'chat') {
+                if (report.chatType === 'selfDM') {
+                    children = (
+                        <MoneyRequestReportPreview
+                            // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+                            iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                            policyID={report?.policyID}
+                            chatReportID={reportID}
+                            action={action}
+                            contextMenuAnchor={popoverAnchorRef.current}
+                            isHovered={hovered}
+                            isSelfDM
+                            isWhisper={isWhisper}
+                            checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                            onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
+                            onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
+                        />
+                    );
+                } else {
+                    children = emptyHTML;
+                }
             }
         } else if (isTripPreview(action)) {
             children = (
