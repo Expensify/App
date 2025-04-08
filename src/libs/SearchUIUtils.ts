@@ -407,6 +407,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
  */
 function getReportActionsSections(data: OnyxTypes.SearchResults['data']): ReportActionListItemType[] {
     const reportActionItems: ReportActionListItemType[] = [];
+
     const transactions = Object.keys(data)
         .filter(isTransactionEntry)
         .map((key) => data[key]);
@@ -418,6 +419,7 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
     const policies = Object.keys(data)
         .filter(isPolicyEntry)
         .map((key) => data[key]);
+
     for (const key in data) {
         if (isReportActionEntry(key)) {
             const reportActions = data[key];

@@ -5,6 +5,7 @@ import BaseListItem from '@components/SelectionList/BaseListItem';
 import type {ListItem, ReportListItemProps, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -27,9 +28,9 @@ function ReportListItem<TItem extends ListItem>({
     shouldSyncFocus,
 }: ReportListItemProps<TItem>) {
     const reportItem = item as unknown as ReportListItemType;
-
     const theme = useTheme();
     const styles = useThemeStyles();
+    const {translate} = useLocalize();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportItem?.policyID}`];
 
@@ -61,34 +62,6 @@ function ReportListItem<TItem extends ListItem>({
         return null;
     }
 
-    const participantFrom = reportItem.from;
-    const participantTo = reportItem.to;
-
-    // These values should come as part of the item via SearchUIUtils.getSections() but ReportListItem is not yet 100% handled
-    // This will be simplified in future once sorting of ReportListItem is done
-    const participantFromDisplayName = participantFrom?.displayName ?? participantFrom?.login ?? '';
-    const participantToDisplayName = participantTo?.displayName ?? participantTo?.login ?? '';
-
-    if (reportItem.transactions.length === 1) {
-        const transactionItem = reportItem.transactions.at(0);
-
-        return (
-            <TransactionListItem
-                item={transactionItem as unknown as TItem}
-                isFocused={isFocused}
-                showTooltip={showTooltip}
-                isDisabled={isDisabled}
-                canSelectMultiple={canSelectMultiple}
-                onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
-                onSelectRow={(_item) => onSelectRow(_item, true)}
-                onFocus={onFocus}
-                onLongPressRow={onLongPressRow}
-                shouldSyncFocus={shouldSyncFocus}
-                isLoading={reportItem.isActionLoading}
-            />
-        );
-    }
-
     return (
         <BaseListItem
             item={item}
@@ -113,10 +86,7 @@ function ReportListItem<TItem extends ListItem>({
                 <ReportHeader
                     report={reportItem}
                     policy={policy}
-                    transactionThreadReportID={undefined}
-                    shouldDisplayBackButton={false}
                     onBackButtonPress={() => {}}
-                    shouldDisplaySearchIcon={false}
                     item={item}
                     onSelectRow={onSelectRow}
                     onCheckboxPress={onCheckboxPress}
@@ -148,7 +118,7 @@ function ReportListItem<TItem extends ListItem>({
                             style={[styles.textLabelSupporting]}
                             numberOfLines={1}
                         >
-                            This report has no expenses
+                            {translate('search.moneyRequestReport.emptyStateTitle')}
                         </Text>
                     </View>
                 )}

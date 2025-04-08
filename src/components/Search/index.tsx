@@ -144,7 +144,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -328,6 +327,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                return;
             }
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
