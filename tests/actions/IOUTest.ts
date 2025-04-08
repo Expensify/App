@@ -5092,4 +5092,122 @@ describe('actions/IOU', () => {
             expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
         });
     });
+
+    describe('updateMoneyRequestAmountAndCurrency', () => {
+        it('update the amount of the money request successfully', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            mockFetch?.pause?.();
+
+            updateMoneyRequestAmountAndCurrency({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReportID: fakeReport.reportID,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                policy: {
+                    id: '123',
+                    role: 'user',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+            });
+
+            await waitForBatchedUpdates();
+            mockFetch?.succeed?.();
+            await mockFetch?.resume?.();
+
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.modifiedAmount).toBe(20000);
+        });
+
+        it('update the amount of the money request failed', async () => {
+            const fakeReport: Report = {
+                ...createRandomReport(1),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                policyID: '1',
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                managerID: RORY_ACCOUNT_ID,
+            };
+            const fakeTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                reportID: fakeReport.reportID,
+                amount: 100,
+                currency: 'USD',
+            };
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
+
+            mockFetch?.pause?.();
+
+            updateMoneyRequestAmountAndCurrency({
+                transactionID: fakeTransaction.transactionID,
+                transactionThreadReportID: fakeReport.reportID,
+                amount: 20000,
+                currency: CONST.CURRENCY.USD,
+                taxAmount: 0,
+                taxCode: '',
+                policy: {
+                    id: '123',
+                    role: 'user',
+                    type: CONST.POLICY.TYPE.TEAM,
+                    name: '',
+                    owner: '',
+                    outputCurrency: '',
+                    isPolicyExpenseChatEnabled: false,
+                },
+                policyTagList: {},
+                policyCategories: {},
+            });
+
+            await waitForBatchedUpdates();
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+
+            const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
+                const connection = Onyx.connect({
+                    key: ONYXKEYS.COLLECTION.TRANSACTION,
+                    waitForCollectionCallback: true,
+                    callback: (transactions) => {
+                        Onyx.disconnect(connection);
+                        const newTransaction = transactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`];
+                        resolve(newTransaction);
+                    },
+                });
+            });
+            expect(updatedTransaction?.modifiedAmount).toBe(0);
+        });
+    });
 });
