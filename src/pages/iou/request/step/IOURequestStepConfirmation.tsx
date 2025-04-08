@@ -201,9 +201,21 @@ function IOURequestStepConfirmation({
     }, [transactionID, defaultBillable]);
 
     useEffect(() => {
-        if (!!isLoadingTransaction || (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)))) {
+        // Exit early if the transaction is still loading
+        if (isLoadingTransaction) {
             return;
         }
+
+        // Check if the transaction belongs to the current report
+        const isCurrentReportID = transaction?.isFromGlobalCreate
+            ? transaction?.participants?.at(0)?.reportID === reportID || (!transaction?.participants?.at(0)?.reportID && transaction?.reportID === reportID)
+            : transaction?.reportID === reportID;
+
+        // Exit if the transaction already exists and is associated with the current report
+        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
+            return;
+        }
+
         startMoneyRequest(
             CONST.IOU.TYPE.CREATE,
             // When starting to create an expense from the global FAB, there is not an existing report yet. A random optimistic reportID is generated and used
@@ -211,7 +223,7 @@ function IOURequestStepConfirmation({
             generateReportID(),
         );
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we don't want this effect to run again
-    }, [isLoadingTransaction]);
+    }, [isLoadingTransaction, isMovingTransactionFromTrackExpense]);
 
     useEffect(() => {
         if (!transaction?.category) {
@@ -338,7 +350,12 @@ function IOURequestStepConfirmation({
 
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
-            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (transaction?.receipt?.isTestReceipt) {
+                receipt.isTestReceipt = true;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+            } else {
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            }
 
             setReceiptFile(receipt);
         };
@@ -356,6 +373,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const isTestReceipt = receiptObj?.isTestReceipt ?? false;
             requestMoneyIOUActions({
                 report,
                 participantParams: {
@@ -371,11 +389,11 @@ function IOURequestStepConfirmation({
                 gpsPoints,
                 action,
                 transactionParams: {
-                    amount: transaction.amount,
-                    attendees: transaction.attendees,
-                    currency: transaction.currency,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    attendees: transaction.comment?.attendees,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     created: transaction.created,
-                    merchant: transaction.merchant,
+                    merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : transaction.merchant,
                     comment: trimmedComment,
                     receipt: receiptObj,
                     category: transaction.category,
@@ -915,7 +933,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
@@ -927,7 +945,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
-                        shouldDisplayReceipt
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={getBankAccountRoute(report)}
@@ -941,6 +959,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        isReceiptEditable
                     />
                 </View>
             </DragAndDropProvider>

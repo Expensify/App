@@ -56,11 +56,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (52.0.28):
+  - Expo (52.0.41):
     - ExpoModulesCore
-  - ExpoAsset (11.0.2):
+  - ExpoAsset (11.0.5):
     - ExpoModulesCore
-  - ExpoFont (13.0.3):
+  - ExpoFont (13.0.4):
     - ExpoModulesCore
   - ExpoImage (2.0.4):
     - ExpoModulesCore
@@ -72,7 +72,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.2.0):
+  - ExpoModulesCore (2.2.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3318,12 +3318,12 @@ SPEC CHECKSUMS:
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: f180077e77a41952128fdc2c83ce1d980994d125
-  Expo: c124b1c2129e79a181c16c364aec9add939bea24
-  ExpoAsset: 6cc988c426b5fc997859cc0f8f6728d1376bf53f
-  ExpoFont: 8b14db1afebf62e9774613a082e402985f4e747c
+  Expo: 3a8a619381412bbf8537746ec27b485be01c8a1f
+  ExpoAsset: 0687fe05f5d051c4a34dd1f9440bd00858413cfe
+  ExpoFont: 773955186469acc5108ff569712a2d243857475f
   ExpoImage: 3099001359e4414d60addd7c3e00a5d949df41e0
   ExpoImageManipulator: 43c7bb3ecccbe993054d2e9131c8dcbe54f1385b
-  ExpoModulesCore: 602c3b9247a11fd714e37c9c7452cac130b9715f
+  ExpoModulesCore: 99d5de91c92f514765d101d1e4988a5f387995e8
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 79c4b7ec726447eec5f8593379466bd9fde1aa14
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
@@ -3478,6 +3478,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
-PODFILE CHECKSUM: e185ffe0937c6bc63c014c3164f1756b549b7af6
+PODFILE CHECKSUM: e1af24debf4226877e7b4ae9da7137bd4361db9d
 
 COCOAPODS: 1.15.2

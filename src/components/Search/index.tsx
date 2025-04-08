@@ -1,12 +1,14 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -140,6 +142,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
+    const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
     const {canUseTableReportView} = usePermissions();
@@ -190,8 +193,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         transactions,
         previousTransactions,
         queryJSON,
-        // Set offset to 0 to retrieve the most recent chat messages.
-        offset: 0,
+        offset,
         reportActions,
         previousReportActions,
     });
@@ -290,18 +292,26 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
-            let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+            const isTransactionItem = isTransactionListItemType(item);
+
+            let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
 
             if (!reportID) {
                 return;
             }
 
             const backTo = Navigation.getActiveRoute();
+            const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
+
+            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                return;
+            }
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
+            if (isTransactionItem && reportID === '0' && item.moneyRequestReportActionID) {
                 reportID = generateReportID();
                 updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
                 Navigation.navigate(
@@ -315,11 +325,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            if (canUseTableReportView && isReportListItemType(item)) {
-                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
-                return;
-            }
-
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
@@ -329,6 +334,23 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
         },
         [canUseTableReportView, hash],
+    );
+
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+            if (shouldShowLoadingState || !isFirstItemVisible) {
+                return;
+            }
+
+            // This line makes sure the app refreshes the search results when the user scrolls to the top.
+            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
+            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
+            // Therefore, when the user scrolls to the top, we need to refresh the search results.
+            setOffset(0);
+        },
+        [shouldShowLoadingState],
     );
 
     if (shouldShowLoadingState) {
@@ -367,7 +389,22 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
-    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    if (hasErrors) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <FullPageErrorView
+                    shouldShow
+                    subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
+                />
+            </View>
+        );
+    }
+
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type) && isFocused) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView
@@ -454,6 +491,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             onCheckboxPress={toggleTransaction}
             onAllCheckboxPress={toggleAllTransactions}
             canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+            shouldPreventLongPressRow={isChat}
             SearchTableHeader={
                 !isLargeScreenWidth ? undefined : (
                     <SearchTableHeader
@@ -481,6 +519,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                     />
                 ) : undefined
             }
+            queryJSONHash={hash}
+            onViewableItemsChanged={onViewableItemsChanged}
         />
     );
 }
