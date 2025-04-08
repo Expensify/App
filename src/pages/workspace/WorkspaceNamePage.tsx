@@ -79,6 +79,7 @@ function WorkspaceNamePage({policy}: Props) {
                     validate={validate}
                     onSubmit={submit}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>

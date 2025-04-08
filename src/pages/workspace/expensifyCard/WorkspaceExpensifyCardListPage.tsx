@@ -37,9 +37,12 @@ type WorkspaceExpensifyCardListPageProps = {
 
     /** List of Expensify cards */
     cardsList: OnyxEntry<WorkspaceCardsList>;
+
+    /** Fund ID */
+    fundID: number;
 };
 
-function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCardListPageProps) {
+function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -49,6 +52,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -116,7 +120,15 @@ function WorkspaceExpensifyCardListPage({route, cardsList}: WorkspaceExpensifyCa
         [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
     );
 
-    const renderListHeader = useCallback(() => <WorkspaceCardListHeader policyID={policyID} />, [policyID]);
+    const renderListHeader = useCallback(
+        () => (
+            <WorkspaceCardListHeader
+                policyID={policyID}
+                cardSettings={cardSettings}
+            />
+        ),
+        [policyID, cardSettings],
+    );
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 

@@ -84,6 +84,7 @@ function WorkspaceTaxCodePage({route}: WorkspaceTaxCodePageProps) {
                     onSubmit={setTaxCode}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>

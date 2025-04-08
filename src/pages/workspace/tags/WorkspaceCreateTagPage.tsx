@@ -89,6 +89,7 @@ function WorkspaceCreateTagPage({route}: WorkspaceCreateTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <InputWrapper

@@ -64,6 +64,7 @@ function RulesCustomPage({
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>

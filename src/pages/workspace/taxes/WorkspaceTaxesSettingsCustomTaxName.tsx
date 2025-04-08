@@ -83,6 +83,7 @@ function WorkspaceTaxesSettingsCustomTaxName({
                     enabledWhenOffline
                     validate={validate}
                     onSubmit={submit}
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>

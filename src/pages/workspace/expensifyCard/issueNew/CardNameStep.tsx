@@ -85,6 +85,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
                 validate={validate}
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
                 addBottomSafeAreaPadding
             >
                 <InputWrapper

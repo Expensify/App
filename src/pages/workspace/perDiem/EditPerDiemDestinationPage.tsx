@@ -92,6 +92,7 @@ function EditPerDiemDestinationPage({route}: EditPerDiemDestinationPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>

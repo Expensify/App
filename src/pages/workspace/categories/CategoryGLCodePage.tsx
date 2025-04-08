@@ -93,6 +93,7 @@ function CategoryGLCodePage({route}: EditCategoryPageProps) {
                     submitButtonText={translate('common.save')}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
                     addBottomSafeAreaPadding
                 >
                     <InputWrapper

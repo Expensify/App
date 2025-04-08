@@ -33,7 +33,7 @@ import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getAddWorkspaceRoomOrChatReportErrors,
+    getCreationReportErrors,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -489,7 +489,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             return;
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+            if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
                 navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                 return;
             }
@@ -546,7 +546,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         dismissError={dismissReceiptError}
                     >
                         {hasReceipt && (
-                            <View style={styles.moneyRequestViewImage}>
+                            <View style={[styles.moneyRequestViewImage, styles.expenseViewImage]}>
                                 <ReportActionItemImage
                                     thumbnail={receiptURIs?.thumbnail}
                                     fileExtension={receiptURIs?.fileExtension}
@@ -576,6 +576,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
                             }}
+                            isInMoneyRequestView
                         />
                     </OfflineWithFeedback>
                 )}
@@ -624,7 +625,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
-                {isDistanceRequest ? (
+                {isDistanceRequest && transaction?.comment?.waypoints ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>
@@ -761,9 +762,9 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <MenuItemWithTopDescription
                             key="attendees"
                             shouldShowRightIcon
-                            title={transactionAttendees?.map((item) => item?.displayName ?? item?.login).join(', ')}
+                            title={Array.isArray(transactionAttendees) ? transactionAttendees.map((item) => item?.displayName ?? item?.login).join(', ') : ''}
                             description={`${translate('iou.attendees')} ${
-                                transactionAttendees?.length && transactionAttendees.length > 1 ? `${formattedPerAttendeeAmount} ${translate('common.perPerson')}` : ''
+                                Array.isArray(transactionAttendees) && transactionAttendees.length > 1 ? `${formattedPerAttendeeAmount} ${translate('common.perPerson')}` : ''
                             }`}
                             style={[styles.moneyRequestMenuItem]}
                             titleStyle={styles.flex1}

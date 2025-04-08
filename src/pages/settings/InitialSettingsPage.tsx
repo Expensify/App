@@ -10,7 +10,6 @@ import AccountSwitcher from '@components/AccountSwitcher';
 import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
-import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
@@ -31,6 +30,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
+import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -89,10 +89,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-
-    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
+    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
 
     const network = useNetwork();
     const theme = useTheme();
@@ -107,6 +104,9 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
+    const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
+    const walletBrickRoadIndicator =
+        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
@@ -141,7 +141,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
      */
     const accountMenuItemsData: Menu = useMemo(() => {
         const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
-        const paymentCardList = fundList;
         const defaultMenu: Menu = {
             sectionStyle: styles.accountSettingsSectionContainer,
             sectionTranslationKey: 'initialSettingsPage.account',
@@ -151,14 +150,13 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     icon: Expensicons.Profile,
                     screenName: SCREENS.SETTINGS.PROFILE.ROOT,
                     brickRoadIndicator: profileBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE),
+                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute()),
                 },
                 {
                     translationKey: 'common.wallet',
                     icon: Expensicons.Wallet,
                     screenName: SCREENS.SETTINGS.WALLET.ROOT,
-                    brickRoadIndicator:
-                        hasPaymentMethodError(bankAccountList, paymentCardList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) ? 'error' : undefined,
+                    brickRoadIndicator: walletBrickRoadIndicator,
                     action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
                 },
                 {
@@ -177,7 +175,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         };
 
         return defaultMenu;
-    }, [loginList, fundList, styles.accountSettingsSectionContainer, bankAccountList, userWallet?.errors, walletTerms?.errors, privatePersonalDetails]);
+    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator]);
 
     /**
      * Retuns a list of menu items data for workspace section
@@ -257,10 +255,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                           }
                         : {
                               action() {
-                                  if (isActingAsDelegate) {
-                                      setIsNoDelegateAccessMenuVisible(true);
-                                      return;
-                                  }
                                   resetExitSurveyForm(() => {
                                       if (shouldOpenBookACall) {
                                           Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
@@ -298,7 +292,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                 },
             ],
         };
-    }, [styles.pt4, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
+    }, [styles.pt4, setRootStatusBarEnabled, shouldOpenBookACall, signOut]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -467,10 +461,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                     onCancel={() => toggleSignoutConfirmModal(false)}
                 />
             </ScrollView>
-            <DelegateNoAccessModal
-                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-            />
         </ScreenWrapper>
     );
 }

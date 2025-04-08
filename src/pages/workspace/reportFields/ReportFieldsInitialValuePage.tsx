@@ -122,6 +122,7 @@ function ReportFieldsInitialValuePage({
                         enabledWhenOffline
                         isSubmitButtonVisible={isTextFieldType}
                         submitButtonStyles={styles.mh5}
+                        shouldHideFixErrorsAlert
                     >
                         <InputWrapper
                             containerStyles={styles.mh5}

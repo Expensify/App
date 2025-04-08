@@ -328,7 +328,7 @@ function ReportFieldsListValuesPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}

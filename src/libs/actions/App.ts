@@ -16,6 +16,7 @@ import Log from '@libs/Log';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
+import {isPublicRoom, isValidReport} from '@libs/ReportUtils';
 import {isLoggingInAsNewUser as isLoggingInAsNewUserSessionUtils} from '@libs/SessionUtils';
 import {clearSoundAssetsCache} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -110,6 +111,15 @@ Onyx.connect({
     key: ONYXKEYS.HAS_LOADED_APP,
     callback: (value) => {
         hasLoadedApp = value;
+    },
+});
+
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
     },
 });
 
@@ -208,6 +218,10 @@ function setSidebarLoaded() {
     Timing.end(CONST.TIMING.SIDEBAR_LOADED);
 }
 
+function setAppLoading(isLoading: boolean) {
+    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
+}
+
 let appState: AppStateStatus;
 AppState.addEventListener('change', (nextAppState) => {
     if (nextAppState.match(/inactive|background/) && appState === 'active') {
@@ -237,7 +251,7 @@ function getPolicyParamsForOpenOrReconnect(): Promise<PolicyParamsForOpenOrRecon
 /**
  * Returns the Onyx data that is used for both the OpenApp and ReconnectApp API commands.
  */
-function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = false): OnyxData {
+function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = false, shouldKeepPublicRooms = false): OnyxData {
     const result: OnyxData = {
         optimisticData: [
             {
@@ -284,16 +298,29 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
         });
     }
 
+    if (shouldKeepPublicRooms) {
+        const publicReports = Object.values(allReports ?? {}).filter((report) => isPublicRoom(report) && isValidReport(report));
+        publicReports?.forEach((report) => {
+            result.successData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${report?.reportID}`,
+                value: {
+                    ...report,
+                },
+            });
+        });
+    }
+
     return result;
 }
 
 /**
  * Fetches data needed for app initialization
  */
-function openApp() {
+function openApp(shouldKeepPublicRooms = false) {
     return getPolicyParamsForOpenOrReconnect().then((policyParams: PolicyParamsForOpenOrReconnect) => {
         const params: OpenAppParams = {enablePriorityModeFilter: true, ...policyParams};
-        return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true), {
+        return API.write(WRITE_COMMANDS.OPEN_APP, params, getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms), {
             checkAndFixConflictingRequest: (persistedRequests) => resolveDuplicationConflictAction(persistedRequests, (request) => request.command === WRITE_COMMANDS.OPEN_APP),
         });
     });
@@ -617,6 +644,7 @@ export {
     setUpPoliciesAndNavigate,
     redirectThirdPartyDesktopSignIn,
     openApp,
+    setAppLoading,
     reconnectApp,
     confirmReadyToOpenApp,
     handleRestrictedEvent,

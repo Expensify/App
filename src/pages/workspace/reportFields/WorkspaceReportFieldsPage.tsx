@@ -281,7 +281,7 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {shouldShowEmptyState && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFields.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}
