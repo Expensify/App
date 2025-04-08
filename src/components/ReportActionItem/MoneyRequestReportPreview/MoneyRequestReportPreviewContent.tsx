@@ -468,7 +468,6 @@ function MoneyRequestReportPreviewContent({
                             (isHovered || isScanning || isWhisper) && styles.reportPreviewBoxHoverBorder,
                         ]}
                     >
-                        {/* cokolwiek */}
                         <View style={[reportPreviewStyles.wrapperStyle]}>
                             <View style={[reportPreviewStyles.contentContainerStyle]}>
                                 <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
@@ -667,15 +666,6 @@ function MoneyRequestReportPreviewContent({
                                     ]}
                                 >
                                     <View style={[{margin: 4}, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                                        {/* <EmptyStateComponent */}
-                                        {/*     subtitle="This report has no expenses" */}
-                                        {/*     headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION} */}
-                                        {/*     headerMedia={Expensicons.Folder} */}
-                                        {/*     headerStyles={[{maxHeight: 64, maxWidth: 64, fill: theme.border}]} */}
-                                        {/*     cardStyles={[styles.alignItemsCenter, {backgroundColor: theme.highlightBG, maxHeight: 50}]} */}
-                                        {/*     cardContentStyles={[{maxHeight: 30}]} */}
-                                        {/*     containerStyles={[styles.justifyContentStart]} */}
-                                        {/* /> */}
                                         <ImageSVG
                                             fill={theme.border}
                                             height={64}

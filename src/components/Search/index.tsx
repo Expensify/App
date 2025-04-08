@@ -7,7 +7,6 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
-import Text from '@components/Text';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -143,7 +142,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousReportActions = usePrevious(reportActions);
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    debugger;
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
@@ -293,7 +291,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const openReport = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
-            let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+            const reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
 
             if (!reportID) {
                 return;
@@ -324,7 +322,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             if (isReportActionListItemType(item)) {
                 const reportActionID = item.reportActionID;
                 Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
-                return;
             }
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
@@ -367,7 +364,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const sortedData = getSortedSections(type, status, data, sortBy, sortOrder, shouldGroupByReports);
     const isChat = type === CONST.SEARCH.DATA_TYPES.CHAT;
     const sortedSelectedData = sortedData.map((item) => {
-        debugger;
         const baseKey = isChat
             ? `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${(item as ReportActionListItemType).reportActionID}`
             : `${ONYXKEYS.COLLECTION.TRANSACTION}${(item as TransactionListItemType).transactionID}`;

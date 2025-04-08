@@ -204,6 +204,151 @@ function TransactionPreviewContent({
                             size={1}
                         />
                     )}
+                    {shouldShowSkeleton ? (
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyles.width} />
+                    ) : (
+                        <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
+                            <View style={styles.gap3}>
+                                {shouldShowIOUHeader && (
+                                    <View style={[styles.flex1, styles.dFlex, styles.alignItemsCenter, styles.gap2, styles.flexRow]}>
+                                        <UserInfoCellsWithArrow
+                                            shouldDisplayArrowIcon
+                                            participantFrom={from}
+                                            participantFromDisplayName={from.displayName ?? from.login ?? ''}
+                                            participantTo={to}
+                                            participantToDisplayName={to.displayName ?? to.login ?? ''}
+                                            avatarSize="mid-subscript"
+                                            infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
+                                            infoCellsAvatarStyle={styles.pr1}
+                                        />
+                                    </View>
+                                )}
+                                <View style={previewTextViewGap}>
+                                    <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                        <Text style={[styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
+                                        {isBillSplit && (
+                                            <View style={styles.moneyRequestPreviewBoxAvatar}>
+                                                <MultipleAvatars
+                                                    icons={sortedParticipantAvatars}
+                                                    shouldStackHorizontally
+                                                    size="subscript"
+                                                    shouldUseCardBackground
+                                                />
+                                            </View>
+                                        )}
+                                        {shouldWrapDisplayAmount && (
+                                            <Text
+                                                fontSize={variables.fontSizeNormal}
+                                                style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
+                                                numberOfLines={1}
+                                            >
+                                                {displayAmount}
+                                            </Text>
+                                        )}
+                                    </View>
+                                    <View>
+                                        <View style={[styles.flexRow]}>
+                                            <View
+                                                style={[
+                                                    styles.flex1,
+                                                    styles.flexRow,
+                                                    styles.alignItemsCenter,
+                                                    isBillSplit && !shouldShowMerchantOrDescription ? styles.justifyContentEnd : styles.justifyContentBetween,
+                                                ]}
+                                            >
+                                                {shouldShowMerchantOrDescription && (
+                                                    <Text
+                                                        fontSize={variables.fontSizeNormal}
+                                                        style={[isDeleted && styles.lineThrough]}
+                                                        numberOfLines={1}
+                                                    >
+                                                        {merchantOrDescription}
+                                                    </Text>
+                                                )}
+                                                {!shouldWrapDisplayAmount && (
+                                                    <Text
+                                                        fontSize={variables.fontSizeNormal}
+                                                        style={[isDeleted && styles.lineThrough, styles.flexShrink0]}
+                                                        numberOfLines={1}
+                                                    >
+                                                        {displayAmount}
+                                                    </Text>
+                                                )}
+                                            </View>
+                                        </View>
+                                        <View style={[styles.flexRow, styles.justifyContentEnd]}>
+                                            {!!splitShare && (
+                                                <Text style={[styles.textLabel, styles.colorMuted, styles.amountSplitPadding]}>
+                                                    {translate('iou.yourSplit', {amount: convertToDisplayString(splitShare, requestCurrency)})}
+                                                </Text>
+                                            )}
+                                        </View>
+                                    </View>
+                                    {shouldShowCategoryOrTag && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                                            {shouldShowCategory && (
+                                                <View
+                                                    style={[
+                                                        styles.flexRow,
+                                                        styles.alignItemsCenter,
+                                                        styles.gap1,
+                                                        shouldShowTag && styles.mw50,
+                                                        shouldShowTag && styles.pr1,
+                                                        styles.flexShrink1,
+                                                    ]}
+                                                >
+                                                    <Icon
+                                                        src={Folder}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {category}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                            {shouldShowTag && !!tag && (
+                                                <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap1, category && styles.pl1]}>
+                                                    <Icon
+                                                        src={Tag}
+                                                        height={variables.iconSizeExtraSmall}
+                                                        width={variables.iconSizeExtraSmall}
+                                                        fill={theme.icon}
+                                                    />
+                                                    <Text
+                                                        numberOfLines={1}
+                                                        style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1]}
+                                                    >
+                                                        {getCleanedTagName(tag)}
+                                                    </Text>
+                                                </View>
+                                            )}
+                                        </View>
+                                    )}
+                                </View>
+                                {!isIOUSettled && shouldShowRBR && (
+                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1]}>
+                                        <Icon
+                                            src={DotIndicator}
+                                            fill={theme.danger}
+                                            height={variables.iconSizeExtraSmall}
+                                            width={variables.iconSizeExtraSmall}
+                                        />
+                                        <Text
+                                            numberOfLines={1}
+                                            style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
+                                        >
+                                            {RBRMessage}
+                                        </Text>
+                                    </View>
+                                )}
+                            </View>
+                        </View>
+                    )}
                 </View>
             </OfflineWithFeedback>
         </View>

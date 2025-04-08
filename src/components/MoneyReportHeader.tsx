@@ -122,7 +122,6 @@ function MoneyReportHeader({
     shouldDisplayBackButton = false,
     onBackButtonPress,
     shouldDisplaySearchIcon = true,
-    rightComponent,
 }: MoneyReportHeaderProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use a correct layout for the hold expense modal https://github.com/Expensify/App/pull/47990#issuecomment-2362382026
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth

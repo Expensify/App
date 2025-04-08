@@ -90,13 +90,9 @@ function ReportHeader<TItem extends ListItem>({
     onCheckboxPress,
     isDisabled,
 }: MoneyReportHeaderProps<TItem>) {
-    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
-    const route = useRoute();
-
     const styles = useThemeStyles();
-    const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
-    const shouldDisplaySearchRouter = (!isReportInRHP || isSmallScreenWidth) && shouldDisplaySearchIcon;
-    const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
+    const shouldDisplaySearchRouter = false;
+    const shouldShowBackButton = false;
     const StyleUtils = useStyleUtils();
     const reportItem = item as unknown as ReportListItemType;
     const {currentSearchHash} = useSearchContext();
@@ -108,7 +104,7 @@ function ReportHeader<TItem extends ListItem>({
     return (
         // powinien byc pading 16 zgodnie z figmą ale daje 12 żeby było zgodnie z apką
         <View style={[styles.pt0, styles.borderBottom, {flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-start', paddingRight: 12, paddingLeft: 12, gap: 12}]}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.mnh40, styles.flex5]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.mnh40, styles.flex5]}>
                 <Checkbox
                     onPress={() => onCheckboxPress?.(item)}
                     isChecked={item.isSelected}
@@ -127,15 +123,15 @@ function ReportHeader<TItem extends ListItem>({
                     shouldShowBackButton={shouldShowBackButton}
                     shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                     onBackButtonPress={onBackButtonPress}
-                    shouldShowBorderBottom={false}
+                    style={[{maxWidth: 700}]}
                 />
-                <View style={[styles.flexRow, styles.flex1, styles.justifyContentEnd]}>
-                    <TotalCell
-                        showTooltip
-                        isLargeScreenWidth
-                        reportItem={reportItem}
-                    />
-                </View>
+            </View>
+            <View style={[styles.justifyContentEnd]}>
+                <TotalCell
+                    showTooltip
+                    isLargeScreenWidth
+                    reportItem={reportItem}
+                />
             </View>
             <View style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ACTION)}>
                 <ActionCell
