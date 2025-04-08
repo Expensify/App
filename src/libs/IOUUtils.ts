@@ -178,10 +178,10 @@ function formatCurrentUserToAttendee(currentUser?: PersonalDetails, reportID?: s
         return;
     }
     const initialAttendee: Attendee = {
-        email: currentUser?.login,
-        login: currentUser?.login,
-        displayName: currentUser.displayName,
-        avatarUrl: currentUser.avatar?.toString(),
+        email: currentUser?.login ?? '',
+        login: currentUser?.login ?? '',
+        displayName: currentUser.displayName ?? '',
+        avatarUrl: currentUser.avatar?.toString() ?? '',
         accountID: currentUser.accountID,
         text: currentUser.login,
         selected: true,

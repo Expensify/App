@@ -120,7 +120,8 @@ jobs:
         run: mkdir zip
 
       - name: Download baseline APK
-        uses: actions/download-artifact@v4
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         id: downloadBaselineAPK
         with:
           name: ${{ needs.buildBaseline.outputs.APK_ARTIFACT_NAME }}
@@ -131,7 +132,8 @@ jobs:
         run: mv "${{ steps.downloadBaselineAPK.outputs.download-path }}/app-e2e-release.apk" "${{ steps.downloadBaselineAPK.outputs.download-path }}/app-e2eRelease.apk"
 
       - name: Download delta APK
-        uses: actions/download-artifact@v4
+        # v4
+        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
         id: downloadDeltaAPK
         with:
           name: ${{ needs.buildDelta.outputs.APK_ARTIFACT_NAME }}
@@ -153,14 +155,16 @@ jobs:
         run: zip -qr App.zip ./zip
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
+        # v4
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-west-2
 
       - name: Schedule AWS Device Farm test run on main branch
-        uses: Wandalen/wretry.action@v3.5.0
+        # v3.5.0
+        uses: Wandalen/wretry.action@96605825122f94418f745bb54775d049581bbc6b
         id: schedule-awsdf-main
         with:
           action: realm/aws-devicefarm/test-application@7b9a91236c456c97e28d384c9e476035d5ea686b
@@ -194,7 +198,8 @@ jobs:
 
       - name: Announce failed workflow in Slack
         if: failure()
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -271,7 +276,8 @@ jobs:
 
       - name: 'Announce skipped tests in Slack'
         if: ${{ steps.checkIfSkippedTestsDetected.outputs.skippedTestsDetected == 'true' }}
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
@@ -288,7 +294,8 @@ jobs:
 
       - name: 'Announce regression in Slack'
         if: ${{ steps.checkIfRegressionDetected.outputs.performanceRegressionDetected == 'true' }}
-        uses: 8398a7/action-slack@v3
+        # v3
+        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
         with:
           status: custom
           custom_payload: |
