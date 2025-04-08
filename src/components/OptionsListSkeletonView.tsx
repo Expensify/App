@@ -20,13 +20,15 @@ type OptionsListSkeletonViewProps = {
     shouldAnimate?: boolean;
     gradientOpacityEnabled?: boolean;
     shouldStyleAsTable?: boolean;
+    fixedNumItems?: number;
 };
 
-function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false}: OptionsListSkeletonViewProps) {
+function OptionsListSkeletonView({shouldAnimate = true, shouldStyleAsTable = false, gradientOpacityEnabled = false, fixedNumItems}: OptionsListSkeletonViewProps) {
     const styles = useThemeStyles();
 
     return (
         <ItemListSkeletonView
+            fixedNumItems={fixedNumItems}
             shouldAnimate={shouldAnimate}
             itemViewStyle={shouldStyleAsTable && [styles.highlightBG, styles.mb2, styles.ml5, styles.br2]}
             gradientOpacityEnabled={gradientOpacityEnabled}

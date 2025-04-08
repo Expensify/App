@@ -523,6 +523,8 @@ function SearchAutocompleteList(
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
+            showLoadingPlaceholder={!areOptionsInitialized}
+            fixedNumItems={4}
             sections={sections}
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
