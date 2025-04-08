@@ -78,6 +78,7 @@ jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     createAnimatedPropAdapter: jest.fn,
     useReducedMotion: jest.fn,
+    LayoutAnimationConfig: jest.fn,
 }));
 
 jest.mock('react-native-keyboard-controller', () => require<typeof RNKeyboardController>('react-native-keyboard-controller/jest'));
@@ -92,6 +93,7 @@ jest.mock('@libs/runOnLiveMarkdownRuntime', () => {
 jest.mock('@src/libs/actions/Timing', () => ({
     start: jest.fn(),
     end: jest.fn(),
+    clearData: jest.fn(),
 }));
 
 jest.mock('../modules/background-task/src/NativeReactNativeBackgroundTask', () => ({

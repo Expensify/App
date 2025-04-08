@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import {add as dateAdd} from 'date-fns';
 import {sub as dateSubtract} from 'date-fns/sub';
-// eslint-disable-next-line lodash/import-scope
-import type {Dictionary} from 'lodash';
-import invertBy from 'lodash/invertBy';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
 import type {ValueOf} from 'type-fest';
@@ -21,7 +18,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
-
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -69,7 +65,6 @@ const ONBOARDING_ACCOUNTING_MAPPING = {
     quickbooksOnline: 'QuickBooks Online',
     xero: 'Xero',
     netsuite: 'NetSuite',
-    netsuiteQuickStart: 'NSQS',
     intacct: 'Sage Intacct',
     quickbooksDesktop: 'QuickBooks Desktop',
 };
@@ -121,7 +116,7 @@ const selfGuidedTourTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     mediaAttributes: {},
-    title: 'Take a 2-minute tour',
+    title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
 };
 
@@ -147,7 +142,7 @@ const setupCategoriesTask: OnboardingTask = {
     mediaAttributes: {
         [`${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
     },
-    title: 'Set up categories',
+    title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
     description: ({workspaceCategoriesLink}) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
         '\n' +
@@ -285,32 +280,22 @@ const onboardingCompanySize = {
 
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
+type OnboardingTaskLinks = Partial<{
+    integrationName: string;
+    workspaceSettingsLink: string;
+    workspaceCategoriesLink: string;
+    workspaceMoreFeaturesLink: string;
+    workspaceMembersLink: string;
+    workspaceAccountingLink: string;
+    navatticURL: string;
+}>;
+
 type OnboardingTask = {
     type: string;
     autoCompleted: boolean;
     mediaAttributes: Record<string, string>;
-    title:
-        | string
-        | ((
-              params: Partial<{
-                  integrationName: string;
-                  workspaceSettingsLink: string;
-              }>,
-          ) => string);
-    description:
-        | string
-        | ((
-              params: Partial<{
-                  adminsRoomLink: string;
-                  workspaceCategoriesLink: string;
-                  workspaceMoreFeaturesLink: string;
-                  workspaceMembersLink: string;
-                  integrationName: string;
-                  workspaceAccountingLink: string;
-                  workspaceSettingsLink: string;
-                  navatticURL: string;
-              }>,
-          ) => string);
+    title: string | ((params: OnboardingTaskLinks) => string);
+    description: string | ((params: OnboardingTaskLinks) => string);
 };
 
 type OnboardingMessage = {
@@ -352,6 +337,7 @@ const EMAIL = {
     SVFG: 'svfg@expensify.com',
     EXPENSIFY_EMAIL_DOMAIN: '@expensify.com',
     EXPENSIFY_TEAM_EMAIL_DOMAIN: '@team.expensify.com',
+    TEAM: 'team@expensify.com',
     MANAGER_MCTEST: 'manager_mctest@expensify.com',
 };
 
@@ -373,7 +359,7 @@ const CONST = {
         BILLABLE: 'billable',
         NON_BILLABLE: 'nonBillable',
     },
-
+    TASK_TITLE_DISABLED_RULES: ['image'],
     // Note: Group and Self-DM excluded as these are not tied to a Workspace
     WORKSPACE_ROOM_TYPES: [chatTypes.POLICY_ADMINS, chatTypes.POLICY_ANNOUNCE, chatTypes.DOMAIN_ALL, chatTypes.POLICY_ROOM, chatTypes.POLICY_EXPENSE_CHAT, chatTypes.INVOICE],
     ANDROID_PACKAGE_NAME,
@@ -782,9 +768,11 @@ const CONST = {
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_PDF_EXPORT: 'newDotPDFExport',
         NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
-        NSQS: 'nsqs',
+        NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
+        RECEIPT_LINE_ITEMS: 'receiptLineItems',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1071,6 +1059,7 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1130,6 +1119,7 @@ const CONST = {
         TRACK_DISTANCE: 'trackDistance',
         ASSIGN_TASK: 'assignTask',
         SEND_MONEY: 'sendMoney',
+        CREATE_REPORT: 'createReport',
     },
 
     RECEIPT: {
@@ -1216,7 +1206,7 @@ const CONST = {
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
@@ -1265,6 +1255,7 @@ const CONST = {
                     DELETE_INTEGRATION: 'POLICYCHANGELOG_DELETE_INTEGRATION',
                     DELETE_REPORT_FIELD: 'POLICYCHANGELOG_DELETE_REPORT_FIELD',
                     DELETE_TAG: 'POLICYCHANGELOG_DELETE_TAG',
+                    DELETE_MULTIPLE_TAGS: 'POLICYCHANGELOG_DELETE_MULTIPLE_TAGS',
                     IMPORT_CUSTOM_UNIT_RATES: 'POLICYCHANGELOG_IMPORT_CUSTOM_UNIT_RATES',
                     IMPORT_TAGS: 'POLICYCHANGELOG_IMPORT_TAGS',
                     INDIVIDUAL_BUDGET_NOTIFICATION: 'POLICYCHANGELOG_INDIVIDUAL_BUDGET_NOTIFICATION',
@@ -1315,6 +1306,7 @@ const CONST = {
                     CORPORATE_UPGRADE: 'POLICYCHANGELOG_CORPORATE_UPGRADE',
                     TEAM_DOWNGRADE: 'POLICYCHANGELOG_TEAM_DOWNGRADE',
                 },
+                RESOLVED_DUPLICATES: 'RESOLVEDDUPLICATES',
                 ROOM_CHANGE_LOG: {
                     INVITE_TO_ROOM: 'INVITETOROOM',
                     REMOVE_FROM_ROOM: 'REMOVEFROMROOM',
@@ -1323,6 +1315,9 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
+            // Used when displaying reportActions list to handle of unread messages icon/button
+            SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
+            ACTION_VISIBLE_THRESHOLD: 250,
         },
         TRANSACTION_LIST: {
             COLUMNS: {
@@ -1331,6 +1326,7 @@ const CONST = {
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
+            USER: 'CANCEL_REASON_USER',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
@@ -1374,6 +1370,16 @@ const CONST = {
             BILL: 'bill',
         },
         CHAT_TYPE: chatTypes,
+        HELP_TYPE: {
+            ...chatTypes,
+            CHAT_CONCIERGE: 'concierge',
+            EXPENSE_REPORT: 'expenseReport',
+            EXPENSE: 'expense',
+            CHAT: 'chat',
+            IOU: 'iou',
+            TASK: 'task',
+            INVOICE: 'invoice',
+        },
         WORKSPACE_CHAT_ROOMS: {
             ANNOUNCE: '#announce',
             ADMINS: '#admins',
@@ -1516,6 +1522,7 @@ const CONST = {
         LIST_SCROLLING_DEBOUNCE_TIME: 200,
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
+        PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
@@ -1657,6 +1664,7 @@ const CONST = {
             UNKNOWN: 'unknown',
         },
     },
+    OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
@@ -1710,7 +1718,6 @@ const CONST = {
     PUSHER: {
         PRIVATE_USER_CHANNEL_PREFIX: 'private-encrypted-user-accountID-',
         PRIVATE_REPORT_CHANNEL_PREFIX: 'private-report-reportID-',
-        PRESENCE_ACTIVE_GUIDES: 'presence-activeGuides',
         STATE: {
             CONNECTING: 'CONNECTING',
             CONNECTED: 'CONNECTED',
@@ -1781,7 +1788,9 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
+    ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
     ATTACHMENT_PREVIEW_ATTRIBUTE: 'src',
     ATTACHMENT_ORIGINAL_FILENAME_ATTRIBUTE: 'data-name',
@@ -1807,7 +1816,70 @@ const CONST = {
         PNG: 'image/png',
         WEBP: 'image/webp',
         JPEG: 'image/jpeg',
+        JPG: 'image/jpg',
+        GIF: 'image/gif',
+        TIF: 'image/tif',
+        TIFF: 'image/tiff',
     },
+
+    RECEIPT_ALLOWED_FILE_TYPES: {
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        JPEG: 'image/jpeg',
+        JPG: 'image/jpg',
+        GIF: 'image/gif',
+        TIF: 'image/tif',
+        TIFF: 'image/tiff',
+        IMG: 'image/*',
+        HTML: 'text/html',
+        XML: 'text/xml',
+        RTF: 'application/rtf',
+        PDF: 'application/pdf',
+        OFFICE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        MSWORD: 'application/msword',
+        ZIP: 'application/zip',
+        RFC822: 'message/rfc822',
+    },
+
+    SHARE_FILE_MIMETYPE: {
+        JPG: 'image/jpg',
+        JPEG: 'image/jpeg',
+        GIF: 'image/gif',
+        PNG: 'image/png',
+        WEBP: 'image/webp',
+        TIF: 'image/tif',
+        TIFF: 'image/tiff',
+        IMG: 'image/*',
+        PDF: 'application/pdf',
+        MSWORD: 'application/msword',
+        OFFICE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        RTF: 'application/rtf',
+        ZIP: 'application/zip',
+        RFC822: 'message/rfc822',
+        TEXT: 'text/plain',
+        HTML: 'text/html',
+        XML: 'text/xml',
+        MPEG: 'audio/mpeg',
+        AAC: 'audio/aac',
+        FLAC: 'audio/flac',
+        WAV: 'audio/wav',
+        XWAV: 'audio/x-wav',
+        MP3: 'audio/mp3',
+        VORBIS: 'audio/vorbis',
+        XVORBIS: 'audio/x-vorbis',
+        OPUS: 'audio/opus',
+        MP4: 'video/mp4',
+        MP2T: 'video/mp2t',
+        WEBM: 'video/webm',
+        AVC: 'video/avc',
+        HEVC: 'video/hevc',
+        XVND8: 'video/x-vnd.on2.vp8',
+        XVND9: 'video/x-vnd.on2.vp9',
+        AV01: 'video/av01',
+        VIDEO: 'video/*',
+        TXT: 'txt',
+    },
+
     ATTACHMENT_TYPE: {
         REPORT: 'r',
         NOTE: 'n',
@@ -2245,6 +2317,7 @@ const CONST = {
         '_brazil',
         '_bulgaria',
         '_canada',
+        '_chile',
         '_china',
         '_costaRica',
         '_croatia',
@@ -2314,31 +2387,6 @@ const CONST = {
         '_vietnam',
         '_vietNam',
     ] as string[],
-
-    NSQS_EXPORT_DATE: {
-        LAST_EXPENSE: 'LAST_EXPENSE',
-        EXPORTED: 'EXPORTED',
-        SUBMITTED: 'SUBMITTED',
-    },
-
-    NSQS_INTEGRATION_ENTITY_MAP_TYPES: {
-        NETSUITE_DEFAULT: 'NETSUITE_DEFAULT',
-        REPORT_FIELD: 'REPORT_FIELD',
-        TAG: 'TAG',
-    },
-
-    NSQS_CONFIG: {
-        AUTO_SYNC: 'autoSync',
-        SYNC_OPTIONS: {
-            MAPPING: {
-                CUSTOMERS: 'syncOptions.mapping.customers',
-                PROJECTS: 'syncOptions.mapping.projects',
-            },
-        },
-        EXPORTER: 'exporter',
-        EXPORT_DATE: 'exportDate',
-        PAYMENT_ACCOUNT: 'paymentAccount',
-    },
 
     QUICKBOOKS_EXPORT_DATE: {
         LAST_EXPENSE: 'LAST_EXPENSE',
@@ -2597,6 +2645,14 @@ const CONST = {
             SCAN: 'scan',
             PER_DIEM: 'per-diem',
         },
+        EXPENSE_TYPE: {
+            DISTANCE: 'distance',
+            MANUAL: 'manual',
+            SCAN: 'scan',
+            PER_DIEM: 'per-diem',
+            EXPENSIFY_CARD: 'expensifyCard',
+            PENDING_EXPENSIFY_CARD: 'pendingExpensifyCard',
+        },
         REPORT_ACTION_TYPE: {
             PAY: 'pay',
             CREATE: 'create',
@@ -2640,6 +2696,12 @@ const CONST = {
         PAYMENT_SELECTED: {
             BBA: 'BBA',
             PBA: 'PBA',
+        },
+        ACTION_PARAMS: {
+            START_SPLIT_BILL: 'startSplitBill',
+            TRACK_EXPENSE: 'trackExpense',
+            MONEY_REQUEST: 'moneyRequest',
+            REPLACE_RECEIPT: 'replaceReceipt',
         },
     },
 
@@ -2838,20 +2900,17 @@ const CONST = {
                 QBD: 'quickbooksDesktop',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
-                NSQS: 'netsuiteQuickStart',
                 SAGE_INTACCT: 'intacct',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
-                NSQS: 'nsqs',
                 SAGE_INTACCT: 'sage-intacct',
                 QBD: 'quickbooks-desktop',
             },
             NAME_USER_FRIENDLY: {
                 netsuite: 'NetSuite',
-                netsuiteQuickStart: 'NSQS',
                 quickbooksOnline: 'QuickBooks Online',
                 quickbooksDesktop: 'QuickBooks Desktop',
                 xero: 'Xero',
@@ -2929,12 +2988,6 @@ const CONST = {
                 NETSUITE_SYNC_EXPENSIFY_REIMBURSED_REPORTS: 'netSuiteSyncExpensifyReimbursedReports',
                 NETSUITE_SYNC_IMPORT_VENDORS_TITLE: 'netSuiteImportVendorsTitle',
                 NETSUITE_SYNC_IMPORT_CUSTOM_LISTS_TITLE: 'netSuiteImportCustomListsTitle',
-                NSQS_SYNC_CONNECTION: 'nsqsSyncConnection',
-                NSQS_SYNC_ACCOUNTS: 'nsqsSyncAccounts',
-                NSQS_SYNC_EMPLOYEES: 'nsqsSyncEmployees',
-                NSQS_SYNC_CUSTOMERS: 'nsqsSyncCustomers',
-                NSQS_SYNC_PROJECTS: 'nsqsSyncProjects',
-                NSQS_SYNC_CURRENCY: 'nsqsSyncCurrency',
                 SAGE_INTACCT_SYNC_CHECK_CONNECTION: 'intacctCheckConnection',
                 SAGE_INTACCT_SYNC_IMPORT_TITLE: 'intacctImportTitle',
                 SAGE_INTACCT_SYNC_IMPORT_DATA: 'intacctImportData',
@@ -2943,19 +2996,6 @@ const CONST = {
                 SAGE_INTACCT_SYNC_IMPORT_SYNC_REIMBURSED_REPORTS: 'intacctImportSyncBillPayments',
             },
             SYNC_STAGE_TIMEOUT_MINUTES: 20,
-
-            // Map each connection to its designated display connection
-            get MULTI_CONNECTIONS_MAPPING() {
-                return {
-                    [this.NAME.NETSUITE]: this.NAME.NETSUITE,
-                    [this.NAME.NSQS]: this.NAME.NETSUITE,
-                } as Record<ValueOf<typeof this.NAME>, ValueOf<typeof this.NAME> | undefined>;
-            },
-
-            // Get linked connections by the designated display connection
-            get MULTI_CONNECTIONS_MAPPING_INVERTED() {
-                return invertBy(this.MULTI_CONNECTIONS_MAPPING) as Dictionary<Array<ValueOf<typeof this.NAME>> | undefined>;
-            },
         },
         ACCESS_VARIANTS: {
             PAID: 'paid',
@@ -3385,7 +3425,7 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
@@ -3443,6 +3483,7 @@ const CONST = {
         EMAIL.RECEIPTS,
         EMAIL.STUDENT_AMBASSADOR,
         EMAIL.SVFG,
+        EMAIL.TEAM,
         EMAIL.MANAGER_MCTEST,
     ] as string[],
     get EXPENSIFY_ACCOUNT_IDS() {
@@ -3492,7 +3533,6 @@ const CONST = {
     LEGAL_NAMES_CHARACTER_LIMIT: 150,
     LOGIN_CHARACTER_LIMIT: 254,
     CATEGORY_NAME_LIMIT: 256,
-    TAG_NAME_LIMIT: 256,
     WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH: 256,
     REPORT_NAME_LIMIT: 100,
     TITLE_CHARACTER_LIMIT: 100,
@@ -3506,7 +3546,9 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        MERCHANT: "Taco Todd's",
         FILENAME: 'test_receipt',
+        FILE_TYPE: 'image/png',
     },
 
     AVATAR_CROP_MODAL: {
@@ -4936,6 +4978,19 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MERGE_ACCOUNT_RESULTS: {
+        SUCCESS: 'success',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_SAML_PRIMARY_LOGIN: 'err_saml_primary_login',
+        ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
+        ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        TOO_MANY_ATTEMPTS: 'too_many_attempts',
+        ACCOUNT_UNVALIDATED: 'account_unvalidated',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
@@ -4958,6 +5013,11 @@ const CONST = {
         NEW_ROOM: 'room',
         RECEIPT_TAB_ID: 'ReceiptTab',
         IOU_REQUEST_TYPE: 'iouRequestType',
+        SHARE: {
+            NAVIGATOR_ID: 'ShareNavigatorID',
+            SHARE: 'ShareTab',
+            SUBMIT: 'SubmitTab',
+        },
     },
     TAB_REQUEST: {
         MANUAL: 'manual',
@@ -5012,6 +5072,7 @@ const CONST = {
     EVENTS: {
         SCROLLING: 'scrolling',
     },
+    SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
@@ -5152,6 +5213,7 @@ const CONST = {
         MISSING_TAG: 'missingTag',
         MODIFIED_AMOUNT: 'modifiedAmount',
         MODIFIED_DATE: 'modifiedDate',
+        PROHIBITED_EXPENSE: 'prohibitedExpense',
         NON_EXPENSIWORKS_EXPENSE: 'nonExpensiworksExpense',
         OVER_AUTO_APPROVAL_LIMIT: 'overAutoApprovalLimit',
         OVER_CATEGORY_LIMIT: 'overCategoryLimit',
@@ -5192,6 +5254,7 @@ const CONST = {
         REPORT_ACTION: 'REPORT_ACTION',
         EMAIL: 'EMAIL',
         REPORT: 'REPORT',
+        TEXT: 'TEXT',
     },
 
     PROMOTED_ACTIONS: {
@@ -5273,7 +5336,7 @@ const CONST = {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: 'Set up categories and tags',
+                    title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Set up [categories](${workspaceCategoriesLink}) and [tags](${workspaceMoreFeaturesLink})`,
                     description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
                         '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
                         '\n' +
@@ -5283,7 +5346,7 @@ const CONST = {
                 {
                     type: 'setupTags',
                     autoCompleted: false,
-                    title: 'Set up tags',
+                    title: ({workspaceMoreFeaturesLink}) => `Set up [tags](${workspaceMoreFeaturesLink})`,
                     mediaAttributes: {
                         [`${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
@@ -5305,37 +5368,12 @@ const CONST = {
                         `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
                 },
                 {
-                    type: 'addExpenseApprovals',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: 'Add expense approvals',
-                    description: ({workspaceMoreFeaturesLink}) =>
-                        '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
-                        '\n' +
-                        'Here’s how to add expense approvals:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *More features*.\n' +
-                        '5. Enable *Workflows*.\n' +
-                        '6. Navigate to *Workflows* in the workspace editor.\n' +
-                        '7. Enable *Add approvals*.\n' +
-                        '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
-                        '\n' +
-                        `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
-                        '\n' +
-                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4)`,
-                },
-                {
                     type: 'inviteTeam',
                     autoCompleted: false,
                     mediaAttributes: {
                         [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: 'Invite your team',
+                    title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
                     description: ({workspaceMembersLink}) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
@@ -5366,7 +5404,7 @@ const CONST = {
                             connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
                         }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: ({integrationName}) => `Connect to ${integrationName}`,
+                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
                     description: ({integrationName, workspaceAccountingLink}) =>
                         `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
@@ -5403,7 +5441,7 @@ const CONST = {
                     type: 'inviteAccountant',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: 'Invite your accountant',
+                    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
                     description: ({workspaceMembersLink}) =>
                         '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
                         '\n' +
@@ -6343,6 +6381,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        TABLE_COLUMN_SIZES: {
+            NORMAL: 'normal',
+            WIDE: 'wide',
+        },
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
@@ -6517,7 +6559,7 @@ const CONST = {
         CASH_BACK: 'earnedCashback',
     },
 
-    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN] as string[],
+    EXCLUDE_FROM_LAST_VISITED_PATH: [SCREENS.NOT_FOUND, SCREENS.SAML_SIGN_IN, SCREENS.VALIDATE_LOGIN, SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT] as string[],
 
     CANCELLATION_TYPE: {
         MANUAL: 'manual',
@@ -6722,6 +6764,7 @@ const CONST = {
         HAS_LOGIN_LIST_INFO: 'hasLoginListInfo',
         HAS_SUBSCRIPTION_INFO: 'hasSubscriptionInfo',
         HAS_PHONE_NUMBER_ERROR: 'hasPhoneNumberError',
+        HAS_CARD_CONNECTION_ERROR: 'hasCardConnectionError',
     },
 
     DEBUG: {
@@ -6824,11 +6867,10 @@ const CONST = {
 
     BASE_LIST_ITEM_TEST_ID: 'base-list-item-',
     PRODUCT_TRAINING_TOOLTIP_NAMES: {
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         CONCEIRGE_LHN_GBR: 'conciergeLHNGBR',
         RENAME_SAVED_SEARCH: 'renameSavedSearch',
-        QUICK_ACTION_BUTTON: 'quickActionButton',
-        WORKSAPCE_CHAT_CREATE: 'workspaceChatCreate',
-        SEARCH_FILTER_BUTTON_TOOLTIP: 'filterButtonTooltip',
         BOTTOM_NAV_INBOX_TOOLTIP: 'bottomNavInboxTooltip',
         LHN_WORKSPACE_CHAT_TOOLTIP: 'workspaceChatLHNTooltip',
         GLOBAL_CREATE_TOOLTIP: 'globalCreateTooltip',
@@ -6871,6 +6913,10 @@ const CONST = {
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,
+
+    BILLING: {
+        TYPE_FAILED_2018: 'failed_2018',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -6879,6 +6925,7 @@ type IOUType = ValueOf<typeof CONST.IOU.TYPE>;
 type IOUAction = ValueOf<typeof CONST.IOU.ACTION>;
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 type FeedbackSurveyOptionID = ValueOf<Pick<ValueOf<typeof CONST.FEEDBACK_SURVEY_OPTIONS>, 'ID'>>;
+type IOUActionParams = ValueOf<typeof CONST.IOU.ACTION_PARAMS>;
 
 type SubscriptionType = ValueOf<typeof CONST.SUBSCRIPTION.TYPE>;
 type CancellationType = ValueOf<typeof CONST.CANCELLATION_TYPE>;
@@ -6895,6 +6942,7 @@ export type {
     CancellationType,
     OnboardingInvite,
     OnboardingAccounting,
+    IOUActionParams,
 };
 
 export default CONST;

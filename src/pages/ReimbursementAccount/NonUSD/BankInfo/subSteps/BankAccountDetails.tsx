@@ -32,7 +32,10 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         return acc;
     }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
 
-    const defaultValues = getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount);
+    const defaultValues = useMemo(
+        () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
+        [reimbursementAccount, reimbursementAccountDraft, subStepKeys],
+    );
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
@@ -100,6 +103,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitDisabled={!inputs}
+            shouldHideFixErrorsAlert={(bankAccountDetailsFields?.length ?? 0) <= 1}
         >
             <>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>

@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {SearchColumnType, SortOrder} from '@components/Search/types';
+import type {SortOrder, TableColumnSize} from '@components/Search/types';
 import SortableTableHeader from '@components/SelectionList/SortableTableHeader';
 import type {SortableColumnName} from '@components/SelectionList/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,24 +52,25 @@ const columnConfig: ColumnConfig[] = [
 ];
 
 type SearchTableHeaderProps = {
-    sortBy?: SearchColumnType;
+    sortBy?: SortableColumnName;
     sortOrder?: SortOrder;
     onSortPress: (column: SortableColumnName, order: SortOrder) => void;
+    dateColumnSize: TableColumnSize;
     shouldShowSorting: boolean;
 };
 
 // At this moment with new Report View we have no extra logic for displaying columns
 const shouldShowColumn = () => true;
 
-function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, shouldShowSorting}: SearchTableHeaderProps) {
+function MoneyRequestReportTableHeader({sortBy, sortOrder, onSortPress, dateColumnSize, shouldShowSorting}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
 
     return (
-        <View style={[styles.ph8, styles.pv3]}>
+        <View style={[styles.dFlex, styles.flex5]}>
             <SortableTableHeader
                 columns={columnConfig}
                 shouldShowColumn={shouldShowColumn}
-                dateColumnSize="normal"
+                dateColumnSize={dateColumnSize}
                 shouldShowSorting={shouldShowSorting}
                 sortBy={sortBy}
                 sortOrder={sortOrder}
