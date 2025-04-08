@@ -3,10 +3,9 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
-import type * as IOU from '@libs/actions/IOU';
-import {startMoneyRequest} from '@libs/actions/IOU';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
+import * as IOU from '../../../src/libs/actions/IOU';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@rnmapbox/maps', () => {
@@ -88,6 +87,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await waitForBatchedUpdates();
 
         // Then startMoneyRequest should not be called from IOURequestConfirmationPage.
-        expect(startMoneyRequest).not.toBeCalled();
+        expect(IOU.startMoneyRequest).not.toBeCalled();
     });
 });
