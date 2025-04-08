@@ -130,7 +130,7 @@ describe('CardSectionUtils', () => {
             status: PAYMENT_STATUS.POLICY_OWNER_WITH_AMOUNT_OWED_OVERDUE,
         });
 
-        expect(CardSectionUtils.getBillingStatus(translateMock, undefined)).toEqual({
+        expect(CardSectionUtils.getBillingStatus({translate: translateMock, accountData: undefined})).toEqual({
             title: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.title',
             subtitle: 'subscription.billingBanner.policyOwnerAmountOwedOverdue.subtitle',
             isError: true,
