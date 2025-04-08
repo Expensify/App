@@ -29,7 +29,7 @@ jobs:
           if [ "$CURRENT_HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
             echo "No relevant changes Skipping artifacts build"
             exit 1
-          else
+          fi
 
 
           if [ "$VERSION" != "$OLD_VERSION" ]; then
@@ -41,6 +41,7 @@ jobs:
             echo "Detected changes in NewDot patches:"
             git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- "patches/react-native+*.patch"
           fi
+
   verifyHybridAppPatches:
     runs-on: ubuntu-latest
     steps:
