@@ -30,6 +30,7 @@ jobs:
           fi
 
           echo "Detected changes in standalone patches"
+          git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- "patches/react-native+*.patch"
           exit 0
   verifyHybridAppPatches:
     runs-on: ubuntu-latest
@@ -39,7 +40,6 @@ jobs:
         with:
             submodules: true
             fetch-depth: 0
-            token: ${{ secrets.GITHUB_TOKEN }}
       - name: Check if hybrid patches have changed
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
