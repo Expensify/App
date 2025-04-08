@@ -1107,7 +1107,6 @@ describe('DebugUtils', () => {
                             reportID: '1',
                         },
                         undefined,
-                        false,
                     ) ?? {};
                 expect(reportAction).toBeUndefined();
             });
@@ -1158,7 +1157,6 @@ describe('DebugUtils', () => {
                         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                         MOCK_REPORTS[`${ONYXKEYS.COLLECTION.REPORT}1`] as Report,
                         undefined,
-                        false,
                     ) ?? {};
                 expect(reportAction).toBe(undefined);
             });
@@ -1217,7 +1215,7 @@ describe('DebugUtils', () => {
                                 accountID: 12345,
                             },
                         });
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1275,7 +1273,7 @@ describe('DebugUtils', () => {
                                 accountID: 12345,
                             },
                         });
-                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                        const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS) ?? {};
                         expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                     });
                 });
@@ -1334,7 +1332,7 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS, false) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_CHAT_REPORT_ACTIONS) ?? {};
                     expect(reportAction).toMatchObject(MOCK_CHAT_REPORT_ACTIONS['1']);
                 });
                 it('returns correct report action which is a split bill and has an error', async () => {
@@ -1396,7 +1394,7 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_CHAT_REPORT, MOCK_REPORT_ACTIONS) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
                 it("returns undefined if there's no report action is a report preview or a split bill", async () => {
@@ -1452,7 +1450,7 @@ describe('DebugUtils', () => {
                             accountID: 12345,
                         },
                     });
-                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS, false) ?? {};
+                    const {reportAction} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(MOCK_IOU_REPORT, MOCK_REPORT_ACTIONS) ?? {};
                     expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['3']);
                 });
             });
@@ -1504,7 +1502,6 @@ describe('DebugUtils', () => {
                             reportID: '1',
                         },
                         MOCK_REPORT_ACTIONS,
-                        false,
                     ) ?? {};
                 expect(reportAction).toMatchObject(MOCK_REPORT_ACTIONS['1']);
             });
@@ -1532,18 +1529,36 @@ describe('DebugUtils', () => {
                                 },
                             },
                         },
-                        false,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasErrors');
             });
-            it('returns correct reason when there are violations', () => {
+            it('returns correct reason when there are violations', async () => {
+                const ACCOUNT_ID = 12345;
+
+                await Onyx.multiSet({
+                    [ONYXKEYS.SESSION]: {
+                        accountID: ACCOUNT_ID,
+                    },
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [ACCOUNT_ID]: {
+                            accountID: ACCOUNT_ID,
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}1` as const]: {
+                        fieldRequired: {
+                            name: {},
+                        },
+                    },
+                });
+
                 const {reason} =
                     DebugUtils.getReasonAndReportActionForRBRInLHNRow(
                         {
                             reportID: '1',
+                            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                            ownerAccountID: ACCOUNT_ID,
                         },
                         undefined,
-                        true,
                     ) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasViolations');
             });
@@ -1581,7 +1596,7 @@ describe('DebugUtils', () => {
                         },
                     ],
                 });
-                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}, false) ?? {};
+                const {reason} = DebugUtils.getReasonAndReportActionForRBRInLHNRow(report, {}) ?? {};
                 expect(reason).toBe('debug.reasonRBR.hasTransactionThreadViolations');
             });
         });

@@ -15,6 +15,8 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+const ACCOUNT_ID = 12345;
+
 describe('SidebarUtils', () => {
     beforeAll(() =>
         Onyx.init({
@@ -76,7 +78,7 @@ describe('SidebarUtils', () => {
             });
 
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
         });
@@ -93,19 +95,37 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
 
-        it('returns correct reason when report has violations', () => {
+        it('returns correct reason when report has violations', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                ownerAccountID: ACCOUNT_ID,
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    accountID: ACCOUNT_ID,
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [ACCOUNT_ID]: {
+                        accountID: ACCOUNT_ID,
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}1` as const]: {
+                    fieldRequired: {
+                        name: {},
+                    },
+                },
+            });
+
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_VIOLATIONS);
         });
@@ -134,7 +154,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -151,7 +171,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            const {reason} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -181,7 +201,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const {reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS) ?? {};
+            const {reportAction} = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS) ?? {};
 
             expect(reportAction).toMatchObject<ReportAction>(MOCK_REPORT_ACTION);
         });
@@ -193,7 +213,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBeNull();
         });
@@ -216,7 +236,6 @@ describe('SidebarUtils', () => {
                 preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             });
             const optionDataUnpinned = SidebarUtils.getOptionData({
@@ -227,7 +246,6 @@ describe('SidebarUtils', () => {
                 preferredLocale: CONST.LOCALES.DEFAULT,
                 policy: undefined,
                 parentReportAction: undefined,
-                hasViolations: false,
                 oneTransactionThreadReport: undefined,
             });
 
@@ -269,7 +287,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBeNull();
         });
@@ -383,7 +401,7 @@ describe('SidebarUtils', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${MOCK_TRANSACTION.transactionID}` as const]: MOCK_TRANSACTION,
             });
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS as OnyxCollection<TransactionViolations>);
 
             expect(result).toBe(true);
         });
@@ -400,19 +418,37 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(true);
         });
 
-        it('returns true when report has violations', () => {
+        it('returns true when report has violations', async () => {
             const MOCK_REPORT: Report = {
                 reportID: '1',
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                ownerAccountID: ACCOUNT_ID,
             };
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, true, MOCK_TRANSACTION_VIOLATIONS);
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: {
+                    accountID: ACCOUNT_ID,
+                },
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                    [ACCOUNT_ID]: {
+                        accountID: ACCOUNT_ID,
+                    },
+                },
+                [`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}1` as const]: {
+                    fieldRequired: {
+                        name: {},
+                    },
+                },
+            });
+
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(true);
         });
@@ -441,7 +477,7 @@ describe('SidebarUtils', () => {
             };
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(true);
         });
@@ -458,7 +494,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(true);
         });
@@ -470,7 +506,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(false);
         });
@@ -489,7 +525,7 @@ describe('SidebarUtils', () => {
             const MOCK_REPORT_ACTIONS: OnyxEntry<ReportActions> = {};
             const MOCK_TRANSACTION_VIOLATIONS: OnyxCollection<TransactionViolation[]> = {};
 
-            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, false, MOCK_TRANSACTION_VIOLATIONS);
+            const result = SidebarUtils.shouldShowRedBrickRoad(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTION_VIOLATIONS);
 
             expect(result).toBe(false);
         });
@@ -563,7 +599,6 @@ describe('SidebarUtils', () => {
                 report,
                 reportActions,
                 reportNameValuePairs: {},
-                hasViolations: false,
                 personalDetails: {},
                 policy: undefined,
                 parentReportAction: undefined,
@@ -608,7 +643,6 @@ describe('SidebarUtils', () => {
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -641,7 +675,6 @@ describe('SidebarUtils', () => {
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -678,7 +711,6 @@ describe('SidebarUtils', () => {
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,
-                    hasViolations: false,
                     lastMessageTextFromReport: 'test message',
                     oneTransactionThreadReport: undefined,
                 });
@@ -741,7 +773,6 @@ describe('SidebarUtils', () => {
                     report,
                     reportActions,
                     reportNameValuePairs: {},
-                    hasViolations: false,
                     personalDetails: {},
                     policy: undefined,
                     parentReportAction: undefined,
