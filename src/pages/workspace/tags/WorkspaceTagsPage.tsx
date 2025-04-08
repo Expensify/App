@@ -135,14 +135,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     });
 
     const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
-        if (!policyTagList ?? !policyTagList.tags) {
+        if (!policyTagList) {
             return undefined;
         }
-
-        return (
-            (policyTagList.pendingAction as PendingAction) ??
-            (Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction) ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : undefined)
-        );
+        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
+            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+            : undefined;
     };
 
     const updateWorkspaceTagEnabled = useCallback(
