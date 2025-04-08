@@ -46,10 +46,9 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const {policyID, cardID, backTo} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const domainFundIDs = useDomainFundID(policyID);
+    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
 
-    // TODO: add logic for choosing between the domain and workspace feed when both available
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const fundID = domainFundIDs?.[0] || workspaceAccountID;
+    const fundID = lastSelectedExpensifyFeed ?? domainFundIDs?.[0] ?? workspaceAccountID;
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);

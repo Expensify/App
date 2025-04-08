@@ -1,6 +1,5 @@
 import {useOnyx} from 'react-native-onyx';
 import {getWorkspaceAccountID} from '@libs/PolicyUtils';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 function useDomainFundID(policyID: string | undefined) {
@@ -26,8 +25,6 @@ function useDomainFundID(policyID: string | undefined) {
             return matchingKeys;
         },
     });
-    console.log(domainFundIDs);
-
 
     return domainFundIDs;
 }
