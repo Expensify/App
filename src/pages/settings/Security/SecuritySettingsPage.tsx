@@ -119,31 +119,30 @@ function SecuritySettingsPage() {
                 icon: Expensicons.Shield,
                 action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
             },
-            canUseMergeAccounts
-                ? {
-                      translationKey: 'mergeAccountsPage.mergeAccount',
-                      icon: Expensicons.ArrowCollapse,
-                      action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
-                  }
-                : null,
-            {
-                translationKey: 'closeAccountPage.closeAccount',
-                icon: Expensicons.ClosedSign,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
-            },
         ];
 
-        return baseMenuItems
-            .filter((item) => !!item)
-            .map((item) => ({
-                key: item.translationKey,
-                title: translate(item.translationKey as TranslationPaths),
-                icon: item.icon,
-                onPress: item.action,
-                shouldShowRightIcon: true,
-                link: '',
-                wrapperStyle: [styles.sectionMenuItemTopDescription],
-            }));
+        if (canUseMergeAccounts) {
+            baseMenuItems.push({
+                translationKey: 'mergeAccountsPage.mergeAccount',
+                icon: Expensicons.ArrowCollapse,
+                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'closeAccountPage.closeAccount',
+            icon: Expensicons.ClosedSign,
+            action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_CLOSE)),
+        });
+        return baseMenuItems.map((item) => ({
+            key: item.translationKey,
+            title: translate(item.translationKey as TranslationPaths),
+            icon: item.icon,
+            onPress: item.action,
+            shouldShowRightIcon: true,
+            link: '',
+            wrapperStyle: [styles.sectionMenuItemTopDescription],
+        }));
     }, [translate, waitForNavigate, styles, isActingAsDelegate, canUseMergeAccounts]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
