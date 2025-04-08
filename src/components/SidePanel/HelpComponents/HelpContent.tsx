@@ -13,7 +13,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {normalizedConfigs} from '@libs/Navigation/linkingConfig/config';
-import Navigation from '@libs/Navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getHelpPaneReportType} from '@libs/ReportUtils';
 import {getExpenseType} from '@libs/TransactionUtils';
@@ -31,15 +31,14 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
 
-    const {params, routeName} = useRootNavigationState((state) => {
-        const focusedRoute = findFocusedRoute(state);
+    const {params, routeName} = useRootNavigationState(() => {
+        const focusedRoute = findFocusedRoute(navigationRef.getRootState());
 
         return {
             routeName: (focusedRoute?.name ?? '') as Screen,
             params: focusedRoute?.params as Record<string, string>,
         };
     });
-    console.log(`%%% routeName`, routeName);
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${params?.reportID || CONST.DEFAULT_NUMBER_ID}`);
@@ -53,10 +52,9 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
 
     const route = useMemo(() => {
         const path = normalizedConfigs[routeName]?.path;
-        const activeRoute = Navigation.getActiveRouteWithoutParams();
 
         if (!path) {
-            return undefined;
+            return '';
         }
 
         const cleanedPath = path.replaceAll('?', '');
@@ -78,10 +76,6 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             wasPreviousNarrowScreen.current = false;
         }
     }, [isExtraLargeScreenWidth, closeSidePanel]);
-
-    if (!route) {
-        return null;
-    }
 
     return (
         <>
