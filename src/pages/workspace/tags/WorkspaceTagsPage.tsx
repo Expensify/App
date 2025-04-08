@@ -168,7 +168,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 if (policyTagList.required && !areTagsEnabled) {
                     updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
                 }
-                console.log('getCountOfMultiLevelRequired(policyTags) ', getCountOfMultiLevelRequired(policyTags));
                 return {
                     value: policyTagList.name,
                     orderWeight: policyTagList.orderWeight,
@@ -223,7 +222,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy?.requiresTag]);
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy?.requiresTag, policyTags]);
 
     const tagListKeyedByName = useMemo(
         () =>
