@@ -41,11 +41,8 @@ function GenericTooltip({
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth, windowHeight} = useWindowDimensions();
-    const lastWindowSizeWhenMeasured = useRef({w: windowWidth, h: windowHeight});
-    const windowWidthRef = useRef(windowWidth);
+    const [lastWindowHeightWhenMeasured, setLastWindowHeightWhenMeasured] = useState(windowHeight);
     const windowHeightRef = useRef(windowHeight);
-    windowWidthRef.current = windowWidth;
-    windowHeightRef.current = windowHeight;
 
     // Is tooltip already rendered on the page's body? happens once.
     const [isRendered, setIsRendered] = useState(false);
@@ -71,6 +68,10 @@ function GenericTooltip({
     const isTooltipSenseInitiator = useSharedValue<boolean>(true);
     const isAnimationCanceled = useSharedValue<boolean>(false);
     const prevText = usePrevious(text);
+
+    useEffect(() => {
+        windowHeightRef.current = windowHeight;
+    }, [windowWidth, windowHeight]);
 
     useEffect(() => {
         if (!renderTooltipContent || !text) {
@@ -132,7 +133,7 @@ function GenericTooltip({
         setWrapperHeight(bounds.height);
         setXOffset(bounds.x);
         setYOffset(bounds.y);
-        lastWindowSizeWhenMeasured.current = {w: windowWidthRef.current, h: windowHeightRef.current};
+        setLastWindowHeightWhenMeasured(windowHeightRef.current);
     };
 
     /**
@@ -176,7 +177,7 @@ function GenericTooltip({
                     animation={animation}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
-                    yOffset={yOffset - (lastWindowSizeWhenMeasured.current.h - windowHeight)}
+                    yOffset={yOffset - (lastWindowHeightWhenMeasured - windowHeight)}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
                     shiftHorizontal={callOrReturn(shiftHorizontal)}
