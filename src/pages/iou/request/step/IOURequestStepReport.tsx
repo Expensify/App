@@ -8,8 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAllReportActions} from '@libs/ReportActionsUtils';
-import {isExpenseReport} from '@libs/ReportUtils';
+import {getOutstandingReports} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -26,14 +25,6 @@ type ReportListItem = ListItem & {
 };
 
 type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT> & WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_REPORT>;
-
-/**
- * Check if a report has any forwarded actions
- */
-function hasForwardedAction(reportID: string): boolean {
-    const reportActions = getAllReportActions(reportID);
-    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
-}
 
 /**
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component.
@@ -60,15 +51,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             return [];
         }
 
-        const expenseReports = Object.values(allReports).filter(
-            (report) =>
-                isExpenseReport(report) &&
-                report?.stateNum !== undefined &&
-                report?.statusNum !== undefined &&
-                report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
-                !hasForwardedAction(report.reportID),
-        );
+        const expenseReports = getOutstandingReports(transaction?.participants?.[0]?.policyID, allReports ?? {});
 
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
@@ -80,7 +63,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 keyForList: report.reportID,
                 isSelected: report.reportID === transaction?.reportID,
             }));
-    }, [allReports, debouncedSearchValue, transaction?.reportID]);
+    }, [allReports, debouncedSearchValue, transaction?.participants, transaction?.reportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);

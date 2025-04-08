@@ -17,7 +17,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, isExpenseReport, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, isExpenseReport, populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -278,16 +278,7 @@ function MoneyRequestConfirmationListFooter({
         return canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
     }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
 
-    const outstandingReport = Object.values(allReports ?? {})
-        .filter(
-            (report) =>
-                isExpenseReport(report) &&
-                report?.stateNum !== undefined &&
-                report?.statusNum !== undefined &&
-                report?.policyID === selectedParticipants?.at(0)?.policyID &&
-                report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED,
-        )
+    const outstandingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {})
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
         .at(0);
 

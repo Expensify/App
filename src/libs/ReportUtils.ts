@@ -9405,6 +9405,39 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 }
 
 /**
+ * Check if a report has any forwarded actions
+ */
+function hasForwardedAction(reportID: string): boolean {
+    const reportActions = getAllReportActions(reportID);
+    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
+/**
+ * Get outstanding expense reports for a given policy ID
+ * @param policyID - The policy ID to filter reports by
+ * @param reports - Collection of reports to filter
+ * @returns Array of outstanding expense reports sorted by name
+ */
+function getOutstandingReports(policyID: string | undefined, reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+    if (!reports) {
+        return [];
+    }
+
+    return Object.values(reports)
+        .filter(
+            (report) =>
+                isExpenseReport(report) &&
+                report?.stateNum !== undefined &&
+                report?.statusNum !== undefined &&
+                report?.policyID === policyID &&
+                report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
+                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
+                !hasForwardedAction(report.reportID),
+        )
+        .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
+}
+
+/**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
 function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): OutstandingChildRequest {
@@ -10659,6 +10692,7 @@ export {
     buildOptimisticMovedTransactionAction,
     navigateToLinkedReportAction,
     populateOptimisticReportFormula,
+    getOutstandingReports,
 };
 
 export type {
