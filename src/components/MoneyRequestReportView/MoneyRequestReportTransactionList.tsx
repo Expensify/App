@@ -180,6 +180,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
+                            key={transaction.transactionID}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
