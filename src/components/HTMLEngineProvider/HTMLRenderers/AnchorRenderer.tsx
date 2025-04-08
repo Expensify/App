@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useContext} from 'react';
+import React, {useContext, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
@@ -56,6 +56,27 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
 
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
+    const isInConciergeTaskView = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && report?.type === CONST.REPORT.TYPE.TASK && report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE;
+    const isTourTask = attrHref === getNavatticURL(environment, introSelected?.choice) && (action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE || isInConciergeTaskView);
+
+    const onLinkPress = useMemo(() => {
+        if (internalNewExpensifyPath || internalExpensifyPath) {
+            return () => openLink(attrHref, environmentURL, isAttachment)
+        }
+
+        if (isTourTask && !hasSeenTour) {
+            return () => {
+                openExternalLink(attrHref);
+                setSelfTourViewed(isAnonymousUser());
+                if (viewTourTaskReport && canModifyViewTourTask && canActionViewTourTask) {
+                    completeTask(viewTourTaskReport);
+                }
+            }
+        }
+
+        return undefined
+    }, [internalNewExpensifyPath, internalExpensifyPath, attrHref, environmentURL, isAttachment, isTourTask, hasSeenTour, viewTourTaskReport, canModifyViewTourTask, canActionViewTourTask]);
+
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
@@ -81,9 +102,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
-    const isInConciergeTaskView = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && report?.type === CONST.REPORT.TYPE.TASK && report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE;
-    const isTourTask = attrHref === getNavatticURL(environment, introSelected?.choice) && (action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE || isInConciergeTaskView);
-
     return (
         <AnchorForCommentsOnly
             href={attrHref}
@@ -105,19 +123,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
-            onPress={
-                internalNewExpensifyPath || internalExpensifyPath
-                    ? () => openLink(attrHref, environmentURL, isAttachment)
-                    : isTourTask && !hasSeenTour
-                    ? () => {
-                          openExternalLink(attrHref);
-                          setSelfTourViewed(isAnonymousUser());
-                          if (viewTourTaskReport && canModifyViewTourTask && canActionViewTourTask) {
-                              completeTask(viewTourTaskReport);
-                          }
-                      }
-                    : undefined
-            }
+            onPress={onLinkPress}
             linkHasImage={linkHasImage}
         >
             <TNodeChildrenRenderer
