@@ -239,6 +239,10 @@ function NewChatPage() {
                 return;
             }
             if (selectedOptions.length && option) {
+                // Prevent excluded emails from being added to groups
+                if (option?.login && excludedGroupEmails.includes(option.login)) {
+                    return;
+                }
                 toggleOption(option);
                 return;
             }

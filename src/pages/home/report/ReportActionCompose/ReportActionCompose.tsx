@@ -425,6 +425,7 @@ function ReportActionCompose({
                                         displayFileInModal={displayFileInModal}
                                         reportID={reportID}
                                         report={report}
+                                        currentUserPersonalDetails={currentUserPersonalDetails}
                                         reportParticipantIDs={reportParticipantIDs}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}

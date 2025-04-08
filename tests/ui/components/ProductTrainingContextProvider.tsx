@@ -1,6 +1,9 @@
-import {renderHook} from '@testing-library/react-native';
+import {render, renderHook} from '@testing-library/react-native';
+import {createRef, forwardRef, useImperativeHandle} from 'react';
+import type {Ref} from 'react';
 import Onyx from 'react-native-onyx';
 import {ProductTrainingContextProvider, useProductTrainingContext} from '@components/ProductTrainingContext';
+import type {ProductTrainingTooltipName} from '@components/ProductTrainingContext/TOOLTIPS';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -41,6 +44,18 @@ const TEST_USER_LOGIN = 'test@test.com';
 
 const wrapper = ({children}: {children: React.ReactNode}) => <ProductTrainingContextProvider>{children}</ProductTrainingContextProvider>;
 
+type ProductTrainingRef = ReturnType<typeof useProductTrainingContext>;
+
+// A simple component that calls useProductTrainingContext and sets its result into the ref.
+// Used in cases where using renderHook is not possible, for example, when we need to share the same instance of the context.
+const ProductTraining = forwardRef(({tooltipName, shouldShow}: {tooltipName: ProductTrainingTooltipName; shouldShow?: boolean}, ref: Ref<ProductTrainingRef>) => {
+    const result = useProductTrainingContext(tooltipName, shouldShow);
+
+    useImperativeHandle(ref, () => result);
+
+    return null;
+});
+
 const signUpWithTestUser = () => {
     TestHelper.signInWithTestUser(TEST_USER_ACCOUNT_ID, TEST_USER_LOGIN);
 };
@@ -51,6 +66,7 @@ describe('ProductTrainingContextProvider', () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        return waitForBatchedUpdatesWithAct();
     });
 
     beforeEach(() => {
@@ -105,6 +121,51 @@ describe('ProductTrainingContextProvider', () => {
 
             // Then tooltip should show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
+        });
+
+        it('should keep tooltip visible when another tooltip with shouldShow=false is unmounted', async () => {
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.GLOBAL_CREATE_TOOLTIP;
+            const ref = createRef<ProductTrainingRef>();
+
+            // When multiple tooltips with the same name but different shouldShow values are rendered
+            const {rerender} = render(
+                wrapper({
+                    children: (
+                        <>
+                            <ProductTraining
+                                ref={ref}
+                                tooltipName={testTooltip}
+                                shouldShow
+                            />
+                            <ProductTraining
+                                tooltipName={testTooltip}
+                                shouldShow={false}
+                            />
+                        </>
+                    ),
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then tooltip should be shown
+            expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
+
+            // When tooltip with shouldShow=false is unmounted
+            rerender(
+                wrapper({
+                    children: (
+                        <ProductTraining
+                            ref={ref}
+                            tooltipName={testTooltip}
+                            shouldShow
+                        />
+                    ),
+                }),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the remaining tooltip should still be shown
+            expect(ref.current?.shouldShowProductTrainingTooltip).toBe(true);
         });
     });
 

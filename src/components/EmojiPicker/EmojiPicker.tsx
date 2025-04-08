@@ -190,8 +190,6 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
 
-    // There is no way to disable animations, and they are really laggy, because there are so many
-    // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
     return (
         <PopoverWithMeasuredContent
             shouldHandleNavigationBack={isMobileChrome()}
@@ -199,10 +197,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
             onModalHide={onModalHide.current}
-            hideModalContentWhileAnimating
             shouldSetModalVisibility={false}
-            animationInTiming={1}
-            animationOutTiming={1}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
@@ -221,6 +216,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shouldSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            shouldUseNewModal
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>
