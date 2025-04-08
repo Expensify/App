@@ -534,7 +534,7 @@ function SearchAutocompleteList(
         if (shouldHighlight(normalizedReferenceText, targetText)) {
             onHighlightFirstItem?.();
         }
-    }, [autocompleteQueryValue, onHighlightFirstItem, ref, normalizedReferenceText]);
+    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     return (
         <SelectionList<OptionData | SearchQueryItem>
