@@ -292,7 +292,6 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
             } as IOSEncryptPayload;
         })
         .catch((e) => {
-            // eslint-disable-next-line no-console
             Log.warn(`issuerEncryptPayloadCallback error: ${e}`);
             return {} as IOSEncryptPayload;
         });
