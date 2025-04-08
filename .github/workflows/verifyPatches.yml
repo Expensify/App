@@ -27,14 +27,17 @@ jobs:
           OLD_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
 
           if [ "$CURRENT_HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
-            echo "No relevant changes. Skipping artifacts build"
+            echo "No relevant changes Skipping artifacts build"
             exit 1
-          fi
+          else
+
 
           if [ "$VERSION" != "$OLD_VERSION" ]; then
             echo "Detected react-native version bump ($OLD_VERSION -> $VERSION)"
           fi
 
+          echo "new hash: $HASH"
+          echo "old hash: $OLD_HASH"
           if [ "$HASH" != "$OLD_HASH" ]; then
             echo "Detected changes in NewDot patches:"
             git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- "patches/react-native+*.patch"
