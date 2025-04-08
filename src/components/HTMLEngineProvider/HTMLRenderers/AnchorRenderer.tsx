@@ -1,16 +1,25 @@
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useContext} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
 import AnchorForAttachmentsOnly from '@components/AnchorForAttachmentsOnly';
 import AnchorForCommentsOnly from '@components/AnchorForCommentsOnly';
 import * as HTMLEngineUtils from '@components/HTMLEngineProvider/htmlEngineUtils';
+import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getInternalExpensifyPath, getInternalNewExpensifyPath, openLink} from '@libs/actions/Link';
+import {getInternalExpensifyPath, getInternalNewExpensifyPath, openExternalLink, openLink} from '@libs/actions/Link';
+import {isAnonymousUser} from '@libs/actions/Session';
+import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
+import {setSelfTourViewed} from '@libs/actions/Welcome';
+import {hasSeenTourSelector} from '@libs/onboardingSelectors';
+import {getNavatticURL} from '@libs/TourUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type AnchorRendererProps = CustomRendererProps<TBlock> & {
     /** Key of the element */
@@ -18,9 +27,19 @@ type AnchorRendererProps = CustomRendererProps<TBlock> & {
 };
 
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {report, action} = useContext(ShowContextMenuContext);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${introSelected?.viewTour}`);
+    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
+        selector: hasSeenTourSelector,
+    });
+    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+
     const styles = useThemeStyles();
     const htmlAttribs = tnode.attributes;
-    const {environmentURL} = useEnvironment();
+    const {environment, environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
     const isAttachment = !!htmlAttribs[CONST.ATTACHMENT_SOURCE_ATTRIBUTE];
     const tNodeChild = tnode?.domNode?.children?.at(0);
@@ -62,6 +81,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         );
     }
 
+    const isInConciergeTaskView = action?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED && report?.type === CONST.REPORT.TYPE.TASK && report.ownerAccountID === CONST.ACCOUNT_ID.CONCIERGE;
+    const isTourTask = attrHref === getNavatticURL(environment, introSelected?.choice) && (action?.actorAccountID === CONST.ACCOUNT_ID.CONCIERGE || isInConciergeTaskView);
+
     return (
         <AnchorForCommentsOnly
             href={attrHref}
@@ -83,7 +105,20 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
             ]}
             key={key}
             // Only pass the press handler for internal links. For public links or whitelisted internal links fallback to default link handling
-            onPress={internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined}
+            // onPress={internalNewExpensifyPath || internalExpensifyPath ? () => openLink(attrHref, environmentURL, isAttachment) : undefined}
+            onPress={
+                internalNewExpensifyPath || internalExpensifyPath
+                    ? () => openLink(attrHref, environmentURL, isAttachment)
+                    : isTourTask && !hasSeenTour
+                    ? () => {
+                          openExternalLink(attrHref);
+                          setSelfTourViewed(isAnonymousUser());
+                          if (viewTourTaskReport && canModifyViewTourTask && canActionViewTourTask) {
+                              completeTask(viewTourTaskReport);
+                          }
+                      }
+                    : undefined
+            }
             linkHasImage={linkHasImage}
         >
             <TNodeChildrenRenderer
