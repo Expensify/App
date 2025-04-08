@@ -8,20 +8,17 @@ import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
-type JobTitleProps = SubStepProps & {directorID?: string; isDirectorFlow?: boolean};
+type JobTitleProps = SubStepProps;
 
 const {SIGNER_JOB_TITLE} = INPUT_IDS.ADDITIONAL_DATA.CORPAY;
-const {DIRECTOR_PREFIX, DIRECTOR_JOB_TITLE} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 
-function JobTitle({onNext, onMove, isEditing, directorID, isDirectorFlow}: JobTitleProps) {
+function JobTitle({onNext, onMove, isEditing}: JobTitleProps) {
     const {translate} = useLocalize();
 
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const inputID =
-        directorID && directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY ? (`${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_JOB_TITLE}` as keyof SignerInfoStepProps) : SIGNER_JOB_TITLE;
+    const inputID = SIGNER_JOB_TITLE;
     const defaultValue = String(reimbursementAccountDraft?.[inputID] ?? '');
 
     const validate = useCallback(
@@ -43,7 +40,7 @@ function JobTitle({onNext, onMove, isEditing, directorID, isDirectorFlow}: JobTi
             onNext={onNext}
             onMove={onMove}
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
-            formTitle={isDirectorFlow ? translate('signerInfoStep.whatsDirectorsJobTitle') : translate('signerInfoStep.whatsYourJobTitle')}
+            formTitle={translate('signerInfoStep.whatsYourJobTitle')}
             validate={validate}
             onSubmit={handleSubmit}
             inputId={inputID}

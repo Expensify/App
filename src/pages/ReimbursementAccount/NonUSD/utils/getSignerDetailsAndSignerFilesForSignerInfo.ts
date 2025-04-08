@@ -2,28 +2,10 @@ import type {OnyxEntry} from 'react-native-onyx';
 import type {FileObject} from '@components/AttachmentModal';
 import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
-import type {BeneficialOwnerDataKey, SignerInfoDirectorDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
+import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 
-const {
-    DIRECTOR_PREFIX,
-    FULL_NAME,
-    EMAIL,
-    JOB_TITLE,
-    DATE_OF_BIRTH,
-    ADDRESS,
-    STREET,
-    CITY,
-    STATE,
-    ZIP_CODE,
-    DIRECTOR_OCCUPATION,
-    DIRECTOR_FULL_NAME,
-    DIRECTOR_JOB_TITLE,
-    PROOF_OF_DIRECTORS,
-    ADDRESS_PROOF,
-    COPY_OF_ID,
-    CODICE_FISCALE,
-    PRD_AND_SFG,
-} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, ADDRESS, STREET, CITY, STATE, ZIP_CODE, PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, DOWNLOADED_PDS_AND_FSG} =
+    CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 const {
     PREFIX: BENEFICIAL_PREFIX,
     FIRST_NAME,
@@ -35,18 +17,13 @@ const {
     ZIP_CODE: BENEFICIAL_ZIP_CODE,
 } = CONST.NON_USD_BANK_ACCOUNT.BENEFICIAL_OWNER_INFO_STEP.BENEFICIAL_OWNER_DATA;
 
-const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE, DIRECTOR_OCCUPATION, DIRECTOR_FULL_NAME, DIRECTOR_JOB_TITLE];
-const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, PRD_AND_SFG];
+const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET, CITY, STATE, ZIP_CODE, DOWNLOADED_PDS_AND_FSG];
+const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE];
 const beneficialOwnerFields = [FIRST_NAME, LAST_NAME, DOB, BENEFICIAL_STREET, BENEFICIAL_CITY, BENEFICIAL_STATE, BENEFICIAL_ZIP_CODE];
 
-function getSignerDetailsAndSignerFilesForSignerInfo(
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>,
-    signerEmail: string,
-    directorIDs: string[],
-    isUserBeneficialOwner: boolean,
-) {
-    const signerDetails: Record<string, string | FileObject[]> = {};
-    const signerFiles: Record<string, string | FileObject> = {};
+function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, isUserBeneficialOwner: boolean) {
+    const signerDetails: Record<string, string | boolean | FileObject[]> = {};
+    const signerFiles: Record<string, string | FileObject | boolean> = {};
 
     signerDetailsFields.forEach((fieldName: keyof SignerInfoStepProps) => {
         if (fieldName === EMAIL) {
@@ -54,26 +31,10 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
             return;
         }
 
-        directorIDs.forEach((directorID: string) => {
-            const fieldKey: SignerInfoDirectorDataKey = `${DIRECTOR_PREFIX}_${directorID}_${fieldName}`;
-            if (directorID === CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY) {
-                if (fieldName === DIRECTOR_FULL_NAME) {
-                    signerDetails[fieldKey] = String(reimbursementAccountDraft?.[FULL_NAME]);
-                    return;
-                }
-
-                if (fieldName === DIRECTOR_JOB_TITLE) {
-                    signerDetails[fieldKey] = String(reimbursementAccountDraft?.[JOB_TITLE]);
-                    return;
-                }
-
-                if (fieldName === DIRECTOR_OCCUPATION) {
-                    signerDetails[fieldKey] = String(reimbursementAccountDraft?.[fieldKey]);
-                }
-            } else if (reimbursementAccountDraft?.[fieldKey]) {
-                signerDetails[fieldKey] = String(reimbursementAccountDraft?.[fieldKey]);
-            }
-        });
+        if (fieldName === DOWNLOADED_PDS_AND_FSG) {
+            // hardcoded "true" temporarily - it will be handled properly in separate PR
+            signerDetails[fieldName] = true;
+        }
 
         if (!reimbursementAccountDraft?.[fieldName]) {
             return;
@@ -91,7 +52,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
         signerDetails[FULL_NAME] = '';
         signerDetails[DATE_OF_BIRTH] = '';
         signerDetails[ADDRESS] = '';
-        signerDetails[`${DIRECTOR_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${DIRECTOR_FULL_NAME}`] = '';
 
         beneficialOwnerFields.forEach((fieldName) => {
             const beneficialFieldKey: BeneficialOwnerDataKey = `${BENEFICIAL_PREFIX}_${CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY}_${fieldName}`;
@@ -100,19 +60,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
                 signerDetails[FULL_NAME] = signerDetails[FULL_NAME]
                     ? `${String(signerDetails[FULL_NAME])} ${String(reimbursementAccountDraft?.[beneficialFieldKey])}`
                     : String(reimbursementAccountDraft?.[beneficialFieldKey]);
-                directorIDs.forEach((directorID: string) => {
-                    const key = `${DIRECTOR_PREFIX}_${directorID}_${DIRECTOR_FULL_NAME}`;
-
-                    if (directorID !== CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY) {
-                        return;
-                    }
-
-                    if (fieldName === FIRST_NAME || fieldName === LAST_NAME) {
-                        signerDetails[key] = signerDetails[key]
-                            ? `${String(signerDetails[key])} ${String(reimbursementAccountDraft?.[beneficialFieldKey])}`
-                            : String(reimbursementAccountDraft?.[beneficialFieldKey]);
-                    }
-                });
                 return;
             }
 
@@ -130,13 +77,12 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
     }
 
     signerFilesFields.forEach((fieldName) => {
-        const key = `signer_${fieldName}` as keyof SignerInfoStepProps;
-
-        if (!reimbursementAccountDraft?.[key]) {
+        if (!reimbursementAccountDraft?.[fieldName]) {
             return;
         }
 
-        signerFiles[fieldName] = reimbursementAccountDraft?.[key][0];
+        // eslint-disable-next-line rulesdir/prefer-at
+        signerFiles[fieldName] = reimbursementAccountDraft?.[fieldName][0];
     });
 
     return {signerDetails, signerFiles};
