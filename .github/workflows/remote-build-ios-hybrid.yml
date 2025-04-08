@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-  # TODO: remove before merging
   pull_request:
     types: [opened, synchronize]
 
