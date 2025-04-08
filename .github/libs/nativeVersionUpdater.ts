@@ -8,10 +8,11 @@ import getPatchVersion from 'semver/functions/patch';
 import getBuildVersion from 'semver/functions/prerelease';
 
 // Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
-const PLIST_PATH = './ios/NewExpensify/Info.plist';
-const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
-const PLIST_PATH_SHARE = './ios/ShareViewController/Info.plist';
+const ROOT_DIR = path.resolve(__dirname, '../..');
+const BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, './android/app/build.gradle');
+const PLIST_PATH = path.resolve(ROOT_DIR, './ios/NewExpensify/Info.plist');
+const PLIST_PATH_NSE = path.resolve(ROOT_DIR, './ios/NotificationServiceExtension/Info.plist');
+const PLIST_PATH_SHARE = path.resolve(ROOT_DIR, './ios/ShareViewController/Info.plist');
 
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
