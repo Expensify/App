@@ -71,6 +71,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
             title: translate('workspace.sageIntacct.defaultVendor'),
             key: 'Default vendor toggle',
             subtitle: translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: true}),
+            shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.reimbursableExpenseReportDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {

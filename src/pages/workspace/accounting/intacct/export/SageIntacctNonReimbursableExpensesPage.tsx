@@ -90,6 +90,7 @@ function SageIntacctNonReimbursableExpensesPage({policy}: WithPolicyConnectionsP
             title: translate('workspace.sageIntacct.defaultVendor'),
             key: 'Default vendor toggle',
             subtitle: translate('workspace.sageIntacct.defaultVendorDescription', {isReimbursable: false}),
+            shouldPlaceSubtitleBelowSwitch: true,
             isActive: !!config?.export.nonReimbursableCreditCardChargeDefaultVendor,
             switchAccessibilityLabel: translate('workspace.sageIntacct.defaultVendor'),
             onToggle: (enabled) => {

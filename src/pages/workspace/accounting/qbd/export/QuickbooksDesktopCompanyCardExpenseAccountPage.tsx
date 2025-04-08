@@ -90,6 +90,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         title={translate('workspace.accounting.defaultVendor')}
                         subtitle={translate('workspace.qbd.defaultVendorDescription')}
                         switchAccessibilityLabel={translate('workspace.qbd.defaultVendorDescription')}
+                        shouldPlaceSubtitleBelowSwitch
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!qbdConfig?.shouldAutoCreateVendor}
                         pendingAction={PolicyUtils.settingsPendingAction(
