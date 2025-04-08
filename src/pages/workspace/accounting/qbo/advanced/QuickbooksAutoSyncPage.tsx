@@ -38,6 +38,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={QuickbooksAutoSyncPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
@@ -60,8 +61,8 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                         <MenuItemWithTopDescription
                             title={
                                 accountingMethod === COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL
-                                    ? translate(`workspace.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
-                                    : translate(`workspace.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
+                                    ? translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL}` as TranslationPaths)
+                                    : translate(`workspace.qbo.accountingMethods.values.${COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths)
                             }
                             description={translate('workspace.qbo.accountingMethods.label')}
                             shouldShowRightIcon

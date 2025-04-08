@@ -96,16 +96,6 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
 
     const qboToggleSettingItems = [
         {
-            title: translate('workspace.accounting.autoSync'),
-            subtitle: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.autoSyncDescription'),
-            isActive: !!qboConfig?.autoSync?.enabled,
-            onToggle: () => updateQuickbooksOnlineAutoSync(policyID, !qboConfig?.autoSync?.enabled),
-            subscribedSetting: CONST.QUICKBOOKS_CONFIG.AUTO_SYNC,
-            errors: getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.AUTO_SYNC),
-            pendingAction: settingsPendingAction([CONST.QUICKBOOKS_CONFIG.AUTO_SYNC], qboConfig?.pendingFields),
-        },
-        {
             title: translate('workspace.qbo.advancedConfig.inviteEmployees'),
             subtitle: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
             switchAccessibilityLabel: translate('workspace.qbo.advancedConfig.inviteEmployeesDescription'),
@@ -185,7 +175,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
                         if (!qboConfig?.autoSync?.enabled) {
                             return undefined;
                         }
-                        return translate(`workspace.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths);
+                        return translate(`workspace.qbo.accountingMethods.alternateText.${accountingMethod ?? COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH}` as TranslationPaths);
                     })()}
                 />
             </OfflineWithFeedback>
