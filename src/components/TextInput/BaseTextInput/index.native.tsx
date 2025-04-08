@@ -375,7 +375,6 @@ function BaseTextInput(
                                     // Add disabled color theme when field is not editable.
                                     inputProps.disabled && styles.textInputDisabled,
                                     styles.pointerEventsAuto,
-                                    !!prefixCharacter && !isMultiline && StyleUtils.getHeight(variables.inputHeight),
                                 ]}
                                 multiline={isMultiline}
                                 maxLength={maxLength}
