@@ -98,6 +98,10 @@ function AnimatedSettlementButton({
         return () => clearTimeout(timer);
     }, [buttonMarginTop, gap, height, isAnimationRunning, shouldAddTopMargin]);
 
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => onAnimationFinish, []);
+
     return (
         <Animated.View style={[containerStyles, wrapperStyle, {minWidth}]}>
             {isAnimationRunning && canShow && (
