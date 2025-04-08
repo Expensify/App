@@ -1,7 +1,6 @@
 import type {NavigationState, PartialState} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
-
 import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 

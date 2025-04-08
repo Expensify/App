@@ -1959,7 +1959,7 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
-type SettingsTabScreen =  keyof SettingsTabScreenName;
+type SettingsTabScreen = keyof SettingsTabScreenName;
 
 type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
 
