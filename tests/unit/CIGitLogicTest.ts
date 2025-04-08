@@ -183,8 +183,6 @@ function mergePR(num: number) {
 
 function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
     Log.info(`Cherry-picking PR ${num} to staging...`);
-    // TODO: Move mergePR into the test itself
-    mergePR(num);
     const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     const versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
@@ -206,17 +204,11 @@ function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => v
         resolveVersionBumpConflicts();
     }
 
-    // TODO: This assumes that we have a conflict, we should not assume that
     setupGitAsHuman();
 
     try {
         exec(`git cherry-pick -x --mainline 1 --strategy=recursive -Xtheirs ${prMergeCommit}`);
     } catch (e) {
-        // 1. Abort cherry-pick
-        // 2. Create the cherry-pick-staging branch
-        // 3. Run setupGitAsHuman()
-        // 4. Re-run the cherry pick git command (it will have conflicts again)
-        // 5. Catch the conflicts exception, run resolveMergeCommitConflicts()
         resolveMergeCommitConflicts();
     }
 
@@ -232,7 +224,6 @@ function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => v
 
 function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () => void = () => {}, resolveMergeCommitConflicts: () => void = () => {}) {
     Log.info(`Cherry-picking PR ${num} to production...`);
-    mergePR(num);
     const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
     let versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
@@ -389,6 +380,7 @@ describe('CIGitLogic', () => {
 
     test('Merge a pull request with the checklist locked and CP it to staging', async () => {
         createBasicPR(3);
+        mergePR(3);
         cherryPickPRToStaging(3);
 
         // Verify output for checklist
@@ -400,6 +392,7 @@ describe('CIGitLogic', () => {
 
     test('Merge a pull request with the checklist locked and CP it to production', async () => {
         createBasicPR(4);
+        mergePR(4);
         cherryPickPRToProduction(4);
 
         // Verify output for checklist
@@ -489,6 +482,7 @@ Appended content
         console.log('RORY_DEBUG AFTER:', fs.readFileSync('myFile.txt', {encoding: 'utf8'}));
         exec('git add myFile.txt');
         exec('git commit -m "Revert append and prepend"');
+        mergePR(9);
         cherryPickPRToStaging(9);
 
         Log.info('Verifying that the revert is present on staging, but the unrelated change is not');
@@ -579,6 +573,7 @@ Appended content
         Log.success('Created manual version bump in PR #14 in branch pr-14');
 
         const packageJSONBefore = fs.readFileSync('package.json', {encoding: 'utf-8'});
+        mergePR(14);
         cherryPickPRToStaging(
             14,
             () => {
