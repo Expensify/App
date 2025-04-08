@@ -43,32 +43,40 @@ function updateNativeVersions(version: string) {
     }
 }
 
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
-if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
-    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
-    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+function run() {
+    let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
+    if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
+        semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
+        console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+    }
+
+    const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString()) as PackageJson;
+    if (!previousVersion) {
+        core.setFailed('Error: Could not read package.json');
+    }
+
+    const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
+    console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
+
+    updateNativeVersions(newVersion);
+
+    console.log(`Setting npm version to ${newVersion}`);
+    exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
+        .then(({stdout}) => {
+            // NPM and native versions successfully updated, output new version
+            console.log(stdout);
+            core.setOutput('NEW_VERSION', newVersion);
+        })
+        .catch(({stdout, stderr}) => {
+            // Log errors and retry
+            console.log(stdout);
+            console.error(stderr);
+            core.setFailed('An error occurred in the `npm version` command');
+        });
 }
 
-const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString()) as PackageJson;
-if (!previousVersion) {
-    core.setFailed('Error: Could not read package.json');
+if (require.main === module) {
+    run();
 }
 
-const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
-console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
-
-updateNativeVersions(newVersion);
-
-console.log(`Setting npm version to ${newVersion}`);
-exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
-    .then(({stdout}) => {
-        // NPM and native versions successfully updated, output new version
-        console.log(stdout);
-        core.setOutput('NEW_VERSION', newVersion);
-    })
-    .catch(({stdout, stderr}) => {
-        // Log errors and retry
-        console.log(stdout);
-        console.error(stderr);
-        core.setFailed('An error occurred in the `npm version` command');
-    });
+export default run;
