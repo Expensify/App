@@ -1,362 +1,574 @@
-import React, {useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import lodashSortBy from 'lodash/sortBy';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
+import DecisionModal from '@components/DecisionModal';
+import EmptyStateComponent from '@components/EmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {Trashcan} from '@components/Icon/Expensicons';
-import MenuItem from '@components/MenuItem';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import OfflineWithFeedback from '@components/OfflineWithFeedback';
+import * as Expensicons from '@components/Icon/Expensicons';
+import * as Illustrations from '@components/Icon/Illustrations';
+import LottieAnimations from '@components/LottieAnimations';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import TableListItem from '@components/SelectionList/TableListItem';
+import SelectionListWithModal from '@components/SelectionListWithModal';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
+import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
+import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {formatDefaultTaxRateText, formatRequireReceiptsOverText, getCategoryApproverRule, getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getLatestErrorMessageField} from '@libs/ErrorUtils';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
+import {isConnectionInProgress} from '@libs/actions/connections';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getEnabledCategoriesCount} from '@libs/OptionsListUtils';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
-import type {SettingsNavigatorParamList} from '@navigation/types';
-import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
-import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
-    clearCategoryErrors,
-    deleteWorkspaceCategories,
-    setPolicyCategoryDescriptionRequired,
-    setWorkspaceCategoryDescriptionHint,
-    setWorkspaceCategoryEnabled,
-} from '@userActions/Policy/Category';
+    getCleanedTagName,
+    getCountOfEnabledTagsOfList,
+    getCountOfMultiLevelRequired,
+    getCurrentConnectionName,
+    getTagLists,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    isMultiLevelTags as isMultiLevelTagsPolicyUtils,
+    shouldShowSyncError,
+} from '@libs/PolicyUtils';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {PolicyTag, PolicyTagList, TagListItem} from './types';
 
-type CategorySettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORY_SETTINGS>;
+type WorkspaceTagsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.TAGS>;
 
-function CategorySettingsPage({
-    route: {
-        params: {backTo, policyID, categoryName},
-    },
-    navigation,
-}: CategorySettingsPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {translate} = useLocalize();
-    const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
+    const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [showCannotDisableLastTagModal, setShowCannotDisableLastTagModal] = useState(false);
+    const policyID = route.params.policyID;
+    const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
-
-    const policyCategory = policyCategories?.[categoryName] ?? Object.values(policyCategories ?? {}).find((category) => category.previousCategoryName === categoryName);
-    const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
-    const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
-
-    const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
-    const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const {selectionMode} = useMobileSelectionMode();
+    const {environmentURL} = useEnvironment();
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
+    const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
+    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const currentConnectionName = getCurrentConnectionName(policy);
+    const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags)], [policyTags]);
+    const canSelectMultiple = !isMultiLevelTags && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+    const fetchTags = useCallback(() => {
+        openPolicyTagsPage(policyID);
+    }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
-    const shouldPreventDisable = policyCategory?.enabled && policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
 
-    const navigateBack = () => {
-        Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
-    };
+    const {isOffline} = useNetwork({onReconnect: fetchTags});
 
     useEffect(() => {
-        if (policyCategory?.name === categoryName || !policyCategory) {
+        fetchTags();
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    const cleanupSelectedOption = useCallback(() => setSelectedTags({}), []);
+    useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useEffect(() => {
+        if (isEmptyObject(selectedTags) || !canSelectMultiple) {
             return;
         }
-        navigation.setParams({categoryName: policyCategory?.name});
-    }, [categoryName, navigation, policyCategory]);
 
-    const flagAmountsOverText = useMemo(() => {
-        if (policyCategory?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategory?.maxExpenseAmount) {
-            return '';
+        setSelectedTags((prevSelectedTags) => {
+            const keys = Object.keys(prevSelectedTags);
+            const newSelectedTags: Record<string, boolean> = {};
+            const policyTagList = policyTagLists.at(0);
+
+            for (const key of keys) {
+                if (policyTagList?.tags?.[key] && policyTagList?.tags?.[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedTags[key] = prevSelectedTags[key];
+                }
+            }
+
+            return newSelectedTags;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policyTagLists]);
+
+    useSearchBackPress({
+        onClearSelection: () => {
+            setSelectedTags({});
+        },
+        onNavigationCallBack: () => Navigation.goBack(backTo),
+    });
+
+    const getPendingAction = (policyTagList: PolicyTagList): PendingAction | undefined => {
+        if (!policyTagList) {
+            return undefined;
         }
-
-        return `${convertToDisplayString(policyCategory?.maxExpenseAmount, policyCurrency)} ${CONST.DOT_SEPARATOR} ${translate(
-            `workspace.rules.categoryRules.expenseLimitTypes.${policyCategoryExpenseLimitType}`,
-        )}`;
-    }, [policyCategory?.maxExpenseAmount, policyCategoryExpenseLimitType, policyCurrency, translate]);
-
-    const approverText = useMemo(() => {
-        const categoryApprover = getCategoryApproverRule(policy?.rules?.approvalRules ?? [], categoryName)?.approver ?? '';
-        const approver = getPersonalDetailByEmail(categoryApprover);
-        return approver?.displayName ?? categoryApprover;
-    }, [categoryName, policy?.rules?.approvalRules]);
-
-    const defaultTaxRateText = useMemo(() => {
-        const taxID = getCategoryDefaultTaxRate(policy?.rules?.expenseRules ?? [], categoryName, policy?.taxRates?.defaultExternalID);
-
-        if (!taxID) {
-            return '';
-        }
-
-        const taxRate = policy?.taxRates?.taxes[taxID];
-
-        if (!taxRate) {
-            return '';
-        }
-
-        return formatDefaultTaxRateText(translate, taxID, taxRate, policy?.taxRates);
-    }, [categoryName, policy?.rules?.expenseRules, policy?.taxRates, translate]);
-
-    const requireReceiptsOverText = useMemo(() => {
-        if (!policy) {
-            return '';
-        }
-        return formatRequireReceiptsOverText(translate, policy, policyCategory?.maxAmountNoReceipt);
-    }, [policy, policyCategory?.maxAmountNoReceipt, translate]);
-
-    if (!policyCategory) {
-        return <NotFoundPage />;
-    }
-
-    const updateWorkspaceCategoryEnabled = (value: boolean) => {
-        if (shouldPreventDisable && !value) {
-            setIsCannotDisableLastCategoryModalVisible(true);
-            return;
-        }
-        setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
+        return (policyTagList.pendingAction as PendingAction) ?? Object.values(policyTagList.tags).some((tag: PolicyTag) => tag.pendingAction)
+            ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE
+            : undefined;
     };
 
-    const navigateToEditCategory = () => {
-        Navigation.navigate(
-            isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORY_EDIT.getRoute(policyID, policyCategory.name, backTo) : ROUTES.WORKSPACE_CATEGORY_EDIT.getRoute(policyID, policyCategory.name),
+    const updateWorkspaceTagEnabled = useCallback(
+        (value: boolean, tagName: string) => {
+            setWorkspaceTagEnabled(policyID, {[tagName]: {name: tagName, enabled: value}}, 0);
+        },
+        [policyID],
+    );
+
+    const updateWorkspaceRequiresTag = useCallback(
+        (value: boolean, orderWeight: number) => {
+            setPolicyTagsRequired(policyID, value, orderWeight);
+        },
+        [policyID],
+    );
+    const tagList = useMemo<TagListItem[]>(() => {
+        if (isMultiLevelTags) {
+            return policyTagLists.map((policyTagList) => {
+                const areTagsEnabled = !!Object.values(policyTagList?.tags ?? {}).some((tag) => tag.enabled);
+                const isSwitchDisabled = !policyTagList.required && !areTagsEnabled;
+                const isSwitchEnabled = policyTagList.required && areTagsEnabled;
+
+                if (policyTagList.required && !areTagsEnabled) {
+                    updateWorkspaceRequiresTag(false, policyTagList.orderWeight);
+                }
+                return {
+                    value: policyTagList.name,
+                    orderWeight: policyTagList.orderWeight,
+                    text: getCleanedTagName(policyTagList.name),
+                    keyForList: String(policyTagList.orderWeight),
+                    isSelected: selectedTags[policyTagList.name] && canSelectMultiple,
+                    pendingAction: getPendingAction(policyTagList),
+                    enabled: true,
+                    required: policyTagList.required,
+                    rightElement: (
+                        <Switch
+                            isOn={isSwitchEnabled}
+                            accessibilityLabel={translate('workspace.tags.requiresTag')}
+                            onToggle={(newValue: boolean) => {
+                                if (getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && isSwitchEnabled) {
+                                    setShowCannotDisableLastTagModal(true);
+                                    return;
+                                }
+
+                                updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
+                            }}
+                            disabled={isSwitchDisabled}
+                            showLockIcon={getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && isSwitchEnabled}
+                        />
+                    ),
+                };
+            });
+        }
+        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+        return sortedTags.map((tag) => ({
+            value: tag.name,
+            text: getCleanedTagName(tag.name),
+            keyForList: tag.name,
+            isSelected: selectedTags[tag.name] && canSelectMultiple,
+            pendingAction: tag.pendingAction,
+            errors: tag.errors ?? undefined,
+            enabled: tag.enabled,
+            isDisabled: tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            rightElement: (
+                <Switch
+                    isOn={tag.enabled}
+                    disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
+                    accessibilityLabel={translate('workspace.tags.enableTag')}
+                    onToggle={(newValue: boolean) => {
+                        if (policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && !newValue) {
+                            setShowCannotDisableLastTagModal(true);
+                            return;
+                        }
+                        updateWorkspaceTagEnabled(newValue, tag.name);
+                    }}
+                    showLockIcon={getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && policy?.requiresTag && tag.enabled}
+                />
+            ),
+        }));
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy?.requiresTag, policyTags]);
+
+    const tagListKeyedByName = useMemo(
+        () =>
+            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+                acc[tag.value] = tag;
+                return acc;
+            }, {}),
+        [tagList],
+    );
+
+    const toggleTag = (tag: TagListItem) => {
+        setSelectedTags((prev) => ({
+            ...prev,
+            [tag.value]: !prev[tag.value],
+        }));
+    };
+
+    const toggleAllTags = () => {
+        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const isAllSelected = availableTags.length === Object.keys(selectedTags).length;
+        setSelectedTags(isAllSelected ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
+    };
+
+    const getCustomListHeader = () => {
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('common.name')}
+                rightHeaderText={translate(isMultiLevelTags ? 'common.required' : 'common.enabled')}
+            />
         );
     };
 
-    const deleteCategory = () => {
-        deleteWorkspaceCategories(policyID, [categoryName]);
-        setDeleteCategoryConfirmModalVisible(false);
-        navigateBack();
+    const navigateToTagsSettings = () => {
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_SETTINGS.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAGS_SETTINGS.getRoute(policyID));
     };
 
-    const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-    const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
-    const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
+    const navigateToCreateTagPage = () => {
+        Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_CREATE.getRoute(policyID, backTo) : ROUTES.WORKSPACE_TAG_CREATE.getRoute(policyID));
+    };
+
+    const navigateToTagSettings = (tag: TagListItem) => {
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            toggleTag(tag);
+            return;
+        }
+        if (tag.orderWeight !== undefined) {
+            Navigation.navigate(
+                isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight, backTo) : ROUTES.WORKSPACE_TAG_LIST_VIEW.getRoute(policyID, tag.orderWeight),
+            );
+        } else {
+            Navigation.navigate(isQuickSettingsFlow ? ROUTES.SETTINGS_TAG_SETTINGS.getRoute(policyID, 0, tag.value, backTo) : ROUTES.WORKSPACE_TAG_SETTINGS.getRoute(policyID, 0, tag.value));
+        }
+    };
+
+    const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
+
+    const deleteTags = () => {
+        setSelectedTags({});
+        deletePolicyTags(policyID, selectedTagsArray);
+        setIsDeleteTagsConfirmModalVisible(false);
+    };
+
+    const isLoading = !isOffline && policyTags === undefined;
+
+    const getHeaderButtons = () => {
+        const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+
+        if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
+            return (
+                <View style={[styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
+                    {!hasAccountingConnections && !isMultiLevelTags && (
+                        <Button
+                            success
+                            onPress={navigateToCreateTagPage}
+                            icon={Expensicons.Plus}
+                            text={translate('workspace.tags.addTag')}
+                            style={[shouldUseNarrowLayout && styles.flex1]}
+                        />
+                    )}
+                    <Button
+                        onPress={navigateToTagsSettings}
+                        icon={Expensicons.Gear}
+                        text={translate('common.settings')}
+                        style={[shouldUseNarrowLayout && styles.flex1]}
+                    />
+                </View>
+            );
+        }
+
+        const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
+
+        if (!hasAccountingConnections) {
+            options.push({
+                icon: Expensicons.Trashcan,
+                text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
+            });
+        }
+
+        let enabledTagCount = 0;
+        const tagsToDisable: Record<string, {name: string; enabled: boolean}> = {};
+        let disabledTagCount = 0;
+        const tagsToEnable: Record<string, {name: string; enabled: boolean}> = {};
+        for (const tagName of selectedTagsArray) {
+            if (tagListKeyedByName[tagName]?.enabled) {
+                enabledTagCount++;
+                tagsToDisable[tagName] = {
+                    name: tagName,
+                    enabled: false,
+                };
+            } else {
+                disabledTagCount++;
+                tagsToEnable[tagName] = {
+                    name: tagName,
+                    enabled: true,
+                };
+            }
+        }
+
+        if (enabledTagCount > 0) {
+            const tagsToDisableCount = Object.keys(tagsToDisable).length;
+            const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags);
+            options.push({
+                icon: Expensicons.Close,
+                text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                onSelected: () => {
+                    if (tagsToDisableCount === enabledTagsCount && policy?.requiresTag) {
+                        setShowCannotDisableLastTagModal(true);
+                        return;
+                    }
+                    setSelectedTags({});
+                    setWorkspaceTagEnabled(policyID, tagsToDisable, 0);
+                },
+            });
+        }
+
+        if (disabledTagCount > 0) {
+            options.push({
+                icon: Expensicons.Checkmark,
+                text: translate(disabledTagCount === 1 ? 'workspace.tags.enableTag' : 'workspace.tags.enableTags'),
+                value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
+                onSelected: () => {
+                    setSelectedTags({});
+                    setWorkspaceTagEnabled(policyID, tagsToEnable, 0);
+                },
+            });
+        }
+
+        return (
+            <ButtonWithDropdownMenu
+                onPress={() => null}
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                isSplitButton={false}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                customText={translate('workspace.common.selected', {count: selectedTagsArray.length})}
+                options={options}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedTagsArray.length}
+                testID={`${WorkspaceTagsPage.displayName}-header-dropdown-menu-button`}
+            />
+        );
+    };
+
+    const hasVisibleTags = tagList.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+
+    const threeDotsMenuItems = useMemo(() => {
+        const menuItems: PopoverMenuItem[] = [];
+        if (!hasAccountingConnectionsPolicyUtils(policy)) {
+            menuItems.push({
+                icon: Expensicons.Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Navigation.navigate(
+                        isQuickSettingsFlow
+                            ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo))
+                            : ROUTES.WORKSPACE_TAGS_IMPORT.getRoute(policyID),
+                    );
+                },
+            });
+        }
+
+        if (hasVisibleTags) {
+            menuItems.push({
+                icon: Expensicons.Download,
+                text: translate('spreadsheet.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    close(() => {
+                        downloadTagsCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    });
+                },
+            });
+        }
+
+        return menuItems;
+    }, [policy, hasVisibleTags, translate, isOffline, isQuickSettingsFlow, policyID, backTo]);
+
+    const getHeaderText = () => (
+        <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+            {!hasSyncError && isConnectedToAccounting ? (
+                <Text>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.tags.importedFromAccountingSoftware')} `}</Text>
+                    <TextLink
+                        style={[styles.textNormal, styles.link]}
+                        href={`${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}`}
+                    >
+                        {`${currentConnectionName} ${translate('workspace.accounting.settings')}`}
+                    </TextLink>
+                    <Text style={[styles.textNormal, styles.colorMuted]}>.</Text>
+                </Text>
+            ) : (
+                <Text style={[styles.textNormal, styles.colorMuted]}>{translate('workspace.tags.subtitle')}</Text>
+            )}
+        </View>
+    );
+
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
         <AccessOrNotFoundWrapper
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
-                testID={CategorySettingsPage.displayName}
+                testID={WorkspaceTagsPage.displayName}
+                shouldShowOfflineIndicatorInWideScreen
+                offlineIndicatorStyle={styles.mtAuto}
             >
-                {({safeAreaPaddingBottomStyle}) => (
-                    <>
-                        <HeaderWithBackButton
-                            title={categoryName}
-                            onBackButtonPress={navigateBack}
-                        />
-                        <ConfirmModal
-                            isVisible={deleteCategoryConfirmModalVisible}
-                            onConfirm={deleteCategory}
-                            onCancel={() => setDeleteCategoryConfirmModalVisible(false)}
-                            title={translate('workspace.categories.deleteCategory')}
-                            prompt={translate('workspace.categories.deleteCategoryPrompt')}
-                            confirmText={translate('common.delete')}
-                            cancelText={translate('common.cancel')}
-                            danger
-                        />
-                        <ConfirmModal
-                            isVisible={isCannotDisableLastCategoryModalVisible}
-                            onConfirm={() => setIsCannotDisableLastCategoryModalVisible(false)}
-                            onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
-                            title={translate('workspace.categories.cannotDisableAllCategories.title')}
-                            prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
-                            confirmText={translate('common.buttonConfirm')}
-                            shouldShowCancelButton={false}
-                        />
-                        <ScrollView contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}>
-                            <OfflineWithFeedback
-                                errors={getLatestErrorMessageField(policyCategory)}
-                                pendingAction={policyCategory?.pendingFields?.enabled}
-                                errorRowStyles={styles.mh5}
-                                onClose={() => clearCategoryErrors(policyID, categoryName)}
-                            >
-                                <View style={[styles.mt2, styles.mh5]}>
-                                    <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                        <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.categories.enableCategory')}</Text>
-                                        <Switch
-                                            isOn={policyCategory.enabled}
-                                            accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                            onToggle={updateWorkspaceCategoryEnabled}
-                                            showLockIcon={shouldPreventDisable}
-                                        />
-                                    </View>
-                                </View>
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.name}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory.name}
-                                    description={translate('common.name')}
-                                    onPress={navigateToEditCategory}
-                                    shouldShowRightIcon
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['GL Code']}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory['GL Code']}
-                                    description={translate('workspace.categories.glCode')}
-                                    onPress={() => {
-                                        if (!isControlPolicy(policy)) {
-                                            Navigation.navigate(
-                                                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                                    policyID,
-                                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                    isQuickSettingsFlow
-                                                        ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                        : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
-                                                ),
-                                            );
-                                            return;
-                                        }
-                                        Navigation.navigate(
-                                            isQuickSettingsFlow
-                                                ? ROUTES.SETTINGS_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                : ROUTES.WORKSPACE_CATEGORY_GL_CODE.getRoute(policyID, policyCategory.name),
-                                        );
-                                    }}
-                                    shouldShowRightIcon
-                                />
-                            </OfflineWithFeedback>
-                            <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.['Payroll Code']}>
-                                <MenuItemWithTopDescription
-                                    title={policyCategory['Payroll Code']}
-                                    description={translate('workspace.categories.payrollCode')}
-                                    onPress={() => {
-                                        if (!isControlPolicy(policy)) {
-                                            Navigation.navigate(
-                                                ROUTES.WORKSPACE_UPGRADE.getRoute(
-                                                    policyID,
-                                                    CONST.UPGRADE_FEATURE_INTRO_MAPPING.glAndPayrollCodes.alias,
-                                                    ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
-                                                ),
-                                            );
-                                            return;
-                                        }
-                                        Navigation.navigate(
-                                            isQuickSettingsFlow
-                                                ? ROUTES.SETTINGS_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name, backTo)
-                                                : ROUTES.WORKSPACE_CATEGORY_PAYROLL_CODE.getRoute(policyID, policyCategory.name),
-                                        );
-                                    }}
-                                    shouldShowRightIcon
-                                />
-                            </OfflineWithFeedback>
-
-                            {!!policy?.areRulesEnabled && (
-                                <>
-                                    <View style={[styles.mh5, styles.pt3, styles.borderTop]}>
-                                        <Text style={[styles.textNormal, styles.textStrong, styles.mv3]}>{translate('workspace.rules.categoryRules.title')}</Text>
-                                    </View>
-                                    <OfflineWithFeedback pendingAction={policyCategory?.pendingFields?.areCommentsRequired}>
-                                        <View style={[styles.mt2, styles.mh5]}>
-                                            <View style={[styles.flexRow, styles.mb5, styles.mr2, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                                <Text style={[styles.flexShrink1, styles.mr2]}>{translate('workspace.rules.categoryRules.requireDescription')}</Text>
-                                                <Switch
-                                                    isOn={policyCategory?.areCommentsRequired ?? false}
-                                                    accessibilityLabel={translate('workspace.rules.categoryRules.requireDescription')}
-                                                    onToggle={() => {
-                                                        if (policyCategory.commentHint && areCommentsRequired) {
-                                                            setWorkspaceCategoryDescriptionHint(policyID, categoryName, '');
-                                                        }
-                                                        setPolicyCategoryDescriptionRequired(policyID, categoryName, !areCommentsRequired);
-                                                    }}
-                                                />
-                                            </View>
-                                        </View>
-                                    </OfflineWithFeedback>
-                                    {!!policyCategory?.areCommentsRequired && (
-                                        <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.commentHint}>
-                                            <MenuItemWithTopDescription
-                                                title={policyCategory?.commentHint}
-                                                description={translate('workspace.rules.categoryRules.descriptionHint')}
-                                                onPress={() => {
-                                                    Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DESCRIPTION_HINT.getRoute(policyID, policyCategory.name));
-                                                }}
-                                                shouldShowRightIcon
-                                            />
-                                        </OfflineWithFeedback>
-                                    )}
-                                    <MenuItemWithTopDescription
-                                        title={approverText}
-                                        description={translate('workspace.rules.categoryRules.approver')}
-                                        onPress={() => {
-                                            Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_APPROVER.getRoute(policyID, policyCategory.name));
-                                        }}
-                                        shouldShowRightIcon
-                                        disabled={approverDisabled}
-                                    />
-                                    {approverDisabled && (
-                                        <Text style={[styles.flexRow, styles.alignItemsCenter, styles.mv2, styles.mh5]}>
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.goTo')}</Text>{' '}
-                                            <TextLink
-                                                style={[styles.link, styles.label]}
-                                                onPress={() => Navigation.navigate(ROUTES.WORKSPACE_MORE_FEATURES.getRoute(policyID))}
-                                            >
-                                                {translate('workspace.common.moreFeatures')}
-                                            </TextLink>{' '}
-                                            <Text style={[styles.textLabel, styles.colorMuted]}>{translate('workspace.rules.categoryRules.andEnableWorkflows')}</Text>
-                                        </Text>
-                                    )}
-                                    {!!policy?.tax?.trackingEnabled && (
-                                        <MenuItemWithTopDescription
-                                            title={defaultTaxRateText}
-                                            description={translate('workspace.rules.categoryRules.defaultTaxRate')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                        />
-                                    )}
-
-                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxExpenseAmount}>
-                                        <MenuItemWithTopDescription
-                                            title={flagAmountsOverText}
-                                            description={translate('workspace.rules.categoryRules.flagAmountsOver')}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                        />
-                                    </OfflineWithFeedback>
-                                    <OfflineWithFeedback pendingAction={policyCategory.pendingFields?.maxAmountNoReceipt}>
-                                        <MenuItemWithTopDescription
-                                            title={requireReceiptsOverText}
-                                            description={translate(`workspace.rules.categoryRules.requireReceiptsOver`)}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.getRoute(policyID, policyCategory.name));
-                                            }}
-                                            shouldShowRightIcon
-                                        />
-                                    </OfflineWithFeedback>
-                                </>
-                            )}
-
-                            {!isThereAnyAccountingConnection && (
-                                <MenuItem
-                                    icon={Trashcan}
-                                    title={translate('common.delete')}
-                                    onPress={() => setDeleteCategoryConfirmModalVisible(true)}
-                                />
-                            )}
-                        </ScrollView>
-                    </>
+                <HeaderWithBackButton
+                    icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                    shouldUseHeadlineHeader={!selectionModeHeader}
+                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
+                    shouldShowBackButton={shouldUseNarrowLayout}
+                    onBackButtonPress={() => {
+                        if (selectionMode?.isEnabled) {
+                            setSelectedTags({});
+                            turnOffMobileSelectionMode();
+                            return;
+                        }
+                        Navigation.goBack(backTo);
+                    }}
+                    shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
+                    threeDotsMenuItems={threeDotsMenuItems}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
+                >
+                    {!shouldUseNarrowLayout && getHeaderButtons()}
+                </HeaderWithBackButton>
+                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                <ConfirmModal
+                    isVisible={isDeleteTagsConfirmModalVisible}
+                    onConfirm={deleteTags}
+                    onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
+                    title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
+                    prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
+                    confirmText={translate('common.delete')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
+                {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
+                {isLoading && (
+                    <ActivityIndicator
+                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                        style={[styles.flex1]}
+                        color={theme.spinner}
+                    />
                 )}
+                {!hasVisibleTags && !isLoading && (
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                        <EmptyStateComponent
+                            SkeletonComponent={TableListItemSkeleton}
+                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                            headerMedia={LottieAnimations.GenericEmptyState}
+                            title={translate('workspace.tags.emptyTags.title')}
+                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                            headerContentStyles={styles.emptyStateFolderWebStyles}
+                        />
+                    </ScrollView>
+                )}
+                {hasVisibleTags && !isLoading && (
+                    <SelectionListWithModal
+                        canSelectMultiple={canSelectMultiple}
+                        turnOnSelectionModeOnLongPress={!isMultiLevelTags}
+                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                        sections={[{data: tagList, isDisabled: false}]}
+                        onCheckboxPress={toggleTag}
+                        onSelectRow={navigateToTagSettings}
+                        shouldSingleExecuteRowSelect={!canSelectMultiple}
+                        onSelectAll={toggleAllTags}
+                        ListItem={TableListItem}
+                        customListHeader={getCustomListHeader()}
+                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
+                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
+                        showScrollIndicator={false}
+                    />
+                )}
+
+                <ConfirmModal
+                    isVisible={showCannotDisableLastTagModal}
+                    onConfirm={() => setShowCannotDisableLastTagModal(false)}
+                    onCancel={() => setShowCannotDisableLastTagModal(false)}
+                    title={translate('workspace.tags.cannotDisableAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+
+                <ConfirmModal
+                    isVisible={isOfflineModalVisible}
+                    onConfirm={() => setIsOfflineModalVisible(false)}
+                    title={translate('common.youAppearToBeOffline')}
+                    prompt={translate('common.thisFeatureRequiresInternet')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={isDownloadFailureModalVisible}
+                    onClose={() => setIsDownloadFailureModalVisible(false)}
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
 }
 
-CategorySettingsPage.displayName = 'CategorySettingsPage';
+WorkspaceTagsPage.displayName = 'WorkspaceTagsPage';
 
-export default CategorySettingsPage;
+export default WorkspaceTagsPage;
