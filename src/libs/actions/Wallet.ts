@@ -5,6 +5,7 @@ import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
@@ -292,7 +293,7 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
         })
         .catch((e) => {
             // eslint-disable-next-line no-console
-            console.log('api error: ', e);
+            Log.warn(`issuerEncryptPayloadCallback error: ${e}`);
             return {} as IOSEncryptPayload;
         });
 }

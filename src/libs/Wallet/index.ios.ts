@@ -19,10 +19,11 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: 
 
     addCardToAppleWallet(data, issuerEncryptPayloadCallback)
         .then(() => {
+            Log.info('Card added to wallet');
             onFinished?.();
         })
         .catch((e) => {
-            Log.warn(`ADD ERROR: ${e}`);
+            Log.warn(`handleAddCardToWallet error: ${e}`);
             Alert.alert('Failed to add card to wallet', 'Please try again later.');
         });
 }
@@ -31,10 +32,11 @@ function isCardInWallet(card: Card): Promise<boolean> {
     if (card.lastFourPAN) {
         return getCardStatus(card.lastFourPAN)
             .then((status) => {
+                Log.info(`Card status: ${status}`);
                 return status === 'active';
             })
             .catch((e) => {
-                Log.warn(`STATUS ERROR ${e}`);
+                Log.warn(`isCardInWallet error: ${e}`);
                 return Promise.resolve(card.state === 6);
             });
     }
