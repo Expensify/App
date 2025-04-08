@@ -68,6 +68,6 @@ This is the person who manages reimbursements and bank setup in Expensify.
 Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
 
 ## Can I connect my Canadian bank account if the currency of the account is in USD? 
-Yes, since USD is considered a local currency in Canada, you use a Canadian bank account that uses USD for global reimbursements. 
+Yes, since USD is considered a local currency in Canada, you can use a Canadian bank account that uses USD for global reimbursements. 
 
 </div>
