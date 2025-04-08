@@ -1,6 +1,6 @@
 import type {DraggableChildrenFn} from 'react-beautiful-dnd';
 import type {RenderItemParams} from 'react-native-draggable-flatlist';
-import React from 'react';
+import type React from 'react';
 
 type DraggableListData<T> = {
     data: T[];

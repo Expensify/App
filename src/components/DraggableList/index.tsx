@@ -1,30 +1,29 @@
-import React, {useCallback,useState} from 'react';
+import React from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {DraggableListProps} from './types';
-import useDraggableInPortal from './useDraggableInPortal';
 
+import type {
+    DragEndEvent} from '@dnd-kit/core';
 import {
     DndContext, 
     closestCenter,
     PointerSensor,
-    useSensor,
-    UniqueIdentifier,
+    useSensor
   } from '@dnd-kit/core';
   import {
     arrayMove,
     SortableContext,
-    sortableKeyboardCoordinates,
     verticalListSortingStrategy,
   } from '@dnd-kit/sortable';
   import {
     restrictToVerticalAxis,
     restrictToParentElement,
   } from '@dnd-kit/modifiers';
-import { SortableItem } from './SortableItem';
-  
+import SortableItem from './SortableItem';
+import type { DraggableListProps } from './types';
+
 
 /**
  * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only
@@ -36,8 +35,6 @@ function DraggableList<T>(
         renderItem,
         keyExtractor,
         onDragEnd: onDragEndCallback,
-        renderClone,
-        shouldUsePortal = false,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         ListFooterComponent,
     }: DraggableListProps<T>,
@@ -45,18 +42,20 @@ function DraggableList<T>(
 ) {
     const styles = useThemeStyles();
 
+    const items = data.map((item, index) =>  { return keyExtractor(item, index) });
+
     /**
      * Function to be called when the user finishes dragging an item
      * It will reorder the list and call the callback function
      * to notify the parent component about the change
     */
-    function onDragEnd(event:any)  {
+    const onDragEnd = (event: DragEndEvent) => {
             const {active, over} = event;
 
-            const oldIndex = items.indexOf(active.id);
-            const newIndex = items.indexOf(over.id);
-
-            if (active.id !== over.id) {
+            if (over !== null && active.id !== over.id) {
+                const oldIndex = items.indexOf(active.id.toString());
+                const newIndex = items.indexOf(over.id.toString());
+    
                 const reorderedItems = arrayMove(data, oldIndex,newIndex);
                 onDragEndCallback?.({data: reorderedItems});
             }
@@ -80,8 +79,6 @@ function DraggableList<T>(
     
     );
     
-    const items = data.map((item, index) =>  { return keyExtractor(item, index) });
-
     const sensors = [useSensor(PointerSensor, {
         activationConstraint: {
           distance: 5
