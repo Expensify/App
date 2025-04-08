@@ -6,7 +6,7 @@ index b4cfb3d..fdfae56 100644
  
    auto surfaceId = mountingCoordinator.getSurfaceId();
    
-+  [CATransaction begin]; // test3
++  [CATransaction begin]; // test4
 +  [CATransaction setValue:(id)kCFBooleanTrue forKey:kCATransactionDisableActions];
 +
    mountingCoordinator.getTelemetryController().pullTransaction(
