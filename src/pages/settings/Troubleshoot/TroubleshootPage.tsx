@@ -12,6 +12,7 @@ import ImportOnyxState from '@components/ImportOnyxState';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItemList from '@components/MenuItemList';
 import {useOptionsList} from '@components/OptionListContextProvider';
+import ProfilingToolMenu from '@components/ProfilingToolMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -29,7 +30,8 @@ import {setShouldMaskOnyxState} from '@libs/actions/MaskOnyx';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearOnyxAndResetApp} from '@userActions/App';
-import * as Report from '@userActions/Report';
+import {navigateToConciergeChat} from '@userActions/Report';
+import {shouldShowProfileTool} from '@userActions/TestTool';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -126,7 +128,7 @@ function TroubleshootPage() {
                                 <Text style={[styles.textNormal, styles.colorMuted]}>{translate('initialSettingsPage.troubleshoot.description')}</Text>{' '}
                                 <TextLink
                                     style={styles.link}
-                                    onPress={() => Report.navigateToConciergeChat()}
+                                    onPress={() => navigateToConciergeChat()}
                                 >
                                     {translate('initialSettingsPage.troubleshoot.submitBug')}
                                 </TextLink>
@@ -136,6 +138,7 @@ function TroubleshootPage() {
                     >
                         <View style={[styles.flex1, styles.mt5]}>
                             <View>
+                                {shouldShowProfileTool() && <ProfilingToolMenu />}
                                 <ClientSideLoggingToolMenu />
                                 <TestToolRow title={translate('initialSettingsPage.troubleshoot.maskExportOnyxStateData')}>
                                     <Switch

@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -6,6 +7,7 @@ import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
+import CommunicationsLink from '@components/CommunicationsLink';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -15,6 +17,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -26,7 +29,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {getAllCardsForWorkspace, getCardFeedIcon, getCompanyFeeds, isExpensifyCardFullySetUp, maskCardNumber} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import shouldRenderTransferOwnerButton from '@libs/shouldRenderTransferOwnerButton';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 import Navigation from '@navigation/Navigation';
@@ -93,6 +96,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const policyOwnerDisplayName = formatPhoneNumber(getDisplayNameOrDefault(ownerDetails)) ?? policy?.owner ?? '';
     const hasMultipleFeeds = Object.keys(getCompanyFeeds(cardFeeds, false, true)).length > 0;
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
+    const isSMSLogin = Str.isSMSLogin(memberLogin);
+    const phoneNumber = getPhoneNumber(details);
+    const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : memberLogin;
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -286,7 +292,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                 <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                                     <OfflineWithFeedback pendingAction={details.pendingFields?.avatar}>
                                         <Avatar
-                                            containerStyles={[styles.avatarXLarge, styles.mv5, styles.noOutline]}
+                                            containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
                                             imageStyles={[styles.avatarXLarge]}
                                             source={details.avatar}
                                             avatarID={accountID}
@@ -297,7 +303,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     </OfflineWithFeedback>
                                     {!!(details.displayName ?? '') && (
                                         <Text
-                                            style={[styles.textHeadline, styles.pre, styles.mb6, styles.w100, styles.textAlignCenter]}
+                                            style={[styles.textHeadline, styles.pre, styles.mb8, styles.w100, styles.textAlignCenter]}
                                             numberOfLines={1}
                                         >
                                             {displayName}
@@ -309,8 +315,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                                 text={translate('workspace.people.transferOwner')}
                                                 onPress={startChangeOwnershipFlow}
                                                 icon={Expensicons.Transfer}
-                                                iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                                style={styles.mv5}
+                                                style={styles.mb5}
                                             />
                                         )
                                     ) : (
@@ -319,8 +324,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                             onPress={askForConfirmationToRemove}
                                             isDisabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                             icon={Expensicons.RemoveMembers}
-                                            iconStyles={StyleUtils.getTransformScaleStyle(0.8)}
-                                            style={styles.mv5}
+                                            style={styles.mb5}
                                         />
                                     )}
                                     <ConfirmModal
@@ -335,6 +339,25 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                                     />
                                 </View>
                                 <View style={styles.w100}>
+                                    <View style={[styles.ph5, styles.pv3]}>
+                                        <Text
+                                            style={[styles.textLabelSupporting, styles.mb1]}
+                                            numberOfLines={1}
+                                        >
+                                            {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        </Text>
+                                        <CommunicationsLink value={phoneOrEmail ?? ''}>
+                                            <UserDetailsTooltip accountID={details?.accountID ?? CONST.DEFAULT_NUMBER_ID}>
+                                                <Text
+                                                    numberOfLines={1}
+                                                    style={styles.w100}
+                                                >
+                                                    {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                                </Text>
+                                            </UserDetailsTooltip>
+                                        </CommunicationsLink>
+                                    </View>
+
                                     <MenuItemWithTopDescription
                                         disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                         title={translate(`workspace.common.roleName`, {role: member?.role})}
