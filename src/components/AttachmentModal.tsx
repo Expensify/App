@@ -271,13 +271,13 @@ function AttachmentModal({
 
         if (typeof sourceURL === 'string') {
             const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
-            fileDownload(sourceURL, fileName ?? '');
+            fileDownload(sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, !draftTransactionID);
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, sourceState, file, type]);
+    }, [isAuthTokenRequiredState, sourceState, file, type, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
