@@ -49,7 +49,8 @@ function MoneyRequestReportPreview({
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
     });
     const [iouReport, transactionsFromReport, violations] = useReportWithTransactionsAndViolations(iouReportID);
-    const transactions = isSelfDM ? ([getTransaction(getLinkedTransactionID(action))].filter((t) => t) as Transaction[]) : transactionsFromReport;
+    const linkedTransaction = getTransaction(getLinkedTransactionID(action));
+    const transactions = !isSelfDM || !linkedTransaction ? transactionsFromReport : [linkedTransaction];
     const policy = usePolicy(policyID);
     const lastTransaction = transactions?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);

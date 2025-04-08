@@ -771,8 +771,8 @@ function PureReportActionItem({
             );
 
             // Table Report View does not display these components as separate messages, except for self-DM
-            if (canUseTableReportView && report?.type === 'chat') {
-                if (report.chatType === 'selfDM') {
+            if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
                     children = (
                         <MoneyRequestReportPreview
                             // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -817,7 +817,7 @@ function PureReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
                     isWhisper={isWhisper}
-                    isInvoice={action.childType === 'invoice'}
+                    isInvoice={action.childType === CONST.REPORT.CHAT_TYPE.INVOICE}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
