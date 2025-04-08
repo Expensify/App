@@ -47,7 +47,6 @@ function getIOUData(
     ownerAccountID: number,
     reportOrID: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | string | undefined,
     personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    amount: number,
 ) {
     const fromID = managerID;
     const toID = ownerAccountID;
