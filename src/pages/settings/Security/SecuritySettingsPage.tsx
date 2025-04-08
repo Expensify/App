@@ -23,6 +23,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -49,6 +50,7 @@ function SecuritySettingsPage() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowWidth} = useWindowDimensions();
     const personalDetails = usePersonalDetails();
+    const {canUseMergeAccounts} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
@@ -117,11 +119,13 @@ function SecuritySettingsPage() {
                 icon: Expensicons.Shield,
                 action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute())),
             },
-            {
-                translationKey: 'mergeAccountsPage.mergeAccount',
-                icon: Expensicons.ArrowCollapse,
-                action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
-            },
+            canUseMergeAccounts
+                ? {
+                      translationKey: 'mergeAccountsPage.mergeAccount',
+                      icon: Expensicons.ArrowCollapse,
+                      action: waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
+                  }
+                : null,
             {
                 translationKey: 'closeAccountPage.closeAccount',
                 icon: Expensicons.ClosedSign,
@@ -129,16 +133,18 @@ function SecuritySettingsPage() {
             },
         ];
 
-        return baseMenuItems.map((item) => ({
-            key: item.translationKey,
-            title: translate(item.translationKey as TranslationPaths),
-            icon: item.icon,
-            onPress: item.action,
-            shouldShowRightIcon: true,
-            link: '',
-            wrapperStyle: [styles.sectionMenuItemTopDescription],
-        }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate]);
+        return baseMenuItems
+            .filter((item) => !!item)
+            .map((item) => ({
+                key: item.translationKey,
+                title: translate(item.translationKey as TranslationPaths),
+                icon: item.icon,
+                onPress: item.action,
+                shouldShowRightIcon: true,
+                link: '',
+                wrapperStyle: [styles.sectionMenuItemTopDescription],
+            }));
+    }, [translate, waitForNavigate, styles, isActingAsDelegate, canUseMergeAccounts]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>
