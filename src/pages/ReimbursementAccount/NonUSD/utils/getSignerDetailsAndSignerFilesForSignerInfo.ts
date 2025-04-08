@@ -4,22 +4,8 @@ import CONST from '@src/CONST';
 import type {ReimbursementAccountForm} from '@src/types/form';
 import type {BeneficialOwnerDataKey, SignerInfoStepProps} from '@src/types/form/ReimbursementAccountForm';
 
-const {
-    FULL_NAME,
-    EMAIL,
-    JOB_TITLE,
-    DATE_OF_BIRTH,
-    ADDRESS,
-    STREET,
-    CITY,
-    STATE,
-    ZIP_CODE,
-    PROOF_OF_DIRECTORS,
-    ADDRESS_PROOF,
-    COPY_OF_ID,
-    CODICE_FISCALE,
-    DOWNLOADED_PDS_AND_FSG,
-} = CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
+const {FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, ADDRESS, STREET, CITY, STATE, ZIP_CODE, PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE, DOWNLOADED_PDS_AND_FSG} =
+    CONST.NON_USD_BANK_ACCOUNT.SIGNER_INFO_STEP.SIGNER_INFO_DATA;
 const {
     PREFIX: BENEFICIAL_PREFIX,
     FIRST_NAME,
@@ -35,11 +21,7 @@ const signerDetailsFields = [FULL_NAME, EMAIL, JOB_TITLE, DATE_OF_BIRTH, STREET,
 const signerFilesFields = [PROOF_OF_DIRECTORS, ADDRESS_PROOF, COPY_OF_ID, CODICE_FISCALE];
 const beneficialOwnerFields = [FIRST_NAME, LAST_NAME, DOB, BENEFICIAL_STREET, BENEFICIAL_CITY, BENEFICIAL_STATE, BENEFICIAL_ZIP_CODE];
 
-function getSignerDetailsAndSignerFilesForSignerInfo(
-    reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>,
-    signerEmail: string,
-    isUserBeneficialOwner: boolean,
-) {
+function getSignerDetailsAndSignerFilesForSignerInfo(reimbursementAccountDraft: OnyxEntry<ReimbursementAccountForm>, signerEmail: string, isUserBeneficialOwner: boolean) {
     const signerDetails: Record<string, string | boolean | FileObject[]> = {};
     const signerFiles: Record<string, string | FileObject | boolean> = {};
 
@@ -62,7 +44,6 @@ function getSignerDetailsAndSignerFilesForSignerInfo(
             signerDetails[ADDRESS] = signerDetails[ADDRESS] ? `${String(signerDetails[ADDRESS])}, ${String(reimbursementAccountDraft?.[fieldName])}` : reimbursementAccountDraft?.[fieldName];
             return;
         }
-
 
         signerDetails[fieldName] = reimbursementAccountDraft?.[fieldName];
     });
