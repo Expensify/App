@@ -59,7 +59,6 @@ function PolicyDistanceRatesPage({
     const [selectedDistanceRates, setSelectedDistanceRates] = useState<Rate[]>([]);
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const isFocused = useIsFocused();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
 
@@ -103,11 +102,23 @@ function PolicyDistanceRatesPage({
     }, []);
 
     useEffect(() => {
-        if (isFocused) {
+        if (selectedDistanceRates.length === 0 || !canSelectMultiple) {
             return;
         }
-        setSelectedDistanceRates([]);
-    }, [isFocused]);
+
+        setSelectedDistanceRates((prevSelectedRates) => {
+            const updatedSelectedRates = prevSelectedRates.filter((rate) => {
+                const isInRate = !!customUnitRates?.[rate.customUnitRateID];
+
+                const isPendingDelete = customUnitRates?.[rate.customUnitRateID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                return isInRate && !isPendingDelete;
+            });
+
+            return updatedSelectedRates;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [customUnitRates, canSelectMultiple]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedDistanceRates([]),

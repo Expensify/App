@@ -174,7 +174,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         setSelectedMembers((prevSelectedMembers) => {
             const updatedSelectedMembers = prevSelectedMembers.filter((accountID) => {
                 const isInParticipants = participants.includes(accountID);
-                const pendingChatMember = reportMetadata?.pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
+                const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
 
                 const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
@@ -184,7 +184,8 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
             return updatedSelectedMembers;
         });
-    }, [participants, reportMetadata?.pendingChatMembers, canSelectMultiple, selectedMembers.length]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [participants, reportMetadata?.pendingChatMembers, canSelectMultiple]);
 
     /** Include the search bar when there are 8 or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {

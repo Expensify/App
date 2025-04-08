@@ -179,12 +179,30 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
         if (!isFocused) {
-            setSelectedEmployees([]);
             return;
         }
         getWorkspaceMembers();
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isFocused]);
+
+    useEffect(() => {
+        if (selectedEmployees.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedEmployees((prevSelectedEmployees) => {
+            const updatedSelectedMembers = prevSelectedEmployees.filter((accountID) => {
+                const isInEmployees = accountIDs.includes(accountID);
+
+                const isPendingDelete = policy?.employeeList?.[accountID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                return isInEmployees && !isPendingDelete;
+            });
+
+            return updatedSelectedMembers;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [accountIDs, canSelectMultiple, policy?.employeeList]);
 
     useEffect(() => {
         validateSelection();

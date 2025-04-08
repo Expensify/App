@@ -83,14 +83,28 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
+    const chatParticipants = getParticipantsList(report, personalDetails);
+
     useEffect(() => {
-        if (isFocused) {
+        if (selectedMembers.length === 0 || !canSelectMultiple) {
             return;
         }
-        setSelectedMembers([]);
-    }, [isFocused]);
 
-    const chatParticipants = getParticipantsList(report, personalDetails);
+        setSelectedMembers((prevSelectedMembers) => {
+            const updatedSelectedMembers = prevSelectedMembers.filter((accountID) => {
+                const isInParticipants = chatParticipants.includes(accountID);
+                const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
+
+                const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+                // Keep the member only if they're still in the room and not pending removal
+                return isInParticipants && !isPendingDelete;
+            });
+
+            return updatedSelectedMembers;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [chatParticipants, reportMetadata?.pendingChatMembers, canSelectMultiple]);
 
     const pendingChatMembers = reportMetadata?.pendingChatMembers;
     const reportParticipants = report?.participants;
