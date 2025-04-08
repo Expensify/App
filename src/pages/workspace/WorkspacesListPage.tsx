@@ -136,7 +136,7 @@ function WorkspacesListPage() {
     const [policyNameToDelete, setPolicyNameToDelete] = useState<string>();
     const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(setIsDeleteModalOpen);
 
-    const [shouldShowLoadingSpinnerIcon, setShouldShowLoadingSpinnerIcon] = useState(false);
+    const [loadingSpinnerIconIndex, setLoadingSpinnerIconIndex] = useState<number | null>(null);
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
@@ -173,13 +173,6 @@ function WorkspacesListPage() {
 
     const shouldCalculateBillNewDot = shouldCalculateBillNewDotFn();
 
-    useEffect(() => {
-        if (!isLoadingBill) {
-            return;
-        }
-        setShouldShowLoadingSpinnerIcon(true);
-    }, [isLoadingBill]);
-
     /**
      * Gets the menu item for each workspace
      */
@@ -203,8 +196,12 @@ function WorkspacesListPage() {
                 threeDotsMenuItems.push({
                     icon: Expensicons.Trashcan,
                     text: translate('workspace.common.delete'),
-                    shouldShowLoadingSpinnerIcon,
+                    shouldShowLoadingSpinnerIcon: loadingSpinnerIconIndex === index,
                     onSelected: () => {
+                        if (loadingSpinnerIconIndex !== null) {
+                            return;
+                        }
+
                         if (isSupportalAction) {
                             setIsSupportalActionRestrictedModalOpen(true);
                             return;
@@ -216,6 +213,7 @@ function WorkspacesListPage() {
                         if (shouldCalculateBillNewDot) {
                             setIsDeletingPaidWorkspace(true);
                             calculateBillNewDot();
+                            setLoadingSpinnerIconIndex(index);
                             return;
                         }
 
@@ -290,7 +288,7 @@ function WorkspacesListPage() {
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
                                 isDefault={isDefault}
                                 isLoadingBill={isLoadingBill}
-                                onHideModal={() => setShouldShowLoadingSpinnerIcon(false)}
+                                resetLoadingSpinnerIconIndex={() => setLoadingSpinnerIconIndex(null)}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -312,7 +310,7 @@ function WorkspacesListPage() {
             setIsDeletingPaidWorkspace,
             isLoadingBill,
             shouldCalculateBillNewDot,
-            shouldShowLoadingSpinnerIcon,
+            loadingSpinnerIconIndex,
         ],
     );
 

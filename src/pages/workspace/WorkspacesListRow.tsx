@@ -74,8 +74,8 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
     /** Whether the bill is loading */
     isLoadingBill?: boolean;
 
-    /** Function to call when the modal is hidden */
-    onHideModal?: () => void;
+    /** Function to reset loading spinner icon index */
+    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -121,7 +121,7 @@ function WorkspacesListRow({
     policyID,
     isDefault,
     isLoadingBill,
-    onHideModal,
+    resetLoadingSpinnerIconIndex,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -132,11 +132,15 @@ function WorkspacesListRow({
     const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
 
     useEffect(() => {
-        if (!!isLoadingBill || !threeDotsMenuRef.current?.isPopupMenuVisible) {
+        if (!!isLoadingBill) {
+            return;
+        }
+        resetLoadingSpinnerIconIndex?.();
+
+        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
             return;
         }
         threeDotsMenuRef?.current?.hidePopoverMenu();
-        onHideModal?.();
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoadingBill]);
