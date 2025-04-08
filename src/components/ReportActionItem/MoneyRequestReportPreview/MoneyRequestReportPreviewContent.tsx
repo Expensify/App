@@ -38,6 +38,7 @@ import {
     getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getPolicyName,
+    getReportName,
     getTransactionsWithReceipts,
     hasActionsWithErrors,
     hasHeldExpenses as hasHeldExpensesReportUtils,
@@ -473,7 +474,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {action.childReportName}
+                                                            {getReportName(iouReport) || action.childReportName}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>

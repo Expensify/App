@@ -6081,6 +6081,7 @@ function buildOptimisticReportPreview(
         childLastActorAccountID: currentUserAccountID,
         childLastMoneyRequestComment: comment,
         childRecentReceiptTransactionIDs: hasReceipt && !isEmptyObject(transaction) && transaction?.transactionID ? {[transaction.transactionID]: created} : undefined,
+        childReportName: iouReport.reportName,
         ...(isTestTransaction && !isScanRequest && {childStateNum: 2, childStatusNum: 4}),
     };
 }
