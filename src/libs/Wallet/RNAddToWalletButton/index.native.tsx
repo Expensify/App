@@ -1,20 +1,15 @@
 import {AddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import type {Card} from '@src/types/onyx';
+import useLocalize from '@hooks/useLocalize';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '..';
-
-type AddToWalletButtonProps = {
-    card: Card;
-    cardHolderName?: string;
-    buttonStyle?: ViewStyle;
-};
+import type AddToWalletButtonProps from './types';
 
 function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
+    const {translate} = useLocalize();
 
     const checkIfCardIsInWallet = useCallback(() => {
         isCardInWallet(card)
@@ -51,7 +46,7 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     if (isInWallet) {
         return (
             <View style={buttonStyle}>
-                <Text>Card is already in wallet</Text>;
+                <Text>{translate('cardPage.cardAlreadyInWallet')}</Text>;
             </View>
         );
     }
@@ -66,4 +61,3 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
 }
 
 export default RNAddToWalletButton;
-export type {AddToWalletButtonProps};

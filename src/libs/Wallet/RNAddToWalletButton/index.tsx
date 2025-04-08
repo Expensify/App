@@ -1,4 +1,4 @@
-import type {AddToWalletButtonProps} from './index.native';
+import type AddToWalletButtonProps from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function RNAddToWalletButton(_props: AddToWalletButtonProps) {

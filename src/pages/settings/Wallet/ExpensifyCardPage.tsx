@@ -287,7 +287,7 @@ function ExpensifyCardPage({
                 {!!canUseInAppProvisioning && cardToAdd !== undefined && (
                     <RNAddToWalletButton
                         card={cardToAdd}
-                        buttonStyle={{alignSelf: 'center'}}
+                        buttonStyle={styles.alignSelfCenter}
                         cardHolderName={displayName}
                     />
                 )}
