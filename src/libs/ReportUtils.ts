@@ -24,6 +24,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import type {
     Beta,
     IntroSelected,
@@ -182,6 +183,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperAction,
+    shouldReportActionBeVisible,
     wasActionTakenByCurrentUser,
 } from './ReportActionsUtils';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -2089,7 +2091,7 @@ function isMoneyRequestReport(reportOrID: OnyxInputOrEntry<Report> | SearchRepor
 }
 
 /**
- * Determines the help pane report type based on the given report.
+ * Determines the Help Panel report type based on the given report.
  */
 function getHelpPaneReportType(report: OnyxEntry<Report>): ValueOf<typeof CONST.REPORT.HELP_TYPE> | undefined {
     if (!report) {
@@ -4048,19 +4050,17 @@ function getReportPreviewMessage(
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
 
-    if (!report?.reportID) {
+    if (isEmptyObject(report) || !report?.reportID) {
+        // This iouReport may be unavailable for one of the following reasons:
+        // 1. After SignIn, the OpenApp API won't return iouReports if they're settled.
+        // 2. The iouReport exists in local storage but hasn't been loaded into the allReports. It will be loaded automatically when the user opens the iouReport.
+        // Until we know how to solve this the best, we just display the report action message.
         return reportActionMessage;
     }
 
     const allReportTransactions = getReportTransactions(report.reportID);
     const transactionsWithReceipts = allReportTransactions.filter(hasReceiptTransactionUtils);
     const numberOfScanningReceipts = transactionsWithReceipts.filter(isReceiptBeingScanned).length;
-
-    if (isEmptyObject(report) || !report?.reportID) {
-        // The iouReport is not found locally after SignIn because the OpenApp API won't return iouReports if they're settled
-        // As a temporary solution until we know how to solve this the best, we just use the message that returned from BE
-        return reportActionMessage;
-    }
 
     if (!isEmptyObject(iouReportAction) && !isIOUReport(report) && iouReportAction && isSplitBillReportAction(iouReportAction)) {
         // This covers group chats where the last action is a split expense action
@@ -4663,6 +4663,10 @@ function getReportNameInternal({
             return translateLocal('parentReportAction.deletedMessage');
         }
 
+        if (parentReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+            return translateLocal('violations.resolvedDuplicates');
+        }
+
         const isAttachment = isReportActionAttachment(!isEmptyObject(parentReportAction) ? parentReportAction : undefined);
         const reportActionMessage = getReportActionMessage({
             reportAction: parentReportAction,
@@ -4874,7 +4878,7 @@ function navigateToDetailsPage(report: OnyxEntry<Report>, backTo?: string) {
     const participantAccountID = getParticipantsAccountIDsForDisplay(report);
 
     if (isSelfDMReport || isOneOnOneChatReport) {
-        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID.at(0), backTo));
+        Navigation.navigate(ROUTES.PROFILE.getRoute(participantAccountID.at(0), isSelfDMReport ? Navigation.getActiveRoute() : backTo));
         return;
     }
 
@@ -7323,7 +7327,11 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     // If any report has a violation, then it should have a RBR
     const potentialReports = reportsByPolicyID[report.policyID] ?? [];
     return potentialReports.some((potentialReport) => {
-        return hasViolations(potentialReport.reportID, transactionViolations) || hasWarningTypeViolations(potentialReport.reportID, transactionViolations);
+        return (
+            hasViolations(potentialReport.reportID, transactionViolations, true) ||
+            hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
+            hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true)
+        );
     });
 }
 
@@ -7518,6 +7526,16 @@ function reasonForReportToBeInOptionList({
             !isSystemChat(report) &&
             !isGroupChat(report))
     ) {
+        return null;
+    }
+
+    const currentReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`] ?? {};
+    const reportActionValues = Object.values(currentReportActions);
+    const hasOnlyCreatedAction = reportActionValues.length === 1 && reportActionValues.at(0)?.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED;
+
+    // Hide empty reports that have only a `CREATED` action, a total of 0, and are in a submitted state
+    // These reports should be hidden because they appear empty to users and there is nothing actionable for them to do
+    if (report?.total === 0 && report?.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED && report?.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED && hasOnlyCreatedAction) {
         return null;
     }
 
@@ -8227,6 +8245,29 @@ function isMoneyRequestReportPendingDeletion(reportOrID: OnyxEntry<Report> | str
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     return parentReportAction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+}
+
+function navigateToLinkedReportAction(ancestor: Ancestor, isInNarrowPaneModal: boolean, canUserPerformWrite: boolean | undefined, isOffline: boolean) {
+    if (isInNarrowPaneModal) {
+        Navigation.navigate(
+            ROUTES.SEARCH_REPORT.getRoute({
+                reportID: ancestor.report.reportID,
+                reportActionID: ancestor.reportAction.reportActionID,
+                backTo: SCREENS.SEARCH.REPORT_RHP,
+            }),
+        );
+        return;
+    }
+
+    // Pop the thread report screen before navigating to the chat report.
+    Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
+
+    const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWrite);
+
+    if (isVisibleAction && !isOffline) {
+        // Pop the chat report screen before navigating to the linked report action.
+        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
+    }
 }
 
 function canUserPerformWriteAction(report: OnyxEntry<Report>) {
@@ -10053,6 +10094,10 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
         fullApprovalChain.push(approver);
     });
+
+    if (fullApprovalChain.at(-1) === submitterEmail && policy?.preventSelfApproval) {
+        fullApprovalChain.pop();
+    }
     return fullApprovalChain;
 }
 
@@ -10517,6 +10562,7 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    navigateToLinkedReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
     getTitleReportField,
