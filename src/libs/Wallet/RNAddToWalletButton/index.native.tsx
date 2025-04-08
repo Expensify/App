@@ -28,7 +28,6 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
 
     const handleOnPress = useCallback(() => {
         handleAddCardToWallet(card, cardHolderName ?? '', checkIfCardIsInWallet);
-        checkIfCardIsInWallet();
     }, [card, cardHolderName, checkIfCardIsInWallet]);
 
     useEffect(() => {
