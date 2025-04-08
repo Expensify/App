@@ -441,11 +441,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     }, [dismissedHoldUseExplanation, isLoadingHoldUseExplained, isOnHold]);
 
     const primaryAction = useMemo(() => {
+        // It's necessary to allow payment animation to finish before button is changed
+        if (isPaidAnimationRunning) {
+            return CONST.REPORT.PRIMARY_ACTIONS.PAY;
+        }
         if (!moneyRequestReport) {
             return '';
         }
         return getReportPrimaryAction(moneyRequestReport, transactions, violations, policy);
-    }, [moneyRequestReport, policy, transactions, violations]);
+    }, [isPaidAnimationRunning, moneyRequestReport, policy, transactions, violations]);
 
     const primaryActionsImplementation = {
         [CONST.REPORT.PRIMARY_ACTIONS.SUBMIT]: (
