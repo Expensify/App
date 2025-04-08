@@ -3,7 +3,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
-import * as IOU from '@libs/actions/IOU';
+import type * as IOU from '@libs/actions/IOU';
+import {startMoneyRequest} from '@libs/actions/IOU';
 import IOURequestStepConfirmationWithWritableReportOrNotFound from '@pages/iou/request/step/IOURequestStepConfirmation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -87,6 +88,6 @@ describe('IOURequestStepConfirmationPageTest', () => {
         await waitForBatchedUpdates();
 
         // Then startMoneyRequest should not be called from IOURequestConfirmationPage.
-        expect(IOU.startMoneyRequest).not.toBeCalled();
+        expect(startMoneyRequest).not.toBeCalled();
     });
 });
