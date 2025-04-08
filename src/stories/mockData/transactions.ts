@@ -296,7 +296,7 @@ const action: ReportAction = {
     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
     originalMessage,
     childReportID: REPORT_ID_111,
-    childReportName: 'Expense #123456789',
+    childReportName: 'Chat Report',
     created: '2025-02-14 08:12:05.165',
     actorAccountID: 11111111,
     childType: 'chat',
