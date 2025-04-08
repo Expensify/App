@@ -29,7 +29,7 @@ function updateNativeVersions(version: string) {
     // Update iOS
     try {
         const cfBundleVersion = updateiOSVersion(version);
-        if (typeof cfBundleVersion === 'string' && cfBundleVersion.split('.').length === 4) {
+        if (cfBundleVersion.split('.').length === 4) {
             core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
             console.log('Successfully updated iOS!');
         } else {
