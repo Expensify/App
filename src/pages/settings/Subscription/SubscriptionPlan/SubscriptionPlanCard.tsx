@@ -42,16 +42,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 
     return (
-        <View
-            style={[
-                styles.borderedContentCard,
-                shouldUseNarrowLayout ? null : styles.borderRadiusComponentLarge,
-                styles.mt5,
-                styles.flex1,
-                isSelected && styles.borderColorFocus,
-                styles.justifyContentBetween,
-            ]}
-        >
+        <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
                 <View style={[styles.flexRow, styles.justifyContentBetween]}>
                     <Icon
