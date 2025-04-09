@@ -1034,7 +1034,8 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-    LIST_OF_RESTRICTED_BUSINESSES: 'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
+    LIST_OF_RESTRICTED_BUSINESSES:
+        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
