@@ -1,8 +1,8 @@
 import {useOnyx} from 'react-native-onyx';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getFundIdFromSettingsKey} from '@libs/CardUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
