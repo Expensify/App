@@ -48,7 +48,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const domainFundIDs = useDomainFundID(policyID);
     const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
 
-    const fundID = lastSelectedExpensifyFeed ?? domainFundIDs?.[0] ?? workspaceAccountID;
+    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);

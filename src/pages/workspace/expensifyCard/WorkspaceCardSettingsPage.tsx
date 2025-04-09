@@ -7,6 +7,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import TextLink from '@components/TextLink';
+import useDomainFundID from '@hooks/useDomainFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -27,9 +28,15 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const domainFundIDs = useDomainFundID(policyID);
+    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
+
+    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+
+    console.log({cardSettings, bankAccountList});
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? false;

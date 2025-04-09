@@ -30,7 +30,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const domainFundIDs = useDomainFundID(policyID);
     const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
 
-    const fundID = lastSelectedExpensifyFeed ?? domainFundIDs?.[0] ?? workspaceAccountID;
+    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
 

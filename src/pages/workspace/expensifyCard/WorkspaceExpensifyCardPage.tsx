@@ -29,7 +29,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const domainFundIDs = useDomainFundID(policyID);
     const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
 
-    const fundID = lastSelectedExpensifyFeed ?? domainFundIDs?.[0] ?? workspaceAccountID;
+    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 

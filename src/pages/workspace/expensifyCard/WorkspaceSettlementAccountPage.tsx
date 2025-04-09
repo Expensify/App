@@ -17,6 +17,7 @@ import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -38,7 +39,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const domainFundIDs = useDomainFundID(policyID);
     const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
 
-    const fundID = lastSelectedExpensifyFeed ?? domainFundIDs?.[0] ?? workspaceAccountID;
+    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
@@ -52,6 +53,8 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const paymentBankAccountNumber = paymentBankAccountID ? bankAccountsList?.[paymentBankAccountID.toString()]?.accountData?.accountNumber ?? '' : '';
 
     const eligibleBankAccounts = getEligibleBankAccountsForCard(bankAccountsList ?? {});
+
+    const domainName = cardSettings?.domainName ?? getDomainNameForPolicy(policyID);
 
     const data = useMemo(() => {
         const options = eligibleBankAccounts.map((bankAccount) => {
@@ -83,7 +86,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        updateSettlementAccountCard(fundID, policyID, value, paymentBankAccountID);
+        updateSettlementAccountCard(domainName, fundID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 
