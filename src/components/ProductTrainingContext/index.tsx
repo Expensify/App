@@ -139,7 +139,16 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyEmployee,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout, isModalVisible, isLoadingApp, isUserPolicyEmployee],
+        [
+            dismissedProductTraining,
+            hasBeenAddedToNudgeMigration,
+            isOnboardingCompleted,
+            isOnboardingCompletedMetadata,
+            shouldUseNarrowLayout,
+            isModalVisible,
+            isLoadingApp,
+            isUserPolicyEmployee,
+        ],
     );
 
     const registerTooltip = useCallback(
