@@ -66,6 +66,13 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
+
     if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }

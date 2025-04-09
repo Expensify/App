@@ -6,6 +6,7 @@ import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
+    getMoneyRequestSpendBreakdown,
     getReportNameValuePairs,
     getReportTransactions,
     hasViolations as hasAnyViolations,
@@ -57,6 +58,12 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 
     const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    if (reimbursableSpend <= 0) {
+        return false;
+    }
 
     if (!isReportPayer) {
         return false;
