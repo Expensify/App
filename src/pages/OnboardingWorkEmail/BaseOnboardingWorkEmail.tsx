@@ -124,7 +124,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             shouldEnableMaxHeight
             shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom={isOffline}
-            testID="BaseOnboardingPersonalDetails"
+            testID="BaseOnboardingWorkEmail"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
@@ -147,6 +147,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         <Button
                             large
                             text={translate('common.skip')}
+                            testID="onboardingPrivateEmailSkipButton"
                             onPress={() => {
                                 setOnboardingErrorMessage('');
 
