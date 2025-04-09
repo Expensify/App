@@ -33,7 +33,6 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
     const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
-
     const fetchExpensifyCards = useCallback(() => {
         openPolicyExpensifyCardsPage(policyID, fundID);
     }, [policyID, fundID]);

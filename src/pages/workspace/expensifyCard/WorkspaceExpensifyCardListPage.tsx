@@ -13,6 +13,7 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -20,6 +21,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
 import {sortCardsByCardholderName} from '@libs/CardUtils';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
@@ -31,7 +33,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
-import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
@@ -55,12 +56,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
+
+    const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
-    const shouldShowSelector = true;
 
     const isBankAccountVerified = !cardOnWaitlist;
 
