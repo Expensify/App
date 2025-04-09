@@ -29,7 +29,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {generateReportID, getBankAccountRoute, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -90,7 +90,9 @@ function IOURequestStepConfirmation({
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getIOURequestPolicyID(transaction, reportReal)}`);
     const [userLocation] = useOnyx(ONYXKEYS.USER_LOCATION);
 
-    const report = reportReal ?? reportDraft;
+    // We want to use a repport from the transaction if it exists
+    const transactionReport = getReportOrDraftReport(transaction?.reportID);
+    const report = transactionReport ?? reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
