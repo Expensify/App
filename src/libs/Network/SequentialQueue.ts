@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, { OnyxUpdate } from 'react-native-onyx';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
@@ -61,7 +61,7 @@ function flushOnyxUpdatesQueue() {
         Log.info('[SequentialQueue] Queue already paused');
         return;
     }
-    flushQueue();
+    return flushQueue();
 }
 
 /**
@@ -142,7 +142,7 @@ function process(): Promise<void> {
  * Resetting can cause unresolved READ requests to hang if tied to the old promise,
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
-function flush(shouldResetPromise = true) {
+function flush(shouldResetPromise = true, request?: OnyxRequest) {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
@@ -193,7 +193,12 @@ function flush(shouldResetPromise = true) {
 
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
                 if (getAllPersistedRequests().length === 0) {
-                    flushOnyxUpdatesQueue();
+                    flushOnyxUpdatesQueue()?.then(() => {
+                        if (!request?.queueFlushedData) {
+                            return;
+                        }
+                        updateHandler(request?.queueFlushedData);
+                    });
                 }
             });
         },
@@ -273,11 +278,11 @@ function push(newRequest: OnyxRequest) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        isReadyPromise.then(() => flush());
+        isReadyPromise.then(() => flush(true, newRequest));
         return;
     }
 
-    flush();
+    flush(true, newRequest);
 }
 
 function getCurrentRequest(): Promise<void> {
@@ -310,3 +315,7 @@ function resetQueue(): void {
 
 export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
 export type {RequestError};
+    function updateHandler(successData: OnyxUpdate[] | undefined) {
+        throw new Error('Function not implemented.');
+    }
+
