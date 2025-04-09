@@ -65,18 +65,19 @@ async function run() {
     await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion)]);
 
     console.log(`Setting npm version to ${newVersion}`);
-    exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
-        .then(({stdout}) => {
-            // NPM and native versions successfully updated, output new version
-            console.log(stdout);
-            core.setOutput('NEW_VERSION', newVersion);
-        })
-        .catch(({stdout, stderr}) => {
-            // Log errors and retry
-            console.log(stdout);
-            console.error(stderr);
-            core.setFailed('An error occurred in the `npm version` command');
-        });
+    try {
+        const {stdout} = await exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
+
+        // NPM and native versions successfully updated, output new version
+        console.log(stdout);
+        core.setOutput('NEW_VERSION', newVersion);
+    } catch (err) {
+        // Log errors and fail gracefully
+        if (err instanceof Error) {
+            console.error('Error:', err.message);
+        }
+        core.setFailed('An error occurred in the `npm version` command');
+    }
 }
 
 if (require.main === module) {
