@@ -18,13 +18,13 @@ jobs:
       - name: Check if NewDot patches or react-native version have changed
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+          HASH=$(./.github/scripts/computePatchesHash.sh $VERSION)
 
           git fetch origin ${{ github.event.before }}
           git checkout ${{ github.event.before }}
 
           OLD_VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          OLD_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+          OLD_HASH=$(./.github/scripts/computePatchesHash.sh $VERSION)
 
           if [ "$HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
             echo "No relevant changes Skipping artifacts build"
@@ -55,17 +55,17 @@ jobs:
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
           cd Mobile-Expensify
           CURRENT_SUBMODULE_COMMIT=$(git rev-parse HEAD)
-          CURRENT_PATCHES_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+          CURRENT_PATCHES_HASH=$(../.github/scripts/computePatchesHash.sh $VERSION)
           cd ..
  
           git fetch origin ${{ github.event.before }}
-          git checkout ${{ github.event.before }} 
+          git checkout ${{ github.event.before }}
 
           git submodule update
           
           cd Mobile-Expensify
           PREVIOUS_SUBMODULE_COMMIT=$(git rev-parse HEAD)
-          PREVIOUS_PATCHES_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+          PREVIOUS_PATCHES_HASH=$(../.github/scripts/computePatchesHash.sh $VERSION)
 
           if [ "$CURRENT_SUBMODULE_COMMIT" == "$PREVIOUS_SUBMODULE_COMMIT" ]; then
             echo "Submodule commit is the same as the previous one, skipping patch check"
