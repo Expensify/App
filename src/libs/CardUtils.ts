@@ -187,9 +187,10 @@ function maskCard(lastFour = ''): string {
  *
  * @param cardName - card name with XXXX in the middle.
  * @param feed - card feed.
+ * @param showOriginalName - show original card name instead of masked.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string | undefined, feed: string | undefined): string {
+function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boolean): string {
     if (!cardName || cardName === '') {
         return '';
     }
@@ -198,6 +199,9 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
+        if (showOriginalName) {
+            return cardName;
+        }
         return cardName.replace(/ - \d{4}$/, '');
     }
 
