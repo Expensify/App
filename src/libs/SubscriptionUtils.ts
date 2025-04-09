@@ -578,7 +578,7 @@ function checkIfHasTeam2025Pricing() {
         return false;
     }
 
-    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.NEW_PRICING_START_DATE) >= 0;
+    return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
 }
 
 function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, preferredCurrency: PreferredCurrency, privateSubscriptionType: SubscriptionType | undefined): number {

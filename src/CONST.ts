@@ -3302,7 +3302,7 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
-        NEW_PRICING_START_DATE: new Date(2025, 3, 1),
+        TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
         PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',

@@ -234,7 +234,7 @@ const ONYXKEYS = {
     /** User's first policy creation date */
     NVP_PRIVATE_FIRST_POLICY_CREATED_DATE: 'nvp_private_firstPolicyCreatedDate',
 
-    /** If user should see the new subscription pricing */
+    /** If the user should see the team 2025 subscription pricing */
     NVP_PRIVATE_TEAM_PRICING_2025: 'nvp_private_manualTeamPricing2025',
 
     /** Plaid data (access tokens, bank accounts ...) */
