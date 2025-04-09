@@ -55,7 +55,7 @@ function ChatListItem<TItem extends ListItem>({
 
     const contextValue = {
         anchor: null,
-        report: undefined,
+        report: reportActionItem,
         reportNameValuePairs: undefined,
         action: undefined,
         transactionThreadReport: undefined,

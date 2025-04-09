@@ -66,7 +66,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     const handleOnPress = () => {
-        updateCurrentlyPlayingURL(videoUrl);
+        updateCurrentlyPlayingURL(videoUrl, reportID);
         if (shouldUseNarrowLayout) {
             onShowModalPress();
         }
@@ -77,7 +77,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [navigation, firstRenderRoute]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !firstRenderRoute.isFocused) {
+        if (videoUrl !== currentlyPlayingURL || (!firstRenderRoute.isFocused && reportID !== currentlyPlayingURLReportID)) {
             return;
         }
         setIsThumbnail(false);

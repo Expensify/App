@@ -9,7 +9,7 @@ import type CONST from '@src/CONST';
 import type {ResponsiveLayoutProperties} from './FullScreenContext';
 
 type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string | null) => void;
+    updateCurrentlyPlayingURL: (url: string | null, reportID?: string) => void;
     currentlyPlayingURL: string | null;
     currentlyPlayingURLReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;

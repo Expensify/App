@@ -114,7 +114,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
     );
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url: string | null) => {
+        (url: string | null, reportID?: string) => {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
@@ -130,7 +130,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             // - if it is an attachment route, then we take report ID from the URL params
             const currentPlayReportID = [attachmentReportID, reportIDWithUrl, currentReportID].find((id) => id !== undefined);
 
-            setCurrentlyPlayingURLReportID(currentPlayReportID);
+            setCurrentlyPlayingURLReportID(reportID ?? currentPlayReportID);
             setCurrentlyPlayingURL(url);
         },
         [currentlyPlayingURL, currentReportID, prevCurrentReportID, pauseVideo],
