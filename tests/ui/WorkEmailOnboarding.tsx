@@ -241,7 +241,6 @@ describe('OnboardingWorkEmail Page', () => {
             expect(screen.getByText(translateLocal('common.skip'))).toBeOnTheScreen();
         });
 
-
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
