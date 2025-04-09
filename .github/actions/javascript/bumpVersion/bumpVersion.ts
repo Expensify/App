@@ -10,12 +10,10 @@ import type {SemverLevel} from '@github/libs/versionUpdater';
 const exec = promisify(originalExec);
 
 /**
- * Update the native app versions.
+ * Update the Android native versions in E/App and the Mobile-Expensify submodule.
  */
-async function updateNativeVersions(version: string) {
-    console.log(`Updating native versions to ${version}`);
-
-    // Update Android
+async function updateAndroidVersions(version: string) {
+    console.log(`Updating Android versions to ${version}`);
     const androidVersionCode = generateAndroidVersionCode(version);
     try {
         await updateAndroidVersion(version, androidVersionCode);
@@ -26,12 +24,16 @@ async function updateNativeVersions(version: string) {
             core.setFailed(err);
         }
     }
+}
 
-    // Update iOS
+/**
+ * Update the iOS native versions in E/App and the Mobile-Expensify submodule.
+ */
+async function updateIOSVersions(version: string) {
+    console.log(`Updating native versions to ${version}`);
     try {
         const cfBundleVersion = await updateiOSVersion(version);
         if (cfBundleVersion.split('.').length === 4) {
-            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
             console.log('Successfully updated iOS!');
         } else {
             core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
@@ -59,7 +61,8 @@ async function run() {
     const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
-    await updateNativeVersions(newVersion);
+    // Update native versions
+    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion)]);
 
     console.log(`Setting npm version to ${newVersion}`);
     exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
