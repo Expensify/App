@@ -137,10 +137,6 @@ function SearchAutocompleteInput(
 
     const [localValue, setLocalValue] = useState(value);
 
-    useEffect(() => {
-        setLocalValue(value);
-    }, [value]);
-
     const debouncedOnSearchQueryChange = useMemo(() => lodashDebounce(onSearchQueryChange, 50), [onSearchQueryChange]);
 
     const handleChangeText = useCallback(
