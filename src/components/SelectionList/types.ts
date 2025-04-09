@@ -703,6 +703,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Error text to display */
+    errorText?: string;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

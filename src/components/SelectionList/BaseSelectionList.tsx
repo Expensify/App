@@ -128,6 +128,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+        errorText,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -628,6 +629,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                    errorText={errorText}
                 />
             </View>
         );

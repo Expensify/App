@@ -71,6 +71,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
     SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
+    SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: ({
@@ -108,6 +109,13 @@ const ROUTES = {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
             const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
+        route: 'search/r/:reportID/hold',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}/hold` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
@@ -161,7 +169,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
     },
     SETTINGS: 'settings',
-    SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_PROFILE: {
+        route: 'settings/profile',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
+    },
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
@@ -189,6 +200,18 @@ const ROUTES = {
     SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_MERGE_ACCOUNTS: {
+        route: 'settings/security/merge-accounts',
+        getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE: {
+        route: 'settings/security/merge-accounts/:login/magic-code',
+        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/magic-code` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_RESULT: {
+        route: 'settings/security/merge-accounts/:login/result/:result',
+        getRoute: (login: string, result: string, backTo?: string) => getUrlWithBackToParam(`settings/security/merge-accounts/${encodeURIComponent(login)}/result/${result}`, backTo),
+    },
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
