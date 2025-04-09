@@ -41,7 +41,7 @@ function getLatestCreatedBankAccount(bankAccountList: OnyxEntry<BankAccountList>
             return 0;
         }
         return created1 > created2 ? 1 : -1;
-    }
+    };
     return arrayLastElement(Object.values(bankAccountList ?? {}), comparator);
 }
 

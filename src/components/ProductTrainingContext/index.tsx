@@ -77,11 +77,13 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             return null;
         }
 
-        const highestPriorityTooltip = arrayFirstElement(Array.from(activeTooltips)
-            .map((name) => ({
+        const highestPriorityTooltip = arrayFirstElement(
+            Array.from(activeTooltips).map((name) => ({
                 name,
                 priority: TOOLTIPS[name]?.priority ?? 0,
-            })), (a, b) => b.priority - a.priority);
+            })),
+            (a, b) => b.priority - a.priority,
+        );
 
         if (!highestPriorityTooltip) {
             return null;

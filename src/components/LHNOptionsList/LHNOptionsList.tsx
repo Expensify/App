@@ -22,7 +22,7 @@ import {isValidDraftComment} from '@libs/DraftCommentUtils';
 import getPlatform from '@libs/getPlatform';
 import Log from '@libs/Log';
 import {getIOUReportIDOfLastAction, getLastMessageTextForReport} from '@libs/OptionsListUtils';
-import {getOneTransactionThreadReportID, getOriginalMessage, getFirstSortedReportActionForDisplay, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getFirstSortedReportActionForDisplay, getOneTransactionThreadReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';

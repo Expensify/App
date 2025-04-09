@@ -1035,7 +1035,7 @@ function getFirstSortedReportActionForDisplay(
 
     const comparator = (first: ReportAction, second: ReportAction) => {
         return getSortedReportActionsComparator(first, second, true);
-    }
+    };
 
     const firstReportAction = arrayFirstElement(filteredReportActions, comparator);
     return firstReportAction ? replaceBaseURLInPolicyChangeLogAction(firstReportAction) : null;

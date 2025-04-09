@@ -5,8 +5,8 @@ import type {TranslationPaths} from '@src/languages/types';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
-import arrayLastElement from '@src/utils/arrayLastElelment';
 import arrayFirstElement from '@src/utils/arrayFirstElement';
+import arrayLastElement from '@src/utils/arrayLastElelment';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 

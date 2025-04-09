@@ -147,7 +147,11 @@ Onyx.connect({
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportAction = arrayLastElement(Object.values(actions), getSortedReportActionsComparator, (action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
+        const reportAction = arrayLastElement(
+            Object.values(actions),
+            getSortedReportActionsComparator,
+            (action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
+        );
 
         if (!reportAction) {
             delete visibleReportActionItems[reportID];

@@ -1,4 +1,4 @@
-function arrayLastElement<T>(array: T[] | undefined | null, comparator?: (el1: T, el2: T) => number, filter: ((el: T) => boolean) = () => true): T | undefined {
+function arrayLastElement<T>(array: T[] | undefined | null, comparator?: (el1: T, el2: T) => number, filter: (el: T) => boolean = () => true): T | undefined {
     if (!array?.length) {
         return undefined;
     }
