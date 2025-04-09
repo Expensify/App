@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
+import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPreferredExporter} from './PolicyUtils';
 import {
     getReportTransactions,
     hasViolations as hasAnyViolations,
@@ -61,7 +61,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isExpense = isExpenseReport(report);
-    const isExporter = policy ? isPrefferedExporter(policy) : false;
+    const isExporter = policy ? isPreferredExporter(policy) : false;
     const isApproved = isReportApproved({report});
     const isReimbursed = isSettled(report);
     const isClosed = isClosedReport(report);

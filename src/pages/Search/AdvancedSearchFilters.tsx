@@ -415,7 +415,7 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
     const {canUseLeftHandBar} = usePermissions();
 
-    // If users have access to the leftHandBar beta, then the workspace filter is displyed in the first section of the advanced search filters
+    // If users have access to the leftHandBar beta, then the workspace filter is displayed in the first section of the advanced search filters
     const typeFiltersKeysWithOptionalPolicy = useMemo(
         () =>
             canUseLeftHandBar

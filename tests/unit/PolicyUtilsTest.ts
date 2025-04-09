@@ -362,7 +362,7 @@ describe('PolicyUtils', () => {
                 };
                 const expenseReport: Report = {
                     ...createRandomReport(0),
-                    ownerAccountID: categoryapprover1AccountID,
+                    ownerAccountID: categoryApprover1AccountID,
                     type: CONST.REPORT.TYPE.EXPENSE,
                 };
                 const transaction: Transaction = {

@@ -674,7 +674,7 @@ const NAICS: NAICSItem[] = [
                                     },
                                     {
                                         id: 115114,
-                                        value: 'Postharvest Crop Activities (except Cotton Ginning)',
+                                        value: 'PostHarvest Crop Activities (except Cotton Ginning)',
                                         options: [],
                                     },
                                     {
@@ -1643,11 +1643,11 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 31134,
-                                value: 'Nonchocolate Confectionery Manufacturing',
+                                value: 'Non-chocolate Confectionery Manufacturing',
                                 options: [
                                     {
                                         id: 311340,
-                                        value: 'Nonchocolate Confectionery Manufacturing',
+                                        value: 'Non-chocolate Confectionery Manufacturing',
                                         options: [],
                                     },
                                 ],
@@ -2047,22 +2047,22 @@ const NAICS: NAICSItem[] = [
                         options: [
                             {
                                 id: 31321,
-                                value: 'Broadwoven Fabric Mills',
+                                value: 'BroadWoven Fabric Mills',
                                 options: [
                                     {
                                         id: 313210,
-                                        value: 'Broadwoven Fabric Mills',
+                                        value: 'BroadWoven Fabric Mills',
                                         options: [],
                                     },
                                 ],
                             },
                             {
                                 id: 31322,
-                                value: 'Narrow Fabric Mills and Schiffli Machine Embroidery',
+                                value: 'Narrow Fabric Mills and Shuffle Machine Embroidery',
                                 options: [
                                     {
                                         id: 313220,
-                                        value: 'Narrow Fabric Mills and Schiffli Machine Embroidery',
+                                        value: 'Narrow Fabric Mills and Shuffle Machine Embroidery',
                                         options: [],
                                     },
                                 ],
@@ -2431,7 +2431,7 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 321912,
-                                value: 'Cut Stock, Resawing Lumber, and Planing',
+                                value: 'Cut Stock, Re-sawing Lumber, and Planing',
                                 options: [],
                             },
                             {
@@ -2996,7 +2996,7 @@ const NAICS: NAICSItem[] = [
                 options: [
                     {
                         id: 32611,
-                        value: 'Plastics Packaging Materials and Unlaminated Film and Sheet Manufacturing',
+                        value: 'Plastics Packaging Materials and Un-laminated Film and Sheet Manufacturing',
                         options: [
                             {
                                 id: 326111,
@@ -3010,18 +3010,18 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 326113,
-                                value: 'Unlaminated Plastics Film and Sheet (except Packaging) Manufacturing',
+                                value: 'Un-laminated Plastics Film and Sheet (except Packaging) Manufacturing',
                                 options: [],
                             },
                         ],
                     },
                     {
                         id: 32612,
-                        value: 'Plastics Pipe, Pipe Fitting, and Unlaminated Profile Shape Manufacturing',
+                        value: 'Plastics Pipe, Pipe Fitting, and Un-laminated Profile Shape Manufacturing',
                         options: [
                             {
                                 id: 326121,
-                                value: 'Unlaminated Plastics Profile Shape Manufacturing',
+                                value: 'Un-laminated Plastics Profile Shape Manufacturing',
                                 options: [],
                             },
                             {
@@ -3559,11 +3559,11 @@ const NAICS: NAICSItem[] = [
             },
             {
                 id: 3322,
-                value: 'Cutlery and Handtool Manufacturing',
+                value: 'Cutlery and Hand tool Manufacturing',
                 options: [
                     {
                         id: 33221,
-                        value: 'Cutlery and Handtool Manufacturing',
+                        value: 'Cutlery and Hand tool Manufacturing',
                         options: [
                             {
                                 id: 332215,
@@ -3572,7 +3572,7 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 332216,
-                                value: 'Saw Blade and Handtool Manufacturing',
+                                value: 'Saw Blade and Hand tool Manufacturing',
                                 options: [],
                             },
                         ],
@@ -4105,7 +4105,7 @@ const NAICS: NAICSItem[] = [
                         options: [
                             {
                                 id: 333991,
-                                value: 'Power-Driven Handtool Manufacturing',
+                                value: 'Power-Driven Hand tool Manufacturing',
                                 options: [],
                             },
                             {
@@ -4280,15 +4280,15 @@ const NAICS: NAICSItem[] = [
             },
             {
                 id: 3345,
-                value: 'Navigational, Measuring, Electromedical, and Control Instruments Manufacturing',
+                value: 'Navigational, Measuring, Electro-medical, and Control Instruments Manufacturing',
                 options: [
                     {
                         id: 33451,
-                        value: 'Navigational, Measuring, Electromedical, and Control Instruments Manufacturing',
+                        value: 'Navigational, Measuring, Electro-medical, and Control Instruments Manufacturing',
                         options: [
                             {
                                 id: 334510,
-                                value: 'Electromedical and Electrotherapeutic Apparatus Manufacturing',
+                                value: 'Electro-medical and Electro-therapeutic Apparatus Manufacturing',
                                 options: [],
                             },
                             {
@@ -4836,7 +4836,7 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 337122,
-                                value: 'Nonupholstered Wood Household Furniture Manufacturing',
+                                value: 'Non-upholstered Wood Household Furniture Manufacturing',
                                 options: [],
                             },
                             {
@@ -6678,15 +6678,15 @@ const NAICS: NAICSItem[] = [
             },
             {
                 id: 4523,
-                value: 'General Merchandise Stores, including Warehouse Clubs and Supercenters',
+                value: 'General Merchandise Stores, including Warehouse Clubs and Super centers',
                 options: [
                     {
                         id: 45231,
-                        value: 'General Merchandise Stores, including Warehouse Clubs and Supercenters',
+                        value: 'General Merchandise Stores, including Warehouse Clubs and Super centers',
                         options: [
                             {
                                 id: 452311,
-                                value: 'Warehouse Clubs and Supercenters',
+                                value: 'Warehouse Clubs and Super centers',
                                 options: [],
                             },
                             {
@@ -6825,7 +6825,7 @@ const NAICS: NAICSItem[] = [
     },
     {
         id: 454,
-        value: 'Nonstore Retailers',
+        value: 'Non-store Retailers',
         options: [
             {
                 id: 4541,
@@ -7815,11 +7815,11 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 51219,
-                                value: 'Postproduction Services and Other Motion Picture and Video Industries',
+                                value: 'Post-production Services and Other Motion Picture and Video Industries',
                                 options: [
                                     {
                                         id: 512191,
-                                        value: 'Teleproduction and Other Postproduction Services',
+                                        value: 'Tele-production and Other Post-production Services',
                                         options: [],
                                     },
                                     {
@@ -8170,7 +8170,7 @@ const NAICS: NAICSItem[] = [
                     },
                     {
                         id: 5222,
-                        value: 'Nondepository Credit Intermediation',
+                        value: 'Non-depository Credit Intermediation',
                         options: [
                             {
                                 id: 52221,
@@ -8196,7 +8196,7 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 52229,
-                                value: 'Other Nondepository Credit Intermediation',
+                                value: 'Other Non-depository Credit Intermediation',
                                 options: [
                                     {
                                         id: 522291,
@@ -8220,7 +8220,7 @@ const NAICS: NAICSItem[] = [
                                     },
                                     {
                                         id: 522298,
-                                        value: 'All Other Nondepository Credit Intermediation',
+                                        value: 'All Other Non-depository Credit Intermediation',
                                         options: [],
                                     },
                                 ],
@@ -8233,11 +8233,11 @@ const NAICS: NAICSItem[] = [
                         options: [
                             {
                                 id: 52231,
-                                value: 'Mortgage and Nonmortgage Loan Brokers',
+                                value: 'Mortgage and Non-mortgage Loan Brokers',
                                 options: [
                                     {
                                         id: 522310,
-                                        value: 'Mortgage and Nonmortgage Loan Brokers',
+                                        value: 'Mortgage and Non-mortgage Loan Brokers',
                                         options: [],
                                     },
                                 ],
@@ -8605,22 +8605,22 @@ const NAICS: NAICSItem[] = [
                             },
                             {
                                 id: 53112,
-                                value: 'Lessors of Nonresidential Buildings (except Miniwarehouses)',
+                                value: 'Lessors of Nonresidential Buildings (except Mini-warehouses)',
                                 options: [
                                     {
                                         id: 531120,
-                                        value: 'Lessors of Nonresidential Buildings (except Miniwarehouses)',
+                                        value: 'Lessors of Nonresidential Buildings (except Mini-warehouses)',
                                         options: [],
                                     },
                                 ],
                             },
                             {
                                 id: 53113,
-                                value: 'Lessors of Miniwarehouses and Self-Storage Units',
+                                value: 'Lessors of Mini-warehouses and Self-Storage Units',
                                 options: [
                                     {
                                         id: 531130,
-                                        value: 'Lessors of Miniwarehouses and Self-Storage Units',
+                                        value: 'Lessors of Mini-warehouses and Self-Storage Units',
                                         options: [],
                                     },
                                 ],
@@ -8851,19 +8851,19 @@ const NAICS: NAICSItem[] = [
             },
             {
                 id: 533,
-                value: 'Lessors of Nonfinancial Intangible Assets (except Copyrighted Works)',
+                value: 'Lessors of Non-financial Intangible Assets (except Copyrighted Works)',
                 options: [
                     {
                         id: 5331,
-                        value: 'Lessors of Nonfinancial Intangible Assets (except Copyrighted Works)',
+                        value: 'Lessors of Non-financial Intangible Assets (except Copyrighted Works)',
                         options: [
                             {
                                 id: 53311,
-                                value: 'Lessors of Nonfinancial Intangible Assets (except Copyrighted Works)',
+                                value: 'Lessors of Non-financial Intangible Assets (except Copyrighted Works)',
                                 options: [
                                     {
                                         id: 533110,
-                                        value: 'Lessors of Nonfinancial Intangible Assets (except Copyrighted Works)',
+                                        value: 'Lessors of Non-financial Intangible Assets (except Copyrighted Works)',
                                         options: [],
                                     },
                                 ],
@@ -9208,7 +9208,7 @@ const NAICS: NAICSItem[] = [
                                     },
                                     {
                                         id: 541714,
-                                        value: 'Research and Development in Biotechnology (except Nanobiotechnology)',
+                                        value: 'Research and Development in Biotechnology (except Nano-biotechnology)',
                                         options: [],
                                     },
                                     {
@@ -11426,26 +11426,26 @@ const NAICS: NAICSItem[] = [
                     },
                     {
                         id: 8123,
-                        value: 'Drycleaning and Laundry Services',
+                        value: 'Dry cleaning and Laundry Services',
                         options: [
                             {
                                 id: 81231,
-                                value: 'Coin-Operated Laundries and Drycleaners',
+                                value: 'Coin-Operated Laundries and Dry cleaners',
                                 options: [
                                     {
                                         id: 812310,
-                                        value: 'Coin-Operated Laundries and Drycleaners',
+                                        value: 'Coin-Operated Laundries and Dry cleaners',
                                         options: [],
                                     },
                                 ],
                             },
                             {
                                 id: 81232,
-                                value: 'Drycleaning and Laundry Services (except Coin-Operated)',
+                                value: 'Dry cleaning and Laundry Services (except Coin-Operated)',
                                 options: [
                                     {
                                         id: 812320,
-                                        value: 'Drycleaning and Laundry Services (except Coin-Operated)',
+                                        value: 'Dry cleaning and Laundry Services (except Coin-Operated)',
                                         options: [],
                                     },
                                 ],
@@ -11527,7 +11527,7 @@ const NAICS: NAICSItem[] = [
             },
             {
                 id: 813,
-                value: 'Religious, Grantmaking, Civic, Professional, and Similar Organizations',
+                value: 'Religious, Grant-making, Civic, Professional, and Similar Organizations',
                 options: [
                     {
                         id: 8131,
@@ -11548,15 +11548,15 @@ const NAICS: NAICSItem[] = [
                     },
                     {
                         id: 8132,
-                        value: 'Grantmaking and Giving Services',
+                        value: 'Grant-making and Giving Services',
                         options: [
                             {
                                 id: 81321,
-                                value: 'Grantmaking and Giving Services',
+                                value: 'Grant-making and Giving Services',
                                 options: [
                                     {
                                         id: 813211,
-                                        value: 'Grantmaking Foundations',
+                                        value: 'Grant-making Foundations',
                                         options: [],
                                     },
                                     {
@@ -11566,7 +11566,7 @@ const NAICS: NAICSItem[] = [
                                     },
                                     {
                                         id: 813219,
-                                        value: 'Other Grantmaking and Giving Services',
+                                        value: 'Other Grant-making and Giving Services',
                                         options: [],
                                     },
                                 ],

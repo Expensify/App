@@ -233,11 +233,11 @@ function isHoldAction(report: Report, reportTransactions: Transaction[]): boolea
         return false;
     }
 
-    const isTransactionOnHold = isHoldActionForTransation(report, transaction);
+    const isTransactionOnHold = isHoldActionForTransaction(report, transaction);
     return isTransactionOnHold;
 }
 
-function isHoldActionForTransation(report: Report, reportTransaction: Transaction): boolean {
+function isHoldActionForTransaction(report: Report, reportTransaction: Transaction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport) {
@@ -404,7 +404,7 @@ function getSecondaryReportActions(
 function getSecondaryTransactionThreadActions(parentReport: Report, reportTransaction: Transaction): Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS>> = [];
 
-    if (isHoldActionForTransation(parentReport, reportTransaction)) {
+    if (isHoldActionForTransaction(parentReport, reportTransaction)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.HOLD);
     }
 
