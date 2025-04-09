@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import {exec as originalExec} from 'child_process';
 import fs from 'fs';
+import path from 'path';
 import type {PackageJson} from 'type-fest';
 import {promisify} from 'util';
 import {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} from '@github/libs/nativeVersionUpdater';
@@ -8,6 +9,10 @@ import * as versionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
+
+// Filepath constants
+const ROOT_DIR = path.resolve(__dirname, '../../../..');
+const PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
 
 /**
  * Update the Android native versions in E/App and the Mobile-Expensify submodule.
@@ -53,7 +58,7 @@ async function run() {
         console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
     }
 
-    const {version: previousVersion} = JSON.parse(fs.readFileSync('./package.json').toString()) as PackageJson;
+    const {version: previousVersion} = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH).toString()) as PackageJson;
     if (!previousVersion) {
         core.setFailed('Error: Could not read package.json');
     }
