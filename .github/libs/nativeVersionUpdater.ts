@@ -16,7 +16,6 @@ const PLIST_PATH_SHARE = path.resolve(ROOT_DIR, './ios/ShareViewController/Info.
 
 // Filepath constants (submodule)
 const MOBILE_EXPENSIFY_DIR = path.resolve(ROOT_DIR, './Mobile-Expensify');
-const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, './app/config/config.json');
 const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, './Android/AndroidManifest.json');
 const MOBILE_EXPENSIFY_PLIST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, './iOS/Expensify/Expensify-Info.plist');
 const MOBILE_EXPENSIFY_PLIST_PATH_NSE = path.resolve(MOBILE_EXPENSIFY_DIR, './iOS/NotificationServiceExtension/Info.plist');
@@ -68,8 +67,8 @@ async function updateAndroidVersion(versionName: string, versionCode: string): P
         console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, {versionName, versionCode});
         const fileContent = await fs.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, {encoding: 'utf8'});
         const updatedContent = fileContent
-            .replace(new RegExp(`android:versionName="${versionNamePattern}"`, `android:versionName=${versionName}`))
-            .replace(new RegExp(`android:versionCode="${versionCodePattern}"`, `android:versionCode=${versionCode}`));
+            .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName=${versionName}`)
+            .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode=${versionCode}`);
         await fs.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, {encoding: 'utf8'});
         console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
     };
