@@ -2066,7 +2066,7 @@ const translations = {
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
-        validationFailed: 'Validation failed because enough time hasn’t passed since your last attempt.',
+        validationFailed: 'Hold tight!',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
         pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
@@ -2094,7 +2094,7 @@ const translations = {
                 timeText = `${parts.join(', ')} and ${lastPart}`;
             }
 
-            return `Please wait ${timeText} before trying again.`;
+            return `You need to wait ${timeText} before trying to validate your number again.`;
         },
     },
     welcomeSignUpForm: {
