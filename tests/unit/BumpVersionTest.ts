@@ -1,8 +1,7 @@
 import fs from 'fs';
 import {vol} from 'memfs';
 import path from 'path';
-// eslint-disable-next-line rulesdir/prefer-import-module-contents
-import {generateAndroidVersionCode, updateAndroidVersion} from '../../.github/libs/nativeVersionUpdater';
+import {generateAndroidVersionCode, updateAndroid} from '@github/actions/javascript/bumpVersion/bumpVersion';
 
 const BUILD_GRADLE_PATH = path.resolve(__dirname, '../../android/app/build.gradle');
 
@@ -28,24 +27,24 @@ beforeEach(() => {
     });
 });
 
-describe('generateAndroidVersionCode', () => {
-    test.each([
-        ['1.0.1-0', '1001000100'],
-        ['1.0.1-44', '1001000144'],
-        ['10.11.12-35', '1010111235'],
-        ['0.0.1-1', '1000000101'],
-        ['10.99.66-88', '1010996688'],
-    ])('generateAndroidVersionCode(%s) – %s', (input, expected) => {
-        expect(generateAndroidVersionCode(input)).toBe(expected);
+describe('BumpVersion', () => {
+    describe('generateAndroidVersionCode', () => {
+        test.each([
+            ['1.0.1-0', '1001000100'],
+            ['1.0.1-44', '1001000144'],
+            ['10.11.12-35', '1010111235'],
+            ['0.0.1-1', '1000000101'],
+            ['10.99.66-88', '1010996688'],
+        ])('generateAndroidVersionCode(%s) – %s', (input, expected) => {
+            expect(generateAndroidVersionCode(input)).toBe(expected);
+        });
     });
-});
 
-describe('updateAndroidVersion', () => {
-    test.each([
-        [
-            '1.0.1-47',
-            '1001000147',
-            `
+    describe('updateAndroidVersion', () => {
+        test.each([
+            [
+                '1.0.1-47',
+                `
     android {
         defaultConfig {
             versionCode 1001000147
@@ -53,11 +52,10 @@ describe('updateAndroidVersion', () => {
         }
     }
 `,
-        ],
-        [
-            '1.0.1-0',
-            '1001000100',
-            `
+            ],
+            [
+                '1.0.1-0',
+                `
     android {
         defaultConfig {
             versionCode 1001000100
@@ -65,11 +63,10 @@ describe('updateAndroidVersion', () => {
         }
     }
 `,
-        ],
-        [
-            '10.99.66-88',
-            '1010996688',
-            `
+            ],
+            [
+                '10.99.66-88',
+                `
     android {
         defaultConfig {
             versionCode 1010996688
@@ -77,11 +74,11 @@ describe('updateAndroidVersion', () => {
         }
     }
 `,
-        ],
-    ])('updateAndroidVersion("%s", "%s")', (versionName, versionCode, expected) =>
-        updateAndroidVersion(versionName, versionCode).then(() => {
+            ],
+        ])('updateAndroid("%s")', async (versionName, expected) => {
+            await updateAndroid(versionName);
             const result = fs.readFileSync(BUILD_GRADLE_PATH, {encoding: 'utf8'}).toString();
             expect(result).toBe(expected);
-        }),
-    );
+        });
+    });
 });

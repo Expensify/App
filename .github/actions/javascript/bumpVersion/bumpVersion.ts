@@ -3,26 +3,17 @@ import {exec as originalExec} from 'child_process';
 import {promises as fs} from 'fs';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import path from 'path';
+import type {SemVer} from 'semver';
+import getMajorVersion from 'semver/functions/major';
+import getMinorVersion from 'semver/functions/minor';
+import getPatchVersion from 'semver/functions/patch';
+import getBuildVersion from 'semver/functions/prerelease';
 import type {PackageJson} from 'type-fest';
 import {promisify} from 'util';
-import {generateAndroidVersionCode, updateAndroidVersion, updateiOSVersion} from '@github/libs/nativeVersionUpdater';
 import * as versionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
-
-// Filepath constants
-let PACKAGE_JSON_PATH: string;
-let MOBILE_EXPENSIFY_CONFIG_JSON_PATH: string;
-
-// Note: We are initializing filepath constants with eval to side-step ncc https://github.com/vercel/ncc/issues/390,
-//       which by default will try to bundle the files referenced with path.resolve
-// eslint-disable-next-line no-eval
-eval(`
-    const ROOT_DIR = path.resolve(__dirname, '../../../..');
-    PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
-    MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(ROOT_DIR, 'Mobile-Expensify/app/config/config.json');
-`);
 
 type ConfigJSON = {
     meta: {
@@ -30,14 +21,95 @@ type ConfigJSON = {
     };
 };
 
+// PlistBuddy executable path
+const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
+
+// Filepath constants
+let PACKAGE_JSON_PATH: string;
+// eslint-disable-next-line import/no-mutable-exports
+let BUILD_GRADLE_PATH: string;
+// eslint-disable-next-line import/no-mutable-exports
+let PLIST_PATH: string;
+let PLIST_PATH_NSE: string;
+let PLIST_PATH_SHARE: string;
+let MOBILE_EXPENSIFY_CONFIG_JSON_PATH: string;
+let MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH: string;
+let MOBILE_EXPENSIFY_PLIST_PATH: string;
+let MOBILE_EXPENSIFY_PLIST_PATH_NSE: string;
+let MOBILE_EXPENSIFY_PLIST_PATH_SS: string;
+
+// Note: We are initializing filepath constants with eval to side-step ncc https://github.com/vercel/ncc/issues/390,
+//       which by default will try to bundle the files referenced with path.resolve
+eval(`
+    const ROOT_DIR = path.resolve(__dirname, '../../../..');
+    PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
+    BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, 'android/app/build.gradle');
+    PLIST_PATH = path.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
+    PLIST_PATH_NSE = path.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
+    PLIST_PATH_SHARE = path.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
+    const MOBILE_EXPENSIFY_DIR = path.resolve(ROOT_DIR, 'Mobile-Expensify');
+    MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'app/config/config.json');
+    MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.json');
+    MOBILE_EXPENSIFY_PLIST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
+    MOBILE_EXPENSIFY_PLIST_PATH_NSE = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
+    MOBILE_EXPENSIFY_PLIST_PATH_SS = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
+`);
+
+/**
+ * Pad a number to be two digits (with leading zeros if necessary).
+ */
+function padToTwoDigits(value: number): string {
+    if (value >= 10) {
+        return value.toString();
+    }
+    return `0${value.toString()}`;
+}
+
+/**
+ * Generate the 10-digit versionCode for android.
+ * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
+ * As a result, our max version is 99.99.99-99.
+ */
+function generateAndroidVersionCode(npmVersion: string | SemVer): string {
+    // All Android versions will be prefixed with '10' due to previous versioning
+    const prefix = '10';
+    return ''.concat(
+        prefix,
+        padToTwoDigits(getMajorVersion(npmVersion) ?? 0),
+        padToTwoDigits(getMinorVersion(npmVersion) ?? 0),
+        padToTwoDigits(getPatchVersion(npmVersion) ?? 0),
+        padToTwoDigits(Number(getBuildVersion(npmVersion)) ?? 0),
+    );
+}
+
 /**
  * Update the Android native versions in E/App and the Mobile-Expensify submodule.
  */
-async function updateAndroidVersions(version: string) {
+async function updateAndroid(version: string) {
     console.log(`Updating Android versions to ${version}`);
     const androidVersionCode = generateAndroidVersionCode(version);
     try {
-        await updateAndroidVersion(version, androidVersionCode);
+        const versionNamePattern = '([0-9.-]*)';
+        const versionCodePattern = '([0-9]*)';
+        const updateBuildGradle = async () => {
+            console.log(`Updating ${BUILD_GRADLE_PATH}:`, {version, androidVersionCode});
+            const fileContent = await fs.readFile(BUILD_GRADLE_PATH, {encoding: 'utf8'});
+            const updatedContent = fileContent
+                .replace(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${version}"`)
+                .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${androidVersionCode}`);
+            await fs.writeFile(BUILD_GRADLE_PATH, updatedContent, {encoding: 'utf8'});
+            console.log(`Updated ${BUILD_GRADLE_PATH}`);
+        };
+        const updateAndroidManifest = async () => {
+            console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, {version, androidVersionCode});
+            const fileContent = await fs.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, {encoding: 'utf8'});
+            const updatedContent = fileContent
+                .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName=${version}`)
+                .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode=${androidVersionCode}`);
+            await fs.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, {encoding: 'utf8'});
+            console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
+        };
+        await Promise.all([updateBuildGradle(), updateAndroidManifest()]);
         console.log('Successfully updated Android');
     } catch (err) {
         console.error('Error updating Android');
@@ -50,15 +122,31 @@ async function updateAndroidVersions(version: string) {
 /**
  * Update the iOS native versions in E/App and the Mobile-Expensify submodule.
  */
-async function updateIOSVersions(version: string) {
+async function updateIOS(version: string) {
     console.log(`Updating native versions to ${version}`);
     try {
-        const cfBundleVersion = await updateiOSVersion(version);
-        if (cfBundleVersion.split('.').length === 4) {
-            console.log('Successfully updated iOS!');
-        } else {
-            core.setFailed(`Failed to set NEW_IOS_VERSION. CFBundleVersion: ${cfBundleVersion}`);
-        }
+        const PLIST_KEYS = {
+            CF_BUNDLE_SHORT_VERSION: 'CFBundleShortVersionString',
+            CF_BUNDLE_VERSION: 'CFBundleVersion',
+        };
+
+        const shortVersion = version.split('-').at(0);
+        const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
+        console.log('Updating iOS', {
+            [PLIST_KEYS.CF_BUNDLE_SHORT_VERSION]: shortVersion,
+            [PLIST_KEYS.CF_BUNDLE_VERSION]: cfVersion,
+        });
+
+        // Update plists
+        await Promise.all(
+            [PLIST_PATH, PLIST_PATH_NSE, PLIST_PATH_SHARE, MOBILE_EXPENSIFY_PLIST_PATH, MOBILE_EXPENSIFY_PLIST_PATH_NSE, MOBILE_EXPENSIFY_PLIST_PATH_SS].map(async (file) => {
+                console.log(`Updating ${file}`);
+                await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_SHORT_VERSION} ${shortVersion}" ${file}`);
+                await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_VERSION} ${cfVersion}" ${file}`);
+                console.log(`Updated ${file}`);
+            }),
+        );
+        console.log('Successfully updated iOS');
     } catch (err) {
         console.error('Error updating iOS');
         if (err instanceof Error) {
@@ -70,7 +158,7 @@ async function updateIOSVersions(version: string) {
 /**
  * Update package.json and package-lock.json
  */
-async function updateNPMVersion(version: string) {
+async function updateNPM(version: string) {
     console.log(`Setting npm version to ${version}`);
     try {
         const {stdout} = await exec(`npm --no-git-tag-version version ${version} -m "Update version to ${version}"`);
@@ -125,7 +213,7 @@ async function run() {
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
-    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion), updateConfigJSON(newVersion)]);
+    await Promise.all([updateAndroid(newVersion), updateIOS(newVersion), updateNPM(newVersion), updateConfigJSON(newVersion)]);
 }
 
 if (require.main === module) {
@@ -133,3 +221,4 @@ if (require.main === module) {
 }
 
 export default run;
+export {updateIOS, updateAndroid, generateAndroidVersionCode, BUILD_GRADLE_PATH, PLIST_PATH};
