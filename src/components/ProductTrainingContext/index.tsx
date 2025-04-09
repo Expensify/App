@@ -7,7 +7,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePane from '@hooks/useSidePane';
+import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
@@ -113,9 +113,8 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 return false;
             }
 
-            // We need to make an exception for the QAB tooltip because it is shown in a modal, otherwise it would be hidden if a modal is visible
+            // We need to make an exception for these tooltips because it is shown in a modal, otherwise it would be hidden if a modal is visible
             if (
-                tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.QUICK_ACTION_BUTTON &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER &&
                 tooltipName !== CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION &&
@@ -177,7 +176,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldHideToolTip} = useSidePane();
+    const {shouldHideToolTip} = useSidePanel();
     const {translate} = useLocalize();
 
     if (!context) {
@@ -187,9 +186,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
-        if (shouldShow) {
-            registerTooltip(tooltipName);
+        if (!shouldShow) {
+            return;
         }
+        registerTooltip(tooltipName);
         return () => {
             unregisterTooltip(tooltipName);
         };
