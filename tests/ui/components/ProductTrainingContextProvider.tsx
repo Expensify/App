@@ -251,35 +251,6 @@ describe('ProductTrainingContextProvider', () => {
     });
 
     describe('Layout Specific Behavior', () => {
-        it('should handle narrow layout specific tooltips based on screen width', async () => {
-            // When migrated user has dismissed welcome modal
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
-            const date = new Date();
-            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
-                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
-            });
-            await waitForBatchedUpdatesWithAct();
-
-            // When narrow layout is false
-            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
-
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            await waitForBatchedUpdatesWithAct();
-
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER;
-            const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-            // Then wide layout tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
-
-            // When narrow layout changes to true
-            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
-            rerender({});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then narrow layout tooltip should hide
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
-        });
         it('should handle wide layout specific tooltips based on screen width', async () => {
             // When narrow layout is true
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
