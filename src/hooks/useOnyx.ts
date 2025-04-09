@@ -9,9 +9,10 @@ import type {SearchResults} from '@src/types/onyx';
 type OriginalUseOnyx = typeof originalUseOnyx;
 type OriginalUseOnyxReturnType = ReturnType<OriginalUseOnyx>;
 
+const COLLECTION_VALUES = Object.values(ONYXKEYS.COLLECTION);
 const getDataByPath = (data: SearchResults['data'], path: string) => {
     // Handle prefixed collections
-    for (const collection of Object.values(ONYXKEYS.COLLECTION)) {
+    for (const collection of COLLECTION_VALUES) {
         if (path.startsWith(collection)) {
             const key = `${collection}${path.slice(collection.length)}`;
             return data?.[key as keyof typeof data];
