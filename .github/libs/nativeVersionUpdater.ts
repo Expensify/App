@@ -77,7 +77,7 @@ async function updateAndroidVersion(versionName: string, versionCode: string): P
         await fs.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, {encoding: 'utf8'});
         console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
     };
-    await Promise.all([() => updateBuildGradle(), () => updateAndroidManifest()]);
+    await Promise.all([updateBuildGradle(), updateAndroidManifest()]);
 }
 
 /**
