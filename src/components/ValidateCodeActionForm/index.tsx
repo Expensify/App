@@ -18,7 +18,9 @@ function ValidateCodeActionForm({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    submitButtonText,
     forwardedRef,
+    shouldSkipInitialValidation,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
 
@@ -27,13 +29,15 @@ function ValidateCodeActionForm({
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        sendValidateCode();
+        if (!shouldSkipInitialValidation) {
+            sendValidateCode();
+        }
 
         return () => {
             isUnmounted.current = true;
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldSkipInitialValidation]);
 
     useEffect(() => {
         return () => {
@@ -59,6 +63,7 @@ function ValidateCodeActionForm({
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                 ref={forwardedRef}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                submitButtonText={submitButtonText}
             />
         </View>
     );

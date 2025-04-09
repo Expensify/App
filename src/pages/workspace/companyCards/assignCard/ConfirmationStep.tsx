@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
-import {isSelectedFeedExpired, maskCardNumber} from '@libs/CardUtils';
+import {isSelectedFeedExpired, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import Navigation from '@navigation/Navigation';
 import {assignWorkspaceCompanyCard, clearAssignCardStepAndData, setAssignCardStepAndData} from '@userActions/CompanyCards';
@@ -97,6 +97,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.card')}
                     title={maskCardNumber(data?.cardNumber ?? '', data?.bankName)}
+                    hintText={lastFourNumbersFromCardName(data?.cardNumber)}
                     shouldShowRightIcon
                     onPress={() => editStep(CONST.COMPANY_CARD.STEP.CARD)}
                 />
