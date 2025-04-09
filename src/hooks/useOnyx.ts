@@ -50,8 +50,9 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
     const {selector: selectorProp, ...optionsWithoutSelector} = useOnyxOptions ?? {};
 
     // Determine if we should use snapshot data based on search state and key
-    const shouldUseSnapshot =
-        isOnSearch && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey)) && !!currentSearchHash;
+    const shouldUseSnapshot = useMemo(() => {
+        return isOnSearch && !!currentSearchHash && !key.startsWith(ONYXKEYS.COLLECTION.SNAPSHOT) && CONST.SEARCH.SNAPSHOT_ONYX_KEYS.some((snapshotKey) => key.startsWith(snapshotKey));
+    }, [isOnSearch, currentSearchHash, key]);
 
     // Create selector function that handles both regular and snapshot data
     const selector = useMemo(() => {
