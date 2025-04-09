@@ -74,9 +74,9 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
             return originalResult as OriginalUseOnyxReturnType;
         }
 
-        const keyData = getKeyData(originalResult[0] as SearchResults, key, useOnyxOptions?.initialValue);
+        const keyData = getKeyData(originalResult[0] as SearchResults, key, onyxOptions?.initialValue);
         return [keyData, originalResult[1]] as OriginalUseOnyxReturnType;
-    }, [shouldUseSnapshot, originalResult, key, useOnyxOptions?.initialValue, selector]);
+    }, [shouldUseSnapshot, originalResult, key, onyxOptions?.initialValue, selector]);
 
     return result;
 };
