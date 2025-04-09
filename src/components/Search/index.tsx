@@ -1,7 +1,7 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
@@ -45,6 +45,7 @@ import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
+import SearchScopeProvider from './SearchScopeProvider';
 import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
@@ -482,46 +483,48 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
 
     return (
-        <SearchList
-            ref={handleSelectionListScroll(sortedSelectedData)}
-            data={sortedSelectedData}
-            ListItem={ListItem}
-            onSelectRow={openReport}
-            onCheckboxPress={toggleTransaction}
-            onAllCheckboxPress={toggleAllTransactions}
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-            shouldPreventLongPressRow={isChat}
-            SearchTableHeader={
-                !isLargeScreenWidth ? undefined : (
-                    <SearchTableHeader
-                        data={searchResults?.data}
-                        metadata={searchResults?.search}
-                        onSortPress={onSortPress}
-                        sortOrder={sortOrder}
-                        sortBy={sortBy}
-                        shouldShowYear={shouldShowYear}
-                        shouldShowSorting={shouldShowSorting}
-                    />
-                )
-            }
-            contentContainerStyle={[contentContainerStyle, styles.pb3]}
-            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            shouldGroupByReports={shouldGroupByReports}
-            onScroll={onSearchListScroll}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            ListFooterComponent={
-                shouldShowLoadingMoreItems ? (
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
-                    />
-                ) : undefined
-            }
-            queryJSONHash={hash}
-            onViewableItemsChanged={onViewableItemsChanged}
-        />
+        <SearchScopeProvider isOnSearch>
+            <SearchList
+                ref={handleSelectionListScroll(sortedSelectedData)}
+                data={sortedSelectedData}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                onCheckboxPress={toggleTransaction}
+                onAllCheckboxPress={toggleAllTransactions}
+                canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+                shouldPreventLongPressRow={isChat}
+                SearchTableHeader={
+                    !isLargeScreenWidth ? undefined : (
+                        <SearchTableHeader
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
+                            shouldShowYear={shouldShowYear}
+                            shouldShowSorting={shouldShowSorting}
+                        />
+                    )
+                }
+                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                shouldGroupByReports={shouldGroupByReports}
+                onScroll={onSearchListScroll}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+                queryJSONHash={hash}
+                onViewableItemsChanged={onViewableItemsChanged}
+            />
+        </SearchScopeProvider>
     );
 }
 

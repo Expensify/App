@@ -106,6 +106,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                 onLongPress={() => {}}
                 role={role}
                 shouldUseHapticsOnLongPress={false}
+                testID="floating-action-button"
             >
                 <Animated.View style={[styles.floatingActionButton, {borderRadius}, animatedStyle]}>
                     <Svg
