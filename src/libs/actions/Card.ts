@@ -918,6 +918,20 @@ function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined)
     ]);
 }
 
+function updateSelectedExpensifyFeed(feed: number, policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
+    Onyx.update([
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`,
+            value: feed,
+        },
+    ]);
+}
+
 function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
     const parameters = {
         feedCountry,
@@ -948,6 +962,7 @@ export {
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
+    updateSelectedExpensifyFeed,
     deactivateCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,

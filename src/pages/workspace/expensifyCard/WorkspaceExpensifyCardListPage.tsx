@@ -31,6 +31,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
+import {getDescriptionForPolicyDomainCard} from '@libs/PolicyUtils';
 
 type WorkspaceExpensifyCardListPageProps = {
     /** Route from navigation */
@@ -157,7 +158,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                         onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_EXPENSIFY_CARD_SELECT_FEED.getRoute(policyID))}
                         cardIcon={ExpensifyCardImage}
                         feedName={translate('workspace.common.expensifyCard')}
-                        supportingText={cardSettings?.domainName}
+                        supportingText={getDescriptionForPolicyDomainCard(cardSettings?.domainName ?? '')}
                     />
                     {isBankAccountVerified && getHeaderButtons()}
                 </View>

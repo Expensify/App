@@ -562,6 +562,17 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function getFundIdFromSettingsKey(key: string) {
+    const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
+    if (!key?.startsWith(prefix)) {
+        return undefined;
+    }
+    const fundIDStr = key.substring(prefix.length);
+
+    const fundID = Number(fundIDStr);
+    return Number.isNaN(fundID) ? undefined : fundID;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -605,4 +616,5 @@ export {
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
+    getFundIdFromSettingsKey
 };
