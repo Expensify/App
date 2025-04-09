@@ -88,7 +88,7 @@ function isPayAction(report: Report, policy?: Policy) {
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
 
-    const isReportFinished = isReportApproved || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
     const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);

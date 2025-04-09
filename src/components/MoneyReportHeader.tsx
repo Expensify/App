@@ -35,6 +35,7 @@ import {
     isArchivedReportWithID,
     isExported as isExportedUtils,
     isInvoiceReport,
+    isProcessingReport,
     isReportOwner,
     navigateToDetailsPage,
     reportTransactionsSelector,
@@ -403,7 +404,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction')};
+            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
