@@ -484,7 +484,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             }
         }
 
-        if (canUsePDFExport) {
+        if (canUsePDFExport && caseID === CASES.MONEY_REPORT) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
                 translationKey: 'common.downloadAsPDF',
@@ -565,6 +565,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isTaskReport,
         isCanceledTaskReport,
         canUsePDFExport,
+        caseID,
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
