@@ -252,6 +252,15 @@ describe('ProductTrainingContextProvider', () => {
 
     describe('Layout Specific Behavior', () => {
         it('should handle narrow layout specific tooltips based on screen width', async () => {
+            // When migrated user has dismissed welcome modal
+            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
+            const date = new Date();
+            Onyx.set(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
+                migratedUserWelcomeModal: DateUtils.getDBTime(date.valueOf()),
+            });
+            await waitForBatchedUpdatesWithAct();
+
             // When narrow layout is false
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
 
