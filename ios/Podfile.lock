@@ -1606,7 +1606,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-airship (21.4.0):
+  - react-native-airship (21.4.1):
     - AirshipFrameworkProxy (= 14.1.0)
     - DoubleConversion
     - glog
@@ -3440,7 +3440,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 212171f037e3b22e6c2df839aa826806da480b85
   React-microtasksnativemodule: 72564d5469003687d39bfc4efad281df8efc0684
   react-native-advanced-input-mask: 7783a35343e2f0ec4b726d526bda4665e8fc11c9
-  react-native-airship: 8d817a7a931bf33f35d212401319c77f92c51b5b
+  react-native-airship: 2ff893d451520832e447fcce7f3f5ed9d3645f6a
   react-native-app-logs: 70fb83d2fe260d3911e5bb222496ef1f7a2bfef9
   react-native-blob-util: d65692a2acce17b7a836805114828142a3634033
   react-native-cameraroll: 78710a5d35b0c6f41899a193e714564d8fd648b0
