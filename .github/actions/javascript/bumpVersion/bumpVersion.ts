@@ -116,7 +116,7 @@ async function run() {
 }
 
 if (require.main === module) {
-    await run();
+    run();
 }
 
 export default run;

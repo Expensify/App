@@ -2,8 +2,6 @@
     "extends": "../tsconfig.json",
     "compilerOptions": {
         "incremental": false,
-        "esModuleInterop": true,
-        "module": "es2022",
-        "target": "es2022"
+        "esModuleInterop": true
     }
 }
