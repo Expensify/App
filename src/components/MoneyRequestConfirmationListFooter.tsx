@@ -282,9 +282,13 @@ function MoneyRequestConfirmationListFooter({
         (a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0,
     );
 
-    const shouldUserTransactionReport = outstandingReports.some((report) => report?.reportID === transaction?.reportID);
+    /**
+     * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
+     * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
+     */
+    const shouldUseTransactionReport = outstandingReports.some((report) => report?.reportID === transaction?.reportID);
     let reportName: string | undefined;
-    if (transaction?.reportID && shouldUserTransactionReport) {
+    if (transaction?.reportID && shouldUseTransactionReport) {
         const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID);
         reportName = transactionReport?.reportName;
     } else {
