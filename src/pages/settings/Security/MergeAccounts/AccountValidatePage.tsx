@@ -21,6 +21,7 @@ import {
     requestValidationCodeForAccountMerge,
 } from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -57,6 +58,18 @@ const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESUL
     return null;
 };
 
+const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
+    if (!err) {
+        return null;
+    }
+
+    if (err.includes('Invalid validateCode')) {
+        return 'passwordForm.error.incorrect2fa';
+    }
+
+    return 'passwordForm.error.fallback';
+};
+
 function AccountValidatePage() {
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const navigation = useNavigation();
@@ -79,6 +92,7 @@ function AccountValidatePage() {
 
     const latestError = getLatestErrorMessage(mergeWithValidateCode);
     const errorKey = getMergeErrorKey(latestError);
+    const authenticationErrorKey = getAuthenticationErrorKey(latestError);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -144,7 +158,7 @@ function AccountValidatePage() {
                 }}
                 shouldSkipInitialValidation
                 clearError={() => clearMergeWithValidateCode()}
-                validateError={!errorKey ? mergeWithValidateCode?.errors : undefined}
+                validateError={!errorKey && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : undefined}
                 hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
                 submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                 forwardedRef={validateCodeFormRef}

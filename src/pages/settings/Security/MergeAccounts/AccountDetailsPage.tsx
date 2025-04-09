@@ -26,9 +26,9 @@ import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerg
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
-import type SCREENS from '@src/SCREENS';
 
 const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
