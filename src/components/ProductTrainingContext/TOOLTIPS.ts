@@ -17,7 +17,8 @@ const {
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
 type ShouldShowConditionProps = {
-    shouldUseNarrowLayout?: boolean;
+    shouldUseNarrowLayout: boolean;
+    isUserPolicyEmployee: boolean;
 };
 
 type TooltipData = {
@@ -61,7 +62,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
         priority: 1950,
-        shouldShow: () => true,
+        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
@@ -82,7 +83,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 1800,
-        shouldShow: () => true,
+        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
