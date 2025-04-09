@@ -156,7 +156,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
       This variable is only added to make sure the component is re-rendered
       whenever the activeClients change, so that we call the
       ActiveClientManager.isClientTheLeader function
-      everytime the leader client changes.
+      every time the leader client changes.
       We use that function to prevent repeating code that checks which client is the leader.
     */
     const [activeClients = []] = useOnyx(ONYXKEYS.ACTIVE_CLIENTS);

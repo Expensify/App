@@ -233,11 +233,11 @@ const ROUTES = {
         getRoute: (backTo?: string, forwardTo?: string) =>
             getUrlWithBackToParam(forwardTo ? `settings/wallet/verify?forwardTo=${encodeURIComponent(forwardTo)}` : 'settings/wallet/verify', backTo),
     },
-    SETTINGS_WALLET_DOMAINCARD: {
+    SETTINGS_WALLET_DOMAIN_CARD: {
         route: 'settings/wallet/card/:cardID?',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}` as const,
     },
-    SETTINGS_DOMAINCARD_DETAIL: {
+    SETTINGS_DOMAIN_CARD_DETAIL: {
         route: 'settings/card/:cardID?',
         getRoute: (cardID: string) => `settings/card/${cardID}` as const,
     },
@@ -249,7 +249,7 @@ const ROUTES = {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
         getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud-confirm` as const,
     },
-    SETTINGS_DOMAINCARD_REPORT_FRAUD: {
+    SETTINGS_DOMAIN_CARD_REPORT_FRAUD: {
         route: 'settings/card/:cardID/report-virtual-fraud',
         getRoute: (cardID: string) => `settings/card/${cardID}/report-virtual-fraud` as const,
     },
@@ -339,7 +339,7 @@ const ROUTES = {
         route: 'settings/exit-survey/reason',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/reason', backTo),
     },
-    SETTINGS_EXIT_SURVERY_BOOK_CALL: {
+    SETTINGS_EXIT_SURVEY_BOOK_CALL: {
         route: 'settings/exit-survey/book-call',
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/exit-survey/book-call', backTo),
     },
@@ -448,7 +448,12 @@ const ROUTES = {
     },
     REPORT_PARTICIPANTS: {
         route: 'r/:reportID/participants',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the REPORT_PARTICIPANTS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/participants` as const, backTo);
+        },
     },
     REPORT_PARTICIPANTS_INVITE: {
         route: 'r/:reportID/participants/invite',
@@ -545,7 +550,12 @@ const ROUTES = {
     },
     ROOM_MEMBERS: {
         route: 'r/:reportID/members',
-        getRoute: (reportID: string, backTo?: string) => getUrlWithBackToParam(`r/${reportID}/members` as const, backTo),
+        getRoute: (reportID: string | undefined, backTo?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID is used to build the ROOM_MEMBERS route');
+            }
+            return getUrlWithBackToParam(`r/${reportID}/members` as const, backTo);
+        },
     },
     ROOM_MEMBER_DETAILS: {
         route: 'r/:reportID/members/:accountID',
@@ -1063,15 +1073,30 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
@@ -1172,13 +1197,23 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/workflows/payer',
         getRoute: (policyId: string) => `settings/workspaces/${policyId}/workflows/payer` as const,
     },
-    WORKSPACE_WORKFLOWS_AUTOREPORTING_FREQUENCY: {
+    WORKSPACE_WORKFLOWS_AUTO_REPORTING_FREQUENCY: {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTO_REPORTING_FREQUENCY route');
+            }
+            return `settings/workspaces/${policyID}/workflows/auto-reporting-frequency` as const;
+        },
     },
-    WORKSPACE_WORKFLOWS_AUTOREPORTING_MONTHLY_OFFSET: {
+    WORKSPACE_WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET: {
         route: 'settings/workspaces/:policyID/workflows/auto-reporting-frequency/monthly-offset',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS_AUTO_REPORTING_MONTHLY_OFFSET route');
+            }
+            return `settings/workspaces/${policyID}/workflows/auto-reporting-frequency/monthly-offset` as const;
+        },
     },
     WORKSPACE_INVOICES: {
         route: 'settings/workspaces/:policyID/invoices',
@@ -1319,23 +1354,23 @@ const ROUTES = {
         route: 'settings/workspaces/:policyID/category/:categoryName/gl-code',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/gl-code` as const,
     },
-    WORSKPACE_CATEGORY_DEFAULT_TAX_RATE: {
+    WORKSPACE_CATEGORY_DEFAULT_TAX_RATE: {
         route: 'settings/workspaces/:policyID/category/:categoryName/tax-rate',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/tax-rate` as const,
     },
-    WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
+    WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER: {
         route: 'settings/workspaces/:policyID/category/:categoryName/flag-amounts',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/flag-amounts` as const,
     },
-    WORSKPACE_CATEGORY_DESCRIPTION_HINT: {
+    WORKSPACE_CATEGORY_DESCRIPTION_HINT: {
         route: 'settings/workspaces/:policyID/category/:categoryName/description-hint',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/description-hint` as const,
     },
-    WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
+    WORKSPACE_CATEGORY_REQUIRE_RECEIPTS_OVER: {
         route: 'settings/workspaces/:policyID/category/:categoryName/require-receipts-over',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/require-receipts-over` as const,
     },
-    WORSKPACE_CATEGORY_APPROVER: {
+    WORKSPACE_CATEGORY_APPROVER: {
         route: 'settings/workspaces/:policyID/category/:categoryName/approver',
         getRoute: (policyID: string, categoryName: string) => `settings/workspaces/${policyID}/category/${encodeURIComponent(categoryName)}/approver` as const,
     },
@@ -2035,8 +2070,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField',
-        getRoute: (policyID: string, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) =>
-            `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const,
+        getRoute: (policyID: string | undefined, importCustomField: ValueOf<typeof CONST.NETSUITE_CONFIG.IMPORT_CUSTOM_FIELDS>) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_MAPPING route');
+            }
+            return `settings/workspaces/${policyID}/accounting/netsuite/import/custom/${importCustomField as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT_CUSTOM_FIELD_VIEW: {
         route: 'settings/workspaces/:policyID/accounting/netsuite/import/custom/:importCustomField/view/:valueIndex',
@@ -2213,7 +2252,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/toggle-mapping/:mapping',
-        getRoute: (policyID: string, mapping: SageIntacctMappingName) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping as string}` as const,
+        getRoute: (policyID: string | undefined, mapping: SageIntacctMappingName) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping as string}` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
@@ -2221,7 +2265,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS route');
+            }
+            return `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const;
+        },
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/add-user-dimension',

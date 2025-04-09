@@ -1,10 +1,10 @@
 import Onyx from 'react-native-onyx';
-import * as Environment from '@libs/Environment/Environment';
+import {isDevelopment} from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import pkg from '../../../package.json';
-import * as NetworkStore from './NetworkStore';
+import {getAuthToken, getCurrentUserEmail} from './NetworkStore';
 
 // For all requests, we'll send the lastUpdateID that is applied to this client. This will
 // allow us to calculate previousUpdateID faster.
@@ -43,12 +43,12 @@ export default function enhanceParameters(command: string, parameters: Record<st
     const finalParameters = {...parameters};
 
     if (isAuthTokenRequired(command) && !parameters.authToken) {
-        finalParameters.authToken = NetworkStore.getAuthToken() ?? null;
+        finalParameters.authToken = getAuthToken() ?? null;
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
 
-    // In addition to the referer (ecash), we pass the platform to help differentiate what device type
+    // In addition to the referer (e-cash), we pass the platform to help differentiate what device type
     // is sending the request.
     finalParameters.platform = getPlatform();
 
@@ -58,9 +58,9 @@ export default function enhanceParameters(command: string, parameters: Record<st
     finalParameters.api_setCookie = false;
 
     // Include current user's email in every request and the server logs
-    finalParameters.email = parameters.email ?? NetworkStore.getCurrentUserEmail();
+    finalParameters.email = parameters.email ?? getCurrentUserEmail();
 
-    finalParameters.isFromDevEnv = Environment.isDevelopment();
+    finalParameters.isFromDevEnv = isDevelopment();
 
     finalParameters.appversion = pkg.version;
 

@@ -14,7 +14,7 @@ To receive a reimbursement after submitting an expense report, you must first [c
 - Payments initiated **after 3 p.m. PST** or on **weekends/bank holidays** may be delayed.  
 - If your payment qualifies for **Rapid Reimbursement**, you may receive it sooner.
 
-Your company or client also has the option to pay you via **check, a third-party payment processor, or outside of Expensify**. Check with your **Workspace Admin** or payor to confirm the payment method.
+Your company or client also has the option to pay you via **check, a third-party payment processor, or outside of Expensify**. Check with your **Workspace Admin** or payer to confirm the payment method.
 
 ---
 

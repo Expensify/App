@@ -139,7 +139,7 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243240081
 
 1. Launch the app.
 2. Open FAB > Submit expense > Manual.
-3. Submit a manual expense to any user (as long as the user is not the currrently opened report and the receiver is not workspace chat).
+3. Submit a manual expense to any user (as long as the user is not the currently opened report and the receiver is not workspace chat).
 4. Verify if the destination report is opened after submitting expense.
 
 #### QBO - Preferred exporter/Export date tab do not auto-close after value selected
@@ -177,7 +177,7 @@ Linked issue: https://github.com/Expensify/App/pull/49539#issuecomment-243338180
 4. Click on the group chat header.
 5. Click Group name field.
 6. Click Save.
-7. Verify if the app returs to group details RHP after saving group name.
+7. Verify if the app returns to group details RHP after saving group name.
 
 #### Going up to a screen with any params
 

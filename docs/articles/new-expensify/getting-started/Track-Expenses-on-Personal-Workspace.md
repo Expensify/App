@@ -37,7 +37,7 @@ Each workspace has its own set of rules, settings, and integrations. Even if you
 
 ![Click your profile photo or icon]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_1.png){:width="100%"}
 
-![Click Workspaces in the left menu and New Worksapce]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_2.png){:width="100%"}
+![Click Workspaces in the left menu and New Workspace]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_2.png){:width="100%"}
 
 ![Options to make changes like a custom workspace name]({{site.url}}/assets/images/ExpensifyHelp_CreateWorkspace_3.png){:width="100%"}
 

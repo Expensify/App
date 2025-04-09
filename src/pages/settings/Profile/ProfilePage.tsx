@@ -175,7 +175,7 @@ function ProfilePage() {
                         >
                             <View style={[styles.pt3, styles.pb6, styles.alignSelfStart, styles.w100]}>
                                 {isEmptyObject(currentUserPersonalDetails) || accountID === -1 || !avatarURL ? (
-                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.XLARGE} />
+                                    <AvatarSkeleton size={CONST.AVATAR_SIZE.X_LARGE} />
                                 ) : (
                                     <MenuItemGroup shouldUseSingleExecution={false}>
                                         <AvatarWithImagePicker
@@ -184,7 +184,7 @@ function ProfilePage() {
                                             avatarID={accountID}
                                             onImageSelected={updateAvatar}
                                             onImageRemoved={deleteAvatar}
-                                            size={CONST.AVATAR_SIZE.XLARGE}
+                                            size={CONST.AVATAR_SIZE.X_LARGE}
                                             avatarStyle={[styles.avatarXLarge, styles.alignSelfStart]}
                                             pendingAction={currentUserPersonalDetails?.pendingFields?.avatar ?? undefined}
                                             errors={currentUserPersonalDetails?.errorFields?.avatar ?? null}

@@ -37,7 +37,7 @@ describe('getUpdatedSubstitutionsMap should return updated and cleaned substitut
     });
 
     test('when query has multiple substitutions and some changed but some stayed', () => {
-        const userTypedQuery = 'from:Johnny to:Steven category:Fruitzzzz';
+        const userTypedQuery = 'from:Johnny to:Steven category:Fruits';
         const substitutionsMock = {
             'from:Johnny': '@johnny',
             'to:Steven': '@steven',

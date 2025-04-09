@@ -13,7 +13,7 @@
 // defaultKey: rule to match pre-defined search syntax fields that are used to update default values, e.g. type, status, etc
 // identifier: composite rule to match patterns defined by the quotedString and alphanumeric rules
 
-// filter, logicalAnd, operator, alphanumeric, quotedStrig are defined in baseRules.peggy grammar
+// filter, logicalAnd, operator, alphanumeric, quotedString are defined in baseRules.peggy grammar
 
 // global initializer (code executed only once)
 {{// CAUTION: DO NOT DIRECTLY ALTER OR MODIFY `searchParser.js` OR `autocompleteParser.js`

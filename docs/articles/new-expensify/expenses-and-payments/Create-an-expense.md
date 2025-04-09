@@ -15,7 +15,7 @@ If you use Expensify for personal use, submitting to an individual is likely bes
 
 Once the expense is created, you will see the option to send it to an email or phone number. Alternatively, add an expense to a chat, which will go straight to the person you are chatting with.
 
-When an expense is submitted to an individual’s email or phone number, the payor will receive an email or text notification with the amount that needs to be paid. They can click on the amount in the email or text to pay the expense.
+When an expense is submitted to an individual’s email or phone number, the payer will receive an email or text notification with the amount that needs to be paid. They can click on the amount in the email or text to pay the expense.
 
 # Submit an expense to a workspace or employer
 

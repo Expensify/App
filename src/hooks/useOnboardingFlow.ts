@@ -21,7 +21,7 @@ function useOnboardingFlowRouter() {
     const [isOnboardingCompleted, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
     const {isHybridAppOnboardingCompleted, hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
@@ -38,7 +38,7 @@ function useOnboardingFlowRouter() {
                 return;
             }
 
-            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+            if (isLoadingOnyxValue(isOnboardingCompletedMetadata, tryNewDotMetadata, dismissedProductTrainingMetadata)) {
                 return;
             }
 
@@ -86,7 +86,7 @@ function useOnboardingFlowRouter() {
         isOnboardingCompleted,
         isHybridAppOnboardingCompleted,
         isOnboardingCompletedMetadata,
-        tryNewDotdMetadata,
+        tryNewDotMetadata,
         isSingleNewDotEntryMetadata,
         isSingleNewDotEntry,
         hasBeenAddedToNudgeMigration,

@@ -125,7 +125,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID ?? reportIDFromUrlParams : undefined;
             const reportIDWithUrl = isChatThread(topMostReport) ? findUrlInReportOrAncestorAttachments(topMostReport, url) : undefined;
 
-            // - if it is a chat thread, use chat thread ID or any ascentor ID since the video could have originally been sent on report many levels up
+            // - if it is a chat thread, use chat thread ID or any ancestor ID since the video could have originally been sent on report many levels up
             // - report ID in which we are currently, if it is not a chat thread
             // - if it is an attachment route, then we take report ID from the URL params
             const currentPlayReportID = [attachmentReportID, reportIDWithUrl, currentReportID].find((id) => id !== undefined);

@@ -293,7 +293,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const openReport = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
-            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
+            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
             const isTransactionItem = isTransactionListItemType(item);
 
             let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
@@ -397,7 +397,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 <FullPageErrorView
                     shouldShow
                     subtitleStyle={styles.textSupporting}
-                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    title={translate('errorPage.title', {shouldBreakLine: !!shouldUseNarrowLayout})}
                     subtitle={translate('errorPage.subtitle')}
                 />
             </View>

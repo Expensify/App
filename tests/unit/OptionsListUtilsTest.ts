@@ -269,13 +269,13 @@ describe('OptionsListUtils', () => {
         },
         {
             reportID: '9',
-            text: 'Asana Task Workspace',
+            text: 'Anna Task Workspace',
             policyID: '99',
             isPolicyExpenseChat: false,
         },
         {
             reportID: '10',
-            text: 'Asana Project Management',
+            text: 'Anna Project Management',
             policyID: '1010',
             isPolicyExpenseChat: true,
         },
@@ -437,7 +437,7 @@ describe('OptionsListUtils', () => {
         },
     };
 
-    const REPORTS_WITH_SELFDM: OnyxCollection<Report> = {
+    const REPORTS_WITH_SELF_DM: OnyxCollection<Report> = {
         16: {
             lastReadTime: '2021-01-14 11:25:39.302',
             lastVisibleActionCreated: '2022-11-22 03:26:02.022',
@@ -945,6 +945,7 @@ describe('OptionsListUtils', () => {
         });
 
         it('should filter options by email if dot is skipped in the email', () => {
+            // cspell:disable-next-line
             const searchText = 'barryallen';
             const OPTIONS_WITH_PERIODS = createOptionList(PERSONAL_DETAILS_WITH_PERIODS, REPORTS);
             const options = getSearchOptions(OPTIONS_WITH_PERIODS, [CONST.BETAS.ALL]);
@@ -975,10 +976,10 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.recentReports.at(0)?.login).toBe(searchText);
         });
 
-        it('should prioritize options with matching display name over chatrooms', () => {
+        it('should prioritize options with matching display name over chat rooms', () => {
             const searchText = 'spider';
-            const OPTIONS_WITH_CHATROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
-            const options = getSearchOptions(OPTIONS_WITH_CHATROOMS, [CONST.BETAS.ALL]);
+            const OPTIONS_WITH_CHAT_ROOMS = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_CHAT_ROOM);
+            const options = getSearchOptions(OPTIONS_WITH_CHAT_ROOMS, [CONST.BETAS.ALL]);
 
             const filterOptions = filterAndOrderOptions(options, searchText);
 
@@ -1006,7 +1007,7 @@ describe('OptionsListUtils', () => {
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
         });
 
-        it('should not return any results if the search value is on an exluded logins list', () => {
+        it('should not return any results if the search value is on an excluded logins list', () => {
             const searchText = 'admin@expensify.com';
 
             const options = getValidOptions({reports: OPTIONS.reports, personalDetails: OPTIONS.personalDetails}, {excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT});
@@ -1254,10 +1255,10 @@ describe('OptionsListUtils', () => {
         it('should order self dm always on top if the search matches with the self dm login', () => {
             const searchTerm = 'tonystark@expensify.com';
 
-            const OPTIONS_WITH_SELFDM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELFDM);
+            const OPTIONS_WITH_SELF_DM = createOptionList(PERSONAL_DETAILS, REPORTS_WITH_SELF_DM);
 
             // When search term matches with self dm login
-            const options = getSearchOptions(OPTIONS_WITH_SELFDM, [CONST.BETAS.ALL]);
+            const options = getSearchOptions(OPTIONS_WITH_SELF_DM, [CONST.BETAS.ALL]);
             const filteredOptions = filterAndOrderOptions(options, searchTerm);
 
             // Then the self dm should be on top.
@@ -1305,6 +1306,7 @@ describe('OptionsListUtils', () => {
                 .then(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.ES))
                 .then(() => {
                     const newReports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+                    // cspell:disable-next-line
                     expect(newReports.at(10)?.subtitle).toBe('Se envía a Mister Fantastic');
                 });
         });
@@ -1442,6 +1444,7 @@ describe('OptionsListUtils', () => {
     });
 
     describe('filterReports', () => {
+        // cspell:disable
         it('should match a user with an accented name when searching using non-accented characters', () => {
             const reports = [{text: "Álex Timón D'artagnan Zo-e"} as OptionData];
             const searchTerms = ['Alex Timon Dartagnan Zoe'];
@@ -1449,5 +1452,6 @@ describe('OptionsListUtils', () => {
 
             expect(filteredReports).toEqual(reports);
         });
+        // cspell:enable
     });
 });

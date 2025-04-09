@@ -3,7 +3,7 @@ import CONST from '@src/CONST';
 import type {NetSuiteCustomFieldForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 
-function getCustomListInitialSubstep(values: NetSuiteCustomFieldForm) {
+function getCustomListInitialSubStep(values: NetSuiteCustomFieldForm) {
     if (!values[INPUT_IDS.LIST_NAME]) {
         return CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CUSTOM_LIST_PICKER;
     }
@@ -16,7 +16,7 @@ function getCustomListInitialSubstep(values: NetSuiteCustomFieldForm) {
     return CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_LISTS.CONFIRM;
 }
 
-function getCustomSegmentInitialSubstep(values: NetSuiteCustomFieldForm) {
+function getCustomSegmentInitialSubStep(values: NetSuiteCustomFieldForm) {
     if (!values[INPUT_IDS.SEGMENT_TYPE]) {
         return CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.SEGMENT_TYPE;
     }
@@ -35,7 +35,7 @@ function getCustomSegmentInitialSubstep(values: NetSuiteCustomFieldForm) {
     return CONST.NETSUITE_CUSTOM_FIELD_SUBSTEP_INDEXES.CUSTOM_SEGMENTS.CONFIRM;
 }
 
-function getSubstepValues(NetSuitCustomFieldDraft: OnyxEntry<NetSuiteCustomFieldForm>): NetSuiteCustomFieldForm {
+function getSubStepValues(NetSuitCustomFieldDraft: OnyxEntry<NetSuiteCustomFieldForm>): NetSuiteCustomFieldForm {
     return {
         [INPUT_IDS.LIST_NAME]: NetSuitCustomFieldDraft?.[INPUT_IDS.LIST_NAME] ?? '',
         [INPUT_IDS.TRANSACTION_FIELD_ID]: NetSuitCustomFieldDraft?.[INPUT_IDS.TRANSACTION_FIELD_ID] ?? '',
@@ -47,4 +47,4 @@ function getSubstepValues(NetSuitCustomFieldDraft: OnyxEntry<NetSuiteCustomField
     };
 }
 
-export {getSubstepValues, getCustomListInitialSubstep, getCustomSegmentInitialSubstep};
+export {getSubStepValues, getCustomListInitialSubStep, getCustomSegmentInitialSubStep};

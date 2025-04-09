@@ -1,5 +1,6 @@
 import * as Url from '@src/libs/Url';
 
+// cspell:disable
 describe('Url', () => {
     describe('getPathFromURL()', () => {
         it('It should work correctly', () => {

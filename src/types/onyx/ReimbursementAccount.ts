@@ -10,7 +10,7 @@ import type * as OnyxCommon from './OnyxCommon';
 /** Steps to setup a reimbursement bank account */
 type BankAccountStep = ValueOf<typeof CONST.BANK_ACCOUNT.STEP>;
 
-/** Substeps to setup a reimbursement bank account */
+/** SubSteps to setup a reimbursement bank account */
 type BankAccountSubStep = ValueOf<typeof CONST.BANK_ACCOUNT.SUBSTEP>;
 
 /** Model of Corpay data */

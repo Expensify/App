@@ -157,10 +157,10 @@ function shouldShowDefaultBadge(filteredPaymentMethods: PaymentMethod[], isDefau
     if (!isDefault) {
         return false;
     }
-    const defaultablePaymentMethodCount = filteredPaymentMethods.filter(
+    const defaultPaymentMethodCount = filteredPaymentMethods.filter(
         (method) => method.accountType === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT || method.accountType === CONST.PAYMENT_METHODS.DEBIT_CARD,
     ).length;
-    return defaultablePaymentMethodCount > 1;
+    return defaultPaymentMethodCount > 1;
 }
 
 function isPaymentMethodActive(actionPaymentMethodType: string, activePaymentMethodID: string | number, paymentMethod: PaymentMethod) {
@@ -286,7 +286,7 @@ function PaymentMethodList({
                         card?.nameValuePairs?.issuedBy && card?.lastFourPAN
                             ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
                             : getDescriptionForPolicyDomainCard(card.domainName),
-                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
+                    onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAIN_CARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
                     isGroupedCardDomain: !isAdminIssuedVirtualCard,
                     shouldShowRightIcon: true,

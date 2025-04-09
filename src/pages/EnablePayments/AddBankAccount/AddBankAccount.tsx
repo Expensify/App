@@ -19,7 +19,7 @@ import SetupMethod from './SetupMethod';
 import Confirmation from './substeps/ConfirmationStep';
 import Plaid from './substeps/PlaidStep';
 
-const plaidSubsteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
+const plaidSubSteps: Array<React.ComponentType<SubStepProps>> = [Plaid, Confirmation];
 function AddBankAccount() {
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
@@ -38,7 +38,7 @@ function AddBankAccount() {
 
     const isSetupTypeChosen = personalBankAccountDraft?.setupType === CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
 
-    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: plaidSubsteps, startFrom: 0, onFinished: submit});
+    const {componentToRender: SubStep, isEditing, screenIndex, nextScreen, prevScreen, moveTo} = useSubStep({bodyContent: plaidSubSteps, startFrom: 0, onFinished: submit});
 
     const exitFlow = (shouldContinue = false) => {
         const exitReportID = personalBankAccount?.exitReportID;

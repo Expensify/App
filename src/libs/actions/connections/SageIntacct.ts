@@ -109,7 +109,10 @@ function prepareOnyxDataForMappingUpdate(
     return {optimisticData, failureData, successData};
 }
 
-function updateSageIntacctBillable(policyID: string, enabled: boolean) {
+function updateSageIntacctBillable(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const parameters = {
         policyID,
         enabled,
@@ -163,7 +166,10 @@ function changeMappingsValueFromDefaultToTag(policyID: string, mappings?: SageIn
     }
 }
 
-function updateSageIntacctSyncTaxConfiguration(policyID: string, enabled: boolean) {
+function updateSageIntacctSyncTaxConfiguration(policyID: string | undefined, enabled: boolean) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -532,7 +538,10 @@ function updateSageIntacctDefaultVendor(policyID: string, settingName: keyof Sag
     }
 }
 
-function clearSageIntacctErrorField(policyID: string, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+function clearSageIntacctErrorField(policyID: string | undefined, key: SageIntacctOfflineStateKeys | keyof SageIntacctConnectionsConfig) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[key]: null}}}}});
 }
 

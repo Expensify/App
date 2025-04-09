@@ -168,6 +168,6 @@ As an admin, it’s important to ensure employees are submitting expenses and re
 - From the dropdown menu, they must select the correct workspace from the list at the bottom.
 - If an employee frequently switches between workspaces, remind them to always verify the workspace selection before submitting an expense or report.
 
-By reinforcing this process, you help prevent expense reports from being miscategorized and ensure accurate financial tracking.
+By reinforcing this process, you help prevent expense reports from being mis-categorized and ensure accurate financial tracking.
 
 </div>

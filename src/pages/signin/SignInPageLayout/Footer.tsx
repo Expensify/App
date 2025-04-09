@@ -52,7 +52,7 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
                 translationPath: 'footer.companyCreditCard',
             },
             {
-                href: CONST.FOOTER.RECIEPT_SCANNING_URL,
+                href: CONST.FOOTER.RECEIPT_SCANNING_URL,
                 translationPath: 'footer.receiptScanningApp',
             },
             {
@@ -89,7 +89,7 @@ const columns = ({navigateFocus = () => {}}: Pick<FooterProps, 'navigateFocus'>)
                 translationPath: 'footer.support',
             },
             {
-                href: CONST.NEWHELP_URL,
+                href: CONST.NEW_HELP_URL,
                 translationPath: 'footer.expensifyHelp',
             },
             {

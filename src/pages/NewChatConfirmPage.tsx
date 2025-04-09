@@ -142,7 +142,7 @@ function NewChatConfirmPage() {
                         setAvatarFile(undefined);
                         setGroupDraft({avatarUri: null, avatarFileName: null, avatarFileType: null});
                     }}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
                     shouldDisableViewPhoto
                     editIcon={Expensicons.Camera}

@@ -147,7 +147,7 @@ const Logging: Middleware = (response, request) => {
                 Log.info('[Network] API request error: A record already exists with this ID', false, logParams);
             } else {
                 // If we get any error that is not known log an alert so we can learn more about it and document it here.
-                Log.alert(`${CONST.ERROR.ENSURE_BUGBOT} unknown API request error caught while processing request`, logParams, false);
+                Log.alert(`${CONST.ERROR.ENSURE_BUG_BOT} unknown API request error caught while processing request`, logParams, false);
             }
 
             // Re-throw this error so the next handler can manage it

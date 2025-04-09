@@ -137,7 +137,7 @@ function ExpensifyCardPage({
 
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
-    const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
+    const isSignedInAsDelegate = !!account?.delegatedAccess?.delegate || false;
 
     if (isNotFound) {
         return <NotFoundPage onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)} />;
@@ -213,7 +213,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardNumber}
                                             shouldShowRightComponent
                                             rightComponent={
-                                                !isSignedInAsdelegate ? (
+                                                !isSignedInAsDelegate ? (
                                                     <Button
                                                         text={translate('cardPage.cardDetails.revealDetails')}
                                                         onPress={() => openValidateCodeModal(card.cardID)}
@@ -230,7 +230,7 @@ function ExpensifyCardPage({
                                         />
                                     </>
                                 )}
-                                {!isSignedInAsdelegate && (
+                                {!isSignedInAsDelegate && (
                                     <MenuItemWithTopDescription
                                         title={translate('cardPage.reportFraud')}
                                         titleStyle={styles.walletCardMenuItem}

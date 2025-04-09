@@ -68,7 +68,7 @@ import {hasCreditBankAccount} from './actions/ReimbursementAccount/store';
 import {handleReportChanged} from './actions/Report';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import {isAnonymousUser as isAnonymousUserSession} from './actions/Session';
-import type {AddCommentOrAttachementParams} from './API/parameters';
+import type {AddCommentOrAttachmentParams} from './API/parameters';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -137,7 +137,7 @@ import {
     getOriginalMessage,
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
-    getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getPolicyChangeLogMaxExpenseAmountNoReceiptMessage,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
@@ -1168,7 +1168,7 @@ function getPolicy(policyID: string | undefined): OnyxEntry<Policy> {
 
 /**
  * Get the policy type from a given report
- * @param policies must have Onyxkey prefix (i.e 'policy_') for keys
+ * @param policies must have OnyxKey prefix (i.e 'policy_') for keys
  */
 function getPolicyType(report: OnyxInputOrEntry<Report>, policies: OnyxCollection<Policy>): string {
     return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`]?.type ?? '';
@@ -3798,7 +3798,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
  *
  * - It was written by the current user
  * - It's an ADD_COMMENT that is not an attachment
- * - It's an expense where conditions for editability are defined in canEditMoneyRequest method
+ * - It's an expense where conditions for edibility are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
@@ -4616,7 +4616,7 @@ function getReportNameInternal({
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT)) {
-        return getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(parentReportAction);
+        return getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(parentReportAction);
     }
 
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE)) {
@@ -5774,8 +5774,8 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
             originalMessage.IOUDetails = {amount, comment, currency};
             originalMessage.paymentType = paymentType;
         } else {
-            // In case of pay someone action, we dont store the comment
-            // and there is no single transctionID to link the action to.
+            // In case of pay someone action, we don't store the comment
+            // and there is no single transactionID to link the action to.
             delete originalMessage.IOUTransactionID;
             delete originalMessage.comment;
             originalMessage.paymentType = paymentType;
@@ -5946,7 +5946,7 @@ function buildOptimisticMovedReportAction(fromPolicyID: string | undefined, toPo
 }
 
 /**
- * Builds an optimistic CHANGEPOLICY report action with a randomly generated reportActionID.
+ * Builds an optimistic CHANGE_POLICY report action with a randomly generated reportActionID.
  * This action is used when we change the workspace of a report.
  */
 function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefined, toPolicyID: string, automaticAction = false): ReportAction {
@@ -6086,7 +6086,7 @@ function buildOptimisticReportPreview(
 }
 
 /**
- * Builds an optimistic ACTIONABLETRACKEXPENSEWHISPER action with a randomly generated reportActionID.
+ * Builds an optimistic ACTIONABLE_TRACK_EXPENSE_WHISPER action with a randomly generated reportActionID.
  */
 function buildOptimisticActionableTrackExpenseWhisper(iouAction: OptimisticIOUReportAction, transactionID: string): ReportAction {
     const currentTime = DateUtils.getDBTime();
@@ -9390,7 +9390,7 @@ function prepareOnboardingOnyxData(
     // Text message
     const textComment = buildOptimisticAddCommentReportAction(onboardingMessage.message, undefined, actorAccountID, 1);
     const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textMessage: AddCommentOrAttachementParams = {
+    const textMessage: AddCommentOrAttachmentParams = {
         reportID: targetChatReportID,
         reportActionID: textCommentAction.reportActionID,
         reportComment: textComment.commentText,
@@ -9901,7 +9901,7 @@ function isChatUsedForOnboarding(optionOrReport: OnyxEntry<Report> | OptionData,
         return (optionOrReport as OptionData)?.isConciergeChat ?? isConciergeChatReport(optionOrReport);
     }
 
-    // Onboarding guides are assigned to signups with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
+    // Onboarding guides are assigned to sign ups with emails that do not contain a '+' and select the "Manage my team's expenses" intent.
     // Guides and onboarding tasks are posted to the #admins room to facilitate the onboarding process.
     return onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM && !currentUserEmail?.includes('+')
         ? isAdminRoom(optionOrReport)
@@ -10052,7 +10052,7 @@ function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Re
 
     // Push rule approvers to approvalChain list before submitsTo/forwardsTo approvers
     ruleApprovers.forEach((ruleApprover) => {
-        // Don't push submiiter to approve as a rule approver
+        // Don't push submitter to approve as a rule approver
         if (fullApprovalChain.includes(ruleApprover) || ruleApprover === submitterEmail) {
             return;
         }
@@ -10169,8 +10169,8 @@ function isSelectedManagerMcTest(email: string | null | undefined): boolean {
  */
 function isTestTransactionReport(report: OnyxEntry<Report>): boolean {
     const managerID = report?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const persionalDetails = allPersonalDetails?.[managerID];
-    return isSelectedManagerMcTest(persionalDetails?.login);
+    const personalDetails = allPersonalDetails?.[managerID];
+    return isSelectedManagerMcTest(personalDetails?.login);
 }
 
 function isWaitingForSubmissionFromCurrentUser(chatReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {

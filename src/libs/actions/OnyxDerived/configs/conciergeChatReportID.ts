@@ -12,7 +12,7 @@ export default createOnyxDerivedValueConfig({
         }
 
         const conciergeReport = Object.values(reports).find((report) => {
-            // Merged accounts can have multiple conceirge chats, exclude archived chats.
+            // Merged accounts can have multiple Concierge chats, exclude archived chats.
             if (!report?.participants || isThread(report) || isArchivedReportWithID(report?.reportID)) {
                 return false;
             }

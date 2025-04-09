@@ -188,8 +188,8 @@ function AttachmentPicker({
                                                 image.release();
                                                 return result;
                                             })
-                                            .then((manipResult) => {
-                                                const uri = manipResult.uri;
+                                            .then((manipulateResult) => {
+                                                const uri = manipulateResult.uri;
                                                 const convertedAsset = {
                                                     uri,
                                                     name: uri
@@ -197,8 +197,8 @@ function AttachmentPicker({
                                                         .split('?')
                                                         .at(0),
                                                     type: 'image/jpeg',
-                                                    width: manipResult.width,
-                                                    height: manipResult.height,
+                                                    width: manipulateResult.width,
+                                                    height: manipulateResult.height,
                                                 };
                                                 return resolve([convertedAsset]);
                                             })

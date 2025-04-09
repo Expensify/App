@@ -6,9 +6,9 @@ import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import IdologyQuestions from '@pages/EnablePayments/IdologyQuestions';
-import getInitialSubstepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubstepForPersonalInfo';
-import getSubstepValues from '@pages/EnablePayments/utils/getSubstepValues';
-import * as Wallet from '@userActions/Wallet';
+import getInitialSubStepForPersonalInfo from '@pages/EnablePayments/utils/getInitialSubStepForPersonalInfo';
+import getSubStepValues from '@pages/EnablePayments/utils/getSubStepValues';
+import {setAdditionalDetailsQuestions, updateCurrentStep, updatePersonalDetails} from '@userActions/Wallet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
@@ -30,7 +30,7 @@ function PersonalInfoPage() {
 
     const showIdologyQuestions = walletAdditionalDetails?.questions && walletAdditionalDetails?.questions.length > 0;
 
-    const values = useMemo(() => getSubstepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
+    const values = useMemo(() => getSubStepValues(PERSONAL_INFO_STEP_KEYS, walletAdditionalDetailsDraft, walletAdditionalDetails), [walletAdditionalDetails, walletAdditionalDetailsDraft]);
     const submit = () => {
         const personalDetails = {
             phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
@@ -44,10 +44,10 @@ function PersonalInfoPage() {
             ssn: values?.[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4] ?? '',
         };
         // Attempt to set the personal details
-        Wallet.updatePersonalDetails(personalDetails);
+        updatePersonalDetails(personalDetails);
     };
 
-    const startFrom = useMemo(() => getInitialSubstepForPersonalInfo(values), [values]);
+    const startFrom = useMemo(() => getInitialSubStepForPersonalInfo(values), [values]);
 
     const {
         componentToRender: SubStep,
@@ -69,11 +69,11 @@ function PersonalInfoPage() {
             return;
         }
         if (screenIndex === 0) {
-            Wallet.updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
+            updateCurrentStep(CONST.WALLET.STEP.ADD_BANK_ACCOUNT);
             return;
         }
         if (showIdologyQuestions) {
-            Wallet.setAdditionalDetailsQuestions(null, '');
+            setAdditionalDetailsQuestions(null, '');
             return;
         }
         prevScreen();

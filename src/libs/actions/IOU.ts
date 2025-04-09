@@ -1023,14 +1023,14 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubRates = transaction?.comment?.customUnit?.subRates ?? [];
 
-    if (index >= existingSubrates.length) {
+    if (index >= existingSubRates.length) {
         return;
     }
 
-    const newSubrates = [...existingSubrates];
-    newSubrates.splice(index, 1, {quantity, id, name, rate});
+    const newSubRates = [...existingSubRates];
+    newSubRates.splice(index, 1, {quantity, id, name, rate});
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
@@ -1042,7 +1042,7 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
             ...transaction?.comment,
             customUnit: {
                 ...transaction?.comment?.customUnit,
-                subRates: newSubrates,
+                subRates: newSubRates,
                 quantity: null,
             },
         },
@@ -1051,7 +1051,7 @@ function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentInd
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
 }
 
-function clearSubrates(transactionID: string) {
+function clearSubRates(transactionID: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {subRates: []}}});
 }
 
@@ -1061,14 +1061,14 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
     if (index === -1) {
         return;
     }
-    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+    const existingSubRates = transaction?.comment?.customUnit?.subRates ?? [];
 
-    if (index !== existingSubrates.length) {
+    if (index !== existingSubRates.length) {
         return;
     }
 
-    const newSubrates = [...existingSubrates];
-    newSubrates.push({quantity, id, name, rate});
+    const newSubRates = [...existingSubRates];
+    newSubRates.push({quantity, id, name, rate});
 
     // Onyx.merge won't remove the null nested object values, this is a workaround
     // to remove nested keys while also preserving other object keys
@@ -1080,7 +1080,7 @@ function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex:
             ...transaction?.comment,
             customUnit: {
                 ...transaction?.comment?.customUnit,
-                subRates: newSubrates,
+                subRates: newSubRates,
                 quantity: null,
             },
         },
@@ -2858,7 +2858,7 @@ function getSendInvoiceInformation(
     let filename;
     if (receipt?.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
         filename = receipt.name;
     }
     const optimisticTransaction = buildOptimisticTransaction({
@@ -2990,7 +2990,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
     }
 
-    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
+    // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
@@ -3241,7 +3241,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
         chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
     }
 
-    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
+    // If we still don't have a report, it likely doesn't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
         chatReport = buildOptimisticChatReport({
@@ -3497,7 +3497,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     let filename;
     if (receipt?.source) {
         receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCAN_READY;
         filename = receipt.name;
     }
     const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
@@ -3778,7 +3778,7 @@ function getUpdateMoneyRequestParams(
     // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
     const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
     // If calculatedDiffAmount is null it means we cannot calculate the new iou report total from front-end due to currency differences.
-    const isTotalIndeterministic = calculatedDiffAmount === null;
+    const isTotalUndetermined = calculatedDiffAmount === null;
     const diff = calculatedDiffAmount ?? 0;
 
     let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
@@ -3817,7 +3817,7 @@ function getUpdateMoneyRequestParams(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {...updatedMoneyRequestReport, ...(isTotalIndeterministic && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
+            value: {...updatedMoneyRequestReport, ...(isTotalUndetermined && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3837,7 +3837,7 @@ function getUpdateMoneyRequestParams(
     successData.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: {pendingAction: null, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
+        value: {pendingAction: null, ...(isTotalUndetermined && {pendingFields: {total: null}})},
     });
 
     // Optimistically modify the transaction and the transaction thread
@@ -3928,7 +3928,7 @@ function getUpdateMoneyRequestParams(
     }
 
     const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
-    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multpiply limit by attende count
+    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multiply limit by attendee count
     if ('attendees' in transactionChanges && !!overLimitViolation) {
         const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
         if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
@@ -3973,7 +3973,7 @@ function getUpdateMoneyRequestParams(
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {...iouReport, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
+            value: {...iouReport, ...(isTotalUndetermined && {pendingFields: {total: null}})},
         });
     }
 
@@ -5513,7 +5513,7 @@ function createSplitsAndOnyxData({
         transactionParams: {
             amount,
             currency,
-            reportID: CONST.REPORT.SPLIT_REPORTID,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment,
             created,
             merchant: merchant || Localize.translateLocal('iou.expense'),
@@ -6123,7 +6123,7 @@ function startSplitBill({
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
     const parsedComment = getParsedComment(comment);
 
-    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
+    const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCAN_READY} = receipt;
     const receiptObject: Receipt = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
@@ -6131,7 +6131,7 @@ function startSplitBill({
         transactionParams: {
             amount: 0,
             currency,
-            reportID: CONST.REPORT.SPLIT_REPORTID,
+            reportID: CONST.REPORT.SPLIT_REPORT_ID,
             comment: parsedComment,
             merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
             receipt: receiptObject,
@@ -9769,7 +9769,7 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
         // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
         // In the case of going back to the participants page and removing a participant
-        // a simple merge will have the previous participant still present in the splitshares object
+        // a simple merge will have the previous participant still present in the splitShares object
         // So we manually set their entry to null
         if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
             acc[accountID] = null;
@@ -10096,7 +10096,7 @@ function unholdRequest(transactionID: string, reportID: string, searchHash?: num
         },
     ];
 
-    // If we are unholding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    // If we are un-holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
     if (searchHash) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -10555,7 +10555,7 @@ export {
     removeSubrate,
     addSubrate,
     updateSubrate,
-    clearSubrates,
+    clearSubRates,
     setDraftSplitTransaction,
     setIndividualShare,
     setMoneyRequestAmount,

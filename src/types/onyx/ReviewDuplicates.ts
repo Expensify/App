@@ -4,7 +4,7 @@ import type {Comment} from './Transaction';
  * Model of review duplicates request
  */
 type ReviewDuplicates = {
-    /** Transactions ids which are duplicates of selected transcation */
+    /** Transactions ids which are duplicates of selected transaction */
     duplicates: string[];
 
     /** ID of transaction we want to keep */

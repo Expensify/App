@@ -294,7 +294,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 
     optimization: {
         minimizer: [
-            // default settings accordint to https://webpack.js.org/configuration/optimization/#optimizationminimizer
+            // default settings according to https://webpack.js.org/configuration/optimization/#optimizationminimizer
             // with addition of preserving the class name for ImageManipulator (expo module)
             new TerserPlugin({
                 terserOptions: {

@@ -54,6 +54,7 @@ describe('SuffixUkkonenTree', () => {
     });
 
     it('should convert string to numeric with a list of chars to skip', () => {
+        // cspell:disable-next-line
         const {numeric} = SuffixUkkonenTree.stringToNumeric('abcabc', {
             charSetToSkip: new Set(['b']),
             clamp: true,
@@ -71,6 +72,7 @@ describe('SuffixUkkonenTree', () => {
     });
 
     it('should find words that contain chars to skip', () => {
+        // cspell:disable-next-line
         const strings = ['b.an.ana', 'panca.ke'];
         const numericIntArray = helperStringsToNumericForTree(strings, new Set(['.']));
         const tree = SuffixUkkonenTree.makeTree(numericIntArray);

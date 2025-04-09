@@ -70,7 +70,7 @@ describe('DebugReportActions', () => {
         await waitForBatchedUpdatesWithAct();
 
         const input = screen.getByTestId('selection-list-text-input');
-        fireEvent.changeText(input, 'testtesttesttest');
+        fireEvent.changeText(input, 'Random text that will not match any report action');
         expect(await screen.findByText('No results found')).toBeOnTheScreen();
     });
 });

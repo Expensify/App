@@ -18,7 +18,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const RBRmessages = transactionViolations
+    const rbrMessage = transactionViolations
         .map((violation, index) => {
             const translation = ViolationsUtils.getViolationTranslation(violation, translate);
             return index > 0 ? translation.charAt(0).toLowerCase() + translation.slice(1) : translation;
@@ -38,7 +38,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
                     numberOfLines={1}
                     style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
                 >
-                    {RBRmessages}
+                    {rbrMessage}
                 </Text>
             </View>
         )
