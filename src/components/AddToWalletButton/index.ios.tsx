@@ -1,12 +1,12 @@
-import {AddToWalletButton} from '@expensify/react-native-wallet';
+import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '..';
+import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import type AddToWalletButtonProps from './types';
 
-function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButtonProps) {
+function AddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
@@ -52,7 +52,7 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     }
 
     return (
-        <AddToWalletButton
+        <RNAddToWalletButton
             buttonStyle={buttonStyle}
             locale="en"
             onPress={handleOnPress}
@@ -60,4 +60,6 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     );
 }
 
-export default RNAddToWalletButton;
+AddToWalletButton.displayName = 'AddToWalletButton';
+
+export default AddToWalletButton;

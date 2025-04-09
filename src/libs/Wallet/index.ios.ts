@@ -37,10 +37,10 @@ function isCardInWallet(card: Card): Promise<boolean> {
             })
             .catch((e) => {
                 Log.warn(`isCardInWallet error: ${e}`);
-                return Promise.resolve(card.state === 6);
+                return Promise.resolve(false);
             });
     }
-    return Promise.resolve(card.state === 6);
+    return Promise.resolve(false);
 }
 
 export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};
