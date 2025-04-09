@@ -140,6 +140,7 @@ import MakeAdmin from '@assets/images/make-admin.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
+import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import MoneySearch from '@assets/images/money-search.svg';
@@ -438,4 +439,5 @@ export {
     MagnifyingGlassSpyMouthClosed,
     EmptySquare,
     CheckSquare,
+    Minus,
 };

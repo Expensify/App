@@ -128,7 +128,7 @@ function Checkbox(
                 >
                     {(isChecked || isIndeterminate) && (
                         <Icon
-                            src={isChecked ? Expensicons.Checkmark : Expensicons.ArrowRight}
+                            src={isChecked ? Expensicons.Checkmark : Expensicons.Minus}
                             fill={theme.textLight}
                             height={caretSize}
                             width={caretSize}
