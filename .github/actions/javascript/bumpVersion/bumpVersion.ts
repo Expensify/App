@@ -1,6 +1,6 @@
 import * as core from '@actions/core';
 import {exec as originalExec} from 'child_process';
-import fs from 'fs';
+import {promises as fs} from 'fs';
 import path from 'path';
 import type {PackageJson} from 'type-fest';
 import {promisify} from 'util';
@@ -14,6 +14,12 @@ const exec = promisify(originalExec);
 const ROOT_DIR = path.resolve(__dirname, '../../../..');
 const PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
 const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(ROOT_DIR, 'Mobile-Expensify/app/config/config.json');
+
+type ConfigJSON = {
+    meta: {
+        version: string;
+    };
+};
 
 /**
  * Update the Android native versions in E/App and the Mobile-Expensify submodule.
@@ -54,7 +60,6 @@ async function updateIOSVersions(version: string) {
 
 /**
  * Update package.json and package-lock.json
- * @param version
  */
 async function updateNPMVersion(version: string) {
     console.log(`Setting npm version to ${version}`);
@@ -73,6 +78,25 @@ async function updateNPMVersion(version: string) {
     }
 }
 
+/**
+ * Update Mobile-Expensify config.json.
+ */
+async function updateConfigJSON(version: string) {
+    try {
+        console.log(`Updating ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH} to ${version}`);
+        const fileContent = JSON.parse(await fs.readFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, {encoding: 'utf8'})) as ConfigJSON;
+        fileContent.meta.version = version;
+        await fs.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent), {encoding: 'utf8'});
+        console.log(`Updated ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH}`);
+    } catch (err) {
+        // Log errors and fail gracefully
+        if (err instanceof Error) {
+            console.error('Error:', err.message);
+        }
+        core.setFailed('An error occurred updating Mobile-Expensify config.json');
+    }
+}
+
 async function run() {
     let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
     if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
@@ -80,7 +104,7 @@ async function run() {
         console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
     }
 
-    const {version: previousVersion} = JSON.parse(fs.readFileSync(PACKAGE_JSON_PATH).toString()) as PackageJson;
+    const {version: previousVersion} = JSON.parse(await fs.readFile(PACKAGE_JSON_PATH, {encoding: 'utf8'})) as PackageJson;
     if (!previousVersion) {
         core.setFailed('Error: Could not read package.json');
     }
@@ -88,7 +112,7 @@ async function run() {
     const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
-    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion)]);
+    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion), updateConfigJSON(newVersion)]);
 }
 
 if (require.main === module) {
