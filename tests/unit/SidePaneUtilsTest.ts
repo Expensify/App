@@ -1,4 +1,4 @@
-import {substituteRouteParameters} from '@libs/SidePaneUtils';
+import {substituteRouteParameters} from '@libs/SidePanelUtils';
 
 describe('substituteRouteParameters', () => {
     test('should substitute simple route parameters', () => {

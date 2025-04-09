@@ -65,6 +65,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
     EditActionParams,
@@ -534,6 +535,7 @@ const translations = {
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        editYourProfile: 'Edit your profile',
         comments: 'Comments',
     },
     supportalNoAccess: {
@@ -932,7 +934,10 @@ const translations = {
         }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        duplicateTransaction: 'Potential duplicate expenses identified. Review duplicates to enable submission.',
+        duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
+            !isSubmitted
+                ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
+                : 'Potential duplicate expenses identified. Review duplicates to enable approval.',
         receiptIssuesFound: () => ({
             one: 'Issue found',
             other: 'Issues found',
@@ -953,7 +958,8 @@ const translations = {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
+        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
             const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} scanning`);
@@ -964,6 +970,12 @@ const translations = {
             return {
                 one: statusText.length > 0 ? `1 expense (${statusText.join(', ')})` : `1 expense`,
                 other: (count: number) => (statusText.length > 0 ? `${count} expenses (${statusText.join(', ')})` : `${count} expenses`),
+            };
+        },
+        expenseCount: () => {
+            return {
+                one: '1 expense',
+                other: (count: number) => `${count} expenses`,
             };
         },
         deleteExpense: () => ({
@@ -1078,7 +1090,7 @@ const translations = {
         waitingOnEnabledWallet: ({submitterDisplayName}: WaitingOnBankAccountParams) => `started settling up. Payment is on hold until ${submitterDisplayName} enables their wallet.`,
         enableWallet: 'Enable wallet',
         hold: 'Hold',
-        unhold: 'Unhold',
+        unhold: 'Remove hold',
         holdExpense: 'Hold expense',
         unholdExpense: 'Unhold expense',
         heldExpense: 'held this expense',
@@ -1128,7 +1140,7 @@ const translations = {
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
         unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
-            `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
+            `This report has already been exported to ${accountingIntegration}. Changing it may lead to data discrepancies. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
         bookingPending: 'This booking is pending',
@@ -1686,7 +1698,7 @@ const translations = {
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -2400,6 +2412,8 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
+        industryClassification: 'Which industry is the business classified under?',
+        industryClassificationCodePlaceholder: 'Search for industry classification code',
     },
     requestorStep: {
         headerTitle: 'Personal information',
@@ -2865,7 +2879,8 @@ const translations = {
             descriptionHint: 'Share information about this workspace with all members.',
             welcomeNote: 'Please use Expensify to submit your receipts for reimbursement, thanks!',
             subscription: 'Subscription',
-            markAsExported: 'Mark as manually entered',
+            markAsEntered: 'Mark as manually entered',
+            markAsExported: 'Mark as manually exported',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Export to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: "Let's double check that everything looks right.",
             lineItemLevel: 'Line-item level',

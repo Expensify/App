@@ -64,6 +64,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
     EditActionParams,
@@ -525,6 +526,7 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
     },
     supportalNoAccess: {
@@ -932,7 +934,10 @@ const translations = {
         }),
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
-        duplicateTransaction: 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.',
+        duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
+            !isSubmitted
+                ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
+                : 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar la aprobación.',
         defaultRate: 'Tasa predeterminada',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
@@ -948,7 +953,8 @@ const translations = {
         yourCompanyWebsiteNote: 'Si no tiene un sitio web, puede proporcionar el perfil de LinkedIn o de las redes sociales de su empresa.',
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
-        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
+        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
             const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} escaneando`);
@@ -959,6 +965,12 @@ const translations = {
             return {
                 one: statusText.length > 0 ? `1 gasto (${statusText.join(', ')})` : `1 gasto`,
                 other: (count: number) => (statusText.length > 0 ? `${count} gastos (${statusText.join(', ')})` : `${count} gastos`),
+            };
+        },
+        expenseCount: () => {
+            return {
+                one: '1 gasto',
+                other: (count: number) => `${count} gastos`,
             };
         },
         deleteExpense: () => ({
@@ -1126,7 +1138,7 @@ const translations = {
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
         unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
-            `Este informe ya se ha exportado a ${accountingIntegration}. Los cambios realizados en este informe en Expensify pueden provocar discrepancias en los datos y problemas de conciliación de la tarjeta Expensify. ¿Está seguro de que desea anular la aprobación de este informe?`,
+            `Este informe ya se ha exportado a ${accountingIntegration}. Modificarlo puede provocar discrepancias en los datos. ¿Estás seguro de que deseas cancelar la aprobación de este informe?`,
         reimbursable: 'reembolsable',
         nonReimbursable: 'no reembolsable',
         bookingPending: 'Esta reserva está pendiente',
@@ -1686,7 +1698,7 @@ const translations = {
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
-        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
@@ -2422,6 +2434,8 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Propietario único',
             OTHER: 'Otra',
         },
+        industryClassification: '¿A qué categoría pertenece el negocio?',
+        industryClassificationCodePlaceholder: 'Buscar código de clasificación industrial',
     },
     requestorStep: {
         headerTitle: 'Información personal',
@@ -2887,7 +2901,8 @@ const translations = {
             descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
-            markAsExported: 'Marcar como introducido manualmente',
+            markAsEntered: 'Marcar como introducido manualmente',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',

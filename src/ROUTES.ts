@@ -68,6 +68,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: ({
@@ -105,6 +106,13 @@ const ROUTES = {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
             const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
+        route: 'search/r/:reportID/hold',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}/hold` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
@@ -158,7 +166,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
     },
     SETTINGS: 'settings',
-    SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_PROFILE: {
+        route: 'settings/profile',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
+    },
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
