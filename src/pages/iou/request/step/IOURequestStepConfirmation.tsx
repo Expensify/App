@@ -307,7 +307,7 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        if (transaction?.isFromGlobalCreate) {
+        if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -326,14 +326,15 @@ function IOURequestStepConfirmation({
     }, [
         action,
         isPerDiemRequest,
-        transaction?.participantsAutoAssigned,
         transaction?.isFromGlobalCreate,
+        transaction?.receipt?.isTestReceipt,
+        transaction?.participantsAutoAssigned,
         transaction?.reportID,
-        participantsAutoAssignedFromRoute,
         requestType,
         iouType,
         transactionID,
         reportID,
+        participantsAutoAssignedFromRoute,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {

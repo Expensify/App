@@ -64,6 +64,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
     EditActionParams,
@@ -933,7 +934,10 @@ const translations = {
         }),
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
-        duplicateTransaction: 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.',
+        duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
+            !isSubmitted
+                ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
+                : 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar la aprobación.',
         defaultRate: 'Tasa predeterminada',
         receiptMissingDetails: 'Recibo con campos vacíos',
         missingAmount: 'Falta importe',
@@ -1694,7 +1698,7 @@ const translations = {
         connectBankAccount: 'Conectar cuenta bancaria',
         addApprovalsDescription: 'Requiere una aprobación adicional antes de autorizar un pago.',
         makeOrTrackPaymentsTitle: 'Realizar o seguir pagos',
-        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify, o simplemente realiza un seguimiento de los pagos realizados en otro lugar.',
+        makeOrTrackPaymentsDescription: 'Añade un pagador autorizado para los pagos realizados en Expensify o realiza un seguimiento de los pagos realizados en otro lugar.',
         editor: {
             submissionFrequency: 'Elige cuánto tiempo Expensify debe esperar antes de compartir los gastos sin errores.',
         },
@@ -2430,6 +2434,8 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Propietario único',
             OTHER: 'Otra',
         },
+        industryClassification: '¿A qué categoría pertenece el negocio?',
+        industryClassificationCodePlaceholder: 'Buscar código de clasificación industrial',
     },
     requestorStep: {
         headerTitle: 'Información personal',
@@ -2895,7 +2901,8 @@ const translations = {
             descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
-            markAsExported: 'Marcar como introducido manualmente',
+            markAsEntered: 'Marcar como introducido manualmente',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -6478,6 +6485,7 @@ const translations = {
         notAllowedMessageStart: `Como`,
         notAllowedMessageHyperLinked: ' copiloto',
         notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` de ${accountOwnerEmail}, no tienes permiso para realizar esta acción. ¡Lo siento!`,
+        copilotAccess: 'Acceso a Copilot',
     },
     debug: {
         debug: 'Depuración',
