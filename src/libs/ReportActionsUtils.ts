@@ -951,20 +951,9 @@ function getLastVisibleAction(
     } else {
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
-    const comparator = (first: ReportAction | null | undefined, second: ReportAction | null | undefined) => {
-        if (!first && !second) {
-            return 0;
-        }
-        if (!first) {
-            return 1;
-        }
-        if (!second) {
-            return -1;
-        }
-        return getSortedReportActionsComparator(first, second, true);
-    };
-    const lastVisibleAction = arrayFirstElement(reportActions, comparator, (action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
-    return lastVisibleAction ?? undefined;
+    const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
+    const lastVisibleAction = arrayFirstElement(visibleReportActions, (el1, el2) => getSortedReportActionsComparator(el1, el2, true));
+    return lastVisibleAction;
 }
 
 function formatLastMessageText(lastMessageText: string | undefined) {
