@@ -11,7 +11,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
@@ -24,6 +23,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import variables from '@styles/variables';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -100,20 +100,20 @@ function ShareDetailsPage({
     };
 
     return (
-        <PressableWithoutFeedback
-            onPress={() => {
-                KeyboardUtils.dismiss();
-            }}
-            accessible={false}
+        <ScreenWrapper
+            includeSafeAreaPaddingBottom
+            shouldEnableKeyboardAvoidingView={false}
+            keyboardAvoidingViewBehavior="padding"
+            shouldEnableMinHeight={canUseTouchScreen()}
+            testID={ShareDetailsPage.displayName}
         >
-            <ScreenWrapper
-                includeSafeAreaPaddingBottom
-                shouldEnableKeyboardAvoidingView={false}
-                keyboardAvoidingViewBehavior="padding"
-                shouldEnableMinHeight={canUseTouchScreen()}
-                testID={ShareDetailsPage.displayName}
-            >
-                <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+            <View style={[styles.flex1, styles.flexColumn, styles.h100, styles.appBG]}>
+                <PressableWithoutFeedback
+                    onPress={() => {
+                        KeyboardUtils.dismiss();
+                    }}
+                    accessible={false}
+                >
                     <HeaderWithBackButton
                         title={translate('share.shareToExpensify')}
                         shouldShowBackButton
@@ -136,20 +136,27 @@ function ShareDetailsPage({
                             />
                         </View>
                     )}
-
-                    <View style={[styles.ph5, styles.flex1, styles.flexColumn]}>
-                        <View style={styles.pv5}>
-                            <ScrollView>
-                                <TextInput
-                                    autoFocus={false}
-                                    value={message}
-                                    multiline
-                                    onChangeText={setMessage}
-                                    accessibilityLabel={translate('share.messageInputLabel')}
-                                    label={translate('share.messageInputLabel')}
-                                />
-                            </ScrollView>
-                        </View>
+                </PressableWithoutFeedback>
+                <View style={[styles.ph5, styles.flex1, styles.flexColumn, styles.overflowHidden]}>
+                    <View style={styles.pv3}>
+                        <TextInput
+                            autoFocus={false}
+                            value={message}
+                            multiline
+                            scrollEnabled
+                            autoGrowHeight
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
+                            onChangeText={setMessage}
+                            accessibilityLabel={translate('share.messageInputLabel')}
+                            label={translate('share.messageInputLabel')}
+                        />
+                    </View>
+                    <PressableWithoutFeedback
+                        onPress={() => {
+                            KeyboardUtils.dismiss();
+                        }}
+                        accessible={false}
+                    >
                         {shouldShowAttachment && (
                             <>
                                 <View style={[styles.pt6, styles.pb2]}>
@@ -176,19 +183,19 @@ function ShareDetailsPage({
                                 </SafeAreaView>
                             </>
                         )}
-                    </View>
+                    </PressableWithoutFeedback>
                 </View>
-                <FixedFooter style={[styles.appBG, styles.pt2, styles.pb2]}>
+                <FixedFooter style={[styles.pt4]}>
                     <Button
                         success
                         large
                         text={translate('common.share')}
-                        style={[styles.w100]}
+                        style={styles.w100}
                         onPress={handleShare}
                     />
                 </FixedFooter>
-            </ScreenWrapper>
-        </PressableWithoutFeedback>
+            </View>
+        </ScreenWrapper>
     );
 }
 

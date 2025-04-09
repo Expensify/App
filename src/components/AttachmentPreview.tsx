@@ -90,11 +90,20 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     if (typeof source === 'string' && Str.isPDF(source) && !isEncryptedPDF) {
         return (
-            <PDFThumbnail
-                previewSourceURL={source}
-                onLoadError={onLoadError}
-                onPassword={() => setIsEncryptedPDF(true)}
-            />
+            <PressableWithFeedback
+                accessibilityRole="button"
+                style={[styles.justifyContentStart, {aspectRatio: 1}]}
+                onPress={onPress}
+                accessible
+                accessibilityLabel="PDF Thumbnail"
+            >
+                <PDFThumbnail
+                    fitPolicy={1}
+                    previewSourceURL={source}
+                    onLoadError={onLoadError}
+                    onPassword={() => setIsEncryptedPDF(true)}
+                />
+            </PressableWithFeedback>
         );
     }
 
