@@ -4600,6 +4600,10 @@ const styles = (theme: ThemeColors) =>
             margin: 4,
         },
 
+        receiptPreviewAspectRatio: {
+            aspectRatio: 16 / 9,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
             borderRadius: 12,

@@ -202,6 +202,7 @@ function TransactionPreviewContent({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isHovered={isHovered || isScanning}
                             size={1}
+                            shouldUseAspectRatio
                         />
                     )}
                     {shouldShowSkeleton ? (
