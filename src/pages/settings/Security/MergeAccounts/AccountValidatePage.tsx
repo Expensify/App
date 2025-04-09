@@ -124,7 +124,7 @@ function AccountValidatePage() {
                 descriptionPrimary={<Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>}
                 descriptionSecondary={
                     <View>
-                        <Text style={[styles.mb3]}>
+                        <Text style={[styles.mb6]}>
                             {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
                             <Text style={styles.textStrong}>{email}</Text>.
                         </Text>

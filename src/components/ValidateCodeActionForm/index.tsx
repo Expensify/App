@@ -1,6 +1,6 @@
 import React, {forwardRef, useEffect, useRef} from 'react';
-import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
@@ -49,9 +49,13 @@ function ValidateCodeActionForm({
     }, [clearError]);
 
     return (
-        <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-            <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-            {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+        <ScrollView
+            style={[themeStyles.w100, themeStyles.h100, themeStyles.flex1]}
+            contentContainerStyle={[themeStyles.flexGrow1, themeStyles.ph5, themeStyles.mt3, themeStyles.mb5]}
+            keyboardShouldPersistTaps="handled"
+        >
+            <Text style={[themeStyles.mb6]}>{descriptionPrimary}</Text>
+            {!!descriptionSecondary && <Text style={[themeStyles.mb6]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
                 validateCodeAction={validateCodeAction}
@@ -65,7 +69,7 @@ function ValidateCodeActionForm({
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 submitButtonText={submitButtonText}
             />
-        </View>
+        </ScrollView>
     );
 }
 
