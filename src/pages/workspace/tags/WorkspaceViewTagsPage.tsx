@@ -46,6 +46,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TagListItem} from './types';
 
 type WorkspaceViewTagsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
@@ -81,13 +82,31 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         if (isFocused) {
             return;
         }
-        setSelectedTags({});
 
         return () => {
-            setSelectedTags({});
             turnOffMobileSelectionMode();
         };
     }, [isFocused]);
+
+    useEffect(() => {
+        if (isEmptyObject(selectedTags) || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTags((prevSelectedTags) => {
+            const newSelectedTags: Record<string, boolean> = {};
+
+            Object.keys(prevSelectedTags).forEach((key) => {
+                if (currentPolicyTag?.tags?.[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    return;
+                }
+                newSelectedTags[key] = prevSelectedTags[key];
+            });
+
+            return newSelectedTags;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [currentPolicyTag]);
 
     useSearchBackPress({
         onClearSelection: () => {
