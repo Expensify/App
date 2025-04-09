@@ -11,11 +11,13 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -451,6 +453,18 @@ function AdvancedSearchFilters() {
         .map(getTagNamesFromTagsLists)
         .flat();
 
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [debouncedSearchTerm] = useDebouncedState('');
+
+    const {sections: workspaces} = useWorkspaceList({
+        policies,
+        currentUserLogin,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyID: searchAdvancedFiltersForm?.policyID,
+        searchTerm: debouncedSearchTerm,
+    });
+
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
     const nonPersonalPolicyCategoryIds = Object.values(policies)
         .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
@@ -468,6 +482,10 @@ function AdvancedSearchFilters() {
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!singlePolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
+    const shouldDisplayWorkspaceFilter = useMemo(() => {
+        return !(workspaces.length === 0 || workspaces.every((section) => section.data.length === 0));
+    }, [workspaces]);
+    debugger;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeysWithOptionalPolicy).includes(currentType)) {
@@ -558,6 +576,9 @@ function AdvancedSearchFilters() {
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+                        if (!shouldDisplayWorkspaceFilter) {
+                            return;
+                        }
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
                     }
                     return {
