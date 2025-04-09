@@ -2071,20 +2071,20 @@ const translations = {
             if (!timeData) {
                 return 'Please wait a moment before trying again.';
             }
-        
+
             const timeParts = [];
             if (timeData.days) {
                 timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
             }
-        
+
             if (timeData.hours) {
                 timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
             }
-        
+
             if (timeData.minutes) {
                 timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
             }
-        
+
             let timeText = '';
             if (timeParts.length === 1) {
                 timeText = timeParts[0];
@@ -2093,7 +2093,7 @@ const translations = {
             } else if (timeParts.length === 3) {
                 timeText = `${timeParts[0]}, ${timeParts[1]}, and ${timeParts[2]}`;
             }
-        
+
             return `Hold tight! You need to wait ${timeText} before trying to validate your number again.`;
         },
     },

@@ -2075,16 +2075,16 @@ const translations = {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
-        
+
             const timeParts = [];
             if (timeData.days) {
                 timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
             }
-        
+
             if (timeData.hours) {
                 timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
             }
-        
+
             if (timeData.minutes) {
                 timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
             }
@@ -2097,10 +2097,9 @@ const translations = {
             } else if (timeParts.length === 3) {
                 timeText = `${timeParts[0]}, ${timeParts[1]} y ${timeParts[2]}`;
             }
-        
+
             return `¡Un momento! Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
-        }
-        
+        },
     },
     welcomeSignUpForm: {
         join: 'Unirse',
