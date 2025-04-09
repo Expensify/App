@@ -73,7 +73,7 @@ function isPayAction(report: Report, policy?: Policy) {
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
-    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isReportClosed;
+    const isReportFinished = isReportApproved || isReportClosed;
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished) {
         return true;

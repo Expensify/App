@@ -56,7 +56,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     if (!isReportPayer) {
         return false;
     }
-    return (isExpense && isPaymentsEnabled && ((isApproved && !report.isWaitingOnBankAccount) || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing);
+    return (isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing);
 }
 
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
