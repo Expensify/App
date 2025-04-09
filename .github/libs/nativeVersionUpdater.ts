@@ -1,4 +1,4 @@
-import {execSync} from 'child_process';
+import {exec as originalExec} from 'child_process';
 import {promises as fs} from 'fs';
 import path from 'path';
 import type {SemVer} from 'semver';
@@ -6,6 +6,11 @@ import getMajorVersion from 'semver/functions/major';
 import getMinorVersion from 'semver/functions/minor';
 import getPatchVersion from 'semver/functions/patch';
 import getBuildVersion from 'semver/functions/prerelease';
+import {promisify} from 'util';
+
+const exec = promisify(originalExec);
+
+const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 
 // Filepath constants (root project)
 const ROOT_DIR = path.resolve(__dirname, '../..');
@@ -79,18 +84,28 @@ async function updateAndroidVersion(versionName: string, versionCode: string): P
  * Update the iOS app version.
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
  */
-function updateiOSVersion(version: string): string {
+async function updateiOSVersion(version: string): Promise<string> {
+    const PLIST_KEYS = {
+        CF_BUNDLE_SHORT_VERSION: 'CFBundleShortVersionString',
+        CF_BUNDLE_VERSION: 'CFBundleVersion',
+    };
+
     const shortVersion = version.split('-').at(0);
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
+    console.log('Updating iOS', {
+        [PLIST_KEYS.CF_BUNDLE_SHORT_VERSION]: shortVersion,
+        [PLIST_KEYS.CF_BUNDLE_VERSION]: cfVersion,
+    });
 
-    // Update Plists
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_NSE}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_SHARE}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
-    execSync(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_SHARE}`);
+    // Update plists
+    await Promise.all(
+        [PLIST_PATH, PLIST_PATH_NSE, PLIST_PATH_SHARE, MOBILE_EXPENSIFY_PLIST_PATH, MOBILE_EXPENSIFY_PLIST_PATH_NSE, MOBILE_EXPENSIFY_PLIST_PATH_SS].map(async (file) => {
+            console.log(`Updating ${file}`);
+            await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_SHORT_VERSION} ${shortVersion}" ${file}`);
+            await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_VERSION} ${cfVersion}" ${file}`);
+            console.log(`Updated ${file}`);
+        }),
+    );
 
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;

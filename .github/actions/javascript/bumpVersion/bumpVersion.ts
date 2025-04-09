@@ -12,7 +12,7 @@ const exec = promisify(originalExec);
 /**
  * Update the native app versions.
  */
-function updateNativeVersions(version: string) {
+async function updateNativeVersions(version: string) {
     console.log(`Updating native versions to ${version}`);
 
     // Update Android
@@ -28,7 +28,7 @@ function updateNativeVersions(version: string) {
 
     // Update iOS
     try {
-        const cfBundleVersion = updateiOSVersion(version);
+        const cfBundleVersion = await updateiOSVersion(version);
         if (cfBundleVersion.split('.').length === 4) {
             core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
             console.log('Successfully updated iOS!');
@@ -43,7 +43,7 @@ function updateNativeVersions(version: string) {
     }
 }
 
-function run() {
+async function run() {
     let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
     if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
         semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
@@ -58,7 +58,7 @@ function run() {
     const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
-    updateNativeVersions(newVersion);
+    await updateNativeVersions(newVersion);
 
     console.log(`Setting npm version to ${newVersion}`);
     exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
@@ -76,7 +76,7 @@ function run() {
 }
 
 if (require.main === module) {
-    run();
+    await run();
 }
 
 export default run;
