@@ -4,7 +4,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import * as Policy from '@userActions/Policy/Policy';
+import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -51,7 +52,7 @@ type PolicyRouteName =
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
 function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '-1';
+    return route?.params?.policyID ?? CONST.DEFAULT_NUMBER_ID.toString();
 }
 
 type WithPolicyOnyxProps = {
@@ -81,10 +82,11 @@ export default function <TProps extends WithPolicyProps, TRef>(
         const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+        /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
         const isLoadingPolicy = isLoadingApp || isLoadingOnyxValue(policyResults, policyDraftResults);
 
         if (policyID.length > 0) {
-            Policy.updateLastAccessedWorkspace(policyID);
+            updateLastAccessedWorkspace(policyID);
         }
 
         return (

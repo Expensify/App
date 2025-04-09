@@ -1,4 +1,4 @@
-import Onyx, { OnyxUpdate } from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
@@ -313,5 +313,5 @@ function resetQueue(): void {
     resolveIsReadyPromise?.();
 }
 
-export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
+export {flush, getCurrentRequest, isPaused, isRunning, pause, process, push, resetQueue, sequentialQueueRequestThrottle, unpause, waitForIdle};
 export type {RequestError};
