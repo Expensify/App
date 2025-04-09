@@ -382,16 +382,7 @@ function SearchAutocompleteList(
                 const filteredCards = tokenizedSearch(
                     cardAutocompleteList.filter((card) => isCard(card) && !isCardHiddenFromSearch(card)),
                     autocompleteValue,
-                    (card) => {
-                        const tokens = [];
-                        if (card.bank) {
-                            tokens.push(card.bank);
-                        }
-                        if (card.lastFourPAN) {
-                            tokens.push(card.lastFourPAN);
-                        }
-                        return tokens;
-                    },
+                    (card) => [card.bank, card.lastFourPAN ?? ''],
                 )
                     .filter((card) => !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
                     .sort()
