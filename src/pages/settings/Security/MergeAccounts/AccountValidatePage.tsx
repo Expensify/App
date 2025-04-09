@@ -1,5 +1,5 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
-import React, {useCallback, useRef} from 'react';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -59,6 +59,8 @@ const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESUL
 
 function AccountValidatePage() {
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
+    const navigation = useNavigation();
+
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (data) => ({
             mergeWithValidateCode: data?.mergeWithValidateCode,
@@ -99,14 +101,14 @@ function AccountValidatePage() {
         }, [errorKey, email]),
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                clearMergeWithValidateCode();
-                clearGetValidateCodeForAccountMerge();
-            };
-        }, []),
-    );
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            clearGetValidateCodeForAccountMerge();
+            clearMergeWithValidateCode();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     return (
         <ScreenWrapper

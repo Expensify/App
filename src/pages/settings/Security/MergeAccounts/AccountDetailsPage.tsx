@@ -1,7 +1,7 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -26,7 +26,6 @@ import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerg
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MergeAccountDetailsForm';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
@@ -52,6 +51,7 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
 
 function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
+    const navigation = useNavigation();
     const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
     const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
@@ -67,30 +67,38 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!validateCodeSent || !email) {
-                return;
-            }
+            const task = InteractionManager.runAfterInteractions(() => {
+                if (!validateCodeSent || !email) {
+                    return;
+                }
 
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
+                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
+            });
+
+            return () => task.cancel();
         }, [validateCodeSent, email]),
     );
 
     useFocusEffect(
         useCallback(() => {
-            if (!errorKey || !email) {
-                return;
-            }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+            const task = InteractionManager.runAfterInteractions(() => {
+                if (!errorKey || !email) {
+                    return;
+                }
+                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+            });
+
+            return () => task.cancel();
         }, [errorKey, email]),
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                clearGetValidateCodeForAccountMerge();
-            };
-        }, []),
-    );
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            clearGetValidateCodeForAccountMerge();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM>): Errors => {
         const errors = {};
@@ -99,6 +107,8 @@ function AccountDetailsPage() {
 
         if (!login) {
             addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.pleaseEnterEmailOrPhoneNumber'));
+        } else if (login.trim() === userEmailOrPhone) {
+            addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('mergeAccountsPage.accountDetails.cannotBeSameEmail'));
         } else {
             const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(login));
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);

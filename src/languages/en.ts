@@ -1404,6 +1404,7 @@ const translations = {
         accountDetails: {
             accountToMergeInto: 'Enter the account you want to merge into ',
             notReversibleConsent: 'I understand this is not reversible',
+            cannotBeSameEmail: 'The two accounts cannot be the same email address',
         },
         accountValidate: {
             confirmMerge: 'Are you sure you want to merge accounts?',
