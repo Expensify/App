@@ -64,6 +64,7 @@ function ItemListSkeletonView({
             const opacity = gradientOpacityEnabled ? 1 - i / (numItems - 1) : 1;
             items.push(
                 <SkeletonViewContentLoader
+                    speed={3}
                     key={`skeletonContainer${i}`}
                     animate={shouldAnimate}
                     height={itemViewHeight}

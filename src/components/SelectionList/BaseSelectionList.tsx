@@ -128,7 +128,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
-        fixedNumItems,
+        fixedNumItemsForLoader,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -586,7 +586,7 @@ function BaseSelectionList<TItem extends ListItem>(
         if (showLoadingPlaceholder) {
             return (
                 <OptionsListSkeletonView
-                    fixedNumItems={fixedNumItems}
+                    fixedNumItems={fixedNumItemsForLoader}
                     shouldStyleAsTable={shouldUseUserSkeletonView}
                 />
             );
