@@ -3403,11 +3403,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = exports.generateAndroidVersionCode = exports.updateAndroid = exports.updateIOS = void 0;
+exports.generateAndroidVersionCode = exports.updateAndroid = void 0;
 const core = __importStar(__nccwpck_require__(2186));
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const path_1 = __importDefault(__nccwpck_require__(1017));
 const major_1 = __importDefault(__nccwpck_require__(6688));
 const minor_1 = __importDefault(__nccwpck_require__(8447));
@@ -3422,15 +3421,13 @@ const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 const ROOT_DIR = path_1.default.resolve(__dirname, '../../../..');
 const PACKAGE_JSON_PATH = path_1.default.resolve(ROOT_DIR, 'package.json');
 const BUILD_GRADLE_PATH = path_1.default.resolve(ROOT_DIR, 'android/app/build.gradle');
-exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
 const PLIST_PATH = path_1.default.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
-exports.PLIST_PATH = PLIST_PATH;
 const PLIST_PATH_NSE = path_1.default.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
 const PLIST_PATH_SHARE = path_1.default.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
 // Filepath constants (submodule)
 const MOBILE_EXPENSIFY_DIR = path_1.default.resolve(ROOT_DIR, 'Mobile-Expensify');
 const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'app/config/config.json');
-const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.json');
+const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.xml');
 const MOBILE_EXPENSIFY_PLIST_PATH = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
 const MOBILE_EXPENSIFY_PLIST_PATH_NSE = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
 const MOBILE_EXPENSIFY_PLIST_PATH_SS = path_1.default.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
@@ -3448,9 +3445,7 @@ function padToTwoDigits(value) {
  * This version code allocates two digits each for PREFIX, MAJOR, MINOR, PATCH, and BUILD versions.
  * As a result, our max version is 99.99.99-99.
  */
-function generateAndroidVersionCode(npmVersion) {
-    // All Android versions will be prefixed with '10' due to previous versioning
-    const prefix = '10';
+function generateAndroidVersionCode(npmVersion, prefix) {
     return ''.concat(prefix, padToTwoDigits((0, major_1.default)(npmVersion) ?? 0), padToTwoDigits((0, minor_1.default)(npmVersion) ?? 0), padToTwoDigits((0, patch_1.default)(npmVersion) ?? 0), padToTwoDigits(Number((0, prerelease_1.default)(npmVersion)) ?? 0));
 }
 exports.generateAndroidVersionCode = generateAndroidVersionCode;
@@ -3459,25 +3454,28 @@ exports.generateAndroidVersionCode = generateAndroidVersionCode;
  */
 async function updateAndroid(version) {
     console.log(`Updating Android versions to ${version}`);
-    const androidVersionCode = generateAndroidVersionCode(version);
     try {
         const versionNamePattern = '([0-9.-]*)';
         const versionCodePattern = '([0-9]*)';
         const updateBuildGradle = async () => {
-            console.log(`Updating ${BUILD_GRADLE_PATH}:`, { version, androidVersionCode });
+            // build.gradle versions will be prefixed with '10' due to previous versioning
+            const versionCode = generateAndroidVersionCode(version, '10');
+            console.log(`Updating ${BUILD_GRADLE_PATH}:`, { version, versionCode });
             const fileContent = await fs_1.promises.readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' });
             const updatedContent = fileContent
                 .replace(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${version}"`)
-                .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${androidVersionCode}`);
+                .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${versionCode}`);
             await fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' });
             console.log(`Updated ${BUILD_GRADLE_PATH}`);
         };
         const updateAndroidManifest = async () => {
-            console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, { version, androidVersionCode });
+            // AndroidManifest.xml versions will be prefixed with '05' due to previous versioning
+            const versionCode = generateAndroidVersionCode(version, '05');
+            console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, { version, versionCode });
             const fileContent = await fs_1.promises.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, { encoding: 'utf8' });
             const updatedContent = fileContent
-                .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName=${version}`)
-                .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode=${androidVersionCode}`);
+                .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName="${version}"`)
+                .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode="${versionCode}"`);
             await fs_1.promises.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, { encoding: 'utf8' });
             console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
         };
@@ -3524,7 +3522,6 @@ async function updateIOS(version) {
         }
     }
 }
-exports.updateIOS = updateIOS;
 /**
  * Update package.json and package-lock.json
  */

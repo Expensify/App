@@ -208,4 +208,4 @@ if (require.main === module) {
 }
 
 export default run;
-export {updateIOS, updateAndroid, generateAndroidVersionCode, BUILD_GRADLE_PATH, PLIST_PATH};
+export {updateAndroid, generateAndroidVersionCode};
