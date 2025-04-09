@@ -18,6 +18,7 @@ const defaultSearchContext = {
     setShouldShowStatusBarLoading: () => {},
     lastSearchType: undefined,
     setLastSearchType: () => {},
+    isOnSearch: false,
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -56,11 +57,14 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports'>>({
+    const [searchContextData, setSearchContextData] = useState<
+        Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isOnSearch'>
+    >({
         currentSearchHash: defaultSearchContext.currentSearchHash,
         selectedTransactions: defaultSearchContext.selectedTransactions,
         shouldTurnOffSelectionMode: false,
         selectedReports: defaultSearchContext.selectedReports,
+        isOnSearch: false,
     });
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
@@ -123,4 +127,4 @@ function useSearchContext() {
 
 SearchContextProvider.displayName = 'SearchContextProvider';
 
-export {SearchContextProvider, useSearchContext};
+export {SearchContextProvider, useSearchContext, Context};

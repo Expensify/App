@@ -53,6 +53,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -1991,6 +1992,49 @@ describe('ReportUtils', () => {
             // the function should filter it out and return the normal report
             expect(result?.reportID).toBe(normalReport.reportID);
             expect(result?.reportID).not.toBe(archivedReport.reportID);
+        });
+    });
+    describe('findLastAccessedReport should return owned report if no reports was accessed before', () => {
+        let ownedReport: Report;
+        let nonOwnedReport: Report;
+
+        beforeAll(async () => {
+            // Set up test reports - one archived, one normal
+            nonOwnedReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1001',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                lastVisibleActionCreated: '2024-02-01 04:56:47.233',
+                ownerAccountID: 1,
+            };
+
+            ownedReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1002',
+                lastReadTime: '2024-01-01 04:56:47.233', // Older last read time
+                lastVisibleActionCreated: '2024-01-01 04:56:47.233',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            // Add reports to Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownedReport.reportID}`, ownedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${nonOwnedReport.reportID}`, nonOwnedReport);
+
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
+            const result = findLastAccessedReport(false);
+
+            // Even though the archived report has a more recent lastVisitTime,
+            // the function should filter it out and return the normal report
+            expect(result?.reportID).toBe(ownedReport.reportID);
+            expect(result?.reportID).not.toBe(nonOwnedReport.reportID);
         });
     });
 
