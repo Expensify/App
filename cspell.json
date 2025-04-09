@@ -26,6 +26,7 @@
         "applesignin",
         "applinks",
         "approvalstatus",
+        "--longpress",
         "appversion",
         "ARGB",
         "armeabi",
@@ -656,9 +657,7 @@
         "src/libs/SearchParser/*",
         ".gitignore"
     ],
-    "ignoreRegExpList": [
-        "@assets/.*"
-    ],
+    "ignoreRegExpList": ["@assets/.*"],
     "useGitignore": true,
     "overrides": [
         {
