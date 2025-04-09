@@ -6602,14 +6602,14 @@ const translations = {
             part3: ' 🔴 = necesita revisión',
         },
         workspaceChatTooltip: {
-            part1: 'Envía gastos',
-            part2: ' y chatea con',
-            part3: '\naprobadores aquí!',
+            part1: 'Chatea con ',
+            part2: 'aprobadores',
         },
         globalCreateTooltip: {
             part1: 'Crea gastos',
             part2: ', comienza a chatear,',
             part3: '\ny mucho más!',
+            part4: ' ¡Pruébalo!',
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',

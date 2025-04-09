@@ -17,7 +17,8 @@ const {
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
 type ShouldShowConditionProps = {
-    shouldUseNarrowLayout?: boolean;
+    shouldUseNarrowLayout: boolean;
+    isUserPolicyEmployee: boolean;
 };
 
 type TooltipData = {
@@ -57,11 +58,12 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.globalCreateTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.globalCreateTooltip.part4', isBold: false},
         ],
         onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
         name: GLOBAL_CREATE_TOOLTIP,
-        priority: 1200,
-        shouldShow: () => true,
+        priority: 1950,
+        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
@@ -76,14 +78,13 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: true},
         ],
         onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
-        priority: 800,
-        shouldShow: () => true,
+        priority: 1800,
+        shouldShow: ({isUserPolicyEmployee}) => isUserPolicyEmployee,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
