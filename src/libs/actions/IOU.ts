@@ -4967,7 +4967,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
                 comment,
                 created,
                 merchant,
-                iouReportID: iouReport.reportID,
+                iouReportID: attendees?.at(0)?.reportID ?? iouReport.reportID,
                 chatReportID: chatReport.reportID,
                 transactionID: transaction.transactionID,
                 reportActionID: iouAction.reportActionID,
