@@ -258,10 +258,9 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdatesWithAct();
 
-            // TODO: To be replaced by expense reports search tooltip
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-            // Then narrow layout tooltip should not show
+            // Then wide layout tooltip should show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(true);
 
             // When narrow layout changes to true
@@ -269,7 +268,7 @@ describe('ProductTrainingContextProvider', () => {
             rerender({});
             await waitForBatchedUpdatesWithAct();
 
-            // Then narrow layout tooltip should show
+            // Then narrow layout tooltip should hide
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
         });
         it('should handle wide layout specific tooltips based on screen width', async () => {
