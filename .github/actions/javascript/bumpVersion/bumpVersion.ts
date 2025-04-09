@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import {exec as originalExec} from 'child_process';
 import {promises as fs} from 'fs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import path from 'path';
 import type {PackageJson} from 'type-fest';
 import {promisify} from 'util';
@@ -10,10 +11,15 @@ import type {SemverLevel} from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
 
-// Filepath constants
-const ROOT_DIR = path.resolve(__dirname, '../../../..');
-const PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
-const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(ROOT_DIR, 'Mobile-Expensify/app/config/config.json');
+// Filepath constants (using eval to side-step ncc)
+let PACKAGE_JSON_PATH: string;
+let MOBILE_EXPENSIFY_CONFIG_JSON_PATH: string;
+// eslint-disable-next-line no-eval
+eval(`
+    const ROOT_DIR = path.resolve(__dirname, '../../../..');
+    PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
+    MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(ROOT_DIR, 'Mobile-Expensify/app/config/config.json');
+`);
 
 type ConfigJSON = {
     meta: {

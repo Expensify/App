@@ -3399,37 +3399,48 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const core = __importStar(__nccwpck_require__(2186));
 const child_process_1 = __nccwpck_require__(2081);
-const fs_1 = __importDefault(__nccwpck_require__(7147));
+const fs_1 = __nccwpck_require__(7147);
 const util_1 = __nccwpck_require__(3837);
 const nativeVersionUpdater_1 = __nccwpck_require__(9095);
 const versionUpdater = __importStar(__nccwpck_require__(8982));
 const exec = (0, util_1.promisify)(child_process_1.exec);
+// Filepath constants (using eval to side-step ncc)
+let PACKAGE_JSON_PATH;
+let MOBILE_EXPENSIFY_CONFIG_JSON_PATH;
+// eslint-disable-next-line no-eval
+eval(`
+    const ROOT_DIR = path.resolve(__dirname, '../../../..');
+    PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
+    MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(ROOT_DIR, 'Mobile-Expensify/app/config/config.json');
+`);
 /**
- * Update the native app versions.
+ * Update the Android native versions in E/App and the Mobile-Expensify submodule.
  */
-function updateNativeVersions(version) {
-    console.log(`Updating native versions to ${version}`);
-    // Update Android
+async function updateAndroidVersions(version) {
+    console.log(`Updating Android versions to ${version}`);
     const androidVersionCode = (0, nativeVersionUpdater_1.generateAndroidVersionCode)(version);
-    (0, nativeVersionUpdater_1.updateAndroidVersion)(version, androidVersionCode)
-        .then(() => {
-        console.log('Successfully updated Android!');
-    })
-        .catch((err) => {
-        console.error('Error updating Android');
-        core.setFailed(err);
-    });
-    // Update iOS
     try {
-        const cfBundleVersion = (0, nativeVersionUpdater_1.updateiOSVersion)(version);
-        if (typeof cfBundleVersion === 'string' && cfBundleVersion.split('.').length === 4) {
-            core.setOutput('NEW_IOS_VERSION', cfBundleVersion);
+        await (0, nativeVersionUpdater_1.updateAndroidVersion)(version, androidVersionCode);
+        console.log('Successfully updated Android');
+    }
+    catch (err) {
+        console.error('Error updating Android');
+        if (err instanceof Error) {
+            core.setFailed(err);
+        }
+    }
+}
+/**
+ * Update the iOS native versions in E/App and the Mobile-Expensify submodule.
+ */
+async function updateIOSVersions(version) {
+    console.log(`Updating native versions to ${version}`);
+    try {
+        const cfBundleVersion = await (0, nativeVersionUpdater_1.updateiOSVersion)(version);
+        if (cfBundleVersion.split('.').length === 4) {
             console.log('Successfully updated iOS!');
         }
         else {
@@ -3443,31 +3454,62 @@ function updateNativeVersions(version) {
         }
     }
 }
-let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { required: true });
-if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
-    semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
-    console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+/**
+ * Update package.json and package-lock.json
+ */
+async function updateNPMVersion(version) {
+    console.log(`Setting npm version to ${version}`);
+    try {
+        const { stdout } = await exec(`npm --no-git-tag-version version ${version} -m "Update version to ${version}"`);
+        // NPM and native versions successfully updated, output new version
+        console.log(stdout);
+        core.setOutput('NEW_VERSION', version);
+    }
+    catch (err) {
+        // Log errors and fail gracefully
+        if (err instanceof Error) {
+            console.error('Error:', err.message);
+        }
+        core.setFailed('An error occurred in the `npm version` command');
+    }
 }
-const { version: previousVersion } = JSON.parse(fs_1.default.readFileSync('./package.json').toString());
-if (!previousVersion) {
-    core.setFailed('Error: Could not read package.json');
+/**
+ * Update Mobile-Expensify config.json.
+ */
+async function updateConfigJSON(version) {
+    try {
+        console.log(`Updating ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH} to ${version}`);
+        const fileContent = JSON.parse(await fs_1.promises.readFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, { encoding: 'utf8' }));
+        fileContent.meta.version = version;
+        await fs_1.promises.writeFile(MOBILE_EXPENSIFY_CONFIG_JSON_PATH, JSON.stringify(fileContent), { encoding: 'utf8' });
+        console.log(`Updated ${MOBILE_EXPENSIFY_CONFIG_JSON_PATH}`);
+    }
+    catch (err) {
+        // Log errors and fail gracefully
+        if (err instanceof Error) {
+            console.error('Error:', err.message);
+        }
+        core.setFailed('An error occurred updating Mobile-Expensify config.json');
+    }
 }
-const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
-console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
-updateNativeVersions(newVersion);
-console.log(`Setting npm version to ${newVersion}`);
-exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`)
-    .then(({ stdout }) => {
-    // NPM and native versions successfully updated, output new version
-    console.log(stdout);
-    core.setOutput('NEW_VERSION', newVersion);
-})
-    .catch(({ stdout, stderr }) => {
-    // Log errors and retry
-    console.log(stdout);
-    console.error(stderr);
-    core.setFailed('An error occurred in the `npm version` command');
-});
+async function run() {
+    let semanticVersionLevel = core.getInput('SEMVER_LEVEL', { required: true });
+    if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
+        semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
+        console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
+    }
+    const { version: previousVersion } = JSON.parse(await fs_1.promises.readFile(PACKAGE_JSON_PATH, { encoding: 'utf8' }));
+    if (!previousVersion) {
+        core.setFailed('Error: Could not read package.json');
+    }
+    const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel);
+    console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
+    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion), updateConfigJSON(newVersion)]);
+}
+if (require.main === require.cache[eval('__filename')]) {
+    run();
+}
+exports["default"] = run;
 
 
 /***/ }),
@@ -3484,18 +3526,41 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.PLIST_PATH = exports.BUILD_GRADLE_PATH = exports.generateAndroidVersionCode = exports.updateAndroidVersion = exports.updateiOSVersion = void 0;
 const child_process_1 = __nccwpck_require__(2081);
 const fs_1 = __nccwpck_require__(7147);
-const path_1 = __importDefault(__nccwpck_require__(1017));
 const major_1 = __importDefault(__nccwpck_require__(6688));
 const minor_1 = __importDefault(__nccwpck_require__(8447));
 const patch_1 = __importDefault(__nccwpck_require__(2866));
 const prerelease_1 = __importDefault(__nccwpck_require__(4016));
+const util_1 = __nccwpck_require__(3837);
+const exec = (0, util_1.promisify)(child_process_1.exec);
+const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 // Filepath constants
-const BUILD_GRADLE_PATH = process.env.NODE_ENV === 'test' ? path_1.default.resolve(__dirname, '../../android/app/build.gradle') : './android/app/build.gradle';
-exports.BUILD_GRADLE_PATH = BUILD_GRADLE_PATH;
-const PLIST_PATH = './ios/NewExpensify/Info.plist';
-exports.PLIST_PATH = PLIST_PATH;
-const PLIST_PATH_NSE = './ios/NotificationServiceExtension/Info.plist';
-const PLIST_PATH_SHARE = './ios/ShareViewController/Info.plist';
+// eslint-disable-next-line import/no-mutable-exports
+let BUILD_GRADLE_PATH;
+// eslint-disable-next-line import/no-mutable-exports
+let PLIST_PATH;
+let PLIST_PATH_NSE;
+let PLIST_PATH_SHARE;
+let MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH;
+let MOBILE_EXPENSIFY_PLIST_PATH;
+let MOBILE_EXPENSIFY_PLIST_PATH_NSE;
+let MOBILE_EXPENSIFY_PLIST_PATH_SS;
+// Note: We are using eval to sidestep ncc: https://github.com/vercel/ncc/issues/390
+// eslint-disable-next-line no-eval
+eval(`
+    // Filepath constants (root project)
+    const ROOT_DIR = path.resolve(__dirname, '../..');
+    BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, 'android/app/build.gradle');
+    PLIST_PATH = path.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
+    PLIST_PATH_NSE = path.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
+    PLIST_PATH_SHARE = path.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
+
+    // Filepath constants (submodule)
+    const MOBILE_EXPENSIFY_DIR = path.resolve(ROOT_DIR, 'Mobile-Expensify');
+    MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.json');
+    MOBILE_EXPENSIFY_PLIST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
+    MOBILE_EXPENSIFY_PLIST_PATH_NSE = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
+    MOBILE_EXPENSIFY_PLIST_PATH_SS = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
+`);
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
  */
@@ -3519,32 +3584,52 @@ exports.generateAndroidVersionCode = generateAndroidVersionCode;
 /**
  * Update the Android app versionName and versionCode.
  */
-function updateAndroidVersion(versionName, versionCode) {
-    console.log('Updating android:', `versionName: ${versionName}`, `versionCode: ${versionCode}`);
-    return fs_1.promises
-        .readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' })
-        .then((content) => {
-        let updatedContent = content.toString().replace(/versionName "([0-9.-]*)"/, `versionName "${versionName}"`);
-        return (updatedContent = updatedContent.replace(/versionCode ([0-9]*)/, `versionCode ${versionCode}`));
-    })
-        .then((updatedContent) => fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' }));
+async function updateAndroidVersion(versionName, versionCode) {
+    const versionNamePattern = '([0-9.-]*)';
+    const versionCodePattern = '([0-9]*)';
+    const updateBuildGradle = async () => {
+        console.log(`Updating ${BUILD_GRADLE_PATH}:`, { versionName, versionCode });
+        const fileContent = await fs_1.promises.readFile(BUILD_GRADLE_PATH, { encoding: 'utf8' });
+        const updatedContent = fileContent
+            .replace(new RegExp(`versionName "${versionNamePattern}"`), `versionName "${versionName}"`)
+            .replace(new RegExp(`versionCode ${versionCodePattern}`), `versionCode ${versionCode}`);
+        await fs_1.promises.writeFile(BUILD_GRADLE_PATH, updatedContent, { encoding: 'utf8' });
+        console.log(`Updated ${BUILD_GRADLE_PATH}`);
+    };
+    const updateAndroidManifest = async () => {
+        console.log(`Updating ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}:`, { versionName, versionCode });
+        const fileContent = await fs_1.promises.readFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, { encoding: 'utf8' });
+        const updatedContent = fileContent
+            .replace(new RegExp(`android:versionName="${versionNamePattern}"`), `android:versionName=${versionName}`)
+            .replace(new RegExp(`android:versionCode="${versionCodePattern}"`), `android:versionCode=${versionCode}`);
+        await fs_1.promises.writeFile(MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH, updatedContent, { encoding: 'utf8' });
+        console.log(`Updated ${MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH}`);
+    };
+    await Promise.all([updateBuildGradle(), updateAndroidManifest()]);
 }
 exports.updateAndroidVersion = updateAndroidVersion;
 /**
  * Update the iOS app version.
  * Updates the CFBundleShortVersionString and the CFBundleVersion.
  */
-function updateiOSVersion(version) {
+async function updateiOSVersion(version) {
+    const PLIST_KEYS = {
+        CF_BUNDLE_SHORT_VERSION: 'CFBundleShortVersionString',
+        CF_BUNDLE_VERSION: 'CFBundleVersion',
+    };
     const shortVersion = version.split('-').at(0);
     const cfVersion = version.includes('-') ? version.replace('-', '.') : `${version}.0`;
-    console.log('Updating iOS', `CFBundleShortVersionString: ${shortVersion}`, `CFBundleVersion: ${cfVersion}`);
-    // Update Plists
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_NSE}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString ${shortVersion}" ${PLIST_PATH_SHARE}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_NSE}`);
-    (0, child_process_1.execSync)(`/usr/libexec/PlistBuddy -c "Set :CFBundleVersion ${cfVersion}" ${PLIST_PATH_SHARE}`);
+    console.log('Updating iOS', {
+        [PLIST_KEYS.CF_BUNDLE_SHORT_VERSION]: shortVersion,
+        [PLIST_KEYS.CF_BUNDLE_VERSION]: cfVersion,
+    });
+    // Update plists
+    await Promise.all([PLIST_PATH, PLIST_PATH_NSE, PLIST_PATH_SHARE, MOBILE_EXPENSIFY_PLIST_PATH, MOBILE_EXPENSIFY_PLIST_PATH_NSE, MOBILE_EXPENSIFY_PLIST_PATH_SS].map(async (file) => {
+        console.log(`Updating ${file}`);
+        await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_SHORT_VERSION} ${shortVersion}" ${file}`);
+        await exec(`${PLIST_BUDDY} -c "Set :${PLIST_KEYS.CF_BUNDLE_VERSION} ${cfVersion}" ${file}`);
+        console.log(`Updated ${file}`);
+    }));
     // Return the cfVersion so we can set the NEW_IOS_VERSION in ios.yml
     return cfVersion;
 }

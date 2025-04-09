@@ -1,5 +1,6 @@
 import {exec as originalExec} from 'child_process';
 import {promises as fs} from 'fs';
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 import path from 'path';
 import type {SemVer} from 'semver';
 import getMajorVersion from 'semver/functions/major';
@@ -12,19 +13,35 @@ const exec = promisify(originalExec);
 
 const PLIST_BUDDY = '/usr/libexec/PlistBuddy';
 
-// Filepath constants (root project)
-const ROOT_DIR = path.resolve(__dirname, '../..');
-const BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, 'android/app/build.gradle');
-const PLIST_PATH = path.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
-const PLIST_PATH_NSE = path.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
-const PLIST_PATH_SHARE = path.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
+// Filepath constants
+// eslint-disable-next-line import/no-mutable-exports
+let BUILD_GRADLE_PATH: string;
+// eslint-disable-next-line import/no-mutable-exports
+let PLIST_PATH: string;
+let PLIST_PATH_NSE: string;
+let PLIST_PATH_SHARE: string;
+let MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH: string;
+let MOBILE_EXPENSIFY_PLIST_PATH: string;
+let MOBILE_EXPENSIFY_PLIST_PATH_NSE: string;
+let MOBILE_EXPENSIFY_PLIST_PATH_SS: string;
 
-// Filepath constants (submodule)
-const MOBILE_EXPENSIFY_DIR = path.resolve(ROOT_DIR, 'Mobile-Expensify');
-const MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.json');
-const MOBILE_EXPENSIFY_PLIST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
-const MOBILE_EXPENSIFY_PLIST_PATH_NSE = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
-const MOBILE_EXPENSIFY_PLIST_PATH_SS = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
+// Note: We are using eval to sidestep ncc: https://github.com/vercel/ncc/issues/390
+// eslint-disable-next-line no-eval
+eval(`
+    // Filepath constants (root project)
+    const ROOT_DIR = path.resolve(__dirname, '../..');
+    BUILD_GRADLE_PATH = path.resolve(ROOT_DIR, 'android/app/build.gradle');
+    PLIST_PATH = path.resolve(ROOT_DIR, 'ios/NewExpensify/Info.plist');
+    PLIST_PATH_NSE = path.resolve(ROOT_DIR, 'ios/NotificationServiceExtension/Info.plist');
+    PLIST_PATH_SHARE = path.resolve(ROOT_DIR, 'ios/ShareViewController/Info.plist');
+
+    // Filepath constants (submodule)
+    const MOBILE_EXPENSIFY_DIR = path.resolve(ROOT_DIR, 'Mobile-Expensify');
+    MOBILE_EXPENSIFY_ANDROID_MANIFEST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'Android/AndroidManifest.json');
+    MOBILE_EXPENSIFY_PLIST_PATH = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/Expensify/Expensify-Info.plist');
+    MOBILE_EXPENSIFY_PLIST_PATH_NSE = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/NotificationServiceExtension/Info.plist');
+    MOBILE_EXPENSIFY_PLIST_PATH_SS = path.resolve(MOBILE_EXPENSIFY_DIR, 'iOS/SmartScanExtension/Info.plist');
+`);
 
 /**
  * Pad a number to be two digits (with leading zeros if necessary).
