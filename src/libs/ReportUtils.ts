@@ -5,6 +5,7 @@ import lodashIntersection from 'lodash/intersection';
 import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
+import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -80,7 +81,7 @@ import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {getEnvironment, getEnvironmentURL} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
@@ -588,7 +589,7 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type OptimisticMoneyRequestEntities = {
+type BaseOptimisticMoneyRequestEntities = {
     iouReport: Report;
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     amount: number;
@@ -605,6 +606,10 @@ type OptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
 };
+
+type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread?: boolean};
+type OptimisticMoneyRequestEntitiesWithTransactionThreadFlag = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread: boolean};
+type OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag = BaseOptimisticMoneyRequestEntities;
 
 type OptimisticTaskReport = SetRequired<
     Pick<
@@ -1189,7 +1194,15 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
         return noPolicyFound;
     }
-    const finalPolicy = isEmptyObject(policy) ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : policy ?? policies?.find((p) => p.id === report.policyID);
+    const finalPolicy = (() => {
+        if (isEmptyObject(policy)) {
+            if (policies) {
+                return policies.find((p) => p.id === report.policyID);
+            }
+            return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        }
+        return policy ?? policies?.find((p) => p.id === report.policyID);
+    })();
 
     const parentReport = getRootParentReport({report, reports});
 
@@ -1360,7 +1373,7 @@ function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: numb
 /**
  * Whether the Money Request report is settled
  */
-function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[]): boolean {
+function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
     if (!reportOrID) {
         return false;
     }
@@ -1815,6 +1828,9 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
     }
+    if (adminReport) {
+        return adminReport;
+    }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
@@ -1841,8 +1857,15 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
-    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
-    return adminReport ?? lastRead;
+    // If allReportMetadata is empty we'll return most recent report owned by user
+    if (isEmptyObject(allReportMetadata)) {
+        const ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
+        if (ownedReports.length > 0) {
+            return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
+        }
+        return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
+    }
+    return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
 }
 
 /**
@@ -3949,8 +3972,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  */
-function hasMissingSmartscanFields(iouReportID: string | undefined): boolean {
-    const reportTransactions = getReportTransactions(iouReportID);
+function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
+    const reportTransactions = transactions ?? getReportTransactions(iouReportID);
 
     return reportTransactions.some(hasMissingSmartscanFieldsTransactionUtils);
 }
@@ -4481,7 +4504,7 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
-        return getPolicyName({report});
+        return getPolicyName({report, policies});
     }
 
     if (isIndividual) {
@@ -7235,6 +7258,7 @@ function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
+    optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
@@ -7257,6 +7281,7 @@ function buildTransactionThread(
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
+        optimisticReportID: optimisticTransactionThreadReportID,
     });
 }
 
@@ -7269,6 +7294,12 @@ function buildTransactionThread(
  * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
  * 5. CREATED action for the Transaction Thread
  */
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null];
+function buildOptimisticMoneyRequestEntities(
+    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithTransactionThreadFlag,
+): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport | undefined, OptimisticCreatedReportAction | null];
 function buildOptimisticMoneyRequestEntities({
     iouReport,
     type,
@@ -7282,10 +7313,17 @@ function buildOptimisticMoneyRequestEntities({
     isSettlingUp = false,
     isSendMoneyFlow = false,
     isOwnPolicyExpenseChat = false,
+    shouldGenerateOptimisticTransactionThread = true,
     isPersonalTrackingExpense,
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
-}: OptimisticMoneyRequestEntities): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
+}: OptimisticMoneyRequestEntities): [
+    OptimisticCreatedReportAction,
+    OptimisticCreatedReportAction,
+    OptimisticIOUReportAction,
+    OptimisticChatReport | undefined,
+    OptimisticCreatedReportAction | null,
+] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
@@ -7309,11 +7347,11 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
-    const createdActionForTransactionThread = existingTransactionThreadReportID ? null : buildOptimisticCreatedReportAction(payeeEmail);
+    const transactionThread = shouldGenerateOptimisticTransactionThread ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
+    const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateOptimisticTransactionThread ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }
@@ -7467,6 +7505,26 @@ function hasViolations(
 function hasWarningTypeViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
     return transactions.some((transaction) => hasWarningTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+}
+
+/**
+ * Checks to see if a transaction contains receipt error
+ */
+function hasReceiptError(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
+    };
+    const errorEntries = Object.entries(errors ?? {});
+    const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+    return Object.values(errorMessages).some((error) => isReceiptError(error));
+}
+
+/**
+ * Checks to see if a report contains receipt error
+ */
+function hasReceiptErrors(reportID: string | undefined): boolean {
+    const transactions = getReportTransactions(reportID);
+    return transactions.some(hasReceiptError);
 }
 
 /**
@@ -10518,6 +10576,8 @@ export {
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
+    hasReceiptError,
+    hasReceiptErrors,
     hasReportNameError,
     getReportActionWithSmartscanError,
     hasSmartscanError,
