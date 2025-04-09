@@ -279,9 +279,10 @@ function PaymentMethodList({
                 }
 
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
-                const cardDescription = card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                    ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                    : getDescriptionForPolicyDomainCard(card.domainName);
+                const cardDescription =
+                    card?.nameValuePairs?.issuedBy && card?.lastFourPAN
+                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                        : getDescriptionForPolicyDomainCard(card.domainName);
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
