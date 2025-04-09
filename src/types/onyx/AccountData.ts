@@ -52,7 +52,7 @@ type AccountData = {
     fundID?: number;
 
     /** When was the bank account added */
-    created: string;
+    created?: string;
 };
 
 export default AccountData;
