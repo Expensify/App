@@ -1,9 +1,9 @@
 diff --git a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
-index 10aaa36..f494afb 100644
+index f3742ed..08be55b 100644
 --- a/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
 +++ b/node_modules/react-native-reanimated/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
-@@ -760,6 +760,15 @@ void ReanimatedModuleProxy::performOperations() {
-     jsPropsUpdater.call(rt, viewTag, nonAnimatableProps);
+@@ -763,6 +763,15 @@ void ReanimatedModuleProxy::performOperations() {
+     return;
    }
  
 +  if (propsRegistry_->shouldReanimatedSkipCommit()) {
@@ -15,6 +15,6 @@ index 10aaa36..f494afb 100644
 +    return;
 +  }
 +
-   bool hasLayoutUpdates = false;
+   react_native_assert(uiManager_ != nullptr);
+   const auto &shadowTreeRegistry = uiManager_->getShadowTreeRegistry();
  
-   for (const auto &[shadowNode, props] : copiedOperationsQueue) {
