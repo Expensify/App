@@ -1039,7 +1039,7 @@ const styles = (theme: ThemeColors) =>
         textInputDisabled: {
             // Adding disabled color theme to indicate user that the field is not editable.
             backgroundColor: theme.highlightBG,
-            borderBottomWidth: 2,
+            borderBottomWidth: 1,
             borderColor: theme.borderLighter,
             // Adding browser specefic style to bring consistency between Safari and other platforms.
             // Applying the Webkit styles only to browsers as it is not available in native.
@@ -1237,7 +1237,7 @@ const styles = (theme: ThemeColors) =>
             height: '100%',
             backgroundColor: 'transparent',
             overflow: 'hidden',
-            borderBottomWidth: 2,
+            borderBottomWidth: 1,
             borderColor: theme.border,
         },
 
