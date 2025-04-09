@@ -34,7 +34,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
+    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
 
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
 
@@ -44,7 +44,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
             value: fundID,
             text: getDescriptionForPolicyDomainCard(value?.domainName ?? ''),
             keyForList: fundID.toString(),
-            isSelected: fundID === lastSelectedFeed,
+            isSelected: fundID === lastSelectedExpensifyFeed,
             leftElement: (
                 <Icon
                     src={ExpensifyCardImage}
@@ -83,7 +83,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
                     sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex
                     isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={lastSelectedFeed?.toString()}
+                    initiallyFocusedOptionKey={lastSelectedExpensifyFeed?.toString()}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

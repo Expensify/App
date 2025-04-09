@@ -6,7 +6,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
-import useDomainFundID from '@hooks/useDomainFundID';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
@@ -26,13 +26,9 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const domainFundIDs = useDomainFundID(policyID);
-    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
+    const defaultFundID = useDefaultFundID(policyID);
 
-    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
-
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
 
     const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
@@ -61,7 +57,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        updateSettlementFrequencyUtil(fundID, value, cardSettings?.monthlySettlementDate);
+        updateSettlementFrequencyUtil(defaultFundID, value, cardSettings?.monthlySettlementDate);
     };
 
     return (

@@ -9,10 +9,9 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useDomainFundID from '@hooks/useDomainFundID';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
@@ -35,16 +34,12 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policyID = route.params?.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const domainFundIDs = useDomainFundID(policyID);
-    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
-
-    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
+    const defaultFundID = useDefaultFundID(policyID);
 
     const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
-    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${fundID}`);
-    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${fundID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const [isUsedContinuousReconciliation] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION}${defaultFundID}`);
+    const [reconciliationConnection] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION}${defaultFundID}`);
 
     const connectionName = reconciliationConnection ?? '';
     const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
@@ -86,7 +81,7 @@ function WorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccountPageP
     }, [eligibleBankAccounts, paymentBankAccountID, styles, translate]);
 
     const updateSettlementAccount = (value: number) => {
-        updateSettlementAccountCard(domainName, fundID, policyID, value, paymentBankAccountID);
+        updateSettlementAccountCard(domainName, defaultFundID, policyID, value, paymentBankAccountID);
         Navigation.goBack();
     };
 

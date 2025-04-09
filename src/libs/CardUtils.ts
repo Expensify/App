@@ -565,12 +565,12 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
 function getFundIdFromSettingsKey(key: string) {
     const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
     if (!key?.startsWith(prefix)) {
-        return undefined;
+        return CONST.DEFAULT_NUMBER_ID;
     }
     const fundIDStr = key.substring(prefix.length);
 
     const fundID = Number(fundIDStr);
-    return Number.isNaN(fundID) ? undefined : fundID;
+    return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
 }
 
 export {

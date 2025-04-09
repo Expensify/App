@@ -5,10 +5,9 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
-import useDomainFundID from '@hooks/useDomainFundID';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getEligibleBankAccountsForCard} from '@libs/CardUtils';
@@ -31,15 +30,11 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const connectionName = getConnectionNameFromRouteParam(connection);
-    const domainFundIDs = useDomainFundID(policyID);
-    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
-
-    const fundID = lastSelectedExpensifyFeed ?? workspaceAccountID ?? domainFundIDs?.[0];
+    const defaultFundID = useDefaultFundID(policyID);
 
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
 
     const selectedBankAccount = useMemo(() => bankAccountList?.[paymentBankAccountID?.toString() ?? ''], [paymentBankAccountID, bankAccountList]);
@@ -64,7 +59,7 @@ function ReconciliationAccountSettingsPage({route}: ReconciliationAccountSetting
     }, [bankAccountList, paymentBankAccountID]);
 
     const selectBankAccount = (newBankAccountID?: number) => {
-        updateSettlementAccount(domainName, workspaceAccountID, policyID, newBankAccountID, paymentBankAccountID);
+        updateSettlementAccount(domainName, defaultFundID, policyID, newBankAccountID, paymentBankAccountID);
         Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connection));
     };
 
