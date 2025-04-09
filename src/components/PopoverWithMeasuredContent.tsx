@@ -140,7 +140,6 @@ function PopoverWithMeasuredContent({
     );
     const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        // ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift}), // TODO:
         ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {}),
     };
 
