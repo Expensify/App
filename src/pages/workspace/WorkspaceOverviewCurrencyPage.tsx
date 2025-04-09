@@ -45,6 +45,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom={false}
+                shouldEnableMaxHeight
                 testID={WorkspaceOverviewCurrencyPage.displayName}
             >
                 <HeaderWithBackButton

@@ -66,6 +66,10 @@ function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
+function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
+}
+
 function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
 }
@@ -85,5 +89,6 @@ export default {
     canUseHelpSidePanel,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
+    canUseLeftHandBar,
     canUseGlobalReimbursementsOnND,
 };
