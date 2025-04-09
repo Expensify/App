@@ -32,7 +32,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.jobTitle'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(0);
+                onMove(1);
             },
         },
     ];
@@ -43,7 +43,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.id'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -54,7 +54,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.proofOf'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -65,7 +65,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.proofOfDirectors'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -76,7 +76,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             description: translate('signerInfoStep.codiceFiscale'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(5);
+                onMove(4);
             },
         });
     }
@@ -91,21 +91,21 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             },
         });
 
-        summaryItems.splice(3, 0, {
+        summaryItems.splice(2, 0, {
             title: values.dateOfBirth,
             description: translate('common.dob'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(3);
+                onMove(2);
             },
         });
 
-        summaryItems.splice(4, 0, {
+        summaryItems.splice(3, 0, {
             title: `${values.street}, ${values.city}, ${values.state}, ${values.zipCode}`,
             description: translate('ownershipInfoStep.address'),
             shouldShowRightIcon: true,
             onPress: () => {
-                onMove(4);
+                onMove(3);
             },
         });
     }
@@ -118,6 +118,8 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             pageTitle={translate('signerInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}
+            error={Object.values(reimbursementAccount?.errors ?? []).at(0) ?? ''}
         />
     );
 }
