@@ -148,12 +148,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
-    // const { setIsOnSearch } = useSearchContext();
-
-    // useEffect(() => {
-    //     setIsOnSearch(true);
-    //     return () => setIsOnSearch(false);
-    // }, [setIsOnSearch]);
 
     useEffect(() => {
         clearSelectedTransactions(hash);
