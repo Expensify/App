@@ -4,6 +4,10 @@ const HybridAppModule: HybridAppModuleType = {
     isHybridApp() {
         return false;
     },
+    shouldUseStaging() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `shouldUseStaging` should never be called on web');
+    },
     closeReactNativeApp() {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `closeReactNativeApp` should never be called on web');
@@ -15,6 +19,10 @@ const HybridAppModule: HybridAppModuleType = {
     switchAccount() {
         // eslint-disable-next-line no-console
         console.warn('HybridAppModule: `switchAccount` should never be called on web');
+    },
+    sendAuthToken() {
+        // eslint-disable-next-line no-console
+        console.warn('HybridAppModule: `sendAuthToken` should never be called on web');
     },
 };
 

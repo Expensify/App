@@ -25,6 +25,7 @@ import type CustomStatusDraft from './CustomStatusDraft';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
+import type ExpensifyCardBankAccountMetadata from './ExpensifyCardBankAccountMetadata';
 import type ExpensifyCardSettings from './ExpensifyCardSettings';
 import type FrequentlyUsedEmoji from './FrequentlyUsedEmoji';
 import type {FundList} from './Fund';
@@ -67,6 +68,7 @@ import type PreferredTheme from './PreferredTheme';
 import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivateSubscription from './PrivateSubscription';
+import type PurchaseList from './PurchaseList';
 import type QuickAction from './QuickAction';
 import type RecentlyUsedCategories from './RecentlyUsedCategories';
 import type RecentlyUsedReportFields from './RecentlyUsedReportFields';
@@ -95,8 +97,10 @@ import type SearchResults from './SearchResults';
 import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
-import type SidePane from './SidePane';
+import type ShareTempFile from './ShareTempFile';
+import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
+import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
 import type Transaction from './Transaction';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
@@ -137,6 +141,7 @@ export type {
     Download,
     WorkspaceCardsList,
     ExpensifyCardSettings,
+    ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
     FundList,
@@ -218,6 +223,7 @@ export type {
     WalletStatement,
     WalletTerms,
     WalletTransfer,
+    PurchaseList,
     ReportUserIsTyping,
     PolicyReportField,
     RecentlyUsedReportFields,
@@ -246,11 +252,13 @@ export type {
     Onboarding,
     OnboardingPurpose,
     ValidateMagicCodeAction,
+    ShareTempFile,
     CorpayFields,
     CorpayFormField,
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
-    SidePane,
+    SidePanel,
     LastPaymentMethodType,
+    TalkToAISales,
 };

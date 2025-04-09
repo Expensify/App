@@ -47,6 +47,7 @@ function CardSection() {
     const [authenticationLink] = useOnyx(ONYXKEYS.VERIFY_3DS_SUBSCRIPTION);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
+    const [purchaseList] = useOnyx(ONYXKEYS.PURCHASE_LIST);
     const subscriptionPlan = useSubscriptionPlan();
     const [subscriptionRetryBillingStatusPending] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_PENDING);
     const [subscriptionRetryBillingStatusSuccessful] = useOnyx(ONYXKEYS.SUBSCRIPTION_RETRY_BILLING_STATUS_SUCCESSFUL);
@@ -66,15 +67,31 @@ function CardSection() {
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
     }, []);
 
-    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() => CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
+    const [billingStatus, setBillingStatus] = useState<BillingStatusResult | undefined>(() =>
+        CardSectionUtils.getBillingStatus({translate, accountData: defaultCard?.accountData ?? {}, purchase: purchaseList?.[0]}),
+    );
 
     const nextPaymentDate = !isEmptyObject(privateSubscription) ? CardSectionUtils.getNextBillingDate() : undefined;
 
     const sectionSubtitle = defaultCard && !!nextPaymentDate ? translate('subscription.cardSection.cardNextPayment', {nextPaymentDate}) : translate('subscription.cardSection.subtitle');
 
     useEffect(() => {
-        setBillingStatus(CardSectionUtils.getBillingStatus(translate, defaultCard?.accountData ?? {}));
-    }, [subscriptionRetryBillingStatusPending, subscriptionRetryBillingStatusSuccessful, subscriptionRetryBillingStatusFailed, translate, defaultCard?.accountData, privateStripeCustomerID]);
+        setBillingStatus(
+            CardSectionUtils.getBillingStatus({
+                translate,
+                accountData: defaultCard?.accountData ?? {},
+                purchase: purchaseList?.[0],
+            }),
+        );
+    }, [
+        subscriptionRetryBillingStatusPending,
+        subscriptionRetryBillingStatusSuccessful,
+        subscriptionRetryBillingStatusFailed,
+        translate,
+        defaultCard?.accountData,
+        privateStripeCustomerID,
+        purchaseList,
+    ]);
 
     const handleRetryPayment = () => {
         clearOutstandingBalance();
