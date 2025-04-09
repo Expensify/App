@@ -126,19 +126,6 @@ async function run() {
 
     // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
     await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion), updateConfigJSON(newVersion)]);
-
-    // TODO: Move nativeVersionUpdater directly into this file to simplify, avoid having to export paths
-    // TODO: Commit the new version in the Mobile-Expensify submodule
-    await exec('cd Mobile-Expensify');
-    await exec('git checkout main'); // IMPORTANT to avoid detached HEAD state
-
-    // TODO: Commit the new E/App version
-
-    // TODO: Update Mobile-Expensify submodule in E/App
-
-    // TODO: Add rebase and retry after push
-
-    // TODO: If either push fails after retry, rollback any pushes that succeeded.
 }
 
 if (require.main === module) {
