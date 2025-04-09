@@ -17,7 +17,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: RNEF Remote Build - Android
-        uses: callstackincubator/android@v1
+        uses: callstackincubator/android@a49920aadab9f41951944ea52bb7983fa6b20b03
         with:
           variant: developmentDebug
           github-token: ${{ secrets.GITHUB_TOKEN }}

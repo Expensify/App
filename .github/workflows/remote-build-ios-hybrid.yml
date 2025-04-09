@@ -21,7 +21,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
 
       - name: RNEF Remote Build - iOS
-        uses: callstackincubator/ios@v1
+        uses: callstackincubator/ios@4c2dcc0d6b9c35407cf294e17386b65258a3b6af
         env:
           PROJECT_ROOT_PATH: "Mobile-Expensify/"
         with:
