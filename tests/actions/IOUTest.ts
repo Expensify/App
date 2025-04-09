@@ -5104,120 +5104,79 @@ describe('actions/IOU', () => {
         };
         const fakePolicy: Policy = {
             ...createRandomPolicy(1),
-            type: 'team',
+            type: CONST.POLICY.TYPE.TEAM,
             outputCurrency: 'USD',
         };
         const fakePersonalPolicy: Policy = {
             ...createRandomPolicy(2),
-            type: 'personal',
+            type: CONST.POLICY.TYPE.PERSONAL,
             outputCurrency: 'NZD',
         };
+        const transactionResult: Transaction = {
+            amount: 0,
+            comment: {
+                attendees: [
+                    {
+                        email: 'rory@expensifail.com',
+                        login: 'rory@expensifail.com',
+                        accountID: 3,
+                        text: 'rory@expensifail.com',
+                        selected: true,
+                        reportID: '0',
+                        avatarUrl: '',
+                        displayName: '',
+                    },
+                ],
+            },
+            created: '2025-04-01',
+            currency: 'USD',
+            iouRequestType: 'manual',
+            reportID: fakeReport.reportID,
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            isFromGlobalCreate: true,
+            merchant: '(none)',
+            splitPayerAccountIDs: [3],
+        };
         beforeEach(async () => {
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`, null);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
             await Onyx.merge(`${ONYXKEYS.CURRENT_DATE}`, '2025-04-01');
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}0`, fakeReport);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, fakePolicy);
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}2`, fakePersonalPolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePersonalPolicy.id}`, fakePersonalPolicy);
             return waitForBatchedUpdates();
         });
 
-        it('should merge transaction draft onyx value', () => {
-            return waitForBatchedUpdates()
+        it('should merge transaction draft onyx value', async () => {
+            await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest('0', fakePolicy, true, undefined, 'manual');
+                    initMoneyRequest(fakeReport.reportID, fakePolicy, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
                 })
                 .then(async () => {
-                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`)).toStrictEqual({
-                        amount: 0,
-                        comment: {
-                            attendees: [
-                                {
-                                    email: 'rory@expensifail.com',
-                                    login: 'rory@expensifail.com',
-                                    accountID: 3,
-                                    text: 'rory@expensifail.com',
-                                    selected: true,
-                                    reportID: '0',
-                                    avatarUrl: '',
-                                    displayName: '',
-                                },
-                            ],
-                        },
-                        created: '2025-04-01',
-                        currency: 'USD',
-                        iouRequestType: 'manual',
-                        reportID: '0',
-                        transactionID: '1',
-                        isFromGlobalCreate: true,
-                        merchant: '(none)',
-                        splitPayerAccountIDs: [3],
-                    });
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
                 });
         });
 
-        it('should modify transaction draft when currentIouRequestType is different', () => {
-            return waitForBatchedUpdates()
+        it('should modify transaction draft when currentIouRequestType is different', async () => {
+            await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest('0', fakePolicy, true, 'manual', 'scan');
+                    return initMoneyRequest(fakeReport.reportID, fakePolicy, true, CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.REQUEST_TYPE.SCAN);
                 })
                 .then(async () => {
-                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`)).toStrictEqual({
-                        amount: 0,
-                        comment: {
-                            attendees: [
-                                {
-                                    email: 'rory@expensifail.com',
-                                    login: 'rory@expensifail.com',
-                                    accountID: 3,
-                                    text: 'rory@expensifail.com',
-                                    selected: true,
-                                    reportID: '0',
-                                    avatarUrl: '',
-                                    displayName: '',
-                                },
-                            ],
-                        },
-                        created: '2025-04-01',
-                        currency: 'USD',
-                        iouRequestType: 'scan',
-                        reportID: '0',
-                        transactionID: '1',
-                        isFromGlobalCreate: true,
-                        merchant: '(none)',
-                        splitPayerAccountIDs: [3],
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
+                        ...transactionResult,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
                     });
                 });
         });
-        it('should return personal currency when policy is missing', () => {
-            return waitForBatchedUpdates()
+        it('should return personal currency when policy is missing', async () => {
+            await waitForBatchedUpdates()
                 .then(() => {
-                    return initMoneyRequest('0', undefined, true, undefined, 'manual');
+                    return initMoneyRequest(fakeReport.reportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
                 })
                 .then(async () => {
-                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}1`)).toStrictEqual({
-                        amount: 0,
-                        comment: {
-                            attendees: [
-                                {
-                                    email: 'rory@expensifail.com',
-                                    login: 'rory@expensifail.com',
-                                    accountID: 3,
-                                    text: 'rory@expensifail.com',
-                                    selected: true,
-                                    reportID: '0',
-                                    avatarUrl: '',
-                                    displayName: '',
-                                },
-                            ],
-                        },
-                        created: '2025-04-01',
-                        currency: 'NZD',
-                        iouRequestType: 'manual',
-                        reportID: '0',
-                        transactionID: '1',
-                        isFromGlobalCreate: true,
-                        merchant: '(none)',
-                        splitPayerAccountIDs: [3],
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
+                        ...transactionResult,
+                        currency: fakePersonalPolicy.outputCurrency,
                     });
                 });
         });
