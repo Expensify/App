@@ -13,7 +13,7 @@ else
     PACKAGE="react-standalone"
 fi
 
-MAVEN_METADATA_URL="https://maven.pkg.github.com/mateuuszzzzz/App/com/example/${PACKAGE}/react-android/maven-metadata.xml"
+MAVEN_METADATA_URL="https://maven.pkg.github.com/Expensify/App/com/example/${PACKAGE}/react-android/maven-metadata.xml"
 
 VERSIONS_FROM_MAVEN_REPOSITORY=$(curl -s -H "Authorization: Bearer ${GITHUB_TOKEN}" \
     "$MAVEN_METADATA_URL" | \
