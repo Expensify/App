@@ -303,7 +303,7 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        if (transaction?.isFromGlobalCreate) {
+        if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -322,14 +322,15 @@ function IOURequestStepConfirmation({
     }, [
         action,
         isPerDiemRequest,
-        transaction?.participantsAutoAssigned,
         transaction?.isFromGlobalCreate,
+        transaction?.receipt?.isTestReceipt,
+        transaction?.participantsAutoAssigned,
         transaction?.reportID,
-        participantsAutoAssignedFromRoute,
         requestType,
         iouType,
         transactionID,
         reportID,
+        participantsAutoAssignedFromRoute,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
@@ -350,7 +351,12 @@ function IOURequestStepConfirmation({
 
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
-            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (transaction?.receipt?.isTestReceipt) {
+                receipt.isTestReceipt = true;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+            } else {
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            }
 
             setReceiptFile(receipt);
         };
@@ -368,6 +374,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const isTestReceipt = receiptObj?.isTestReceipt ?? false;
             requestMoneyIOUActions({
                 report,
                 participantParams: {
@@ -383,11 +390,11 @@ function IOURequestStepConfirmation({
                 gpsPoints,
                 action,
                 transactionParams: {
-                    amount: transaction.amount,
-                    attendees: transaction.attendees,
-                    currency: transaction.currency,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
+                    attendees: transaction.comment?.attendees,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     created: transaction.created,
-                    merchant: transaction.merchant,
+                    merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : transaction.merchant,
                     comment: trimmedComment,
                     receipt: receiptObj,
                     category: transaction.category,
@@ -927,7 +934,7 @@ function IOURequestStepConfirmation({
                         transaction={transaction}
                         selectedParticipants={participants}
                         iouAmount={Math.abs(transaction?.amount ?? 0)}
-                        iouAttendees={transaction?.attendees ?? []}
+                        iouAttendees={transaction?.comment?.attendees ?? []}
                         iouComment={transaction?.comment?.comment ?? ''}
                         iouCurrencyCode={transaction?.currency}
                         iouIsBillable={transaction?.billable}
@@ -939,6 +946,7 @@ function IOURequestStepConfirmation({
                         receiptFilename={receiptFilename}
                         iouType={iouType}
                         reportID={reportID}
+                        shouldDisplayReceipt={!isMovingTransactionFromTrackExpense && !isDistanceRequest && !isPerDiemRequest}
                         isPolicyExpenseChat={isPolicyExpenseChat}
                         policyID={getIOURequestPolicyID(transaction, report)}
                         bankAccountRoute={getBankAccountRoute(report)}
@@ -952,6 +960,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
+                        isReceiptEditable
                     />
                 </View>
             </DragAndDropProvider>

@@ -116,7 +116,6 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldIgnoreFocus = false,
         scrollEventThrottle,
         contentContainerStyle,
-        shouldHighlightSelectedItem = false,
         shouldKeepFocusedItemAtTopOfViewableArea = false,
         shouldDebounceScrolling = false,
         shouldPreventActiveCellVirtualization = false,
@@ -129,6 +128,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+        errorText,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -575,7 +575,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     shouldSyncFocus={!isTextInputFocusedRef.current && hasKeyBeenPressed.current}
                     wrapperStyle={listItemWrapperStyle}
                     titleStyles={listItemTitleStyles}
-                    shouldHighlightSelectedItem={shouldHighlightSelectedItem}
                     singleExecution={singleExecution}
                     titleContainerStyles={listItemTitleContainerStyles}
                 />
@@ -630,6 +629,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                    errorText={errorText}
                 />
             </View>
         );
