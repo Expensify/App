@@ -58,7 +58,7 @@ const test = (config: NativeConfig) => {
             .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
-                    name: `${name} - Open Submit`,
+                    name: `${name} - Open Create`,
                     metric: entry.duration,
                     unit: 'ms',
                 });
