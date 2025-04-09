@@ -2091,11 +2091,11 @@ const translations = {
 
             let timeText = '';
             if (timeParts.length === 1) {
-                timeText = timeParts[0];
+                timeText = timeParts.at(0) ?? '';
             } else if (timeParts.length === 2) {
-                timeText = `${timeParts[0]} y ${timeParts[1]}`;
+                timeText = `${timeParts.at(0)} y ${timeParts.at(1)}`;
             } else if (timeParts.length === 3) {
-                timeText = `${timeParts[0]}, ${timeParts[1]} y ${timeParts[2]}`;
+                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, y ${timeParts.at(2)}`;
             }
 
             return `¡Un momento! Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;

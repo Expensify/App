@@ -2087,11 +2087,11 @@ const translations = {
 
             let timeText = '';
             if (timeParts.length === 1) {
-                timeText = timeParts[0];
+                timeText = timeParts.at(0) ?? '';
             } else if (timeParts.length === 2) {
-                timeText = `${timeParts[0]} and ${timeParts[1]}`;
+                timeText = `${timeParts.at(0)} and ${timeParts.at(1)}`;
             } else if (timeParts.length === 3) {
-                timeText = `${timeParts[0]}, ${timeParts[1]}, and ${timeParts[2]}`;
+                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
             }
 
             return `Hold tight! You need to wait ${timeText} before trying to validate your number again.`;
