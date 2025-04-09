@@ -274,6 +274,7 @@ export default {
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
     bottomTabInboxTooltipShiftHorizontal: 36,
+    expenseReportsTypeTooltipShiftHorizontal: 10,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
