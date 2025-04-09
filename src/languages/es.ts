@@ -6623,6 +6623,18 @@ const translations = {
             tryItOut: 'Prueba esto',
             noThanks: 'No, gracias',
         },
+        outstandingFilter: {
+            part1: 'Filter for expenses that ',
+            part2: 'need approval',
+        },
+        settingsTab: {
+            part1: 'Explore your ',
+            part2: 'workspace and account settings',
+        },
+        workspacesSettings: {
+            part1: 'Explore your ',
+            part2: 'workspaces',
+        },
     },
     discardChangesConfirmation: {
         title: '¿Descartar cambios?',
