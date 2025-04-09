@@ -81,7 +81,7 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             .map((name) => ({
                 name,
                 priority: TOOLTIPS[name]?.priority ?? 0,
-            })), (a, b) => a.priority - b.priority);
+            })), (a, b) => b.priority - a.priority);
 
         if (!highestPriorityTooltip) {
             return null;
