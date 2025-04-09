@@ -34,29 +34,33 @@ If you haven't already, follow the instructions to [connect a U.S. business bank
 4. Ensure the reimbursement method is set to **Direct** and select the correct U.S. bank account.
 5. Go to **Settings > Account > Wallet**.
 6. Click **Enable global reimbursement** next to the connected U.S. bank account.
-7. Complete the Global Reimbursement DocuSign form.
-8. **Upload required documents:**
-   - Address Verification Document (e.g., utility bill, lease agreement)
-   - Bank Statement for Direct Debit Setup
-9. Our Compliance Team will review your form and contact you if additional information is required.
-10. Once the review is complete, our support team will send a message confirming.
 
 ---
 
-# Step 3: Confirm Test Transactions
+# Step 3: Complete the DocuSign Form and Submit Documents  
+1. Complete the Global Reimbursement DocuSign form.
+2. **Upload required documents:**
+   - Address Verification Document (e.g., utility bill, lease agreement)
+   - Bank Statement for Direct Debit Setup
+3. Our Compliance Team will review your form and contact you if additional information is required.
+4. Once the review is complete, our support team will send a message confirming.
+
+---
+
+# Step 4: Confirm Test Transactions
 1. **Expensify will send test deposits to the provided bank account:** Once those are sent, our support team will ask you to verify the deposit amounts.
 2. Once the test deposit amounts are confirmed, the bank account is verified to use for global reimbursement.
 
 ---
 
-# Step 4: Start Reimbursing Internationally
+# Step 5: Start Reimbursing Internationally
 
 ⏳**Timeline:** The account is typically set up to issue global reimbursements within two business days after onboarding is complete and the bank account is verified.
 
 Once your U.S. bank account is verified for global reimbursements:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Select the verified bank account as the default reimbursement bank account.
-3. Ask your employees to:
+3. Instruct employees to connect their deposit account::
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** to enter their deposit account details.
 
@@ -73,7 +77,7 @@ It usually takes a few business days, depending on the completeness of the DocuS
 ## Who is the "Authorized User" on the DocuSign form?
 This is the person who manages reimbursements and bank setup in Expensify.
 
-## Why can't my employee add a non-USD bank account?
+## Why can't my employee add a non-USD deposit account?
 Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
 
 </div>

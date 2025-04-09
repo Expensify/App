@@ -48,15 +48,21 @@ If your business operates in Singapore, you can enable global reimbursements to 
 
 ---
 
-# Step 3: Begin Global Reimbursements
+# Step 3: Confirm Test Payment
+1. **Expensify will send a test payment to the bank account:** Once sent, our support team will ask you to verify the payment amount.
+2. Once the test payment is confirmed, the bank account is verified to use for global reimbursement.
+
+---
+
+# Step 4: Start Reimbursing Internationally
+**Timeline:** ⏳ From the time you submit all requested documentation, it can take up to **3 weeks**. We recommend pre-funding your account during this time to prevent reimbursement delays.
+
 Once the bank account is approved for global reimbursement:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Set the verified SGD bank account as the default reimbursement method.
-3. Employees must:
+3.  Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** to input their non-SGD account info.
-
-**Direct Debit Timeline:** ⏳ Can take up to **3 weeks**. We recommend pre-funding your account during this time to prevent delays.
 
 ---
 

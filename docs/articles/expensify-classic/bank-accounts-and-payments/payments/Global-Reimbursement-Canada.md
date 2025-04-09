@@ -34,7 +34,7 @@ If your business bank account is based in Canada, you can send global reimbursem
 
 ---
 
-# Step 2: Verify for Global Reimbursement
+# Step 2: Complete the DocuSign Form and Submit Documents
 1. Complete the Global Reimbursement DocuSign form.
 2. **Upload required documents:**
    - Voided check
@@ -58,7 +58,7 @@ If your business bank account is based in Canada, you can send global reimbursem
 After the account is verified:
 1. Go to **Settings > Workspaces > [Workspace Name] > Reimbursements**.
 2. Select the verified Canadian account as the default reimbursement method.
-3. Ask your employees to:
+3. Instruct employees to connect their deposit account:
    - Go to **Settings > Account > Wallet**.
    - Click **Add deposit-only bank account** and enter their deposit account details.
 

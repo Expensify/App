@@ -22,12 +22,12 @@ To get started, you can just select from the instructions below. Setup steps var
 # Choose Your Location
 
 **Select the currency of your company's business bank account and where your company is located to get started:**
-- 🇺🇸 Global Reimbursements - U.S.
-- 🇨🇦 Global Reimbursements - Canada
-- 🇬🇧 Global Reimbursements - United Kingdom
-- 🇪🇺 Global Reimbursements - Europe
-- 🇦🇺 Global Reimbursements - Australia
-- 🇸🇬 Global Reimbursements - Singapore
+- 🇺🇸 [Global Reimbursements - U.S.](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-US)
+- 🇨🇦 [Global Reimbursements - Canada](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Canada)
+- 🇬🇧 [Global Reimbursements - United Kingdom](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-UK)
+- 🇪🇺 [Global Reimbursements - Europe](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-EU)
+- 🇦🇺 [Global Reimbursements - Australia](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Australia)
+- 🇸🇬 [Global Reimbursements - Singapore](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Singapore)
 
 ---
 
@@ -41,14 +41,15 @@ Global reimbursement allows companies to send payments to employees in different
 
 # Requirements
 
-| Country         | Required Documents                                                                 | Direct Debit Setup Time             | Special Requirements |
-|----------------|--------------------------------------------------------------------------------------|-------------------------------------|---------------------
-| **U.S.**        | Partner form, address verification, bank statement                                 | ⏳ 1-2 business days post-verification| None |
-| **Canada**      | Partner form, address verification, bank statement, proof of beneficial ownership  | ⏳ 1-2 business days post-verification | None |
-| **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 weeks post-verification| None|
-| **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ 1-2 weeks post-verification | <br>🇮🇹 **Italy:** Requires Tax ID<br>🇪🇸 **Spain:** No driver's license as ID |
-| **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 business days post-verification | None |
-| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, M&A, certified ID copies | ⏳ ~3 weeks post-verification | <br>💡Pre-funding recommended |
+| Country         | Required Documents                                                                 | Direct Debit Setup Time             | Special Requirements | Test Debits Sent |
+|----------------|--------------------------------------------------------------------------------------|-------------------------------------|----------------------|------------------|
+| **U.S.**        | Partner form, address verification, bank statement                                 | ⏳ 1-2 business days post-verification | None                | Yes              |
+| **Canada**      | Partner form, address verification, bank statement, proof of beneficial ownership  | ⏳ 1-2 business days post-verification | None              | Yes              |
+| **UK**          | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 weeks post-verification | None                | Yes              |
+| **EU**          | Partner form, address verification, bank statement, proof of beneficial ownership, certified ID copies | ⏳ 1-2 weeks post-verification | <br>🇮🇹 **Italy:** Requires Tax ID<br>🇪🇸 **Spain:** No driver's license as ID | Yes              |
+| **Australia**   | Partner form, address verification, bank statement, proof of beneficial ownership, ID for signatories | ⏳ 1-2 business days post-verification | None              | Yes              |
+| **Singapore**   | Partner form, address verification, proof of beneficial ownership, board resolution, memorandum & articles (M&A), certified ID copies | ⏳ ~3 weeks post-verification | <br>💡Pre-funding recommended | Yes               |
+
 
 ---
 
@@ -65,5 +66,8 @@ This is the person who manages reimbursements and bank setup in Expensify.
 
 ## Why can't my employee add a deposit account?
 Make sure your employee's default workspace is set to the one linked to the bank you're using for global payments. They can confirm their default workspace by following [these steps](https://help.expensify.com/articles/expensify-classic/workspaces/Navigate-multiple-workspaces).
+
+## Can I connect my Canadian bank account if the currency of the account is in USD? 
+Yes, since USD is considered a local currency in Canada, you can use a Canadian bank account that uses USD for global reimbursements. 
 
 </div>
