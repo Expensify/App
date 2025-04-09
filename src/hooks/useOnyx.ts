@@ -56,10 +56,11 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
 
     // Create selector function that handles both regular and snapshot data
     const selector = useMemo(() => {
-        if (!selectorProp) {
-            return undefined;
+        if (!selectorProp || !shouldUseSnapshot) {
+            return selectorProp;
         }
-        return (data: OnyxValue<OnyxKey> | undefined) => selectorProp(shouldUseSnapshot ? getKeyData(data as SearchResults, key) : data);
+
+        return (data: OnyxValue<OnyxKey> | undefined) => selectorProp(getKeyData(data as SearchResults, key));
     }, [selectorProp, shouldUseSnapshot, key]);
 
     const onyxOptions: UseOnyxOptions<OnyxKey, OnyxValue<OnyxKey>> = {...optionsWithoutSelector, selector, allowDynamicKey: true};
