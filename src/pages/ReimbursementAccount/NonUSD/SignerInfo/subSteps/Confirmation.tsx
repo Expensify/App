@@ -119,7 +119,7 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             summaryItems={summaryItems}
             showOnfidoLinks={false}
             isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}
-            error={String(Object.values(reimbursementAccount?.errors ?? []).at(0))}
+            error={Object.values(reimbursementAccount?.errors ?? []).at(0) ?? ''}
         />
     );
 }
