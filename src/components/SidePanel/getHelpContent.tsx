@@ -8,7 +8,7 @@ import HelpExpandable from './HelpComponents/HelpExpandable';
 import type {ContentComponent} from './HelpContent/helpContentMap';
 import helpContentMap from './HelpContent/helpContentMap';
 
-function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean, expandedIndex: number, setExpendedIndex: (idx: number) => void): ReactNode {
+function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolean, expandedIndex: number, setExpandedIndex: (idx: number) => void): ReactNode {
     const routeParts = route.split('/');
     const helpContentComponents: ContentComponent[] = [];
     let activeHelpContent = helpContentMap;
@@ -39,7 +39,7 @@ function getHelpContent(styles: ThemeStyles, route: string, isProduction: boolea
                     <HelpExpandable
                         styles={styles}
                         isExpanded={index <= expandedIndex}
-                        setIsExpanded={() => setExpendedIndex(index)}
+                        setIsExpanded={() => setExpandedIndex(index)}
                     >
                         <HelpContentNode styles={styles} />
                     </HelpExpandable>

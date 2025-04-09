@@ -30,11 +30,11 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {translate} = useLocalize();
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
-    const [expandedIndex, setExpendedIndex] = useState(0);
+    const [expandedIndex, setExpandedIndex] = useState(0);
 
     const {params, routeName} = useRootNavigationState(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
-        setExpendedIndex(0);
+        setExpandedIndex(0);
 
         return {
             routeName: (focusedRoute?.name ?? '') as Screen,
@@ -95,7 +95,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
                 style={[styles.ph5, styles.pb5]}
                 userSelect="auto"
             >
-                {getHelpContent(styles, route, isProduction, expandedIndex, setExpendedIndex)}
+                {getHelpContent(styles, route, isProduction, expandedIndex, setExpandedIndex)}
             </ScrollView>
         </>
     );
