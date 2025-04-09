@@ -261,6 +261,14 @@ function ProfilePage({route}: ProfilePageProps) {
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        {isCurrentUser && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={translate('common.editYourProfile')}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
+                            />
+                        )}
                         {shouldShowNotificationPreference && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
