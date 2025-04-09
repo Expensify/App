@@ -123,9 +123,6 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Id to use for this button */
     id?: string;
 
-    /** Used to locate this button in ui tests */
-    testID?: string;
-
     /** Accessibility label for the component */
     accessibilityLabel?: string;
 
@@ -146,6 +143,9 @@ type ButtonProps = Partial<ChildrenProps> & {
 
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
+
+    /** The testID of the button. Used to locate this view in end-to-end tests. */
+    testID?: string;
 
     /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
