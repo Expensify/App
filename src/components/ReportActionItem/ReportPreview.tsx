@@ -566,7 +566,6 @@ function ReportPreview({
             <Button
                 text={translate('common.review')}
                 onPress={() => openReportFromPreview()}
-                isDisabled={shouldDisableSubmitButton}
                 icon={Expensicons.DotIndicator}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
@@ -578,7 +577,6 @@ function ReportPreview({
                 onPress={() => {
                     openReportFromPreview();
                 }}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
     };
