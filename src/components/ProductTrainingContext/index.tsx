@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import arrayFirstElement from '@src/utils/arrayFirstElement';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
 
@@ -76,14 +77,11 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
             return null;
         }
 
-        const sortedTooltips = Array.from(activeTooltips)
+        const highestPriorityTooltip = arrayFirstElement(Array.from(activeTooltips)
             .map((name) => ({
                 name,
                 priority: TOOLTIPS[name]?.priority ?? 0,
-            }))
-            .sort((a, b) => b.priority - a.priority);
-
-        const highestPriorityTooltip = sortedTooltips.at(0);
+            })), (a, b) => a.priority - b.priority);
 
         if (!highestPriorityTooltip) {
             return null;

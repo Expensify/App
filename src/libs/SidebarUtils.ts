@@ -12,6 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import arrayLastElement from '@src/utils/arrayLastElelment';
 import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
@@ -39,7 +40,7 @@ import {
     getRenamedAction,
     getReportAction,
     getReportActionMessageText,
-    getSortedReportActions,
+    getSortedReportActionsComparator,
     getUpdateRoomDescriptionMessage,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceCurrencyUpdateMessage,
@@ -143,15 +144,11 @@ Onyx.connect({
         const reportID = extractCollectionItemID(key);
         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
         const canUserPerformWriteAction = canUserPerformWriteActionUtil(report);
-        const actionsArray: ReportAction[] = getSortedReportActions(Object.values(actions));
 
         // The report is only visible if it is the last action not deleted that
         // does not match a closed or created state.
-        const reportActionsForDisplay = actionsArray.filter(
-            (reportAction) => shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) && reportAction.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED,
-        );
+        const reportAction = arrayLastElement(Object.values(actions), getSortedReportActionsComparator, (action) => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction) && action.actionName !== CONST.REPORT.ACTIONS.TYPE.CREATED);
 
-        const reportAction = reportActionsForDisplay.at(-1);
         if (!reportAction) {
             delete visibleReportActionItems[reportID];
             return;

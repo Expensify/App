@@ -1,6 +1,5 @@
 import {fastMerge, Str} from 'expensify-common';
 import clone from 'lodash/clone';
-import lodashFindLast from 'lodash/findLast';
 import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -18,6 +17,8 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arrayFirstElement from '@src/utils/arrayFirstElement';
+import arrayLastElement from '@src/utils/arrayLastElelment';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -423,6 +424,39 @@ function isTransactionThread(parentReportAction: OnyxInputOrEntry<ReportAction>)
 }
 
 /**
+ * Gives the comparator for sorting an array of reportActions by their created timestamp first, and reportActionID second
+ * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
+ */
+function getSortedReportActionsComparator(first: ReportAction, second: ReportAction, shouldSortInDescendingOrder = false): number {
+    const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
+
+    // First sort by action type, ensuring that `CREATED` actions always come first if they have the same or even a later timestamp as another action type
+    if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
+        return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
+    }
+
+    // Ensure that neither first's nor second's created property is undefined
+    if (first.created === undefined || second.created === undefined) {
+        return (first.created === undefined ? -1 : 1) * invertedMultiplier;
+    }
+
+    // Then sort by timestamp
+    if (first.created !== second.created) {
+        return (first.created < second.created ? -1 : 1) * invertedMultiplier;
+    }
+
+    // Ensure that `REPORT_PREVIEW` actions always come after if they have the same timestamp as another action type
+    if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && first.actionName !== second.actionName) {
+        return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 1 : -1) * invertedMultiplier;
+    }
+
+    // Then fallback on reportActionID as the final sorting criteria. It is a random number,
+    // but using this will ensure that the order of reportActions with the same created time and action type
+    // will be consistent across all users and devices
+    return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
+}
+
+/**
  * Sort an array of reportActions by their created timestamp first, and reportActionID second
  * This gives us a stable order even in the case of multiple reportActions created on the same millisecond
  *
@@ -432,34 +466,7 @@ function getSortedReportActions(reportActions: ReportAction[] | null, shouldSort
         throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${typeof reportActions}`);
     }
 
-    const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
-
-    const sortedActions = reportActions?.filter(Boolean).sort((first, second) => {
-        // First sort by action type, ensuring that `CREATED` actions always come first if they have the same or even a later timestamp as another action type
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED || second.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) && first.actionName !== second.actionName) {
-            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED ? -1 : 1) * invertedMultiplier;
-        }
-
-        // Ensure that neither first's nor second's created property is undefined
-        if (first.created === undefined || second.created === undefined) {
-            return (first.created === undefined ? -1 : 1) * invertedMultiplier;
-        }
-
-        // Then sort by timestamp
-        if (first.created !== second.created) {
-            return (first.created < second.created ? -1 : 1) * invertedMultiplier;
-        }
-
-        // Ensure that `REPORT_PREVIEW` actions always come after if they have the same timestamp as another action type
-        if ((first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW || second.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) && first.actionName !== second.actionName) {
-            return (first.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW ? 1 : -1) * invertedMultiplier;
-        }
-
-        // Then fallback on reportActionID as the final sorting criteria. It is a random number,
-        // but using this will ensure that the order of reportActions with the same created time and action type
-        // will be consistent across all users and devices
-        return (first.reportActionID < second.reportActionID ? -1 : 1) * invertedMultiplier;
-    });
+    const sortedActions = reportActions?.filter(Boolean).sort((first, second) => getSortedReportActionsComparator(first, second, shouldSortInDescendingOrder));
 
     return sortedActions;
 }
@@ -542,8 +549,8 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
         return null;
     }
 
-    const sortedReportActions = getSortedReportActions(iouRequestActions);
-    return sortedReportActions.at(-1)?.reportActionID ?? null;
+    const lastsortedReportAction = arrayLastElement(iouRequestActions, getSortedReportActionsComparator);
+    return lastsortedReportAction?.reportActionID ?? null;
 }
 
 /**
@@ -945,11 +952,8 @@ function getLastVisibleAction(
         reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
     }
     const visibleReportActions = reportActions.filter((action): action is ReportAction => shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction));
-    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
-    if (sortedReportActions.length === 0) {
-        return undefined;
-    }
-    return sortedReportActions.at(0);
+    const lastVisibleAction = arrayFirstElement(visibleReportActions, (el1, el2) => getSortedReportActionsComparator(el1, el2, true));
+    return lastVisibleAction;
 }
 
 function formatLastMessageText(lastMessageText: string | undefined) {
@@ -1008,7 +1012,37 @@ function filterOutDeprecatedReportActions(reportActions: OnyxEntry<ReportActions
 }
 
 /**
- * This method returns the report actions that are ready for display in the ReportActionsView.
+ * This method returns the first report action that are ready for display in the ReportActionsView.
+ */
+function getFirstSortedReportActionForDisplay(
+    reportActions: OnyxEntry<ReportActions> | ReportAction[],
+    canUserPerformWriteAction?: boolean,
+    shouldIncludeInvisibleActions = false,
+): ReportAction | null {
+    if (!reportActions) {
+        return null;
+    }
+
+    let filteredReportActions: ReportAction[] = [];
+
+    if (shouldIncludeInvisibleActions) {
+        filteredReportActions = Object.values(reportActions).filter(Boolean);
+    } else {
+        filteredReportActions = Object.entries(reportActions)
+            .filter(([key, reportAction]) => shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction))
+            .map(([, reportAction]) => reportAction);
+    }
+
+    const comparator = (first: ReportAction, second: ReportAction) => {
+        return getSortedReportActionsComparator(first, second, true);
+    }
+
+    const firstReportAction = arrayFirstElement(filteredReportActions, comparator);
+    return firstReportAction ? replaceBaseURLInPolicyChangeLogAction(firstReportAction) : null;
+}
+
+/**
+ * This method returns the last report action that are ready for display in the ReportActionsView.
  * The report actions need to be sorted by created timestamp first, and reportActionID second
  * to ensure they will always be displayed in the same order (in case multiple actions have the same timestamp).
  * This is all handled with getSortedReportActions() which is used by several other methods to keep the code DRY.
@@ -1048,8 +1082,7 @@ function getLastClosedReportAction(reportActions: OnyxEntry<ReportActions>): Ony
     }
 
     const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions);
-    return lodashFindLast(sortedReportActions, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
+    return arrayLastElement(filteredReportActions, getSortedReportActionsComparator, (action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED);
 }
 
 /**
@@ -1079,8 +1112,7 @@ function getLatestReportActionFromOnyxData(onyxData: OnyxUpdate[] | null): NonNu
     }
 
     const reportActions = Object.values((reportActionUpdate.value as ReportActions) ?? {});
-    const sortedReportActions = getSortedReportActions(reportActions);
-    return sortedReportActions.at(-1) ?? null;
+    return arrayLastElement(reportActions, getSortedReportActionsComparator) ?? null;
 }
 
 /**
@@ -2381,7 +2413,9 @@ export {
     getReportActionMessageText,
     getReportActionText,
     getReportPreviewAction,
+    getSortedReportActionsComparator,
     getSortedReportActions,
+    getFirstSortedReportActionForDisplay,
     getSortedReportActionsForDisplay,
     getTextFromHtml,
     getTrackExpenseActionableWhisper,
