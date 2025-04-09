@@ -42,7 +42,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportDetailsNavigatorParamList} from '@libs/Navigation/types';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
-import {getConnectedIntegration, isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
+import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
@@ -95,7 +95,7 @@ import {
     shouldUseFullTitleToDisplay,
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete, unapproveExpenseReport} from '@userActions/IOU';
+import {deleteMoneyRequest, deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete, getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU';
 import {
     clearAvatarErrors,
     clearPolicyRoomNameErrors,
@@ -183,7 +183,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
-    const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
     const [isPDFModalVisible, setIsPDFModalVisible] = useState(false);
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
@@ -242,7 +241,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const participants = useMemo(() => {
         return getParticipantsList(report, personalDetails, shouldOpenRoomMembersPage);
     }, [report, personalDetails, shouldOpenRoomMembersPage]);
-    const connectedIntegration = getConnectedIntegration(policy);
 
     let caseID: CaseID;
     if (isMoneyRequestReport || isInvoiceReport) {
@@ -599,14 +597,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             shouldUseFullTitle
         />
     ) : null;
-
-    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
-    const unapproveWarningText = (
-        <Text>
-            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
-            <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
-        </Text>
-    );
 
     const renderedAvatar = useMemo(() => {
         if (isMoneyRequestReport || isInvoiceReport) {
@@ -967,20 +957,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     danger
                     shouldEnableNewFocusManagement
                     onModalHide={navigateToTargetUrl}
-                />
-                <ConfirmModal
-                    title={translate('iou.unapproveReport')}
-                    isVisible={isUnapproveModalVisible}
-                    danger
-                    confirmText={translate('iou.unapproveReport')}
-                    onConfirm={() => {
-                        setIsUnapproveModalVisible(false);
-                        Navigation.dismissModal();
-                        unapproveExpenseReport(moneyRequestReport);
-                    }}
-                    cancelText={translate('common.cancel')}
-                    onCancel={() => setIsUnapproveModalVisible(false)}
-                    prompt={unapproveWarningText}
                 />
                 <DecisionModal
                     title={translate('common.youAppearToBeOffline')}

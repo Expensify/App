@@ -4,6 +4,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
@@ -149,6 +150,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
@@ -594,6 +596,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     return;
                 }
 
+                if (isExported) {
+                    setIsUnapproveModalVisible(true);
+                    return;
+                }
+
                 unapproveExpenseReport(moneyRequestReport);
             },
         },
@@ -668,6 +675,14 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMoreContentShown = shouldShowNextStep || !!statusBarProps;
+
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
+    const unapproveWarningText = (
+        <Text>
+            <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
+            <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
+        </Text>
+    );
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -772,6 +787,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
+            <ConfirmModal
+                title={translate('iou.unapproveReport')}
+                isVisible={isUnapproveModalVisible}
+                danger
+                confirmText={translate('iou.unapproveReport')}
+                onConfirm={() => {
+                    setIsUnapproveModalVisible(false);
+                    unapproveExpenseReport(moneyRequestReport);
+                }}
+                cancelText={translate('common.cancel')}
+                onCancel={() => setIsUnapproveModalVisible(false)}
+                prompt={unapproveWarningText}
             />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
