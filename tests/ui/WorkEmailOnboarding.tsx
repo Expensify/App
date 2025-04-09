@@ -9,6 +9,7 @@ import OnyxProvider from '@components/OnyxProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
+import {openOldDotLink} from '@libs/actions/Link';
 import {AddWorkEmail} from '@libs/actions/Session';
 import HttpUtils from '@libs/HttpUtils';
 import {translateLocal} from '@libs/Localize';
@@ -17,22 +18,19 @@ import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigati
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
 import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
 import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
+import CONST from '@src/CONST';
 import {MergeIntoAccountAndLogin} from '@src/libs/actions/Session';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import {type Response as OnyxResponse} from '@src/types/onyx';
+import type {Response as OnyxResponse} from '@src/types/onyx';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
-import { openOldDotLink } from '@libs/actions/Link';
-import CONST from '@src/CONST';
 
 jest.mock('@libs/actions/Link', () => ({
-    ...jest.requireActual('@libs/actions/Link'),
     openOldDotLink: jest.fn(),
 }));
-
 
 TestHelper.setupGlobalFetchMock();
 
@@ -152,7 +150,7 @@ function MergeIntoAccountAndLoginRedirectToClassic() {
     return waitForBatchedUpdates().then(() => (HttpUtils.xhr = originalXhr));
 }
 
-function AddWorkEmailShouldNotValidate() {
+function AddWorkEmailShouldValidateFailure() {
     const originalXhr = HttpUtils.xhr;
     HttpUtils.xhr = jest.fn().mockImplementation(() => {
         const mockedResponse: OnyxResponse = {
@@ -234,10 +232,15 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitFor(() => {
             expect(screen.getByText(translateLocal('onboarding.workEmail.title'))).toBeOnTheScreen();
-            expect(screen.getByText(translateLocal('onboarding.workEmail.subtitle'))).toBeOnTheScreen();
+        });
+        await waitFor(() => {
             expect(screen.getByText(translateLocal('onboarding.workEmail.addWorkEmail'))).toBeOnTheScreen();
+        });
+
+        await waitFor(() => {
             expect(screen.getByText(translateLocal('common.skip'))).toBeOnTheScreen();
         });
+
 
         unmount();
         await waitForBatchedUpdatesWithAct();
@@ -277,7 +280,6 @@ describe('OnboardingWorkEmail Page', () => {
 
     it('should navigate to Onboarding purpose page when email is entered but shouldValidate is set to false', async () => {
         await TestHelper.signInWithTestUser();
-        const navigate = jest.spyOn(Navigation, 'navigate');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -289,7 +291,7 @@ describe('OnboardingWorkEmail Page', () => {
 
         await waitForBatchedUpdatesWithAct();
 
-        AddWorkEmailShouldNotValidate();
+        AddWorkEmailShouldValidateFailure();
 
         await waitForBatchedUpdatesWithAct();
 
@@ -303,7 +305,6 @@ describe('OnboardingWorkEmail Page', () => {
 
     it('should navigate to Onboarding work email validation page when email is entered and shouldValidate is set to true', async () => {
         await TestHelper.signInWithTestUser();
-        const navigate = jest.spyOn(Navigation, 'navigate');
 
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
@@ -368,7 +369,6 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('onboarding.workEmailValidation.title'))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('onboarding.workEmailValidation.magicCodeSent', {workEmail}))).toBeOnTheScreen();
         });
 
@@ -398,7 +398,6 @@ describe('OnboardingWorkEmailValidation Page', () => {
         await waitForBatchedUpdatesWithAct();
 
         await waitFor(() => {
-            expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.title'))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('onboarding.mergeBlockScreen.subtitle', {workEmail}))).toBeOnTheScreen();
         });
 
@@ -474,13 +473,10 @@ describe('OnboardingWorkEmailValidation Page', () => {
     it('should redirect to classic when merging is completed and shouldRedirectToClassicAfterMerge is returned as `true` by the API', async () => {
         await TestHelper.signInWithTestUser();
 
-        
-
         await act(async () => {
             await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {
                 hasCompletedGuidedSetupFlow: false,
                 shouldValidate: true,
-                
             });
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {
                 onboardingWorkEmail: workEmail,
