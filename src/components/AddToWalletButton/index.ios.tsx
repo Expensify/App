@@ -1,20 +1,15 @@
-import {AddToWalletButton} from '@expensify/react-native-wallet';
+import {AddToWalletButton as RNAddToWalletButton} from '@expensify/react-native-wallet';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
-import type {ViewStyle} from 'react-native';
 import Text from '@components/Text';
-import type {Card} from '@src/types/onyx';
-import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '..';
+import useLocalize from '@hooks/useLocalize';
+import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+import type AddToWalletButtonProps from './types';
 
-type AddToWalletButtonProps = {
-    card: Card;
-    cardHolderName?: string;
-    buttonStyle?: ViewStyle;
-};
-
-function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButtonProps) {
+function AddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
+    const {translate} = useLocalize();
 
     const checkIfCardIsInWallet = useCallback(() => {
         isCardInWallet(card)
@@ -51,13 +46,13 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     if (isInWallet) {
         return (
             <View style={buttonStyle}>
-                <Text>Card is already in wallet</Text>;
+                <Text>{translate('cardPage.cardAlreadyInWallet')}</Text>;
             </View>
         );
     }
 
     return (
-        <AddToWalletButton
+        <RNAddToWalletButton
             buttonStyle={buttonStyle}
             locale="en"
             onPress={handleOnPress}
@@ -65,5 +60,6 @@ function RNAddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletBut
     );
 }
 
-export default RNAddToWalletButton;
-export type {AddToWalletButtonProps};
+AddToWalletButton.displayName = 'AddToWalletButton';
+
+export default AddToWalletButton;

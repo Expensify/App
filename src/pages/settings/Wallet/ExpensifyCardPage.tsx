@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -25,7 +26,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
-import RNAddToWalletButton from '@libs/Wallet/RNAddToWalletButton/index';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {revealVirtualCardDetails} from '@userActions/Card';
 import {openOldDotLink} from '@userActions/Link';
@@ -285,9 +285,9 @@ function ExpensifyCardPage({
                     </>
                 )}
                 {!!canUseInAppProvisioning && cardToAdd !== undefined && (
-                    <RNAddToWalletButton
+                    <AddToWalletButton
                         card={cardToAdd}
-                        buttonStyle={{alignSelf: 'center'}}
+                        buttonStyle={styles.alignSelfCenter}
                         cardHolderName={displayName}
                     />
                 )}

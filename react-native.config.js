@@ -7,6 +7,9 @@ const config = {
         ios: {sourceDir: iosSourceDir},
         android: {sourceDir: androidSourceDir},
     },
+
+    assets: ['./assets/fonts/native'],
+    dependencies: {},
 };
 
 if (!isHybrid) {
