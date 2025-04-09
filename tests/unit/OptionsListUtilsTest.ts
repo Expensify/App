@@ -180,6 +180,7 @@ describe('OptionsListUtils', () => {
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
+            lastActorAccountID: 2,
         },
         '11': {
             lastReadTime: '2021-01-14 11:25:39.200',
