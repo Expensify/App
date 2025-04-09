@@ -24,8 +24,8 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
     }
 
     const abTestCtaText = (): string => {
-        const availableCTAs = [translate('aiSales.callSupport'), translate('aiSales.getHelp'), translate('aiSales.talkNow'), translate('aiSales.talkWithSales')];
-        return availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkWithSales');
+        const availableCTAs = [translate('aiSales.getHelp'), translate('aiSales.talkToSales'), translate('aiSales.talkToConcierge')];
+        return availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkToSales');
     };
 
     const talkToSalesIcon = () => {

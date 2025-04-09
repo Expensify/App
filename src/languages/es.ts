@@ -6630,10 +6630,9 @@ const translations = {
         confirmText: 'Descartar cambios',
     },
     aiSales: {
-        talkWithSales: 'Habla con ventas',
-        callSupport: 'Llama al soporte',
-        talkNow: 'Habla ahora',
-        getHelp: 'Obtén ayuda',
+        talkToSales: 'Habla con ventas',
+        getHelp: 'Obtener ayuda',
+        talkToConcierge: 'Habla con Concierge',
         hangUp: 'Colgar',
     },
 };
