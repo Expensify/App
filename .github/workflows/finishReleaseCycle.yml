@@ -93,7 +93,7 @@ jobs:
             --label DeployBlockerCash \
             --json number \
             --jq '.[].number' \
-            | xargs -L1 --max-procs=4 gh issue edit "$1" --repo 'Expensify/App' --remove-label DeployBlockerCash
+            | xargs -L1 -I {} --max-procs=4 gh issue edit {} --repo 'Expensify/App' --remove-label DeployBlockerCash
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
