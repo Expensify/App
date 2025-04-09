@@ -425,7 +425,7 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 
 /**
  * @private
- * Organizes data into List Sections for display, for the ReportActionListItemType of Search Results.
+ * Organizes data into List Sections for display, for the TaskListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
  */

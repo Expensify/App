@@ -5110,7 +5110,7 @@ const translations = {
         description: 'Descripción',
         assignee: 'Miembro asignado',
         completed: 'Completada',
-        action: 'Completa',
+        action: 'Completar',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
@@ -5194,7 +5194,7 @@ const translations = {
             link: 'Enlace',
             pinned: 'Fijado',
             unread: 'No leído',
-            completed: 'Completado',
+            completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',

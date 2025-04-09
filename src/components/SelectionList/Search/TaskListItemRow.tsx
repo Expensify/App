@@ -181,7 +181,6 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         />
                     </View>
 
-                    {/* Right Col */}
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
                         <Avatar
                             imageStyles={[styles.alignSelfCenter]}

@@ -495,6 +495,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
+    const shouldShowTableHeader = isLargeScreenWidth && !isChat;
 
     return (
         <SearchList
@@ -507,7 +508,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             canSelectMultiple={canSelectMultiple}
             shouldPreventLongPressRow={isChat}
             SearchTableHeader={
-                !isLargeScreenWidth || type === CONST.SEARCH.DATA_TYPES.CHAT ? undefined : (
+                !shouldShowTableHeader ? undefined : (
                     <SearchTableHeader
                         data={searchResults?.data}
                         metadata={searchResults?.search}

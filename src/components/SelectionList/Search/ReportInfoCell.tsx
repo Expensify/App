@@ -10,11 +10,11 @@ import {getIcons, getReportName, getReportOrDraftReport} from '@libs/ReportUtils
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-type RoomInfoCellProps = {
+type ReportInfoCellProps = {
     reportID: string;
 };
 
-function RoomInfoCell({reportID}: RoomInfoCellProps) {
+function ReportInfoCell({reportID}: ReportInfoCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -28,7 +28,6 @@ function RoomInfoCell({reportID}: RoomInfoCellProps) {
     const policy = getPolicy(report.policyID);
     const reportName = getReportName(report, policy, undefined, undefined);
     const icons = getIcons(report, personalDetails, null, '', -1, policy);
-
     const icon = icons?.at(0);
 
     return (
@@ -55,6 +54,6 @@ function RoomInfoCell({reportID}: RoomInfoCellProps) {
     );
 }
 
-RoomInfoCell.displayName = 'RoomInfoCell';
+ReportInfoCell.displayName = 'ReportInfoCell';
 
-export default RoomInfoCell;
+export default ReportInfoCell;

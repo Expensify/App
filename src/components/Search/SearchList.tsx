@@ -305,23 +305,24 @@ function SearchList(
         [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
     );
 
+    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
+    const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-            {(canSelectMultiple || !!SearchTableHeader) && (
+            {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     {canSelectMultiple && (
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={selectedItemsLength === data.length}
-                            onPress={() => {
-                                onAllCheckboxPress();
-                            }}
+                            onPress={onAllCheckboxPress}
                         />
                     )}
 
                     {SearchTableHeader}
 
-                    {!SearchTableHeader && canSelectMultiple && (
+                    {selectAllButtonVisible && (
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}

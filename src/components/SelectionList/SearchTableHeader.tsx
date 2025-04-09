@@ -177,6 +177,7 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
+            // Don't butt up against the 'select all' checkbox if present
             containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
                 if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
