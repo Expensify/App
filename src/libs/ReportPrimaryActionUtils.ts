@@ -68,6 +68,12 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
 }
 
 function isPayAction(report: Report, policy?: Policy) {
+    const isProcessingReport = isProcessingReportUtils(report);
+
+    if (!isProcessingReport) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
@@ -77,12 +83,6 @@ function isPayAction(report: Report, policy?: Policy) {
 
     if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished) {
         return true;
-    }
-
-    const isProcessingReport = isProcessingReportUtils(report);
-
-    if (!isProcessingReport) {
-        return false;
     }
 
     const isIOUReport = isIOUReportUtils(report);
