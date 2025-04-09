@@ -427,14 +427,14 @@ function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number
 /**
  * Gets count of multi-level required tags of a policy
  */
-function getCountOfMultiLevelRequired(policyTagList: OnyxEntry<PolicyTagLists>): number {
+function getCountOfRequiredTagLists(policyTagList: OnyxEntry<PolicyTagLists>): number {
     if (!policyTagList || typeof policyTagList !== 'object') {
         return 0;
     }
 
     return Object.keys(policyTagList).filter((tagList) => {
         const tagListValue = policyTagList[tagList];
-        return tagListValue && tagListValue.required && getCountOfEnabledTagsOfList(tagListValue.tags) > 0;
+        return tagListValue && getCountOfEnabledTagsOfList(tagListValue.tags) > 0;
     }).length;
 }
 
@@ -1554,7 +1554,7 @@ export {
     isPrefferedExporter,
     isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
-    getCountOfMultiLevelRequired,
+    getCountOfRequiredTagLists,
 };
 
 export type {MemberEmailsToAccountIDs};

@@ -44,7 +44,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    getCountOfMultiLevelRequired,
+    getCountOfRequiredTagLists,
     getCurrentConnectionName,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -94,6 +94,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
+    const countOfRequiredTagLists = getCountOfRequiredTagLists(policyTags);
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
@@ -180,7 +181,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             isOn={isSwitchEnabled}
                             accessibilityLabel={translate('workspace.tags.requiresTag')}
                             onToggle={(newValue: boolean) => {
-                                if (getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && isSwitchEnabled) {
+                                if (countOfRequiredTagLists === 1 && policy?.requiresTag && !newValue) {
                                     setShowCannotDisableLastTagModal(true);
                                     return;
                                 }
@@ -188,7 +189,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                                 updateWorkspaceRequiresTag(newValue, policyTagList.orderWeight);
                             }}
                             disabled={isSwitchDisabled}
-                            showLockIcon={getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && isSwitchEnabled}
+                            showLockIcon={countOfRequiredTagLists === 1 && policy?.requiresTag && isSwitchEnabled}
                         />
                     ),
                 };

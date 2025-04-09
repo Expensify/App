@@ -59,7 +59,7 @@ function CategorySettingsPage({
     const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
-    const shouldPreventDisable = policyCategory?.enabled && policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
+    const shouldPreventDisable = policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -189,7 +189,7 @@ function CategorySettingsPage({
                                             isOn={policyCategory.enabled}
                                             accessibilityLabel={translate('workspace.categories.enableCategory')}
                                             onToggle={updateWorkspaceCategoryEnabled}
-                                            showLockIcon={shouldPreventDisable}
+                                            showLockIcon={policyCategory?.enabled && shouldPreventDisable}
                                         />
                                     </View>
                                 </View>

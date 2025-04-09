@@ -39,7 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
-    getCountOfMultiLevelRequired,
+    getCountOfRequiredTagLists,
     getTagListName,
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
@@ -77,7 +77,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
     const [showCannotDisableLastTagModal, setShowCannotDisableLastTagModal] = useState(false);
-
+    const countOfRequiredTagLists = getCountOfRequiredTagLists(policyTags);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -130,13 +130,13 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             accessibilityLabel={translate('workspace.tags.enableTag')}
                             onToggle={(newValue: boolean) => {
-                                if (getCountOfMultiLevelRequired(policyTags) === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && policy?.requiresTag && tag.enabled) {
+                                if (countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled) {
                                     setShowCannotDisableLastTagModal(true);
                                     return;
                                 }
                                 updateWorkspaceTagEnabled(newValue, tag.name);
                             }}
-                            showLockIcon={getCountOfMultiLevelRequired(policyTags) === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && policy?.requiresTag && tag.enabled}
+                            showLockIcon={countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled}
                         />
                     ),
                 })),
@@ -243,7 +243,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
-                    if (tagsToDisableCount === enabledTagCount && policy?.requiresTag) {
+                    if (tagsToDisableCount === enabledTagCount && currentPolicyTag?.required) {
                         setShowCannotDisableLastTagModal(true);
                         return;
                     }
@@ -337,7 +337,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             switchAccessibilityLabel={translate('common.required')}
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
-                                if (getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && currentPolicyTag?.required) {
+                                if (countOfRequiredTagLists === 1 && policy?.requiresTag && currentPolicyTag?.required) {
                                     setShowCannotDisableLastTagModal(true);
                                     return;
                                 }
@@ -348,7 +348,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
                             onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
-                            showLockIcon={getCountOfMultiLevelRequired(policyTags) === 1 && policy?.requiresTag && currentPolicyTag?.required}
+                            showLockIcon={countOfRequiredTagLists === 1 && policy?.requiresTag && currentPolicyTag?.required}
                         />
                     </View>
                 )}

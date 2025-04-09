@@ -56,7 +56,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const approver = getPersonalDetailByEmail(tagApprover);
     const approverText = approver?.displayName ?? tagApprover;
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
-
+    const shouldPreventDisable = policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1;
     useEffect(() => {
         if (currentPolicyTag?.name === tagName || !currentPolicyTag) {
             return;
@@ -75,7 +75,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        if (policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && !value) {
+        if (shouldPreventDisable && !value) {
             setShowCannotDisableLastTagModal(true);
             return;
         }
@@ -175,7 +175,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     isOn={currentPolicyTag.enabled}
                                     accessibilityLabel={translate('workspace.tags.enableTag')}
                                     onToggle={updateWorkspaceTagEnabled}
-                                    showLockIcon={policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && currentPolicyTag?.enabled}
+                                    showLockIcon={shouldPreventDisable && currentPolicyTag?.enabled}
                                 />
                             </View>
                         </View>
