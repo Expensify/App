@@ -8,7 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar, Phone} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -28,7 +28,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -74,6 +73,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -115,7 +115,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
 
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -220,30 +219,10 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
-    const talkToSalesIcon = () => {
-        if (talkToAISales?.isLoading) {
-            return undefined;
-        }
-        if (talkToAISales?.isTalkingToAISales) {
-            return Close;
-        }
-        return Phone;
-    };
-
     const talkToSalesButton = (
-        <Button
-            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
-            onPress={() => {
-                if (talkToAISales?.isTalkingToAISales) {
-                    stopConnection();
-                    return;
-                }
-
-                initializeOpenAIRealtime(Number(report?.reportID) ?? CONST.DEFAULT_NUMBER_ID);
-            }}
-            style={shouldUseNarrowLayout && [styles.flex1]}
-            icon={talkToSalesIcon()}
-            isLoading={talkToAISales?.isLoading}
+        <TalkToSalesButton
+            reportID={report?.reportID}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 
