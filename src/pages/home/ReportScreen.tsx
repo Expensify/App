@@ -32,7 +32,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -81,7 +81,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
@@ -102,6 +102,8 @@ const defaultReportMetadata = {
     hasLoadingNewerReportActionsError: false,
     isOptimisticReport: false,
 };
+
+const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
 
 /**
  * Check is the report is deleted.
@@ -296,6 +298,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const backTo = route?.params?.backTo as string;
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -313,12 +316,12 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal) {
+        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
             return;
         }
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal]);
+    }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
         <HeaderView
@@ -551,15 +554,24 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             isClosedTopLevelPolicyRoom ||
             (prevDeletedParentAction && !deletedParentAction)
         ) {
+            const currentRoute = navigationRef.getCurrentRoute();
+            const isReportDetailOpenInRHP =
+                isTopMostReportId &&
+                reportDetailScreens.find((r) => r === currentRoute?.name) &&
+                !!currentRoute?.params &&
+                'reportID' in currentRoute.params &&
+                reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if (!isFocused || isInNarrowPaneModal) {
+            if ((!isFocused && !isReportDetailOpenInRHP) || isInNarrowPaneModal) {
                 return;
             }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP(true);
-                Navigation.goBack(undefined, {shouldPopToTop: true});
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.goBack(undefined, {shouldPopToTop: true});
+                });
             }
             if (prevReport?.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
@@ -570,7 +582,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 return;
             }
 
-            navigateToConciergeChat();
+            Navigation.isNavigationReady().then(() => {
+                InteractionManager.runAfterInteractions(() => {
+                    navigateToConciergeChat();
+                });
+            });
             return;
         }
 

@@ -636,6 +636,11 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && policy?.preventSelfApproval) {
+        ruleApprovers.shift();
+    }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
         return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
@@ -1232,6 +1237,10 @@ function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
 
+function getAllPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => !!p);
+}
+
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
@@ -1385,18 +1394,6 @@ function isPreferredExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
-}
-
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1521,6 +1518,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
+    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1536,7 +1534,6 @@ export {
     isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPreferredExporter,
-    isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
 };
 

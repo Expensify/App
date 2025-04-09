@@ -9,10 +9,10 @@ import ConfirmModal from '@components/ConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {savePreferredExportMethod as savePreferredExportMethodAction} from '@libs/actions/Policy/Policy';
+import {savePreferredExportMethod as savePreferredExportMethodUtils} from '@libs/actions/Policy/Policy';
 import {exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
-import {hasIntegrationAutoSync as hasIntegrationAutoSyncUtil} from '@libs/PolicyUtils';
-import {canBeExported as canBeExportedUtil, getIntegrationIcon, isExported as isExportedUtil} from '@libs/ReportUtils';
+import {hasIntegrationAutoSync as hasIntegrationAutoSyncUtils} from '@libs/PolicyUtils';
+import {canBeExported as canBeExportedUtils, getIntegrationIcon, isExported as isExportedUtils} from '@libs/ReportUtils';
 import type {ExportType} from '@pages/home/report/ReportDetailsExportPage';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -52,9 +52,9 @@ function ExportWithDropdownMenu({
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`);
 
     const iconToDisplay = getIntegrationIcon(connectionName);
-    const canBeExported = canBeExportedUtil(report);
-    const isExported = isExportedUtil(reportActions);
-    const hasIntegrationAutoSync = hasIntegrationAutoSyncUtil(policy, connectionName);
+    const canBeExported = canBeExportedUtils(report);
+    const isExported = isExportedUtils(reportActions);
+    const hasIntegrationAutoSync = hasIntegrationAutoSyncUtils(policy, connectionName);
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
 
     const dropdownOptions: Array<DropdownOption<ReportExportType>> = useMemo(() => {
@@ -74,7 +74,7 @@ function ExportWithDropdownMenu({
             },
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.MARK_AS_EXPORTED,
-                text: translate('workspace.common.markAsExported'),
+                text: translate('workspace.common.markAsEntered'),
                 ...optionTemplate,
             },
         ];
@@ -103,7 +103,7 @@ function ExportWithDropdownMenu({
         if (!report?.policyID) {
             return;
         }
-        savePreferredExportMethodAction(report?.policyID, value);
+        savePreferredExportMethodUtils(report?.policyID, value);
     };
 
     return (

@@ -26,18 +26,7 @@ import {
     isPolicyAdmin,
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {
-    getReportOrDraftReport,
-    getReportTransactions,
-    isCurrentUserSubmitter,
-    isOpenExpenseReport,
-    isProcessingReport,
-    isReportApproved,
-    isReportIDApproved,
-    isReportManuallyReimbursed,
-    isSettled,
-    isThread,
-} from '@libs/ReportUtils';
+import {getReportOrDraftReport, getReportTransactions, isCurrentUserSubmitter, isOpenExpenseReport, isProcessingReport, isReportIDApproved, isSettled, isThread} from '@libs/ReportUtils';
 import type {IOURequestType} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
@@ -902,15 +891,6 @@ function shouldShowBrokenConnectionViolationForMultipleTransactions(
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }
 
-function checkIfShouldShowMarkAsCashButton(hasRTERPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
-    if (hasRTERPendingViolation) {
-        return true;
-    }
-    return (
-        shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
-    );
-}
-
 /**
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
@@ -1619,7 +1599,6 @@ export {
     isPerDiemRequest,
     isViolationDismissed,
     isBrokenConnectionViolation,
-    checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
