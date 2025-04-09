@@ -221,18 +221,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [
-        isMultiLevelTags,
-        policyTagLists,
-        selectedTags,
-        canSelectMultiple,
-        translate,
-        updateWorkspaceRequiresTag,
-        updateWorkspaceTagEnabled,
-        policy?.requiresTag,
-        policyTags,
-        countOfRequiredTagLists,
-    ]);
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy?.requiresTag, countOfRequiredTagLists]);
 
     const tagListKeyedByName = useMemo(
         () =>
