@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {SendRecapInAdminsRoomParams} from '@libs/API/parameters';
+import type {GetEmphemeralTokenParams, SendRecapInAdminsRoomParams} from '@libs/API/parameters';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {playStreamSound} from '@libs/Sound';
 import CONST from '@src/CONST';
@@ -51,7 +51,7 @@ function isExpiredToken(expiresAt: number): boolean {
     return currentUTCEpochTime >= expiresAt;
 }
 
-function getEmphemeralToken(): Promise<string> {
+function getEmphemeralToken(adminsChatReportID: number, ctaUsed: string): Promise<string> {
     if (clientSecret && !isExpiredToken(clientSecret.expiresAt)) {
         Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
             isLoading: true,
@@ -71,8 +71,13 @@ function getEmphemeralToken(): Promise<string> {
         ],
     };
 
+    const parameters: GetEmphemeralTokenParams = {
+        adminsChatReportID,
+        ctaUsed,
+    };
+
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, {}, onyxData)
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN, parameters, onyxData)
         .then((response) => {
             Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {
                 clientSecret: {
@@ -101,7 +106,7 @@ function connectUsingSDP(ephemeralToken: string, rtcOffer: RTCSessionDescription
     });
 }
 
-function connectToOpenAIRealtime(): Promise<ConnectionResult> {
+function connectToOpenAIRealtime(adminsChatReportID: number, ctaUsed: string): Promise<ConnectionResult> {
     let peerConnection: RTCPeerConnection;
     let rtcOffer: RTCSessionDescriptionInit;
     let dataChannel: RTCDataChannel;
@@ -165,7 +170,7 @@ function connectToOpenAIRealtime(): Promise<ConnectionResult> {
                 rtcOffer = offer;
             })
             .then(() => {
-                return getEmphemeralToken();
+                return getEmphemeralToken(adminsChatReportID, ctaUsed);
             })
             .then((ephemeralToken: string) => {
                 return connectUsingSDP(ephemeralToken, rtcOffer);
@@ -204,10 +209,14 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
     }
 }
 
-function initializeOpenAIRealtime(adminsReportID: number) {
+function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
+    if (adminsReportID === CONST.DEFAULT_NUMBER_ID || ctaUsed === '') {
+        return;
+    }
+
     currentAdminsReportID = adminsReportID;
 
-    connectToOpenAIRealtime()
+    connectToOpenAIRealtime(adminsReportID, ctaUsed)
         .then((connection: ConnectionResult) => {
             connections.openai = connection;
             Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: true});
