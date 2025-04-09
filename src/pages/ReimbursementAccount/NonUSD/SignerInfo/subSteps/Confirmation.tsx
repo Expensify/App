@@ -118,6 +118,8 @@ function Confirmation({onNext, onMove, isEditing}: ConfirmationProps) {
             pageTitle={translate('signerInfoStep.letsDoubleCheck')}
             summaryItems={summaryItems}
             showOnfidoLinks={false}
+            isLoading={reimbursementAccount?.isSavingCorpayOnboardingDirectorInformation}
+            error={String(Object.values(reimbursementAccount?.errors ?? []).at(0))}
         />
     );
 }
