@@ -78,6 +78,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const isQuickSettingsFlow = !!backTo;
     const [showCannotDisableLastTagModal, setShowCannotDisableLastTagModal] = useState(false);
     const countOfRequiredTagLists = getCountOfRequiredTagLists(policyTags);
+    const countOfEnabledTagsOfList = getCountOfEnabledTagsOfList(currentPolicyTag?.tags);
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
     }, [policyID]);
@@ -130,13 +131,13 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             accessibilityLabel={translate('workspace.tags.enableTag')}
                             onToggle={(newValue: boolean) => {
-                                if (countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled) {
+                                if (countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled && currentPolicyTag?.required) {
                                     setShowCannotDisableLastTagModal(true);
                                     return;
                                 }
                                 updateWorkspaceTagEnabled(newValue, tag.name);
                             }}
-                            showLockIcon={countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled}
+                            showLockIcon={countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled && currentPolicyTag?.required}
                         />
                     ),
                 })),
@@ -243,7 +244,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
-                    if (tagsToDisableCount === enabledTagCount && currentPolicyTag?.required) {
+                    if (tagsToDisableCount === countOfEnabledTagsOfList && currentPolicyTag?.required && currentPolicyTag?.required) {
                         setShowCannotDisableLastTagModal(true);
                         return;
                     }

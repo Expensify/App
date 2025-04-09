@@ -121,7 +121,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
     const isMultiLevelTags = isMultiLevelTagsPolicyUtils(policyTags);
 
-    const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags;
+    const shouldShowDeleteMenuItem = !isThereAnyAccountingConnection && !isMultiLevelTags && !shouldPreventDisable;
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 

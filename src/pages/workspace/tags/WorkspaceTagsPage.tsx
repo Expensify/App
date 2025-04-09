@@ -319,7 +319,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: Expensicons.Trashcan,
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                onSelected: () => setIsDeleteTagsConfirmModalVisible(true),
+                onSelected: () => {
+                    if (selectedTagsArray.length === Object.values(policyTagLists.at(0)?.tags ?? {}).length && policy?.requiresTag) {
+                        setShowCannotDisableLastTagModal(true);
+                        return;
+                    }
+
+                    setIsDeleteTagsConfirmModalVisible(true);
+                },
             });
         }
 

@@ -434,7 +434,7 @@ function getCountOfRequiredTagLists(policyTagList: OnyxEntry<PolicyTagLists>): n
 
     return Object.keys(policyTagList).filter((tagList) => {
         const tagListValue = policyTagList[tagList];
-        return tagListValue && getCountOfEnabledTagsOfList(tagListValue.tags) > 0;
+        return tagListValue && tagListValue?.required;
     }).length;
 }
 
