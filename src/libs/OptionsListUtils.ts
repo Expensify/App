@@ -1599,7 +1599,7 @@ function getValidOptions(
     }: GetOptionsConfig = {},
 ): Options {
     const userHasReportWithManagerMcTest = canShowManagerMcTest && Object.values(options.reports).some((report) => isManagerMcTestReport(report));
-    // If user has a workspace that he doesn't own, it means he was invited to it.
+    // If user has a workspace that he isn't owner, it means he was invited to it.
     const isUserInvitedToWorkspace = Object.values(policies ?? {}).some(
         (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
     );
