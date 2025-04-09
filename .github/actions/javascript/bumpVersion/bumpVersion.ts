@@ -11,9 +11,12 @@ import type {SemverLevel} from '@github/libs/versionUpdater';
 
 const exec = promisify(originalExec);
 
-// Filepath constants (using eval to side-step ncc)
+// Filepath constants
 let PACKAGE_JSON_PATH: string;
 let MOBILE_EXPENSIFY_CONFIG_JSON_PATH: string;
+
+// Note: We are initializing filepath constants with eval to side-step ncc https://github.com/vercel/ncc/issues/390,
+//       which by default will try to bundle the files referenced with path.resolve
 // eslint-disable-next-line no-eval
 eval(`
     const ROOT_DIR = path.resolve(__dirname, '../../../..');
@@ -104,21 +107,38 @@ async function updateConfigJSON(version: string) {
 }
 
 async function run() {
+    // Get and validate SEMVER_LEVEL input
     let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
     if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
         semanticVersionLevel = versionUpdater.SEMANTIC_VERSION_LEVELS.BUILD;
         console.log(`Invalid input for 'SEMVER_LEVEL': ${semanticVersionLevel}`, `Defaulting to: ${semanticVersionLevel}`);
     }
 
+    // Parse the current version from package.json
     const {version: previousVersion} = JSON.parse(await fs.readFile(PACKAGE_JSON_PATH, {encoding: 'utf8'})) as PackageJson;
     if (!previousVersion) {
         core.setFailed('Error: Could not read package.json');
     }
 
+    // Figure out the next version
     const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
+    // Apply the version changes in Android, iOS, and JS config files (E/App and Mobile-Expensify)
     await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion), updateConfigJSON(newVersion)]);
+
+    // TODO: Move nativeVersionUpdater directly into this file to simplify, avoid having to export paths
+    // TODO: Commit the new version in the Mobile-Expensify submodule
+    await exec('cd Mobile-Expensify');
+    await exec('git checkout main'); // IMPORTANT to avoid detached HEAD state
+
+    // TODO: Commit the new E/App version
+
+    // TODO: Update Mobile-Expensify submodule in E/App
+
+    // TODO: Add rebase and retry after push
+
+    // TODO: If either push fails after retry, rollback any pushes that succeeded.
 }
 
 if (require.main === module) {
