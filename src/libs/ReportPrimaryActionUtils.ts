@@ -14,7 +14,10 @@ import {
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
+    getMoneyRequestSpendBreakdown,
     getParentReport,
+    getReportNameValuePairs,
+    isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -55,6 +58,13 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
         return false;
     }
 
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
+
     const isOneExpenseReport = isExpenseReport && reportTransactions.length === 1;
     const isReportOnHold = reportTransactions.some(isOnHoldTransactionUtils);
     const isProcessingReport = isProcessingReportUtils(report);
@@ -73,13 +83,24 @@ function isPayAction(report: Report, policy?: Policy) {
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
-    const isReportFinished = isReportApproved || isReportClosed;
+    const isProcessingReport = isProcessingReportUtils(report);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished) {
-        return true;
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
+
+    const isReportFinished = isReportApproved || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+
+    if (isChatReportArchived) {
+        return false;
     }
 
-    const isProcessingReport = isProcessingReportUtils(report);
+    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
+        return true;
+    }
 
     if (!isProcessingReport) {
         return false;

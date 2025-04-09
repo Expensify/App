@@ -329,11 +329,12 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
 
     // This should be removed when is merged https://github.com/Expensify/App/pull/58020
     const isSingleTransaction = reportTransactions.length === 1;
 
-    if (!isExpenseReport || !isSingleTransaction) {
+    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction) {
         return false;
     }
 

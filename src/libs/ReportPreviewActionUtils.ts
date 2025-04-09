@@ -6,8 +6,10 @@ import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
+    getReportNameValuePairs,
     getReportTransactions,
     hasViolations as hasAnyViolations,
+    isArchivedReport,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -53,9 +55,17 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isInvoice = isInvoiceReport(report);
     const isIOU = isIOUReport(report);
 
+    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+
     if (!isReportPayer) {
         return false;
     }
+
+    if (isChatReportArchived) {
+        return false;
+    }
+
     return (isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing);
 }
 
