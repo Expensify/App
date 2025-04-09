@@ -12,13 +12,13 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
+import {getActiveAdminWorkspaces} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {ProductTrainingTooltipName} from './TOOLTIPS';
 import TOOLTIPS from './TOOLTIPS';
-import { getActiveAdminWorkspaces } from '@libs/PolicyUtils';
 
 type ProductTrainingContextType = {
     shouldRenderTooltip: (tooltipName: ProductTrainingTooltipName) => boolean;
@@ -139,7 +139,16 @@ function ProductTrainingContextProvider({children}: ChildrenProps) {
                 isUserPolicyAdmin,
             });
         },
-        [dismissedProductTraining, hasBeenAddedToNudgeMigration, isOnboardingCompleted, isOnboardingCompletedMetadata, shouldUseNarrowLayout, isModalVisible, isLoadingApp, isUserPolicyAdmin],
+        [
+            dismissedProductTraining,
+            hasBeenAddedToNudgeMigration,
+            isOnboardingCompleted,
+            isOnboardingCompletedMetadata,
+            shouldUseNarrowLayout,
+            isModalVisible,
+            isLoadingApp,
+            isUserPolicyAdmin,
+        ],
     );
 
     const registerTooltip = useCallback(

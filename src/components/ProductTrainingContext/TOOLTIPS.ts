@@ -151,7 +151,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: WORKSPACES_SETTINGS,
         priority: 1550,
         shouldShow: ({isUserPolicyAdmin}) => isUserPolicyAdmin,
-    },    
+    },
 };
 
 export default TOOLTIPS;
