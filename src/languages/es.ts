@@ -6633,6 +6633,20 @@ const translations = {
         talkWithSales: 'Habla con ventas',
         hangUp: 'Colgar',
     },
+    schdeuledCall: {
+        book: {
+            title: 'Programar una llamada',
+            description: 'Encuentra un horario que funcione para ti.',
+            slots: 'Horarios disponibles para el 20 de febrero de 2025',
+        },
+        confirmation: {
+            title: 'Confirmar llamada',
+            description: 'Asegúrate de que los detalles a continuación sean correctos. Una vez que confirmes la llamada, enviaremos una invitación con más información.',
+            setupSpecialist: 'Tu especialista asignado',
+            meetingLength: 'Duración de la reunión',
+            dateTime: 'Fecha y hora',
+        }
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;

@@ -6112,6 +6112,20 @@ const translations = {
         talkWithSales: 'Talk with sales',
         hangUp: 'Hang up',
     },
+    schdeuledCall:{
+        book: {
+            title: 'Schedule a Call',
+            description: 'Find a time that works for you.',
+            slots: 'Available times for Feb 20, 2025',
+        },
+        confirmation: {
+            title: 'Confirm Call',
+            description: 'Make sure the details below look good to you. Once you confirm the call, we\'ll send an invite with more info.',
+            setupSpecialist: 'Your setup specialist',
+            meetingLength: 'Meeting length',
+            dateTime: 'Date & time',
+        }
+    }
 };
 
 export default translations satisfies TranslationDeepObject<typeof translations>;
