@@ -77,7 +77,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [navigation, firstRenderRoute]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || (!firstRenderRoute.isFocused && reportID !== currentlyPlayingURLReportID)) {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !firstRenderRoute.isFocused) {
             return;
         }
         setIsThumbnail(false);
