@@ -284,6 +284,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
         initializePusher();
+        // Sometimes when we transition from old dot to new dot, the client is not the leader
+        // so we need to initialize the client again
+        if (!isClientTheLeader() && isTransitioning) {
+            init();
+        }
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!CONFIG.IS_HYBRID_APP) {
@@ -299,11 +304,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                             setIsDelegatorFromOldDotIsReady(true);
                         });
                 } else {
-                    // Sometimes when we transition from old dot to new dot, the client is not the leader
-                    // so we need to initialize the client again
-                    if (!isClientTheLeader() && isTransitioning) {
-                        init();
-                    }
                     App.openApp();
                 }
             } else {
