@@ -405,9 +405,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     );
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
-    const shouldShowReceiptEmptyState =
-        isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || isPaidGroupPolicy(report));
-
+    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -576,6 +574,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
                             }}
+                            isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
                         />
                     </OfflineWithFeedback>
