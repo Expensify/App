@@ -5644,12 +5644,20 @@ function getDeletedTransactionMessage(action: ReportAction) {
     return message;
 }
 
+function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return {
+        reportName: report?.reportName ?? '',
+        reportUrl: `${environmentURL}/r/${reportID}`,
+    };
+}
+
 function getMovedTransactionMessage(action: ReportAction) {
     const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
     const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${toReportID}`]?.reportName ?? '';
+    const {reportName, reportUrl} = getReportDetails(toReportID);
     const message = translateLocal('iou.movedTransaction', {
-        reportUrl: `${environmentURL}/r/${toReportID}`,
+        reportUrl,
         reportName,
     });
     return message;
@@ -5658,9 +5666,9 @@ function getMovedTransactionMessage(action: ReportAction) {
 function getUnreportedTransactionMessage(action: ReportAction) {
     const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
     const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
-    const reportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${fromReportID}`]?.reportName ?? '';
+    const {reportName, reportUrl} = getReportDetails(fromReportID);
     const message = translateLocal('iou.unreportedTransaction', {
-        reportUrl: `${environmentURL}/r/${fromReportID}`,
+        reportUrl,
         reportName,
     });
     return message;
