@@ -80,7 +80,7 @@ function IOURequestStartPage({
     );
 
     useEffect(() => {
-        Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE);
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
 
     const navigateBack = () => {

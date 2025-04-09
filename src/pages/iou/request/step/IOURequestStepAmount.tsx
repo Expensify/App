@@ -140,7 +140,7 @@ function IOURequestStepAmount({
     };
 
     const navigateToParticipantPage = () => {
-        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
+        Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
 
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
