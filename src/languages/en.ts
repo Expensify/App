@@ -537,6 +537,7 @@ const translations = {
         rateOutOfPolicy: 'Rate out of policy',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
+        unreported: 'Unreported',
     },
     supportalNoAccess: {
         title: 'Not so fast',
