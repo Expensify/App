@@ -2430,6 +2430,8 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Propietario único',
             OTHER: 'Otra',
         },
+        industryClassification: '¿A qué categoría pertenece el negocio?',
+        industryClassificationCodePlaceholder: 'Buscar código de clasificación industrial',
     },
     requestorStep: {
         headerTitle: 'Información personal',
