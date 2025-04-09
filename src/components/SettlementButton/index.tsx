@@ -8,7 +8,6 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import KYCWall from '@components/KYCWall';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isCurrencySupportedForDirectReimbursement} from '@libs/actions/Policy/Policy';
 import Navigation from '@libs/Navigation/Navigation';
@@ -96,7 +95,6 @@ function SettlementButton({
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const [bankAccountList = {}] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [fundList = {}] = useOnyx(ONYXKEYS.FUND_LIST);
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
     const lastPaymentMethodRef = useRef(lastPaymentMethod);
 
     useEffect(() => {
