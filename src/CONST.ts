@@ -18,7 +18,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
-
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -772,7 +771,9 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
+        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        LEFT_HAND_BAR: 'leftHandBar',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1059,6 +1060,7 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1157,8 +1159,25 @@ const CONST = {
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             REMOVE_HOLD: 'removeHold',
+            MARK_AS_CASH: 'markAsCash',
+        },
+        TRANSACTION_PRIMARY_ACTIONS: {
+            REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+        },
+        REPORT_PREVIEW_ACTIONS: {
+            VIEW: 'view',
+            REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+        },
+        TRANSACTION_SECONDARY_ACTIONS: {
+            HOLD: 'hold',
+            VIEW_DETAILS: 'viewDetails',
+            DELETE: 'delete',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1205,7 +1224,7 @@ const CONST = {
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
-                REIMBURSEMENT_ACH_CANCELLED: 'REIMBURSEMENTACHCANCELLED', // OldDot Action
+                REIMBURSEMENT_ACH_CANCELED: 'REIMBURSEMENTACHCANCELED', // OldDot Action
                 REIMBURSEMENT_ACCOUNT_CHANGED: 'REIMBURSEMENTACCOUNTCHANGED', // OldDot Action
                 REIMBURSEMENT_DELAYED: 'REIMBURSEMENTDELAYED', // OldDot Action
                 REIMBURSEMENT_QUEUED: 'REIMBURSEMENTQUEUED',
@@ -1233,6 +1252,7 @@ const CONST = {
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
+                CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -1325,6 +1345,7 @@ const CONST = {
         },
         CANCEL_PAYMENT_REASONS: {
             ADMIN: 'CANCEL_REASON_ADMIN',
+            USER: 'CANCEL_REASON_USER',
         },
         ACTIONABLE_MENTION_WHISPER_RESOLUTION: {
             INVITE: 'invited',
@@ -1789,6 +1810,7 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -2317,6 +2339,7 @@ const CONST = {
         '_brazil',
         '_bulgaria',
         '_canada',
+        '_chile',
         '_china',
         '_costaRica',
         '_croatia',
@@ -3424,7 +3447,7 @@ const CONST = {
         TIME_STARTS_01: /^01:\d{2} [AP]M$/,
         TIME_FORMAT: /^\d{2}:\d{2} [AP]M$/,
         DATE_TIME_FORMAT: /^\d{2}-\d{2} \d{2}:\d{2} [AP]M$/,
-        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|\?|\\|\|/g,
+        ILLEGAL_FILENAME_CHARACTERS: /\/|<|>|\*|"|:|#|\?|\\|\|/g,
         ENCODE_PERCENT_CHARACTER: /%(25)+/g,
         INVISIBLE_CHARACTERS_GROUPS: /[\p{C}\p{Z}]/gu,
         OTHER_INVISIBLE_CHARACTERS: /[\u3164]/g,
@@ -3545,7 +3568,9 @@ const CONST = {
     TEST_RECEIPT: {
         AMOUNT: 1800,
         CURRENCY: 'USD',
+        MERCHANT: "Taco Todd's",
         FILENAME: 'test_receipt',
+        FILE_TYPE: 'image/png',
     },
 
     AVATAR_CROP_MODAL: {
@@ -4975,6 +5000,19 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MERGE_ACCOUNT_RESULTS: {
+        SUCCESS: 'success',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_SAML_PRIMARY_LOGIN: 'err_saml_primary_login',
+        ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
+        ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        TOO_MANY_ATTEMPTS: 'too_many_attempts',
+        ACCOUNT_UNVALIDATED: 'account_unvalidated',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
@@ -5350,31 +5388,6 @@ const CONST = {
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
                         `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
-                },
-                {
-                    type: 'addExpenseApprovals',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-approvals.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({workspaceMoreFeaturesLink}) => `Add [expense approvals](${workspaceMoreFeaturesLink})`,
-                    description: ({workspaceMoreFeaturesLink}) =>
-                        '*Add expense approvals* to review your team’s spend and keep it under control.\n' +
-                        '\n' +
-                        'Here’s how to add expense approvals:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *More features*.\n' +
-                        '5. Enable *Workflows*.\n' +
-                        '6. Navigate to *Workflows* in the workspace editor.\n' +
-                        '7. Enable *Add approvals*.\n' +
-                        '8. You’ll be set as the expense approver. You can change this to any admin once you invite your team.\n' +
-                        '\n' +
-                        `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
-                        '\n' +
-                        `![Add expense approvals](${CLOUDFRONT_URL}/videos/walkthrough-approvals-v2.mp4)`,
                 },
                 {
                     type: 'inviteTeam',
@@ -6451,7 +6464,6 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
-            POLICY_ID: 'policyID',
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
@@ -6476,6 +6488,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
@@ -6922,6 +6935,10 @@ const CONST = {
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,
+
+    BILLING: {
+        TYPE_FAILED_2018: 'failed_2018',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;

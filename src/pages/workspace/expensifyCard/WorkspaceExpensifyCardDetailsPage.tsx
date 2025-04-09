@@ -14,6 +14,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import useDomainFundID from '@hooks/useDomainFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -29,7 +30,7 @@ import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {deactivateCard as deactivateCard_1, openCardDetailsPage} from '@userActions/Card';
+import {deactivateCard as deactivateCardAction, openCardDetailsPage} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,6 +45,11 @@ type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
     const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const domainFundID = useDomainFundID(policyID);
+
+    // TODO: add logic for choosing between the domain and workspace feed when both available
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const fundID = domainFundID || workspaceAccountID;
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
@@ -54,7 +60,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
     const styles = useThemeStyles();
 
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const isWorkspaceCardRhp = route.name === SCREENS.WORKSPACE.EXPENSIFY_CARD_DETAILS;
     const card = cardsList?.[cardID];
@@ -77,7 +83,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         setIsDeactivateModalVisible(false);
         Navigation.goBack();
         InteractionManager.runAfterInteractions(() => {
-            deactivateCard_1(workspaceAccountID, card);
+            deactivateCardAction(workspaceAccountID, card);
         });
     };
 
@@ -188,7 +194,11 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
                                 onPress={() => {
                                     Navigation.navigate(
                                         ROUTES.SEARCH_ROOT.getRoute({
-                                            query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE, status: CONST.SEARCH.STATUS.EXPENSE.ALL, cardID}),
+                                            query: buildCannedSearchQuery({
+                                                type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                                                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
+                                                cardID,
+                                            }),
                                         }),
                                     );
                                 }}

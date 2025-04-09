@@ -22,7 +22,7 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
-import isReportMessageAttachment from './isReportMessageAttachment';
+import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList, translateLocal} from './Localize';
@@ -349,8 +349,18 @@ function isLeavePolicyAction(reportAction: OnyxEntry<ReportAction>): reportActio
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_POLICY);
 }
 
+function isReimbursementCanceledAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED);
+}
+
 function isReimbursementDeQueuedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED);
+}
+
+function isReimbursementDeQueuedOrCanceledAction(
+    reportAction: OnyxEntry<ReportAction>,
+): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED> {
+    return isReimbursementDeQueuedAction(reportAction) || isReimbursementCanceledAction(reportAction);
 }
 
 function isClosedAction(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CLOSED> {
@@ -790,6 +800,15 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boo
 }
 
 /**
+ * Checks whether an action is concierge category options and resolved.
+ */
+function isResolvedConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const selectedCategory = originalMessage && typeof originalMessage === 'object' && 'selectedCategory' in originalMessage ? originalMessage?.selectedCategory : null;
+    return !!selectedCategory;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -839,6 +858,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+        return false;
+    }
+
+    if (isConciergeCategoryOptions(reportAction) && isResolvedConciergeCategoryOptions(reportAction)) {
         return false;
     }
 
@@ -1379,7 +1402,7 @@ function isOldDotReportAction(action: ReportAction | OldDotReportAction) {
         CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION,
         CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE,
-        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED,
+        CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED,
         CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT,
@@ -1449,7 +1472,7 @@ function getMessageOfOldDotReportAction(oldDotAction: PartialReportAction | OldD
             return translateLocal('report.actions.type.outdatedBankAccount');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE:
             return translateLocal('report.actions.type.reimbursementACHBounce');
-        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED:
+        case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED:
             return translateLocal('report.actions.type.reimbursementACHCancelled');
         case CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED:
             return translateLocal('report.actions.type.reimbursementAccountChanged');
@@ -1607,6 +1630,10 @@ function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<Repo
     return isActionableJoinRequest(reportAction) && getOriginalMessage(reportAction)?.choice === ('' as JoinWorkspaceResolution);
 }
 
+function isConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
+}
+
 function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
     const findPendingRequest = Object.values(getAllReportActions(reportID)).find((reportActionItem) => isActionableJoinRequestPendingReportAction(reportActionItem));
     return findPendingRequest;
@@ -1681,8 +1708,7 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
     if (!reportID || !transactionID) {
         return undefined;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportActions = getAllReportActions(report?.reportID);
+    const reportActions = getAllReportActions(reportID);
 
     return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
 }
@@ -1867,12 +1893,6 @@ function isPolicyChangeLogDeleteMemberMessage(
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
 }
 
-function getWorkspaceNameUpdatedMessage(action: ReportAction) {
-    const {oldName, newName} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_NAME>) ?? {};
-    const message = oldName && newName ? translateLocal('workspaceActions.renamedWorkspaceNameAction', {oldName, newName}) : getReportActionText(action);
-    return message;
-}
-
 function getWorkspaceDescriptionUpdatedMessage(action: ReportAction) {
     const {oldDescription, newDescription} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DESCRIPTION>) ?? {};
     const message =
@@ -1953,7 +1973,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceTagUpdateMessage(action: ReportAction): string {
-    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField} =
+    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
@@ -1970,8 +1990,9 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         });
     }
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && tagListName) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
         return translateLocal('workspaceActions.deleteMultipleTags', {
+            count,
             tagListName,
         });
     }
@@ -2373,6 +2394,8 @@ export {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
+    isConciergeCategoryOptions,
+    isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isChronosOOOListAction,
@@ -2396,7 +2419,9 @@ export {
     isPayAction,
     isPendingRemove,
     isPolicyChangeLogAction,
+    isReimbursementCanceledAction,
     isReimbursementDeQueuedAction,
+    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
     isReportActionAttachment,
@@ -2444,7 +2469,6 @@ export {
     shouldShowAddMissingDetails,
     getWorkspaceCategoryUpdateMessage,
     getWorkspaceUpdateFieldMessage,
-    getWorkspaceNameUpdatedMessage,
     getWorkspaceCurrencyUpdateMessage,
     getWorkspaceFrequencyUpdateMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
