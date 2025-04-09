@@ -56,11 +56,11 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (52.0.28):
+  - Expo (52.0.41):
     - ExpoModulesCore
-  - ExpoAsset (11.0.2):
+  - ExpoAsset (11.0.5):
     - ExpoModulesCore
-  - ExpoFont (13.0.3):
+  - ExpoFont (13.0.4):
     - ExpoModulesCore
   - ExpoImage (2.0.4):
     - ExpoModulesCore
@@ -72,7 +72,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.2.0):
+  - ExpoModulesCore (2.2.3):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -259,6 +259,7 @@ PODS:
   - hermes-engine (0.77.1):
     - hermes-engine/Pre-built (= 0.77.1)
   - hermes-engine/Pre-built (0.77.1)
+  - JitsiWebRTC (124.0.2)
   - libavif/core (0.11.1)
   - libavif/libdav1d (0.11.1):
     - libavif/core
@@ -2041,6 +2042,9 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
+  - react-native-webrtc (124.0.5):
+    - JitsiWebRTC (~> 124.0.0)
+    - React-Core
   - react-native-webview (13.13.1):
     - DoubleConversion
     - glog
@@ -2945,6 +2949,7 @@ DEPENDENCIES:
   - react-native-release-profiler (from `../node_modules/react-native-release-profiler`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - react-native-view-shot (from `../node_modules/react-native-view-shot`)
+  - react-native-webrtc (from `../node_modules/react-native-webrtc`)
   - react-native-webview (from `../node_modules/react-native-webview`)
   - React-nativeconfig (from `../node_modules/react-native/ReactCommon`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
@@ -3024,6 +3029,7 @@ SPEC REPOS:
     - GTMAppAuth
     - GTMSessionFetcher
     - GzipSwift
+    - JitsiWebRTC
     - libavif
     - libdav1d
     - libwebp
@@ -3192,6 +3198,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-safe-area-context"
   react-native-view-shot:
     :path: "../node_modules/react-native-view-shot"
+  react-native-webrtc:
+    :path: "../node_modules/react-native-webrtc"
   react-native-webview:
     :path: "../node_modules/react-native-webview"
   React-nativeconfig:
@@ -3318,12 +3326,12 @@ SPEC CHECKSUMS:
   EXAV: 57ea461614a714b8b8fcc72c6fbc298b8f1ec78b
   EXImageLoader: 759063a65ab016b836f73972d3bb25404888713d
   expensify-react-native-background-task: f180077e77a41952128fdc2c83ce1d980994d125
-  Expo: c124b1c2129e79a181c16c364aec9add939bea24
-  ExpoAsset: 6cc988c426b5fc997859cc0f8f6728d1376bf53f
-  ExpoFont: 8b14db1afebf62e9774613a082e402985f4e747c
+  Expo: 3a8a619381412bbf8537746ec27b485be01c8a1f
+  ExpoAsset: 0687fe05f5d051c4a34dd1f9440bd00858413cfe
+  ExpoFont: 773955186469acc5108ff569712a2d243857475f
   ExpoImage: 3099001359e4414d60addd7c3e00a5d949df41e0
   ExpoImageManipulator: 43c7bb3ecccbe993054d2e9131c8dcbe54f1385b
-  ExpoModulesCore: 602c3b9247a11fd714e37c9c7452cac130b9715f
+  ExpoModulesCore: 99d5de91c92f514765d101d1e4988a5f387995e8
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 79c4b7ec726447eec5f8593379466bd9fde1aa14
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814
@@ -3348,6 +3356,7 @@ SPEC CHECKSUMS:
   GTMSessionFetcher: 5aea5ba6bd522a239e236100971f10cb71b96ab6
   GzipSwift: 893f3e48e597a1a4f62fafcb6514220fcf8287fa
   hermes-engine: ccc24d29d650ea725d582a9a53d57cd417fbdb53
+  JitsiWebRTC: b47805ab5668be38e7ee60e2258f49badfe8e1d0
   libavif: 84bbb62fb232c3018d6f1bab79beea87e35de7b7
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 1786c9f4ff8a279e4dac1e8f385004d5fc253009
@@ -3415,6 +3424,7 @@ SPEC CHECKSUMS:
   react-native-release-profiler: dffea1dd7929bf5cf7da5ad4697dea7d9a062377
   react-native-safe-area-context: b3edb1da341e5e61f865763d9e0b6d3d34706464
   react-native-view-shot: bb169342812ded991a4a0387e7d0b17cb515e62a
+  react-native-webrtc: 0f1c94069ff1eb9d8fb1618c2dc71f73542c8cfa
   react-native-webview: b375842af66a9f0ab979378bdc8b26eeb5d8e3ee
   React-nativeconfig: cb207ebba7cafce30657c7ad9f1587a8f32e4564
   React-NativeModulesApple: 82a8bee52df9f5b378195a500f22be3a6ef0f890
@@ -3478,6 +3488,6 @@ SPEC CHECKSUMS:
   VisionCamera: c95a8ad535f527562be1fb05fb2fd324578e769c
   Yoga: 1fd059161b449018342943b095a6d4e69bcaa719
 
-PODFILE CHECKSUM: e185ffe0937c6bc63c014c3164f1756b549b7af6
+PODFILE CHECKSUM: 7c82525cf111fba4b673ad07e55f2994ea241a32
 
 COCOAPODS: 1.15.2

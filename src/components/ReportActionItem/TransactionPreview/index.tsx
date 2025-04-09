@@ -1,12 +1,13 @@
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo} from 'react';
 import type {GestureResponderEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getOriginalMessage, isMoneyRequestAction as isMoneyRequestActionReportActionsUtils} from '@libs/ReportActionsUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
-import {removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
+import {getTransaction, removeSettledAndApprovedTransactions} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@navigation/types';
@@ -15,17 +16,30 @@ import {clearIOUError} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+import type {Transaction} from '@src/types/onyx';
 import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
 
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>) => {
+    const {originalTransactionID, source} = transaction?.comment ?? {};
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isSplit: false, originalTransaction: transaction};
+    }
+
+    const originalTransaction = getTransaction(originalTransactionID);
+
+    return {isSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
+};
+
 function TransactionPreview(props: TransactionPreviewProps) {
-    const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID} = props;
+    const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID, transactionID: transactionIDFromProps} = props;
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
-    const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null;
+    const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
@@ -55,14 +69,17 @@ function TransactionPreview(props: TransactionPreviewProps) {
         Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
     }, [duplicates, report, route, transaction]);
 
+    const {originalTransaction, isSplit} = getOriginalTransactionIfBillIsSplit(transaction);
+
     return (
         <TransactionPreviewContent
             /* eslint-disable-next-line react/jsx-props-no-spreading */
             {...props}
+            isBillSplit={isSplit}
             chatReport={chatReport}
             personalDetails={personalDetails}
+            transaction={originalTransaction}
             iouReport={iouReport}
-            transaction={transaction}
             violations={violations}
             showContextMenu={showContextMenu}
             offlineWithFeedbackOnClose={offlineWithFeedbackOnClose}
