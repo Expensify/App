@@ -6,7 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import convertToLTR from '@libs/convertToLTR';
 import FontUtils from '@styles/utils/FontUtils';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import * as HTMLEngineUtils from './htmlEngineUtils';
+import {computeEmbeddedMaxWidth, isChildOfTaskTitle} from './htmlEngineUtils';
 import htmlRenderers from './HTMLRenderers';
 
 type BaseHTMLEngineProviderProps = ChildrenProps & {
@@ -83,8 +83,18 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             }),
             strong: HTMLElementModel.fromCustomModel({
                 tagName: 'strong',
-                mixedUAStyles: {whiteSpace: 'pre'},
+                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.strong),
                 contentModel: HTMLContentModel.textual,
+            }),
+            em: HTMLElementModel.fromCustomModel({
+                tagName: 'em',
+                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? styles.taskTitleMenuItemItalic : styles.em),
+                contentModel: HTMLContentModel.textual,
+            }),
+            h1: HTMLElementModel.fromCustomModel({
+                tagName: 'h1',
+                getMixedUAStyles: (tnode) => (isChildOfTaskTitle(tnode as TNode) ? {} : styles.h1),
+                contentModel: HTMLContentModel.block,
             }),
             'mention-user': HTMLElementModel.fromCustomModel({tagName: 'mention-user', contentModel: HTMLContentModel.textual}),
             'mention-report': HTMLElementModel.fromCustomModel({tagName: 'mention-report', contentModel: HTMLContentModel.textual}),
@@ -112,9 +122,9 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 contentModel: HTMLContentModel.block,
                 getMixedUAStyles: (tnode) => {
                     if (tnode.attributes.isemojisonly === undefined) {
-                        return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
+                        return isChildOfTaskTitle(tnode as TNode) ? {} : styles.blockquote;
                     }
-                    return HTMLEngineUtils.isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
+                    return isChildOfTaskTitle(tnode as TNode) ? {} : {...styles.blockquote, ...styles.onlyEmojisTextLineHeight};
                 },
             }),
         }),
@@ -130,6 +140,10 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
             styles.onlyEmojisText,
             styles.onlyEmojisTextLineHeight,
             styles.taskTitleMenuItem,
+            styles.taskTitleMenuItemItalic,
+            styles.em,
+            styles.strong,
+            styles.h1,
             styles.blockquote,
         ],
     );
@@ -157,7 +171,7 @@ function BaseHTMLEngineProvider({textSelectable = false, children, enableExperim
                 defaultTextProps={defaultTextProps}
                 defaultViewProps={defaultViewProps}
                 renderers={htmlRenderers}
-                computeEmbeddedMaxWidth={HTMLEngineUtils.computeEmbeddedMaxWidth}
+                computeEmbeddedMaxWidth={computeEmbeddedMaxWidth}
                 enableExperimentalBRCollapsing={enableExperimentalBRCollapsing}
             >
                 {children}
