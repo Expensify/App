@@ -100,6 +100,7 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 <PDFThumbnail
                     fitPolicy={1}
                     previewSourceURL={source}
+                    style={[styles.br4]}
                     onLoadError={onLoadError}
                     onPassword={() => setIsEncryptedPDF(true)}
                 />

@@ -54,13 +54,17 @@ function ShareRootPage() {
     const handleProcessFiles = useCallback(() => {
         ShareActionHandler.processFiles((processedFiles) => {
             const tempFile = Array.isArray(processedFiles) ? processedFiles.at(0) : (JSON.parse(processedFiles) as ShareTempFile);
+            if (errorTitle) {
+                return;
+            }
             if (!tempFile?.mimeType || !shareFileMimetypes.includes(tempFile?.mimeType)) {
                 setErrorTitle(translate('attachmentPicker.wrongFileType'));
                 setErrorMessage(translate('attachmentPicker.notAllowedExtension'));
                 return;
             }
 
-            if (tempFile?.mimeType && tempFile?.mimeType !== 'txt') {
+            const isImage = /image\/.*/.test(tempFile?.mimeType);
+            if (tempFile?.mimeType && tempFile?.mimeType !== 'txt' && !isImage) {
                 getFileSize(tempFile?.content).then((size) => {
                     if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
                         setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
@@ -74,8 +78,7 @@ function ShareRootPage() {
                 });
             }
 
-            const fileRegexp = /image\/.*/;
-            if (fileRegexp.test(tempFile?.mimeType)) {
+            if (isImage) {
                 const fileObject: FileObject = {name: tempFile.id, uri: tempFile?.content, type: tempFile?.mimeType};
                 validateImageForCorruption(fileObject).catch(() => {
                     setErrorTitle(translate('attachmentPicker.attachmentError'));
@@ -97,7 +100,7 @@ function ShareRootPage() {
                 addTempShareFile(tempFile);
             }
         });
-    }, [receiptFileFormats, shareFileMimetypes, translate]);
+    }, [receiptFileFormats, shareFileMimetypes, translate, errorTitle]);
 
     useEffect(() => {
         const subscription = AppState.addEventListener('change', (nextAppState) => {

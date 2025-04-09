@@ -1,5 +1,5 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -25,12 +25,14 @@ import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import variables from '@styles/variables';
 import UserListItem from '@src/components/SelectionList/UserListItem';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Report as ReportType} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import KeyboardUtils from '@src/utils/keyboard';
+import getFileSize from './getFileSize';
 import {showErrorAlert} from './ShareRootPage';
 
 type ShareDetailsPageProps = StackScreenProps<ShareNavigatorParamList, typeof SCREENS.SHARE.SHARE_DETAILS>;
@@ -46,9 +48,36 @@ function ShareDetailsPage({
     const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
     const isTextShared = currentAttachment?.mimeType === 'txt';
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
+    const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
 
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
+
+    useEffect(() => {
+        if (!currentAttachment?.content || errorTitle) {
+            return;
+        }
+        getFileSize(currentAttachment?.content).then((size) => {
+            if (size > CONST.API_ATTACHMENT_VALIDATIONS.MAX_SIZE) {
+                setErrorTitle(translate('attachmentPicker.attachmentTooLarge'));
+                setErrorMessage(translate('attachmentPicker.sizeExceeded'));
+            }
+
+            if (size < CONST.API_ATTACHMENT_VALIDATIONS.MIN_SIZE) {
+                setErrorTitle(translate('attachmentPicker.attachmentTooSmall'));
+                setErrorMessage(translate('attachmentPicker.sizeNotMet'));
+            }
+        });
+    }, [currentAttachment, errorTitle, translate]);
+
+    useEffect(() => {
+        if (!errorTitle || !errorMessage) {
+            return;
+        }
+
+        showErrorAlert(errorTitle, errorMessage);
+    }, [errorTitle, errorMessage]);
 
     if (isEmptyObject(report)) {
         return <NotFoundPage />;
