@@ -17,14 +17,15 @@ async function updateNativeVersions(version: string) {
 
     // Update Android
     const androidVersionCode = generateAndroidVersionCode(version);
-    updateAndroidVersion(version, androidVersionCode)
-        .then(() => {
-            console.log('Successfully updated Android!');
-        })
-        .catch((err: string | Error) => {
-            console.error('Error updating Android');
+    try {
+        await updateAndroidVersion(version, androidVersionCode);
+        console.log('Successfully updated Android');
+    } catch (err) {
+        console.error('Error updating Android');
+        if (err instanceof Error) {
             core.setFailed(err);
-        });
+        }
+    }
 
     // Update iOS
     try {
