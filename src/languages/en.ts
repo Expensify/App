@@ -6110,6 +6110,9 @@ const translations = {
     },
     aiSales: {
         talkWithSales: 'Talk with sales',
+        callSupport: 'Call support',
+        talkNow: 'Talk now',
+        getHelp: 'Get help',
         hangUp: 'Hang up',
     },
 };

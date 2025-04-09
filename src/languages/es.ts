@@ -6631,6 +6631,9 @@ const translations = {
     },
     aiSales: {
         talkWithSales: 'Habla con ventas',
+        callSupport: 'Llama al soporte',
+        talkNow: 'Habla ahora',
+        getHelp: 'Obtén ayuda',
         hangUp: 'Colgar',
     },
 };
