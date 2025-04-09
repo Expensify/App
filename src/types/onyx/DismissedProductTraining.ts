@@ -9,6 +9,9 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    OUTSANDING_FILTER,
+    SETTINGS_TAB,
+    WORKSPACES_SETTINGS,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 /**
  * This type is used to store the timestamp of when the user dismisses a product training ui elements.
@@ -60,6 +63,20 @@ type DismissedProductTraining = {
      * When user dismisses the test manager on confirmantion page product training tooltip, we store the timestamp here.
      */
     [SCAN_TEST_CONFIRMATION]: string;
+
+    /**
+     * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
+     */
+    [OUTSANDING_FILTER]: string;
+
+    /**
+     * When user dismisses the settings tab product training tooltip, we store the timestamp here.
+     */
+    [SETTINGS_TAB]: string;
+    /**
+     * When user dismisses the workspaces settings product training tooltip, we store the timestamp here.
+     */
+    [WORKSPACES_SETTINGS]: string;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
