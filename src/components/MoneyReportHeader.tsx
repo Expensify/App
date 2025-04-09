@@ -35,7 +35,7 @@ import {
     isArchivedReportWithID,
     isExported as isExportedUtils,
     isInvoiceReport,
-    isPaidGroupPolicy,
+    isProcessingReport,
     isReportOwner,
     navigateToDetailsPage,
     reportTransactionsSelector,
@@ -75,7 +75,6 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import report from '@src/types/onyx/Report';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
@@ -406,7 +405,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction')};
+            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {

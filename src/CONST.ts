@@ -5620,6 +5620,7 @@ const CONST = {
                 COMPANY_TYPE: 5,
                 INCORPORATION_DATE: 6,
                 INCORPORATION_STATE: 7,
+                INCORPORATION_CODE: 8,
             },
             UBO: {
                 LEGAL_NAME: 0,
