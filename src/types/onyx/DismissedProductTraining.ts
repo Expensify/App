@@ -67,7 +67,6 @@ type DismissedProductTraining = {
      */
     [EXPENSE_REPORTS_FILTER]: string;
 
-
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
      */
