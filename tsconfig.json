@@ -21,9 +21,28 @@
             "@pages/*": ["./src/pages/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"]
+            "@userActions/*": ["./src/libs/actions/*"],
+            "expensify-nitro-utils": ["modules/ExpensifyNitroUtils"],
+            "expensify-nitro-utils/*": ["modules/ExpensifyNitroUtils/*"]
         }
     },
-    "include": ["src", "desktop", "web", "website", "docs", "assets", "config", "tests", "jest", "__mocks__", ".github/**/*", ".storybook/**/*", "scripts", "modules"],
+    "include": [
+        "src",
+        "desktop",
+        "web",
+        "website",
+        "docs",
+        "assets",
+        "config",
+        "tests",
+        "jest",
+        "__mocks__",
+        ".github/**/*",
+        ".storybook/**/*",
+        "scripts",
+        "modules",
+        "**/*.nitro/*.ts",
+        "**/*.nitro/*.tsx"
+    ],
     "exclude": ["**/node_modules/*", "**/dist/*", ".github/actions/**/index.js", "**/docs/*"]
 }
