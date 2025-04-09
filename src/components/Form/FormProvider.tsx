@@ -73,6 +73,7 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
 
+    /** Whether to render the submit button above the footer. */
     shouldRenderFooterAboveSubmit?: boolean;
 
     /** Whether the form is loading */

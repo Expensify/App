@@ -31,7 +31,6 @@ function useOnboardingFlowRouter() {
     const isPrivateDomain = isUserOnPrivateDomain();
 
     const [isSingleNewDotEntry, isSingleNewDotEntryMetadata] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
-
     useEffect(() => {
         // This should delay opening the onboarding modal so it does not interfere with the ongoing ReportScreen params changes
         InteractionManager.runAfterInteractions(() => {

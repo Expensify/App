@@ -1099,6 +1099,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
     MERGE_INTO_ACCOUNT_AND_LOGIN: 'MergeIntoAccountAndLogIn',
     GET_EMPHEMERAL_TOKEN: 'GetEmphemeralToken',
+
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
     LOG_OUT: 'LogOut',

@@ -33,8 +33,10 @@ type ValidateCodeActionFormProps = {
     /** Ref for validate code form */
     forwardedRef: ForwardedRef<ValidateCodeFormHandle>;
 
+    /** Whether to show the skip button */
     shouldShowSkipButton?: boolean;
 
+    /** Function to call when the skip button is pressed */
     handleSkipButtonPress?: () => void;
 
     /** Text for submit button */

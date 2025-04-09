@@ -2021,8 +2021,8 @@ const translations = {
             magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Por favor, introduce el código mágico enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
         },
         workEmailValidationError: {
-            publicEmail: 'Please enter a valid work email from a private domain e.g. mitch@company.com',
-            offline: 'We couldn’t add your work email as you appear to be offline',
+            publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
+            offline: 'No pudimos añadir tu correo electrónico laboral porque parece que estás sin conexión.',
         },
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',

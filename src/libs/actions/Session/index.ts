@@ -1353,7 +1353,6 @@ function AddWorkEmail(workEmail: string) {
         },
     ];
 
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
     API.write(
         WRITE_COMMANDS.ADD_WORK_EMAIL,
         {workEmail},
@@ -1436,6 +1435,9 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
             return;
         }
 
+        // When the action is successful, we need to update the new authToken and encryptedAuthToken
+        // This action needs to be synchronous as the user will be logged out due to middleware if old authToken is used
+        // For more information see the slack discussion: https://expensify.slack.com/archives/C08CZDJFJ77/p1742838796040369
         return SequentialQueue.waitForIdle().then(() => {
             if (!response?.authToken || !response?.encryptedAuthToken) {
                 return;

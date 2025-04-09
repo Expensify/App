@@ -77,7 +77,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
-            testID="BaseOnboardingPrivateDomain"
+            testID="BaseOnboardingWorkEmailValidation"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton

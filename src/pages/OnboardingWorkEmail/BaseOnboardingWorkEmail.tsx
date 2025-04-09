@@ -78,7 +78,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
     }, [onboardingValues?.shouldValidate, isVsb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
 
-    const validatePrivateDomain = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
+    const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
         AddWorkEmail(values[INPUT_IDS.ONBOARDING_WORK_EMAIL]);
     }, []);
 
@@ -135,7 +135,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM}
                 validate={validate}
-                onSubmit={validatePrivateDomain}
+                onSubmit={submitWorkEmail}
                 submitButtonText={translate('onboarding.workEmail.addWorkEmail')}
                 enabledWhenOffline
                 submitFlexEnabled

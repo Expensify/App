@@ -127,6 +127,8 @@ function updateOnboardingLastVisitedPath(path: string) {
 function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | undefined) {
     Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
 
+    // We need to have the Onyx values updated before navigating back
+    // Because we navigate based no useEffect logic and we need to clear `shouldValidate` value before going back
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
     });
