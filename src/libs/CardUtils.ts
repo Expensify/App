@@ -616,5 +616,5 @@ export {
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
-    getFundIdFromSettingsKey
+    getFundIdFromSettingsKey,
 };
