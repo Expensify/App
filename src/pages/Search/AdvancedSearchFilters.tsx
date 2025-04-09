@@ -465,6 +465,8 @@ function AdvancedSearchFilters() {
         searchTerm: debouncedSearchTerm,
     });
 
+    const isWorkspaceNameStillPresent = (filterTitle: string | undefined) => workspaces.some((section) => section.data?.some((item) => item.text === filterTitle));
+
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
     const nonPersonalPolicyCategoryIds = Object.values(policies)
         .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
@@ -485,7 +487,6 @@ function AdvancedSearchFilters() {
     const shouldDisplayWorkspaceFilter = useMemo(() => {
         return !(workspaces.length === 0 || workspaces.every((section) => section.data.length === 0));
     }, [workspaces]);
-    debugger;
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
     if (!Object.keys(typeFiltersKeysWithOptionalPolicy).includes(currentType)) {
@@ -579,7 +580,10 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayWorkspaceFilter) {
                             return;
                         }
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
+                        const selectedWorkspaceName = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
+                        if (isWorkspaceNameStillPresent(selectedWorkspaceName)) {
+                            filterTitle = selectedWorkspaceName;
+                        }
                     }
                     return {
                         key,
