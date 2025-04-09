@@ -1,7 +1,6 @@
-/* eslint-disable no-nested-ternary */
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -16,13 +15,12 @@ import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getIOUActionForTransactionID, getOneTransactionThreadReportID, isDeletedParentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
 import ReportFooter from '@pages/home/report/ReportFooter';
-import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
@@ -84,6 +82,20 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
+function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string | undefined, reportActions: OnyxTypes.ReportAction[]) {
+    if (!reportID) {
+        return [];
+    }
+
+    return Object.values(transactions ?? {}).filter((transaction): transaction is OnyxTypes.Transaction => {
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return transaction.reportID === reportID && !isDeletedParentAction(action);
+    });
+}
+
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -96,7 +108,11 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const shouldUseSingleTransactionView = useMemo(() => reportActions.filter((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU).length === 1, [reportActions]);
+
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
+    });
+    const shouldUseSingleTransactionView = transactions.length === 1;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -183,6 +199,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 ) : (
                     <MoneyRequestReportActionsList
                         report={report}
+                        transactions={transactions}
                         reportActions={reportActions}
                         hasOlderActions={hasOlderActions}
                         hasNewerActions={hasNewerActions}
