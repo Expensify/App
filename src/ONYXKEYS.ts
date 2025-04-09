@@ -497,6 +497,8 @@ const ONYXKEYS = {
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
 
+    SCHEDULE_CALL_DRAFT: 'scheduleCallDraft',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1112,6 +1114,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.NVP_SIDE_PANE]: OnyxTypes.SidePane;
+    [ONYXKEYS.SCHEDULE_CALL_DRAFT]: OnyxTypes.ScheduleCallDraft,
 };
 
 type OnyxDerivedValuesMapping = {

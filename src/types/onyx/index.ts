@@ -119,6 +119,7 @@ import type WalletOnfido from './WalletOnfido';
 import type WalletStatement from './WalletStatement';
 import type WalletTerms from './WalletTerms';
 import type WalletTransfer from './WalletTransfer';
+import type ScheduleCallDraft from './ScheduleCallDraft';
 
 export type {
     TryNewDot,
@@ -261,4 +262,5 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     TalkToAISales,
+    ScheduleCallDraft,
 };
