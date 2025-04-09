@@ -36,6 +36,7 @@ export type {default as CreateAppReportParams} from './CreateAppReportParams';
 export type {default as GetStatementPDFParams} from './GetStatementPDFParams';
 export type {default as HandleRestrictedEventParams} from './HandleRestrictedEventParams';
 export type {default as LogOutParams} from './LogOutParams';
+export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
 export type {default as MakeDefaultPaymentMethodParams} from './MakeDefaultPaymentMethodParams';
 export type {default as OpenAppParams} from './OpenAppParams';
 export type {default as OpenOldDotLinkParams} from './OpenOldDotLinkParams';
