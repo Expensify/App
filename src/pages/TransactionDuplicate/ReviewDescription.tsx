@@ -18,14 +18,14 @@ import ReviewFields from './ReviewFields';
 function ReviewDescription() {
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.DESCRIPTION>>();
     const {translate} = useLocalize();
-    const transactionID = getTransactionID(route.params.threadReportID ?? '');
+    const transactionID = getTransactionID(route.params.threadReportID);
     const [reviewDuplicates] = useOnyx(ONYXKEYS.REVIEW_DUPLICATES);
-    const compareResult = compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID ?? '-1');
+    const compareResult = compareDuplicateTransactionFields(transactionID, reviewDuplicates?.reportID);
     const stepNames = Object.keys(compareResult.change ?? {}).map((key, index) => (index + 1).toString());
     const {currentScreenIndex, goBack, navigateToNextScreen} = useReviewDuplicatesNavigation(
         Object.keys(compareResult.change ?? {}),
         'description',
-        route.params.threadReportID ?? '',
+        route.params.threadReportID,
         route.params.backTo,
     );
     const options = useMemo(
