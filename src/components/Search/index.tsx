@@ -296,7 +296,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
             const isTransactionItem = isTransactionListItemType(item);
 
-            let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+            let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== '0' ? item.transactionThreadReportID : item.reportID;
 
             if (!reportID) {
                 return;
