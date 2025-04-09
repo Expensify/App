@@ -518,7 +518,6 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    // Filter out reports with no transactions to prevent the wrong number of the selected options
     return Object.values(reportIDToTransactions);
 }
 

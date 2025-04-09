@@ -12,7 +12,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import ReportHeader from './ReportHeader';
+import ReportListItemHeader from './ReportListItemHeader';
 import TransactionListItemRow from './TransactionListItemRow';
 
 function ReportListItem<TItem extends ListItem>({
@@ -83,7 +83,7 @@ function ReportListItem<TItem extends ListItem>({
             pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
         >
             <View style={styles.flex1}>
-                <ReportHeader
+                <ReportListItemHeader
                     report={reportItem}
                     policy={policy}
                     onBackButtonPress={() => {}}

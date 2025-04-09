@@ -1,4 +1,3 @@
-import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
@@ -634,7 +633,7 @@ function MoneyRequestReportPreviewContent({
                                 )}
                             </View>
                         </View>
-                        {isEmpty(transactions) && <EmptyRequestReport />}
+                        {transactions.length === 0 && <EmptyRequestReport />}
                     </View>
                 </PressableWithoutFeedback>
             </View>

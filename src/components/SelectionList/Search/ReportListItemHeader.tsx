@@ -65,7 +65,15 @@ function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProp
     );
 }
 
-function ReportHeader<TItem extends ListItem>({policy, report: moneyRequestReport, onBackButtonPress, item, onSelectRow, onCheckboxPress, isDisabled}: MoneyReportHeaderProps<TItem>) {
+function ReportListItemHeader<TItem extends ListItem>({
+    policy,
+    report: moneyRequestReport,
+    onBackButtonPress,
+    item,
+    onSelectRow,
+    onCheckboxPress,
+    isDisabled,
+}: MoneyReportHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const shouldDisplaySearchRouter = false;
     const shouldShowBackButton = false;
@@ -125,4 +133,6 @@ function ReportHeader<TItem extends ListItem>({policy, report: moneyRequestRepor
     );
 }
 
-export default ReportHeader;
+ReportListItemHeader.displayName = 'ReportListItemHeader';
+
+export default ReportListItemHeader;
