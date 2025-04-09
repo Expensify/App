@@ -70,7 +70,7 @@ const useOnyx: OriginalUseOnyx = (key, options, dependencies) => {
 
     // Extract and memoize the specific key data from snapshot if in search mode
     const result = useMemo((): OriginalUseOnyxReturnType => {
-        // if it has selector, we wouldn't need to use snapshot here
+        // if it has selector, we don't need to use snapshot here
         if (!shouldUseSnapshot || selector) {
             return originalResult as OriginalUseOnyxReturnType;
         }
