@@ -248,6 +248,7 @@ function WorkspacesListPage() {
                         disabled={item.disabled}
                         onPress={item.action}
                     >
+                        
                         {({hovered}) => (
                             <WorkspacesListRow
                                 title={item.title}
