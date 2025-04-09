@@ -1,16 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {useOnyx} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import PressableWithDelayToggle from '@components/Pressable/PressableWithDelayToggle';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PrivatePersonalDetails} from '@src/types/onyx';
@@ -27,12 +22,7 @@ const defaultPrivatePersonalDetails: PrivatePersonalDetails = {
     ],
 };
 
-type CardDetailsOnyxProps = {
-    /** User's private personal details */
-    privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
-};
-
-type CardDetailsProps = CardDetailsOnyxProps & {
+type CardDetailsProps = {
     /** Card number */
     pan?: string;
 
@@ -46,33 +36,20 @@ type CardDetailsProps = CardDetailsOnyxProps & {
     domain: string;
 };
 
-function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetails, domain}: CardDetailsProps) {
+function CardDetails({pan = '', expiration = '', cvv = '', domain}: CardDetailsProps) {
     const styles = useThemeStyles();
+    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        initialValue: defaultPrivatePersonalDetails,
+    });
     const {translate} = useLocalize();
-
-    const handleCopyToClipboard = () => {
-        Clipboard.setString(pan);
-    };
 
     return (
         <>
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.cardNumber')}
                 title={pan}
-                shouldShowRightComponent
-                rightComponent={
-                    <View style={styles.justifyContentCenter}>
-                        <PressableWithDelayToggle
-                            tooltipText={translate('reportActionContextMenu.copyToClipboard')}
-                            tooltipTextChecked={translate('reportActionContextMenu.copied')}
-                            icon={Expensicons.Copy}
-                            onPress={handleCopyToClipboard}
-                            accessible={false}
-                            text=""
-                        />
-                    </View>
-                }
                 interactive={false}
+                copyValue={pan}
             />
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.expiration')}
@@ -87,7 +64,7 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
             <MenuItemWithTopDescription
                 description={translate('cardPage.cardDetails.address')}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                title={PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
+                title={getFormattedAddress(privatePersonalDetails || defaultPrivatePersonalDetails)}
                 interactive={false}
             />
             <TextLink
@@ -102,8 +79,4 @@ function CardDetails({pan = '', expiration = '', cvv = '', privatePersonalDetail
 
 CardDetails.displayName = 'CardDetails';
 
-export default withOnyx<CardDetailsProps, CardDetailsOnyxProps>({
-    privatePersonalDetails: {
-        key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-    },
-})(CardDetails);
+export default CardDetails;

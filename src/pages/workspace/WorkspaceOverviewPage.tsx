@@ -320,6 +320,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         interactive={!readOnly}
                                         wrapperStyle={styles.sectionMenuItemTopDescription}
                                         onPress={onPressAddress}
+                                        copyValue={formattedAddress}
                                     />
                                 </View>
                             </OfflineWithFeedback>
