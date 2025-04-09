@@ -18,7 +18,6 @@ const EMPTY_ARRAY = Object.freeze([]);
 const EMPTY_OBJECT = Object.freeze({});
 
 const DEFAULT_NUMBER_ID = 0;
-
 const CLOUDFRONT_DOMAIN = 'cloudfront.net';
 const CLOUDFRONT_URL = `https://d2k5nsl2zxldvw.${CLOUDFRONT_DOMAIN}`;
 const ACTIVE_EXPENSIFY_URL = addTrailingForwardSlash(Config?.NEW_EXPENSIFY_URL ?? 'https://new.expensify.com');
@@ -774,6 +773,7 @@ const CONST = {
         TABLE_REPORT_VIEW: 'tableReportView',
         HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        LEFT_HAND_BAR: 'leftHandBar',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1060,6 +1060,7 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1158,8 +1159,25 @@ const CONST = {
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             REMOVE_HOLD: 'removeHold',
+            MARK_AS_CASH: 'markAsCash',
+        },
+        TRANSACTION_PRIMARY_ACTIONS: {
+            REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+        },
+        REPORT_PREVIEW_ACTIONS: {
+            VIEW: 'view',
+            REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+        },
+        TRANSACTION_SECONDARY_ACTIONS: {
+            HOLD: 'hold',
+            VIEW_DETAILS: 'viewDetails',
+            DELETE: 'delete',
         },
         ACTIONS: {
             LIMIT: 50,
@@ -1234,6 +1252,7 @@ const CONST = {
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
+                CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -1788,6 +1807,7 @@ const CONST = {
     YOUR_LOCATION_TEXT: 'Your Location',
 
     ATTACHMENT_MESSAGE_TEXT: '[Attachment]',
+    ATTACHMENT_REGEX: /<video |<img /,
     ATTACHMENT_SOURCE_ATTRIBUTE: 'data-expensify-source',
     ATTACHMENT_ID_ATTRIBUTE: 'data-attachment-id',
     ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE: 'data-optimistic-src',
@@ -4977,6 +4997,19 @@ const CONST = {
         DISABLED: 'DISABLED',
         DISABLE: 'DISABLE',
     },
+    MERGE_ACCOUNT_RESULTS: {
+        SUCCESS: 'success',
+        ERR_2FA: 'err_2fa',
+        ERR_NO_EXIST: 'err_no_exist',
+        ERR_SMART_SCANNER: 'err_smart_scanner',
+        ERR_INVOICING: 'err_invoicing',
+        ERR_SAML_PRIMARY_LOGIN: 'err_saml_primary_login',
+        ERR_SAML_DOMAIN_CONTROL: 'err_saml_domain_control',
+        ERR_SAML_NOT_SUPPORTED: 'err_saml_not_supported',
+        ERR_ACCOUNT_LOCKED: 'err_account_locked',
+        TOO_MANY_ATTEMPTS: 'too_many_attempts',
+        ACCOUNT_UNVALIDATED: 'account_unvalidated',
+    },
     DELEGATE_ROLE: {
         ALL: 'all',
         SUBMITTER: 'submitter',
@@ -5587,6 +5620,7 @@ const CONST = {
                 COMPANY_TYPE: 5,
                 INCORPORATION_DATE: 6,
                 INCORPORATION_STATE: 7,
+                INCORPORATION_CODE: 8,
             },
             UBO: {
                 LEGAL_NAME: 0,
@@ -6428,7 +6462,6 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
-            POLICY_ID: 'policyID',
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
@@ -6453,6 +6486,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
@@ -6901,7 +6935,7 @@ const CONST = {
     OFFLINE_INDICATOR_HEIGHT: 25,
 
     BILLING: {
-        TYPE_FAILED_2018: 'typeFailed2018',
+        TYPE_FAILED_2018: 'failed_2018',
     },
 } as const;
 

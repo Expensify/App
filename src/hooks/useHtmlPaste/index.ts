@@ -149,6 +149,12 @@ const useHtmlPaste: UseHtmlPaste = (textInputRef, preHtmlPasteCallback, isActive
                         return;
                     }
                 }
+                // If HTML starts with <p dir="ltr">, it means that the text was copied from the markdown input from the native app
+                // and was saved to clipboard with additional styling, so we need to treat this as plain text to avoid adding unnecessary characters.
+                if (pastedHTML.startsWith('<p dir="ltr">')) {
+                    handlePastePlainText(event);
+                    return;
+                }
                 handlePastedHTML(pastedHTML);
                 return;
             }
