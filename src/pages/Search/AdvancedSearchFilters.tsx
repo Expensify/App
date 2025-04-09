@@ -12,6 +12,7 @@ import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
@@ -24,7 +25,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -136,6 +137,11 @@ const baseFilterConfig = {
         description: 'common.in' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
     },
+    policyID: {
+        getTitle: getFilterWorkspaceDisplayTitle,
+        description: 'workspace.common.workspace' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
+    },
 };
 
 /**
@@ -212,6 +218,11 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE],
     ],
 };
+
+function getFilterWorkspaceDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>) {
+    const workspaceFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
+    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceFilter}`]?.name ?? workspaceFilter;
+}
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
     const cardIdsFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID] ?? [];
@@ -402,7 +413,26 @@ function AdvancedSearchFilters() {
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
+    const {canUseLeftHandBar} = usePermissions();
 
+    // If users have access to the leftHandBar beta, then the workspace filter is displyed in the first section of the advanced search filters
+    const typeFiltersKeysWithOptionalPolicy = useMemo(
+        () =>
+            canUseLeftHandBar
+                ? Object.fromEntries(
+                      Object.entries(typeFiltersKeys).map(([key, arrays]) => {
+                          const firstFiltersSection = arrays.at(0);
+                          if (!firstFiltersSection) {
+                              return [key, arrays];
+                          }
+
+                          const modifiedFirstFiltersSection = [...firstFiltersSection, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
+                          return [key, [modifiedFirstFiltersSection, ...arrays.slice(1)]];
+                      }),
+                  )
+                : typeFiltersKeys,
+        [canUseLeftHandBar],
+    );
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: (policyCategories) =>
@@ -440,7 +470,7 @@ function AdvancedSearchFilters() {
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
+    if (!Object.keys(typeFiltersKeysWithOptionalPolicy).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
@@ -472,7 +502,7 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeys[currentType]
+    const filters = typeFiltersKeysWithOptionalPolicy[currentType]
         .map((section) => {
             return section
                 .map((key) => {
@@ -527,6 +557,8 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
                     }
                     return {
                         key,
@@ -538,7 +570,7 @@ function AdvancedSearchFilters() {
                 .filter((filter): filter is NonNullable<typeof filter> => !!filter);
         })
         .filter((section) => !!section.length);
-    const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
+    const displaySearchButton = queryJSON && (canUseLeftHandBar ? !isCannedSearchQueryWithPolicyIDCheck(queryJSON) : !isCannedSearchQuery(queryJSON));
 
     return (
         <>
