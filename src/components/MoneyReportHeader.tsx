@@ -35,6 +35,7 @@ import {
     isArchivedReportWithID,
     isExported as isExportedUtils,
     isInvoiceReport,
+    isPaidGroupPolicy,
     isReportOwner,
     navigateToDetailsPage,
     reportTransactionsSelector,
@@ -74,6 +75,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import report from '@src/types/onyx/Report';
 import type IconAsset from '@src/types/utils/IconAsset';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import BrokenConnectionDescription from './BrokenConnectionDescription';
@@ -201,8 +203,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
+        const isReportApprovedAndPaid = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-        if (!anyTransactionOnHold && selectedTransactions.length === 1) {
+        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportApprovedAndPaid) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
