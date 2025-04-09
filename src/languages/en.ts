@@ -2094,7 +2094,7 @@ const translations = {
                 timeText = `${timeParts[0]}, ${timeParts[1]}, and ${timeParts[2]}`;
             }
         
-            return `You need to wait ${timeText} before trying to validate your number again.`;
+            return `Hold tight! You need to wait ${timeText} before trying to validate your number again.`;
         },
     },
     welcomeSignUpForm: {

@@ -2098,7 +2098,7 @@ const translations = {
                 timeText = `${timeParts[0]}, ${timeParts[1]} y ${timeParts[2]}`;
             }
         
-            return `Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
+            return `¡Un momento! Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
         }
         
     },
