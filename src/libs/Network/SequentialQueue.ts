@@ -197,7 +197,7 @@ function flush(shouldResetPromise = true, request?: OnyxRequest) {
                         if (!request?.queueFlushedData) {
                             return;
                         }
-                        updateHandler(request?.queueFlushedData);
+                        Onyx.update(request?.queueFlushedData);
                     });
                 }
             });
@@ -315,7 +315,3 @@ function resetQueue(): void {
 
 export {flush, getCurrentRequest, isRunning, isPaused, push, waitForIdle, pause, unpause, process, resetQueue, sequentialQueueRequestThrottle};
 export type {RequestError};
-    function updateHandler(successData: OnyxUpdate[] | undefined) {
-        throw new Error('Function not implemented.');
-    }
-
