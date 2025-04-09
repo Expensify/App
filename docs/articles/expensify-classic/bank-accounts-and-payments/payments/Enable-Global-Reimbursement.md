@@ -22,12 +22,12 @@ To get started, you can just select from the instructions below. Setup steps var
 # Choose Your Location
 
 **Select the currency of your company's business bank account and where your company is located to get started:**
-- 🇺🇸 Global Reimbursements - U.S.
-- 🇨🇦 Global Reimbursements - Canada
-- 🇬🇧 Global Reimbursements - United Kingdom
-- 🇪🇺 Global Reimbursements - Europe
-- 🇦🇺 Global Reimbursements - Australia
-- 🇸🇬 Global Reimbursements - Singapore
+- 🇺🇸 [Global Reimbursements - U.S.](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-US)
+- 🇨🇦 [Global Reimbursements - Canada](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Canada)
+- 🇬🇧 [Global Reimbursements - United Kingdom](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-UK)
+- 🇪🇺 [Global Reimbursements - Europe](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-EU)
+- 🇦🇺 [Global Reimbursements - Australia](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Australia)
+- 🇸🇬 [Global Reimbursements - Singapore](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Global-Reimbursement-Singapore)
 
 ---
 
