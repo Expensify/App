@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-reanimated/lib/module/animation/util.js b/node_modules/react-native-reanimated/lib/module/animation/util.js
-index 4572f70..ea8bea1 100644
+index 2bc36ca..4f70add 100644
 --- a/node_modules/react-native-reanimated/lib/module/animation/util.js
 +++ b/node_modules/react-native-reanimated/lib/module/animation/util.js
-@@ -350,7 +350,7 @@ export function cancelAnimation(sharedValue) {
+@@ -357,7 +357,7 @@ function cancelAnimationNative(sharedValue) {
    'worklet';
  
    // setting the current value cancels the animation if one is currently running
@@ -12,11 +12,11 @@ index 4572f70..ea8bea1 100644
    } else {
      runOnUI(() => {
 diff --git a/node_modules/react-native-reanimated/src/animation/util.ts b/node_modules/react-native-reanimated/src/animation/util.ts
-index 2c7dd01..29e1281 100644
+index e0176f3..8d44aa5 100644
 --- a/node_modules/react-native-reanimated/src/animation/util.ts
 +++ b/node_modules/react-native-reanimated/src/animation/util.ts
-@@ -551,7 +551,7 @@ export function defineAnimation<
- export function cancelAnimation<T>(sharedValue: SharedValue<T>): void {
+@@ -562,7 +562,7 @@ export function defineAnimation<
+ function cancelAnimationNative<TValue>(sharedValue: SharedValue<TValue>): void {
    'worklet';
    // setting the current value cancels the animation if one is currently running
 -  if (_WORKLET) {
