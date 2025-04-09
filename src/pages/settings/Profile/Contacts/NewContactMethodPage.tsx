@@ -53,7 +53,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
-    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE;
+    const navigateBackTo = route?.params?.backTo ?? ROUTES.SETTINGS_PROFILE.getRoute();
 
     const hasFailedToSendVerificationCode = !!pendingContactAction?.errorFields?.actionVerified;
 
@@ -121,7 +121,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     );
 
     const onBackButtonPress = useCallback(() => {
-        if (navigateBackTo === ROUTES.SETTINGS_PROFILE) {
+        if (navigateBackTo === ROUTES.SETTINGS_PROFILE.getRoute()) {
             Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
             return;
         }
