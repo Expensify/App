@@ -1,3 +1,5 @@
+import {Str} from 'expensify-common';
+
 /**
  * This function is used to substitute the route parameters in the route string with the actual parameter names
  *
@@ -22,7 +24,7 @@ function substituteRouteParameters(route: string, params: Record<string, unknown
                 searchAndReplace(value as Record<string, unknown>);
             } else if (typeof value === 'string') {
                 const keyOverride = overrides?.[key];
-                const regex = new RegExp(`\\b${value}\\b`, 'g');
+                const regex = new RegExp(`\\b${Str.escapeForRegExp(value)}\\b`, 'g');
                 updatedRoute = updatedRoute.replace(regex, keyOverride ?? `:${key}`);
             }
         }

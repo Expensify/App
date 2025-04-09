@@ -107,4 +107,10 @@ describe('substituteRouteParameters', () => {
         const overrides = {workspaceID: '456', ruleID: 'rule'};
         expect(substituteRouteParameters(route, params, overrides)).toBe('/workspaces/rule/rules/rule');
     });
+
+    test('should handle URLs with parentheses at the end', () => {
+        const route = '/reports/123)';
+        const params = {reportID: '123)'};
+        expect(substituteRouteParameters(route, params)).toBe('/reports/123)');
+    });
 });
