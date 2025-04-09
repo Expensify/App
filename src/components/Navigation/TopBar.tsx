@@ -13,7 +13,6 @@ import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SignInButton from '@pages/home/sidebar/SignInButton';
-import variables from '@styles/variables';
 import {isAnonymousUser as isAnonymousUserUtil} from '@userActions/Session';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +50,9 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     styles.flexRow,
                     styles.alignItemsCenter,
                     styles.justifyContentBetween,
-                    canUseLeftHandBar ? [styles.mh5, styles.headerBarDesktopHeight(true)] : [styles.ml5, styles.mr3, styles.mv5],
+                    styles.ml5,
+                    styles.mr3,
+                    canUseLeftHandBar ? [styles.headerBarDesktopHeight(true)] : [styles.mv5],
                 ]}
                 dataSet={{dragArea: true}}
             >
@@ -94,12 +95,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                     </PressableWithoutFeedback>
                 )}
                 {shouldDisplayHelpButton && <HelpButton />}
-                {displaySearch && (
-                    <SearchButton
-                        shouldUseAutoHitSlop={canUseLeftHandBar}
-                        style={canUseLeftHandBar && [styles.ml3, {width: variables.iconSizeNormal}]}
-                    />
-                )}
+                {displaySearch && <SearchButton />}
             </View>
             <LoadingBar shouldShow={isLoadingReportData ?? false} />
         </View>
