@@ -2072,28 +2072,29 @@ const translations = {
             if (!timeData) {
                 return 'Please wait a moment before trying again.';
             }
-
-            const parts = [];
+        
+            const timeParts = [];
             if (timeData.days) {
-                parts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
+                timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
             }
+        
             if (timeData.hours) {
-                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
+                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
             }
+        
             if (timeData.minutes) {
-                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
+                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
             }
-
-            let timeText;
-            if (parts.length === 1) {
-                timeText = parts.at(0);
-            } else if (parts.length === 2) {
-                timeText = parts.join(' and ');
-            } else {
-                const lastPart = parts.pop();
-                timeText = `${parts.join(', ')} and ${lastPart}`;
+        
+            let timeText = '';
+            if (timeParts.length === 1) {
+                timeText = timeParts[0];
+            } else if (timeParts.length === 2) {
+                timeText = `${timeParts[0]} and ${timeParts[1]}`;
+            } else if (timeParts.length === 3) {
+                timeText = `${timeParts[0]}, ${timeParts[1]}, and ${timeParts[2]}`;
             }
-
+        
             return `You need to wait ${timeText} before trying to validate your number again.`;
         },
     },

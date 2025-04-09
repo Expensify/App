@@ -2076,30 +2076,32 @@ const translations = {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
-
-            const parts = [];
+        
+            const timeParts = [];
             if (timeData.days) {
-                parts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
+                timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
             }
+        
             if (timeData.hours) {
-                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
+                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
             }
+        
             if (timeData.minutes) {
-                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
+                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
             }
 
-            let timeText;
-            if (parts.length === 1) {
-                timeText = parts.at(0);
-            } else if (parts.length === 2) {
-                timeText = parts.join(' y ');
-            } else {
-                const lastPart = parts.pop();
-                timeText = `${parts.join(', ')} y ${lastPart}`;
+            let timeText = '';
+            if (timeParts.length === 1) {
+                timeText = timeParts[0];
+            } else if (timeParts.length === 2) {
+                timeText = `${timeParts[0]} y ${timeParts[1]}`;
+            } else if (timeParts.length === 3) {
+                timeText = `${timeParts[0]}, ${timeParts[1]} y ${timeParts[2]}`;
             }
-
+        
             return `Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
-        },
+        }
+        
     },
     welcomeSignUpForm: {
         join: 'Unirse',
