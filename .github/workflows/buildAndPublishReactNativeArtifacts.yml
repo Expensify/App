@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
       - name: Check if NewDot patches or react-native version have changed
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
@@ -46,7 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
             submodules: true
             fetch-depth: 0
@@ -79,3 +81,42 @@ jobs:
 
           echo "Detected changes in HybridApp patches:"
           git diff --name-only $PREVIOUS_SUBMODULE_COMMIT..$CURRENT_SUBMODULE_COMMIT -- "patches/react-native+*.patch"
+  buildAndPublishRNArtifactsForStandaloneNewDot:
+    runs-on: ubuntu-latest
+    if: ${{ always() && needs.verifyNewDotPatchesAndReactNativeVersion.result == 'success'}}
+    needs: verifyNewDotPatchesAndReactNativeVersion
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+
+      - name: Setup Java
+        # v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        with:
+          distribution: oracle
+          java-version: 17
+
+      - name: Setup Gradle
+        # v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
+      - name: Determine new patched RN version
+        run: |
+          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
+          echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh $VERSION)" >> $GITHUB_ENV
+      - name: Build and publish RN artifacts
+        run: |
+          cd android
+          export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
+          ./gradlew buildReactNativeArtifacts -x lint -x test -x check
+          ./gradlew publishReactNativeArtifacts
+        env:
+          GH_PUBLISH_ACTOR: ${{ github.actor }}
+          GH_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_HYBRID_BUILD: "false"
+          PATCHED_VERSION: ${{ env.NEW_PATCHED_VERSION }}
+          COMMIT_HASH: ${{ github.event.after }}
