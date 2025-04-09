@@ -180,7 +180,6 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             return groupByList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
-            return booleanList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             return booleanList.includes(range.value);
         default:

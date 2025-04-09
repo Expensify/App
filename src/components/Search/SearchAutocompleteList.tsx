@@ -397,19 +397,12 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
                 const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
 
                 return filteredValues.map((value) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.BILLABLE,
-                    text: value,
-                }));
-            }
-            case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE: {
-                const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
-
-                return filteredValues.map((value) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.REIMBURSABLE,
+                    filterKey: autocompleteKey,
                     text: value,
                 }));
             }
