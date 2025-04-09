@@ -9113,10 +9113,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
     API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(expenseReport?: OnyxTypes.Report) {
-    if (!expenseReport) {
-        return;
-    }
+function submitReport(expenseReport: OnyxTypes.Report) {
     if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
         return;
@@ -9249,7 +9246,7 @@ function submitReport(expenseReport?: OnyxTypes.Report) {
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report) {
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report, backTo?: Route) {
     if (isEmptyObject(expenseReport)) {
         return;
     }
@@ -9394,6 +9391,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
         },
         {optimisticData, successData, failureData},
     );
+    Navigation.goBack(backTo);
     notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
