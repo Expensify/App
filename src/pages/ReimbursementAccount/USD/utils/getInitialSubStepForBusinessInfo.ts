@@ -42,7 +42,11 @@ function getInitialSubStepForBusinessInfo(data: CompanyStepProps): number {
         return 7;
     }
 
-    return 8;
+    if (data[businessInfoStepKeys.INCORPORATION_CODE] === '') {
+        return 8;
+    }
+
+    return 9;
 }
 
 export default getInitialSubStepForBusinessInfo;
