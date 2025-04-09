@@ -10,8 +10,8 @@ index 32287a7..68c9284 100644
 +def mavenURL = "https://maven.pkg.github.com/Expensify/App"
 +
 +def patchedVersion = System.getenv("PATCHED_VERSION")
-+def isHybridRelease = System.getenv("IS_HYBRID_RELEASE")?.toBoolean()
-+def groupId = isHybridRelease ? "com.expensify.react-standalone" : "com.expensify.react-hybrid"
++def isHybridBuild = System.getenv("IS_HYBRID_BUILD")?.toBoolean()
++def groupId = isHybridBuild ? "com.expensify.react-standalone" : "com.expensify.react-hybrid"
  
  publishing {
      publications {

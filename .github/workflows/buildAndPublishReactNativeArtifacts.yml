@@ -104,6 +104,11 @@ jobs:
         # v4
         uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
 
+      - name: Save patches hash
+        run: |
+          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
+          echo "PATCHES_HASH=$(./.github/scripts/computePatchesHash.sh $VERSION)" >> $GITHUB_ENV
+
       - name: Determine new patched RN version
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
@@ -111,6 +116,10 @@ jobs:
       - name: Build and publish RN artifacts
         run: |
           cd android
+          echo "Starting artifacts build for standalone NewDot"
+          echo "Version: ${{ env.NEW_PATCHED_VERSION }}"
+          echo "Commit hash: ${{ env.COMMIT_HASH }}"
+          echo "Patches hash: ${{ env.PATCHES_HASH }}"
           export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
           ./gradlew buildReactNativeArtifacts -x lint -x test -x check
           ./gradlew publishReactNativeArtifacts
@@ -120,3 +129,4 @@ jobs:
           IS_HYBRID_BUILD: "false"
           PATCHED_VERSION: ${{ env.NEW_PATCHED_VERSION }}
           COMMIT_HASH: ${{ github.event.after }}
+          PATCHES_HASH: ${{ env.PATCHES_HASH }}
