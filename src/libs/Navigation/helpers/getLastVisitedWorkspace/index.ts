@@ -5,11 +5,11 @@ import CONST from '@src/CONST';
 import type {Route} from '@src/ROUTES';
 
 function saveSettingsTabPathToSessionStorage(url: string) {
-    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH, url);
+    sessionStorage.setItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_TAB_PATH, url);
 }
 
 function getSettingsTabStateFromSessionStorage(): PartialState<NavigationState> | undefined {
-    const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_PATH);
+    const lastVisitedSettingsPath = sessionStorage.getItem(CONST.SESSION_STORAGE_KEYS.LAST_VISITED_SETTINGS_TAB_PATH);
     if (!lastVisitedSettingsPath) {
         return undefined;
     }
