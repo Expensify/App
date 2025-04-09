@@ -854,6 +854,43 @@ To build an APK to share run (e.g. via Slack), run `npm run android-build`, this
 # Onyx derived values
 Onyx derived values are special Onyx keys which contain values derived from other Onyx values. These are available as a performance optimization, so that if the result of a common computation of Onyx values is needed in many places across the app, the computation can be done only as needed in a centralized location, and then shared across the app. Once created, Onyx derived values are stored and consumed just like any other Onyx value.
 
+## When to use derived values?
+
+1. **Complex Computations Across Multiple Components**
+   - Multiple components need the same computed value from one or more Onyx keys
+   - The computation is expensive (e.g., filtering large arrays, complex object transformations)
+   - The result needs to be cached and shared to avoid redundant calculations
+
+2. **Performance Critical Paths**
+   - The computation appears in frequently rendered components
+   - Profiling shows the same calculation being done repeatedly
+   - The computation involves multiple Onyx dependencies that change independently
+
+3. **Data Aggregation and Transformation**
+   - You need to combine data from multiple Onyx keys into a single, normalized structure
+   - The transformation logic is complex and reusable
+   - The derived data structure is used in multiple places
+
+4. **State-Dependent Calculations**
+   - The value depends on multiple pieces of state that can change independently
+   - The relationship between states is complex (e.g., filtering + sorting + grouping)
+   - Changes in any dependency should trigger a recalculation
+
+## When not to use derived values?
+
+1. **Simple or Local Computations**
+   - The computation is trivial (e.g., simple string manipulation, basic math)
+   - The value is only used in one component
+
+2. **Component-Specific Logic**
+   - The computation is specific to a single component's UI state
+   - The logic involves component-local state
+
+3. **Temporary or Volatile Data**
+   - The computed value is only needed temporarily
+   - The data doesn't need to persist across component unmounts
+   - The computation depends on non-Onyx values
+
 ## Creating new Onyx derived values
 1. Add the new Onyx key. The keys for Onyx derived values are stored in `ONYXKEYS.ts`, in the `ONYXKEYS.DERIVED` object.
 2. Declare the type for the derived value in `ONYXKEYS.ts`, in the `OnyxDerivedValuesMapping` type.
@@ -861,3 +898,45 @@ Onyx derived values are special Onyx keys which contain values derived from othe
    1. The Onyx key for the derived value
    2. An array of dependent Onyx keys (which can be any keys, not including the one from the previous step. Including other derived values!)
    3. A `compute` function, which takes an array of dependent Onyx values (in the same order as the array of keys from the previous step), and returns a value matching the type you declared in `OnyxDerivedValuesMapping`
+
+## Best practices
+
+1. **Keep computations pure and predictable**
+   ```typescript
+      // GOOD ✅
+   compute: ([reports, personalDetails]) => {
+     // Pure function, only depends on input
+     return reports.map(report => ({
+       ...report,
+       authorName: personalDetails[report.authorID]?.displayName
+     }));
+   }
+
+   // BAD ❌
+   compute: ([reports]) => {
+     // Don't use external state or cause side effects
+     const currentUser = getCurrentUser(); // External dependency!
+     sendAnalytics('computation-done'); // Side effect!
+     return reports;
+   }
+   ```
+2. **Handle edge cases**
+   ```typescript
+   // GOOD ✅
+   compute: ([reports, personalDetails]: [Report[], PersonalDetails]): DerivedType => {
+     if (!reports?.length || !personalDetails) {
+       return { items: [], count: 0 };
+     }
+     // Rest of computation...
+   }
+
+   // BAD ❌
+   compute: ([reports, personalDetails]) => {
+     // Missing type safety and edge cases
+     return reports.map(report => personalDetails[report.id]);
+   }
+   ```
+
+3. **Document derived values**
+   - Explain the purpose and dependencies
+   - Document any special cases or performance considerations

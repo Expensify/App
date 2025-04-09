@@ -543,7 +543,7 @@ function MoneyRequestReportPreviewContent({
                                             data={transactions.slice(0, 11)}
                                             ref={carouselRef}
                                             nestedScrollEnabled
-                                            scrollEnabled={transactions.length > 1}
+                                            bounces={false}
                                             keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
                                             contentContainerStyle={[styles.gap2]}
                                             style={reportPreviewStyles.flatListStyle}

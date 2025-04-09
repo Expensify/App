@@ -20,7 +20,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft} from '@libs/actions/Policy/Member';
-import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
+import {
+    clearAvatarErrors,
+    clearPolicyErrorField,
+    deleteWorkspace,
+    deleteWorkspaceAvatar,
+    openPolicyProfilePage,
+    updateLastAccessedWorkspaceSwitcher,
+    updateWorkspaceAvatar,
+} from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
@@ -166,6 +174,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 

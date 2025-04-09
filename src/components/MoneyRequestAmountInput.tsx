@@ -92,6 +92,9 @@ type MoneyRequestAmountInputProps = {
 
     /** The width of inner content */
     contentWidth?: number;
+
+    /** The testID of the input. Used to locate this view in end-to-end tests. */
+    testID?: string;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -129,6 +132,7 @@ function MoneyRequestAmountInput(
         autoGrow = true,
         autoGrowExtraSpace,
         contentWidth,
+        testID,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
@@ -338,6 +342,7 @@ function MoneyRequestAmountInput(
             onMouseDown={handleMouseDown}
             onMouseUp={handleMouseUp}
             contentWidth={contentWidth}
+            testID={testID}
         />
     );
 }
