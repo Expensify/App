@@ -2705,7 +2705,7 @@ const translations = {
         codiceFiscaleDescription: 'Codice Fiscale para firmantes, usuarios autorizados y beneficiarios finales.',
         PDSandFSG: 'Documentación de divulgación PDS + FSG',
         PDSandFSGDescription:
-            "Nuestra asociación con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y así impulsar los Reembolsos Globales en Expensify. Según la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG) y la Declaración de Divulgación del Producto (PDS) de Corpay.\n\nPor favor, lee detenidamente los documentos FSG y PDS, ya que contienen detalles completos e información importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.",
+            'Nuestra asociación con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y así impulsar los Reembolsos Globales en Expensify. Según la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG) y la Declaración de Divulgación del Producto (PDS) de Corpay.\n\nPor favor, lee detenidamente los documentos FSG y PDS, ya que contienen detalles completos e información importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.',
         pleaseUpload: 'Por favor, sube documentación adicional a continuación para ayudarnos a verificar tu identidad como firmante o director de la entidad empresarial.',
     },
     agreementsStep: {
