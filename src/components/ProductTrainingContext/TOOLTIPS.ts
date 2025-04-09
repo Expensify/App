@@ -18,7 +18,9 @@ const {
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
 type ShouldShowConditionProps = {
-    shouldUseNarrowLayout?: boolean;
+    shouldUseNarrowLayout: boolean;
+    isUserPolicyAdmin: boolean;
+    hasBeenAddedToNudgeMigration: boolean;
 };
 
 type TooltipData = {
@@ -74,7 +76,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
         priority: 1700,
-        shouldShow: () => true,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => hasBeenAddedToNudgeMigration,
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
@@ -96,7 +98,8 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
         name: EXPENSE_REPORTS_FILTER,
         priority: 2000,
-        shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
+        shouldShow: ({shouldUseNarrowLayout, isUserPolicyAdmin, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) =>
+            !shouldUseNarrowLayout && isUserPolicyAdmin && hasBeenAddedToNudgeMigration,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [
