@@ -569,7 +569,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
-function checkIfNewSubscription() {
+function checkIfHasTeam2025Pricing() {
     if (hasTeamPricing2025) {
         return true;
     }
@@ -586,9 +586,9 @@ function getSubscriptionPrice(plan: PersonalPolicyTypeExludedProps | null, prefe
         return 0;
     }
 
-    const isNewSubscription = checkIfNewSubscription();
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
 
-    if (isNewSubscription && plan === CONST.POLICY.TYPE.TEAM) {
+    if (hasTeam2025Pricing && plan === CONST.POLICY.TYPE.TEAM) {
         return CONST.SUBSCRIPTION_PRICES[preferredCurrency][plan][CONST.SUBSCRIPTION.PRICING_TYPE_2025];
     }
 
@@ -602,13 +602,13 @@ function getSubscriptionPlanInfo(
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
-    const isNewSubscription = checkIfNewSubscription();
+    const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return {
             title: translateLocal('subscription.yourPlan.collect.title'),
-            subtitle: isNewSubscription ? translateLocal('subscription.yourPlan.perMemberMonth', {price}) : translateLocal('subscription.yourPlan.customPricing'),
-            note: isNewSubscription ? undefined : translateLocal('subscription.yourPlan.asLowAs', {price}),
+            subtitle: hasTeam2025Pricing ? translateLocal('subscription.yourPlan.perMemberMonth', {price}) : translateLocal('subscription.yourPlan.customPricing'),
+            note: hasTeam2025Pricing ? undefined : translateLocal('subscription.yourPlan.asLowAs', {price}),
             benefits: [
                 translateLocal('subscription.yourPlan.collect.benefit1'),
                 translateLocal('subscription.yourPlan.collect.benefit2'),

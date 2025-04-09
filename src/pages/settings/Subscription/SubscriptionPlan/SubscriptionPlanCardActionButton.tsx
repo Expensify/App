@@ -5,7 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
-import useIsNewSubscription from '@hooks/useIsNewSubscription';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getOwnedPaidPolicies} from '@libs/PolicyUtils';
@@ -37,7 +37,7 @@ type SubscriptionPlanCardActionButtonProps = {
 function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonModal, isSelected, closeComparisonModal, style}: SubscriptionPlanCardActionButtonProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isNewSubscription = useIsNewSubscription();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
     const currentUserAccountID = getCurrentUserAccountID();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
@@ -85,7 +85,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
                 />
             );
         }
-        if (isNewSubscription) {
+        if (hasTeam2025Pricing) {
             return <AddMembersButton />;
         }
     }
