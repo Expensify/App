@@ -1,5 +1,5 @@
 ---
-title: create-a-workspace-to-track-personal-expenses.md
+title: Create-a-Workspace-to-Track-Personal-Expenses.md
 description: Learn how to set up a New Expensify workspace and start tracking your personal or freelance expenses.
 keywords: [workspace setup, personal expenses, New Expensify, SmartScan, categories, free trial]
 ---
