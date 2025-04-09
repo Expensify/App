@@ -2,7 +2,7 @@
     font-family: Expensify Neue;
     font-weight: 400;
     font-style: normal;
-    src: url('../assets/fonts/web/ExpensifyNeue-Regular.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeue-Regular.woff') format('woff');
+    src: url('../assets/fonts/web/ExpensifyNeueX1-Regular.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeueX1-Regular.woff') format('woff');
 }
 
 @font-face {
