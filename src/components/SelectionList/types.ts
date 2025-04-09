@@ -676,6 +676,8 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
     fixedNumItemsForLoader?: number;
+
+    loaderSpeed?: number;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
