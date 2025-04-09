@@ -13,6 +13,7 @@ const exec = promisify(originalExec);
 // Filepath constants
 const ROOT_DIR = path.resolve(__dirname, '../../../..');
 const PACKAGE_JSON_PATH = path.resolve(ROOT_DIR, 'package.json');
+const MOBILE_EXPENSIFY_CONFIG_JSON_PATH = path.resolve(ROOT_DIR, 'Mobile-Expensify/app/config/config.json');
 
 /**
  * Update the Android native versions in E/App and the Mobile-Expensify submodule.
@@ -51,6 +52,27 @@ async function updateIOSVersions(version: string) {
     }
 }
 
+/**
+ * Update package.json and package-lock.json
+ * @param version
+ */
+async function updateNPMVersion(version: string) {
+    console.log(`Setting npm version to ${version}`);
+    try {
+        const {stdout} = await exec(`npm --no-git-tag-version version ${version} -m "Update version to ${version}"`);
+
+        // NPM and native versions successfully updated, output new version
+        console.log(stdout);
+        core.setOutput('NEW_VERSION', version);
+    } catch (err) {
+        // Log errors and fail gracefully
+        if (err instanceof Error) {
+            console.error('Error:', err.message);
+        }
+        core.setFailed('An error occurred in the `npm version` command');
+    }
+}
+
 async function run() {
     let semanticVersionLevel = core.getInput('SEMVER_LEVEL', {required: true});
     if (!semanticVersionLevel || !versionUpdater.isValidSemverLevel(semanticVersionLevel)) {
@@ -66,23 +88,7 @@ async function run() {
     const newVersion = versionUpdater.incrementVersion(previousVersion ?? '', semanticVersionLevel as SemverLevel);
     console.log(`Previous version: ${previousVersion}`, `New version: ${newVersion}`);
 
-    // Update native versions
-    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion)]);
-
-    console.log(`Setting npm version to ${newVersion}`);
-    try {
-        const {stdout} = await exec(`npm --no-git-tag-version version ${newVersion} -m "Update version to ${newVersion}"`);
-
-        // NPM and native versions successfully updated, output new version
-        console.log(stdout);
-        core.setOutput('NEW_VERSION', newVersion);
-    } catch (err) {
-        // Log errors and fail gracefully
-        if (err instanceof Error) {
-            console.error('Error:', err.message);
-        }
-        core.setFailed('An error occurred in the `npm version` command');
-    }
+    await Promise.all([updateAndroidVersions(newVersion), updateIOSVersions(newVersion), updateNPMVersion(newVersion)]);
 }
 
 if (require.main === module) {
