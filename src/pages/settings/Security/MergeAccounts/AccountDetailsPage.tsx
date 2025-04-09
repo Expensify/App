@@ -109,7 +109,7 @@ function AccountDetailsPage() {
         if (!login) {
             addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.pleaseEnterEmailOrPhoneNumber'));
         } else if (login.trim() === userEmailOrPhone) {
-            addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('mergeAccountsPage.accountDetails.cannotBeSameEmail'));
+            addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.email'));
         } else {
             const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(login));
             const parsedPhoneNumber = parsePhoneNumber(phoneLogin);

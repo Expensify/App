@@ -1403,7 +1403,6 @@ const translations = {
         accountDetails: {
             accountToMergeInto: `Introduce la cuenta en la que deseas fusionar `,
             notReversibleConsent: 'Entiendo que esto no es reversible',
-            cannotBeSameEmail: 'Las dos cuentas no pueden tener la misma dirección de correo electrónico',
         },
         accountValidate: {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
