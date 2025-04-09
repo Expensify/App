@@ -87,7 +87,7 @@ function IOURequestStepParticipants({
     const isMobileSafari = isMobileSafariBrowser();
 
     useEffect(() => {
-        Performance.markEnd(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT);
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
     }, []);
 
     // When the component mounts, if there is a receipt, see if the image can be read from the disk. If not, redirect the user to the starting step of the flow.
@@ -214,7 +214,7 @@ function IOURequestStepParticipants({
             ? ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, selectedReportID.current || reportID, iouConfirmationPageRoute)
             : iouConfirmationPageRoute;
 
-        Performance.markStart(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE);
+        Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
         waitForKeyboardDismiss(() => {
             // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             if (backTo) {

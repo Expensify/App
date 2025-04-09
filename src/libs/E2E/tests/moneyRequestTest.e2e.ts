@@ -28,7 +28,7 @@ const test = (config: NativeConfig) => {
             .then(() => tap('floating-action-button'))
             .then(() => waitForElement('create-expense'))
             .then(() => tap('create-expense'))
-            .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE))
+            .then(() => waitForEvent(CONST.TIMING.OPEN_CREATE_EXPENSE))
             .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
@@ -43,7 +43,7 @@ const test = (config: NativeConfig) => {
             .then(() => tap('button_2'))
             .then(() => waitForTextInputValue('2', 'moneyRequestAmountInput'))
             .then(() => tap('next-button'))
-            .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_CONTACT))
+            .then(() => waitForEvent(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT))
             .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
@@ -54,7 +54,7 @@ const test = (config: NativeConfig) => {
             })
             .then(() => waitForElement('+66 65 490 0617'))
             .then(() => tap('+66 65 490 0617'))
-            .then(() => waitForEvent(CONST.TIMING.OPEN_SUBMIT_EXPENSE_APPROVE))
+            .then(() => waitForEvent(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE))
             .then((entry) => {
                 E2EClient.submitTestResults({
                     branch: Config.E2E_BRANCH,
