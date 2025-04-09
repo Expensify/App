@@ -41,6 +41,7 @@ jobs:
             echo "Detected changes in NewDot patches:"
             git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- "patches/react-native+*.patch"
           fi
+
   verifyHybridAppPatches:
     runs-on: ubuntu-latest
     steps:
@@ -57,19 +58,19 @@ jobs:
           CURRENT_PATCHES_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
           cd ..
  
-          git fetch origin
-          git checkout ${{ github.event.before }}
-
-          if [ "$CURRENT_SUBMODULE_COMMIT" == "$PREVIOUS_SUBMODULE_COMMIT" ]; then
-            echo "Submodule commit is the same as the previous one, skipping patch check"
-            exit 1
-          fi
+          git fetch origin ${{ github.event.before }}
+          git checkout ${{ github.event.before }} 
 
           git submodule update
           
           cd Mobile-Expensify
           PREVIOUS_SUBMODULE_COMMIT=$(git rev-parse HEAD)
           PREVIOUS_PATCHES_HASH=$(find patches -type f -name "react-native+${VERSION}*.patch" -exec sha256sum {} + | sort | sha256sum | awk '{print $1}')
+
+          if [ "$CURRENT_SUBMODULE_COMMIT" == "$PREVIOUS_SUBMODULE_COMMIT" ]; then
+            echo "Submodule commit is the same as the previous one, skipping patch check"
+            exit 1
+          fi
 
           if [ "$CURRENT_PATCHES_HASH" == "$PREVIOUS_PATCHES_HASH" ]; then
             echo "No changes in HybridApp patches"
@@ -78,4 +79,3 @@ jobs:
 
           echo "Detected changes in HybridApp patches:"
           git diff --name-only $PREVIOUS_SUBMODULE_COMMIT..$CURRENT_SUBMODULE_COMMIT -- "patches/react-native+*.patch"
-          exit 0
