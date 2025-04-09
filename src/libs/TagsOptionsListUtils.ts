@@ -3,10 +3,10 @@ import CONST from '@src/CONST';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import localeCompare from './LocaleCompare';
-import * as Localize from './Localize';
+import {translateLocal} from './Localize';
 import type {Option} from './OptionsListUtils';
-import * as OptionsListUtils from './OptionsListUtils';
-import * as PolicyUtils from './PolicyUtils';
+import {hasEnabledOptions} from './OptionsListUtils';
+import {getCleanedTagName} from './PolicyUtils';
 import tokenizedSearch from './tokenizedSearch';
 
 type SelectedTagOption = {
@@ -25,7 +25,7 @@ type SelectedTagOption = {
 function getTagsOptions(tags: Array<Pick<PolicyTag, 'name' | 'enabled' | 'pendingAction'>>, selectedOptions?: SelectedTagOption[]): Option[] {
     return tags.map((tag) => {
         // This is to remove unnecessary escaping backslash in tag name sent from backend.
-        const cleanedName = PolicyUtils.getCleanedTagName(tag.name);
+        const cleanedName = getCleanedTagName(tag.name);
         return {
             text: cleanedName,
             keyForList: tag.name,
@@ -86,8 +86,8 @@ function getTagListSections({
 
     if (searchValue) {
         const tagsForSearch = [
-            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => [PolicyUtils.getCleanedTagName(tag.name)]),
-            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => [PolicyUtils.getCleanedTagName(tag.name)]),
+            ...tokenizedSearch(selectedTagsWithDisabledState, searchValue, (tag) => [getCleanedTagName(tag.name)]),
+            ...tokenizedSearch(enabledTagsWithoutSelectedOptions, searchValue, (tag) => [getCleanedTagName(tag.name)]),
         ];
 
         tagSections.push({
@@ -132,7 +132,7 @@ function getTagListSections({
 
         tagSections.push({
             // "Recent" section
-            title: Localize.translateLocal('common.recent'),
+            title: translateLocal('common.recent'),
             shouldShow: true,
             data: getTagsOptions(cutRecentlyUsedTags, selectedOptions),
         });
@@ -140,7 +140,7 @@ function getTagListSections({
 
     tagSections.push({
         // "All" section when items amount more than the threshold
-        title: Localize.translateLocal('common.all'),
+        title: translateLocal('common.all'),
         shouldShow: true,
         data: getTagsOptions(enabledTagsWithoutSelectedOptions, selectedOptions),
     });
@@ -157,7 +157,7 @@ function hasEnabledTags(policyTagList: Array<PolicyTagLists[keyof PolicyTagLists
         .map(({tags}) => Object.values(tags))
         .flat();
 
-    return OptionsListUtils.hasEnabledOptions(policyTagValueList);
+    return hasEnabledOptions(policyTagValueList);
 }
 
 /**

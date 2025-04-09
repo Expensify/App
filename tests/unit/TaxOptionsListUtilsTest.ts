@@ -1,5 +1,5 @@
 import type {Section} from '@libs/OptionsListUtils';
-import * as TaxOptionsListUtils from '@libs/TaxOptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
 import type {Policy, TaxRatesWithDefault, Transaction} from '@src/types/onyx';
 
 describe('TaxOptionsListUtils', () => {
@@ -112,7 +112,7 @@ describe('TaxOptionsListUtils', () => {
             },
         ];
 
-        const result = TaxOptionsListUtils.getTaxRatesSection({
+        const result = getTaxRatesSection({
             policy,
             searchValue: emptySearch,
             transaction,
@@ -120,21 +120,21 @@ describe('TaxOptionsListUtils', () => {
 
         expect(result).toStrictEqual(resultList);
 
-        const searchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const searchResult = getTaxRatesSection({
             policy,
             searchValue: search,
             transaction,
         });
         expect(searchResult).toStrictEqual(searchResultList);
 
-        const tokenizeSearchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const tokenizeSearchResult = getTaxRatesSection({
             policy,
             searchValue: tokenizeSearch,
             transaction,
         });
         expect(tokenizeSearchResult).toStrictEqual(searchResultList);
 
-        const wrongSearchResult = TaxOptionsListUtils.getTaxRatesSection({
+        const wrongSearchResult = getTaxRatesSection({
             policy,
             searchValue: wrongSearch,
             transaction,
