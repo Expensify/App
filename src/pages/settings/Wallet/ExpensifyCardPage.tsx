@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import RNAddToWalletButton from '@components/AddToWalletButton/index';
+import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -285,7 +285,7 @@ function ExpensifyCardPage({
                     </>
                 )}
                 {!!canUseInAppProvisioning && cardToAdd !== undefined && (
-                    <RNAddToWalletButton
+                    <AddToWalletButton
                         card={cardToAdd}
                         buttonStyle={styles.alignSelfCenter}
                         cardHolderName={displayName}
