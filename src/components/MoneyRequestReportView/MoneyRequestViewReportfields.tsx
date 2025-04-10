@@ -44,7 +44,7 @@ type EnrichedPolicyReportField = {
     violationTranslation: string;
 } & PolicyReportField;
 
-function GetReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, pendingAction?: PendingAction) {
+function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, pendingAction?: PendingAction) {
     const styles = useThemeStyles();
 
     return (
@@ -122,7 +122,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         sortedPolicyReportFields
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .map((reportField) => {
-                return GetReportFieldView(reportField, report, pendingAction);
+                return ReportFieldView(reportField, report, pendingAction);
             })
     );
 }
