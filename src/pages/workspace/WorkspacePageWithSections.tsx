@@ -83,6 +83,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
+
+        /** Whether to use the headline header */
+        shouldUseHeadlineHeader?: boolean;
     };
 
 function fetchData(policyID: string | undefined, skipVBBACal?: boolean) {
@@ -118,6 +121,7 @@ function WorkspacePageWithSections({
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
     threeDotsAnchorPosition,
+    shouldUseHeadlineHeader = true,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
@@ -186,7 +190,7 @@ function WorkspacePageWithSections({
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
-                    shouldUseHeadlineHeader
+                    shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                 >
                     {headerContent}
                 </HeaderWithBackButton>
