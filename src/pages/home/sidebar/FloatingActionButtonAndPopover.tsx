@@ -611,7 +611,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     ];
 
     return (
-        <View style={styles.flexGrow1}>
+        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}
