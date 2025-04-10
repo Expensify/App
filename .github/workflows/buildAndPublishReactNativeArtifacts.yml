@@ -16,22 +16,23 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
       - name: Check if NewDot patches or react-native version have changed
         run: |
           VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          HASH=$(./.github/scripts/computePatchesHash.sh $VERSION)
+          HASH=$(VERSION=$VERSION ./.github/scripts/computePatchesHash.sh)
 
           git fetch origin ${{ github.event.before }}
           git checkout ${{ github.event.before }}
 
           OLD_VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          OLD_HASH=$(./.github/scripts/computePatchesHash.sh $VERSION)
+          # If version has changed and we want to find differences in patches, we need to consider pattern that involves previous react-native version
+          OLD_HASH=$(VERSION=$OLD_VERSION ./.github/scripts/computePatchesHash.sh)
 
           if [ "$HASH" == "$OLD_HASH" ] && [ "$VERSION" == "$OLD_VERSION" ]; then
-            echo "No relevant changes Skipping artifacts build"
+            echo "No relevant changes"
             exit 1
           fi
-
 
           if [ "$VERSION" != "$OLD_VERSION" ]; then
             echo "Detected react-native version bump ($OLD_VERSION -> $VERSION)"
@@ -42,6 +43,8 @@ jobs:
             echo "Detected changes in NewDot patches:"
             git diff --name-only ${{ github.event.before }}..${{ github.event.after }} -- "patches/react-native+*.patch"
           fi
+        env:
+          PATCHES_PATHS: "patches"
 
   verifyHybridAppPatches:
     runs-on: ubuntu-latest
@@ -52,27 +55,28 @@ jobs:
         with:
             submodules: true
             fetch-depth: 0
+      - name: Get react-native version
+        run: |
+          echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> $GITHUB_ENV
+
       - name: Check if HybridApp patches have changed
         run: |
-          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          cd Mobile-Expensify
-          CURRENT_SUBMODULE_COMMIT=$(git rev-parse HEAD)
-          CURRENT_PATCHES_HASH=$(../.github/scripts/computePatchesHash.sh $VERSION)
-          cd ..
+          CURRENT_SUBMODULE_COMMIT=$(git rev-parse :Mobile-Expensify)
+          CURRENT_PATCHES_HASH=$(./.github/scripts/computePatchesHash.sh)
  
           git fetch origin ${{ github.event.before }}
           git checkout ${{ github.event.before }}
 
           git submodule update
           
-          cd Mobile-Expensify
-          PREVIOUS_SUBMODULE_COMMIT=$(git rev-parse HEAD)
-          PREVIOUS_PATCHES_HASH=$(../.github/scripts/computePatchesHash.sh $VERSION)
+          PREVIOUS_SUBMODULE_COMMIT=$(git rev-parse :Mobile-Expensify)
 
           if [ "$CURRENT_SUBMODULE_COMMIT" == "$PREVIOUS_SUBMODULE_COMMIT" ]; then
             echo "Submodule commit is the same as the previous one, skipping patch check"
             exit 1
           fi
+
+          PREVIOUS_PATCHES_HASH=$(./.github/scripts/computePatchesHash.sh)
 
           if [ "$CURRENT_PATCHES_HASH" == "$PREVIOUS_PATCHES_HASH" ]; then
             echo "No changes in HybridApp patches"
@@ -80,7 +84,11 @@ jobs:
           fi
 
           echo "Detected changes in HybridApp patches:"
-          git diff --name-only $PREVIOUS_SUBMODULE_COMMIT..$CURRENT_SUBMODULE_COMMIT -- "patches/react-native+*.patch"
+          git -C Mobile-Expensify diff --name-only $PREVIOUS_SUBMODULE_COMMIT..$CURRENT_SUBMODULE_COMMIT -- "patches/react-native+*.patch"
+        env:
+          PATCHES_PATHS: "Mobile-Expensify/patches"
+          VERSION: ${{ env.VERSION }}
+
   buildAndPublishRNArtifactsForStandaloneNewDot:
     runs-on: ubuntu-latest
     if: ${{ always() && needs.verifyNewDotPatchesAndReactNativeVersion.result == 'success'}}
@@ -89,6 +97,10 @@ jobs:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+
+      - name: Get react-native version
+        run: |
+          echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> $GITHUB_ENV
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -106,13 +118,19 @@ jobs:
 
       - name: Save patches hash
         run: |
-          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          echo "PATCHES_HASH=$(./.github/scripts/computePatchesHash.sh $VERSION)" >> $GITHUB_ENV
+          echo "PATCHES_HASH=$(./.github/scripts/computePatchesHash.sh)" >> $GITHUB_ENV
+        env:
+          VERSION: ${{ env.VERSION }}
+          PATCHES_PATHS: "patches"
 
       - name: Determine new patched RN version
         run: |
-          VERSION=$(jq -r '.dependencies["react-native"]' package.json)
-          echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh $VERSION)" >> $GITHUB_ENV
+          echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> $GITHUB_ENV
+        env:
+          VERSION: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_HYBRID_BUILD: "false"
+
       - name: Build and publish RN artifacts
         run: |
           cd android
@@ -127,6 +145,69 @@ jobs:
           GH_PUBLISH_ACTOR: ${{ github.actor }}
           GH_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           IS_HYBRID_BUILD: "false"
+          PATCHED_VERSION: ${{ env.NEW_PATCHED_VERSION }}
+          COMMIT_HASH: ${{ github.event.after }}
+          PATCHES_HASH: ${{ env.PATCHES_HASH }}
+
+  buildAndPublishRNArtifactsForHybridApp:
+    runs-on: ubuntu-latest
+    if: ${{ always() && (needs.verifyNewDotPatchesAndReactNativeVersion.result == 'success' || needs.verifyHybridAppPatches.result == 'success')}}
+    needs: [verifyNewDotPatchesAndReactNativeVersion, verifyHybridAppPatches]
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: true
+
+      - name: Get react-native version
+        run: |
+          echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> $GITHUB_ENV
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: "true"
+
+      - name: Setup Java
+        # v4
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        with:
+          distribution: oracle
+          java-version: 17
+
+      - name: Setup Gradle
+        # v4
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
+      - name: Save patches hash
+        run: |
+          echo "PATCHES_HASH=$(./.github/scripts/computePatchesHash.sh)" >> $GITHUB_ENV
+        env:
+          VERSION: ${{ env.VERSION }}
+          PATCHES_PATHS: "patches Mobile-Expensify/patches"
+
+      - name: Determine new patched RN version
+        run: |
+          echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> $GITHUB_ENV
+        env:
+          VERSION: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_HYBRID_BUILD: "true"
+      - name: Build and publish RN artifacts
+        run: |
+          cd Mobile-Expensify/Android
+          echo "Starting artifacts build for HybridApp"
+          echo "Version: ${{ env.NEW_PATCHED_VERSION }}"
+          echo "Commit hash: ${{ env.COMMIT_HASH }}"
+          echo "Patches hash: ${{ env.PATCHES_HASH }}"
+          export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
+          ./gradlew buildReactNativeArtifacts -x lint -x test -x check
+          ./gradlew publishReactNativeArtifacts
+        env:
+          GH_PUBLISH_ACTOR: ${{ github.actor }}
+          GH_PUBLISH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          IS_HYBRID_BUILD: "true"
           PATCHED_VERSION: ${{ env.NEW_PATCHED_VERSION }}
           COMMIT_HASH: ${{ github.event.after }}
           PATCHES_HASH: ${{ env.PATCHES_HASH }}

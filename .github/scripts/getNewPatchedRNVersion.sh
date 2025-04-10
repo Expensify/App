@@ -1,9 +1,7 @@
 #!/bin/bash
 
-VERSION="$1"
-
 if [ -z "$VERSION" ]; then
-    echo "Missing version argument"
+    echo "VERSION env variable is not set"
     exit 1
 fi
 
