@@ -74,6 +74,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
+    const [isCannotDeleteLastCategoryModalVisible, setIsCannotDeleteLastCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -244,7 +245,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: Expensicons.Trashcan,
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
-                    onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
+                    onSelected: () => {
+                        if (shouldPreventDisable) {
+                            setIsCannotDeleteLastCategoryModalVisible(true);
+                            return;
+                        }
+
+                        setDeleteCategoriesConfirmModalVisible(true);
+                    },
                 });
             }
 
@@ -499,6 +507,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
                     title={translate('workspace.categories.cannotDisableAllCategories.title')}
                     prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    isVisible={isCannotDeleteLastCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteLastCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteLastCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteAllCategories.title')}
+                    prompt={translate('workspace.categories.cannotDeleteAllCategories.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />

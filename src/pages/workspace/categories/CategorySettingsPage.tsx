@@ -57,6 +57,7 @@ function CategorySettingsPage({
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
     const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
+    const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
     const shouldPreventDisable = policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
@@ -172,6 +173,15 @@ function CategorySettingsPage({
                             onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
                             title={translate('workspace.categories.cannotDisableAllCategories.title')}
                             prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
+                        />
+                        <ConfirmModal
+                            isVisible={isCannotDeleteLastTagModalVisible}
+                            onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
+                            onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
+                            title={translate('workspace.categories.cannotDeleteAllCategories.title')}
+                            prompt={translate('workspace.categories.cannotDeleteAllCategories.description')}
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
                         />
@@ -346,7 +356,13 @@ function CategorySettingsPage({
                                 <MenuItem
                                     icon={Trashcan}
                                     title={translate('common.delete')}
-                                    onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                                    onPress={() => {
+                                        if (shouldPreventDisable) {
+                                            setIsCannotDeleteLastTagModalVisible(true);
+                                            return;
+                                        }
+                                        setDeleteCategoryConfirmModalVisible(true);
+                                    }}
                                 />
                             )}
                         </ScrollView>

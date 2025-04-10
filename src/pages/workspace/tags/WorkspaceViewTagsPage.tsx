@@ -76,7 +76,8 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
-    const [showCannotDisableLastTagModal, setShowCannotDisableLastTagModal] = useState(false);
+    const [isCannotMakeAllTagsOptionalModalVisible, setIsCannotMakeAllTagsOptionalModalVisible] = useState(false);
+    const [isCannotDisableLastTagModalVisible, setIsCannotDisableLastTagModalVisible] = useState(false);
     const countOfRequiredTagLists = getCountOfRequiredTagLists(policyTags);
     const countOfEnabledTagsOfList = getCountOfEnabledTagsOfList(currentPolicyTag?.tags);
     const fetchTags = useCallback(() => {
@@ -132,7 +133,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             accessibilityLabel={translate('workspace.tags.enableTag')}
                             onToggle={(newValue: boolean) => {
                                 if (countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled && currentPolicyTag?.required) {
-                                    setShowCannotDisableLastTagModal(true);
+                                    setIsCannotDisableLastTagModalVisible(true);
                                     return;
                                 }
                                 updateWorkspaceTagEnabled(newValue, tag.name);
@@ -245,7 +246,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
                     if (tagsToDisableCount === countOfEnabledTagsOfList && currentPolicyTag?.required && currentPolicyTag?.required) {
-                        setShowCannotDisableLastTagModal(true);
+                        setIsCannotDisableLastTagModalVisible(true);
                         return;
                     }
                     setSelectedTags({});
@@ -339,7 +340,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
                                 if (countOfRequiredTagLists === 1 && policy?.requiresTag && currentPolicyTag?.required) {
-                                    setShowCannotDisableLastTagModal(true);
+                                    setIsCannotMakeAllTagsOptionalModalVisible(true);
                                     return;
                                 }
 
@@ -393,11 +394,20 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                     />
                 )}
                 <ConfirmModal
-                    isVisible={showCannotDisableLastTagModal}
-                    onConfirm={() => setShowCannotDisableLastTagModal(false)}
-                    onCancel={() => setShowCannotDisableLastTagModal(false)}
+                    isVisible={isCannotDisableLastTagModalVisible}
+                    onConfirm={() => setIsCannotDisableLastTagModalVisible(false)}
+                    onCancel={() => setIsCannotDisableLastTagModalVisible(false)}
                     title={translate('workspace.tags.cannotDisableAllTags.title')}
                     prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    isVisible={isCannotMakeAllTagsOptionalModalVisible}
+                    onConfirm={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
+                    onCancel={() => setIsCannotMakeAllTagsOptionalModalVisible(false)}
+                    title={translate('workspace.tags.cannotMakeAllTagsOptional.title')}
+                    prompt={translate('workspace.tags.cannotMakeAllTagsOptional.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />
