@@ -11462,9 +11462,9 @@ const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
 async function run() {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
-    // The checklist will use the package.json version, e.g. 1.2.3-4
+    // The checklist will use the package.json version, e.g. '1.2.3-4'
     const newVersion = packageJson.version;
-    // Staging tags will use the package.json with a '-staging' suffix
+    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
     const newStagingTag = `${packageJson.version}-staging`;
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers

@@ -15,9 +15,9 @@ type PackageJson = {
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
-    // The checklist will use the package.json version, e.g. 1.2.3-4
+    // The checklist will use the package.json version, e.g. '1.2.3-4'
     const newVersion = packageJson.version;
-    // Staging tags will use the package.json with a '-staging' suffix
+    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
     const newStagingTag = `${packageJson.version}-staging`;
 
     try {
