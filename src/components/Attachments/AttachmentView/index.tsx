@@ -135,8 +135,8 @@ function AttachmentView({
         if (!isFocused && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : null);
-    }, [file, isFocused, isUsedInAttachmentModal, isVideo, source, updateCurrentlyPlayingURL]);
+        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : undefined, reportID);
+    }, [file, isFocused, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentlyPlayingURL]);
 
     const [imageError, setImageError] = useState(false);
 

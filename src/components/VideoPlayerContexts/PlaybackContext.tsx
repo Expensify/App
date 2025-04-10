@@ -1,19 +1,18 @@
-import type {NavigationState, Route} from '@react-navigation/native';
+import type {Route} from '@react-navigation/native';
 import {findFocusedRoute} from '@react-navigation/native';
 import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
-import usePrevious from '@hooks/usePrevious';
 import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
-import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils';
 import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
-import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
-import ROUTES from '@src/ROUTES';
+import getStateFromPath from '@navigation/helpers/getStateFromPath';
+import type {ReportDetailsNavigatorParamList} from '@navigation/types';
+import type {Route as ActiveRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -22,12 +21,15 @@ import type {PlaybackContext, StatusCallback} from './types';
 const Context = React.createContext<PlaybackContext | null>(null);
 
 type SearchRoute = Omit<Route<string>, 'key'> | undefined;
-type MoneyRequestReportState = {
-    params: SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT];
-} & SearchRoute;
 
-function isMoneyRequestReportRouteWithReportIDInParams(route: SearchRoute): route is MoneyRequestReportState {
-    return !!route && !!route.params && route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT && 'reportID' in route.params;
+const NO_REPORT_ID = undefined;
+
+type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
+
+const screensWithReportID = [SCREENS.SEARCH.REPORT_RHP, SCREENS.REPORT, SCREENS.SEARCH.MONEY_REQUEST_REPORT, SCREENS.ATTACHMENTS];
+
+function isARouteWithReportIDInParams(route: SearchRoute): route is RouteWithReportIDInParams<SearchRoute> {
+    return !!route && !!route.params && !!screensWithReportID.find((screen) => screen === route.name) && 'reportID' in route.params;
 }
 
 function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, url: string | null): string | undefined {
@@ -53,15 +55,13 @@ function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, 
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
-    const [currentlyPlayingURLReportID, setCurrentlyPlayingURLReportID] = useState<string | undefined>();
     const [sharedElement, setSharedElement] = useState<View | HTMLDivElement | null>(null);
     const [originalParent, setOriginalParent] = useState<View | HTMLDivElement | null>(null);
     const currentVideoPlayerRef = useRef<VideoWithOnFullScreenUpdate | null>(null);
-    const [currentReportID, setCurrentReportID] = useState<string | undefined>();
-    const prevCurrentReportID = usePrevious(currentReportID);
     const videoResumeTryNumberRef = useRef<number>(0);
     const playVideoPromiseRef = useRef<Promise<AVPlaybackStatus>>();
     const isPlayPendingRef = useRef(false);
+    const [currentRouteReportID, setCurrentRouteReportID] = useState<string | typeof NO_REPORT_ID>(NO_REPORT_ID);
 
     const pauseVideo = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
@@ -91,49 +91,47 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         currentVideoPlayerRef.current?.unloadAsync?.();
     }, [currentVideoPlayerRef]);
 
-    /**
-     * This function is used to update the currentReportID
-     * @param state root navigation state
-     */
-    const updateCurrentPlayingReportID = useCallback(
-        (state: NavigationState) => {
-            const focusedRoute = findFocusedRoute(state);
-            let {reportID} = getReportOrDraftReport(Navigation.getTopmostReportId()) ?? {};
+    const getCurrentRouteReportID = useCallback((url: string) => {
+        const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
+        const focusedRoute = findFocusedRoute(getStateFromPath(route));
+        const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID');
 
-            // We need to handle a case where a report is selected via search and is therefore not a topmost report,
-            // but we still want to be able to play videos in it
-            if (isMoneyRequestReportRouteWithReportIDInParams(focusedRoute)) {
-                reportID = focusedRoute.params.reportID;
-            }
+        const focusedRouteReportID = isARouteWithReportIDInParams(focusedRoute) ? focusedRoute.params.reportID : reportIDFromUrlParams;
 
-            reportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportID;
+        if (!focusedRouteReportID) {
+            return false;
+        }
 
-            setCurrentReportID(reportID);
-        },
-        [setCurrentReportID, prevCurrentReportID],
-    );
+        const report = getReportOrDraftReport(focusedRouteReportID);
+        const isFocusedRouteAChatThread = isChatThread(report);
+        const firstReportThatHasURLInAttachments = findUrlInReportOrAncestorAttachments(report, url);
+
+        return isFocusedRouteAChatThread ? firstReportThatHasURLInAttachments : focusedRouteReportID;
+    }, []);
 
     const updateCurrentlyPlayingURL = useCallback(
-        (url: string | null, reportID?: string) => {
+        (url: string | undefined, reportID: string | undefined) => {
+            if (!url || !reportID) {
+                return;
+            }
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
 
-            // Used for /attachment route
-            const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
-            const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
-            const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID ?? reportIDFromUrlParams : undefined;
-            const reportIDWithUrl = isChatThread(topMostReport) ? findUrlInReportOrAncestorAttachments(topMostReport, url) : undefined;
+            const report = getReportOrDraftReport(reportID);
+            const firstReportIDThatHasURLInAttachments = findUrlInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID;
+            const isReportAChatThread = isChatThread(report);
 
-            // - if it is a chat thread, use chat thread ID or any ascentor ID since the video could have originally been sent on report many levels up
-            // - report ID in which we are currently, if it is not a chat thread
-            // - if it is an attachment route, then we take report ID from the URL params
-            const currentPlayReportID = [attachmentReportID, reportIDWithUrl, currentReportID].find((id) => id !== undefined);
+            const reportIDtoSet = isReportAChatThread ? firstReportIDThatHasURLInAttachments : reportID;
 
-            setCurrentlyPlayingURLReportID(reportID ?? currentPlayReportID);
+            const routeReportID = getCurrentRouteReportID(url);
+
+            if (reportIDtoSet === routeReportID || routeReportID === false) {
+                setCurrentRouteReportID(reportIDtoSet);
+            }
             setCurrentlyPlayingURL(url);
         },
-        [currentlyPlayingURL, currentReportID, prevCurrentReportID, pauseVideo],
+        [currentlyPlayingURL, getCurrentRouteReportID, pauseVideo],
     );
 
     const shareVideoPlayerElements = useCallback(
@@ -163,10 +161,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         // it will throw a console error. So, we'll wait until the promise is resolved before stopping the video.
         (playVideoPromiseRef.current ?? Promise.resolve()).then(stopVideo).finally(() => {
             videoResumeTryNumberRef.current = 0;
-            setCurrentlyPlayingURL(null);
             setSharedElement(null);
             setOriginalParent(null);
-            setCurrentlyPlayingURLReportID(undefined);
+            setCurrentlyPlayingURL(null);
+            setCurrentRouteReportID(NO_REPORT_ID);
             unloadVideo();
             currentVideoPlayerRef.current = null;
         });
@@ -179,7 +177,12 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             // This prevents the video that plays when the app opens from being interrupted when currentReportID
             // is initially empty or '-1', or when it changes from empty/'-1' to another value
             // after the report screen in the central pane is mounted on the large screen.
-            if ((!currentReportID && isReportTopmostSplitNavigator()) || (!prevCurrentReportID && !isReportTopmostSplitNavigator()) || currentReportID === prevCurrentReportID) {
+            const routeReportID = currentlyPlayingURL ? getCurrentRouteReportID(currentlyPlayingURL) : undefined;
+
+            const isReportIDTheSame = routeReportID === currentRouteReportID || routeReportID === false;
+            const isOnRouteWithoutReportID = !!currentlyPlayingURL && getCurrentRouteReportID(currentlyPlayingURL) === 'SEARCH_ROOT';
+
+            if (isReportIDTheSame || isOnRouteWithoutReportID) {
                 return;
             }
 
@@ -189,7 +192,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
                 resetVideoPlayerData();
             }, 0);
         });
-    }, [currentReportID, prevCurrentReportID, resetVideoPlayerData]);
+    }, [currentRouteReportID, currentlyPlayingURL, getCurrentRouteReportID, resetVideoPlayerData]);
 
     useEffect(() => {
         const unsubscribeVisibilityListener = Visibility.onVisibilityChange(() => {
@@ -206,7 +209,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         () => ({
             updateCurrentlyPlayingURL,
             currentlyPlayingURL,
-            currentlyPlayingURLReportID,
+            currentRouteReportID,
             originalParent,
             sharedElement,
             currentVideoPlayerRef,
@@ -217,12 +220,11 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             checkVideoPlaying,
             videoResumeTryNumberRef,
             resetVideoPlayerData,
-            updateCurrentPlayingReportID,
         }),
         [
             updateCurrentlyPlayingURL,
             currentlyPlayingURL,
-            currentlyPlayingURLReportID,
+            currentRouteReportID,
             originalParent,
             sharedElement,
             shareVideoPlayerElements,
@@ -231,7 +233,6 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             checkVideoPlaying,
             setCurrentlyPlayingURL,
             resetVideoPlayerData,
-            updateCurrentPlayingReportID,
         ],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;

@@ -1,4 +1,3 @@
-import type {NavigationState} from '@react-navigation/native';
 import type {MutableRefObject} from 'react';
 import type {View} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -9,9 +8,9 @@ import type CONST from '@src/CONST';
 import type {ResponsiveLayoutProperties} from './FullScreenContext';
 
 type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string | null, reportID?: string) => void;
+    updateCurrentlyPlayingURL: (url: string | undefined, reportID: string | undefined) => void;
     currentlyPlayingURL: string | null;
-    currentlyPlayingURLReportID: string | undefined;
+    currentRouteReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
     videoResumeTryNumberRef: MutableRefObject<number>;
@@ -22,7 +21,6 @@ type PlaybackContext = {
     checkVideoPlaying: (statusCallback: StatusCallback) => void;
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
     resetVideoPlayerData: () => void;
-    updateCurrentPlayingReportID: (state: NavigationState) => void;
 };
 
 type VolumeContext = {

@@ -3,7 +3,6 @@ import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@r
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
-import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -87,7 +86,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
     const {cleanStaleScrollOffsets} = useContext(ScrollOffsetContext);
 
     const currentReportIDValue = useCurrentReportID();
-    const {updateCurrentPlayingReportID} = usePlaybackContext();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [user] = useOnyx(ONYXKEYS.USER);
     const isPrivateDomain = Session.isUserOnPrivateDomain();
@@ -210,7 +208,6 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // Performance optimization to avoid context consumers to delay first render
         setTimeout(() => {
             currentReportIDValue?.updateCurrentReportID(state);
-            updateCurrentPlayingReportID(state);
         }, 0);
         parseAndLogRoute(state);
 

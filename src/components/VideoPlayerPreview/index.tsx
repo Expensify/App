@@ -50,14 +50,14 @@ type VideoPlayerPreviewProps = {
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {currentlyPlayingURL, currentRouteReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
     const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
-
     // We want to play the video only when the user is on the page where it was rendered
     const firstRenderRoute = useFirstRenderRoute([`/${ROUTES.ATTACHMENTS.route}`]);
 
@@ -69,7 +69,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
 
     const handleOnPress = () => {
         updateCurrentlyPlayingURL(videoUrl, reportID);
-        if (shouldUseNarrowLayout) {
+        if (isSmallScreenWidth) {
             onShowModalPress();
         }
     };
@@ -79,15 +79,15 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [navigation, firstRenderRoute]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || (reportID !== currentlyPlayingURLReportID && !isOnSearch) || !firstRenderRoute.isFocused) {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !firstRenderRoute.isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute, isOnSearch]);
+    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute, isOnSearch]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {shouldUseNarrowLayout || isThumbnail || isDeleted ? (
+            {isSmallScreenWidth || isThumbnail || isDeleted ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}

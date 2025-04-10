@@ -68,7 +68,7 @@ function BaseVideoPlayer({
         updateCurrentlyPlayingURL,
         videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
-        currentlyPlayingURLReportID,
+        currentRouteReportID,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -113,13 +113,13 @@ function BaseVideoPlayer({
         setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
-            updateCurrentlyPlayingURL(url);
+            updateCurrentlyPlayingURL(url, reportID);
         } else if (isPlaying) {
             pauseVideo();
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -355,8 +355,7 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        // in search page, we don't have active report id, so comparing reportID is not necessary
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || (reportID !== currentlyPlayingURLReportID && !isOnSearch)) {
+        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentRouteReportID) {
             return;
         }
         // On mobile safari, we need to auto-play when sharing video element here
@@ -366,7 +365,7 @@ function BaseVideoPlayer({
             videoPlayerElementRef.current,
             isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID, isOnSearch]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentRouteReportID, isOnSearch]);
 
     // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
     const bindFunctionsRef = useRef<(() => void) | null>(null);
@@ -413,14 +412,14 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentlyPlayingURL, currentlyPlayingURLReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, currentRouteReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
             return;
         }
-        updateCurrentlyPlayingURL(url);
-    }, [shouldPlay, updateCurrentlyPlayingURL, url]);
+        updateCurrentlyPlayingURL(url, reportID);
+    }, [reportID, shouldPlay, updateCurrentlyPlayingURL, url]);
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({isMuted: true});
@@ -531,6 +530,7 @@ function BaseVideoPlayer({
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
                                     controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
+                                    reportID={reportID}
                                 />
                             )}
                         </View>
