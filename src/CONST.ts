@@ -768,7 +768,6 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_PDF_EXPORT: 'newDotPDFExport',
-        NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
