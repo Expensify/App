@@ -32,6 +32,18 @@ jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
 }));
 
+jest.mock('@rnmapbox/maps', () => {
+    return {
+        default: jest.fn(),
+        MarkerView: jest.fn(),
+        setAccessToken: jest.fn(),
+    };
+});
+
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+}));
+
 TestHelper.setupGlobalFetchMock();
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
