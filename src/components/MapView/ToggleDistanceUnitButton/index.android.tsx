@@ -51,6 +51,6 @@ function ToggleDistanceUnitButton({onPress, children, ...rest}: PressableProps) 
     );
 }
 
-ToggleDistanceUnitButton.displayName = 'PressableWithTouchEnd';
+ToggleDistanceUnitButton.displayName = 'ToggleDistanceUnitButton';
 
 export default ToggleDistanceUnitButton;
