@@ -1724,13 +1724,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     }
 
     if (hash) {
-        console.log(`Adding optimistic data for transaction ${transaction.transactionID} with hash ${hash}`);
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
                 data: {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                        accountID: currentUserPersonalDetails?.accountID,
                         ...transaction,
                     },
                 },
