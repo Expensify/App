@@ -1122,7 +1122,6 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN]: Parameters.GetEmphemeralTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateAppleDigitalWalletParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN]: EmptyObject;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;
