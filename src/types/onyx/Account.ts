@@ -65,9 +65,6 @@ type SMSDeliveryFailureStatus = {
     /** The message associated with the SMS delivery failure */
     message: string;
 
-    /** Indicates whether the SMS delivery failure status has been reset by an API call */
-    isReset?: boolean;
-
     /** Whether a sign is loading */
     isLoading?: boolean;
 };
