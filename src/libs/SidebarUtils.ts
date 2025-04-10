@@ -668,9 +668,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        if ((isDM(report) && lastActorDisplayName !== translateLocal('common.you')) || isArchivedReport(reportNameValuePairs)) {
-            result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
-        } else if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
