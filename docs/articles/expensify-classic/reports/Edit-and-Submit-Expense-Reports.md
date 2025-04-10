@@ -44,7 +44,7 @@ Once you’ve created your expenses, they may be automatically added to a report
 **On Desktop:**
 1. Click **Reports**.
    - If a report has been automatically created for your most recent expense, no action is needed.
-2. Click **New Report**, then select **Expense Report**.
+2. Click **Create Report**, then select **Expense Report**.
 3. Click **Add Expenses** and select expenses to add.
 4. (Optional) Edit the report:
    - Click the **Edit** icon to rename the report.
