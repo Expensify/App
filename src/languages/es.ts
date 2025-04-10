@@ -6633,7 +6633,9 @@ const translations = {
         confirmText: 'Descartar cambios',
     },
     aiSales: {
-        talkWithSales: 'Habla con ventas',
+        talkToSales: 'Habla con ventas',
+        getHelp: 'Obtener ayuda',
+        talkToConcierge: 'Habla con Concierge',
         hangUp: 'Colgar',
     },
 };
