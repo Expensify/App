@@ -16,6 +16,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import AddressBusiness from './subSteps/AddressBusiness';
 import ConfirmationBusiness from './subSteps/ConfirmationBusiness';
+import IncorporationCode from './subSteps/IncorporationCode';
 import IncorporationDateBusiness from './subSteps/IncorporationDateBusiness';
 import IncorporationStateBusiness from './subSteps/IncorporationStateBusiness';
 import NameBusiness from './subSteps/NameBusiness';
@@ -40,6 +41,7 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [
     TypeBusiness,
     IncorporationDateBusiness,
     IncorporationStateBusiness,
+    IncorporationCode,
     ConfirmationBusiness,
 ];
 
