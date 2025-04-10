@@ -98,7 +98,7 @@ function ConnectionLayout({
     policyID,
     accessVariants,
     featureName,
-    contentContainerStyle: contentContainerStyleProp,
+    contentContainerStyle,
     titleStyle,
     shouldIncludeSafeAreaPaddingBottom,
     connectionName,
@@ -129,7 +129,6 @@ function ConnectionLayout({
     );
 
     const shouldBlockByConnection = shouldLoadForEmptyConnection ? !isConnectionEmpty : isConnectionEmpty;
-    const contentContainerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPadding, style: contentContainerStyleProp});
 
     return (
         <AccessOrNotFoundWrapper
@@ -140,7 +139,7 @@ function ConnectionLayout({
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
-                includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
+                includeSafeAreaPaddingBottom={!enableEdgeToEdgeBottomSafeAreaPadding && !!shouldIncludeSafeAreaPaddingBottom}
                 shouldEnableMaxHeight
                 testID={displayName}
             >
@@ -151,7 +150,7 @@ function ConnectionLayout({
                 />
                 {shouldUseScrollView ? (
                     <ScrollView
-                        contentContainerStyle={contentContainerStyleProp}
+                        contentContainerStyle={contentContainerStyle}
                         addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
                     >
                         {renderSelectionContent}

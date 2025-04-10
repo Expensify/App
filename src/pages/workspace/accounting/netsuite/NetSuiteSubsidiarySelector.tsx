@@ -97,6 +97,7 @@ function NetSuiteSubsidiarySelector({policy}: WithPolicyConnectionsProps) {
             errors={ErrorUtils.getLatestErrorField(netsuiteConfig ?? {}, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => Policy.clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.SUBSIDIARY)}
+            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }
