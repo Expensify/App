@@ -105,7 +105,7 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                         buttonRef.current = el ?? null;
                     }
                 }}
-                style={[styles.h100, styles.bottomTabBarItem]}
+                style={[styles.h100, styles.navigationTabBarItem]}
                 accessibilityLabel={accessibilityLabel}
                 onPress={toggleFabAction}
                 onLongPress={() => {}}

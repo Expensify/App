@@ -7,8 +7,8 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderGap from '@components/HeaderGap';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -130,7 +130,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 />
                                 <SearchTypeMenu queryJSON={undefined} />
                             </View>
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>
                         <View style={[styles.flexColumn, styles.flex1]}>
                             <FullPageNotFoundView

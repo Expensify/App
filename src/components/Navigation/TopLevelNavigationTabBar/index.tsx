@@ -2,28 +2,28 @@ import type {ParamListBase} from '@react-navigation/native';
 import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import getIsBottomTabVisibleDirectly from './getIsBottomTabVisibleDirectly';
-import getIsScreenWithBottomTabFocused from './getIsScreenWithBottomTabFocused';
+import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
+import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
 
-type TopLevelBottomTabBarProps = {
+type TopLevelNavigationTabBarProps = {
     state: PlatformStackNavigationState<ParamListBase>;
 };
 
 /**
- * TopLevelBottomTabBar is displayed when the user can interact with the bottom tab bar.
+ * TopLevelNavigationTabBar is displayed when the user can interact with the bottom tab bar.
  * We hide it when:
  * 1. The bottom tab bar is not visible.
  * 2. There is transition between screens with and without the bottom tab bar.
  * 3. The bottom tab bar is under the overlay.
  * For cases 2 and 3, local bottom tab bar mounted on the screen will be displayed.
  */
-function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
+function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings();
@@ -32,11 +32,11 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
 
     // That means it's visible and it's not covered by the overlay.
-    const isBottomTabVisibleDirectly = getIsBottomTabVisibleDirectly(state);
-    const isScreenWithBottomTabFocused = getIsScreenWithBottomTabFocused(state);
+    const isNavigationTabVisibleDirectly = getIsNavigationTabBarVisibleDirectly(state);
+    const isScreenWithNavigationTabFocused = getIsScreenWithNavigationTabBarFocused(state);
     const selectedTab = getSelectedTab(state);
 
-    const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithBottomTabFocused : isBottomTabVisibleDirectly;
+    const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithNavigationTabFocused : isNavigationTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
 
     useEffect(() => {
@@ -54,11 +54,11 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     }, [shouldDisplayBottomBar]);
 
     return (
-        <View style={styles.topLevelBottomTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
-            {/* We are not rendering BottomTabBar conditionally for two reasons
+        <View style={styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
+            {/* We are not rendering NavigationTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
-            <BottomTabBar
+            <NavigationTabBar
                 selectedTab={selectedTab}
                 isTooltipAllowed={isReadyToDisplayBottomBar}
             />
@@ -66,6 +66,6 @@ function TopLevelBottomTabBar({state}: TopLevelBottomTabBarProps) {
     );
 }
 
-TopLevelBottomTabBar.displayName = 'TopLevelBottomTabBar';
+TopLevelNavigationTabBar.displayName = 'TopLevelNavigationTabBar';
 
-export default TopLevelBottomTabBar;
+export default TopLevelNavigationTabBar;

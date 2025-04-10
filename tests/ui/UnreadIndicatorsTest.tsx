@@ -39,7 +39,7 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
+jest.mock('@src/components/Navigation/TopLevelNavigationTabBar/useIsNavigationTabBarVisibleDirectly');
 
 TestHelper.setupApp();
 TestHelper.setupGlobalFetchMock();

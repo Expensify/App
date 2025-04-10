@@ -7,8 +7,8 @@ import DecisionModal from '@components/DecisionModal';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -437,7 +437,7 @@ function SearchPage({route}: SearchPageProps) {
                                     }}
                                 />
                             )}
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>
                         <ScreenWrapper
                             testID={Search.displayName}

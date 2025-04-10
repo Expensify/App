@@ -325,7 +325,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        bottomTabBarLabel: {
+        navigationTabBarLabel: {
             lineHeight: 14,
             height: 16,
         },
@@ -587,12 +587,12 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
-            pointerEvents: shouldDisplayTopLevelBottomTabBar ? 'auto' : 'none',
+            opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
+            pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
@@ -602,7 +602,7 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
         }),
 
-        bottomTabBarContainer: {
+        navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
             borderTopWidth: 1,
@@ -610,7 +610,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        bottomTabBarItem: {
+        navigationTabBarItem: {
             height: '100%',
             display: 'flex',
             justifyContent: 'center',
@@ -1701,7 +1701,7 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        bottomTabStatusIndicator: (backgroundColor: string = theme.danger) => ({
+        navigationTabBarStatusIndicator: (backgroundColor: string = theme.danger) => ({
             borderColor: theme.sidebar,
             backgroundColor,
             borderRadius: 8,
