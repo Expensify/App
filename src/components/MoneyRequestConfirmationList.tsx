@@ -323,11 +323,12 @@ function MoneyRequestConfirmationList({
 
     const hasRoute = hasRouteUtil(transaction, isDistanceRequest);
     const isDistanceRequestWithPendingRoute = isDistanceRequest && (!hasRoute || !rate) && !isMovingTransactionFromTrackExpense;
+
     const distanceRequestAmount = DistanceRequestUtils.getDistanceRequestAmount(distance, unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, rate ?? 0);
     const formattedAmount = isDistanceRequestWithPendingRoute
         ? ''
         : convertToDisplayString(shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount, isDistanceRequest ? currency : iouCurrencyCode);
-    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute
+    const formattedAmountPerAttendee = isDistanceRequestWithPendingRoute || isScanRequest
         ? ''
         : convertToDisplayString(
               (shouldCalculateDistanceAmount ? distanceRequestAmount : iouAmount) / (iouAttendees?.length && iouAttendees.length > 0 ? iouAttendees.length : 1),

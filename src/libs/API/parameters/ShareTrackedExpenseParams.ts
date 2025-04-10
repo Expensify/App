@@ -30,6 +30,7 @@ type ShareTrackedExpenseParams = {
     guidedSetupData?: string;
     description?: string;
     policyName?: string;
+    attendees?: string;
 };
 
 export default ShareTrackedExpenseParams;

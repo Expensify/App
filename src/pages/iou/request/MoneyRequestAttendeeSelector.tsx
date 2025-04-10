@@ -73,11 +73,10 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {options, areOptionsInitialized} = useOptionsList({
         shouldInitialize: didScreenTransitionEnd,
     });
-    const cleanSearchTerm = useMemo(() => debouncedSearchTerm.trim().toLowerCase(), [debouncedSearchTerm]);
+    const cleanSearchTerm = useMemo(() => searchTerm.trim().toLowerCase(), [searchTerm]);
     const offlineMessage: string = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
     const isPaidGroupPolicy = useMemo(() => isPaidGroupPolicyFn(policy), [policy]);
-    const isCategorizeOrShareAction = [CONST.IOU.ACTION.CATEGORIZE, CONST.IOU.ACTION.SHARE].some((option) => option === action);
 
     useEffect(() => {
         searchInServer(debouncedSearchTerm.trim());
@@ -93,9 +92,9 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             betas,
             attendees,
             recentAttendees ?? [],
-            iouType === CONST.IOU.TYPE.SUBMIT && action !== CONST.IOU.ACTION.SUBMIT,
-            !isCategorizeOrShareAction,
-            iouType === CONST.IOU.TYPE.INVOICE,
+            iouType === CONST.IOU.TYPE.SUBMIT,
+            true,
+            false,
             action,
         );
         if (isPaidGroupPolicy) {
@@ -121,7 +120,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         recentAttendees,
         iouType,
         action,
-        isCategorizeOrShareAction,
         isPaidGroupPolicy,
         isCurrentUserAttendee,
         searchTerm,
@@ -137,14 +135,14 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 headerMessage: '',
             };
         }
-        const newOptions = filterAndOrderOptions(defaultOptions, debouncedSearchTerm, {
+        const newOptions = filterAndOrderOptions(defaultOptions, cleanSearchTerm, {
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             maxRecentReportsToShow: CONST.IOU.MAX_RECENT_REPORTS_TO_SHOW,
             preferPolicyExpenseChat: isPaidGroupPolicy,
             shouldAcceptName: true,
         });
         return newOptions;
-    }, [areOptionsInitialized, defaultOptions, debouncedSearchTerm, isPaidGroupPolicy]);
+    }, [areOptionsInitialized, defaultOptions, cleanSearchTerm, isPaidGroupPolicy]);
 
     /**
      * Returns the sections needed for the OptionsSelector
@@ -159,7 +157,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const contactsWithRestOfRecents = [...restOfRecents, ...chatOptions.personalDetails];
 
         const formatResults = formatSectionsFromSearchTerm(
-            debouncedSearchTerm,
+            cleanSearchTerm,
             attendees.map((attendee) => ({
                 ...attendee,
                 reportID: CONST.DEFAULT_NUMBER_ID.toString(),
@@ -203,7 +201,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
         const headerMessage = getHeaderMessage(
             (chatOptions.personalDetails ?? []).length + (chatOptions.recentReports ?? []).length !== 0,
             !!chatOptions?.userToInvite,
-            debouncedSearchTerm.trim(),
+            cleanSearchTerm,
             attendees.some((attendee) => getPersonalDetailSearchTerms(attendee).join(' ').toLowerCase().includes(cleanSearchTerm)),
         );
 
@@ -211,7 +209,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     }, [
         areOptionsInitialized,
         didScreenTransitionEnd,
-        debouncedSearchTerm,
         attendees,
         chatOptions.recentReports,
         chatOptions.personalDetails,
@@ -258,7 +255,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                     },
                 ];
             }
-
             onAttendeesAdded(newSelectedOptions);
         },
         [attendees, iouType, onAttendeesAdded],
@@ -302,20 +298,17 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                         message={translate('iou.error.atLeastOneAttendee')}
                     />
                 )}
-
-                {!isCategorizeOrShareAction && (
-                    <Button
-                        success
-                        text={translate('common.save')}
-                        onPress={handleConfirmSelection}
-                        pressOnEnter
-                        large
-                        isDisabled={shouldShowErrorMessage}
-                    />
-                )}
+                <Button
+                    success
+                    text={translate('common.save')}
+                    onPress={handleConfirmSelection}
+                    pressOnEnter
+                    large
+                    isDisabled={shouldShowErrorMessage}
+                />
             </>
         );
-    }, [handleConfirmSelection, attendees.length, shouldShowErrorMessage, styles, translate, isCategorizeOrShareAction]);
+    }, [handleConfirmSelection, attendees.length, shouldShowErrorMessage, styles, translate]);
 
     return (
         <SelectionList

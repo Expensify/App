@@ -51,7 +51,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP_MANAGER,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isSelectedManagerMcTest(item.login),
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isSelectedManagerMcTest(item.login) && !item.isSelected,
     );
 
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;

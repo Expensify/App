@@ -268,6 +268,7 @@ type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | '
     receipt?: Receipt;
     taxCode: string;
     taxAmount: number;
+    attendees?: Attendee[];
 };
 
 type TrackedExpensePolicyParams = {
@@ -357,6 +358,7 @@ type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
 };
 
 type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
+    attendees?: Attendee[];
     customUnit: TransactionCustomUnit;
     comment?: string;
 };
@@ -447,6 +449,7 @@ type BuildOnyxDataForMoneyRequestParams = {
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
+    attendees?: Attendee[];
     validWaypoints: WaypointCollection;
     splitShares?: SplitShares;
 };
@@ -4758,6 +4761,7 @@ function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         engagementChoice: createdWorkspaceParams?.engagementChoice,
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         description: transactionParams.comment,
+        attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
     };
 
     API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -4820,6 +4824,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
         guidedSetupData: createdWorkspaceParams?.guidedSetupData,
         policyName: createdWorkspaceParams?.policyName,
         description: transactionParams.comment,
+        attendees: transactionParams.attendees ? JSON.stringify(transactionParams.attendees) : undefined,
     };
 
     API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
@@ -5015,7 +5020,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
     const {report, participantParams, policyParams = {}, transactionParams} = submitPerDiemExpenseInformation;
     const {payeeAccountID} = participantParams;
-    const {currency, comment = '', category, tag, created, customUnit} = transactionParams;
+    const {currency, comment = '', category, tag, created, customUnit, attendees} = transactionParams;
 
     if (
         isEmptyObject(policyParams.policy) ||
@@ -5076,6 +5081,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionThreadReportID,
         createdReportActionIDForThread,
         billable,
+        attendees: attendees ? JSON.stringify(attendees) : undefined,
     };
 
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
@@ -5301,6 +5307,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
+                attendees: transaction?.comment?.attendees,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -5346,6 +5353,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
+                attendees: transaction?.comment?.attendees,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -6730,7 +6738,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const {policy, policyCategories, policyTagList} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
-    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
+    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}, attendees} = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -6791,6 +6799,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
             description: parsedComment,
+            attendees: attendees ? JSON.stringify(attendees) : undefined,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -6858,6 +6867,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             payerEmail,
             customUnitRateID,
             description: parsedComment,
+            attendees: attendees ? JSON.stringify(attendees) : undefined,
         };
     }
 

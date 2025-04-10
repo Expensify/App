@@ -29,6 +29,7 @@ type CategorizeTrackedExpenseParams = {
     guidedSetupData?: string;
     engagementChoice?: string;
     description?: string;
+    attendees?: string;
 };
 
 export default CategorizeTrackedExpenseParams;
