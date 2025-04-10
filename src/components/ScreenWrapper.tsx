@@ -401,6 +401,9 @@ function ScreenWrapper(
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
+    // Temporary solution to display LHB
+    const shouldWrapBottomContentWithView = shouldUseNarrowLayout;
+
     return (
         <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
             <View
@@ -466,7 +469,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
+                {showBottomContent && (shouldWrapBottomContentWithView ? <View style={bottomContentStyle}>{bottomContent}</View> : bottomContent)}
             </View>
         </FocusTrapForScreens>
     );

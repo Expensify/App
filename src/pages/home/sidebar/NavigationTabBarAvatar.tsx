@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
@@ -17,9 +18,12 @@ type NavigationTabBarAvatarProps = {
 
     /** Function to call when the avatar is pressed */
     onPress: () => void;
+
+    /** Additional styles to add to the button */
+    style?: StyleProp<ViewStyle>;
 };
 
-function NavigationTabBarAvatar({onPress, isSelected = false}: NavigationTabBarAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false, style}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -60,7 +64,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false}: NavigationTabBarA
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             wrapperStyle={styles.flex1}
-            style={[styles.navigationTabBarItem]}
+            style={style}
         >
             {children}
             <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
