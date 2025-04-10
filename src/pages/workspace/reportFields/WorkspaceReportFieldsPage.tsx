@@ -1,8 +1,9 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {ActivityIndicator} from 'react-native';
+import ConfirmModal from '@components/ConfirmModal';
 import FlatList from '@components/FlatList';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {Plus} from '@components/Icon/Expensicons';
@@ -55,6 +56,7 @@ function WorkspaceReportFieldsPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
+    const [isReportFieldsWarningModalOpen, setIsReportFieldsWarningModalOpen] = useState(false);
     const policy = usePolicy(policyID);
     const filteredPolicyFieldList = useMemo(() => {
         if (!policy?.fieldList) {
@@ -125,7 +127,6 @@ function WorkspaceReportFieldsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceReportFieldsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -209,7 +210,11 @@ function WorkspaceReportFieldsPage({
                                 titleStyle={[styles.textHeadline, styles.cardSectionTitle, styles.accountSettingsSectionTitle, styles.mb1]}
                                 isActive={!!policy?.areReportFieldsEnabled}
                                 onToggle={(isEnabled) => {
-                                    if (isEnabled && !isControlPolicy(policy)) {
+                                    if (!isEnabled) {
+                                        setIsReportFieldsWarningModalOpen(true);
+                                        return;
+                                    }
+                                    if (!isControlPolicy(policy)) {
                                         Navigation.navigate(
                                             ROUTES.WORKSPACE_UPGRADE.getRoute(
                                                 policyID,
@@ -227,7 +232,8 @@ function WorkspaceReportFieldsPage({
                                             <FlatList
                                                 data={reportFieldsSections}
                                                 renderItem={renderItem}
-                                                style={[styles.mhn8, styles.mt6, styles.mbn3]}
+                                                style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6, styles.mbn3]}
+                                                scrollEnabled={false}
                                             />
                                             <MenuItem
                                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
@@ -242,6 +248,22 @@ function WorkspaceReportFieldsPage({
                         </Section>
                     </ScrollView>
                 )}
+                <ConfirmModal
+                    title={translate('workspace.reportFields.disableReportFields')}
+                    isVisible={isReportFieldsWarningModalOpen}
+                    onConfirm={() => {
+                        if (!policyID) {
+                            return;
+                        }
+                        setIsReportFieldsWarningModalOpen(false);
+                        enablePolicyReportFields(policyID, false);
+                    }}
+                    onCancel={() => setIsReportFieldsWarningModalOpen(false)}
+                    prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
+                    confirmText={translate('common.disable')}
+                    cancelText={translate('common.cancel')}
+                    danger
+                />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );
