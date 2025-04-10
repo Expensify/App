@@ -44,6 +44,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         violations={item.errors ? violations : []}
         showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
+        onPreviewPressed={() => {}}
         navigateToReviewFields={() => undefined}
         isBillSplit={false}
         areThereDuplicates={false}
