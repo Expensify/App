@@ -45,6 +45,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
