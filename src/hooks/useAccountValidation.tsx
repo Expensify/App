@@ -2,7 +2,7 @@ import {useOnyx} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 // TODO: Remove/Update this hook once we remove the user data and migrate to account data in https://github.com/Expensify/App/issues/59277
-function useAccountValidated() {
+function useAccountValidation() {
     const [isAccountValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.validated});
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
 
@@ -10,4 +10,4 @@ function useAccountValidated() {
     return isAccountValidated || isUserValidated;
 }
 
-export default useAccountValidated;
+export default useAccountValidation;

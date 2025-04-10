@@ -8,7 +8,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
-import useAccountValidated from '@hooks/useAccountValidated';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -154,7 +154,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const isAccountValidated = useAccountValidated();
+    const isAccountValidated = useAccountValidation();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     /**
       This variable is only added to make sure the component is re-rendered
