@@ -216,7 +216,11 @@ function IOURequestStepConfirmation({
             : transaction?.reportID === reportID;
 
         // Exit if the transaction already exists and is associated with the current report
-        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
+        if (
+            transaction?.transactionID &&
+            (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) &&
+            (isCurrentReportID || isMovingTransactionFromTrackExpense || iouType === CONST.IOU.TYPE.INVOICE)
+        ) {
             return;
         }
 
