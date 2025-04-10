@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -11,8 +12,10 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -59,6 +62,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
         isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME,
     );
+    const StyleUtils = useStyleUtils();
+    const {canUseLeftHandBar} = usePermissions();
+
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
@@ -185,6 +191,115 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
         });
     }, [shouldUseNarrowLayout]);
 
+    if (!shouldUseNarrowLayout && canUseLeftHandBar) {
+        return (
+            <>
+                {!!user?.isDebugModeEnabled && (
+                    <DebugTabView
+                        selectedTab={selectedTab}
+                        chatTabBrickRoad={chatTabBrickRoad}
+                        activeWorkspaceID={activeWorkspaceID}
+                    />
+                )}
+                <View style={[styles.leftNavigationTabBar, {justifyContent: 'space-between', height: '100%', borderRightWidth: 1, borderRightColor: theme.border}]}>
+                    <View style={styles.flex1}>
+                        <PressableWithFeedback
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel="Home"
+                            accessible
+                            testID="ExpensifyLogoButton"
+                            onPress={navigateToChats}
+                            wrapperStyle={styles.leftNavigationTabBarItem}
+                        >
+                            <ImageSVG
+                                style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
+                                src={Expensicons.ExpensifyAppIcon}
+                            />
+                        </PressableWithFeedback>
+                        <EducationalTooltip
+                            shouldRender={shouldShowProductTrainingTooltip}
+                            anchorAlignment={{
+                                horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                            shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
+                            renderTooltipContent={renderProductTrainingTooltip}
+                            wrapperStyle={styles.productTrainingTooltipWrapper}
+                            shouldHideOnNavigate={false}
+                            onTooltipPress={navigateToChats}
+                        >
+                            <PressableWithFeedback
+                                onPress={navigateToChats}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.inbox')}
+                                style={styles.leftNavigationTabBarItem}
+                            >
+                                <View>
+                                    <Icon
+                                        src={Expensicons.Inbox}
+                                        fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
+                                        width={variables.iconBottomBar}
+                                        height={variables.iconBottomBar}
+                                    />
+                                    {!!chatTabBrickRoad && (
+                                        <View
+                                            style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)}
+                                        />
+                                    )}
+                                </View>
+                                <Text
+                                    style={[
+                                        styles.textSmall,
+                                        styles.textAlignCenter,
+                                        styles.mt1Half,
+                                        selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                        styles.navigationTabBarLabel,
+                                    ]}
+                                >
+                                    {translate('common.inbox')}
+                                </Text>
+                            </PressableWithFeedback>
+                        </EducationalTooltip>
+                        <PressableWithFeedback
+                            onPress={navigateToSearch}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.reports')}
+                            style={styles.leftNavigationTabBarItem}
+                        >
+                            <View>
+                                <Icon
+                                    src={Expensicons.MoneySearch}
+                                    fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                            </View>
+                            <Text
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
+                            >
+                                {translate('common.reports')}
+                            </Text>
+                        </PressableWithFeedback>
+                        <NavigationTabBarAvatar
+                            style={styles.leftNavigationTabBarItem}
+                            isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                            onPress={showSettingsPage}
+                        />
+                    </View>
+                    <View style={styles.leftNavigationTabBarItem}>
+                        <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                    </View>
+                </View>
+            </>
+        );
+    }
+
     return (
         <>
             {!!user?.isDebugModeEnabled && (
@@ -266,6 +381,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
                     </Text>
                 </PressableWithFeedback>
                 <NavigationTabBarAvatar
+                    style={styles.navigationTabBarItem}
                     isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
                 />

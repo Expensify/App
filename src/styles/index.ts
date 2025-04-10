@@ -617,6 +617,20 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        leftNavigationTabBar: {
+            height: '100%',
+            width: variables.navigationTabBarSize,
+            position: 'fixed',
+            left: 0,
+        },
+
+        leftNavigationTabBarItem: {
+            height: variables.navigationTabBarSize,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
         button: {
             backgroundColor: theme.buttonDefaultBG,
             borderRadius: variables.buttonBorderRadius,
@@ -1856,6 +1870,14 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
             } satisfies AnchorPosition),
 
+        createLHBMenuPositionSidebar: (windowHeight: number) =>
+            ({
+                horizontal: 18,
+                // Menu should be displayed 12px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
+            } satisfies AnchorPosition),
+
         createAccountMenuPositionProfile: () =>
             ({
                 horizontal: 18,
@@ -2948,6 +2970,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+        rootNavigatorContainerWithLHBStyles: (isSmallScreenWidth: boolean) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
