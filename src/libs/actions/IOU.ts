@@ -173,11 +173,8 @@ import {
     isCustomUnitRateIDForP2P,
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDuplicate,
-    isExpensifyCardTransaction,
     isFetchingWaypointsFromServer,
     isOnHold,
-    isPartial,
-    isPending,
     isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
     isScanning,
@@ -8735,7 +8732,7 @@ function canSubmitReport(
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
-        transactions.length > 0 && transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || isPartial(t) || isScanning(t));
+        transactions.length > 0 && transactions.every((t) => isPendingCardOrScanningTransaction(t));
 
     return (
         transactions.length > 0 &&
