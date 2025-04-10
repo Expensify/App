@@ -65,6 +65,8 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
+import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
 import Abacus from '@assets/images/simple-illustrations/simple-illustration__abacus.svg';
@@ -280,6 +282,7 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
+    RunningTurtle,
     CompanyCardsEmptyState,
     AmexCompanyCards,
     MasterCardCompanyCards,

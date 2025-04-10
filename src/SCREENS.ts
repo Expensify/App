@@ -39,6 +39,7 @@ const SCREENS = {
     SEARCH: {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
+        MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -60,6 +61,7 @@ const SCREENS = {
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
+        ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
@@ -145,6 +147,11 @@ const SCREENS = {
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
+        },
+        MERGE_ACCOUNTS: {
+            ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
+            ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
+            MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
     },
     TWO_FACTOR_AUTH: {
