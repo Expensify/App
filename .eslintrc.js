@@ -251,7 +251,7 @@ module.exports = {
             },
             {
                 selector: 'WithStatement',
-                message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated',
+                message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
             },
         ],
         'no-restricted-properties': [
