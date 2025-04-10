@@ -173,10 +173,19 @@ jobs:
             --label "Engineering,Hourly" \
             --base "staging"
           sleep 5
-          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
-          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }},$ORIGINAL_PR_AUTHOR"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Add assignees to conflict PRs
+        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
+        run: |
+          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
+          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
+          gh pr edit --add-assignee "$ORIGINAL_PR_AUTHOR"
+        env:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+        # In cases when the original PR author is outside the org, the `gh pr edit` command will fail. But we don't want to fail the workflow in that case.
+        continue-on-error: true
 
       - name: Label original PR with CP Staging
         run: gh pr edit ${{ inputs.PULL_REQUEST_NUMBER }} --add-label 'CP Staging'
