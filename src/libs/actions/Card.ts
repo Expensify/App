@@ -758,7 +758,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     });
 }
 
-function issueExpensifyCard(policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -811,7 +811,7 @@ function issueExpensifyCard(policyID: string | undefined, feedCountry: string, v
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, feedCountry},
+            {...parameters, feedCountry, domainAccountID},
             {
                 optimisticData,
                 successData,
@@ -820,8 +820,6 @@ function issueExpensifyCard(policyID: string | undefined, feedCountry: string, v
         );
         return;
     }
-
-    const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
 
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
