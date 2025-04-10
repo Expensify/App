@@ -18,6 +18,16 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
     const styles = useThemeStyles();
 
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    if (!reportID || !accountID) {
+        return;
+    }
+
+    const abTestCtaText = (): string => {
+        const availableCTAs = [translate('aiSales.getHelp'), translate('aiSales.talkToSales'), translate('aiSales.talkToConcierge')];
+        return availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkToSales');
+    };
+
     const talkToSalesIcon = () => {
         if (talkToAISales?.isLoading) {
             return undefined;
@@ -30,14 +40,14 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
 
     return (
         <Button
-            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
+            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : abTestCtaText()}
             onPress={() => {
                 if (talkToAISales?.isTalkingToAISales) {
                     stopConnection();
                     return;
                 }
 
-                initializeOpenAIRealtime(Number(reportID) ?? CONST.DEFAULT_NUMBER_ID);
+                initializeOpenAIRealtime(Number(reportID) ?? CONST.DEFAULT_NUMBER_ID, abTestCtaText());
             }}
             style={shouldUseNarrowLayout && [styles.flex1]}
             icon={talkToSalesIcon()}
