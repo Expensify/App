@@ -16,6 +16,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
     const newVersionTag = `${packageJson.version}-staging`;
+    const newVersion = packageJson.version;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
@@ -59,7 +60,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
+                newVersion,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
@@ -108,7 +109,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
 
             const didVersionChange = newVersionTag !== currentChecklistData?.tag;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
+                newVersion,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),
