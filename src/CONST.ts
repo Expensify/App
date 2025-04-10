@@ -775,6 +775,7 @@ const CONST = {
         HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         LEFT_HAND_BAR: 'leftHandBar',
+        WALLET: 'newdotWallet',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
