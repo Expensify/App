@@ -34,7 +34,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const linkHasImage = tnode.tagName === 'a' && tnode.children.some((child) => child.tagName === 'img');
     const isDeleted = HTMLEngineUtils.isDeletedNode(tnode);
     const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(tnode);
-    const isChildOfAlertText = HTMLEngineUtils.isChildOfAlertText(tnode);
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
@@ -46,7 +45,7 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         let linkStyle: StyleProp<TextStyle> = styles.link;
 
         // Special handling for links in alert-text to maintain consistent font size
-        if (isChildOfAlertText) {
+        if (HTMLEngineUtils.isChildOfAlertText(tnode)) {
             linkStyle = [
                 styles.link,
                 {
