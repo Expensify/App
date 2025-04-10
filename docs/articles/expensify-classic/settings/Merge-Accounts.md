@@ -17,7 +17,7 @@ If you have multiple Expensify accounts—such as a personal and a company accou
 
 ---
 
-# How to Merge Accounts
+# Merge Accounts
 
 1. Log in to the **account you want to keep** as your primary Expensify account.
 2. Hover over **Settings** and click **Account**.

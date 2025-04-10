@@ -280,7 +280,7 @@ function SearchList(
 
             return (
                 <ListItem
-                    showTooltip={false}
+                    showTooltip
                     isFocused={isItemFocused}
                     onSelectRow={onSelectRow}
                     onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {

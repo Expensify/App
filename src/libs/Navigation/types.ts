@@ -1593,6 +1593,7 @@ type ReportsSplitNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
+        backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
@@ -1810,6 +1811,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isAuthTokenRequired?: string;
         fileName?: string;
         attachmentLink?: string;
+        hashKey?: number;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
@@ -1953,6 +1955,10 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
+type SettingsTabScreenName = typeof NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+
+type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
+
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
@@ -2028,4 +2034,6 @@ export type {
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
+    WorkspaceScreenName,
+    SettingsTabScreenName,
 };
