@@ -137,8 +137,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         shouldTurnOffSelectionMode,
         setShouldShowStatusBarLoading,
         lastSearchType,
+        shouldShowExportModeOption,
+        setShouldShowExportModeOption,
         isExportMode,
-        toggleExportMode,
+        setExportMode,
     } = useSearchContext();
     const {selectionMode} = useMobileSelectionMode();
     const [offset, setOffset] = useState(0);
@@ -299,6 +301,20 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [isFocused, clearSelectedTransactions],
     );
 
+    useEffect(() => {
+        if(!data.length || shouldShowExportModeOption){
+            return;
+        }
+        const areItemsOfReportType = shouldGroupByReports;
+        const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+
+        if(isAllSelected && searchResults?.search?.hasMoreResults){
+            setShouldShowExportModeOption(true);
+        }
+    }, [data, searchResults?.search?.hasMoreResults, selectedTransactions, setShouldShowExportModeOption, shouldGroupByReports, shouldShowExportModeOption])
+
+
     const openReport = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
@@ -416,9 +432,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
             const newTransactionsList = prepareTransactionsList(item, selectedTransactions);
             if (Object.keys(newTransactionsList).length !== Object.keys(selectedTransactions).length) {
-                toggleExportMode(false);
+                setExportMode(false);
             }
-            console.debug('one export');
             setSelectedTransactions(newTransactionsList, data);
             return;
         }
@@ -429,8 +444,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             item.transactions.forEach((transaction) => {
                 delete reducedSelectedTransactions[transaction.keyForList];
             });
-            console.debug('all export');
-            toggleExportMode(false);
+            setExportMode(false);
             setSelectedTransactions(reducedSelectedTransactions, data);
             return;
         }

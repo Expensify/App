@@ -173,7 +173,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions, toggleExportMode, isExportMode} = useSearchContext();
+    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const options = getOptions(queryJSON.type);
     const scrollRef = useRef<RNScrollView>(null);
@@ -206,13 +206,13 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
                         }}
                         popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
                     />
-                    {!isExportMode && (
+                    {!isExportMode && shouldShowExportModeOption && (
                         <View style={[styles.button, styles.bgTransparent]}>
                             <Button
                                 link
                                 shouldUseDefaultHover={false}
                                 innerStyles={[styles.p0, StyleUtils.getResetStyle<ViewStyle>(['height', 'minHeight'])]}
-                                onPress={() => toggleExportMode(true)}
+                                onPress={() => setExportMode(true)}
                                 text={translate('search.exportAll.selectAllMatchingItems')}
                             />
                         </View>
