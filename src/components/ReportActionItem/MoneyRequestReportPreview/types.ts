@@ -4,11 +4,15 @@ import type {TransactionPreviewStyleType} from '@components/ReportActionItem/Tra
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
+type TransactionPreviewStyle = {
+    [key in keyof TransactionPreviewStyleType]: number;
+};
+
 type MoneyRequestReportPreviewStyleType = {
     flatListStyle: StyleProp<ViewStyle>;
     wrapperStyle: ViewStyle;
     contentContainerStyle: ViewStyle;
-    transactionPreviewStyle: TransactionPreviewStyleType;
+    transactionPreviewStyle: TransactionPreviewStyle;
     componentStyle: StyleProp<ViewStyle>;
 };
 
@@ -48,6 +52,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+    
+    /** Whether the report is an invoice preview */
+    isInvoice?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

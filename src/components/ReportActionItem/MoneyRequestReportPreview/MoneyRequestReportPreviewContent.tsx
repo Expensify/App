@@ -29,6 +29,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     canBeExported,
@@ -108,6 +109,7 @@ function MoneyRequestReportPreviewContent({
     getCurrentWidth,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
+    isInvoice,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -427,6 +429,14 @@ function MoneyRequestReportPreviewContent({
         />
     );
 
+    const getPreviewName = () => {
+        if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage && translate('iou.invoiceReportName', originalMessage);
+        }
+        return action.childReportName;
+    };
+
     return (
         transactions.length > 0 && (
             <OfflineWithFeedback
@@ -479,7 +489,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {action.childReportName}
+                                                            {getPreviewName()}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>
@@ -528,17 +538,6 @@ function MoneyRequestReportPreviewContent({
                                                 </View>
                                             )}
                                         </View>
-                                        {shouldShowRBR && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                <Icon
-                                                    src={Expensicons.DotIndicator}
-                                                    fill={theme.danger}
-                                                />
-                                                <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>
-                                                    {translate('violations.reviewRequired')}
-                                                </Text>
-                                            </View>
-                                        )}
                                     </View>
                                     <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
                                         <FlatList
