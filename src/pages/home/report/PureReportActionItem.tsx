@@ -781,13 +781,12 @@ function PureReportActionItem({
                     children = (
                         <View style={[styles.mt1, styles.w100]}>
                             <TransactionPreview
-                                // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                                iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
                                 chatReportID={reportID}
                                 reportID={reportID}
                                 action={action}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                wrapperStyles={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
+                                wrapperStyle={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
                                 onPreviewPressed={() => {}}
                                 isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                             />
@@ -813,8 +812,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
             children = (
                 <MoneyRequestReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}
                     action={action}
@@ -830,8 +828,7 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <ReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
                     policyID={report?.policyID}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}

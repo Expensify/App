@@ -50,7 +50,7 @@ type MoneyRequestReportPreviewProps = {
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
 
-    /** Whether it is an invoice preview */
+    /** Whether the report is an invoice preview */
     isInvoice?: boolean;
 };
 

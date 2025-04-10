@@ -429,10 +429,9 @@ function MoneyRequestReportPreviewContent({
     );
 
     const getPreviewName = () => {
-        const originalMessage = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) ? getOriginalMessage(action) : undefined;
-
-        if (isInvoice && !!originalMessage) {
-            return translate('iou.invoiceReportName', originalMessage);
+        if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage && translate('iou.invoiceReportName', originalMessage);
         }
         return action.childReportName;
     };

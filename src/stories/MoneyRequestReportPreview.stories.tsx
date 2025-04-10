@@ -45,14 +45,13 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
         navigateToReviewFields={() => undefined}
-        onPreviewPressed={() => true}
         isBillSplit={false}
         areThereDuplicates={false}
         sessionAccountID={11111111}
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        wrapperStyles={style.transactionPreviewStyle}
+        wrapperStyle={style.transactionPreviewStyle}
         containerStyles={[sizing.h100]}
     />
 );

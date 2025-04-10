@@ -65,8 +65,7 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            onPreviewPressed={() => {}}
-            wrapperStyles={reportPreviewStyles.transactionPreviewStyle}
+            wrapperStyle={reportPreviewStyles.transactionPreviewStyle}
             containerStyles={[styles.h100, containerStyles]}
             transactionID={item.transactionID}
         />
