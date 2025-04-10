@@ -63,6 +63,7 @@ import {
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import Navigation from '@navigation/Navigation';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -450,7 +451,9 @@ function MoneyRequestReportPreviewContent({
                     onLayout={getCurrentWidth}
                 >
                     <PressableWithoutFeedback
-                        onPress={() => {}}
+                        onPress={() => {
+                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+                        }}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onLongPress={(event) => {
@@ -625,7 +628,9 @@ function MoneyRequestReportPreviewContent({
                                             iconFill={theme.danger}
                                             iconHoverFill={theme.danger}
                                             text={translate('common.review', {amount: shouldShowSettlementButton ? getSettlementAmount() : ''})}
-                                            onPress={() => {}}
+                                            onPress={() => {
+                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+                                            }}
                                             style={buttonMaxWidth}
                                         />
                                     )}
