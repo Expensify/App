@@ -28,6 +28,7 @@ function MoneyRequestReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -98,6 +99,7 @@ function MoneyRequestReportPreview({
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
             reportPreviewStyles={reportPreviewStyles}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
         />
     );
 }
