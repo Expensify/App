@@ -20,7 +20,7 @@ import {
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField, Report, ReportViolationName} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 type MoneyRequestViewReportFieldsProps = {
@@ -36,19 +36,47 @@ type MoneyRequestViewReportFieldsProps = {
     pendingAction?: PendingAction;
 };
 
-function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
+type EnrichedPolicyReportField = {
+    fieldValue: string;
+    isFieldDisabled: boolean;
+    fieldKey: string;
+    violation: ReportViolationName | undefined;
+    violationTranslation: string;
+} & PolicyReportField;
+
+function GetReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, pendingAction?: PendingAction) {
     const styles = useThemeStyles();
 
-    const sortedPolicyReportFields = useMemo<PolicyReportField[]>((): PolicyReportField[] => {
-        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
-        return fields.filter((field) => field.target === report?.type).sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight);
-    }, [policy, report]);
-
-    const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !isReportFieldDisabled(report, reportField, policy));
-    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
-    const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
-    const isInvoiceReport = isInvoiceReportUtils(report);
-
+    return (
+        <OfflineWithFeedback
+            // Need to return undefined when we have pendingAction to avoid the duplicate pending action
+            pendingAction={pendingAction ? undefined : report?.pendingFields?.[reportField.fieldKey as keyof typeof report.pendingFields]}
+            errorRowStyles={styles.ph5}
+            key={`menuItem-${reportField.fieldKey}`}
+            onClose={() => clearReportFieldKeyErrors(report?.reportID, reportField.fieldKey)}
+        >
+            <MenuItemWithTopDescription
+                description={Str.UCFirst(reportField.name)}
+                title={reportField.fieldValue}
+                onPress={() => {
+                    Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getActiveRoute()));
+                }}
+                shouldShowRightIcon
+                disabled={reportField.isFieldDisabled}
+                wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
+                shouldGreyOutWhenDisabled={false}
+                numberOfLinesTitle={0}
+                interactive
+                shouldStackHorizontally={false}
+                onSecondaryInteraction={() => {}}
+                titleWithTooltips={[]}
+                brickRoadIndicator={reportField.violation ? 'error' : undefined}
+                errorText={reportField.violationTranslation}
+            />
+        </OfflineWithFeedback>
+    );
+}
+function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const shouldHideSingleReportField = (reportField: PolicyReportField) => {
@@ -57,54 +85,45 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
 
         return isReportFieldOfTypeTitle(reportField) || (!fieldValue && !hasEnableOption);
     };
-    function getReportFieldView(reportField: PolicyReportField) {
-        if (shouldHideSingleReportField(reportField)) {
-            return null;
-        }
-        const fieldValue = reportField.value ?? reportField.defaultValue;
-        const isFieldDisabled = isReportFieldDisabled(report, reportField, policy);
-        const fieldKey = getReportFieldKey(reportField.fieldID);
 
-        const violation = getFieldViolation(violations, reportField);
-        const violationTranslation = getFieldViolationTranslation(reportField, violation);
+    const sortedPolicyReportFields = useMemo<EnrichedPolicyReportField[]>((): EnrichedPolicyReportField[] => {
+        const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
+        return fields
+            .filter((field) => field.target === report?.type)
+            .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
+            .map((field): EnrichedPolicyReportField => {
+                const fieldValue = field.value ?? field.defaultValue;
+                const isFieldDisabled = isReportFieldDisabled(report, field, policy);
+                const fieldKey = getReportFieldKey(field.fieldID);
 
-        return (
-            <OfflineWithFeedback
-                // Need to return undefined when we have pendingAction to avoid the duplicate pending action
-                pendingAction={pendingAction ? undefined : report?.pendingFields?.[fieldKey as keyof typeof report.pendingFields]}
-                errors={report?.errorFields?.[fieldKey]}
-                errorRowStyles={styles.ph5}
-                key={`menuItem-${fieldKey}`}
-                onClose={() => clearReportFieldKeyErrors(report?.reportID, fieldKey)}
-            >
-                <MenuItemWithTopDescription
-                    description={Str.UCFirst(reportField.name)}
-                    title={fieldValue}
-                    onPress={() => {
-                        Navigation.navigate(ROUTES.EDIT_REPORT_FIELD_REQUEST.getRoute(report?.reportID, report?.policyID, reportField.fieldID, Navigation.getReportRHPActiveRoute()));
-                    }}
-                    shouldShowRightIcon
-                    disabled={isFieldDisabled}
-                    wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
-                    shouldGreyOutWhenDisabled={false}
-                    numberOfLinesTitle={0}
-                    interactive
-                    shouldStackHorizontally={false}
-                    onSecondaryInteraction={() => {}}
-                    titleWithTooltips={[]}
-                    brickRoadIndicator={violation ? 'error' : undefined}
-                    errorText={violationTranslation}
-                />
-            </OfflineWithFeedback>
-        );
-    }
+                const violation = getFieldViolation(violations, field);
+                const violationTranslation = getFieldViolationTranslation(field, violation);
+
+                return {
+                    ...field,
+                    fieldValue,
+                    isFieldDisabled,
+                    fieldKey,
+                    violation,
+                    violationTranslation,
+                };
+            });
+    }, [policy, report, violations]);
+
+    const enabledReportFields = sortedPolicyReportFields.filter((reportField) => !isReportFieldDisabled(report, reportField, policy));
+    const isOnlyTitleFieldEnabled = enabledReportFields.length === 1 && isReportFieldOfTypeTitle(enabledReportFields.at(0));
+    const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
+    const isInvoiceReport = isInvoiceReportUtils(report);
+
     return (
         (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
         policy?.areReportFieldsEnabled &&
         (!isOnlyTitleFieldEnabled || !isCombinedReport) &&
-        sortedPolicyReportFields.map((reportField) => {
-            return getReportFieldView(reportField);
-        })
+        sortedPolicyReportFields
+            .filter((reportField) => !shouldHideSingleReportField(reportField))
+            .map((reportField) => {
+                return GetReportFieldView(reportField, report, pendingAction);
+            })
     );
 }
 MoneyRequestViewReportFields.displayName = 'MoneyRequestViewReportFields';
