@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useRef, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, NativeSyntheticEvent, StyleProp, TextInput, TextInputFocusEventData, ViewStyle} from 'react-native';
-import {ActivityIndicator, StyleSheet, View} from 'react-native';
+import {ActivityIndicator, Platform, StyleSheet, View} from 'react-native';
 import {useSharedValue, withSpring} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import FormHelpMessage from '@components/FormHelpMessage';
@@ -18,6 +18,7 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import * as styleConst from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
@@ -48,7 +49,7 @@ function BaseTextInput(
         forceActiveLabel = false,
         autoFocus = false,
         disableKeyboard = false,
-        autoGrow = false,
+        autoGrow: autoGrowProp = false,
         autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
@@ -80,6 +81,10 @@ function BaseTextInput(
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
 ) {
+    // For iOS, we don't need to measure the text input because it already has auto grow behavior
+    // See TextInputMeasurement.ios.tsx for more details
+    const autoGrow = Platform.OS !== 'ios' && autoGrowProp;
+
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
     const isAutoGrowHeightMarkdown = isMarkdownEnabled && autoGrowHeight;
@@ -360,8 +365,8 @@ function BaseTextInput(
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    styles.flex1,
-                                    styles.w100,
+                                    autoGrow && styles.flex1,
+                                    autoGrow && styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
@@ -456,55 +461,21 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {!!contentWidth && isPrefixCharacterPaddingCalculated && (
-                <View
-                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        setTextInputWidth(e.nativeEvent.layout.width);
-                        setTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    <Text
-                        style={[
-                            inputStyle,
-                            autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                            {width: contentWidth},
-                        ]}
-                    >
-                        {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                        {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                    </Text>
-                </View>
-            )}
-            {/*
-                 Text input component doesn't support auto grow by default.
-                 This text view is used to calculate width or height of the input value given textStyle in this component.
-                 This Text component is intentionally positioned out of the screen.
-             */}
-            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
-                <Text
-                    style={[
-                        inputStyle,
-                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        styles.hiddenElementOutsideOfWindow,
-                        styles.visibilityHidden,
-                    ]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        // Add +2 to width so that cursor is not cut off / covered at the end of text content
-                        setTextInputWidth(e.nativeEvent.layout.width + 2);
-                        setTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                    {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                </Text>
-            )}
+            <TextInputMeasurement
+                value={value}
+                placeholder={placeholder}
+                contentWidth={contentWidth}
+                autoGrowHeight={autoGrowHeight}
+                maxAutoGrowHeight={maxAutoGrowHeight}
+                width={width}
+                inputStyle={inputStyle}
+                inputPaddingLeft={inputPaddingLeft}
+                autoGrow={autoGrow}
+                isAutoGrowHeightMarkdown={isAutoGrowHeightMarkdown}
+                onSetTextInputWidth={setTextInputWidth}
+                onSetTextInputHeight={setTextInputHeight}
+                isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
+            />
         </>
     );
 }
