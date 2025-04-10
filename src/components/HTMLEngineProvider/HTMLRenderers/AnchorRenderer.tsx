@@ -39,27 +39,25 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const isChildOfAlertText = HTMLEngineUtils.isChildOfAlertText(tnode);
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
-    // Define link style based on context
-    let linkStyle: StyleProp<TextStyle> = styles.link;
-
-    // Special handling for links in alert-text to maintain consistent font size
-    if (isChildOfAlertText) {
-        linkStyle = [
-            styles.link,
-            // Use the parent's font properties but keep link color
-            {
-                fontSize: styles.formError.fontSize,
-                color: theme.link,
-                textDecorationLine: 'underline',
-                textDecorationColor: theme.link,
-            },
-        ];
-    }
 
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
         // TODO: We should use TextLink, but I'm leaving it as Text for now because TextLink breaks the alignment in Android.
+
+        // Define link style based on context
+        let linkStyle: StyleProp<TextStyle> = styles.link;
+
+        // Special handling for links in alert-text to maintain consistent font size
+        if (isChildOfAlertText) {
+            linkStyle = [
+                styles.link,
+                {
+                    fontSize: styles.formError.fontSize,
+                    textDecorationLine: 'underline',
+                },
+            ];
+        }
         return (
             <Text
                 style={linkStyle}
