@@ -81,8 +81,6 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    includePaddingTop
-                    includeSafeAreaPaddingBottom
                     testID={CurrencyPicker.displayName}
                     shouldEnableMaxHeight
                     enableEdgeToEdgeBottomSafeAreaPadding

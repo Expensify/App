@@ -305,14 +305,17 @@ function ScreenWrapper(
 
     const isSafeAreaTopPaddingApplied = includePaddingTop;
     const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
-        if (includePaddingTop && ignoreInsetsConsumption) {
-            return {paddingTop: unmodifiedPaddings.top};
+        if (!includePaddingTop) {
+            return {};
         }
-        if (includePaddingTop) {
+        if (enableEdgeToEdgeBottomSafeAreaPadding) {
             return {paddingTop};
         }
-        return {};
-    }, [ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
+        if (ignoreInsetsConsumption) {
+            return {paddingTop: unmodifiedPaddings.top};
+        }
+        return {paddingTop};
+    }, [enableEdgeToEdgeBottomSafeAreaPadding, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
 
     const showBottomContent = enableEdgeToEdgeBottomSafeAreaPadding ? !!bottomContent : true;
     const edgeToEdgeBottomContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
