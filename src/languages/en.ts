@@ -1504,7 +1504,7 @@ const translations = {
         keepCodesSafe: 'Keep these recovery codes safe!',
         codesLoseAccess:
             "If you lose access to your authenticator app and don’t have these codes, you'll lose access to your account. \n\nNote: Setting up two-factor authentication will log you out of all other active sessions.",
-        errorStepCodes: 'Please copy or download codes before continuing.',
+        errorStepCodes: 'Please copy or download codes before continuing',
         stepVerify: 'Verify',
         scanCode: 'Scan the QR code using your',
         authenticatorApp: 'authenticator app',
@@ -1874,7 +1874,7 @@ const translations = {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `in ${policyName}`,
         generatingPDF: 'Generating PDF',
         waitForPDF: 'Please wait while we generate the PDF',
-        errorPDF: 'There was an error when trying to generate your PDF.',
+        errorPDF: 'There was an error when trying to generate your PDF',
         generatedPDF: 'Your report PDF has been generated!',
     },
     reportDescriptionPage: {
@@ -1983,11 +1983,11 @@ const translations = {
         listOfWorkspaces: "Here's the list of workspaces you can join. Don't worry, you can always join them later if you prefer.",
         workspaceMemberList: ({employeeCount, policyOwner}: WorkspaceMemberList) => `${employeeCount} member${employeeCount > 1 ? 's' : ''} • ${policyOwner}`,
         whereYouWork: 'Where do you work?',
-        errorSelection: 'Select an option to move forward.',
+        errorSelection: 'Select an option to move forward',
         purpose: {
             title: 'What do you want to do today?',
-            errorContinue: 'Please press continue to get set up.',
-            errorBackButton: 'Please finish the setup questions to start using the app.',
+            errorContinue: 'Please press continue to get set up',
+            errorBackButton: 'Please finish the setup questions to start using the app',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Get paid back by my employer',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: "Manage my team's expenses",
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Track and budget expenses',
@@ -2303,8 +2303,8 @@ const translations = {
         legalFirstNameLabel: 'Legal first name',
         legalMiddleNameLabel: 'Legal middle name',
         legalLastNameLabel: 'Legal last name',
-        selectAnswer: 'Please select a response to proceed.',
-        ssnFull9Error: 'Please enter a valid nine-digit SSN.',
+        selectAnswer: 'Please select a response to proceed',
+        ssnFull9Error: 'Please enter a valid nine-digit SSN',
         needSSNFull9: "We're having trouble verifying your SSN. Please enter the full nine digits of your SSN.",
         weCouldNotVerify: "We couldn't verify",
         pleaseFixIt: 'Please fix this information before continuing',
@@ -2622,7 +2622,7 @@ const translations = {
         certifyTrueAndAccurate: 'I certify that the information provided is true and accurate',
         certifyTrueAndAccurateError: 'Please certify that the information is true and accurate',
         isAuthorizedToUseBankAccount: 'I am authorized to use this business bank account for business spend',
-        isAuthorizedToUseBankAccountError: 'You must be a controlling officer with authorization to operate the business bank account.',
+        isAuthorizedToUseBankAccountError: 'You must be a controlling officer with authorization to operate the business bank account',
         termsAndConditions: 'terms and conditions',
     },
     connectBankAccountStep: {
@@ -2905,7 +2905,7 @@ const translations = {
             existingConnectionsDescription: ({connectionName}: ConnectionNameParams) =>
                 `Since you've connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} before, you can choose to reuse an existing connection or create a new one.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Last synced ${formattedDate}`,
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Can’t connect to ${connectionName} due to an authentication error.`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `Can’t connect to ${connectionName} due to an authentication error`,
             learnMore: 'Learn more.',
             memberAlternateText: 'Members can submit and approve reports.',
             adminAlternateText: 'Admins have full edit access to all reports and workspace settings.',
@@ -2954,7 +2954,7 @@ const translations = {
                 subtitle: 'Set per diem rates to control daily employee spend. Import rates from a spreadsheet to get started.',
             },
             errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists.`,
+                existingRateError: ({rate}: CustomUnitRateParams) => `A rate with value ${rate} already exists`,
             },
             importPerDiemRates: 'Import per diem rates',
             editPerDiemRate: 'Edit per diem rate',
@@ -3559,7 +3559,7 @@ const translations = {
                             customRecordMappingTitle: 'How should this custom record be displayed in Expensify?',
                         },
                         errors: {
-                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `A custom segment/record with this ${fieldName?.toLowerCase()} already exists.`,
+                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `A custom segment/record with this ${fieldName?.toLowerCase()} already exists`,
                         },
                     },
                     customLists: {
@@ -3585,7 +3585,7 @@ const translations = {
                             mappingTitle: 'How should this custom list be displayed in Expensify?',
                         },
                         errors: {
-                            uniqueTransactionFieldIDError: `A custom list with this transaction field ID already exists.`,
+                            uniqueTransactionFieldIDError: `A custom list with this transaction field ID already exists`,
                         },
                     },
                 },
@@ -3833,7 +3833,7 @@ const translations = {
             enableCategory: 'Enable category',
             defaultSpendCategories: 'Default spend categories',
             spendCategoriesDescription: 'Customize how merchant spend is categorized for credit card transactions and scanned receipts.',
-            deleteFailureMessage: 'An error occurred while deleting the category, please try again.',
+            deleteFailureMessage: 'An error occurred while deleting the category, please try again',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
             needCategoryForExportToIntegration: ({connectionName}: NeedCategoryForExportToIntegrationParams) => `All expenses must be categorized in order to export to ${connectionName}.`,
@@ -3842,19 +3842,19 @@ const translations = {
                 title: "You haven't created any categories",
                 subtitle: 'Add a category to organize your spend.',
             },
-            updateFailureMessage: 'An error occurred while updating the category, please try again.',
-            createFailureMessage: 'An error occurred while creating the category, please try again.',
+            updateFailureMessage: 'An error occurred while updating the category, please try again',
+            createFailureMessage: 'An error occurred while creating the category, please try again',
             addCategory: 'Add category',
             editCategory: 'Edit category',
             editCategories: 'Edit categories',
-            categoryRequiredError: 'Category name is required.',
-            existingCategoryError: 'A category with this name already exists.',
-            invalidCategoryName: 'Invalid category name.',
+            categoryRequiredError: 'Category name is required',
+            existingCategoryError: 'A category with this name already exists',
+            invalidCategoryName: 'Invalid category name',
             importedFromAccountingSoftware: 'The categories below are imported from your',
             payrollCode: 'Payroll code',
-            updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again.',
+            updatePayrollCodeFailureMessage: 'An error occurred while updating the payroll code, please try again',
             glCode: 'GL code',
-            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             importCategories: 'Import categories',
         },
         moreFeatures: {
@@ -4086,14 +4086,14 @@ const translations = {
             deleteTags: 'Delete tags',
             deleteTagConfirmation: 'Are you sure that you want to delete this tag?',
             deleteTagsConfirmation: 'Are you sure that you want to delete these tags?',
-            deleteFailureMessage: 'An error occurred while deleting the tag, please try again.',
-            tagRequiredError: 'Tag name is required.',
-            existingTagError: 'A tag with this name already exists.',
+            deleteFailureMessage: 'An error occurred while deleting the tag, please try again',
+            tagRequiredError: 'Tag name is required',
+            existingTagError: 'A tag with this name already exists',
             invalidTagNameError: 'Tag name cannot be 0. Please choose a different value.',
-            genericFailureMessage: 'An error occurred while updating the tag, please try again.',
+            genericFailureMessage: 'An error occurred while updating the tag, please try again',
             importedFromAccountingSoftware: 'The tags below are imported from your',
             glCode: 'GL code',
-            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again.',
+            updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             tagRules: 'Tag rules',
             approverDescription: 'Approver',
             importTags: 'Import tags',
@@ -4137,7 +4137,7 @@ const translations = {
             },
             importedFromAccountingSoftware: 'The taxes below are imported from your',
             taxCode: 'Tax code',
-            updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again.',
+            updateTaxCodeFailureMessage: 'An error occurred while updating the tax code, please try again',
         },
         emptyWorkspace: {
             title: 'Create a workspace',
@@ -4164,7 +4164,7 @@ const translations = {
             workspaceName: ({userName, workspaceNumber}: NewWorkspaceNameParams) => `${userName}'s Workspace${workspaceNumber ? ` ${workspaceNumber}` : ''}`,
         },
         people: {
-            genericFailureMessage: 'An error occurred removing a member from the workspace, please try again.',
+            genericFailureMessage: 'An error occurred removing a member from the workspace, please try again',
             removeMembersPrompt: ({memberName}: {memberName: string}) => ({
                 one: `Are you sure you want to remove ${memberName}?`,
                 other: 'Are you sure you want to remove these members?',
@@ -4282,15 +4282,15 @@ const translations = {
             syncError: ({connectionName}: ConnectionNameParams) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return "Can't connect to QuickBooks Online.";
+                        return "Can't connect to QuickBooks Online";
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return "Can't connect to Xero.";
+                        return "Can't connect to Xero";
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return "Can't connect to NetSuite.";
+                        return "Can't connect to NetSuite";
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return "Can't connect to QuickBooks Desktop.";
+                        return "Can't connect to QuickBooks Desktop";
                     default: {
-                        return "Can't connect to integration.";
+                        return "Can't connect to integration";
                     }
                 }
             },
@@ -4519,7 +4519,7 @@ const translations = {
             inviteMessagePrompt: 'Make your invitation extra special by adding a message below!',
             personalMessagePrompt: 'Message',
             genericFailureMessage: 'An error occurred while inviting the member to the workspace. Please try again.',
-            inviteNoMembersError: 'Please select at least one member to invite.',
+            inviteNoMembersError: 'Please select at least one member to invite',
         },
         distanceRates: {
             oopsNotSoFast: 'Oops! Not so fast...',
@@ -4558,7 +4558,7 @@ const translations = {
             typeInputLabel: 'Type',
             initialValueInputLabel: 'Initial value',
             nameInputHelpText: "This is the name you'll see on your workspace.",
-            nameIsRequiredError: "You'll need to give your workspace a name.",
+            nameIsRequiredError: "You'll need to give your workspace a name",
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
             currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
@@ -4938,11 +4938,11 @@ const translations = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         public_announceDescription: 'Anyone can find this room',
         createRoom: 'Create room',
-        roomAlreadyExistsError: 'A room with this name already exists.',
+        roomAlreadyExistsError: 'A room with this name already exists',
         roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) => `${reservedName} is a default room on all workspaces. Please choose another name.`,
-        roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens.',
-        pleaseEnterRoomName: 'Please enter a room name.',
-        pleaseSelectWorkspace: 'Please select a workspace.',
+        roomNameInvalidError: 'Room names can only include lowercase letters, numbers, and hyphens',
+        pleaseEnterRoomName: 'Please enter a room name',
+        pleaseSelectWorkspace: 'Please select a workspace',
         renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `renamed this room to "${newName}" (previously "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Room renamed to ${newName}`,
         social: 'social',
@@ -5044,10 +5044,10 @@ const translations = {
         assignTask: 'Assign task',
         assignMe: 'Assign to me',
         confirmTask: 'Confirm task',
-        confirmError: 'Please enter a title and select a share destination.',
+        confirmError: 'Please enter a title and select a share destination',
         descriptionOptional: 'Description (optional)',
         pleaseEnterTaskName: 'Please enter a title',
-        pleaseEnterTaskDestination: 'Please select where you want to share this task.',
+        pleaseEnterTaskDestination: 'Please select where you want to share this task',
     },
     task: {
         task: 'Task',
@@ -5060,7 +5060,7 @@ const translations = {
             completed: 'marked as complete',
             canceled: 'deleted task',
             reopened: 'marked as incomplete',
-            error: "You don't have permission to take the requested action.",
+            error: "You don't have permission to take the requested action",
         },
         markAsComplete: 'Mark as complete',
         markAsIncomplete: 'Mark as incomplete',
@@ -5610,7 +5610,7 @@ const translations = {
 
             return '';
         },
-        brokenConnection530Error: 'Receipt pending due to broken bank connection.',
+        brokenConnection530Error: 'Receipt pending due to broken bank connection',
         adminBrokenConnectionError: 'Receipt pending due to broken bank connection. Please resolve in ',
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
@@ -5694,7 +5694,7 @@ const translations = {
         takeMeToExpensifyClassic: 'Take me to Expensify Classic',
     },
     listBoundary: {
-        errorMessage: 'An error occurred while loading more messages.',
+        errorMessage: 'An error occurred while loading more messages',
         tryAgain: 'Try again',
     },
     systemMessage: {

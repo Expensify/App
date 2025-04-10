@@ -1504,7 +1504,7 @@ const translations = {
         keepCodesSafe: '¡Guarda los códigos de recuperación en un lugar seguro!',
         codesLoseAccess:
             'Si pierdes el acceso a tu aplicación de autenticación y no tienes estos códigos, perderás el acceso a tu cuenta. \n\nNota: Configurar la autenticación de dos factores cerrará la sesión de todas las demás sesiones activas.',
-        errorStepCodes: 'Copia o descarga los códigos antes de continuar.',
+        errorStepCodes: 'Copia o descarga los códigos antes de continuar',
         stepVerify: 'Verificar',
         scanCode: 'Escanea el código QR usando tu',
         authenticatorApp: 'aplicación de autenticación',
@@ -1876,7 +1876,7 @@ const translations = {
         inWorkspace: ({policyName}: ReportPolicyNameParams) => `en ${policyName}`,
         generatingPDF: 'Creando PDF',
         waitForPDF: 'Por favor, espera mientras creamos el PDF',
-        errorPDF: 'Ocurrió un error al crear el PDF.',
+        errorPDF: 'Ocurrió un error al crear el PDF',
         generatedPDF: 'Tu informe PDF ha sido creado!',
     },
     reportDescriptionPage: {
@@ -1985,11 +1985,11 @@ const translations = {
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
         whereYouWork: '¿Dónde trabajas?',
-        errorSelection: 'Selecciona una opción para continuar.',
+        errorSelection: 'Selecciona una opción para continuar',
         purpose: {
             title: '¿Qué quieres hacer hoy?',
-            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta.',
-            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación.',
+            errorContinue: 'Por favor, haz click en continuar para configurar tu cuenta',
+            errorBackButton: 'Por favor, finaliza las preguntas de configuración para empezar a utilizar la aplicación',
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: 'Cobrar de mi empresa',
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: 'Gestionar los gastos de mi equipo',
             [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND]: 'Controlar y presupuestar gastos',
@@ -2324,8 +2324,8 @@ const translations = {
         legalFirstNameLabel: 'Primer nombre legal',
         legalMiddleNameLabel: 'Segundo nombre legal',
         legalLastNameLabel: 'Apellidos legales',
-        selectAnswer: 'Selecciona una respuesta.',
-        ssnFull9Error: 'Por favor, introduce los 9 dígitos de un número de seguridad social válido.',
+        selectAnswer: 'Selecciona una respuesta',
+        ssnFull9Error: 'Por favor, introduce los 9 dígitos de un número de seguridad social válido',
         needSSNFull9: 'Estamos teniendo problemas para verificar tu número de seguridad social. Introduce los 9 dígitos del número de seguridad social.',
         weCouldNotVerify: 'No se pudo verificar',
         pleaseFixIt: 'Corrige esta información antes de continuar.',
@@ -2645,7 +2645,7 @@ const translations = {
         certifyTrueAndAccurate: 'Certifico que la información dada es verdadera y precisa',
         certifyTrueAndAccurateError: 'Por favor, certifica que la información es verdadera y exacta',
         isAuthorizedToUseBankAccount: 'Estoy autorizado para usar la cuenta bancaria de mi empresa para gastos de empresa',
-        isAuthorizedToUseBankAccountError: 'Debes ser el responsable oficial con autorización para operar la cuenta bancaria de la empresa.',
+        isAuthorizedToUseBankAccountError: 'Debes ser el responsable oficial con autorización para operar la cuenta bancaria de la empresa',
         termsAndConditions: 'Términos y Condiciones',
     },
     connectBankAccountStep: {
@@ -2928,7 +2928,7 @@ const translations = {
                 `Como ya te has conectado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} antes, puedes optar por reutilizar una conexión existente o crear una nueva.`,
             lastSyncDate: ({connectionName, formattedDate}: LastSyncDateParams) => `${connectionName} - Última sincronización ${formattedDate}`,
             topLevel: 'Nivel superior',
-            authenticationError: ({connectionName}: AuthenticationErrorParams) => `No se puede conectar a ${connectionName} debido a un error de autenticación.`,
+            authenticationError: ({connectionName}: AuthenticationErrorParams) => `No se puede conectar a ${connectionName} debido a un error de autenticación`,
             learnMore: 'Más información.',
             memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
             adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
@@ -2977,7 +2977,7 @@ const translations = {
                 subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
             },
             errors: {
-                existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}.`,
+                existingRateError: ({rate}: CustomUnitRateParams) => `Ya existe una tasa con el valor ${rate}`,
             },
             importPerDiemRates: 'Importar tasas de per diem',
             editPerDiemRate: 'Editar la tasa de per diem',
@@ -3597,7 +3597,7 @@ const translations = {
                             customRecordMappingTitle: '¿Cómo debería mostrarse este registro de segmento personalizado en Expensify?',
                         },
                         errors: {
-                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `Ya existe un segmento/registro personalizado con este ${fieldName?.toLowerCase()}.`,
+                            uniqueFieldError: ({fieldName}: RequiredFieldParams) => `Ya existe un segmento/registro personalizado con este ${fieldName?.toLowerCase()}`,
                         },
                     },
                     customLists: {
@@ -3623,7 +3623,7 @@ const translations = {
                             mappingTitle: '¿Cómo debería mostrarse esta lista personalizada en Expensify?',
                         },
                         errors: {
-                            uniqueTransactionFieldIDError: `Ya existe una lista personalizada con este ID de campo de transacción.`,
+                            uniqueTransactionFieldIDError: `Ya existe una lista personalizada con este ID de campo de transacción`,
                         },
                     },
                 },
@@ -3889,12 +3889,12 @@ const translations = {
             addCategory: 'Añadir categoría',
             editCategory: 'Editar categoría',
             editCategories: 'Editar categorías',
-            categoryRequiredError: 'Lo nombre de la categoría es obligatorio.',
-            existingCategoryError: 'Ya existe una categoría con este nombre.',
-            invalidCategoryName: 'Lo nombre de la categoría es invalido.',
+            categoryRequiredError: 'Lo nombre de la categoría es obligatorio',
+            existingCategoryError: 'Ya existe una categoría con este nombre',
+            invalidCategoryName: 'Lo nombre de la categoría es invalido',
             importedFromAccountingSoftware: 'Categorías importadas desde',
             payrollCode: 'Código de nómina',
-            updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente.',
+            updatePayrollCodeFailureMessage: 'Se produjo un error al actualizar el código de nómina, por favor intente nuevamente',
             glCode: 'Código de Libro Mayor',
             updateGLCodeFailureMessage: 'Se produjo un error al actualizar el código de Libro Mayor. Inténtelo nuevamente.',
             importCategories: 'Importar categorías',
@@ -4132,8 +4132,8 @@ const translations = {
             deleteTagConfirmation: '¿Estás seguro de que quieres eliminar esta etiqueta?',
             deleteTagsConfirmation: '¿Estás seguro de que quieres eliminar estas etiquetas?',
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la etiqueta. Por favor, inténtalo más tarde.',
-            tagRequiredError: 'Lo nombre de la etiqueta es obligatorio.',
-            existingTagError: 'Ya existe una etiqueta con este nombre.',
+            tagRequiredError: 'Lo nombre de la etiqueta es obligatorio',
+            existingTagError: 'Ya existe una etiqueta con este nombre',
             invalidTagNameError: 'El nombre de la etiqueta no puede ser 0. Por favor, elige un valor diferente.',
             genericFailureMessage: 'Se ha producido un error al actualizar la etiqueta. Por favor, inténtelo nuevamente.',
             importedFromAccountingSoftware: 'Etiquetas importadas desde',
@@ -4182,7 +4182,7 @@ const translations = {
             },
             importedFromAccountingSoftware: 'Impuestos importadas desde',
             taxCode: 'Código de impuesto',
-            updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente.',
+            updateTaxCodeFailureMessage: 'Se produjo un error al actualizar el código tributario, inténtelo nuevamente',
         },
         emptyWorkspace: {
             title: 'Crea un espacio de trabajo',
@@ -4289,15 +4289,15 @@ const translations = {
             syncError: ({connectionName}: OptionalParam<ConnectionNameParams> = {}) => {
                 switch (connectionName) {
                     case CONST.POLICY.CONNECTIONS.NAME.QBO:
-                        return 'No se puede conectar a QuickBooks Online.';
+                        return 'No se puede conectar a QuickBooks Online';
                     case CONST.POLICY.CONNECTIONS.NAME.XERO:
-                        return 'No se puede conectar a Xero.';
+                        return 'No se puede conectar a Xero';
                     case CONST.POLICY.CONNECTIONS.NAME.NETSUITE:
-                        return 'No se puede conectar a NetSuite.';
+                        return 'No se puede conectar a NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.QBD:
-                        return 'No se puede conectar a QuickBooks Desktop.';
+                        return 'No se puede conectar a QuickBooks Desktop';
                     default: {
-                        return 'No se ha podido conectar a la integración.';
+                        return 'No se ha podido conectar a la integración';
                     }
                 }
             },
@@ -4604,7 +4604,7 @@ const translations = {
             typeInputLabel: 'Tipo',
             initialValueInputLabel: 'Valor inicial',
             nameInputHelpText: 'Este es el nombre que verás en tu espacio de trabajo.',
-            nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo.',
+            nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo',
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
             currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
@@ -4988,12 +4988,12 @@ const translations = {
         // eslint-disable-next-line @typescript-eslint/naming-convention
         public_announceDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
-        roomAlreadyExistsError: 'Ya existe una sala con este nombre.',
+        roomAlreadyExistsError: 'Ya existe una sala con este nombre',
         roomNameReservedError: ({reservedName}: RoomNameReservedErrorParams) =>
             `${reservedName} es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`,
-        roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones.',
-        pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala.',
-        pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo.',
+        roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
+        pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
+        pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
         renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
@@ -5097,10 +5097,10 @@ const translations = {
         assignTask: 'Asignar tarea',
         assignMe: 'Asignar a mí mismo',
         confirmTask: 'Confirmar tarea',
-        confirmError: 'Por favor, introduce un título y selecciona un destino de tarea.',
+        confirmError: 'Por favor, introduce un título y selecciona un destino de tarea',
         descriptionOptional: 'Descripción (opcional)',
         pleaseEnterTaskName: 'Por favor, introduce un título',
-        pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea.',
+        pleaseEnterTaskDestination: 'Por favor, selecciona dónde deseas compartir esta tarea',
     },
     task: {
         task: 'Tarea',
@@ -5113,7 +5113,7 @@ const translations = {
             completed: 'marcada como completa',
             canceled: 'tarea eliminada',
             reopened: 'marcada como incompleta',
-            error: 'No tiene permiso para realizar la acción solicitada.',
+            error: 'No tiene permiso para realizar la acción solicitada',
         },
         markAsComplete: 'Marcar como completada',
         markAsIncomplete: 'Marcar como incompleta',
@@ -6126,7 +6126,7 @@ const translations = {
             }
             return '';
         },
-        brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota.',
+        brokenConnection530Error: 'Recibo pendiente debido a una conexión bancaria rota',
         adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
@@ -6210,7 +6210,7 @@ const translations = {
         takeMeToExpensifyClassic: 'Llévame a Expensify Classic',
     },
     listBoundary: {
-        errorMessage: 'Se ha producido un error al cargar más mensajes.',
+        errorMessage: 'Se ha producido un error al cargar más mensajes',
         tryAgain: 'Inténtalo de nuevo',
     },
     systemMessage: {
