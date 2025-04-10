@@ -70,6 +70,10 @@ function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
 }
 
+function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -86,4 +90,5 @@ export default {
     canUseTalkToAISales,
     canUseProhibitedExpenses,
     canUseLeftHandBar,
+    canUseInAppProvisioning,
 };
