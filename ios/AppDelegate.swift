@@ -66,7 +66,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   }
  
   override func sourceURL(for bridge: RCTBridge) -> URL? {
-    self.bundleURL()
+    return self.bundleURL()
   }
  
   override func bundleURL() -> URL? {
