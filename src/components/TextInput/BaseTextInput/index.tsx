@@ -14,8 +14,6 @@ import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import RNTextInput from '@components/RNTextInput';
 import SwipeInterceptPanResponder from '@components/SwipeInterceptPanResponder';
 import Text from '@components/Text';
-import InputComponentMap from '@components/TextInput/BaseTextInput/implementations';
-import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INACTIVE_LABEL_TRANSLATE_Y} from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
@@ -30,6 +28,8 @@ import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import InputComponentMap from './implementations';
+import type {BaseTextInputProps, BaseTextInputRef} from './types';
 
 function BaseTextInput(
     {
