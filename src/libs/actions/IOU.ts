@@ -399,6 +399,7 @@ type RequestMoneyInformation = {
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
+    hash?: number;
 };
 
 type MoneyRequestInformationParams = {
@@ -410,6 +411,7 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    hash?: number;
 };
 
 type MoneyRequestOptimisticParams = {
@@ -446,6 +448,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    hash?: number;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -1184,6 +1187,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyParams = {},
         optimisticParams,
         retryParams,
+        hash,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1716,6 +1720,21 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
+        });
+    }
+
+    if (hash) {
+        console.log(`Adding optimistic data for transaction ${transaction.transactionID} with hash ${hash}`);
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                        ...transaction,
+                    },
+                },
+            },
         });
     }
 
@@ -2967,6 +2986,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         existingTransactionID,
         moneyRequestReportID = '',
         retryParams,
+        hash,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3084,7 +3104,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
             participants: [participant],
             transactionID: optimisticTransaction.transactionID,
             paymentType: isSelectedManagerMcTest(participant.login) ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
-
             existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
             linkedTrackedExpenseReportAction,
         });
@@ -3122,6 +3141,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
+        hash,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         policyParams: {
@@ -4832,7 +4852,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, hash} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
     transactionParams.comment = parsedComment;
@@ -4906,6 +4926,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         existingTransactionID,
         existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
         retryParams,
+        hash,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
