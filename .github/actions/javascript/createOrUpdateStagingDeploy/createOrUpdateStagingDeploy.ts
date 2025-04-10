@@ -53,7 +53,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.version ?? '', newVersionTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
@@ -107,7 +107,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 });
             });
 
-            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
+            const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 PRList.map((pr) => pr.url),
