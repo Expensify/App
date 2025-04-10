@@ -85,7 +85,7 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                             <Text>{translate('workspace.intacct.detailedInstructionsRestOfSentence')}</Text>
                         </Text>
                     </View>
-                    <ScrollView>
+                    <ScrollView addBottomSafeAreaPadding>
                         {userDimensions.map((userDimension) => (
                             <OfflineWithFeedback
                                 key={userDimension.dimension}
@@ -107,7 +107,10 @@ function SageIntacctUserDimensionsPage({policy}: WithPolicyProps) {
                     </ScrollView>
                 </>
             )}
-            <FixedFooter style={[styles.mt5]}>
+            <FixedFooter
+                style={[styles.mt5]}
+                addBottomSafeAreaPadding
+            >
                 <Button
                     success
                     text={translate('workspace.intacct.addUserDefinedDimension')}
