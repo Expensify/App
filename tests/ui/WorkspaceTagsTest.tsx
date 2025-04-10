@@ -129,7 +129,6 @@ describe('WorkspaceTags', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    // 👇 This is your new test case from the feature branch
     it('should show a blocking modal when trying to disable the only enabled tag when policy has requiresTag set to true', async () => {
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
