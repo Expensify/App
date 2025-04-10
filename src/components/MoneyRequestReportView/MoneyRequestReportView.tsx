@@ -106,6 +106,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
             {!isLoadingApp ? (
                 <MoneyRequestReportActionsList
                     report={report}
+                    policy={policy}
                     reportActions={reportActions}
                     hasOlderActions={hasOlderActions}
                     hasNewerActions={hasNewerActions}

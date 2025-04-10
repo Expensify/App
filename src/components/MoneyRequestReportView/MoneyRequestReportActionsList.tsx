@@ -15,7 +15,6 @@ import useReportScrollManager from '@hooks/useReportScrollManager';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isActionVisibleOnMoneyRequestReport} from '@libs/MoneyRequestReportUtils';
-import {getPolicy} from '@libs/PolicyUtils';
 import {
     getFirstVisibleReportActionID,
     getMostRecentIOURequestActionID,
@@ -41,7 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type Transaction from '@src/types/onyx/Transaction';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
-import MoneyRequestViewReportFields from './MoneyRequestViewReportfields';
+import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
@@ -54,6 +53,9 @@ const INITIAL_NUM_TO_RENDER = 20;
 type MoneyRequestReportListProps = {
     /** The report */
     report: OnyxTypes.Report;
+
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
@@ -82,7 +84,7 @@ function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Tr
  * TODO make this component have the same functionalities as `ReportActionsList`
  *  - shouldDisplayNewMarker
  */
-function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({report, policy, reportActions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
@@ -347,7 +349,6 @@ function MoneyRequestReportActionsList({report, reportActions = [], hasNewerActi
         scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
         handleUnreadFloatingButton();
     };
-    const policy = getPolicy(report.policyID);
 
     return (
         <View style={[styles.flex1]}>
