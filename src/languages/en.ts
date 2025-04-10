@@ -66,6 +66,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
     EditActionParams,
@@ -934,7 +935,10 @@ const translations = {
         }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        duplicateTransaction: 'Potential duplicate expenses identified. Review duplicates to enable submission.',
+        duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
+            !isSubmitted
+                ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
+                : 'Potential duplicate expenses identified. Review duplicates to enable approval.',
         receiptIssuesFound: () => ({
             one: 'Issue found',
             other: 'Issues found',
@@ -1647,6 +1651,7 @@ const translations = {
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
+        expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Remaining limit',
         smartLimit: {
             name: 'Smart limit',
@@ -1662,9 +1667,11 @@ const translations = {
                 `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
         },
         virtualCardNumber: 'Virtual card number',
+        travelCardCvv: 'Travel card CVV',
         physicalCardNumber: 'Physical card number',
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
+        reportTravelFraud: 'Report travel card fraud',
         reviewTransaction: 'Review transaction',
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
@@ -1675,6 +1682,7 @@ const translations = {
             cvv: 'CVV',
             address: 'Address',
             revealDetails: 'Reveal details',
+            revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
@@ -1696,7 +1704,7 @@ const translations = {
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -2410,6 +2418,8 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
+        industryClassification: 'Which industry is the business classified under?',
+        industryClassificationCodePlaceholder: 'Search for industry classification code',
     },
     requestorStep: {
         headerTitle: 'Personal information',
@@ -5959,6 +5969,7 @@ const translations = {
         notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
         notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
+        copilotAccess: 'Copilot access',
     },
     debug: {
         debug: 'Debug',

@@ -800,6 +800,15 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boo
 }
 
 /**
+ * Checks whether an action is concierge category options and resolved.
+ */
+function isResolvedConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const selectedCategory = originalMessage && typeof originalMessage === 'object' && 'selectedCategory' in originalMessage ? originalMessage?.selectedCategory : null;
+    return !!selectedCategory;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -849,6 +858,10 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
+        return false;
+    }
+
+    if (isConciergeCategoryOptions(reportAction) && isResolvedConciergeCategoryOptions(reportAction)) {
         return false;
     }
 
@@ -1201,7 +1214,6 @@ function getOneTransactionThreadReportID(
         if (
             actionType &&
             iouRequestTypes.has(actionType) &&
-            action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
             // - they have visibile childActions (like comments) that we'd want to display
@@ -1229,8 +1241,8 @@ function getOneTransactionThreadReportID(
         return;
     }
 
-    // Ensure we have a childReportID associated with the IOU report action
-    return singleAction?.childReportID;
+    // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
+    return singleAction?.childReportID ?? CONST.FAKE_REPORT_ID;
 }
 
 /**
@@ -1615,6 +1627,10 @@ function isActionableJoinRequest(reportAction: OnyxEntry<ReportAction>): reportA
 
 function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<ReportAction>): boolean {
     return isActionableJoinRequest(reportAction) && getOriginalMessage(reportAction)?.choice === ('' as JoinWorkspaceResolution);
+}
+
+function isConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
 }
 
 function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
@@ -2377,6 +2393,8 @@ export {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
+    isConciergeCategoryOptions,
+    isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isChronosOOOListAction,
@@ -2425,6 +2443,7 @@ export {
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
+    isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,
