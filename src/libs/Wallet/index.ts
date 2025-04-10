@@ -5,7 +5,7 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function handleAddCardToWallet(_card: Card, _cardHolderName: string, _onFinished?: () => void) {
+function handleAddCardToWallet(_card: Card, _cardHolderName: string, _cardDescription: string, _onFinished?: () => void) {
     Promise.reject(new Error('Add to wallet is not supported on this platform'));
 }
 

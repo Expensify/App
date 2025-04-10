@@ -336,7 +336,8 @@ function ExpensifyCardPage({
                     <AddToWalletButton
                         card={cardToAdd}
                         buttonStyle={styles.alignSelfCenter}
-                        cardHolderName={displayName}
+                        cardHolderName={displayName ?? ''}
+                        cardDescription={expensifyCardTitle}
                     />
                 )}
             </ScrollView>

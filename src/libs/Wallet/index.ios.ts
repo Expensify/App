@@ -9,11 +9,11 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
+function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
     const data = {
         network: 'VISA',
         lastDigits: card.lastFourPAN,
-        cardDescription: card.nameValuePairs?.isVirtual ? 'Expensify Virtual Card' : 'Expensify Physical Card',
+        cardDescription,
         cardHolderName,
     } as IOSCardData;
 
