@@ -3,7 +3,15 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
+import type {
+    LayoutChangeEvent,
+    NativeSyntheticEvent,
+    SectionList as RNSectionList,
+    TextInput as RNTextInput,
+    SectionListData,
+    SectionListRenderItemInfo,
+    TextInputKeyPressEventData,
+} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -23,6 +31,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
+import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -600,10 +609,18 @@ function BaseSelectionList<TItem extends ListItem>(
         return null;
     };
 
+    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        const key = event.nativeEvent.key;
+        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            focusedItemRef?.focus();
+        }
+    }, []);
+
     const renderInput = () => {
         return (
             <View style={[styles.ph5, styles.pb3]}>
                 <TextInput
+                    onKeyPress={textInputKeyPress}
                     ref={(element) => {
                         innerTextInputRef.current = element as RNTextInput;
 
