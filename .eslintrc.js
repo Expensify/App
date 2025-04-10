@@ -238,13 +238,7 @@ module.exports = {
                 message: "Please don't declare enums, use union types instead.",
             },
 
-            // These are the original rules from AirBnB's style guide, modified to allow for...of loops
-            {
-                selector: 'ForInStatement',
-                message:
-                    'for..in loops iterate over the entire prototype chain, which is virtually never what you want. ' +
-                    'Use Object.{keys,values,entries}, and iterate over the resulting array.',
-            },
+            // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
             {
                 selector: 'LabeledStatement',
                 message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
