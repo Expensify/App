@@ -1723,6 +1723,11 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        floatingActionButtonSmall: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
+        },
+
         sidebarFooterUsername: {
             color: theme.heading,
             fontSize: variables.fontSizeLabel,
