@@ -52,6 +52,7 @@ import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import TextInput from '@components/TextInput';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -84,6 +85,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
+    const [searchQuery, setSearchQuery] = useState('');
+    const [inputValue, setInputValue] = useState('');
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -101,6 +104,23 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+
+    const getSearchBar = () => {
+        return (
+            <View style={[{width: '300px', marginLeft: '20px'}]}>
+                <TextInput
+                    accessibilityLabel="Find category"
+                    placeholder='Find category'
+                    onChangeText={setInputValue}
+                    value={inputValue}
+                    icon={Expensicons.MagnifyingGlass}
+                    onSubmitEditing={() => setSearchQuery(inputValue)}
+                    shouldShowClearButton
+                />
+            </View>
+        );
+    };
+
 
     useEffect(() => {
         if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
@@ -330,8 +350,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setSelectedCategories({});
     }, [setSelectedCategories, selectionMode?.isEnabled]);
 
-    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
+    const filteredCategoryList = useMemo(() => {
+        if (!searchQuery.trim()) {
+            return categoryList;
+        }
+        const lowerQuery = searchQuery.trim().toLowerCase();
+        return categoryList.filter(cat =>
+            cat.text?.toLowerCase().includes(lowerQuery)
+        );
+    }, [searchQuery, categoryList]);
 
+
+    const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
             {!hasSyncError && isConnectedToAccounting ? (
@@ -437,6 +467,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                {categoryList.length > 15 && getSearchBar()}
                 {(!shouldUseNarrowLayout || !hasVisibleCategories || isLoading) && getHeaderText()}
                 {isLoading && (
                     <ActivityIndicator
@@ -446,14 +477,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     />
                 )}
 
-                {!hasVisibleCategories && !isLoading && (
+                {((!hasVisibleCategories && !isLoading) || filteredCategoryList.length === 0) && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                             headerMedia={LottieAnimations.GenericEmptyState}
-                            title={translate('workspace.categories.emptyCategories.title')}
-                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
+                            title={filteredCategoryList.length === 0 ? translate('search.searchResults.emptyResults.title') : translate('workspace.categories.emptyCategories.title')}
+                            subtitle={filteredCategoryList.length === 0 ? 'Try adjusting your search criteria' : translate('workspace.categories.emptyCategories.subtitle')}
                             headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}
@@ -465,7 +496,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={isSmallScreenWidth}
                         onTurnOnSelectionMode={(item) => item && toggleCategory(item)}
-                        sections={[{data: categoryList, isDisabled: false}]}
+                        sections={[{data: filteredCategoryList, isDisabled: false}]}
                         onCheckboxPress={toggleCategory}
                         onSelectRow={navigateToCategorySettings}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
