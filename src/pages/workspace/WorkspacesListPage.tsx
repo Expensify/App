@@ -32,7 +32,16 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {calculateBillNewDot, clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    calculateBillNewDot,
+    clearDeleteWorkspaceError,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removeWorkspace,
+    updateDefaultPolicy,
+    updateLastAccessedWorkspaceSwitcher,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -168,6 +177,7 @@ function WorkspacesListPage() {
         if (policyIDToDelete === activeWorkspaceID) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     };
 

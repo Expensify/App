@@ -28,6 +28,7 @@ import {
     deleteWorkspace,
     deleteWorkspaceAvatar,
     openPolicyProfilePage,
+    updateLastAccessedWorkspaceSwitcher,
     updateWorkspaceAvatar,
 } from '@libs/actions/Policy/Policy';
 import {filterInactiveCards} from '@libs/CardUtils';
@@ -178,6 +179,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
