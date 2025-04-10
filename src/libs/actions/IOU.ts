@@ -180,7 +180,6 @@ import {
     isPending,
     isPendingCardOrScanningTransaction,
     isPerDiemRequest as isPerDiemRequestTransactionUtils,
-    isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
     removeSettledAndApprovedTransactions,
@@ -8736,7 +8735,7 @@ function canSubmitReport(
     const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
     const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
     const hasOnlyPendingCardOrScanFailTransactions =
-        transactions.length > 0 && transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || isPartial(t) || isReceiptBeingScannedTransactionUtils(t));
+        transactions.length > 0 && transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || isPartial(t) || isScanning(t));
 
     return (
         transactions.length > 0 &&

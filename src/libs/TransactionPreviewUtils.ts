@@ -20,7 +20,6 @@ import {
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
-    hasReceipt,
     hasViolation,
     hasWarningTypeViolation,
     isAmountMissing,
@@ -32,7 +31,6 @@ import {
     isOnHold,
     isPending,
     isPerDiemRequest,
-    isReceiptBeingScanned,
     isScanning,
 } from './TransactionUtils';
 
@@ -266,8 +264,6 @@ function createTransactionPreviewConditionals({
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
-    const isTransactionScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
-
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
 
@@ -309,7 +305,7 @@ function createTransactionPreviewConditionals({
         requestMerchant !== CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT &&
         requestMerchant !== CONST.TRANSACTION.DEFAULT_MERCHANT &&
         !(isFetchingWaypoints && !requestAmount);
-    const shouldShowDescription = !!description && !shouldShowMerchant && !isTransactionScanning;
+    const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning(transaction);
 
     return {
         shouldDisableOnPress,
