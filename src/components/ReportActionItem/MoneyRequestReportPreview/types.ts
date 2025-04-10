@@ -52,7 +52,7 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
-    
+
     /** Whether the report is an invoice preview */
     isInvoice?: boolean;
 };
