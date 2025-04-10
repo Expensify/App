@@ -349,3 +349,25 @@ window.addEventListener('DOMContentLoaded', () => {
         document.documentElement.style.setProperty('y-axis', `${window.scrollY}px`);
     });
 });
+
+if (window.location.hash) {
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    const element = document.getElementById(lowerCaseHash.slice(1));
+
+    if (element) {
+        element.scrollIntoView({
+            behavior: 'smooth',
+        });
+    }
+}
+
+// Handle hash changes (like back/forward navigation)
+window.addEventListener('hashchange', () => {
+    if (!window.location.hash) {
+        return;
+    }
+    const lowerCaseHash = window.location.hash.toLowerCase();
+    document.getElementById(lowerCaseHash.slice(1))?.scrollIntoView({
+        behavior: 'smooth',
+    });
+});
