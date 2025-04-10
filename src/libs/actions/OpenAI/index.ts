@@ -21,15 +21,28 @@ type OpenAIRealtimeMessage = {
     name: string;
     arguments: string;
     type: string;
+    transcript?: string;
 };
 
 type Recap = {
     recap: string;
 };
 
+type TranscriptEntry = {
+    speaker: string;
+    text: string;
+};
+
+type CompleteConciergeCallParams = {
+    adminsChatReportID: number;
+    transcript: string;
+};
+
 let currentAdminsReportID: number | null = null;
 let mediaStream: MediaStream | null = null;
 let clientSecret: TalkToAISales['clientSecret'];
+let transcriptArray: TranscriptEntry[] = [];
+let currentUserEmail = '';
 
 const connections: WebRTCConnections = {
     openai: null,
@@ -43,6 +56,17 @@ Onyx.connect({
         }
 
         clientSecret = value.clientSecret;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        if (!session?.email) {
+            return;
+        }
+        
+        currentUserEmail = session.email;
     },
 });
 
@@ -202,11 +226,30 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
         case 'response.function_call_arguments.done':
             handleFunctionCall(message);
             break;
+        case 'response.audio_transcript.done':
+            handleTranscriptMessage(CONST.EMAIL.CONCIERGE, message);
+            break;
+        case 'conversation.item.input_audio_transcription.completed':
+            handleTranscriptMessage(currentUserEmail, message);
+            break;
         case 'error':
             console.error('[WebRTC] OpenAI error', {message});
             break;
         default:
     }
+}
+
+function completeConciergeCall() {
+    if (!currentAdminsReportID || transcriptArray.length === 0) {
+        return;
+    }
+
+    const params: CompleteConciergeCallParams = {
+        adminsChatReportID: currentAdminsReportID,
+        transcript: JSON.stringify(transcriptArray),
+    };
+
+    API.write(WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL, params);
 }
 
 function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
@@ -215,6 +258,7 @@ function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
     }
 
     currentAdminsReportID = adminsReportID;
+    transcriptArray = [];
 
     connectToOpenAIRealtime(adminsReportID, ctaUsed)
         .then((connection: ConnectionResult) => {
@@ -270,8 +314,21 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
     }
 }
 
+function handleTranscriptMessage(email: string, message: OpenAIRealtimeMessage) {
+    if (!message.transcript) {
+        return;
+    }
+
+    transcriptArray.push({
+        speaker: email,
+        text: message.transcript,
+    });
+}
+
 function stopConnection() {
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
+    
+    completeConciergeCall();
 
     if (mediaStream) {
         mediaStream.getTracks().forEach((track) => {
