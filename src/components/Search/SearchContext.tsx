@@ -22,6 +22,7 @@ const defaultSearchContext: SearchContext = {
     setShouldShowExportModeOption: () => {},
     isExportMode: false,
     setExportMode: () => {},
+    isOnSearch: false,
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -64,12 +65,13 @@ function SearchContextProvider({children}: ChildrenProps) {
     const [isExportMode, setExportMode] = useState(false);
 
     const [searchContextData, setSearchContextData] = useState<
-        Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports'>
+        Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isOnSearch'>
     >({
         currentSearchHash: defaultSearchContext.currentSearchHash,
         selectedTransactions: defaultSearchContext.selectedTransactions,
         shouldTurnOffSelectionMode: false,
         selectedReports: defaultSearchContext.selectedReports,
+        isOnSearch: false,
     });
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
@@ -138,4 +140,4 @@ function useSearchContext() {
 
 SearchContextProvider.displayName = 'SearchContextProvider';
 
-export {SearchContextProvider, useSearchContext};
+export {SearchContextProvider, useSearchContext, Context};

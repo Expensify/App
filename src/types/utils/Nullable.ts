@@ -1,5 +1,3 @@
-type Nullable<T> = {
-    [P in keyof T]: T[P] | null;
-};
+type Nullable<T> = {[K in keyof T]: T[K] | null};
 
 export default Nullable;
