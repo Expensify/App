@@ -21,7 +21,6 @@ type AnchorRendererProps = CustomRendererProps<TBlock> & {
 
 function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const styles = useThemeStyles();
-    const theme = useTheme();
     const htmlAttribs = tnode.attributes;
     const {environmentURL} = useEnvironment();
     // An auth token is needed to download Expensify chat attachments
