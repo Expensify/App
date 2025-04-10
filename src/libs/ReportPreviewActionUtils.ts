@@ -6,6 +6,7 @@ import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
+    getMoneyRequestSpendBreakdown,
     getReportTransactions,
     hasViolations as hasAnyViolations,
     isClosedReport,
@@ -52,6 +53,12 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const hasViolations = hasAnyViolations(report.reportID, violations);
     const isInvoice = isInvoiceReport(report);
     const isIOU = isIOUReport(report);
+
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    if (reimbursableSpend <= 0) {
+        return false;
+    }
 
     if (!isReportPayer) {
         return false;
@@ -102,6 +109,7 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
     }
     if (canExport(report, violations, policy)) {
+        console.log('%%%%%\n', 'i return in can export preview');
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canReview(report, violations, policy)) {
