@@ -11,7 +11,6 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import ScrollView from '@components/ScrollView';
 import type {SearchDateFilterKeys, SearchFilterKey} from '@components/Search/types';
 import SpacerView from '@components/SpacerView';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
