@@ -97,7 +97,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             const newSelectedTags: Record<string, boolean> = {};
 
             Object.keys(prevSelectedTags).forEach((key) => {
-                if (currentPolicyTag?.tags?.[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                if (isEmptyObject(currentPolicyTag?.tags?.[key]) || currentPolicyTag?.tags?.[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return;
                 }
                 newSelectedTags[key] = prevSelectedTags[key];

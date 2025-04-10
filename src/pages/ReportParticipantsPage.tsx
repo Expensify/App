@@ -83,7 +83,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
-    const chatParticipants = getParticipantsList(report, personalDetails);
+    const chatParticipants = useMemo(() => getParticipantsList(report, personalDetails), [report, personalDetails]);
 
     useEffect(() => {
         if (selectedMembers.length === 0 || !canSelectMultiple) {
