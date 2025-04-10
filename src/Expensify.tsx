@@ -44,6 +44,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
+import registerBackgroundTasks from './setup/backgroundTask';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -214,6 +215,11 @@ function Expensify() {
     // This is being done since we want to play sound even when iOS device is on silent mode, to align with other platforms.
     useEffect(() => {
         Audio.setAudioModeAsync({playsInSilentModeIOS: true});
+    }, []);
+
+    // This is being done here as we need to make sure that JS thread is ready before registering background tasks.
+    useEffect(() => {
+        registerBackgroundTasks();
     }, []);
 
     useLayoutEffect(() => {
