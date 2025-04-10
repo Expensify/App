@@ -460,7 +460,7 @@ function WorkspacesListPage() {
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
                 bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
-                enableEdgeToEdgeBottomSafeAreaPadding
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
@@ -502,7 +502,7 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
-            enableEdgeToEdgeBottomSafeAreaPadding
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
