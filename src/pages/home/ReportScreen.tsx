@@ -531,7 +531,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
-        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
         }
         fetchReport();
