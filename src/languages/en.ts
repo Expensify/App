@@ -1522,7 +1522,7 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'For security purposes, Xero requires two-factor authentication to connect the integration.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Two-factor authentication required',
         twoFactorAuthIsRequiredForAdminsTitle: 'Please enable two-factor authentication',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Your Xero accounting connection requires two-factor authentication. Please enable it to continue.',
+        twoFactorAuthIsRequiredForAdminsDescription: 'Your Xero accounting connection requires two-factor authentication.\nTo continue using Expensify, please enable it.',
         twoFactorAuthCannotDisable: 'Cannot disable 2FA',
         twoFactorAuthRequired: 'Two-factor authentication (2FA) is required for your Xero connection and cannot be disabled.',
     },

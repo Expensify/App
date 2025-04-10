@@ -3942,6 +3942,11 @@ const styles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        twoFAIllustration: {
+            width: 'auto',
+            height: 140,
+        },
+
         cardSectionTitle: {
             fontSize: variables.fontSizeLarge,
             lineHeight: variables.lineHeightXLarge,
@@ -5332,7 +5337,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         twoFARequiredContainer: {
-            maxWidth: 350,
+            maxWidth: 520,
             margin: 'auto',
         },
 
