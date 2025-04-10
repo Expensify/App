@@ -15,7 +15,7 @@ type PackageJson = {
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
-    const newVersionTag = packageJson.version;
+    const newVersionTag = `${packageJson.version}-staging`;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
