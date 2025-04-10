@@ -128,7 +128,18 @@ function SearchContextProvider({children}: ChildrenProps) {
             isExportMode,
             setExportMode,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading, lastSearchType, shouldShowExportModeOption, setShouldShowExportModeOption, isExportMode, setExportMode],
+        [
+            searchContextData,
+            setCurrentSearchHash,
+            setSelectedTransactions,
+            clearSelectedTransactions,
+            shouldShowStatusBarLoading,
+            lastSearchType,
+            shouldShowExportModeOption,
+            setShouldShowExportModeOption,
+            isExportMode,
+            setExportMode,
+        ],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;

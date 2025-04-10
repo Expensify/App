@@ -306,18 +306,18 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     useEffect(() => {
-        if(!data.length || shouldShowExportModeOption){
+        if (!data.length) {
             return;
         }
         const areItemsOfReportType = shouldGroupByReports;
         const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
         const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
 
-        if(isAllSelected && searchResults?.search?.hasMoreResults){
-            setShouldShowExportModeOption(true);
+        setShouldShowExportModeOption(!!(isAllSelected && searchResults?.search?.hasMoreResults));
+        if (!isAllSelected) {
+            setExportMode(false);
         }
-    }, [data, searchResults?.search?.hasMoreResults, selectedTransactions, setShouldShowExportModeOption, shouldGroupByReports, shouldShowExportModeOption])
-
+    }, [data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports, shouldShowExportModeOption]);
 
     const openReport = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
@@ -453,9 +453,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             }
 
             const newTransactionsList = prepareTransactionsList(item, selectedTransactions);
-            if (Object.keys(newTransactionsList).length !== Object.keys(selectedTransactions).length) {
-                setExportMode(false);
-            }
             setSelectedTransactions(newTransactionsList, data);
             return;
         }
@@ -466,7 +463,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             item.transactions.forEach((transaction) => {
                 delete reducedSelectedTransactions[transaction.keyForList];
             });
-            setExportMode(false);
             setSelectedTransactions(reducedSelectedTransactions, data);
             return;
         }
