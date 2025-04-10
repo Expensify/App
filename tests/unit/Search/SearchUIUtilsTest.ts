@@ -109,6 +109,27 @@ const searchResults: OnyxTypes.SearchResults = {
                 reportID,
                 reportName: 'Admin',
             },
+            test1: {
+                accountID: adminAccountID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2024-12-21 13:05:20',
+                message: [
+                    {
+                        type: 'text',
+                        text: 'Payment has been processed.',
+                        html: '<p>Payment has been processed.</p>',
+                        whisperedTo: [12345678, 87654321],
+                    },
+                    {
+                        type: 'comment',
+                        text: 'Please review this expense.',
+                        html: '<p>Please review this expense.</p>',
+                    },
+                ],
+                reportActionID: 'Admin1',
+                reportID,
+                reportName: 'Admin1',
+            },
         },
         [`report_${reportID}`]: {
             accountID: adminAccountID,
