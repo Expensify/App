@@ -15,8 +15,10 @@ type PackageJson = {
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
-    const newVersionTag = `${packageJson.version}-staging`;
+    // The checklist will use the package.json version, e.g. 1.2.3-4
     const newVersion = packageJson.version;
+    // Staging tags will use the package.json with a '-staging' suffix
+    const newStagingTag = `${packageJson.version}-staging`;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
@@ -53,7 +55,7 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.version ?? '', newVersionTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.version ?? '', newStagingTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
