@@ -28,6 +28,18 @@ import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@rnmapbox/maps', () => {
+    return {
+        default: jest.fn(),
+        MarkerView: jest.fn(),
+        setAccessToken: jest.fn(),
+    };
+});
+
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+}));
+
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
 describe('OptionsListUtils', () => {
