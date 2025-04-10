@@ -4,19 +4,19 @@ import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
+import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
-import type {CurrentReportIDContextValue} from '@hooks/useCurrentReportID';
 import useCurrentReportID from '@hooks/useCurrentReportID';
 import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
@@ -39,6 +39,7 @@ import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
     getCombinedReportActions,
+    getIOUActionForTransactionID,
     getOneTransactionThreadReportID,
     isCreatedAction,
     isDeletedParentAction,
@@ -93,7 +94,7 @@ import {ActionListContext, ReactionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
-type ReportScreenProps = CurrentReportIDContextValue & ReportScreenNavigationProps;
+type ReportScreenProps = ReportScreenNavigationProps;
 
 const defaultReportMetadata = {
     isLoadingInitialReportActions: true,
@@ -105,6 +106,33 @@ const defaultReportMetadata = {
 };
 
 const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
+
+function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string | undefined, reportActions: OnyxTypes.ReportAction[]) {
+    if (!reportID) {
+        return [];
+    }
+
+    return Object.values(transactions ?? {}).filter((transaction): transaction is OnyxTypes.Transaction => {
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return transaction.reportID === reportID && !isDeletedParentAction(action);
+    });
+}
+
+/**
+ * Returns a boolean indicating whether report should be considered a special case of single transaction report.
+ * Based on the flag `canUseTableReportView` we are using either the old way or new way of checking this value.
+ * The new way of checking is more explicit and is the same check that is used on SearchMoneyRequestReportPage
+ * - which means the views will be consistent.
+ */
+function getIfReportIsSingleTransaction(report: OnyxEntry<OnyxTypes.Report>, transactions: OnyxTypes.Transaction[], canUseTableReportView: boolean | undefined) {
+    const isSingleTransactionViewOld = isMoneyRequest(report) || isTrackExpenseReport(report);
+    const isSingleTransactionReport = transactions.length === 1;
+
+    return canUseTableReportView ? isSingleTransactionReport : isSingleTransactionViewOld;
+}
 
 /**
  * Check is the report is deleted.
@@ -291,15 +319,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     // OpenReport will be called each time the user scrolls up the report a bit, clicks on report preview, and then goes back."
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
+    const [reportTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
+    });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
-    const isSingleTransactionView = isMoneyRequest(report) || isTrackExpenseReport(report);
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
     const backTo = route?.params?.backTo as string;
+
+    const {canUseTableReportView} = usePermissions();
+    const isSingleTransactionView = getIfReportIsSingleTransaction(report, reportTransactions, canUseTableReportView);
+
+    const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -349,14 +384,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         );
     }
 
-    useEffect(() => {
-        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(linkedAction?.childReportID, reportID, linkedAction)) {
-            return;
-        }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
-
-    if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
+    if (isMoneyRequestOrInvoiceReport) {
         headerView = (
             <MoneyReportHeader
                 report={report}
@@ -367,6 +395,13 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             />
         );
     }
+
+    useEffect(() => {
+        if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(linkedAction?.childReportID, reportID, linkedAction)) {
+            return;
+        }
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
+    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
 
@@ -718,6 +753,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         return null;
     }
 
+    // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
+    const shouldDisplayMoneyRequestReport = canUseTableReportView && isMoneyRequestOrInvoiceReport && !isSingleTransactionView;
+
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
@@ -763,9 +801,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}
                                 testID="report-actions-view-wrapper"
                             >
-                                {!report ? (
-                                    <ReportActionsSkeletonView />
-                                ) : (
+                                {!report && <ReportActionsSkeletonView />}
+                                {!!report && !shouldDisplayMoneyRequestReport ? (
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -775,7 +812,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                )}
+                                ) : null}
+                                {!!report && shouldDisplayMoneyRequestReport ? (
+                                    <MoneyRequestReportActionsList
+                                        report={report}
+                                        reportActions={reportActions}
+                                        hasOlderActions={hasOlderActions}
+                                        hasNewerActions={hasNewerActions}
+                                    />
+                                ) : null}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
                                         onComposerFocus={onComposerFocus}
