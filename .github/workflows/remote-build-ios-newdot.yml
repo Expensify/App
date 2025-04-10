@@ -3,7 +3,10 @@ name: Remote Build iOS Newdot
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches-ignore: [staging, production]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build:
@@ -13,7 +16,7 @@ jobs:
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
-      - name: Setup NodeJS
+      - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: RNEF Remote Build - iOS
@@ -22,5 +25,5 @@ jobs:
           destination: simulator
           scheme: 'New Expensify Dev'
           configuration: DebugDevelopment
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           comment-bot: false

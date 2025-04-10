@@ -3,7 +3,10 @@ name: Remote Build Android Hybrid
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches-ignore: [staging, production]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build:
@@ -14,10 +17,9 @@ jobs:
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           submodules: true
-          ref: ${{ github.event.pull_request.head.sha }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
-      - name: Setup NodeJS
+      - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: RNEF Remote Build - Android
@@ -26,5 +28,5 @@ jobs:
           PROJECT_ROOT_PATH: "Mobile-Expensify/"
         with:
           variant: Debug
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           comment-bot: false

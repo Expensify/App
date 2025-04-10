@@ -3,7 +3,10 @@ name: Remote Build Android Newdot
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches-ignore: [staging, production]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
   build:
@@ -13,12 +16,12 @@ jobs:
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
 
-      - name: Setup NodeJS
+      - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@a49920aadab9f41951944ea52bb7983fa6b20b03
         with:
           variant: developmentDebug
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ github.token }}
           comment-bot: false
