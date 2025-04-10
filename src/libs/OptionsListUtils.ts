@@ -1802,7 +1802,7 @@ function getAttendeeOptions(
         {reports, personalDetails},
         {
             betas,
-            selectedOptions: attendees,
+            selectedOptions: attendees.map((attendee) => ({...attendee, login: attendee.email})),
             excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
             includeOwnedWorkspaceChats,
             includeRecentReports: false,

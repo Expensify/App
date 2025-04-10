@@ -463,6 +463,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },
@@ -560,6 +561,7 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },
