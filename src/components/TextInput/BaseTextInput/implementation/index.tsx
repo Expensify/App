@@ -68,7 +68,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
-        shouldAlwaysShowClearButton = false,
+        shouldHideClearButton = false,
         shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
@@ -408,7 +408,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldAlwaysShowClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldHideClearButton) && !!value && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {

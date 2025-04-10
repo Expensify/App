@@ -52,7 +52,7 @@ type DateInputWithPickerProps = DatePickerBaseProps &
          * Whether to always show the clear button, even when the input is not focused
          * @default false
          */
-        shouldAlwaysShowClearButton?: boolean;
+        shouldHideClearButton?: boolean;
     };
 
 type DatePickerProps = {

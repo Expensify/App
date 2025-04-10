@@ -28,7 +28,7 @@ function DatePicker({
     shouldSaveDraft = false,
     formID,
     autoFocus = false,
-    shouldAlwaysShowClearButton = true,
+    shouldHideClearButton = true,
 }: DateInputWithPickerProps) {
     const styles = useThemeStyles();
     const {windowHeight, windowWidth} = useWindowDimensions();
@@ -131,7 +131,7 @@ function DatePicker({
                     readOnly
                     onPress={handlePress}
                     textInputContainerStyles={isModalVisible ? styles.borderColorFocus : {}}
-                    shouldAlwaysShowClearButton={shouldAlwaysShowClearButton}
+                    shouldHideClearButton={shouldHideClearButton}
                     onClearInput={handleClear}
                 />
             </View>

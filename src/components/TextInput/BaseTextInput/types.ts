@@ -170,7 +170,7 @@ type CustomBaseTextInputProps = {
     uncontrolled?: boolean;
 
     /** Whether the clear button should always be displayed */
-    shouldAlwaysShowClearButton?: boolean;
+    shouldHideClearButton?: boolean;
 
     /** Callback when the input is cleared using the clear button */
     onClearInput?: () => void;

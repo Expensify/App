@@ -65,7 +65,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
-        shouldAlwaysShowClearButton = false,
+        shouldHideClearButton = false,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -402,7 +402,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldAlwaysShowClearButton) && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || shouldHideClearButton) && !!value && (
                                 <TextInputClearButton
                                     onPressButton={() => {
                                         setValue('');
