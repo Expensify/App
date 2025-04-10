@@ -8,6 +8,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +45,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
     const validateCodeSent = validateCodeAction?.validateCodeSent;
+    const defaultFundID = useDefaultFundID(policyID);
 
     const submitButton = useRef<View>(null);
 
@@ -63,7 +65,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     }, [backTo, policyID, isSuccessful]);
 
     const submit = (validateCode: string) => {
-        issueExpensifyCard(policyID, CONST.COUNTRY.US, validateCode, data);
+        issueExpensifyCard(defaultFundID, policyID, CONST.COUNTRY.US, validateCode, data);
     };
 
     const errorMessage = getLatestErrorMessage(issueNewCard);
