@@ -5,6 +5,15 @@ type TalkToAISales = {
 
     /** Whether the AI sales bot is loading */
     isLoading: boolean;
+
+    /** Temporary key for OpenAI realtime API */
+    clientSecret?: {
+        /** OpenAI Ephermeral token for the current session */
+        ephemeralToken: string;
+
+        /** Expiration time in ephoch time for the ephemeral token. */
+        expiresAt: number;
+    };
 };
 
 export default TalkToAISales;
