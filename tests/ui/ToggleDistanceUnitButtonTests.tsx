@@ -1,15 +1,15 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 import React from 'react';
+import ToggleDistanceUnitButton from '@components/MapView/ToggleDistanceUnitButton/index.android';
 import type PressableProps from '@components/Pressable/GenericPressable/types';
-import PressableWithTouchEnd from '@components/Pressable/PressableWithTouchEnd';
 import Text from '@components/Text';
 import CONST from '@src/CONST';
 
 const onPressMock = jest.fn();
-describe('PressableWithTouchEnd', () => {
+describe('ToggleDistanceUnitButton', () => {
     const renderButton = (props: PressableProps) =>
         render(
-            <PressableWithTouchEnd
+            <ToggleDistanceUnitButton
                 testID="pressable"
                 accessibilityLabel="fake-button"
                 accessibilityRole={CONST.ROLE.BUTTON}
@@ -17,7 +17,7 @@ describe('PressableWithTouchEnd', () => {
                 {...props}
             >
                 <Text>Click me</Text>
-            </PressableWithTouchEnd>,
+            </ToggleDistanceUnitButton>,
         );
     beforeEach(() => {
         jest.clearAllMocks();
@@ -25,7 +25,7 @@ describe('PressableWithTouchEnd', () => {
 
     test('should trigger onPress when tapped quickly', () => {
         // Given the component is rendered
-        renderButton({onPress: onPressMock, accessibilityLabel: 'PressableWithTouchEnd'});
+        renderButton({onPress: onPressMock, accessibilityLabel: 'ToggleDistanceUnitButton'});
         const pressable = screen.getByTestId('pressable');
 
         // When touch starts on the button
@@ -45,7 +45,7 @@ describe('PressableWithTouchEnd', () => {
 
     test('should not trigger onPress when dragged', () => {
         // Given the component is rendered
-        renderButton({onPress: onPressMock, accessibilityLabel: 'PressableWithTouchEnd'});
+        renderButton({onPress: onPressMock, accessibilityLabel: 'ToggleDistanceUnitButton'});
         const pressable = screen.getByTestId('pressable');
 
         // When touch start on the button
