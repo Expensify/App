@@ -5,11 +5,6 @@ import type {ReactionListAnchor, ReactionListEvent} from '@pages/home/ReportScre
 import type {AnchorPosition} from '@src/styles';
 import type {ReportActionReactions} from '@src/types/onyx';
 
-type BasePopoverReactionListOnyxProps = {
-    /** The reactions for the report action */
-    emojiReactions: OnyxEntry<ReportActionReactions>;
-};
-
 type BasePopoverReactionListProps = {
     /** The ID of the report action */
     reportActionID: string;
@@ -28,7 +23,6 @@ type BasePopoverReactionListHookProps = BasePopoverReactionListProps & {
     preferredLocale: LocaleContextProps['preferredLocale'];
 };
 
-type BasePopoverReactionListPropsWithLocalWithOnyx = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListOnyxProps & BasePopoverReactionListProps;
 type BasePopoverReactionListState = {
     /** Whether the popover is visible */
     isPopoverVisible: boolean;
@@ -48,13 +42,4 @@ type InnerReactionListRef = {
     isActiveReportAction: (actionID: number | string) => boolean;
 };
 
-export type {
-    BasePopoverReactionListProps,
-    BasePopoverReactionListHookProps,
-    BasePopoverReactionListPropsWithLocalWithOnyx,
-    BasePopoverReactionListState,
-    BasePopoverReactionListOnyxProps,
-    ShowReactionList,
-    ReactionListAnchor,
-    InnerReactionListRef,
-};
+export type {BasePopoverReactionListProps, BasePopoverReactionListHookProps, BasePopoverReactionListState, ShowReactionList, ReactionListAnchor, InnerReactionListRef};
