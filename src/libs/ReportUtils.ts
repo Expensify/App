@@ -6053,32 +6053,28 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
     };
 }
 
-/**
- * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
- * This action is used when we change the workspace of a report.
- */
-function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string): ReportAction {
-    const originalMessage = {
-        toReportID,
-    };
-
-    const reportName = allReports?.[toReportID]?.reportName;
-    const movedTransactionMessage = [
-        {
-            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            html: `moved this expense to <a href='${environmentURL}r/${toReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
-            text: `moved this expense to ${reportName}`,
-        },
-    ];
+function buildOptimisticTransactionAction(type: 'MOVEDTRANSACTION' | 'UNREPORTEDTRANSACTION', transactionThreadReportID: string | undefined, targetReportID: string): ReportAction {
+    const reportName = allReports?.[targetReportID]?.reportName ?? '';
+    const url = `${environmentURL}/r/${targetReportID}`;
+    const [actionText, messageHtml] =
+        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
+            ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
+            : [`removed this expense from ${reportName}`, `removed this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
 
     return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
+        actionName: type,
         reportID: transactionThreadReportID,
         actorAccountID: currentUserAccountID,
         avatar: getCurrentUserAvatar(),
         created: DateUtils.getDBTime(),
-        originalMessage,
-        message: movedTransactionMessage,
+        originalMessage: type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION ? {toReportID: targetReportID} : {fromReportID: targetReportID},
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                html: messageHtml,
+                text: actionText,
+            },
+        ],
         person: [
             {
                 style: 'strong',
@@ -6093,42 +6089,19 @@ function buildOptimisticMovedTransactionAction(transactionThreadReportID: string
 }
 
 /**
+ * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we change the workspace of a report.
+ */
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string) {
+    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, transactionThreadReportID, toReportID);
+}
+
+/**
  * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
  * This action is used when we unreport a transaction.
  */
-function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string): ReportAction {
-    const originalMessage = {
-        fromReportID,
-    };
-
-    const reportName = allReports?.[fromReportID]?.reportName;
-    const unreportedTransactionMessage = [
-        {
-            type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            html: `removed this expense from <a href='${environmentURL}r/${fromReportID}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`,
-            text: `removed this expense from ${reportName}`,
-        },
-    ];
-
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-        reportID: transactionThreadReportID,
-        actorAccountID: currentUserAccountID,
-        avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
-        originalMessage,
-        message: unreportedTransactionMessage,
-        person: [
-            {
-                style: 'strong',
-                text: getCurrentUserDisplayNameOrEmail(),
-                type: 'TEXT',
-            },
-        ],
-        reportActionID: rand64(),
-        shouldShow: true,
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-    };
+function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string) {
+    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, transactionThreadReportID, fromReportID);
 }
 
 /**
@@ -9478,6 +9451,31 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
+function isReportOutsanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined): boolean {
+    if (!iouReport || isEmptyObject(iouReport)) {
+        return false;
+    }
+    if (
+        isExpenseReport(iouReport) &&
+        iouReport?.stateNum !== undefined &&
+        iouReport?.statusNum !== undefined &&
+        iouReport?.policyID === policyID &&
+        iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
+        iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
+        !hasForwardedAction(iouReport.reportID)
+    ) {
+        return true;
+    }
+    return false;
+}
+
+function getFirstOutstandingReport(policyID: string | undefined, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> | undefined {
+    if (!reports) {
+        return undefined;
+    }
+    return Object.values(reports).find((report) => isReportOutsanding(report, policyID));
+}
+
 /**
  * Get outstanding expense reports for a given policy ID
  * @param policyID - The policy ID to filter reports by
@@ -9488,18 +9486,8 @@ function getOutstandingReports(policyID: string | undefined, reports: OnyxCollec
     if (!reports) {
         return [];
     }
-
     return Object.values(reports)
-        .filter(
-            (report) =>
-                isExpenseReport(report) &&
-                report?.stateNum !== undefined &&
-                report?.statusNum !== undefined &&
-                report?.policyID === policyID &&
-                report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
-                !hasForwardedAction(report.reportID),
-        )
+        .filter((report) => isReportOutsanding(report, policyID))
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
@@ -10761,6 +10749,8 @@ export {
     navigateToLinkedReportAction,
     populateOptimisticReportFormula,
     getOutstandingReports,
+    isReportOutsanding,
+    getFirstOutstandingReport,
 };
 
 export type {
