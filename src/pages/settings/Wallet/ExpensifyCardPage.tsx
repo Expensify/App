@@ -71,9 +71,11 @@ function ExpensifyCardPage({
     const {translate} = useLocalize();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [currentCardID, setCurrentCardID] = useState<number>(-1);
-    const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual;
+    const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
+    const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
-    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
+    const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
+    const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle;
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -89,7 +91,8 @@ function ExpensifyCardPage({
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
 
-    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);
+    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
+    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
@@ -147,7 +150,7 @@ function ExpensifyCardPage({
         <ScreenWrapper testID={ExpensifyCardPage.displayName}>
             <HeaderWithBackButton
                 title={pageTitle}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
+                onBackButtonPress={() => Navigation.closeRHPFlow()}
             />
             <ScrollView>
                 <View style={[styles.flex1, styles.mb9, styles.mt9]}>
@@ -241,6 +244,51 @@ function ExpensifyCardPage({
                                 )}
                             </>
                         ))}
+                        {isTravelCard &&
+                            travelCards.map((card) => (
+                                <>
+                                    {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
+                                        <CardDetails
+                                            cvv={cardsDetails[card.cardID]?.cvv}
+                                            domain={domain}
+                                        />
+                                    ) : (
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                description={translate('cardPage.travelCardCvv')}
+                                                title="•••"
+                                                interactive={false}
+                                                titleStyle={styles.walletCardNumber}
+                                                shouldShowRightComponent
+                                                rightComponent={
+                                                    !isSignedInAsdelegate ? (
+                                                        <Button
+                                                            text={translate('cardPage.cardDetails.revealCvv')}
+                                                            onPress={() => openValidateCodeModal(card.cardID)}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                        />
+                                                    ) : undefined
+                                                }
+                                            />
+                                            <DotIndicatorMessage
+                                                messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                                type="error"
+                                                style={[styles.ph5]}
+                                            />
+                                        </>
+                                    )}
+                                    {!isSignedInAsdelegate && (
+                                        <MenuItemWithTopDescription
+                                            title={translate('cardPage.reportTravelFraud')}
+                                            titleStyle={styles.walletCardMenuItem}
+                                            icon={Expensicons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                        />
+                                    )}
+                                </>
+                            ))}
                         {physicalCards.map((card) => {
                             if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
                                 return null;
