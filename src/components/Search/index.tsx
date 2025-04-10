@@ -452,8 +452,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
                 return;
             }
 
-            const newTransactionsList = prepareTransactionsList(item, selectedTransactions);
-            setSelectedTransactions(newTransactionsList, data);
+            setSelectedTransactions(prepareTransactionsList(item, selectedTransactions), data);
             return;
         }
 
@@ -463,6 +462,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             item.transactions.forEach((transaction) => {
                 delete reducedSelectedTransactions[transaction.keyForList];
             });
+
             setSelectedTransactions(reducedSelectedTransactions, data);
             return;
         }
