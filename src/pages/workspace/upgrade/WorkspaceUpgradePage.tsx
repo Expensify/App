@@ -143,7 +143,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
                         break;
                     }
                     default: {
-                        enablePolicyReportFields(policyID, true, false);
+                        enablePolicyReportFields(policyID, true);
                     }
                 }
                 break;

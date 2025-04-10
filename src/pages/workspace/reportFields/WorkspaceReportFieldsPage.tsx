@@ -219,7 +219,7 @@ function WorkspaceReportFieldsPage({
                                         );
                                         return;
                                     }
-                                    enablePolicyReportFields(policyID, isEnabled, true);
+                                    enablePolicyReportFields(policyID, isEnabled);
                                 }}
                                 subMenuItems={
                                     !!policy?.areReportFieldsEnabled && (

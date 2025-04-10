@@ -3060,7 +3060,7 @@ function enableCompanyCards(policyID: string, enabled: boolean, shouldGoBack = t
     }
 }
 
-function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBack = true) {
+function enablePolicyReportFields(policyID: string, enabled: boolean) {
     const onyxData: OnyxData = {
         optimisticData: [
             {
@@ -3104,10 +3104,6 @@ function enablePolicyReportFields(policyID: string, enabled: boolean, shouldGoBa
     API.write(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, parameters, onyxData, {
         checkAndFixConflictingRequest: (persistedRequests) => resolveEnableFeatureConflicts(WRITE_COMMANDS.ENABLE_POLICY_REPORT_FIELDS, persistedRequests, parameters),
     });
-
-    if (enabled && getIsNarrowLayout() && shouldGoBack) {
-        goBackWhenEnableFeature(policyID);
-    }
 }
 
 function enablePolicyTaxes(policyID: string, enabled: boolean) {

@@ -484,7 +484,7 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
                             return;
                         }
                         setIsReportFieldsWarningModalOpen(false);
-                        enablePolicyReportFields(policyID, false, true);
+                        enablePolicyReportFields(policyID, false);
                     }}
                     onCancel={() => setIsReportFieldsWarningModalOpen(false)}
                     prompt={translate('workspace.reportFields.disableReportFieldsConfirmation')}
