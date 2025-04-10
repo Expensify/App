@@ -9469,13 +9469,6 @@ function isReportOutsanding(iouReport: OnyxInputOrEntry<Report>, policyID: strin
     return false;
 }
 
-function getFirstOutstandingReport(policyID: string | undefined, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> | undefined {
-    if (!reports) {
-        return undefined;
-    }
-    return Object.values(reports).find((report) => isReportOutsanding(report, policyID));
-}
-
 /**
  * Get outstanding expense reports for a given policy ID
  * @param policyID - The policy ID to filter reports by
@@ -10750,7 +10743,6 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReports,
     isReportOutsanding,
-    getFirstOutstandingReport,
 };
 
 export type {
