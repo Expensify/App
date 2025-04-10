@@ -12,6 +12,7 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
+import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
@@ -79,6 +80,10 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
 
     const inputs = useMemo(() => {
         return accountHolderDetailsFields?.map((field) => {
+            if (field.valueSet !== undefined) {
+                return getInputForValueSet(field, String(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+            }
+
             if (field.id === ACCOUNT_HOLDER_COUNTRY) {
                 return (
                     <View
@@ -116,7 +121,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                 </View>
             );
         });
-    }, [accountHolderDetailsFields, styles.mb6, styles.mhn5, defaultValues, isEditing, defaultBankAccountCountry, translate]);
+    }, [accountHolderDetailsFields, styles, defaultValues, isEditing, defaultBankAccountCountry, translate]);
 
     return (
         <FormProvider
@@ -125,6 +130,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
             validate={validate}
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldHideFixErrorsAlert={(accountHolderDetailsFields?.length ?? 0) <= 1}
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>

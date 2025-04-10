@@ -33,7 +33,7 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-    
+
   getOldDotBranchRef:
     runs-on: ubuntu-latest
     outputs:
@@ -50,17 +50,17 @@ jobs:
           fi
         env:
           GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
-  
-  
+
+
   postGitHubCommentBuildStarted:
     name: Post build started comment
     uses: ./.github/workflows/postBuildStartedComment.yml
     secrets: inherit
-    with: 
+    with:
       APP_PULL_REQUEST_NUMBER: ${{ inputs.PULL_REQUEST_NUMBER }}
       HYBRIDAPP_PULL_REQUEST_NUMBER: ${{ inputs.OLD_DOT_PULL_REQUEST_NUMBER }}
 
-       
+
   buildHybridAppAndroid:
     name: Build HybridApp Android
     needs: [getBranchRef, getOldDotBranchRef]
@@ -73,12 +73,7 @@ jobs:
           submodules: true
           ref: ${{ needs.getBranchRef.outputs.REF || 'main' }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          fetch-depth: 0
 
-      - name: Update submodule to match main
-        run: |
-          git submodule update --init --remote
-      
       - name: Checkout OldDot if PR specified
         if: ${{ needs.getOldDotBranchRef.outputs.OLD_DOT_REF != '' }}
         run: |
@@ -109,8 +104,8 @@ jobs:
           java-version: '17'
 
       - name: Setup Ruby
-        # v1.190.0
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
@@ -178,7 +173,7 @@ jobs:
         uses: ./.github/actions/composite/setupNode
         with:
           IS_HYBRID_BUILD: 'false'
-     
+
       - name: Install 1Password CLI
         # v1
         uses: 1password/install-cli-action@143a85f84a90555d121cde2ff5872e393a47ab9f

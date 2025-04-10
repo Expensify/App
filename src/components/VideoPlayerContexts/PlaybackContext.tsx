@@ -1,16 +1,55 @@
-import type {NavigationState} from '@react-navigation/native';
+import type {NavigationState, Route} from '@react-navigation/native';
+import {findFocusedRoute} from '@react-navigation/native';
 import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {View} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
 import usePrevious from '@hooks/usePrevious';
+import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
+import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
 import Visibility from '@libs/Visibility';
+import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
+import ROUTES from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {PlaybackContext, StatusCallback} from './types';
 
 const Context = React.createContext<PlaybackContext | null>(null);
+
+type SearchRoute = Omit<Route<string>, 'key'> | undefined;
+type MoneyRequestReportState = {
+    params: SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT];
+} & SearchRoute;
+
+function isMoneyRequestReportRouteWithReportIDInParams(route: SearchRoute): route is MoneyRequestReportState {
+    return !!route && !!route.params && route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT && 'reportID' in route.params;
+}
+
+function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, url: string | null): string | undefined {
+    const {parentReportID, reportID} = currentReport ?? {};
+
+    const reportActions = getAllReportActions(reportID);
+    const hasUrlInAttachments = Object.values(reportActions).some((action) => {
+        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
+        return sourceURL === url || previewSourceURL === url;
+    });
+
+    if (hasUrlInAttachments) {
+        return reportID;
+    }
+
+    if (parentReportID) {
+        const parentReport = getReportOrDraftReport(parentReportID);
+        return findUrlInReportOrAncestorAttachments(parentReport, url);
+    }
+
+    return undefined;
+}
 
 function PlaybackContextProvider({children}: ChildrenProps) {
     const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<string | null>(null);
@@ -58,14 +97,20 @@ function PlaybackContextProvider({children}: ChildrenProps) {
      */
     const updateCurrentPlayingReportID = useCallback(
         (state: NavigationState) => {
-            if (!isReportTopmostSplitNavigator()) {
-                setCurrentReportID(undefined);
-                return;
+            const focusedRoute = findFocusedRoute(state);
+            let {reportID} = getReportOrDraftReport(Navigation.getTopmostReportId()) ?? {};
+
+            // We need to handle a case where a report is selected via search and is therefore not a topmost report,
+            // but we still want to be able to play videos in it
+            if (isMoneyRequestReportRouteWithReportIDInParams(focusedRoute)) {
+                reportID = focusedRoute.params.reportID;
             }
-            const reportID = Navigation.getTopmostReportId(state);
+
+            reportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID : reportID;
+
             setCurrentReportID(reportID);
         },
-        [setCurrentReportID],
+        [setCurrentReportID, prevCurrentReportID],
     );
 
     const updateCurrentlyPlayingURL = useCallback(
@@ -73,10 +118,22 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             if (currentlyPlayingURL && url !== currentlyPlayingURL) {
                 pauseVideo();
             }
-            setCurrentlyPlayingURLReportID(currentReportID);
+
+            // Used for /attachment route
+            const topMostReport = getReportOrDraftReport(Navigation.getTopmostReportId());
+            const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID') ?? undefined;
+            const attachmentReportID = Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}` ? prevCurrentReportID ?? reportIDFromUrlParams : undefined;
+            const reportIDWithUrl = isChatThread(topMostReport) ? findUrlInReportOrAncestorAttachments(topMostReport, url) : undefined;
+
+            // - if it is a chat thread, use chat thread ID or any ascentor ID since the video could have originally been sent on report many levels up
+            // - report ID in which we are currently, if it is not a chat thread
+            // - if it is an attachment route, then we take report ID from the URL params
+            const currentPlayReportID = [attachmentReportID, reportIDWithUrl, currentReportID].find((id) => id !== undefined);
+
+            setCurrentlyPlayingURLReportID(currentPlayReportID);
             setCurrentlyPlayingURL(url);
         },
-        [currentlyPlayingURL, currentReportID, pauseVideo],
+        [currentlyPlayingURL, currentReportID, prevCurrentReportID, pauseVideo],
     );
 
     const shareVideoPlayerElements = useCallback(
@@ -159,6 +216,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             videoResumeTryNumberRef,
+            resetVideoPlayerData,
             updateCurrentPlayingReportID,
         }),
         [
@@ -172,6 +230,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             pauseVideo,
             checkVideoPlaying,
             setCurrentlyPlayingURL,
+            resetVideoPlayerData,
             updateCurrentPlayingReportID,
         ],
     );
