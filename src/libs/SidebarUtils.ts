@@ -93,7 +93,6 @@ import {
     isChatThread,
     isConciergeChatReport,
     isDeprecatedGroupDM,
-    isDM,
     isDomainRoom,
     isExpenseReport,
     isExpenseRequest,
@@ -668,7 +667,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-        if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails) && !isArchivedReport(reportNameValuePairs)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;
