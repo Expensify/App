@@ -97,7 +97,7 @@ const searchResults: OnyxTypes.SearchResults = {
                         type: 'text',
                         text: 'Payment has been processed.',
                         html: '<p>Payment has been processed.</p>',
-                        whisperedTo: [12345678, 87654321],
+                        whisperedTo: [],
                     },
                     {
                         type: 'comment',
@@ -341,7 +341,7 @@ const reportActionListItems = [
                 type: 'text',
                 text: 'Payment has been processed.',
                 html: '<p>Payment has been processed.</p>',
-                whisperedTo: [12345678, 87654321],
+                whisperedTo: [],
             },
             {
                 type: 'comment',
@@ -870,7 +870,7 @@ describe('SearchUIUtils', () => {
                             html: '<p>Payment has been processed.</p>',
                             text: 'Payment has been processed.',
                             type: 'text',
-                            whisperedTo: [12345678, 87654321],
+                            whisperedTo: [],
                         },
                         {
                             html: '<p>Please review this expense.</p>',
