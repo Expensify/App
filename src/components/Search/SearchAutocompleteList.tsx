@@ -525,7 +525,7 @@ function SearchAutocompleteList(
         <SelectionList<OptionData | SearchQueryItem>
             showLoadingPlaceholder={!areOptionsInitialized}
             fixedNumItemsForLoader={4}
-            loaderSpeed={3}
+            loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             sections={sections}
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
