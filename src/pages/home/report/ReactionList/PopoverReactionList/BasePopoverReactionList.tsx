@@ -9,13 +9,14 @@ import type {BasePopoverReactionListProps} from '@hooks/useBasePopoverReactionLi
 import useLocalize from '@hooks/useLocalize';
 import BaseReactionList from '@pages/home/report/ReactionList/BaseReactionList';
 import type {ReactionListRef} from '@pages/home/ReportScreenContext';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 type PopoverReactionListProps = WithCurrentUserPersonalDetailsProps & BasePopoverReactionListProps;
 
 function BasePopoverReactionList({emojiName, reportActionID, currentUserPersonalDetails}: PopoverReactionListProps, ref: ForwardedRef<Partial<ReactionListRef>>) {
     const {preferredLocale} = useLocalize();
-    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID}`, {initialValue: {}});
+    const [emojiReactions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${reportActionID || CONST.DEFAULT_NUMBER_ID}`, {initialValue: {}});
     const {isPopoverVisible, hideReactionList, showReactionList, popoverAnchorPosition, reactionListRef, getReactionInformation} = useBasePopoverReactionList({
         emojiName,
         emojiReactions,
