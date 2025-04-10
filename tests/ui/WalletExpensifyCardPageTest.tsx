@@ -19,8 +19,6 @@ import SCREENS from '@src/SCREENS';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@components/ConfirmedRoute.tsx');
-
 // Set up a global fetch mock for API requests in tests.
 TestHelper.setupGlobalFetchMock();
 

@@ -17,7 +17,6 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const reportID = route.params.reportID;
     const attachmentID = route.params.attachmentID;
     const type = route.params.type;
-    const hashKey = route.params.hashKey;
     const accountID = route.params.accountID;
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const attachmentLink = route.params.attachmentLink;
@@ -39,11 +38,10 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
                 attachment?.isAuthTokenRequired,
                 attachment?.file?.name,
                 attachment?.attachmentLink,
-                hashKey,
             );
             Navigation.navigate(routeToNavigate);
         },
-        [reportID, type, accountID, hashKey],
+        [reportID, type, accountID],
     );
 
     return (

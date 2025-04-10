@@ -35,7 +35,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
+            {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
                 <PressableWithoutFeedback
                     style={[style, (isOffline || !sourceID) && styles.cursorDefault]}
                     onPress={() => {
@@ -48,7 +48,7 @@ function BaseAnchorForAttachmentsOnly({style, source = '', displayName = '', onP
                     onPressIn={onPressIn}
                     onPressOut={onPressOut}
                     onLongPress={(event) => {
-                        if (isDisabled || !shouldDisplayContextMenu) {
+                        if (isDisabled) {
                             return;
                         }
                         showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs));

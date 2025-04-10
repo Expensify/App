@@ -2,6 +2,7 @@ import {Str} from 'expensify-common';
 import React, {useMemo} from 'react';
 import type {ListRenderItemInfo, StyleProp, ViewStyle} from 'react-native';
 import {FlatList, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -10,7 +11,6 @@ import {PressableWithoutFeedback} from '@components/Pressable';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -50,9 +50,6 @@ type TripRoomPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
-
-    /** Whether  context menu should be shown on press */
-    shouldDisplayContextMenu?: boolean;
 };
 
 type ReservationViewProps = {
@@ -117,15 +114,7 @@ function ReservationView({reservation, onPress}: ReservationViewProps) {
     );
 }
 
-function TripRoomPreview({
-    action,
-    chatReportID,
-    containerStyles,
-    contextMenuAnchor,
-    isHovered = false,
-    checkIfContextMenuActive = () => {},
-    shouldDisplayContextMenu = true,
-}: TripRoomPreviewProps) {
+function TripRoomPreview({action, chatReportID, containerStyles, contextMenuAnchor, isHovered = false, checkIfContextMenuActive = () => {}}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -170,12 +159,7 @@ function TripRoomPreview({
                     onPress={navigateToTrip}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => {
-                        if (!shouldDisplayContextMenu) {
-                            return;
-                        }
-                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
-                    }}
+                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
                     shouldUseHapticsOnLongPress
                     style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
                     role={CONST.ROLE.BUTTON}

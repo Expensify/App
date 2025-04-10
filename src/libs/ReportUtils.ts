@@ -1188,15 +1188,7 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
         return noPolicyFound;
     }
-    const finalPolicy = (() => {
-        if (isEmptyObject(policy)) {
-            if (policies) {
-                return policies.find((p) => p.id === report.policyID);
-            }
-            return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
-        }
-        return policy ?? policies?.find((p) => p.id === report.policyID);
-    })();
+    const finalPolicy = isEmptyObject(policy) ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : policy ?? policies?.find((p) => p.id === report.policyID);
 
     const parentReport = getRootParentReport({report, reports});
 
@@ -1367,7 +1359,7 @@ function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: numb
 /**
  * Whether the Money Request report is settled
  */
-function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
+function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[]): boolean {
     if (!reportOrID) {
         return false;
     }
@@ -3966,8 +3958,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  */
-function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
-    const reportTransactions = transactions ?? getReportTransactions(iouReportID);
+function hasMissingSmartscanFields(iouReportID: string | undefined): boolean {
+    const reportTransactions = getReportTransactions(iouReportID);
 
     return reportTransactions.some(hasMissingSmartscanFieldsTransactionUtils);
 }
@@ -4498,7 +4490,7 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
-        return getPolicyName({report, policies});
+        return getPolicyName({report});
     }
 
     if (isIndividual) {

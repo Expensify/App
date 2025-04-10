@@ -69,8 +69,6 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@src/components/ConfirmedRoute.tsx');
-
 const getMockedReports = (length = 100) =>
     createCollection<Report>(
         (item) => `${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`,

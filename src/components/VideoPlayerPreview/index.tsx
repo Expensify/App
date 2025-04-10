@@ -4,7 +4,6 @@ import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {useSearchContext} from '@components/Search/SearchContext';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -55,7 +54,6 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
-    const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
 
     // We want to play the video only when the user is on the page where it was rendered
@@ -79,11 +77,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     }, [navigation, firstRenderRoute]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || (reportID !== currentlyPlayingURLReportID && !isOnSearch) || !firstRenderRoute.isFocused) {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !firstRenderRoute.isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute, isOnSearch]);
+    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
