@@ -6324,7 +6324,8 @@ const translations = {
             exploreAllPlans: 'Explorar todos los planes',
             customPricing: 'Precios personalizados',
             asLowAs: ({price}: YourPlanPriceValueParams) => `desde ${price} por miembro activo/mes`,
-            perMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro/mes`,
+            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro/mes`,
+            perMemberMonth: 'por miembro/mes',
             collect: {
                 title: 'Recopilar',
                 description: 'El plan SMB que te ofrece gestión de gastos, viajes y chat.',

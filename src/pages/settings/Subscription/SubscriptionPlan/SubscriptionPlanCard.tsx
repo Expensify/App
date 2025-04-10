@@ -37,7 +37,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const currentSubscriptionPlan = useSubscriptionPlan();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const preferredCurrency = usePreferredCurrency();
-    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency);
+    const {title, src, description, benefits, note, subtitle} = getSubscriptionPlanInfo(subscriptionPlan, privateSubscription?.type, preferredCurrency, isFromComparisonModal);
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 

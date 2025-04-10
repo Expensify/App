@@ -599,16 +599,30 @@ function getSubscriptionPlanInfo(
     subscriptionPlan: PersonalPolicyTypeExludedProps | null,
     privateSubscriptionType: SubscriptionType | undefined,
     preferredCurrency: PreferredCurrency,
+    isFromComparisonModal: boolean,
 ): SubscriptionPlanInfo {
     const priceValue = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscriptionType);
     const price = convertToShortDisplayString(priceValue, preferredCurrency);
     const hasTeam2025Pricing = checkIfHasTeam2025Pricing();
 
     if (subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
+        let subtitle = translateLocal('subscription.yourPlan.customPricing');
+        let note: string | undefined = translateLocal('subscription.yourPlan.asLowAs', {price});
+
+        if (hasTeam2025Pricing) {
+            if (isFromComparisonModal) {
+                subtitle = price;
+                note = translateLocal('subscription.yourPlan.perMemberMonth');
+            } else {
+                subtitle = translateLocal('subscription.yourPlan.pricePerMemberMonth', {price});
+                note = undefined;
+            }
+        }
+
         return {
             title: translateLocal('subscription.yourPlan.collect.title'),
-            subtitle: hasTeam2025Pricing ? translateLocal('subscription.yourPlan.perMemberMonth', {price}) : translateLocal('subscription.yourPlan.customPricing'),
-            note: hasTeam2025Pricing ? undefined : translateLocal('subscription.yourPlan.asLowAs', {price}),
+            subtitle,
+            note,
             benefits: [
                 translateLocal('subscription.yourPlan.collect.benefit1'),
                 translateLocal('subscription.yourPlan.collect.benefit2'),

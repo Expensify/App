@@ -5805,7 +5805,8 @@ const translations = {
             exploreAllPlans: 'Explore all plans',
             customPricing: 'Custom pricing',
             asLowAs: ({price}: YourPlanPriceValueParams) => `as low as ${price} per active member/month`,
-            perMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} per member/month`,
+            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} per member/month`,
+            perMemberMonth: 'per member/month',
             collect: {
                 title: 'Collect',
                 description: 'The SMB plan that gives you expense, travel, and chat.',
