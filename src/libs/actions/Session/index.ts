@@ -1347,7 +1347,6 @@ function resetSMSDeliveryFailureStatus(login: string) {
             value: {
                 smsDeliveryFailureStatus: {
                     isLoading: false,
-                    isReset: true,
                 },
             },
         },
