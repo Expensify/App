@@ -1200,7 +1200,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         calendarBodyContainer: {
-            height: CONST.CALENDAR_PICKER_DAY_HEIGHT * 6,
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT * CONST.MAX_CALENDAR_PICKER_ROWS,
         },
         calendarWeekContainer: {
             height: CONST.CALENDAR_PICKER_DAY_HEIGHT,

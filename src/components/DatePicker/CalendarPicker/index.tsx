@@ -64,7 +64,7 @@ function CalendarPicker({
     const currentMonthView = currentDateView.getMonth();
     const currentYearView = currentDateView.getFullYear();
     const calendarDaysMatrix = generateMonthMatrix(currentYearView, currentMonthView);
-    const initialHeight = (calendarDaysMatrix?.length || 6) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
+    const initialHeight = (calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS) * CONST.CALENDAR_PICKER_DAY_HEIGHT;
     const heightValue = useSharedValue(initialHeight);
 
     const minYear = getYear(new Date(minDate));
@@ -155,7 +155,7 @@ function CalendarPicker({
             return;
         }
 
-        const rowCount = calendarDaysMatrix?.length || 6;
+        const rowCount = calendarDaysMatrix?.length || CONST.MAX_CALENDAR_PICKER_ROWS;
         const newHeight = rowCount * CONST.CALENDAR_PICKER_DAY_HEIGHT;
 
         heightValue.set(withTiming(newHeight, {duration: 50}));
