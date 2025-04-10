@@ -1,14 +1,8 @@
-import getIsSmallScreenWidth from '@libs/getIsSmallScreenWidth';
-import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
+import Navigation from './Navigation/Navigation';
 
 const navigateAfterJoinRequest = () => {
     Navigation.goBack(undefined, {shouldPopToTop: true});
-    if (getIsSmallScreenWidth()) {
-        Navigation.setNavigationActionToMicrotaskQueue(() => {
-            Navigation.navigate(ROUTES.SETTINGS);
-        });
-    }
     Navigation.setNavigationActionToMicrotaskQueue(() => {
         Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
     });
