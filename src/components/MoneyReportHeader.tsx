@@ -96,6 +96,7 @@ import {useMoneyRequestReportContext} from './MoneyRequestReportView/MoneyReques
 import type {ActionHandledType} from './ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from './ProcessMoneyReportHoldMenu';
 import AnimatedSettlementButton from './SettlementButton/AnimatedSettlementButton';
+import Text from './Text';
 
 type MoneyReportHeaderProps = {
     /** The report currently being looked at */
@@ -149,6 +150,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [downloadErrorModalVisible, setDownloadErrorModalVisible] = useState(false);
     const [isCancelPaymentModalVisible, setIsCancelPaymentModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
+    const [isUnapproveModalVisible, setIsUnapproveModalVisible] = useState(false);
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, stopAnimation, startApprovedAnimation} = usePaymentAnimations();
     const styles = useThemeStyles();
@@ -594,6 +596,11 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     return;
                 }
 
+                if (isExported) {
+                    setIsUnapproveModalVisible(true);
+                    return;
+                }
+
                 unapproveExpenseReport(moneyRequestReport);
             },
         },
@@ -668,6 +675,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
     const isMoreContentShown = shouldShowNextStep || !!statusBarProps;
+
+    const connectedIntegrationName = connectedIntegration ? translate('workspace.accounting.connectionName', {connectionName: connectedIntegration}) : '';
+    const unapproveWarningText = useMemo(
+        () => (
+            <Text>
+                <Text style={[styles.textStrong, styles.noWrap]}>{translate('iou.headsUp')}</Text>{' '}
+                <Text>{translate('iou.unapproveWithIntegrationWarning', {accountingIntegration: connectedIntegrationName})}</Text>
+            </Text>
+        ),
+        [connectedIntegrationName, styles.noWrap, styles.textStrong, translate],
+    );
 
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
@@ -837,6 +855,19 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 confirmText={translate('workspace.exportAgainModal.confirmText')}
                 cancelText={translate('workspace.exportAgainModal.cancelText')}
                 isVisible={markAsExportedModalVisible}
+            />
+            <ConfirmModal
+                title={translate('iou.unapproveReport')}
+                isVisible={isUnapproveModalVisible}
+                danger
+                confirmText={translate('iou.unapproveReport')}
+                onConfirm={() => {
+                    setIsUnapproveModalVisible(false);
+                    unapproveExpenseReport(moneyRequestReport);
+                }}
+                cancelText={translate('common.cancel')}
+                onCancel={() => setIsUnapproveModalVisible(false)}
+                prompt={unapproveWarningText}
             />
             <DecisionModal
                 title={translate('common.downloadFailedTitle')}
