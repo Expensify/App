@@ -71,4 +71,3 @@ No upgrade is required. You can export your expenses anytime as a spreadsheet or
 
 You can always **create or join a Workspace** to unlock more tools like bank connections, accounting integrations, and company card support.
 
-</div>
