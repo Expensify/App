@@ -39,7 +39,6 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
     const isChildOfAlertText = HTMLEngineUtils.isChildOfAlertText(tnode);
     const textDecorationLineStyle = isDeleted ? styles.underlineLineThrough : {};
 
-
     if (!HTMLEngineUtils.isChildOfComment(tnode) && !isChildOfTaskTitle) {
         // This is not a comment from a chat, the AnchorForCommentsOnly uses a Pressable to create a context menu on right click.
         // We don't have this behaviour in other links in NewDot
