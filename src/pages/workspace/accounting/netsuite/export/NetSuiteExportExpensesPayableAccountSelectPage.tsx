@@ -94,6 +94,7 @@ function NetSuiteExportExpensesPayableAccountSelectPage({policy}: WithPolicyConn
             errors={getLatestErrorField(config, currentSettingName)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearNetSuiteErrorField(policyID, currentSettingName)}
+            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }
