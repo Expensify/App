@@ -1,7 +1,6 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,6 +17,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -33,7 +33,7 @@ import {
     canEditFieldOfMoneyRequest,
     canEditMoneyRequest,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
-    getAddWorkspaceRoomOrChatReportErrors,
+    getCreationReportErrors,
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
@@ -489,7 +489,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             return;
         }
         if (transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
-            if (chatReport?.reportID && getAddWorkspaceRoomOrChatReportErrors(chatReport)) {
+            if (chatReport?.reportID && getCreationReportErrors(chatReport)) {
                 navigateToConciergeChatAndDeleteReport(chatReport.reportID, true, true);
                 return;
             }
@@ -625,7 +625,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         numberOfLinesTitle={0}
                     />
                 </OfflineWithFeedback>
-                {isDistanceRequest ? (
+                {isDistanceRequest && transaction?.comment?.waypoints ? (
                     distanceRequestFields
                 ) : (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('merchant')}>

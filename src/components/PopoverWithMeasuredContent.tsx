@@ -144,7 +144,9 @@ function PopoverWithMeasuredContent({
     };
 
     if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
-        shiftedAnchorPosition.top = adjustedAnchorPosition.top;
+        const top = adjustedAnchorPosition.top + verticalShift;
+        const maxTop = windowHeight - popoverHeight - verticalShift;
+        shiftedAnchorPosition.top = Math.min(Math.max(verticalShift, top), maxTop);
     }
 
     if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {

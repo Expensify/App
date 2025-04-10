@@ -21,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type Nullable from '@src/types/utils/Nullable';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -119,6 +120,13 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                errors: null,
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -143,6 +151,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                     status: queryJSON?.status,
                     type: queryJSON?.type,
                 },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
@@ -386,7 +395,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
 /**
  * Updates the form values for the advanced filters search form.
  */
-function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) {
+function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>) {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
