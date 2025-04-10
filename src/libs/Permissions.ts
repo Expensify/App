@@ -70,6 +70,10 @@ function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
 }
 
+function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
+}
+
 function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
 }
@@ -90,5 +94,6 @@ export default {
     canUseTalkToAISales,
     canUseProhibitedExpenses,
     canUseLeftHandBar,
+    canUseInAppProvisioning,
     canUseGlobalReimbursementsOnND,
 };
