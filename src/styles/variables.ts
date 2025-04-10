@@ -273,7 +273,7 @@ export default {
     workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
-    bottomTabInboxTooltipShiftHorizontal: 36,
+    navigationTabBarInboxTooltipShiftHorizontal: 36,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,

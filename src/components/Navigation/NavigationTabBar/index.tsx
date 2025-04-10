@@ -27,22 +27,22 @@ import {isFullScreenName, isSettingsTabScreenName} from '@navigation/helpers/isN
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
-import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
+import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
+import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import BOTTOM_TABS from './BOTTOM_TABS';
+import NAVIGATION_TABS from './NAVIGATION_TABS';
 
-type BottomTabBarProps = {
-    selectedTab: ValueOf<typeof BOTTOM_TABS>;
+type NavigationTabBarProps = {
+    selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTooltipAllowed?: boolean;
 };
 
-function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
+function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -57,7 +57,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
+        isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME,
     );
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
@@ -66,7 +66,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     }, [activeWorkspaceID, reports, reportActions]);
 
     const navigateToChats = useCallback(() => {
-        if (selectedTab === BOTTOM_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
 
@@ -75,7 +75,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     }, [hideProductTrainingTooltip, selectedTab]);
 
     const navigateToSearch = useCallback(() => {
-        if (selectedTab === BOTTOM_TABS.SEARCH) {
+        if (selectedTab === NAVIGATION_TABS.SEARCH) {
             return;
         }
         clearSelectedText();
@@ -194,14 +194,14 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     activeWorkspaceID={activeWorkspaceID}
                 />
             )}
-            <View style={styles.bottomTabBarContainer}>
+            <View style={styles.navigationTabBarContainer}>
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     anchorAlignment={{
                         horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
-                    shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
+                    shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     shouldHideOnNavigate={false}
@@ -212,17 +212,17 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.inbox')}
                         wrapperStyle={styles.flex1}
-                        style={styles.bottomTabBarItem}
+                        style={styles.navigationTabBarItem}
                     >
                         <View>
                             <Icon
                                 src={Expensicons.Inbox}
-                                fill={selectedTab === BOTTOM_TABS.HOME ? theme.iconMenu : theme.icon}
+                                fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
                                 width={variables.iconBottomBar}
                                 height={variables.iconBottomBar}
                             />
                             {!!chatTabBrickRoad && (
-                                <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                                <View style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                             )}
                         </View>
                         <Text
@@ -230,8 +230,8 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                                 styles.textSmall,
                                 styles.textAlignCenter,
                                 styles.mt1Half,
-                                selectedTab === BOTTOM_TABS.HOME ? styles.textBold : styles.textSupporting,
-                                styles.bottomTabBarLabel,
+                                selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                styles.navigationTabBarLabel,
                             ]}
                         >
                             {translate('common.inbox')}
@@ -243,12 +243,12 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
+                    style={styles.navigationTabBarItem}
                 >
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={selectedTab === BOTTOM_TABS.SEARCH ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -258,25 +258,25 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                             styles.textSmall,
                             styles.textAlignCenter,
                             styles.mt1Half,
-                            selectedTab === BOTTOM_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                            styles.bottomTabBarLabel,
+                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
                         ]}
                     >
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
-                <BottomTabAvatar
-                    isSelected={selectedTab === BOTTOM_TABS.SETTINGS}
+                <NavigationTabBarAvatar
+                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
                 />
-                <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                <View style={[styles.flex1, styles.navigationTabBarItem]}>
+                    <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
             </View>
         </>
     );
 }
 
-BottomTabBar.displayName = 'BottomTabBar';
+NavigationTabBar.displayName = 'NavigationTabBar';
 
-export default memo(BottomTabBar);
+export default memo(NavigationTabBar);

@@ -11,7 +11,7 @@ import AvatarWithDelegateAvatar from './AvatarWithDelegateAvatar';
 import AvatarWithOptionalStatus from './AvatarWithOptionalStatus';
 import ProfileAvatarWithIndicator from './ProfileAvatarWithIndicator';
 
-type BottomTabAvatarProps = {
+type NavigationTabBarAvatarProps = {
     /** Whether the avatar is selected */
     isSelected?: boolean;
 
@@ -19,7 +19,7 @@ type BottomTabAvatarProps = {
     onPress: () => void;
 };
 
-function BottomTabAvatar({onPress, isSelected = false}: BottomTabAvatarProps) {
+function NavigationTabBarAvatar({onPress, isSelected = false}: NavigationTabBarAvatarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -60,15 +60,15 @@ function BottomTabAvatar({onPress, isSelected = false}: BottomTabAvatarProps) {
             role={CONST.ROLE.BUTTON}
             accessibilityLabel={translate('sidebarScreen.buttonMySettings')}
             wrapperStyle={styles.flex1}
-            style={[styles.bottomTabBarItem]}
+            style={[styles.navigationTabBarItem]}
         >
             {children}
-            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.bottomTabBarLabel]}>
+            <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
                 {translate('common.settings')}
             </Text>
         </PressableWithFeedback>
     );
 }
 
-BottomTabAvatar.displayName = 'BottomTabAvatar';
-export default BottomTabAvatar;
+NavigationTabBarAvatar.displayName = 'NavigationTabBarAvatar';
+export default NavigationTabBarAvatar;

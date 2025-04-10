@@ -13,8 +13,8 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -438,7 +438,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
-            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
+            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
