@@ -9,6 +9,7 @@ import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import Text from '@components/Text';
 import WorkspaceSwitcherButton from '@components/WorkspaceSwitcherButton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import SignInButton from '@pages/home/sidebar/SignInButton';
@@ -32,6 +33,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
     const [session] = useOnyx(ONYXKEYS.SESSION, {selector: (sessionValue) => sessionValue && {authTokenType: sessionValue.authTokenType}});
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isAnonymousUser = isAnonymousUserUtil(session);
+    const {isOffline} = useNetwork();
 
     const headerBreadcrumb = policy?.name
         ? {type: CONST.BREADCRUMB_TYPE.STRONG, text: policy.name}
@@ -77,7 +79,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
-            <LoadingBar shouldShow={(isLoadingReportData ?? false) || shouldShowLoadingBar} />
+            <LoadingBar shouldShow={!isOffline && ((isLoadingReportData ?? false) || shouldShowLoadingBar)} />
         </View>
     );
 }

@@ -17,7 +17,6 @@ import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar
 import type {SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -27,11 +26,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
-import { isSearchDataLoaded } from '@libs/SearchUIUtils';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -57,7 +56,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {canUseLeftHandBar} = usePermissions();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
-    const {isOffline} = useNetwork();
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -137,8 +135,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
         );
     }
 
-    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
-    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+    const shouldShowLoadingState = !isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
 
     return (
         <ScreenWrapper
