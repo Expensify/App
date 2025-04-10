@@ -729,7 +729,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             </HeaderWithBackButton>
             {shouldUseNarrowLayout && (
                 <View style={[styles.flexRow, styles.gap2, styles.pb3, styles.ph5, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    {!!primaryAction && !shouldShowSelectedTransactionsButton && <View style={[styles.flexGrow4]}>{primaryActionsImplementation[primaryAction]}</View>}
+                    {!!primaryAction && !shouldShowSelectedTransactionsButton && <View style={[styles.flex1]}>{primaryActionsImplementation[primaryAction]}</View>}
                     {!!applicableSecondaryActions.length && !shouldShowSelectedTransactionsButton && (
                         <ButtonWithDropdownMenu
                             success={false}
@@ -738,7 +738,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             customText={translate('common.more')}
                             options={applicableSecondaryActions}
                             isSplitButton={false}
-                            wrapperStyle={[!primaryAction && styles.flexGrow4]}
+                            wrapperStyle={[!primaryAction && styles.flex1]}
                         />
                     )}
                 </View>
