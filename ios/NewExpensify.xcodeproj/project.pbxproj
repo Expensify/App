@@ -1047,6 +1047,7 @@
 				PRODUCT_NAME = "New Expensify Dev";
 				PROVISIONING_PROFILE_SPECIFIER = "(NewApp) Development";
 				"PROVISIONING_PROFILE_SPECIFIER[sdk=iphoneos*]" = "(NewApp) Development";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OBJC_BRIDGING_HEADER = "NewExpensify-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
