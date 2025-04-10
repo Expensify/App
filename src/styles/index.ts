@@ -4777,6 +4777,8 @@ const styles = (theme: ThemeColors) =>
             borderWidth: 0,
         },
 
+        receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
+
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
             bottom: -4,
