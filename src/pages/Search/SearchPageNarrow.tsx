@@ -18,6 +18,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -25,12 +26,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
-import {buildCannedSearchQuery, isCannedSearchQuery} from '@libs/SearchQueryUtils';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {buildCannedSearchQuery, isCannedSearchQuery, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SearchResults} from '@src/types/onyx';
+import { isSearchDataLoaded } from '@libs/SearchUIUtils';
 
 const TOO_CLOSE_TO_TOP_DISTANCE = 10;
 const TOO_CLOSE_TO_BOTTOM_DISTANCE = 10;
@@ -54,6 +55,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
+    const {canUseLeftHandBar} = usePermissions();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {isOffline} = useNetwork();
 
@@ -99,7 +101,17 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQuery(queryJSON)) || searchRouterListVisible);
+    let isCannedQuery = false;
+
+    if (queryJSON) {
+        if (canUseLeftHandBar) {
+            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
+        } else {
+            isCannedQuery = isCannedSearchQuery(queryJSON);
+        }
+    }
+
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!isCannedQuery || searchRouterListVisible);
     const cancelSearchCallback = useCallback(() => {
         if (searchRouterListVisible) {
             setSearchRouterListVisible(false);

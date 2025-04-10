@@ -329,6 +329,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
+    /** Test ID of the component. Used to locate this view in end-to-end tests. */
+    testID?: string;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -674,6 +676,9 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Error text to display */
+    errorText?: string;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {

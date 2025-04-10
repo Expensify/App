@@ -36,7 +36,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice} from './PolicyUtils';
-import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
+import {isCreatedAction, isDeletedAction, isResolvedActionableWhisper} from './ReportActionsUtils';
 import {
     getSearchReportName,
     hasInvoiceReports,
@@ -429,14 +429,16 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
-                if (isDeletedAction(reportAction)) {
+                if (
+                    isDeletedAction(reportAction) ||
+                    isResolvedActionableWhisper(reportAction) ||
+                    reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
+                    isCreatedAction(reportAction)
+                ) {
                     // eslint-disable-next-line no-continue
                     continue;
                 }
-                if (!isAddCommentAction(reportAction)) {
-                    // eslint-disable-next-line no-continue
-                    continue;
-                }
+
                 reportActionItems.push({
                     ...reportAction,
                     from,
