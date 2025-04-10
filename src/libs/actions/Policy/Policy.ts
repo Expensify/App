@@ -5114,7 +5114,6 @@ function payAndDowngrade() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BILLING_RECEIPT_DETAILS,
             value: {
-                errors: null,
                 isLoading: false,
             },
         },
@@ -5125,7 +5124,6 @@ function payAndDowngrade() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.BILLING_RECEIPT_DETAILS,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.payAndDowngrade.genericFailureMessage'),
                 isLoading: false,
             },
         },
