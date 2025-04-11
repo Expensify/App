@@ -13,6 +13,9 @@ type PDFThumbnailProps = {
     /** Whether the PDF thumbnail can be loaded */
     enabled?: boolean;
 
+    /** Fit policy for the PDF thumbnail */
+    fitPolicy?: number;
+
     /** Callback to call if PDF is password protected */
     onPassword?: () => void;
 
