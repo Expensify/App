@@ -1537,6 +1537,12 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                     },
                 },
+                [SCREENS.RIGHT_MODAL.SCHEDULE_CALL]: {
+                    screens: {
+                        [SCREENS.SCHEDULE_CALL.BOOK_CALL]: ROUTES.SCHEDULE_CALL_BOOK,
+                        [SCREENS.SCHEDULE_CALL.CONFIRMATION]: ROUTES.SCHEDULE_CALL_CONFIRMATON,
+                    },
+                },
             },
         },
 

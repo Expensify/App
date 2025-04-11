@@ -150,6 +150,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    ScheduleCallSlotsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -6637,6 +6638,20 @@ const translations = {
         getHelp: 'Obtener ayuda',
         talkToConcierge: 'Habla con Concierge',
         hangUp: 'Colgar',
+    },
+    schdeuledCall: {
+        book: {
+            title: 'Programar una llamada',
+            description: 'Encuentra un horario que funcione para ti.',
+            slots: ({date}: ScheduleCallSlotsParams) => `Horarios disponibles para el ${date}`,
+        },
+        confirmation: {
+            title: 'Confirmar llamada',
+            description: 'Asegúrate de que los detalles a continuación sean correctos. Una vez que confirmes la llamada, enviaremos una invitación con más información.',
+            setupSpecialist: 'Tu especialista asignado',
+            meetingLength: 'Duración de la reunión',
+            dateTime: 'Fecha y hora',
+        }
     },
 };
 
