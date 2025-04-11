@@ -135,13 +135,34 @@ function connectToOpenAIRealtime(adminsChatReportID: number, ctaUsed: string): P
     let rtcOffer: RTCSessionDescriptionInit;
     let dataChannel: RTCDataChannel;
 
+    const constraints = {
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          channelCount: 1,
+          sampleRate: 24000,
+          sampleSize: 16
+        },
+        video: false
+    };
+
     return new Promise((resolve, reject) => {
         navigator.mediaDevices
-            .getUserMedia({audio: true})
+            .getUserMedia(constraints)
             .then((stream: MediaStream) => {
                 mediaStream = stream;
                 const pc = new RTCPeerConnection({
-                    iceServers: [],
+                    iceServers: [
+                        { urls: 'stun:stun.l.google.com:19302' },
+                        { urls: 'stun:stun1.l.google.com:19302' },
+                        { urls: 'stun:stun2.l.google.com:19302' },
+                        { urls: 'stun:stun3.l.google.com:19302' },
+                        { urls: 'stun:stun4.l.google.com:19302' },
+                    ],
+                    bundlePolicy: 'max-bundle',
+                    rtcpMuxPolicy: 'require',
+                    iceCandidatePoolSize: 4,
                 });
 
                 const audioTrack = stream.getAudioTracks().at(0);
