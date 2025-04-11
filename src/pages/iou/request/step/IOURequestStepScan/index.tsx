@@ -33,9 +33,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isMobile, isMobileSafari, isMobileWebKit} from '@libs/Browser';
+import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -123,6 +124,8 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+
+    const platform = getPlatform(true);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -863,7 +866,7 @@ function IOURequestStepScan({
     );
 
     const elementTopOffset = useMemo(() => {
-        if (isMobileSafari()) {
+        if (platform === CONST.PLATFORM.MOBILEWEB) {
             return 10;
         }
 
@@ -872,7 +875,7 @@ function IOURequestStepScan({
         }
 
         return -variables.tabSelectorButtonHeight + 8;
-    }, [isSmallScreenWidth]);
+    }, [isSmallScreenWidth, platform]);
 
     return (
         <StepScreenDragAndDropWrapper
