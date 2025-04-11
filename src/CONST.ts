@@ -113,12 +113,13 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
-const selfGuidedTourTask: OnboardingTask = {
+const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
+const testDriveTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     mediaAttributes: {},
-    title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
-    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+    title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
+    description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
 };
 
 const createWorkspaceTask: OnboardingTask = {
@@ -164,7 +165,7 @@ const setupCategoriesTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
-        selfGuidedTourTask,
+        testDriveTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -188,7 +189,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
-        selfGuidedTourTask,
+        testDriveTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -213,7 +214,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
 const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     tasks: [
-        selfGuidedTourTask,
+        testDriveTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -237,7 +238,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
-        selfGuidedTourTask,
+        testDriveTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -289,6 +290,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
     navatticURL: string;
+    testDriveURL: string;
 }>;
 
 type OnboardingTask = {
@@ -5343,7 +5345,7 @@ const CONST = {
             message: 'Here are some important tasks to help get your team’s expenses under control.',
             tasks: [
                 createWorkspaceTask,
-                selfGuidedTourTask,
+                testDriveTask,
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5477,7 +5479,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             tasks: [
-                selfGuidedTourTask,
+                testDriveTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -6939,6 +6941,10 @@ const CONST = {
     BILLING: {
         TYPE_FAILED_2018: 'failed_2018',
     },
+
+    TEST_DRIVE: {
+        ONBOARDING_TASK_NAME: getTestDriveTaskName(),
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -6958,6 +6964,7 @@ export type {
     IOUType,
     OnboardingPurpose,
     OnboardingCompanySize,
+    OnboardingTaskLinks,
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
