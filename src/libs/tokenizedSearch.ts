@@ -8,17 +8,40 @@ import CONST from '@src/CONST';
  * @returns Filtered array of items that match the search term
  */
 export default function tokenizedSearch<T>(items: T[], searchValue: string, getTextTokens: (item: T) => string[]): T[] {
-    if (!searchValue.trim()) {
+    const trimmedSearch = searchValue.trim();
+    if (!trimmedSearch) {
         return items;
     }
 
-    const searchTokens = searchValue.trim().toLowerCase().split(CONST.REGEX.WHITESPACE);
+    const searchTokens = trimmedSearch.toLowerCase().split(CONST.REGEX.WHITESPACE).filter(Boolean);
 
     return items.filter((item) => {
-        const textTokens = getTextTokens(item)
-            .map((token) => token.toLowerCase().split(CONST.REGEX.WHITESPACE))
-            .flat();
+        const normalizedTokens: string[] = [];
 
-        return searchTokens.every((searchToken) => textTokens.some((textToken) => textToken.includes(searchToken)));
+        for (const rawToken of getTextTokens(item)) {
+            const lowerToken = rawToken.toLowerCase();
+            for (const splitToken of lowerToken.split(CONST.REGEX.WHITESPACE)) {
+                if (splitToken) {
+                    normalizedTokens.push(splitToken);
+                }
+            }
+        }
+
+        for (const searchToken of searchTokens) {
+            let matchFound = false;
+
+            for (const textToken of normalizedTokens) {
+                if (textToken.includes(searchToken)) {
+                    matchFound = true;
+                    break;
+                }
+            }
+
+            if (!matchFound) {
+                return false;
+            }
+        }
+
+        return true;
     });
 }
