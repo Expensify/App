@@ -144,7 +144,11 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-const verifyAndInstallLatestVersion = (): void => {
+const verifyAndInstallLatestVersion = (browserWindow: BrowserWindow): void => {
+    if (!browserWindow || browserWindow.isDestroyed()) {
+        return;
+    }
+
     autoUpdater
         .checkForUpdates()
         .then((result) => {
@@ -245,12 +249,12 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                verifyAndInstallLatestVersion();
+                verifyAndInstallLatestVersion(browserWindow);
             }
         });
 
         ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
-            verifyAndInstallLatestVersion();
+            verifyAndInstallLatestVersion(browserWindow);
         });
         autoUpdater.checkForUpdates();
     },
@@ -398,7 +402,7 @@ const mainWindow = (): Promise<void> => {
                             {
                                 id: 'update',
                                 label: translate(preferredLocale, `desktopApplicationMenu.update`),
-                                click: verifyAndInstallLatestVersion,
+                                click: () => verifyAndInstallLatestVersion(browserWindow),
                                 visible: false,
                             },
                             {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
