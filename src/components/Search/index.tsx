@@ -297,7 +297,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
             const isTransactionItem = isTransactionListItemType(item);
 
-            let reportID = isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
+            let reportID =
+                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORTID
+                    ? item.transactionThreadReportID
+                    : item.reportID;
 
             if (!reportID) {
                 return;
@@ -405,7 +408,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         );
     }
 
-    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type) && isFocused) {
+    if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
                 <EmptySearchView

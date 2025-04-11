@@ -204,8 +204,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
+        const isReportReimbursed = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-        if (!anyTransactionOnHold && selectedTransactions.length === 1) {
+        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
