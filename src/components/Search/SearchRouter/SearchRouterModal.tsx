@@ -7,7 +7,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import useWindowDimensions from '@hooks/useWindowDimensions';
-import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {isMobileSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
 import {useSearchRouterContext} from './SearchRouterContext';
@@ -36,7 +36,7 @@ function SearchRouterModal() {
             fullscreen
             propagateSwipe
             swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
-            shouldHandleNavigationBack={isMobileChrome()}
+            shouldHandleNavigationBack
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}

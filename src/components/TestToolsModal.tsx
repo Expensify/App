@@ -7,7 +7,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
-import toggleTestToolsModal, {shouldShowProfileTool} from '@userActions/TestTool';
+import toggleTestToolsModal, {closeTestToolsModal, shouldShowProfileTool} from '@userActions/TestTool';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -42,8 +42,9 @@ function TestToolsModal() {
         <Modal
             isVisible={!!isTestToolsModalOpen}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
-            onClose={toggleTestToolsModal}
+            onClose={closeTestToolsModal}
             innerContainerStyle={styles.overflowHidden}
+            shouldHandleNavigationBack
         >
             <ScrollView
                 contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), shouldUseNarrowLayout && {...styles.w100, ...styles.pv0}]}
