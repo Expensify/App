@@ -1,7 +1,6 @@
 import type {ListRenderItemInfo} from '@react-native/virtualized-lists/Lists/VirtualizedList';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -74,16 +73,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
         return;
     }
     return parentReportActions[parentReportActionID];
-}
-
-function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string, reportActions: OnyxTypes.ReportAction[]) {
-    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
-        if (!transaction) {
-            return false;
-        }
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
-    });
 }
 
 function MoneyRequestReportActionsList({report, reportActions = [], transactions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
