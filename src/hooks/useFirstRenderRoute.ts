@@ -5,7 +5,9 @@ function useFirstRenderRoute(focusExceptionRoutes?: string[]) {
     const initialRoute = useRef<string | null>(null);
 
     useEffect(() => {
-        initialRoute.current = Navigation.getActiveRouteWithoutParams();
+        Navigation.isNavigationReady().then(() => {
+            initialRoute.current = Navigation.getActiveRouteWithoutParams();
+        });
     }, []);
 
     return {

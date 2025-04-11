@@ -616,6 +616,7 @@ function AttachmentModal({
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
                                             isUploaded={!isEmptyObject(report)}
+                                            reportID={!isEmptyObject(report) ? report.reportID : undefined}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )
