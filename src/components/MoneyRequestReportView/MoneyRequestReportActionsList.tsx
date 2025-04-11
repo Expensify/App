@@ -350,40 +350,47 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
-                <>
-                    <MoneyRequestViewReportFields
-                        report={report}
-                        policy={policy}
-                    />
-                    {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
+
+                {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
+                    <>
+                        <MoneyRequestViewReportFields
+                            report={report}
+                            policy={policy}
+                        />
                         <SearchMoneyRequestReportEmptyState />
-                    ) : (
-                        <FlatList
-                            initialNumToRender={INITIAL_NUM_TO_RENDER}
-                            accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                            testID="money-request-report-actions-list"
-                            style={styles.overscrollBehaviorContain}
-                            data={visibleReportActions}
-                            renderItem={renderItem}
-                            keyExtractor={(item) => item.reportActionID}
-                            onEndReached={onEndReached}
-                            onEndReachedThreshold={0.75}
-                            onStartReached={onStartReached}
-                            onStartReachedThreshold={0.75}
-                            ListHeaderComponent={
+                    </>
+                ) : (
+                    <FlatList
+                        initialNumToRender={INITIAL_NUM_TO_RENDER}
+                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        testID="money-request-report-actions-list"
+                        style={styles.overscrollBehaviorContain}
+                        data={visibleReportActions}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.reportActionID}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.75}
+                        onStartReached={onStartReached}
+                        onStartReachedThreshold={0.75}
+                        ListHeaderComponent={
+                            <>
+                                <MoneyRequestViewReportFields
+                                    report={report}
+                                    policy={policy}
+                                />
                                 <MoneyRequestReportTransactionList
                                     report={report}
                                     transactions={transactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
                                 />
-                            }
-                            keyboardShouldPersistTaps="handled"
-                            onScroll={trackVerticalScrolling}
-                            ref={reportScrollManager.ref}
-                        />
-                    )}
-                </>
+                            </>
+                        }
+                        keyboardShouldPersistTaps="handled"
+                        onScroll={trackVerticalScrolling}
+                        ref={reportScrollManager.ref}
+                    />
+                )}
             </View>
         </View>
     );
