@@ -1,5 +1,5 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -140,7 +140,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         shouldTurnOffSelectionMode,
         setShouldShowStatusBarLoading,
         lastSearchType,
-        shouldShowExportModeOption,
         setShouldShowExportModeOption,
         isExportMode,
         setExportMode,
@@ -160,6 +159,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
+    console.debug('hash', hash);
     useEffect(() => {
         clearSelectedTransactions(hash);
         setCurrentSearchHash(hash);
@@ -233,6 +233,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         setShouldShowStatusBarLoading(shouldShowLoadingState && lastSearchType !== type);
     }, [lastSearchType, setShouldShowStatusBarLoading, shouldShowLoadingState, type]);
 
+    // When new data load, selectedTransactions is updated in next effect. We use this flag to whether selection is updated
+    const isRefreshingSelection = useRef(false);
+
     useEffect(() => {
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
@@ -284,6 +287,8 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             });
         }
         setSelectedTransactions(newTransactionList, data);
+
+        isRefreshingSelection.current = true;
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [data, setSelectedTransactions, isExportMode]);
 
@@ -305,8 +310,13 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [isFocused, clearSelectedTransactions],
     );
 
+    // When selectedTransactions is updated, we confirm that selection is refreshed
     useEffect(() => {
-        if (!data.length) {
+        isRefreshingSelection.current = false;
+    }, [selectedTransactions]);
+
+    useEffect(() => {
+        if (!data.length || isRefreshingSelection.current || !isFocused) {
             return;
         }
         const areItemsOfReportType = shouldGroupByReports;
@@ -317,7 +327,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         if (!isAllSelected) {
             setExportMode(false);
         }
-    }, [data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports, shouldShowExportModeOption]);
+    }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports]);
 
     const openReport = useCallback(
         (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
