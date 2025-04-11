@@ -68,6 +68,7 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
         getRoute: ({
@@ -105,6 +106,13 @@ const ROUTES = {
         route: 'search/r/:reportID',
         getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
             const baseRoute = `search/r/${reportID}` as const;
+            return getUrlWithBackToParam(baseRoute, backTo);
+        },
+    },
+    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
+        route: 'search/r/:reportID/hold',
+        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
+            const baseRoute = `search/r/${reportID}/hold` as const;
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
@@ -158,7 +166,10 @@ const ROUTES = {
         getRoute: (backTo?: string) => getUrlWithBackToParam(`troubleshoot/console`, backTo),
     },
     SETTINGS: 'settings',
-    SETTINGS_PROFILE: 'settings/profile',
+    SETTINGS_PROFILE: {
+        route: 'settings/profile',
+        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile', backTo),
+    },
     SETTINGS_CHANGE_CURRENCY: 'settings/add-payment-card/change-currency',
     SETTINGS_SHARE_CODE: 'settings/shareCode',
     SETTINGS_DISPLAY_NAME: 'settings/profile/display-name',
@@ -186,6 +197,18 @@ const ROUTES = {
     SETTINGS_WORKSPACES: {route: 'settings/workspaces', getRoute: (backTo?: string) => getUrlWithBackToParam('settings/workspaces', backTo)},
     SETTINGS_SECURITY: 'settings/security',
     SETTINGS_CLOSE: 'settings/security/closeAccount',
+    SETTINGS_MERGE_ACCOUNTS: {
+        route: 'settings/security/merge-accounts',
+        getRoute: (email?: string) => `settings/security/merge-accounts${email ? `?email=${encodeURIComponent(email)}` : ''}` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE: {
+        route: 'settings/security/merge-accounts/:login/magic-code',
+        getRoute: (login: string) => `settings/security/merge-accounts/${encodeURIComponent(login)}/magic-code` as const,
+    },
+    SETTINGS_MERGE_ACCOUNTS_RESULT: {
+        route: 'settings/security/merge-accounts/:login/result/:result',
+        getRoute: (login: string, result: string, backTo?: string) => getUrlWithBackToParam(`settings/security/merge-accounts/${encodeURIComponent(login)}/result/${result}`, backTo),
+    },
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',
@@ -343,7 +366,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
@@ -362,7 +385,7 @@ const ROUTES = {
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 
-            return `${baseRoute}${queryString}` as const;
+            return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
     REPORT_AVATAR: {
@@ -410,6 +433,7 @@ const ROUTES = {
             isAuthTokenRequired?: boolean,
             fileName?: string,
             attachmentLink?: string,
+            hashKey?: number,
         ) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
@@ -417,10 +441,11 @@ const ROUTES = {
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
             const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
+            const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
             return `attachment?source=${encodeURIComponent(url)}&type=${
                 type as string
-            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {

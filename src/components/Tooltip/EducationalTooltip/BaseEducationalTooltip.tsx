@@ -4,6 +4,7 @@ import type {LayoutRectangle, NativeMethods, NativeSyntheticEvent} from 'react-n
 import {DeviceEventEmitter, Dimensions} from 'react-native';
 import GenericTooltip from '@components/Tooltip/GenericTooltip';
 import type {EducationalTooltipProps, GenericTooltipState} from '@components/Tooltip/types';
+import useIsResizing from '@hooks/useIsResizing';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -28,46 +29,76 @@ function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNav
     const navigator = useContext(NavigationContext);
     const insets = useSafeAreaInsets();
 
+    const isResizing = useIsResizing();
+
+    const renderTooltip = useCallback(() => {
+        if (!tooltipElementRef.current || !genericTooltipStateRef.current) {
+            return;
+        }
+
+        const {hideTooltip, showTooltip, updateTargetBounds} = genericTooltipStateRef.current;
+
+        getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
+            updateTargetBounds(bounds);
+            const {y, height} = bounds;
+
+            const offset = 10; // Tooltip hides when content moves 10px past header/footer.
+            const dimensions = Dimensions.get('screen');
+            const top = y - (insets.top || 0);
+            const bottom = y + height + insets.bottom || 0;
+
+            // Calculate the available space at the top, considering the header height and offset
+            const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
+
+            // Calculate the total height available after accounting for the bottom tab and offset
+            const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
+
+            if (availableHeightForTop < 0 || availableHeightForBottom < 0) {
+                hideTooltip();
+            } else {
+                showTooltip();
+            }
+        });
+    }, [insets]);
+
+    useEffect(() => {
+        if (!genericTooltipStateRef.current || !shouldRender) {
+            return;
+        }
+
+        if (isResizing) {
+            const {hideTooltip} = genericTooltipStateRef.current;
+
+            // Hide the tooltip if the screen is being resized
+            hideTooltip();
+        } else {
+            // Re-render the tooltip when resizing ends
+            // This is necessary to ensure the tooltip is positioned correctly after resizing
+            renderTooltip();
+        }
+    }, [isResizing, renderTooltip, shouldRender]);
+
     const setTooltipPosition = useCallback(
         (isScrolling: boolean) => {
-            if (!shouldHideOnScroll || !genericTooltipStateRef.current || !tooltipElementRef.current) {
+            if (!shouldHideOnScroll || !genericTooltipStateRef.current) {
                 return;
             }
 
-            const {hideTooltip, showTooltip, updateTargetBounds} = genericTooltipStateRef.current;
+            const {hideTooltip} = genericTooltipStateRef.current;
             if (isScrolling) {
                 hideTooltip();
             } else {
-                getTooltipCoordinates(tooltipElementRef.current, (bounds) => {
-                    updateTargetBounds(bounds);
-                    const {y, height} = bounds;
-
-                    const offset = 10; // Tooltip hides when content moves 10px past header/footer.
-                    const dimensions = Dimensions.get('screen');
-                    const top = y - (insets.top || 0);
-                    const bottom = y + height + insets.bottom || 0;
-
-                    // Calculate the available space at the top, considering the header height and offset
-                    const availableHeightForTop = top - (variables.contentHeaderHeight - offset);
-
-                    // Calculate the total height available after accounting for the bottom tab and offset
-                    const availableHeightForBottom = dimensions.height - (bottom + variables.bottomTabHeight - offset);
-
-                    if (availableHeightForTop < 0 || availableHeightForBottom < 0) {
-                        hideTooltip();
-                    } else {
-                        showTooltip();
-                    }
-                });
+                renderTooltip();
             }
         },
-        [insets, shouldHideOnScroll],
+        [renderTooltip, shouldHideOnScroll],
     );
 
     useLayoutEffect(() => {
         if (!shouldRender || !shouldHideOnScroll) {
             return;
         }
+
         setTooltipPosition(false);
         const scrollingListener = DeviceEventEmitter.addListener(CONST.EVENTS.SCROLLING, ({isScrolling}: ScrollingEventData = {isScrolling: false}) => {
             setTooltipPosition(isScrolling);
