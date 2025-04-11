@@ -76,9 +76,9 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
             hideModalContentWhileAnimating
             useNativeDriver
             onBackdropPress={onBackdropPress}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
-                style={[styles.pb0]}
                 includePaddingTop={false}
                 enableEdgeToEdgeBottomSafeAreaPadding
                 testID={NetSuiteCustomListSelectorModal.displayName}
@@ -98,10 +98,10 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
                     ListItem={RadioListItem}
                     isRowMultilineSupported
                     initiallyFocusedOptionKey={currentCustomListValue}
-                    addBottomSafeAreaPadding
                     shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>
