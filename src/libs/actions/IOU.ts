@@ -448,6 +448,7 @@ type BuildOnyxDataForMoneyRequestParams = {
     policyParams?: BasePolicyParams;
     optimisticParams: MoneyRequestOptimisticParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    participant?: Participant;
     hash?: number;
 };
 
@@ -1187,6 +1188,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         policyParams = {},
         optimisticParams,
         retryParams,
+        participant,
         hash,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -1693,6 +1695,38 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
+    const toAccountID = participant?.accountID || participant?.ownerAccountID;
+    const fromAccountID = currentUserPersonalDetails?.accountID;
+
+    if (hash && toAccountID && fromAccountID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                data: {
+                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                        [toAccountID]: {
+                            accountID: toAccountID,
+                            displayName: participant?.displayName,
+                            login: participant?.login,
+                        },
+                        [fromAccountID]: {
+                            accountID: fromAccountID,
+                            avatar: currentUserPersonalDetails?.avatar,
+                            displayName: currentUserPersonalDetails?.displayName,
+                            login: currentUserPersonalDetails?.login,
+                        },
+                    },
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                        accountID: fromAccountID,
+                        managerID: toAccountID,
+                        ...transaction,
+                    },
+                },
+            },
+        });
+    }
+
     // We don't need to compute violations unless we're on a paid policy
     if (!policy || !isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
@@ -1720,21 +1754,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
             value: [],
-        });
-    }
-
-    if (hash) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                        accountID: currentUserPersonalDetails?.accountID,
-                        ...transaction,
-                    },
-                },
-            },
         });
     }
 
@@ -3142,6 +3161,7 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
         hash,
+        participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
         policyParams: {
