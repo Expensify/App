@@ -208,7 +208,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const toggleAllSubRates = () => {
-        if (selectedPerDiem.length === allSelectableSubRates.length) {
+        if (selectedPerDiem.length > 0) {
             setSelectedPerDiem([]);
         } else {
             setSelectedPerDiem([...allSelectableSubRates]);

@@ -47,10 +47,10 @@ jobs:
       - name: Create and push tag
         if: ${{ github.ref == 'refs/heads/staging' }}
         run: |
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}
+          git tag ${{ steps.getAppVersion.outputs.VERSION }}-staging
           git push origin --tags
           cd Mobile-Expensify
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}
+          git tag ${{ steps.getAppVersion.outputs.VERSION }}-staging
           git push origin --tags
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
@@ -161,12 +161,11 @@ jobs:
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          # Complete the previous version rollout if the current rollout percentage is not -1 or 1
+          # The Play Store is slow to review Android releases. To avoid halting production rollouts, we must wait for the previous release to finish rolling out before uploading a new one.
+          # Skip this release if the current prod release is not fully rolled out.
           if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-              echo "Completing the previous version rollout"
-              bundle exec fastlane android complete_hybrid_rollout
-          else
-              echo "Skipping the completion of the previous version rollout"
+            echo "Skipping Android release because the current prod release ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} has not fully rolled out"
+            exit 0
           fi
 
           # Submit the new version for review and slow rollout when it's approved
@@ -233,7 +232,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Android HybridApp production deploy failed. Please <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
+                text: `💥 Android HybridApp production deploy failed. No need to do anything, Jules will <https://stackoverflowteams.com/c/expensify/questions/5738|manually submit> ${{ needs.prep.outputs.APP_VERSION }} in the <https://play.google.com/console/u/0/developers/8765590895836334604/app/4974129597497161901/releases/overview|Google Play Store>. 💥`,
               }]
             }
         env:
