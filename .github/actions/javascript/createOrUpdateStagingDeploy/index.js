@@ -11462,7 +11462,10 @@ const GitUtils_1 = __importDefault(__nccwpck_require__(1547));
 async function run() {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs_1.default.readFileSync('package.json', 'utf8'));
-    const newVersionTag = packageJson.version;
+    // The checklist will use the package.json version, e.g. '1.2.3-4'
+    const newVersion = packageJson.version;
+    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
+    const newStagingTag = `${packageJson.version}-staging`;
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
         const { data: recentDeployChecklists } = await GithubUtils_1.default.octokit.issues.listForRepo({
@@ -11493,12 +11496,12 @@ async function run() {
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
+        const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.version ?? '', newStagingTag);
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
         if (shouldCreateNewDeployChecklist) {
-            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, mergedPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, mergedPRs.map((value) => GithubUtils_1.default.getPullRequestURLFromNumber(value)));
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
@@ -11540,8 +11543,8 @@ async function run() {
                     isResolved,
                 });
             });
-            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
-            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersionTag, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
+            const didVersionChange = newVersion !== currentChecklistData?.version;
+            const stagingDeployCashBodyAndAssignees = await GithubUtils_1.default.generateStagingDeployCashBodyAndAssignees(newVersion, PRList.map((pr) => pr.url), PRList.filter((pr) => pr.isVerified).map((pr) => pr.url), deployBlockers.map((blocker) => blocker.url), deployBlockers.filter((blocker) => blocker.isResolved).map((blocker) => blocker.url), currentChecklistData?.internalQAPRList.filter((pr) => pr.isResolved).map((pr) => pr.url), didVersionChange ? false : currentChecklistData.isTimingDashboardChecked, didVersionChange ? false : currentChecklistData.isFirebaseChecked, didVersionChange ? false : currentChecklistData.isGHStatusChecked);
             if (stagingDeployCashBodyAndAssignees) {
                 checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean);
@@ -11643,29 +11646,6 @@ exports["default"] = CONST;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -11673,7 +11653,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
-const VersionUpdater = __importStar(__nccwpck_require__(8982));
+const versionUpdater_1 = __nccwpck_require__(8982);
 /**
  * Check if a tag exists locally or in the remote.
  */
@@ -11721,15 +11701,20 @@ function tagExists(tag) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag, level) {
-    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let previousVersion = (0, versionUpdater_1.getPreviousVersion)(tag.replace('-staging', ''), level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
             tagExistsForPreviousVersion = true;
             break;
         }
+        if (tagExists(`${previousVersion}-staging`)) {
+            tagExistsForPreviousVersion = true;
+            previousVersion = `${previousVersion}-staging`;
+            break;
+        }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+        previousVersion = (0, versionUpdater_1.getPreviousVersion)(previousVersion, level);
     }
     return previousVersion;
 }
@@ -11775,8 +11760,8 @@ function fetchTag(tag, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? versionUpdater_1.SEMANTIC_VERSION_LEVELS.PATCH : versionUpdater_1.SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
@@ -11821,7 +11806,7 @@ function getValidMergedPRs(commits) {
         if (author === CONST_1.default.OS_BOTIFY) {
             return;
         }
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
             return;
         }
@@ -12002,7 +11987,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12014,7 +11999,7 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                tag,
+                version,
             };
         }
         catch (exception) {

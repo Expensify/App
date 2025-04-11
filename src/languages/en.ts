@@ -2,6 +2,7 @@ import {CONST as COMMON_CONST} from 'expensify-common';
 import startCase from 'lodash/startCase';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
+import type OriginalMessage from '@src/types/onyx/OriginalMessage';
 import type {
     AccountOwnerParams,
     ActionsAreCurrentlyRestricted,
@@ -65,6 +66,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
     EditActionParams,
@@ -534,6 +536,7 @@ const translations = {
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        editYourProfile: 'Edit your profile',
         comments: 'Comments',
     },
     supportalNoAccess: {
@@ -932,7 +935,10 @@ const translations = {
         }),
         receiptScanInProgress: 'Receipt scan in progress',
         receiptScanInProgressDescription: 'Receipt scan in progress. Check back later or enter the details now.',
-        duplicateTransaction: 'Potential duplicate expenses identified. Review duplicates to enable submission.',
+        duplicateTransaction: ({isSubmitted}: DuplicateTransactionParams) =>
+            !isSubmitted
+                ? 'Potential duplicate expenses identified. Review duplicates to enable submission.'
+                : 'Potential duplicate expenses identified. Review duplicates to enable approval.',
         receiptIssuesFound: () => ({
             one: 'Issue found',
             other: 'Issues found',
@@ -953,7 +959,8 @@ const translations = {
         yourCompanyWebsiteNote: "If you don't have a website, you can provide your company's LinkedIn or social media profile instead.",
         invalidDomainError: 'You have entered an invalid domain. To continue, please enter a valid domain.',
         publicDomainError: 'You have entered a public domain. To continue, please enter a private domain.',
-        expenseCount: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
+        // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
+        expenseCountWithStatus: ({scanningReceipts = 0, pendingReceipts = 0}: RequestCountParams) => {
             const statusText: string[] = [];
             if (scanningReceipts > 0) {
                 statusText.push(`${scanningReceipts} scanning`);
@@ -964,6 +971,12 @@ const translations = {
             return {
                 one: statusText.length > 0 ? `1 expense (${statusText.join(', ')})` : `1 expense`,
                 other: (count: number) => (statusText.length > 0 ? `${count} expenses (${statusText.join(', ')})` : `${count} expenses`),
+            };
+        },
+        expenseCount: () => {
+            return {
+                one: '1 expense',
+                other: (count: number) => `${count} expenses`,
             };
         },
         deleteExpense: () => ({
@@ -987,7 +1000,7 @@ const translations = {
         nextStep: 'Next steps',
         finished: 'Finished',
         sendInvoice: ({amount}: RequestAmountParams) => `Send ${amount} invoice`,
-        submitAmount: ({amount}: RequestAmountParams) => `submit ${amount}`,
+        submitAmount: ({amount}: RequestAmountParams) => `Submit ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `submitted ${formattedAmount}${comment ? ` for ${comment}` : ''}`,
         automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
             `automatically submitted ${formattedAmount} via <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">delayed submission</a>`,
@@ -1035,6 +1048,7 @@ const translations = {
             `changed the ${translatedChangedField} to ${newMerchant} (previously ${oldMerchant}), which updated the amount to ${newAmountToDisplay} (previously ${oldAmountToDisplay})`,
         threadExpenseReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `${formattedAmount} ${comment ? `for ${comment}` : 'expense'}`,
         threadTrackReportName: ({formattedAmount, comment}: ThreadRequestReportNameParams) => `Tracking ${formattedAmount} ${comment ? `for ${comment}` : ''}`,
+        invoiceReportName: ({linkedReportID}: OriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>) => `Invoice Report #${linkedReportID}`,
         threadPaySomeoneReportName: ({formattedAmount, comment}: ThreadSentMoneyReportNameParams) => `${formattedAmount} sent${comment ? ` for ${comment}` : ''}`,
         movedFromPersonalSpace: ({workspaceName, reportName}: MovedFromPersonalSpaceParams) => `moved expense from personal space to ${workspaceName ?? `chat with ${reportName}`}`,
         movedToPersonalSpace: 'moved expense to personal space',
@@ -1128,7 +1142,7 @@ const translations = {
         unapproveReport: 'Unapprove report',
         headsUp: 'Heads up!',
         unapproveWithIntegrationWarning: ({accountingIntegration}: UnapproveWithIntegrationWarningParams) =>
-            `This report has already been exported to ${accountingIntegration}. Changes to this report in Expensify may lead to data discrepancies and Expensify Card reconciliation issues. Are you sure you want to unapprove this report?`,
+            `This report has already been exported to ${accountingIntegration}. Changing it may lead to data discrepancies. Are you sure you want to unapprove this report?`,
         reimbursable: 'reimbursable',
         nonReimbursable: 'non-reimbursable',
         bookingPending: 'This booking is pending',
@@ -1391,6 +1405,88 @@ const translations = {
         defaultContact: 'Default contact method:',
         enterYourDefaultContactMethod: 'Please enter your default contact method to close your account.',
     },
+    mergeAccountsPage: {
+        mergeAccount: 'Merge accounts',
+        accountDetails: {
+            accountToMergeInto: 'Enter the account you want to merge into ',
+            notReversibleConsent: 'I understand this is not reversible',
+        },
+        accountValidate: {
+            confirmMerge: 'Are you sure you want to merge accounts?',
+            lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
+            enterMagicCode: `To continue, please enter the magic code sent to `,
+        },
+        mergeSuccess: {
+            accountsMerged: 'Accounts merged!',
+            successfullyMergedAllData: {
+                beforeFirstEmail: `You've successfully merged all data from `,
+                beforeSecondEmail: ` into `,
+                afterSecondEmail: `. Moving forward, you can use either login for this account.`,
+            },
+        },
+        mergePendingSAML: {
+            weAreWorkingOnIt: 'We’re working on it',
+            limitedSupport: 'We don’t yet support merging accounts on New Expensify. Please take this action on Expensify Classic instead.',
+            reachOutForHelp: {
+                beforeLink: 'Feel free to ',
+                linkText: 'reach out to Concierge',
+                afterLink: ' if you have any questions!',
+            },
+            goToExpensifyClassic: 'Go to Expensify Classic',
+        },
+        mergeFailureSAMLDomainControl: {
+            beforeFirstEmail: 'You can’t merge ',
+            beforeDomain: ' because it’s controlled by ',
+            afterDomain: '. Please ',
+            linkText: 'reach out to Concierge',
+            afterLink: ' for assistance.',
+        },
+        mergeFailureSAMLAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts because your domain admin has set it as your primary login. Please merge other accounts into it instead.',
+        },
+        mergeFailure2FA: {
+            oldAccount2FAEnabled: {
+                beforeFirstEmail: 'You can’t merge accounts because ',
+                beforeSecondEmail: ' has two-factor authentication (2FA) enabled. Please disable 2FA for ',
+                afterSecondEmail: ' and try again.',
+            },
+            learnMore: 'Learn more about merging accounts.',
+        },
+        mergeFailureAccountLocked: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' because it’s locked. Please ',
+            linkText: 'reach out to Concierge ',
+            afterLink: `for assistance.`,
+        },
+        mergeFailureUncreatedAccount: {
+            noExpensifyAccount: {
+                beforeEmail: 'You can’t merge accounts because ',
+                afterEmail: ' doesn’t have an Expensify account.',
+            },
+            addContactMethod: {
+                beforeLink: 'Please ',
+                linkText: 'add it as a contact method',
+                afterLink: ' instead.',
+            },
+        },
+        mergeFailureSmartScannerAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts. Please merge other accounts into it instead.',
+        },
+        mergeFailureInvoicedAccount: {
+            beforeEmail: 'You can’t merge ',
+            afterEmail: ' into other accounts because it’s the billing owner of an invoiced account. Please merge other accounts into it instead.',
+        },
+        mergeFailureTooManyAttempts: {
+            heading: 'Try again later',
+            description: 'There were too many attempts to merge accounts. Please try again later.',
+        },
+        mergeFailureUnvalidatedAccount: {
+            description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
+        },
+        mergeFailureGenericHeading: 'Can’t merge accounts',
+    },
     passwordPage: {
         changePassword: 'Change password',
         changingYourPasswordPrompt: 'Changing your password will update your password for both your Expensify.com and New Expensify accounts.',
@@ -1555,6 +1651,7 @@ const translations = {
     },
     cardPage: {
         expensifyCard: 'Expensify Card',
+        expensifyTravelCard: 'Expensify Travel Card',
         availableSpend: 'Remaining limit',
         smartLimit: {
             name: 'Smart limit',
@@ -1570,9 +1667,11 @@ const translations = {
                 `You can spend up to ${formattedLimit} on this card per month. The limit will reset on the 1st day of each calendar month.`,
         },
         virtualCardNumber: 'Virtual card number',
+        travelCardCvv: 'Travel card CVV',
         physicalCardNumber: 'Physical card number',
         getPhysicalCard: 'Get physical card',
         reportFraud: 'Report virtual card fraud',
+        reportTravelFraud: 'Report travel card fraud',
         reviewTransaction: 'Review transaction',
         suspiciousBannerTitle: 'Suspicious transaction',
         suspiciousBannerDescription: 'We noticed suspicious transactions on your card. Tap below to review.',
@@ -1583,9 +1682,11 @@ const translations = {
             cvv: 'CVV',
             address: 'Address',
             revealDetails: 'Reveal details',
+            revealCvv: 'Reveal CVV',
             copyCardNumber: 'Copy card number',
             updateAddress: 'Update address',
         },
+        cardAlreadyInWallet: 'Card is already in wallet',
         cardDetailsLoadingFailure: 'An error occurred while loading the card details. Please check your internet connection and try again.',
         validateCardTitle: "Let's make sure it's you",
         enterMagicCode: ({contactMethod}: EnterMagicCodeParams) => `Please enter the magic code sent to ${contactMethod} to view your card details. It should arrive within a minute or two.`,
@@ -1604,7 +1705,7 @@ const translations = {
         connectBankAccount: 'Connect bank account',
         addApprovalsDescription: 'Require additional approval before authorizing a payment.',
         makeOrTrackPaymentsTitle: 'Make or track payments',
-        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify, or simply track payments made elsewhere.',
+        makeOrTrackPaymentsDescription: 'Add an authorized payer for payments made in Expensify or track payments made elsewhere.',
         editor: {
             submissionFrequency: 'Choose how long Expensify should wait before sharing error-free spend.',
         },
@@ -2318,6 +2419,8 @@ const translations = {
             SOLE_PROPRIETORSHIP: 'Sole proprietorship',
             OTHER: 'Other',
         },
+        industryClassification: 'Which industry is the business classified under?',
+        industryClassificationCodePlaceholder: 'Search for industry classification code',
     },
     requestorStep: {
         headerTitle: 'Personal information',
@@ -5867,6 +5970,7 @@ const translations = {
         notAllowedMessageStart: `As a`,
         notAllowedMessageHyperLinked: ' copilot',
         notAllowedMessageEnd: ({accountOwnerEmail}: AccountOwnerParams) => ` for ${accountOwnerEmail}, you don't have permission to take this action. Sorry!`,
+        copilotAccess: 'Copilot access',
     },
     debug: {
         debug: 'Debug',
@@ -6008,7 +6112,9 @@ const translations = {
         confirmText: 'Discard changes',
     },
     aiSales: {
-        talkWithSales: 'Talk with sales',
+        talkToSales: 'Talk to sales',
+        getHelp: 'Get help',
+        talkToConcierge: 'Talk to Concierge',
         hangUp: 'Hang up',
     },
 };
