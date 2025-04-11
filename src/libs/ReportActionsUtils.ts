@@ -1595,15 +1595,15 @@ function getActionableMentionWhisperMessage(reportAction: OnyxEntry<ReportAction
  * Note: Prefer `ReportActionsUtils.isCurrentActionUnread` over this method, if applicable.
  * Check whether a specific report action is unread.
  */
-function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string, report?: OnyxEntry<Report>) {
+function isReportActionUnread(reportAction: OnyxEntry<ReportAction>, lastReadTime?: string, lastVisibleActionCreated?: string) {
     if (!lastReadTime) {
         return !isCreatedAction(reportAction);
     }
 
     // Since most kinds of report actions should not mark a chat unread, we only update the lastVisibleActionCreate when
     // a new report action should mark it unread. If we have access to that, then use that instead.
-    if (report && report.lastVisibleActionCreated) {
-        return !!(lastReadTime && lastReadTime < report.lastVisibleActionCreated);
+    if (lastVisibleActionCreated) {
+        return !!(lastReadTime && lastReadTime < lastVisibleActionCreated);
     }
 
     return !!(reportAction && lastReadTime && reportAction.created && lastReadTime < reportAction.created);
