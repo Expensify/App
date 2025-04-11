@@ -233,13 +233,15 @@ function ReportActionsList({
         return receivedOfflineMessages.at(-1);
     }, [isOffline, lastOfflineAt, lastOnlineAt, preferredLocale, sortedReportActions]);
 
+    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
+
     /**
      * The reportActionID the unread marker should display above
      */
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = sortedVisibleReportActions.at(index + 1);
-            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
+            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime, lastVisibleActionCreated);
 
             // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
@@ -252,7 +254,7 @@ function ReportActionsList({
                 return false;
             }
 
-            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime);
+            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime, lastVisibleActionCreated);
 
             // If the current message is read or the next message is unread, don't show the unread marker.
             if (!isCurrentMessageUnread || isNextMessageUnread) {
@@ -298,7 +300,7 @@ function ReportActionsList({
         }
 
         return null;
-    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime]);
+    }, [accountID, earliestReceivedOfflineMessageIndex, prevSortedVisibleReportActionsObjects, sortedVisibleReportActions, unreadMarkerTime, lastVisibleActionCreated]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
@@ -342,7 +344,6 @@ function ReportActionsList({
 
     const lastActionIndex = lastAction?.reportActionID;
     const reportActionSize = useRef(sortedVisibleReportActions.length);
-    const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
     const hasNewestReportActionRef = useRef(hasNewestReportAction);
     // eslint-disable-next-line react-compiler/react-compiler

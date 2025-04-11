@@ -211,7 +211,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
     const unreadMarkerReportActionID = useMemo(() => {
         const shouldDisplayNewMarker = (message: OnyxTypes.ReportAction, index: number): boolean => {
             const nextMessage = visibleReportActions.at(index + 1);
-            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
+            const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime, lastVisibleActionCreated);
 
             // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
@@ -224,7 +224,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                 return false;
             }
 
-            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime);
+            const isCurrentMessageUnread = isReportActionUnread(message, unreadMarkerTime, lastVisibleActionCreated);
 
             // If the current message is read or the next message is unread, don't show the unread marker.
             if (!isCurrentMessageUnread || isNextMessageUnread) {
@@ -270,7 +270,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
         }
 
         return null;
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
+    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime, lastVisibleActionCreated]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const renderItem = useCallback(
