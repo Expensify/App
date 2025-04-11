@@ -1,5 +1,5 @@
 import type {ForwardedRef, ReactNode} from 'react';
-import {TextStyle} from 'react-native';
+import type {TextStyle} from 'react-native';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 
