@@ -135,7 +135,7 @@ function FormWrapper({
     const shouldApplyBottomSafeAreaPadding = addBottomSafeAreaPadding ?? !isLegacyBottomSafeAreaPaddingAlreadyApplied;
     const addOfflineIndicatorBottomSafeAreaPadding = addOfflineIndicatorBottomSafeAreaPaddingProp ?? addBottomSafeAreaPadding === true;
 
-    // We need to add bottom safe are padding to the submit button when we don't use a scroll view or
+    // We need to add bottom safe area padding to the submit button when we don't use a scroll view or
     // when the submit button is sticking to the bottom.
     const addSubmitButtonBottomSafeAreaPadding = addBottomSafeAreaPadding && (!shouldUseScrollView || shouldSubmitButtonStickToBottom);
     const submitButtonStylesWithBottomSafeAreaPadding = useBottomSafeSafeAreaPaddingStyle({
