@@ -571,13 +571,13 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
                     navigateToConfirmationStep(file, source, false, true);
                 },
                 (error) => {
                     console.error('Error reading test receipt:', error);
                 },
-                'image/png',
+                CONST.TEST_RECEIPT.FILE_TYPE,
             );
         } catch (error) {
             console.error('Error in setTestReceiptAndNavigate:', error);
@@ -874,7 +874,11 @@ function IOURequestStepScan({
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
                         onLayout={(e) => {
-                            setElementTop(isSmallScreenWidth ? e.nativeEvent.layout.height + 10 : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8));
+                            setElementTop(
+                                isSmallScreenWidth
+                                    ? e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 10)
+                                    : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8),
+                            );
                         }}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >

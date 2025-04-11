@@ -29,6 +29,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
@@ -185,6 +186,9 @@ function IOURequestStepConfirmation({
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
+    }, []);
+    useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -212,7 +216,11 @@ function IOURequestStepConfirmation({
             : transaction?.reportID === reportID;
 
         // Exit if the transaction already exists and is associated with the current report
-        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
+        if (
+            transaction?.transactionID &&
+            (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) &&
+            (isCurrentReportID || isMovingTransactionFromTrackExpense || iouType === CONST.IOU.TYPE.INVOICE)
+        ) {
             return;
         }
 
@@ -303,7 +311,7 @@ function IOURequestStepConfirmation({
             return;
         }
 
-        if (transaction?.isFromGlobalCreate) {
+        if (transaction?.isFromGlobalCreate && !transaction.receipt?.isTestReceipt) {
             // If the participants weren't automatically added to the transaction, then we should go back to the IOURequestStepParticipants.
             if (!transaction?.participantsAutoAssigned && participantsAutoAssignedFromRoute !== 'true') {
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -322,14 +330,15 @@ function IOURequestStepConfirmation({
     }, [
         action,
         isPerDiemRequest,
-        transaction?.participantsAutoAssigned,
         transaction?.isFromGlobalCreate,
+        transaction?.receipt?.isTestReceipt,
+        transaction?.participantsAutoAssigned,
         transaction?.reportID,
-        participantsAutoAssignedFromRoute,
         requestType,
         iouType,
         transactionID,
         reportID,
+        participantsAutoAssignedFromRoute,
     ]);
 
     const navigateToAddReceipt = useCallback(() => {
@@ -350,7 +359,12 @@ function IOURequestStepConfirmation({
 
         const onSuccess = (file: File) => {
             const receipt: Receipt = file;
-            receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            if (transaction?.receipt?.isTestReceipt) {
+                receipt.isTestReceipt = true;
+                receipt.state = CONST.IOU.RECEIPT_STATE.SCANCOMPLETE;
+            } else {
+                receipt.state = file && requestType === CONST.IOU.REQUEST_TYPE.MANUAL ? CONST.IOU.RECEIPT_STATE.OPEN : CONST.IOU.RECEIPT_STATE.SCANREADY;
+            }
 
             setReceiptFile(receipt);
         };
@@ -368,6 +382,7 @@ function IOURequestStepConfirmation({
             if (!participant) {
                 return;
             }
+            const isTestReceipt = receiptObj?.isTestReceipt ?? false;
             requestMoneyIOUActions({
                 report,
                 participantParams: {
@@ -383,11 +398,11 @@ function IOURequestStepConfirmation({
                 gpsPoints,
                 action,
                 transactionParams: {
-                    amount: transaction.amount,
+                    amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
                     attendees: transaction.comment?.attendees,
-                    currency: transaction.currency,
+                    currency: isTestReceipt ? CONST.TEST_RECEIPT.CURRENCY : transaction.currency,
                     created: transaction.created,
-                    merchant: transaction.merchant,
+                    merchant: isTestReceipt ? CONST.TEST_RECEIPT.MERCHANT : transaction.merchant,
                     comment: trimmedComment,
                     receipt: receiptObj,
                     category: transaction.category,
