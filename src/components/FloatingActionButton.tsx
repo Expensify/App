@@ -65,6 +65,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
+    const isLhbVisible = canUseLeftHandBar && !shouldUseNarrowLayout;
+    const tooltipHorizontalAnchorAlignment = isLhbVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
+    const tooltipShiftHorizontal = isLhbVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
+
     useEffect(() => {
         sharedValue.set(
             withTiming(isActive ? 1 : 0, {
@@ -94,10 +98,10 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         <EducationalTooltip
             shouldRender={shouldShowProductTrainingTooltip}
             anchorAlignment={{
-                horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                horizontal: isNarrowScreenOnWeb ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : tooltipHorizontalAnchorAlignment,
                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
             }}
-            shiftHorizontal={isNarrowScreenOnWeb ? 0 : variables.fabTooltipShiftHorizontal}
+            shiftHorizontal={isNarrowScreenOnWeb ? 0 : tooltipShiftHorizontal}
             renderTooltipContent={renderProductTrainingTooltip}
             wrapperStyle={styles.productTrainingTooltipWrapper}
             shouldHideOnNavigate={false}
