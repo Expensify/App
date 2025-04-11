@@ -108,6 +108,7 @@ function MoneyRequestReportPreviewContent({
     renderItem,
     getCurrentWidth,
     reportPreviewStyles,
+    shouldDisplayContextMenu = true,
     isInvoice,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
@@ -452,7 +453,12 @@ function MoneyRequestReportPreviewContent({
                         onPress={() => {}}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                        onLongPress={(event) => {
+                            if (!shouldDisplayContextMenu) {
+                                return;
+                            }
+                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                        }}
                         shouldUseHapticsOnLongPress
                         style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
                         role={getButtonRole(true)}
