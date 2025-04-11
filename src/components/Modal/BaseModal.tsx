@@ -241,6 +241,8 @@ function BaseModal(
 
     const animationInProps = useMemo(() => {
         if (disableAnimationIn) {
+            // We need to apply these animation props to completely disable the "animation in". Simply setting it to 0 and undefined will not work.
+            // Based on: https://github.com/react-native-modal/react-native-modal/issues/191
             return {
                 animationIn: {from: {opacity: 1}, to: {opacity: 1}},
                 animationInTiming: 0,
