@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, View} from 'react-native';
+import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Icon from '@components/Icon';
@@ -41,6 +41,33 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
     const isSelected = isFromComparisonModal && subscriptionPlan === currentSubscriptionPlan;
     const benefitsColumns = shouldUseNarrowLayout || isFromComparisonModal ? 1 : 2;
 
+    const renderBenefits = () => {
+        const amountOfRows = Math.ceil(benefits.length / benefitsColumns);
+
+        return Array.from({length: amountOfRows}).map((_, rowIndex) => (
+            <View
+                // eslint-disable-next-line react/no-array-index-key
+                key={`row-${rowIndex}`}
+                style={styles.flexRow}
+            >
+                {benefits.slice(rowIndex * benefitsColumns, (rowIndex + 1) * benefitsColumns).map((item) => (
+                    <View
+                        key={item}
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, shouldUseNarrowLayout ? styles.mt3 : styles.mt4]}
+                    >
+                        <Icon
+                            src={Expensicons.Checkmark}
+                            fill={theme.iconSuccessFill}
+                            width={variables.iconSizeSmall}
+                            height={variables.iconSizeSmall}
+                        />
+                        <Text style={[styles.textLabelSupporting, styles.ml2]}>{item}</Text>
+                    </View>
+                ))}
+            </View>
+        ));
+    };
+
     return (
         <View style={[styles.borderedContentCard, styles.borderRadiusComponentLarge, styles.mt5, styles.flex1, isSelected && styles.borderColorFocus, styles.justifyContentBetween]}>
             <View style={shouldUseNarrowLayout ? styles.p5 : [styles.p8, styles.pb6]}>
@@ -61,25 +88,7 @@ function SubscriptionPlanCard({subscriptionPlan, isFromComparisonModal = false, 
                 <Text style={styles.labelStrong}>{subtitle}</Text>
                 <Text style={[styles.textLabelSupporting, styles.textSmall]}>{note}</Text>
                 <Text style={[styles.textLabelSupporting, styles.textNormal, styles.mt3, styles.mb1]}>{description}</Text>
-                <FlatList
-                    key={benefitsColumns}
-                    data={benefits}
-                    style={shouldUseNarrowLayout ? null : styles.mt1}
-                    scrollEnabled={false}
-                    keyExtractor={(item) => item}
-                    numColumns={benefitsColumns}
-                    renderItem={({item}) => (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, shouldUseNarrowLayout ? styles.mt3 : styles.mt4]}>
-                            <Icon
-                                src={Expensicons.Checkmark}
-                                fill={theme.iconSuccessFill}
-                                width={variables.iconSizeSmall}
-                                height={variables.iconSizeSmall}
-                            />
-                            <Text style={[styles.textLabelSupporting, styles.ml2]}>{item}</Text>
-                        </View>
-                    )}
-                />
+                {renderBenefits()}
             </View>
             <View style={shouldUseNarrowLayout ? styles.pb5 : styles.pb8}>
                 <SubscriptionPlanCardActionButton
