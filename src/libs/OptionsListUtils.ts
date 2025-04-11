@@ -42,16 +42,18 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
     getIOUReportIDFromReportActionPreview,
+    getMentionedAccountIDsFromAction,
     getMessageOfOldDotReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
+    getReportActionHtml,
     getReportActionMessageText,
     getSortedReportActions,
     isActionableAddPaymentCard,
@@ -665,6 +667,10 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
     return getReportOrDraftReport(getIOUReportIDFromReportActionPreview(lastAction))?.reportID;
 }
 
+function hasHiddenDisplayNames(accountIDs: number[]) {
+    return getPersonalDetailsByIDs({accountIDs, currentUserAccountID: 0}).some((personalDetail) => getDisplayNameOrDefault(personalDetail) === translateLocal('common.hidden'));
+}
+
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
@@ -786,6 +792,13 @@ function getLastMessageTextForReport(
     if (reportID && !isArchivedReport(reportNameValuePairs) && report.lastActionType === CONST.REPORT.ACTIONS.TYPE.CLOSED) {
         return lastMessageTextFromReport || (getReportLastMessage(reportID).lastMessageText ?? '');
     }
+
+    // When the last report action has unkown mentions (@Hidden), we want to consistently show @Hidden in LHN and report screen
+    // so we reconstruct the last message text of the report from the last report action.
+    if (!lastMessageTextFromReport && lastReportAction && hasHiddenDisplayNames(getMentionedAccountIDsFromAction(lastReportAction))) {
+        lastMessageTextFromReport = Parser.htmlToText(getReportActionHtml(lastReportAction));
+    }
+
     return lastMessageTextFromReport || (report?.lastMessageText ?? '');
 }
 
