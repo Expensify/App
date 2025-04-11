@@ -106,7 +106,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
-    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
+        email?: string;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
+        login: string;
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
+        backTo?: Routes;
+        result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>;
+        login: string;
+    };
     [SCREENS.SETTINGS.CONSOLE]: {
         backTo: Routes;
     };
@@ -303,6 +315,7 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS.PROFILE.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
@@ -1580,6 +1593,7 @@ type ReportsSplitNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
+        backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
@@ -1756,6 +1770,7 @@ type SharedScreensParamList = {
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
+        delegatorEmail?: string;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -1796,6 +1811,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isAuthTokenRequired?: string;
         fileName?: string;
         attachmentLink?: string;
+        hashKey?: number;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
@@ -1855,6 +1871,12 @@ type SearchReportParamList = {
 
         /** Hash that includes info about what is searched for */
         searchHash?: number;
+    };
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
+        /** Link to previous page */
+        backTo: Routes;
+        /** Selected transactions' report ID  */
+        reportID: string;
     };
 };
 
@@ -1933,6 +1955,10 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
+type SettingsTabScreenName = typeof NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+
+type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
+
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
@@ -2008,4 +2034,6 @@ export type {
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
+    WorkspaceScreenName,
+    SettingsTabScreenName,
 };
