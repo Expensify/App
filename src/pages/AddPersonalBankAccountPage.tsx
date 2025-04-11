@@ -10,7 +10,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
@@ -30,7 +29,6 @@ function AddPersonalBankAccountPage() {
     const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
     const [personalBankAccount] = useOnyx(ONYXKEYS.PERSONAL_BANK_ACCOUNT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
-    const {canUseInternationalBankAccount} = usePermissions();
     const shouldShowSuccess = personalBankAccount?.shouldShowSuccess ?? false;
     const topmostFullScreenRoute = navigationRef.current?.getRootState()?.routes.findLast((route) => isFullScreenName(route.name));
 
@@ -120,7 +118,7 @@ function AddPersonalBankAccountPage() {
                                 text={translate('walletPage.chooseAccountBody')}
                                 plaidData={plaidData}
                                 isDisplayedInWalletFlow
-                                onExitPlaid={canUseInternationalBankAccount ? Navigation.goBack : goBack}
+                                onExitPlaid={Navigation.goBack}
                                 receivedRedirectURI={getPlaidOAuthReceivedRedirectURI()}
                                 selectedPlaidAccountID={selectedPlaidAccountId}
                             />

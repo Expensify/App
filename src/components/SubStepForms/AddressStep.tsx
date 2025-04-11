@@ -135,6 +135,7 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             ref={formRef}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
