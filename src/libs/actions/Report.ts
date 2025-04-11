@@ -926,7 +926,7 @@ function clearAvatarErrors(reportID: string) {
  * @param temporaryShouldUseTableReportView For now MoneyRequestReportView is only supported on Search pages. Once the view is handled on ReportScreens as well we will remove this flag
  */
 function openReport(
-    reportID?: string | undefined,
+    reportID: string | undefined,
     reportActionID?: string,
     participantLoginList: string[] = [],
     newReportObject?: OptimisticChatReport,
