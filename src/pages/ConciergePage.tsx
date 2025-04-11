@@ -5,12 +5,13 @@ import {useOnyx} from 'react-native-onyx';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import ScreenWrapper from '@components/ScreenWrapper';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp} from '@libs/actions/App';
+import {navigateToConciergeChat} from '@libs/actions/Report';
+import {completeTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
-import * as App from '@userActions/App';
-import * as Report from '@userActions/Report';
-import * as Task from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -27,6 +28,7 @@ function ConciergePage() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const route = useRoute();
+    const {canUseLeftHandBar} = usePermissions();
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const viewTourTaskReportID = introSelected?.viewTour;
@@ -35,7 +37,7 @@ function ConciergePage() {
     useFocusEffect(
         useCallback(() => {
             if (session && 'authToken' in session) {
-                App.confirmReadyToOpenApp();
+                confirmReadyToOpenApp();
                 Navigation.isNavigationReady().then(() => {
                     if (isUnmounted.current || isLoadingReportData === undefined || !!isLoadingReportData) {
                         return;
@@ -46,11 +48,11 @@ function ConciergePage() {
                     if (navattic === CONST.NAVATTIC.COMPLETED) {
                         if (viewTourTaskReport) {
                             if (viewTourTaskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || viewTourTaskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-                                Task.completeTask(viewTourTaskReport);
+                                completeTask(viewTourTaskReport);
                             }
                         }
                     }
-                    Report.navigateToConciergeChat(true, () => !isUnmounted.current);
+                    navigateToConciergeChat(true, () => !isUnmounted.current);
                 });
             } else {
                 Navigation.navigate(ROUTES.HOME);
@@ -67,7 +69,7 @@ function ConciergePage() {
 
     return (
         <ScreenWrapper testID={ConciergePage.displayName}>
-            <View style={[styles.borderBottom, styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+            <View style={[styles.borderBottom, styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
                 <ReportHeaderSkeletonView onBackButtonPress={Navigation.goBack} />
             </View>
             <ReportActionsSkeletonView />
