@@ -18,7 +18,9 @@ function SortableItem({id, children}: SortableItemProps) {
         <div
             ref={setNodeRef}
             style={style}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...attributes}
+            // eslint-disable-next-line react/jsx-props-no-spreading
             {...listeners}
         >
             {props.children}
