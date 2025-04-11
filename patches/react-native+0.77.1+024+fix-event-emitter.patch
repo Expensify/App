@@ -1,0 +1,78 @@
+diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.cpp
+index 22cc57b..07e4393 100644
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.cpp
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.cpp
+@@ -970,34 +970,28 @@ jsi::Value JavaTurboModule::invokeJavaMethod(
+   }
+ }
+ 
+-void JavaTurboModule::setEventEmitterCallback(
+-    jni::alias_ref<jobject> jinstance) {
++void JavaTurboModule::configureEventEmitterCallback() {
+   JNIEnv* env = jni::Environment::current();
+-  auto instance = jinstance.get();
+   static jmethodID cachedMethodId = nullptr;
+   if (cachedMethodId == nullptr) {
+-    jclass cls = env->GetObjectClass(instance);
++    jclass cls = env->GetObjectClass(instance_.get());
+     cachedMethodId = env->GetMethodID(
+         cls,
+         "setEventEmitterCallback",
+         "(Lcom/facebook/react/bridge/CxxCallbackImpl;)V");
++    FACEBOOK_JNI_THROW_PENDING_EXCEPTION();
+   }
+ 
+-  auto eventEmitterLookup =
+-      [&](const std::string& eventName) -> AsyncEventEmitter<folly::dynamic>& {
+-    return static_cast<AsyncEventEmitter<folly::dynamic>&>(
+-        *eventEmitterMap_[eventName].get());
+-  };
+-
+   jvalue arg;
+-  arg.l = JCxxCallbackImpl::newObjectCxxArgs([eventEmitterLookup = std::move(
+-                                                  eventEmitterLookup)](
+-                                                 folly::dynamic args) {
+-            auto eventName = args.at(0).asString();
+-            auto eventArgs = args.size() > 1 ? args.at(1) : nullptr;
+-            eventEmitterLookup(eventName).emit(std::move(eventArgs));
+-          }).release();
+-  env->CallVoidMethod(instance, cachedMethodId, arg);
++  arg.l =
++      JCxxCallbackImpl::newObjectCxxArgs([&](folly::dynamic args) {
++        auto eventName = args.at(0).asString();
++        auto& eventEmitter = static_cast<AsyncEventEmitter<folly::dynamic>&>(
++            *eventEmitterMap_[eventName].get());
++        eventEmitter.emit(args.size() > 1 ? std::move(args).at(1) : nullptr);
++      }).release();
++  env->CallVoidMethod(instance_.get(), cachedMethodId, arg);
++  FACEBOOK_JNI_THROW_PENDING_EXCEPTION();
+ }
+ 
+ } // namespace facebook::react
+diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.h b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.h
+index 7ac6ad8..fbdd4c1 100644
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.h
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/android/ReactCommon/JavaTurboModule.h
+@@ -50,7 +50,8 @@ class JSI_EXPORT JavaTurboModule : public TurboModule {
+       size_t argCount,
+       jmethodID& cachedMethodID);
+ 
+-  void setEventEmitterCallback(jni::alias_ref<jobject> instance);
++ protected:
++  void configureEventEmitterCallback();
+ 
+  private:
+   // instance_ can be of type JTurboModule, or JNativeModule
+diff --git a/node_modules/react-native/ReactCommon/react/nativemodule/samples/platform/android/ReactCommon/SampleTurboModuleSpec.cpp b/node_modules/react-native/ReactCommon/react/nativemodule/samples/platform/android/ReactCommon/SampleTurboModuleSpec.cpp
+index f5ff884..90e1b2c 100644
+--- a/node_modules/react-native/ReactCommon/react/nativemodule/samples/platform/android/ReactCommon/SampleTurboModuleSpec.cpp
++++ b/node_modules/react-native/ReactCommon/react/nativemodule/samples/platform/android/ReactCommon/SampleTurboModuleSpec.cpp
+@@ -359,7 +359,7 @@ NativeSampleTurboModuleSpecJSI::NativeSampleTurboModuleSpecJSI(
+       std::make_shared<AsyncEventEmitter<folly::dynamic>>();
+   eventEmitterMap_["onSubmit"] =
+       std::make_shared<AsyncEventEmitter<folly::dynamic>>();
+-  setEventEmitterCallback(params.instance);
++  configureEventEmitterCallback();
+ }
+ 
+ std::shared_ptr<TurboModule> SampleTurboModuleSpec_ModuleProvider(
