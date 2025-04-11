@@ -1,19 +1,19 @@
 import {Str} from 'expensify-common';
 import {useEffect, useRef, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import {isMobile} from '@libs/Browser';
+import getCurrentUrl from '@libs/Navigation/currentUrl';
 import shouldPreventDeeplinkPrompt from '@libs/Navigation/helpers/shouldPreventDeeplinkPrompt';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
+import {getSearchParamFromUrl} from '@libs/Url';
 import {beginDeepLinkRedirect, beginDeepLinkRedirectAfterTransition} from '@userActions/App';
 import {getInternalNewExpensifyPath} from '@userActions/Link';
 import {isAnonymousUser} from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
-import { getSearchParamFromUrl } from '@libs/Url';
-import getCurrentUrl from '@libs/Navigation/currentUrl';
 import ONYXKEYS from '@src/ONYXKEYS';
-import { useOnyx } from 'react-native-onyx';
+import ROUTES from '@src/ROUTES';
 import type DeeplinkWrapperProps from './types';
 
 function isMacOSWeb(): boolean {
@@ -47,7 +47,6 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const isActingAsDelegateRef = useRef(isActingAsDelegate);
     const delegatorEmailRef = useRef(getSearchParamFromUrl(getCurrentUrl(), 'delegatorEmail'));
-
 
     useEffect(() => {
         // If we've shown the prompt and still have a listener registered,
@@ -86,7 +85,7 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
             isConnectionCompleteRoute ||
             CONFIG.ENVIRONMENT === CONST.ENVIRONMENT.DEV ||
             autoAuthState === CONST.AUTO_AUTH_STATE.NOT_STARTED ||
-            isAnonymousUser() || 
+            isAnonymousUser() ||
             !!delegatorEmailRef.current ||
             isActingAsDelegateRef.current
         ) {
