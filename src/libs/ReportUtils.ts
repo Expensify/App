@@ -4557,8 +4557,10 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
-    // Basic report name is generated in derived value, so if only report was passed to the function and it's cached, we can immediately return the cached value
-    if (report && !policy && !parentReportActionParam && !personalDetails && !invoiceReceiverPolicy && reportAttributes?.[report.reportID]) {
+    // Check if we can use report name in derived values - only when we have report but no other params
+    const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
+
+    if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
         return reportAttributes[report.reportID].reportName;
     }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
