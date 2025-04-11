@@ -77,17 +77,20 @@ const ROUTES = {
             backTo,
             moneyRequestReportActionID,
             transactionID,
+            q
         }: {
             reportID: string | undefined;
             reportActionID?: string;
             backTo?: string;
             moneyRequestReportActionID?: string;
             transactionID?: string;
+            q?: string;
         }) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the SEARCH_REPORT route');
             }
-            const baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            let baseRoute = reportActionID ? (`search/view/${reportID}/${reportActionID}` as const) : (`search/view/${reportID}` as const);
+            baseRoute = q ? `${baseRoute}?q=${encodeURIComponent(q)}` : baseRoute;
 
             const queryParams = [];
 

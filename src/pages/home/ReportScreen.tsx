@@ -85,6 +85,8 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import * as SearchActions from '@libs/actions/Search';
+import { buildSearchQueryJSON } from "@libs/SearchQueryUtils";
 import HeaderView from './HeaderView';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
@@ -356,6 +358,22 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
     }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
 
+    const triggerSearch = useCallback(() => {
+        if (!route.params.q) {
+            return;
+        }
+        const queryJSON = buildSearchQueryJSON(route.params.q);
+        if (!queryJSON) {
+            return;
+        }
+
+        SearchActions.search({
+            queryJSON,
+            // Retrieve the most recent reports
+            offset: 0
+        });
+    }, [route.params.q])
+
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         headerView = (
             <MoneyReportHeader
@@ -364,6 +382,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 transactionThreadReportID={transactionThreadReportID}
                 reportActions={reportActions}
                 onBackButtonPress={onBackButtonPress}
+                triggerSearch={triggerSearch}
             />
         );
     }
