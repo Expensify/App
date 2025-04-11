@@ -6,8 +6,8 @@ import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isMobileChrome, isMobileSafari} from '@libs/Browser';
+import {isNumeric} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import FormHelpMessage from './FormHelpMessage';
 import Text from './Text';
@@ -27,9 +27,6 @@ type MagicCodeInputProps = {
 
     /** Should the input auto focus */
     autoFocus?: boolean;
-
-    /** Whether we should wait before focusing the TextInput, useful when using transitions  */
-    shouldDelayFocus?: boolean;
 
     /** Error text to display */
     errorText?: string;
@@ -78,7 +75,7 @@ const decomposeString = (value: string, length: number): string[] => {
     let arr = value
         .split('')
         .slice(0, length)
-        .map((v) => (ValidationUtils.isNumeric(v) ? v : CONST.MAGIC_CODE_EMPTY_CHAR));
+        .map((v) => (isNumeric(v) ? v : CONST.MAGIC_CODE_EMPTY_CHAR));
     if (arr.length < length) {
         arr = arr.concat(Array(length - arr.length).fill(CONST.MAGIC_CODE_EMPTY_CHAR));
     }
@@ -98,7 +95,6 @@ function MagicCodeInput(
         value = '',
         name = '',
         autoFocus = true,
-        shouldDelayFocus = false,
         errorText = '',
         shouldSubmitOnComplete = true,
         onChangeText: onChangeTextProp = () => {},
@@ -179,7 +175,7 @@ function MagicCodeInput(
     const validateAndSubmit = () => {
         const numbers = decomposeString(value, maxLength);
         // eslint-disable-next-line @typescript-eslint/no-use-before-define
-        if (wasSubmitted || !shouldSubmitOnComplete || numbers.filter((n) => ValidationUtils.isNumeric(n)).length !== maxLength || isOffline) {
+        if (wasSubmitted || !shouldSubmitOnComplete || numbers.filter((n) => isNumeric(n)).length !== maxLength || isOffline) {
             return;
         }
         if (!wasSubmitted) {
@@ -226,7 +222,7 @@ function MagicCodeInput(
             shouldFocusLast.current = false;
             // TapGestureHandler works differently on mobile web and native app
             // On web gesture handler doesn't block interactions with textInput below so there is no need to run `focus()` manually
-            if (!Browser.isMobileChrome() && !Browser.isMobileSafari()) {
+            if (!isMobileChrome() && !isMobileSafari()) {
                 inputRef.current?.focus();
             }
             setInputAndIndex(index);
@@ -247,7 +243,7 @@ function MagicCodeInput(
      * might happen later than the next call to onChangeText).
      */
     const onChangeText = (textValue?: string) => {
-        if (!textValue?.length || !ValidationUtils.isNumeric(textValue)) {
+        if (!textValue?.length || !isNumeric(textValue)) {
             return;
         }
 
@@ -313,7 +309,7 @@ function MagicCodeInput(
                 return;
             }
 
-            const hasInputs = numbers.filter((n) => ValidationUtils.isNumeric(n)).length !== 0;
+            const hasInputs = numbers.filter((n) => isNumeric(n)).length !== 0;
 
             // Fill the array with empty characters if there are no inputs.
             if (focusedIndex === 0 && !hasInputs) {
@@ -408,7 +404,6 @@ function MagicCodeInput(
                             value={input}
                             hideFocusedState
                             autoComplete={input.length === 0 ? autoComplete : undefined}
-                            shouldDelayFocus={input.length === 0 && shouldDelayFocus}
                             keyboardType={CONST.KEYBOARD_TYPE.NUMBER_PAD}
                             onChangeText={onChangeText}
                             onKeyPress={onKeyPress}
