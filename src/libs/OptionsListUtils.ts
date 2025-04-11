@@ -895,6 +895,7 @@ function createOption(
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
             shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
