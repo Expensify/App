@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
-import {getProcessedText, splitTextWithEmojis} from '@libs/EmojiUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
