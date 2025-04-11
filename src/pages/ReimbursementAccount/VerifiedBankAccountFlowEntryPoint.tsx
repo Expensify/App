@@ -15,6 +15,7 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -95,6 +96,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const optionPressed = useRef('');
+    const isAccountValidated = useAccountValidation();
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
@@ -123,7 +125,7 @@ function VerifiedBankAccountFlowEntryPoint({
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             return;
         }
 
@@ -139,13 +141,13 @@ function VerifiedBankAccountFlowEntryPoint({
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }
-    }, [account?.validated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
+    }, [isAccountValidated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
 
     const handleConnectPlaid = () => {
         if (isPlaidDisabled) {
             return;
         }
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
             toggleValidateCodeActionModal?.(true);
             return;
@@ -158,7 +160,7 @@ function VerifiedBankAccountFlowEntryPoint({
     };
 
     const handleConnectManually = () => {
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
             toggleValidateCodeActionModal?.(true);
             return;
