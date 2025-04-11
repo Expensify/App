@@ -1,5 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -26,7 +26,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-const getMergeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
+const getMergeErrorPage = (err: string): ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS> | null => {
     if (err.includes('403')) {
         return CONST.MERGE_ACCOUNT_RESULTS.TOO_MANY_ATTEMPTS;
     }
@@ -64,10 +64,10 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
     }
 
     if (err.includes('Invalid validateCode')) {
-        return 'passwordForm.error.incorrect2fa';
+        return 'mergeAccountsPage.accountValidate.errors.incorrect2fa';
     }
 
-    return 'passwordForm.error.fallback';
+    return 'mergeAccountsPage.accountValidate.errors.fallback';
 };
 
 function AccountValidatePage() {
@@ -91,8 +91,7 @@ function AccountValidatePage() {
     const isAccountMerged = mergeWithValidateCode?.isAccountMerged;
 
     const latestError = getLatestErrorMessage(mergeWithValidateCode);
-    const errorKey = getMergeErrorKey(latestError);
-    const authenticationErrorKey = getAuthenticationErrorKey(latestError);
+    const errorPage = getMergeErrorPage(latestError);
 
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -108,11 +107,11 @@ function AccountValidatePage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!errorKey || !email) {
+            if (!errorPage || !email) {
                 return;
             }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey), {forceReplace: true});
-        }, [errorKey, email]),
+            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorPage), {forceReplace: true});
+        }, [errorPage, email]),
     );
 
     useEffect(() => {
@@ -123,6 +122,21 @@ function AccountValidatePage() {
 
         return unsubscribe;
     }, [navigation]);
+
+    const validateCodeError = useMemo(() => {
+        const authenticationErrorKey = getAuthenticationErrorKey(latestError);
+
+        // If there's a matching error page OR no specific auth error key, return early.
+        if (errorPage) {
+            return;
+        }
+
+        if (!authenticationErrorKey) {
+            return;
+        }
+
+        return {authError: translate(authenticationErrorKey)};
+    }, [errorPage, latestError, translate]);
 
     return (
         <ScreenWrapper
@@ -158,7 +172,7 @@ function AccountValidatePage() {
                 }}
                 shouldSkipInitialValidation
                 clearError={() => clearMergeWithValidateCode()}
-                validateError={!errorKey && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : undefined}
+                validateError={validateCodeError}
                 hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
                 submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                 forwardedRef={validateCodeFormRef}

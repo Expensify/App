@@ -16,11 +16,10 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
@@ -111,10 +110,10 @@ function AccountDetailsPage() {
         } else if (login.trim() === userEmailOrPhone) {
             addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.email'));
         } else {
-            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(login));
-            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+            const phoneLogin = getPhoneLogin(login);
+            const validateIfNumber = validateNumber(phoneLogin);
 
-            if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
+            if (!Str.isValidEmail(login) && !validateIfNumber) {
                 if (isNumericWithSpecialChars(login)) {
                     addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.phoneNumber'));
                 } else {
