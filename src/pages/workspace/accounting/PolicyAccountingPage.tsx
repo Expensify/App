@@ -32,6 +32,7 @@ import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, r
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -533,6 +534,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
                 />
                 <ScrollView
                     contentContainerStyle={styles.pt3}

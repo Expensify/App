@@ -35,6 +35,7 @@ import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -145,8 +146,7 @@ function WorkspaceReportFieldsPage({
 
     const toggleAllReportFields = () => {
         const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableReportFields.length === selectedReportFields.length;
-        setSelectedReportFields(isAllSelected ? [] : availableReportFields);
+        setSelectedReportFields(selectedReportFields.length > 0 ? [] : availableReportFields);
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
@@ -256,7 +256,7 @@ function WorkspaceReportFieldsPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                 >
                     {!shouldUseNarrowLayout && !hasReportAccountingConnections && getHeaderButtons()}

@@ -151,8 +151,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const toggleAllTags = () => {
-        const isAllSelected = tagList.every((tag) => !!selectedTags[tag.value]);
-        setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
+        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const anySelected = availableTags.some((tag) => !!selectedTags[tag.value]);
+
+        setSelectedTags(anySelected ? {} : Object.fromEntries(availableTags.map((t) => [t.value, true])));
     };
 
     const getCustomListHeader = () => {
