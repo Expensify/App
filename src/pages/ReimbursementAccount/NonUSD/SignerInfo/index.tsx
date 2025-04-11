@@ -21,13 +21,20 @@ import JobTitle from './subSteps/JobTitle';
 import Name from './subSteps/Name';
 import UploadDocuments from './subSteps/UploadDocuments';
 
-
 type SignerInfoProps = {
     /** Handles back button press */
     onBackButtonPress: () => void;
 
     /** Handles submit button press */
     onSubmit: () => void;
+};
+
+type EmailSubmitParams = {
+    /** Signer email to send the reminder to */
+    signerEmail: string;
+
+    /** Optional second signer email to send the reminder to (only for AUD) */
+    secondSignerEmail?: string;
 };
 
 type SignerDetailsFormProps = SubStepProps;
