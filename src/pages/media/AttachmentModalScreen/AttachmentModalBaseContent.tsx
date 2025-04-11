@@ -1,10 +1,10 @@
 import type {RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Keyboard, View} from 'react-native';
+import {InteractionManager, Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import Animated, {FadeIn, useSharedValue} from 'react-native-reanimated';
+import Animated, {FadeIn, LayoutAnimationConfig, useSharedValue} from 'react-native-reanimated';
 import type {ValueOf} from 'type-fest';
 import AttachmentCarousel from '@components/Attachments/AttachmentCarousel';
 import AttachmentCarouselPagerContext from '@components/Attachments/AttachmentCarousel/Pager/AttachmentCarouselPagerContext';
@@ -33,6 +33,7 @@ import {hasEReceipt, hasMissingSmartscanFields, hasReceipt, hasReceiptSource, is
 import type {AvatarSource} from '@libs/UserUtils';
 import variables from '@styles/variables';
 import {detachReceipt} from '@userActions/IOU';
+import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,76 +49,122 @@ type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: Fil
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
+
+    /** The id of the attachment. */
+    attachmentID?: string;
+
     /** Fallback source (URL, SVG function) for the image shown. */
     fallbackSource?: AvatarSource;
+
     /** Optional file object to be used for the attachment. If not passed in via props must be specified when modal is opened. */
     file?: FileObject;
+
     /** Optional original filename when uploading */
     originalFileName?: string;
+
     /** Whether source url requires authentication */
     isAuthTokenRequired?: boolean;
+
     /** Determines if download Button should be shown or not */
     allowDownload?: boolean;
+
     /** Determines if the receipt comes from track expense action */
     isTrackExpenseAction?: boolean;
+
     /** Title shown in the header of the modal */
     headerTitle?: string;
+
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
+
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
+
+    /** The iou action of the expense creation flow of which we are displaying the receipt for. */
+    iouAction?: IOUAction;
+
+    /** The iou type of the expense creation flow of which we are displaying the receipt for. */
+    iouType?: IOUType;
+
+    /** The id of the draft transaction linked to the receipt. */
+    draftTransactionID?: string;
+
     /** If the attachment originates from a note, the accountID will represent the author of that note. */
     accountID?: number;
+
     /** The data is loading or not */
     isLoading?: boolean;
+
     /** Should display not found page or not */
     shouldShowNotFoundPage?: boolean;
+
     /** Denotes whether it is a workspace avatar or not */
     isWorkspaceAvatar?: boolean;
+
     /** Denotes whether it can be an icon (ex: SVG) */
     maybeIcon?: boolean;
+
     /** Whether it is a receipt attachment or not */
     isReceiptAttachment?: boolean;
+
     /** Determines if the user can edit the receipt or not */
     canEditReceipt?: boolean;
+
     /** Determines if the user can delete the receipt or not */
     canDeleteReceipt?: boolean;
+
     /** Determines if the send button should be disabled or not */
     shouldDisableSendButton?: boolean;
+
     /** Determines if the help button should be displayed or not */
     shouldDisplayHelpButton?: boolean;
+
     /** The link of the attachment */
     attachmentLink?: string;
+
     /** Fallback route when the modal is closed */
     fallbackRoute?: Route;
+
     /** Determines if the attachment is invalid or not */
     isAttachmentInvalid?: boolean;
+
     /** Determines if the attachment is invalid or not */
     attachmentInvalidReason?: TranslationPaths | null;
+
     /** Determines the title of the invalid reason modal */
     attachmentInvalidReasonTitle?: TranslationPaths | null;
+
     /** Ref to the submit button */
     submitRef?: RefObject<View | HTMLElement>;
+
     /** Determines if the delete receipt confirm modal is visible or not */
     isDeleteReceiptConfirmModalVisible?: boolean;
+
     /** Optional callback to fire when we want to preview an image and approve it for use. */
     onConfirm?: (file: FileObject) => void;
+
     /** Callback triggered when the modal is closed */
     onClose?: (shouldCallDirectly?: boolean) => void;
+
     /** Callback triggered when the confirm modal is closed */
     onConfirmModalClose?: () => void;
+
     /** Callback triggered when the delete receipt modal is shown */
     onRequestDeleteReceipt?: () => void;
+
     /** Callback triggered when the delete receipt is confirmed */
     onDeleteReceipt?: () => void;
+
     /** Optional callback to fire when we want to do something after attachment carousel changes. */
     onCarouselAttachmentChange?: (attachment: Attachment) => void;
+
     /** Optional callback to fire when we want to validate the file. */
     onValidateFile?: OnValidateFileCallback;
 };
 
 function AttachmentModalBaseContent({
     source = '',
+    attachmentID,
     fallbackSource,
     file: fileProp,
     originalFileName = '',
@@ -125,6 +172,9 @@ function AttachmentModalBaseContent({
     maybeIcon = false,
     headerTitle: headerTitleProp,
     type,
+    draftTransactionID,
+    iouAction,
+    iouType: iouTypeProp,
     accountID,
     attachmentLink = '',
     allowDownload = false,
@@ -161,7 +211,7 @@ function AttachmentModalBaseContent({
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
-    const iouType = useMemo(() => (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction]);
+    const iouType = useMemo(() => iouTypeProp ?? (isTrackExpenseAction ? CONST.IOU.TYPE.TRACK : CONST.IOU.TYPE.SUBMIT), [isTrackExpenseAction, iouTypeProp]);
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
@@ -226,13 +276,13 @@ function AttachmentModalBaseContent({
 
         if (typeof sourceURL === 'string') {
             const fileName = type === CONST.ATTACHMENT_TYPE.SEARCH ? getFileName(`${sourceURL}`) : file?.name;
-            fileDownload(sourceURL, fileName ?? '');
+            fileDownload(sourceURL, fileName ?? '', undefined, undefined, undefined, undefined, undefined, !draftTransactionID);
         }
 
         // At ios, if the keyboard is open while opening the attachment, then after downloading
         // the attachment keyboard will show up. So, to fix it we need to dismiss the keyboard.
         Keyboard.dismiss();
-    }, [isAuthTokenRequiredState, sourceState, file, type]);
+    }, [sourceState, isAuthTokenRequiredState, type, file?.name, draftTransactionID]);
 
     /**
      * Execute the onConfirm callback and close the modal.
@@ -283,15 +333,21 @@ function AttachmentModalBaseContent({
                 text: translate('common.replace'),
                 onSelected: () => {
                     onClose?.(true);
-                    Navigation.isNavigationReady().then(() => {
+                    InteractionManager.runAfterInteractions(() => {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report?.reportID, Navigation.getActiveRouteWithoutParams()),
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                iouAction ?? CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                draftTransactionID ?? transaction?.transactionID,
+                                report?.reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
                         );
                     });
                 },
             });
         }
-        if (!isOffline && allowDownload && !isLocalSource) {
+        if ((!isOffline && allowDownload && !isLocalSource) || !!draftTransactionID) {
             menuItems.push({
                 icon: Expensicons.Download,
                 text: translate('common.download'),
@@ -383,9 +439,15 @@ function AttachmentModalBaseContent({
                     onCloseButtonPress={onClose}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsAnchorPosition={styles.threeDotsPopoverOffsetAttachmentModal(windowWidth)}
+                    threeDotsAnchorAlignment={{
+                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                    }}
+                    shouldSetModalVisibility={false}
                     threeDotsMenuItems={threeDotsMenuItems}
                     shouldOverlayDots
                     subTitleLink={currentAttachmentLink ?? ''}
+                    shouldDisplayHelpButton={false}
                 />
                 <View style={styles.imageModalImageCenterContainer}>
                     {isLoading && <FullScreenLoadingIndicator />}
@@ -402,10 +464,12 @@ function AttachmentModalBaseContent({
                         />
                     )}
                     {!shouldShowNotFoundPage &&
-                        (!isEmptyObject(report) && !isReceiptAttachment ? (
+                        // We shouldn't show carousel arrow in search result attachment
+                        (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
                             <AttachmentCarousel
                                 accountID={accountID}
                                 type={type}
+                                attachmentID={attachmentID}
                                 report={report}
                                 onNavigate={onNavigate}
                                 onClose={onClose}
@@ -437,26 +501,30 @@ function AttachmentModalBaseContent({
                 </View>
                 {/* If we have an onConfirm method show a confirmation button */}
                 {!!onConfirm && !isConfirmButtonDisabled && (
-                    <SafeAreaConsumer>
-                        {({safeAreaPaddingBottomStyle}) => (
-                            <Animated.View
-                                style={safeAreaPaddingBottomStyle}
-                                entering={FadeIn}
-                            >
-                                <Button
-                                    ref={submitRef ? viewRef(submitRef) : undefined}
-                                    success
-                                    large
-                                    style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
-                                    textStyles={[styles.buttonConfirmText]}
-                                    text={translate('common.send')}
-                                    onPress={submitAndClose}
-                                    isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
-                                    pressOnEnter
-                                />
-                            </Animated.View>
+                    <LayoutAnimationConfig skipEntering>
+                        {!!onConfirm && !isConfirmButtonDisabled && (
+                            <SafeAreaConsumer>
+                                {({safeAreaPaddingBottomStyle}) => (
+                                    <Animated.View
+                                        style={safeAreaPaddingBottomStyle}
+                                        entering={FadeIn}
+                                    >
+                                        <Button
+                                            ref={submitRef ? viewRef(submitRef) : undefined}
+                                            success
+                                            large
+                                            style={[styles.buttonConfirm, shouldUseNarrowLayout ? {} : styles.attachmentButtonBigScreen]}
+                                            textStyles={[styles.buttonConfirmText]}
+                                            text={translate('common.send')}
+                                            onPress={submitAndClose}
+                                            isDisabled={isConfirmButtonDisabled || shouldDisableSendButton}
+                                            pressOnEnter
+                                        />
+                                    </Animated.View>
+                                )}
+                            </SafeAreaConsumer>
                         )}
-                    </SafeAreaConsumer>
+                    </LayoutAnimationConfig>
                 )}
                 {isReceiptAttachment && (
                     <ConfirmModal

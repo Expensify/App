@@ -1,5 +1,5 @@
-import type {NavigationState} from '@react-navigation/native';
 import {DarkTheme, DefaultTheme, findFocusedRoute, NavigationContainer} from '@react-navigation/native';
+import type {NavigationState} from '@react-navigation/native';
 import React, {useContext, useEffect, useMemo, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -28,6 +28,8 @@ import AppNavigator from './AppNavigator';
 import {cleanPreservedNavigatorStates} from './AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import customGetPathFromState from './helpers/customGetPathFromState';
 import getAdaptedStateFromPath from './helpers/getAdaptedStateFromPath';
+import {saveSettingsTabPathToSessionStorage} from './helpers/getLastVisitedWorkspace';
+import {isSettingsTabScreenName} from './helpers/isNavigatorName';
 import {linkingConfig} from './linkingConfig';
 import Navigation, {navigationRef} from './Navigation';
 
@@ -43,9 +45,6 @@ type NavigationRootProps = {
 
     /** Fired when react-navigation is ready */
     onReady: () => void;
-
-    /** Flag to indicate if the require 2FA modal should be shown to the user */
-    shouldShowRequire2FAModal: boolean;
 };
 
 /**
@@ -75,6 +74,9 @@ function parseAndLogRoute(state: NavigationState) {
     }
 
     Navigation.setIsNavigationReady();
+    if (isSettingsTabScreenName(state.routes.at(-1)?.name)) {
+        saveSettingsTabPathToSessionStorage(currentPath);
+    }
 
     // Fullstory Page navigation tracking
     const focusedRouteName = focusedRoute?.name;
@@ -83,7 +85,7 @@ function parseAndLogRoute(state: NavigationState) {
     }
 }
 
-function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, shouldShowRequire2FAModal}: NavigationRootProps) {
+function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: NavigationRootProps) {
     const firstRenderRef = useRef(true);
     const themePreference = useThemePreference();
     const theme = useTheme();
@@ -95,6 +97,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const [user] = useOnyx(ONYXKEYS.USER);
     const isPrivateDomain = Session.isUserOnPrivateDomain();
 
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
     });
@@ -106,16 +109,25 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
     const previousAuthenticated = usePrevious(authenticated);
 
     const initialState = useMemo(() => {
+        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        if (path?.includes(ROUTES.MIGRATED_USER_WELCOME_MODAL) && lastVisitedPath && isOnboardingCompleted && authenticated) {
+            return getAdaptedStateFromPath(lastVisitedPath, linkingConfig.config);
+        }
+
         if (!user || user.isFromPublicDomain) {
             return;
         }
 
-        const path = initialUrl ? getPathFromURL(initialUrl) : null;
+        const shouldShowRequire2FAPage = !!account?.needsTwoFactorAuthSetup && !account.requiresTwoFactorAuth;
+        if (shouldShowRequire2FAPage) {
+            return getAdaptedStateFromPath(ROUTES.REQUIRE_TWO_FACTOR_AUTH, linkingConfig.config);
+        }
+
         const isTransitioning = path?.includes(ROUTES.TRANSITION_BETWEEN_APPS);
 
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
-        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning && !shouldShowRequire2FAModal) {
+        if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
             return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
         }
 
@@ -160,14 +172,21 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady, sh
             return;
         }
 
-        Navigation.setShouldPopAllStateOnUP(!shouldUseNarrowLayout);
+        // After resizing the screen from wide to narrow, if we have visited multiple central screens, we want to go back to the LHN screen, so we set shouldPopAllStateOnUP to true.
+        // Now when this value is true, Navigation.goBack with the option {shouldPopToTop: true} will remove all visited central screens in the given tab from the navigation stack and go back to the LHN.
+        // More context here: https://github.com/Expensify/App/pull/59300
+        if (!shouldUseNarrowLayout) {
+            return;
+        }
+
+        Navigation.setShouldPopAllStateOnUP(true);
     }, [shouldUseNarrowLayout]);
 
     useEffect(() => {
         // Since the NAVIGATORS.REPORTS_SPLIT_NAVIGATOR url is "/" and it has to be used as an URL for SignInPage,
         // this navigator should be the only one in the navigation state after logout.
         const hasUserLoggedOut = !authenticated && !!previousAuthenticated;
-        if (!hasUserLoggedOut) {
+        if (!hasUserLoggedOut || !navigationRef.isReady()) {
             return;
         }
 

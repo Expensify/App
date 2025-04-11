@@ -19,6 +19,7 @@ import type AttachmentModalRouteProps from './types';
 function ReportAttachmentModalContent({
     route,
     navigation,
+    attachmentID,
     type,
     file: fileParam,
     source: sourceParam,
@@ -27,6 +28,7 @@ function ReportAttachmentModalContent({
     originalFileName,
     accountID = CONST.DEFAULT_NUMBER_ID,
     reportID,
+    hashKey,
     shouldDisableSendButton,
     headerTitle,
     onConfirm,
@@ -44,16 +46,18 @@ function ReportAttachmentModalContent({
         (attachment: Attachment) => {
             const routeToNavigate = ROUTES.ATTACHMENTS.getRoute({
                 reportID,
+                attachmentID: attachment.attachmentID,
                 type,
                 source: String(attachment.source),
                 accountID,
                 isAuthTokenRequired: attachment?.isAuthTokenRequired,
                 fileName: attachment?.file?.name,
                 attachmentLink: attachment?.attachmentLink,
+                hashKey,
             });
             Navigation.navigate(routeToNavigate);
         },
-        [reportID, type, accountID],
+        [reportID, type, accountID, hashKey],
     );
 
     /**
@@ -138,6 +142,7 @@ function ReportAttachmentModalContent({
         () => ({
             ...contentTypeProps,
             source,
+            attachmentID,
             accountID,
             onConfirm,
             headerTitle,
@@ -150,6 +155,7 @@ function ReportAttachmentModalContent({
         }),
         [
             accountID,
+            attachmentID,
             attachmentInvalidReason,
             attachmentInvalidReasonTitle,
             contentTypeProps,

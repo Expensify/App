@@ -15,16 +15,17 @@ import Section from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getEarliestErrorField, getLatestError, getLatestErrorField} from '@libs/ErrorUtils';
+import {getEarliestErrorField, getLatestError, getLatestErrorField, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getPlaidDesktopMessage from '@libs/getPlaidDesktopMessage';
 import {REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import WorkspaceResetBankAccountModal from '@pages/workspace/WorkspaceResetBankAccountModal';
 import {openPlaidView, updateReimbursementAccountDraft} from '@userActions/BankAccounts';
 import {openExternalLink, openExternalLinkWithToken} from '@userActions/Link';
-import {requestResetFreePlanBankAccount, resetReimbursementAccount, setBankAccountSubStep} from '@userActions/ReimbursementAccount';
+import {requestResetBankAccount, resetReimbursementAccount, setBankAccountSubStep} from '@userActions/ReimbursementAccount';
 import {clearContactMethodErrors, requestValidateCodeAction, validateSecondaryLogin} from '@userActions/User';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -53,8 +54,8 @@ type VerifiedBankAccountFlowEntryPointProps = {
     /** Should show the continue setup button */
     shouldShowContinueSetupButton: boolean | null;
 
-    /** Whether the bank account has non USD currency */
-    hasForeignCurrency: boolean;
+    /** Whether the workspace currency is set to non USD currency */
+    isNonUSDWorkspace: boolean;
 
     /** Should ValidateCodeActionModal be displayed or not */
     isValidateCodeActionModalVisible?: boolean;
@@ -78,7 +79,7 @@ function VerifiedBankAccountFlowEntryPoint({
     reimbursementAccount,
     onContinuePress,
     shouldShowContinueSetupButton,
-    hasForeignCurrency,
+    isNonUSDWorkspace,
     isValidateCodeActionModalVisible,
     toggleValidateCodeActionModal,
     setNonUSDBankAccountStep,
@@ -95,6 +96,7 @@ function VerifiedBankAccountFlowEntryPoint({
     const pendingAction = reimbursementAccount?.pendingAction ?? null;
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const optionPressed = useRef('');
+    const isAccountValidated = useAccountValidation();
 
     const contactMethod = account?.primaryLogin ?? '';
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
@@ -123,12 +125,12 @@ function VerifiedBankAccountFlowEntryPoint({
      * note: non USD accounts only have manual option available
      */
     useEffect(() => {
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             return;
         }
 
         if (optionPressed.current === CONST.BANK_ACCOUNT.SUBSTEP.MANUAL) {
-            if (hasForeignCurrency) {
+            if (isNonUSDWorkspace) {
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
                 return;
             }
@@ -139,13 +141,13 @@ function VerifiedBankAccountFlowEntryPoint({
             setUSDBankAccountStep(CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT);
             openPlaidView();
         }
-    }, [account?.validated, hasForeignCurrency, setNonUSDBankAccountStep, setUSDBankAccountStep]);
+    }, [isAccountValidated, isNonUSDWorkspace, setNonUSDBankAccountStep, setUSDBankAccountStep]);
 
     const handleConnectPlaid = () => {
         if (isPlaidDisabled) {
             return;
         }
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.PLAID;
             toggleValidateCodeActionModal?.(true);
             return;
@@ -158,13 +160,13 @@ function VerifiedBankAccountFlowEntryPoint({
     };
 
     const handleConnectManually = () => {
-        if (!account?.validated) {
+        if (!isAccountValidated) {
             optionPressed.current = CONST.BANK_ACCOUNT.SETUP_TYPE.MANUAL;
             toggleValidateCodeActionModal?.(true);
             return;
         }
 
-        if (hasForeignCurrency) {
+        if (isNonUSDWorkspace) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.COUNTRY);
             return;
         }
@@ -196,7 +198,7 @@ function VerifiedBankAccountFlowEntryPoint({
                     illustrationBackgroundColor={theme.fallbackIconColor}
                     isCentralPane
                 >
-                    {!!plaidDesktopMessage && (
+                    {!!plaidDesktopMessage && !isNonUSDWorkspace && (
                         <View style={[styles.mt3, styles.flexRow, styles.justifyContentBetween]}>
                             <TextLink onPress={() => openExternalLinkWithToken(bankAccountRoute)}>{translate(plaidDesktopMessage)}</TextLink>
                         </View>
@@ -219,8 +221,12 @@ function VerifiedBankAccountFlowEntryPoint({
                     )}
                     {shouldShowContinueSetupButton === true ? (
                         <OfflineWithFeedback
-                            errors={getLatestError(errors)}
+                            errors={
+                                reimbursementAccount?.maxAttemptsReached ? getMicroSecondOnyxErrorWithTranslationKey('connectBankAccountStep.maxAttemptsReached') : getLatestError(errors)
+                            }
+                            errorRowStyles={styles.mt2}
                             shouldShowErrorMessages
+                            canDismissError={!reimbursementAccount?.maxAttemptsReached}
                             onClose={resetReimbursementAccount}
                         >
                             <MenuItem
@@ -236,8 +242,7 @@ function VerifiedBankAccountFlowEntryPoint({
                                 title={translate('workspace.bankAccount.startOver')}
                                 icon={RotateLeft}
                                 iconFill={theme.icon}
-                                // TODO add method for non USD accounts in next issue - https://github.com/Expensify/App/issues/50912
-                                onPress={requestResetFreePlanBankAccount}
+                                onPress={requestResetBankAccount}
                                 shouldShowRightIcon
                                 wrapperStyle={[styles.cardMenuItem, styles.mt4]}
                                 disabled={!!pendingAction || !isEmptyObject(errors)}
@@ -245,7 +250,7 @@ function VerifiedBankAccountFlowEntryPoint({
                         </OfflineWithFeedback>
                     ) : (
                         <>
-                            {!hasForeignCurrency && !shouldShowContinueSetupButton && (
+                            {!isNonUSDWorkspace && !shouldShowContinueSetupButton && (
                                 <MenuItem
                                     title={translate('bankAccount.connectOnlineWithPlaid')}
                                     icon={Bank}
@@ -285,7 +290,14 @@ function VerifiedBankAccountFlowEntryPoint({
                 </View>
             </ScrollView>
 
-            {!!reimbursementAccount?.shouldShowResetModal && <WorkspaceResetBankAccountModal reimbursementAccount={reimbursementAccount} />}
+            {!!reimbursementAccount?.shouldShowResetModal && (
+                <WorkspaceResetBankAccountModal
+                    reimbursementAccount={reimbursementAccount}
+                    isNonUSDWorkspace={isNonUSDWorkspace}
+                    setUSDBankAccountStep={setUSDBankAccountStep}
+                    setNonUSDBankAccountStep={setNonUSDBankAccountStep}
+                />
+            )}
 
             <ValidateCodeActionModal
                 title={translate('contacts.validateAccount')}

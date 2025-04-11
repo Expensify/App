@@ -32,8 +32,8 @@ type AttachmentCarouselPagerProps = {
     /** The attachments to be rendered in the pager. */
     items: Attachment[];
 
-    /** The source (URL) of the currently active attachment. */
-    activeSource: AttachmentSource;
+    /** The id or source (URL) of the currently active attachment. */
+    activeAttachmentID: AttachmentSource;
 
     /** The index of the initial page to be rendered. */
     initialPage: number;
@@ -58,7 +58,7 @@ type AttachmentCarouselPagerProps = {
 };
 
 function AttachmentCarouselPager(
-    {items, activeSource, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID}: AttachmentCarouselPagerProps,
+    {items, activeAttachmentID, initialPage, setShouldShowArrows, onPageSelected, onClose, reportID}: AttachmentCarouselPagerProps,
     ref: ForwardedRef<AttachmentCarouselPagerHandle>,
 ) {
     const {handleTap, handleScaleChange, isScrollEnabled} = useCarouselContextEvents(setShouldShowArrows);
@@ -88,7 +88,7 @@ function AttachmentCarouselPager(
         [activePageIndex, items],
     );
 
-    const extractItemKey = useCallback((item: Attachment, index: number) => `reportActionID-${item.reportActionID}-${index}`, []);
+    const extractItemKey = useCallback((item: Attachment, index: number) => `attachmentID-${item.attachmentID}-${index}`, []);
 
     const contextValue = useMemo(
         () => ({
@@ -129,7 +129,7 @@ function AttachmentCarouselPager(
         >
             <CarouselItem
                 item={item}
-                isFocused={index === activePageIndex && activeSource === item.source}
+                isFocused={index === activePageIndex && activeAttachmentID === (item.attachmentID ?? item.source)}
                 reportID={reportID}
             />
         </View>

@@ -116,15 +116,16 @@ function AttachmentPicker({
     shouldValidateImage = true,
     shouldHideGalleryOption = false,
     fileLimit = 1,
+    onOpenPicker,
 }: AttachmentPickerProps) {
     const styles = useThemeStyles();
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
+    const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
     const {translate} = useLocalize();
@@ -178,31 +179,37 @@ function AttachmentPicker({
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    ImageManipulator.manipulate(targetAssetUri)
-                                        .renderAsync()
-                                        .then((image) =>
-                                            image
-                                                .saveAsync({format: SaveFormat.JPEG})
-                                                .then((manipResult) => {
-                                                    const uri = manipResult.uri;
-                                                    const convertedAsset = {
-                                                        uri,
-                                                        name: uri
-                                                            .substring(uri.lastIndexOf('/') + 1)
-                                                            .split('?')
-                                                            .at(0),
-                                                        type: 'image/jpeg',
-                                                        width: manipResult.width,
-                                                        height: manipResult.height,
-                                                    };
+                                    const manipulateContext = ImageManipulator.manipulate(targetAssetUri);
 
-                                                    return resolve([convertedAsset]);
-                                                })
-                                                .catch((err) => reject(err)),
-                                        );
-                                } else {
-                                    return resolve(response.assets);
+                                    manipulateContext.renderAsync().then((image) =>
+                                        image
+                                            .saveAsync({format: SaveFormat.JPEG})
+                                            .then((result) => {
+                                                manipulateContext.release();
+                                                image.release();
+                                                return result;
+                                            })
+                                            .then((manipResult) => {
+                                                const uri = manipResult.uri;
+                                                const convertedAsset = {
+                                                    uri,
+                                                    name: uri
+                                                        .substring(uri.lastIndexOf('/') + 1)
+                                                        .split('?')
+                                                        .at(0),
+                                                    type: 'image/jpeg',
+                                                    width: manipResult.width,
+                                                    height: manipResult.height,
+                                                };
+                                                return resolve([convertedAsset]);
+                                            })
+                                            .catch(() => {
+                                                manipulateContext?.release();
+                                                resolve(response.assets ?? []);
+                                            }),
+                                    );
                                 }
+                                return resolve(response.assets);
                             })
                             .catch((err) => reject(err));
                     } else {
@@ -271,10 +278,11 @@ function AttachmentPicker({
      * @param onPickedHandler A callback that will be called with the selected attachment
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}) => {
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
         // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
         setIsVisible(true);
     };
 
@@ -393,6 +401,7 @@ function AttachmentPicker({
      */
     const selectItem = useCallback(
         (item: Item) => {
+            onOpenPicker?.();
             /* setTimeout delays execution to the frame after the modal closes
              * without this on iOS closing the modal closes the gallery/camera as well */
             onModalHide.current = () => {
@@ -400,12 +409,15 @@ function AttachmentPicker({
                     item.pickAttachment()
                         .then((result) => pickAttachment(result))
                         .catch(console.error)
-                        .finally(() => delete onModalHide.current);
+                        .finally(() => {
+                            onClosed.current();
+                            delete onModalHide.current;
+                        });
                 }, 200);
             };
             close();
         },
-        [pickAttachment],
+        [pickAttachment, onOpenPicker],
     );
 
     useKeyboardShortcut(
@@ -430,7 +442,7 @@ function AttachmentPicker({
      */
     const renderChildren = (): React.ReactNode =>
         children({
-            openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
+            openPicker: ({onPicked, onCanceled: newOnCanceled, onClosed: newOnClosed}) => open(onPicked, newOnCanceled, newOnClosed),
         });
 
     return (

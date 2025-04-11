@@ -65,6 +65,7 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
 import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
@@ -93,6 +94,7 @@ import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
+import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
@@ -155,6 +157,7 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
+    Encryption,
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
@@ -278,6 +281,7 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
+    RunningTurtle,
     CompanyCardsEmptyState,
     AmexCompanyCards,
     MasterCardCompanyCards,

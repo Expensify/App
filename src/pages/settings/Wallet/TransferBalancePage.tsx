@@ -127,6 +127,7 @@ function TransferBalancePage() {
                     shouldShowButton
                     buttonText={translate('common.done')}
                     onButtonPress={dismissSuccessfulTransferBalancePage}
+                    containerStyle={styles.flex1}
                 />
             </ScreenWrapper>
         );
@@ -151,6 +152,7 @@ function TransferBalancePage() {
                 titleKey="notFound.pageNotFound"
                 subtitleKey="transferAmountPage.notHereSubTitle"
                 linkKey="transferAmountPage.goToWallet"
+                onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET)}
             >
                 <HeaderWithBackButton
                     title={translate('common.transferBalance')}

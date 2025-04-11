@@ -28,12 +28,12 @@ type AttachmentModalModalProps = {
 
 type AttachmentModalScreenParams = AttachmentModalBaseContentProps &
     AttachmentModalModalProps & {
-        attachmentId?: string;
         reportID?: string;
         policyID?: string;
         transactionID?: string;
         readonly?: boolean;
         isFromReviewDuplicates?: boolean;
+        hashKey?: number;
     };
 
 type AttachmentModalScreenProps = PlatformStackScreenProps<RootNavigatorParamList, typeof SCREENS.ATTACHMENTS>;

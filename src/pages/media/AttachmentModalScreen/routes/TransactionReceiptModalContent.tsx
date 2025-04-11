@@ -1,38 +1,46 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import {navigateToStartStepIfScanFileCannotBeRead} from '@libs/actions/IOU';
 import {openReport} from '@libs/actions/Report';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
 import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isOneTransactionThread, isTrackExpenseReport} from '@libs/ReportUtils';
-import {hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
+import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import type {AttachmentModalBaseContentProps} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContainer from '@pages/media/AttachmentModalScreen/AttachmentModalContainer';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type AttachmentModalRouteProps from './types';
 
 function TransactionReceiptModalContent({
     navigation,
-    reportID,
-    transactionID,
+    reportID = '',
+    transactionID = '',
     readonly: readonlyProp,
     isFromReviewDuplicates: isFromReviewDuplicatesProp,
     isReceiptAttachment,
+    iouAction,
+    iouType,
 }: AttachmentModalRouteProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
-    const receiptURIs = getThumbnailAndImageURIs(transaction);
 
-    const imageSource = tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
+    const [transactionMain] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transactionDraft] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [reportMetadata = {isLoadingInitialReportActions: true}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`);
+
+    const isDraftTransaction = !!iouAction;
+    const transaction = isDraftTransaction ? transactionDraft : transactionMain;
+    const receiptURIs = getThumbnailAndImageURIs(transaction);
 
     const isLocalFile = receiptURIs.isLocalFile;
     const readonly = !!readonlyProp;
     const isFromReviewDuplicates = !!isFromReviewDuplicatesProp;
+    const imageSource = isDraftTransaction ? transactionDraft?.receipt?.source : tryResolveUrlFromApiRoot(receiptURIs.image ?? '');
 
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const canEditReceipt = canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.RECEIPT);
@@ -44,13 +52,48 @@ function TransactionReceiptModalContent({
     const [isAttachmentInvalid, setIsAttachmentInvalid] = useState(false);
 
     useEffect(() => {
-        if (report && transaction) {
+        if ((!!report && !!transaction) || isDraftTransaction) {
             return;
         }
         openReport(reportID);
         // I'm disabling the warning, as it expects to use exhaustive deps, even though we want this useEffect to run only on the first render.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
+
+    const receiptPath = transaction?.receipt?.source;
+
+    useEffect(() => {
+        if (!isDraftTransaction || !iouType || !transaction) {
+            return;
+        }
+
+        const requestType = getRequestType(transaction);
+        const receiptFilename = transaction?.filename;
+        const receiptType = transaction?.receipt?.type;
+        navigateToStartStepIfScanFileCannotBeRead(
+            receiptFilename,
+            receiptPath,
+            () => {},
+            requestType,
+            iouType,
+            transactionID,
+            reportID,
+            receiptType,
+            () =>
+                Navigation.goBack(
+                    ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                        CONST.IOU.ACTION.CREATE,
+                        iouType,
+                        transactionID,
+                        reportID,
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(iouAction, iouType, transactionID, reportID),
+                    ),
+                ),
+        );
+
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [receiptPath]);
 
     /**
      * Close the confirm modals.
@@ -76,35 +119,45 @@ function TransactionReceiptModalContent({
         // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
         const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
         const secondToLastRoute = rootState.routes.at(-2);
-        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || isDraftTransaction) {
             Navigation.dismissModal();
         } else {
             const isOneTransactionThreadValue = isOneTransactionThread(report?.reportID, report?.parentReportID, parentReportAction);
-            Navigation.dismissModal(isOneTransactionThreadValue ? report?.parentReportID : report?.reportID);
+            const dismissModalReportID = isOneTransactionThreadValue ? report?.parentReportID : report?.reportID;
+            if (!dismissModalReportID) {
+                Navigation.dismissModal();
+                return;
+            }
+            Navigation.dismissModalWithReport({reportID: dismissModalReportID});
         }
-    }, [closeConfirmModal, isOverlayModalVisible, parentReportAction, report?.parentReportID, report?.reportID]);
+    }, [closeConfirmModal, isDraftTransaction, isOverlayModalVisible, parentReportAction, report?.parentReportID, report?.reportID]);
 
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReportValue = isTrackExpenseReport(report);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage =
-        isTrackExpenseReportValue || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates ? !transaction : moneyRequestReportID !== transaction?.reportID;
+        isTrackExpenseReportValue || isDraftTransaction || transaction?.reportID === CONST.REPORT.SPLIT_REPORTID || isFromReviewDuplicates
+            ? !transaction
+            : moneyRequestReportID !== transaction?.reportID;
 
     const contentProps = useMemo(
         () =>
             ({
                 source: imageSource,
-                isAuthTokenRequired: !isLocalFile,
+                isAuthTokenRequired: !isLocalFile && !isDraftTransaction,
                 report,
                 isReceiptAttachment: true,
                 isDeleteReceiptConfirmModalVisible,
-                canEditReceipt: canEditReceipt && !readonly,
-                canDeleteReceipt: canDeleteReceipt && !readonly,
+                canEditReceipt: (canEditReceipt && !readonly) || isDraftTransaction,
+                canDeleteReceipt: canDeleteReceipt && !readonly && !isDraftTransaction,
                 allowDownload: !isEReceipt,
                 isTrackExpenseAction: isTrackExpenseActionValue,
-                originalFileName: receiptURIs?.filename,
+                originalFileName: isDraftTransaction ? transaction?.filename : receiptURIs?.filename,
                 isLoading: !transaction && reportMetadata?.isLoadingInitialReportActions,
+                iouAction,
+                iouType,
+                draftTransactionID: isDraftTransaction ? transactionID : undefined,
                 shouldShowNotFoundPage,
                 onRequestDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(true),
                 onDeleteReceipt: () => setIsDeleteReceiptConfirmModalVisible?.(false),
@@ -113,7 +166,10 @@ function TransactionReceiptModalContent({
             canDeleteReceipt,
             canEditReceipt,
             imageSource,
+            iouAction,
+            iouType,
             isDeleteReceiptConfirmModalVisible,
+            isDraftTransaction,
             isEReceipt,
             isLocalFile,
             isTrackExpenseActionValue,
@@ -123,6 +179,7 @@ function TransactionReceiptModalContent({
             reportMetadata?.isLoadingInitialReportActions,
             shouldShowNotFoundPage,
             transaction,
+            transactionID,
         ],
     );
 

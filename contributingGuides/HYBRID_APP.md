@@ -186,9 +186,6 @@ If you'd like to build HybridApp in `release` configuration you need to adjust o
 ### How to see native logs in Android Studio?
 The easiest way to see native logs is to use Logcat. In order to find it go to: `View` > `Tool windows` > `Logcat`
 ## iOS
-### Error: `undefined method [] for nil`
-It's an error that you may encounter while executing `npm run pod-install`. Unfortunately it's very generic, and indicates an error in some React Native CLI script. In order to debug it, you have to get deeper into JS script files of the `@react-native-community/cli` package. If you haven't changed anything in the `Podfile`, or haven't bumped `react-native` the best thing to do is to remove and reinstall `node_modules` and make sure all patches were applied correctly.
-
 ### Error: `"xcodebuild" exited with error code '65'`
 This is a very common error that may appear during an iOS build, it's especially annoying when it appears after executing `npm run ios`, because it doesn't give any additional information that may be useful for debugging. In order to see the real error you need to open XCode and rerun the build from there. When the build fails, pick `Errors Only` in the main panel, and extend the error by pressing an icon with 4 parallel lines on the right hand side. On the very bottom you should see the real error.
 

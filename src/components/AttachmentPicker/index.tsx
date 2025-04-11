@@ -47,7 +47,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
     const fileInput = useRef<HTMLInputElement>(null);
     const onPicked = useRef<(files: FileObject[]) => void>(() => {});
     const onCanceled = useRef<() => void>(() => {});
-
+    const isPickingRef = useRef(false);
     return (
         <>
             <input
@@ -55,6 +55,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                 type="file"
                 ref={fileInput}
                 onChange={(e) => {
+                    isPickingRef.current = false;
                     if (!e.target.files) {
                         return;
                     }
@@ -82,6 +83,7 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
                     fileInput.current.addEventListener(
                         'cancel',
                         () => {
+                            isPickingRef.current = false;
                             // For Android Chrome, the cancel event happens before the page is visible on physical devices,
                             // which makes it unreliable for us to show the keyboard, while on emulators it happens after the page is visible.
                             // So here we can delay calling the onCanceled.current function based on visibility in order to reliably show the keyboard.
@@ -103,6 +105,10 @@ function AttachmentPicker({children, type = CONST.ATTACHMENT_PICKER_TYPE.FILE, a
             {/* eslint-disable-next-line react-compiler/react-compiler */}
             {children({
                 openPicker: ({onPicked: newOnPicked, onCanceled: newOnCanceled = () => {}}) => {
+                    if (isPickingRef.current) {
+                        return;
+                    }
+                    isPickingRef.current = true;
                     onPicked.current = newOnPicked;
                     fileInput.current?.click();
                     onCanceled.current = newOnCanceled;
