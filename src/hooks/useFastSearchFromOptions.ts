@@ -64,6 +64,7 @@ function useFastSearchFromOptions(
         ]);
 
         function search(searchInput: string): AllOrSelectiveOptions {
+            // TODO: Fix this
             const searchWords = deburr(searchInput).split(' ').sort(); // asc sorted
             const longestSearchWord = searchWords.at(searchWords.length - 1); // longest word is the last element
             if (!longestSearchWord) {

@@ -18,6 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import arrayLastElement from '@src/utils/arrayLastElelment';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
@@ -305,11 +306,8 @@ function FormProvider(
             }
 
             const errorFields = formState?.errorFields?.[inputID] ?? {};
-            const fieldErrorMessage =
-                Object.keys(errorFields)
-                    .sort()
-                    .map((key) => errorFields[key])
-                    .at(-1) ?? '';
+            const fieldErrorMessageKey = arrayLastElement(Object.keys(errorFields));
+            const fieldErrorMessage = fieldErrorMessageKey ? errorFields[fieldErrorMessageKey] ?? '' : '';
 
             const inputRef = inputProps.ref;
 
