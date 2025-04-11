@@ -703,6 +703,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
+    someSelected: boolean;
 };
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';
