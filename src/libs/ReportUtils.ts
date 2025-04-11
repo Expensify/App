@@ -37,6 +37,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
+    ReportAttributes,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -1027,6 +1028,17 @@ let activePolicyID: OnyxEntry<string>;
 Onyx.connect({
     key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
     callback: (value) => (activePolicyID = value),
+});
+
+let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        reportAttributes = value;
+    },
 });
 
 let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
@@ -4528,6 +4540,13 @@ function buildReportNameFromParticipantNames({report, personalDetails}: {report:
         .join(', ');
 }
 
+function generateReportName(report: OnyxEntry<Report>): string {
+    if (!report) {
+        return '';
+    }
+    return getReportNameInternal({report});
+}
+
 /**
  * Get the title for a report.
  */
@@ -4538,6 +4557,12 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    // Check if we can use report name in derived values - only when we have report but no other params
+    const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
+
+    if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
+        return reportAttributes[report.reportID].reportName;
+    }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
 }
 
@@ -10583,6 +10608,7 @@ export {
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
     getExpenseReportStateAndStatus,
+    generateReportName,
     navigateToLinkedReportAction,
     buildOptimisticResolvedDuplicatesReportAction,
     populateOptimisticReportFormula,
