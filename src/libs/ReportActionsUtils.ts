@@ -1624,7 +1624,7 @@ function isCurrentActionUnread(report: OnyxEntry<Report>, reportAction: ReportAc
     const lastVisibleActionCreated = report?.lastVisibleActionCreated ?? '';
     return (
         isReportActionUnread(reportAction, lastReadTime, lastVisibleActionCreated) &&
-        (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime, report))
+        (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime, lastVisibleActionCreated))
     );
 }
 
