@@ -74,6 +74,7 @@ type AccordionItem = {
 
 type ExpenseRouteParams = {
     expenseType: ValueOf<typeof CONST.NETSUITE_EXPENSE_TYPE>;
+    policyID: string;
 };
 
 type CustomFieldSubStepWithPolicy = SubStepProps & {

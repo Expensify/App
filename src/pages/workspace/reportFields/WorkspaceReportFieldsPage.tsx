@@ -145,8 +145,7 @@ function WorkspaceReportFieldsPage({
 
     const toggleAllReportFields = () => {
         const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableReportFields.length === selectedReportFields.length;
-        setSelectedReportFields(isAllSelected ? [] : availableReportFields);
+        setSelectedReportFields(selectedReportFields.length > 0 ? [] : availableReportFields);
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
@@ -281,7 +280,7 @@ function WorkspaceReportFieldsPage({
                     />
                 )}
                 {shouldShowEmptyState && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFields.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFields.subtitle')}

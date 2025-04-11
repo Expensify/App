@@ -61,7 +61,7 @@ import {
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isOldDotReportAction,
-    isReimbursementDeQueuedAction,
+    isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
     isReportActionAttachment,
@@ -87,7 +87,7 @@ import {
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
     getOriginalReportID,
-    getReimbursementDeQueuedActionMessage,
+    getReimbursementDeQueuedOrCanceledActionMessage,
     getReimbursementQueuedActionMessage,
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
@@ -295,7 +295,7 @@ const ContextMenuActions: ContextMenuAction[] = [
         successIcon: Expensicons.Checkmark,
         shouldShow: ({type, isUnreadChat}) => type === CONST.CONTEXT_MENU_TYPES.REPORT_ACTION || (type === CONST.CONTEXT_MENU_TYPES.REPORT && !isUnreadChat),
         onPress: (closePopover, {reportAction, reportID}) => {
-            markCommentAsUnread(reportID, reportAction?.created);
+            markCommentAsUnread(reportID, reportAction);
             if (closePopover) {
                 hideContextMenu(true, ReportActionComposeFocusManager.focus);
             }
@@ -490,9 +490,9 @@ const ContextMenuActions: ContextMenuAction[] = [
                 } else if (isModifiedExpenseAction(reportAction)) {
                     const modifyExpenseMessage = ModifiedExpenseMessage.getForReportAction({reportOrID: reportID, reportAction});
                     Clipboard.setString(modifyExpenseMessage);
-                } else if (isReimbursementDeQueuedAction(reportAction)) {
+                } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
                     const {expenseReportID} = getOriginalMessage(reportAction) ?? {};
-                    const displayMessage = getReimbursementDeQueuedActionMessage(reportAction, expenseReportID);
+                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(reportAction, expenseReportID);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
                     const displayMessage = getIOUReportActionDisplayMessage(reportAction, transaction);
@@ -502,7 +502,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                         setClipboardMessage(displayMessage);
                     }
                 } else if (isCreatedTaskReportAction(reportAction)) {
-                    const taskPreviewMessage = getTaskCreatedMessage(reportAction);
+                    const taskPreviewMessage = getTaskCreatedMessage(reportAction, true);
                     Clipboard.setString(taskPreviewMessage);
                 } else if (isMemberChangeAction(reportAction)) {
                     const logMessage = getMemberChangeMessageFragment(reportAction, getReportName).html ?? '';
@@ -595,6 +595,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const reason = originalMessage?.reason;
                     const violationName = originalMessage?.violationName;
                     Clipboard.setString(translateLocal(`violationDismissal.${violationName}.${reason}` as TranslationPaths));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
+                    Clipboard.setString(translateLocal('violations.resolvedDuplicates'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
                     setClipboardMessage(getExportIntegrationMessageHTML(reportAction));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
