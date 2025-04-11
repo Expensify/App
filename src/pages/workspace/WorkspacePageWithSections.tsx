@@ -17,6 +17,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import BankAccount from '@libs/models/BankAccount';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -164,6 +165,20 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
+    const handleOnBackButtonPress = () => {
+        if (onBackButtonPress) {
+            onBackButtonPress();
+            return;
+        }
+
+        if (backButtonRoute) {
+            Navigation.goBack(backButtonRoute);
+            return;
+        }
+
+        goBackFromWorkspaceCentralScreen(policyID);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
@@ -182,7 +197,7 @@ function WorkspacePageWithSections({
             >
                 <HeaderWithBackButton
                     title={headerText}
-                    onBackButtonPress={() => (onBackButtonPress ? onBackButtonPress() : Navigation.goBack(backButtonRoute))}
+                    onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
                     style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
