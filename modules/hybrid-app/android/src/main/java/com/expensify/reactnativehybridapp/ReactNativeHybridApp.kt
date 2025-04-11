@@ -12,6 +12,10 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
     return false
   }
 
+  override fun shouldUseStaging(isStaging: Boolean) {
+    Log.d(NAME, "`shouldUseStaging` should never be called in standalone `New Expensify` app")
+  }
+
   override fun closeReactNativeApp(shouldSignOut: Boolean, shouldSetNVP: Boolean) {
     Log.d(NAME, "`closeReactNativeApp` should never be called in standalone `New Expensify` app")
   }
@@ -27,5 +31,9 @@ class ReactNativeHybridApp(reactContext: ReactApplicationContext) :
     accountID: String?
   ) {
     Log.d(NAME, "`switchAccount` should never be called in standalone `New Expensify` app")
+  }
+
+  override fun sendAuthToken(authToken: String?) {
+    Log.d(NAME, "`sendAuthToken` should never be called in standalone `New Expensify` app")
   }
 }
