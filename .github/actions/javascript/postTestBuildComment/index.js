@@ -11515,11 +11515,21 @@ function getTestBuildMessage() {
             acc[platform] = { link: 'N/A', qrCode: 'N/A' };
             return acc;
         }
-        const isSuccess = input === 'success';
-        const link = isSuccess ? core.getInput(`${platform}_LINK`) : '❌ FAILED ❌';
-        const qrCode = isSuccess
-            ? `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`
-            : `The QR code can't be generated, because the ${names[platform]} build failed`;
+        let link = '';
+        let qrCode = '';
+        switch (input) {
+            case 'success':
+                link = core.getInput(`${platform}_LINK`);
+                qrCode = `![${names[platform]}](https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${link})`;
+                break;
+            case 'skipped':
+                link = '⏩ SKIPPED ⏩';
+                qrCode = `The build for ${names[platform]} was skipped`;
+                break;
+            default:
+                link = '❌ FAILED ❌';
+                qrCode = `The QR code can't be generated, because the ${names[platform]} build failed`;
+        }
         acc[platform] = {
             link,
             qrCode,
