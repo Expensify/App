@@ -801,18 +801,17 @@ function PureReportActionItem({
             if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
                 if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) {
                     children = (
-                        <View style={[styles.mt1, styles.w100]}>
-                            <TransactionPreview
-                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
-                                chatReportID={reportID}
-                                reportID={reportID}
-                                action={action}
-                                isBillSplit={isSplitBillActionReportActionsUtils(action)}
-                                wrapperStyle={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
-                                onPreviewPressed={() => {}}
-                                isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
-                            />
-                        </View>
+                        <TransactionPreview
+                            iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                            chatReportID={reportID}
+                            reportID={reportID}
+                            action={action}
+                            isBillSplit={isSplitBillActionReportActionsUtils(action)}
+                            containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
+                            transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
+                            onPreviewPressed={() => {}}
+                            isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                        />
                     );
                 } else {
                     children = emptyHTML;
