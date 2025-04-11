@@ -270,7 +270,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
         }
 
         return null;
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
+    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime, lastVisibleActionCreated]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     const renderItem = useCallback(
