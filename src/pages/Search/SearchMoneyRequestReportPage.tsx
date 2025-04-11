@@ -13,6 +13,7 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
@@ -20,6 +21,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
@@ -42,6 +44,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {canUseLeftHandBar} = usePermissions();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
@@ -120,7 +123,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                     headerGapStyles={styles.searchHeaderGap}
                 >
-                    <View style={styles.searchSplitContainer}>
+                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
                         <View style={styles.searchSidebar}>
                             <View style={styles.flex1}>
                                 <HeaderGap />
