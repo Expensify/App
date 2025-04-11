@@ -33,7 +33,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import {dismissProductTraining} from '@libs/actions/Welcome';
-import {isMobile, isMobileWebKit} from '@libs/Browser';
+import {isMobile, isMobileSafari, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
@@ -862,6 +862,18 @@ function IOURequestStepScan({
         </>
     );
 
+    const elementTopOffset = useMemo(() => {
+        if (isMobileSafari()) {
+            return 10;
+        }
+
+        if (isSmallScreenWidth) {
+            return -variables.tabSelectorButtonHeight + 10;
+        }
+
+        return -variables.tabSelectorButtonHeight + 8;
+    }, [isSmallScreenWidth]);
+
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
@@ -873,13 +885,7 @@ function IOURequestStepScan({
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
-                        onLayout={(e) => {
-                            setElementTop(
-                                isSmallScreenWidth
-                                    ? e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 10)
-                                    : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8),
-                            );
-                        }}
+                        onLayout={(e) => setElementTop(e.nativeEvent.layout.height + elementTopOffset)}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >
                         <EducationalTooltip
