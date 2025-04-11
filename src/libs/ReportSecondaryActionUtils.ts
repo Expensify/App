@@ -66,6 +66,13 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
+
     if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
     }
@@ -329,11 +336,12 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
 
     // This should be removed when is merged https://github.com/Expensify/App/pull/58020
     const isSingleTransaction = reportTransactions.length === 1;
 
-    if (!isExpenseReport || !isSingleTransaction) {
+    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction) {
         return false;
     }
 
