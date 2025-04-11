@@ -1539,7 +1539,8 @@ describe('actions/Report', () => {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
                 callback: (reportActions) => {
                     Onyx.disconnect(connection);
-                    resolve(Object.values(reportActions ?? {}).find((reportAction) => isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)));
+                    const action = Object.values(reportActions ?? {})[0];
+                    resolve(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>);
                 },
             });
         });
