@@ -5,40 +5,34 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import Text from '@components/Text';
 
-type DayProps = {
-    /** Whether day is disabled */
+type AvailableBookingDayProps = {
+    /** Whether day should be disabledes */
     disabled?: boolean;
 
-    /** Whether day is selected */
+    /** Specifies direction of icon */
     selected?: boolean;
 
-    /** Whether day is pressed */
     pressed?: boolean;
-
-    /** Whether day is hovered */
     hovered?: boolean;
-
-    /** date to show */
     children?: number;
 };
 
-function Day({disabled, selected, pressed, hovered, children}: DayProps) {
+function AvailableBookingDay({disabled, selected, pressed, hovered, children}: AvailableBookingDayProps) {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
         <View
             style={[
                 themeStyles.calendarDayContainer,
-                selected ? themeStyles.buttonDefaultBG : {},
-                !disabled ? StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed)) : {},
+                !disabled ? [themeStyles.buttonDefaultBG, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered, pressed))] : {},
+                selected ? themeStyles.buttonSuccess : {},
             ]}
         >
-            <Text style={disabled ? themeStyles.buttonOpacityDisabled : {}}>{children}</Text>
+            <Text>{children}</Text>
         </View>
     );
 }
 
-Day.displayName = 'Day';
+AvailableBookingDay.displayName = 'AvailableBookingDay';
 
-export default Day;
-export type {DayProps};
+export default AvailableBookingDay;

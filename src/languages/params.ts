@@ -669,6 +669,10 @@ type ReviewParams = {
     amount: string;
 };
 
+type ScheduleCallSlotsParams = {
+    date: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -908,4 +912,5 @@ export type {
     PolicyExpenseChatNameParams,
     NeedCategoryForExportToIntegrationParams,
     ReviewParams,
+    ScheduleCallSlotsParams,
 };

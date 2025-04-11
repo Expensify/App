@@ -149,6 +149,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    ScheduleCallSlotsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -6637,7 +6638,7 @@ const translations = {
         book: {
             title: 'Programar una llamada',
             description: 'Encuentra un horario que funcione para ti.',
-            slots: 'Horarios disponibles para el 20 de febrero de 2025',
+            slots: ({date}: ScheduleCallSlotsParams) => `Horarios disponibles para el ${date}`,
         },
         confirmation: {
             title: 'Confirmar llamada',

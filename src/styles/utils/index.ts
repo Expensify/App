@@ -1766,6 +1766,9 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
+    getRowChildWidth: (columnCount: number, gap: number, containerWidth: number): StyleProp<ViewStyle> => ({
+        width: (containerWidth - gap) / columnCount
+    }),
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

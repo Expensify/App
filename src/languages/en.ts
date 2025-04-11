@@ -150,6 +150,7 @@ import type {
     RoleNamesParams,
     RoomNameReservedErrorParams,
     RoomRenamedToParams,
+    ScheduleCallSlotsParams,
     SecondaryLoginParams,
     SetTheDistanceMerchantParams,
     SetTheRequestParams,
@@ -6116,7 +6117,7 @@ const translations = {
         book: {
             title: 'Schedule a Call',
             description: 'Find a time that works for you.',
-            slots: 'Available times for Feb 20, 2025',
+            slots: ({date}: ScheduleCallSlotsParams)  => `Available times for ${date}`,
         },
         confirmation: {
             title: 'Confirm Call',
