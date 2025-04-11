@@ -1,5 +1,6 @@
 import type {OnyxKey} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {SIDE_EFFECT_REQUEST_COMMANDS} from '@libs/API/types';
 import CONST from '@src/CONST';
 import * as OnyxUpdates from '@src/libs/actions/OnyxUpdates';
 import DateUtils from '@src/libs/DateUtils';
@@ -63,6 +64,41 @@ describe('OnyxUpdatesTest', () => {
                 expect(report).toStrictEqual(reportValue);
                 expect(reportAction).toStrictEqual(reportActionValue);
             });
+    });
+
+    it('applies full ReconnectApp Onyx updates even if they appear old', async () => {
+        // Given the current lastUpdateIDAppliedToClient is merged
+        const currentUpdateID = 100;
+        await Onyx.merge(ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT, currentUpdateID);
+
+        // And we received onyx updates from a full ReconnectApp request with the same lastUpdateID
+        const reportID = NumberUtils.rand64();
+        const reportValue = {reportID};
+        const fullReconnectUpdates: OnyxUpdatesFromServer = {
+            type: CONST.ONYX_UPDATE_TYPES.HTTPS,
+            request: {
+                command: SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
+                data: {
+                    updateIDFrom: null,
+                },
+            },
+            response: {
+                onyxData: [
+                    {
+                        onyxMethod: 'merge',
+                        key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+                        value: reportValue,
+                    },
+                ],
+            },
+            previousUpdateID: currentUpdateID - 2,
+            lastUpdateID: currentUpdateID - 1,
+        };
+
+        // When we apply the updates, then they are still applied even if the lastUpdateID is old
+        await OnyxUpdates.apply(fullReconnectUpdates);
+        const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        expect(report).toStrictEqual(reportValue);
     });
 });
 
