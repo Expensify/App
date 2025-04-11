@@ -196,6 +196,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const [quickActionPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${quickActionReport?.policyID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {canUseLeftHandBar} = usePermissions();
 
     const [isCreateMenuActive, setIsCreateMenuActive] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
@@ -611,12 +612,12 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     ];
 
     return (
-        <View style={styles.flexGrow1}>
+        <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
             <PopoverMenu
                 onClose={hideCreateMenu}
                 shouldEnableMaxHeight={false}
                 isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
+                anchorPosition={canUseLeftHandBar ? styles.createLHBMenuPositionSidebar(windowHeight) : styles.createMenuPositionSidebar(windowHeight)}
                 onItemSelected={hideCreateMenu}
                 fromSidebarMediumScreen={!shouldUseNarrowLayout}
                 animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}

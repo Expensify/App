@@ -34,7 +34,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
+jest.mock('@src/components/Navigation/TopLevelNavigationTabBar/useIsNavigationTabBarVisibleDirectly');
 
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests

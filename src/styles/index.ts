@@ -325,7 +325,7 @@ const styles = (theme: ThemeColors) =>
             color: theme.textSupporting,
         },
 
-        bottomTabBarLabel: {
+        navigationTabBarLabel: {
             lineHeight: 14,
             height: 16,
         },
@@ -587,22 +587,21 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        topLevelBottomTabBar: (shouldDisplayTopLevelBottomTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
-            pointerEvents: shouldDisplayTopLevelBottomTabBar ? 'auto' : 'none',
+            opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
+            pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
-            bottom: 0,
 
             // There is a missing border right on the wide layout
             borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
             borderColor: theme.border,
         }),
 
-        bottomTabBarContainer: {
+        navigationTabBarContainer: {
             flexDirection: 'row',
             height: variables.bottomTabHeight,
             borderTopWidth: 1,
@@ -610,8 +609,22 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.appBG,
         },
 
-        bottomTabBarItem: {
+        navigationTabBarItem: {
             height: '100%',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+        },
+
+        leftNavigationTabBar: {
+            height: '100%',
+            width: variables.navigationTabBarSize,
+            position: 'fixed',
+            left: 0,
+        },
+
+        leftNavigationTabBarItem: {
+            height: variables.navigationTabBarSize,
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
@@ -1701,7 +1714,7 @@ const styles = (theme: ThemeColors) =>
                 zIndex: 10,
             } satisfies ViewStyle),
 
-        bottomTabStatusIndicator: (backgroundColor: string = theme.danger) => ({
+        navigationTabBarStatusIndicator: (backgroundColor: string = theme.danger) => ({
             borderColor: theme.sidebar,
             backgroundColor,
             borderRadius: 8,
@@ -1721,6 +1734,11 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 999,
             alignItems: 'center',
             justifyContent: 'center',
+        },
+
+        floatingActionButtonSmall: {
+            width: variables.componentSizeNormal,
+            height: variables.componentSizeNormal,
         },
 
         sidebarFooterUsername: {
@@ -1849,6 +1867,14 @@ const styles = (theme: ThemeColors) =>
                 // Menu should be displayed 12px above the floating action button.
                 // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
                 vertical: windowHeight - (variables.fabBottom + variables.componentSizeLarge + 12),
+            } satisfies AnchorPosition),
+
+        createLHBMenuPositionSidebar: (windowHeight: number) =>
+            ({
+                horizontal: 18,
+                // Menu should be displayed 12px above the floating action button.
+                // To achieve that sidebar must be moved by: distance from the bottom of the sidebar to the fab (variables.fabBottom) + fab height (variables.componentSizeLarge) + distance above the fab (12px)
+                vertical: windowHeight - (variables.fabBottom + variables.componentSizeNormal + 12),
             } satisfies AnchorPosition),
 
         createAccountMenuPositionProfile: () =>
@@ -2947,6 +2973,8 @@ const styles = (theme: ThemeColors) =>
         },
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
+        rootNavigatorContainerWithLHBStyles: (isSmallScreenWidth: boolean) =>
+            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
