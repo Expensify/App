@@ -17,6 +17,7 @@ import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar
 import type {SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -26,6 +27,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +57,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {canUseLeftHandBar} = usePermissions();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const {isOffline} = useNetwork();
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -134,6 +137,9 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
         );
     }
 
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+
     return (
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
@@ -148,6 +154,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
                     <View style={[StyleUtils.getSearchBottomTabHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
+                                shouldShowLoadingBar={shouldShowLoadingState}
                                 activeWorkspaceID={policyID}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
