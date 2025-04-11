@@ -1751,6 +1751,12 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        topBarLabel: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+            ...headlineFont,
+        },
+
         breadcrumsContainer: {
             minHeight: 24,
         },
@@ -2655,9 +2661,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
+        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
+            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
+        }),
 
         imageViewContainer: {
             width: '100%',
@@ -3159,6 +3165,10 @@ const styles = (theme: ThemeColors) =>
 
         flipUpsideDown: {
             transform: `rotate(180deg)`,
+        },
+
+        mirror: {
+            transform: `scaleX(-1)`,
         },
 
         navigationScreenCardStyle: {

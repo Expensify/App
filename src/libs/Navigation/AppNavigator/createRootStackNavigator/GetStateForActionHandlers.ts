@@ -55,7 +55,7 @@ function handleOpenWorkspaceSplitAction(
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: SCREENS.WORKSPACE.INITIAL,
+        screen: action.payload.screenName,
         params: {
             policyID: action.payload.policyID,
         },
