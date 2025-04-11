@@ -727,6 +727,19 @@ Onyx.connect({
     callback: (value) => (personalDetailsList = value),
 });
 
+let snapshotList: OnyxCollection<OnyxTypes.SearchResults> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.SNAPSHOT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+
+        snapshotList = value;
+    },
+});
+
 /**
  * @private
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
@@ -1695,36 +1708,54 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
+    // Don't use nullish coalescing because we also want to use the ownerAccountID
+    // if the accountID is 0.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const toAccountID = participant?.accountID || participant?.ownerAccountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
 
-    if (hash && toAccountID && fromAccountID) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            value: {
-                data: {
-                    [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                        [toAccountID]: {
-                            accountID: toAccountID,
-                            displayName: participant?.displayName,
-                            login: participant?.login,
+    if (hash && toAccountID && fromAccountID && snapshotList) {
+        const existingPersonalDetails = {...personalDetailsList};
+        const snapshot = snapshotList[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+
+        if (snapshot?.search.status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
+                            },
+                            [fromAccountID]: {
+                                accountID: fromAccountID,
+                                avatar: currentUserPersonalDetails?.avatar,
+                                displayName: currentUserPersonalDetails?.displayName,
+                                login: currentUserPersonalDetails?.login,
+                            },
                         },
-                        [fromAccountID]: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
                             accountID: fromAccountID,
-                            avatar: currentUserPersonalDetails?.avatar,
-                            displayName: currentUserPersonalDetails?.displayName,
-                            login: currentUserPersonalDetails?.login,
+                            managerID: toAccountID,
+                            ...transaction,
                         },
-                    },
-                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                        accountID: fromAccountID,
-                        managerID: toAccountID,
-                        ...transaction,
                     },
                 },
-            },
-        });
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: existingPersonalDetails,
+                    },
+                },
+            });
+        }
     }
 
     // We don't need to compute violations unless we're on a paid policy
