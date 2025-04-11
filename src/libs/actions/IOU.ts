@@ -10633,6 +10633,7 @@ export {
     adjustRemainingSplitShares,
     getNextApproverAccountID,
     approveMoneyRequest,
+    retractReport,
     canApproveIOU,
     canUnapproveIOU,
     cancelPayment,
