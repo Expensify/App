@@ -282,7 +282,7 @@ function MoneyRequestConfirmationListFooter({
      * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
-    const transactionReport = !!transaction?.reportID && allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction.reportID}`];
+    const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
     const shouldUseTransactionReport = !!transactionReport && isReportOutsanding(transactionReport, selectedParticipants?.at(0)?.policyID);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
