@@ -274,6 +274,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 value: false,
             },
         ],
+        queueFlushedData: [],
     };
 
     if (isOpenApp) {
@@ -283,7 +284,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
             value: true,
         });
 
-        result.finallyData?.push({
+        result.queueFlushedData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
             value: false,
