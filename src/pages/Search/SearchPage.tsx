@@ -335,7 +335,8 @@ function SearchPage({route}: SearchPageProps) {
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
-    const shouldShowLoadingState = !isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
 
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
