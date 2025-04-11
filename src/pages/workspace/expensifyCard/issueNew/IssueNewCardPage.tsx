@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,7 +26,13 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-
+    /* eslint-disable react-compiler/react-compiler */
+    const firstAssigneeEmail = useRef(issueNewCard?.data?.assigneeEmail);
+    if (!firstAssigneeEmail.current) {
+        firstAssigneeEmail.current = issueNewCard?.data?.assigneeEmail;
+    }
+    const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === issueNewCard?.data?.assigneeEmail;
+    /* eslint-enable react-compiler/react-compiler */
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
 
     useEffect(() => {
@@ -49,7 +55,8 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        backTo={backTo}
+                        // eslint-disable-next-line react-compiler/react-compiler
+                        backTo={shouldUseBackToParam ? backTo : undefined}
                     />
                 );
             default:
@@ -73,6 +80,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     }
 
     return (
+        /* eslint-disable react-compiler/react-compiler */
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
@@ -80,6 +88,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
         >
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>
+        /* eslint-enable react-compiler/react-compiler */
     );
 }
 

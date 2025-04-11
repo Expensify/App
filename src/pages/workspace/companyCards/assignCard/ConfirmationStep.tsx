@@ -127,6 +127,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                             isLoading={assignCard?.isAssigning}
                             style={styles.w100}
                             onPress={submit}
+                            testID={CONST.ASSIGN_CARD_BUTTON_TEST_ID}
                             text={translate('workspace.companyCards.assignCard')}
                         />
                     </OfflineWithFeedback>
