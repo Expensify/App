@@ -21,10 +21,11 @@ type TopBarProps = {
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayHelpButton?: boolean;
+    shouldDisplayLoadingBar?: boolean;
     cancelSearch?: () => void;
 };
 
-function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch}: TopBarProps) {
+function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayHelpButton = true, shouldDisplayLoadingBar = true, cancelSearch}: TopBarProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const policy = usePolicy(activeWorkspaceID);
@@ -76,7 +77,7 @@ function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true,
                 {shouldDisplayHelpButton && <HelpButton />}
                 {displaySearch && <SearchButton />}
             </View>
-            <LoadingBar shouldShow={isLoadingReportData ?? false} />
+            {shouldDisplayLoadingBar && <LoadingBar shouldShow={isLoadingReportData ?? false} />}
         </View>
     );
 }
