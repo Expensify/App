@@ -37,7 +37,6 @@ const {OWNS_MORE_THAN_25_PERCENT, COMPANY_NAME} = INPUT_IDS.ADDITIONAL_DATA.CORP
 
 const fullBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Name, JobTitle, DateOfBirth, Address, UploadDocuments, Confirmation];
 const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [JobTitle, UploadDocuments, Confirmation];
-const userIsOwnerCadBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [UploadDocuments, Confirmation];
 
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
@@ -89,15 +88,11 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
 
     const bodyContent = useMemo(() => {
         if (isUserOwner) {
-            if (currency === CONST.CURRENCY.CAD) {
-                return userIsOwnerCadBodyContent;
-            }
-
             return userIsOwnerBodyContent;
         }
 
         return fullBodyContent;
-    }, [currency, isUserOwner]);
+    }, [isUserOwner]);
 
     const {
         componentToRender: SignerDetailsForm,
