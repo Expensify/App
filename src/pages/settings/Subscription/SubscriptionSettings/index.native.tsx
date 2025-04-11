@@ -92,14 +92,14 @@ function SubscriptionSettings() {
                             <OptionItem
                                 title="subscription.details.payPerUse"
                                 icon={Illustrations.SubscriptionPPU}
-                                style={styles.mt5}
+                                style={[styles.mt5, styles.flex0]}
                                 isDisabled
                             />
                         ) : (
                             <OptionItem
                                 title="subscription.details.annual"
                                 icon={Illustrations.SubscriptionAnnual}
-                                style={styles.mt5}
+                                style={[styles.mt5, styles.flex0]}
                                 isDisabled
                             />
                         )}
