@@ -22,6 +22,7 @@ import type {
     ReplaceReceiptParams,
     RequestMoneyParams,
     ResolveDuplicatesParams,
+    RetractReportParams,
     SendInvoiceParams,
     SendMoneyParams,
     SetNameValuePairParams,
@@ -9104,7 +9105,7 @@ function retractReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
         });
     }
 
-    const parameters: ReopenReportParams = {
+    const parameters: RetractReportParams = {
         reportID: expenseReport.reportID,
     };
 
