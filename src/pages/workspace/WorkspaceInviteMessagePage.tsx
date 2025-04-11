@@ -182,7 +182,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={WorkspaceInviteMessagePage.displayName}
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}
@@ -202,6 +202,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     submitButtonText={translate('common.invite')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}
