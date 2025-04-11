@@ -258,7 +258,7 @@ function AmountForm(
                     textInput.current = ref;
                 }}
                 prefixCharacter={currency}
-                prefixContainerStyle={styles.pb2_5}
+                prefixContainerStyle={styles.pb2half}
                 prefixStyle={styles.colorMuted}
                 keyboardType={CONST.KEYBOARD_TYPE.DECIMAL_PAD}
                 // On android autoCapitalize="words" is necessary when keyboardType="decimal-pad" or inputMode="decimal" to prevent input lag.
