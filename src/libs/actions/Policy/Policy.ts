@@ -1775,6 +1775,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
+                requiresCategory: true,
             },
         },
     ];
@@ -1883,6 +1884,7 @@ function buildPolicyData(
                 avatarURL: file?.uri,
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
+                requiresCategory: true,
             },
         },
         {
@@ -2216,6 +2218,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 },
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
+                requiresCategory: true,
             },
         },
         {
@@ -2545,6 +2548,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         },
         defaultBillable: false,
         disabledFields: {defaultBillable: true},
+        requiresCategory: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
