@@ -28,6 +28,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -84,6 +85,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
+    const {canUseLeftHandBar} = usePermissions();
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -178,8 +180,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const toggleAllCategories = () => {
         const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableCategories.length === Object.keys(selectedCategories).length;
-        setSelectedCategories(isAllSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
+        const someSelected = availableCategories.some((category) => selectedCategories[category.keyForList]);
+        setSelectedCategories(someSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
 
     const getCustomListHeader = () => {
@@ -420,7 +422,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         Navigation.goBack(backTo);
                     }}
                     shouldShowThreeDotsButton
-                    style={styles.headerBarDesktopHeight}
+                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
