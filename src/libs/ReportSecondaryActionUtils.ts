@@ -298,6 +298,14 @@ function isDeleteAction(report: Report): boolean {
     return isReportOpen || isProcessingReport || isReportApproved;
 }
 
+function canReopenReport(report: Report, policy: Policy): boolean {
+    return true;
+}
+
+function canRetractReport(report: Report, policy: Policy): boolean {
+    return true;
+}
+
 function getSecondaryAction(
     report: Report,
     policy: Policy,
@@ -330,6 +338,14 @@ function getSecondaryAction(
 
     if (isMarkAsExportedAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.MARK_AS_EXPORTED);
+    }
+
+    if (canReopenReport(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.REOPEN);
+    }
+
+    if (canRetractReport(report, policy)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.RETRACT);
     }
 
     if (isHoldAction(report, reportTransactions)) {

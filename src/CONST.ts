@@ -1154,6 +1154,8 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            REOPEN: 'reopen',
+            RETRACT: 'retract',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1221,6 +1223,8 @@ const CONST = {
                 REMOVED_FROM_APPROVAL_CHAIN: 'REMOVEDFROMAPPROVALCHAIN',
                 DEMOTED_FROM_WORKSPACE: 'DEMOTEDFROMWORKSPACE',
                 RENAMED: 'RENAMED',
+                REOPENED: 'REOPENED',
+                RETRACTED: 'RETRACTED',
                 REPORT_PREVIEW: 'REPORTPREVIEW',
                 SELECTED_FOR_RANDOM_AUDIT: 'SELECTEDFORRANDOMAUDIT', // OldDot Action
                 SHARE: 'SHARE', // OldDot Action
