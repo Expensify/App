@@ -25,7 +25,20 @@ import {
 import type {OptionList, Options, SearchOption} from '@src/libs/OptionsListUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import {getFakeAdvancedReportAction} from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
+
+jest.mock('@rnmapbox/maps', () => {
+    return {
+        default: jest.fn(),
+        MarkerView: jest.fn(),
+        setAccessToken: jest.fn(),
+    };
+});
+
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+}));
 
 type PersonalDetailsList = Record<string, PersonalDetails & OptionData>;
 
@@ -179,6 +192,7 @@ describe('OptionsListUtils', () => {
             chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
             isOwnPolicyExpenseChat: true,
             type: CONST.REPORT.TYPE.CHAT,
+            lastActorAccountID: 2,
         },
         '11': {
             lastReadTime: '2021-01-14 11:25:39.200',
@@ -1354,6 +1368,20 @@ describe('OptionsListUtils', () => {
             const result = orderWorkspaceOptions(WORKSPACE_CHATS);
 
             expect(result.at(0)?.text).toEqual('Notion Workspace for Marketing');
+        });
+    });
+
+    describe('Alternative text', () => {
+        it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
+            await Onyx.multiSet({
+                [ONYXKEYS.NVP_PREFERRED_LOCALE]: CONST.LOCALES.EN,
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}10` as const]: {
+                    '1': getFakeAdvancedReportAction(CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT),
+                },
+            });
+            const reports = createOptionList(PERSONAL_DETAILS, REPORTS).reports;
+            const archivedReport = reports.find((report) => report.reportID === '10');
+            expect(archivedReport?.lastMessageText).toBe('This chat room has been archived.'); // Default archived reason
         });
     });
 
