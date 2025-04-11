@@ -115,6 +115,7 @@ function BaseSelectionList<TItem extends ListItem>(
         windowSize = 5,
         updateCellsBatchingPeriod = 50,
         removeClippedSubviews = true,
+        shouldDelayFocus = true,
         onArrowFocus = () => {},
         shouldUpdateFocusedIndex = false,
         onLongPressRow,
@@ -711,11 +712,15 @@ function BaseSelectionList<TItem extends ListItem>(
     useFocusEffect(
         useCallback(() => {
             if (textInputAutoFocus && shouldShowTextInput) {
-                focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+                if (shouldDelayFocus) {
+                    focusTimeoutRef.current = setTimeout(focusTextInput, CONST.ANIMATED_TRANSITION);
+                } else {
+                    requestAnimationFrame(focusTextInput);
+                }
             }
 
             return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
-        }, [shouldShowTextInput, textInputAutoFocus, focusTextInput]),
+        }, [shouldShowTextInput, textInputAutoFocus, shouldDelayFocus, focusTextInput]),
     );
 
     const prevTextInputValue = usePrevious(textInputValue);
