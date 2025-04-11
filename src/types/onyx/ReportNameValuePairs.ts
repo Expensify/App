@@ -6,6 +6,9 @@ import type * as OnyxCommon from './OnyxCommon';
 type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether the report is an archived room */
     private_isArchived?: string;
+
+    /** The time the report export failed */
+    exportFailedTime?: string;
 }>;
 
 /** Collection of reportNameValuePairs, indexed by reportNameValuePairs_{reportID} */
