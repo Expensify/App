@@ -99,6 +99,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Is a virtual card */
         isVirtual?: boolean;
 
+        /** Is a travel card */
+        isTravelCard?: boolean;
+
         /** Previous card state */
         previousState?: number;
 
