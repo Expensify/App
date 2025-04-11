@@ -75,7 +75,6 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!config?.customFormIDOptions?.enabled}
             shouldUseScrollView={false}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={[styles.flexGrow1, styles.ph5]}>
                 <FormProvider

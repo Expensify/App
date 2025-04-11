@@ -525,7 +525,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         >
             <ScreenWrapper
                 testID={PolicyAccountingPage.displayName}
-                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton

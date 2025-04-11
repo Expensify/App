@@ -70,9 +70,6 @@ type ConnectionLayoutProps = {
 
     /** Whether or not to block user from accessing the page */
     shouldBeBlocked?: boolean;
-
-    /** Whether to enable edge to edge bottom safe area padding logic */
-    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 type ConnectionLayoutContentProps = Pick<ConnectionLayoutProps, 'title' | 'titleStyle' | 'children' | 'titleAlreadyTranslated'>;
@@ -107,7 +104,6 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
-    enableEdgeToEdgeBottomSafeAreaPadding,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
@@ -137,8 +133,8 @@ function ConnectionLayout({
             shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
         >
             <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
-                includeSafeAreaPaddingBottom={!enableEdgeToEdgeBottomSafeAreaPadding && !!shouldIncludeSafeAreaPaddingBottom}
+                enableEdgeToEdgeBottomSafeAreaPadding
+                includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
                 shouldEnableMaxHeight
                 testID={displayName}
             >
@@ -150,7 +146,7 @@ function ConnectionLayout({
                 {shouldUseScrollView ? (
                     <ScrollView
                         contentContainerStyle={contentContainerStyle}
-                        addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                        addBottomSafeAreaPadding
                     >
                         {renderSelectionContent}
                     </ScrollView>

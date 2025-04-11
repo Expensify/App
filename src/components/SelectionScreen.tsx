@@ -109,9 +109,6 @@ type SelectionScreenProps<T = string> = {
 
     /** Callback to fire when the text input changes */
     onChangeText?: (text: string) => void;
-
-    /** Whether to enable edge-to-edge bottom safe area padding */
-    enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
 function SelectionScreen<T = string>({
@@ -142,7 +139,6 @@ function SelectionScreen<T = string>({
     onChangeText,
     shouldShowTextInput,
     shouldUpdateFocusedIndex = false,
-    enableEdgeToEdgeBottomSafeAreaPadding,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -158,8 +154,7 @@ function SelectionScreen<T = string>({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
-                enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -191,7 +186,7 @@ function SelectionScreen<T = string>({
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         isAlternateTextMultilineSupported
                         listItemWrapperStyle={listItemWrapperStyle}
-                        addBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
+                        addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
                     >
                         <ErrorMessageRow
                             errors={errors}

@@ -99,7 +99,6 @@ function XeroExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

@@ -96,7 +96,6 @@ function QuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps)
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

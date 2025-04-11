@@ -177,7 +177,6 @@ function NetSuiteImportCustomFieldEdit({
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldBeBlocked={!customField || !isNetSuiteCustomFieldPropertyEditable(customField, fieldName)}
             shouldUseScrollView={false}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {renderMap[fieldName] || renderForm}
         </ConnectionLayout>

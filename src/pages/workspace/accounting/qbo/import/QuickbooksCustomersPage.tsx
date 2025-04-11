@@ -49,7 +49,6 @@ function QuickbooksCustomersPage({policy}: WithPolicyProps) {
             contentContainerStyle={[styles.pb2, styles.ph5]}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_IMPORT.getRoute(policyID))}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.import')}

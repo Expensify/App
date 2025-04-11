@@ -82,7 +82,6 @@ function RequireQuickBooksDesktopModal({route}: RequireQuickBooksDesktopModalPro
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={RequireQuickBooksDesktopModal.displayName}

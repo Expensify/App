@@ -77,7 +77,6 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.getRoute(policyID))}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <FormProvider
                 style={[styles.flexGrow1, styles.ph5]}

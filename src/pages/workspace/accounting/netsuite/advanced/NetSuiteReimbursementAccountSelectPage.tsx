@@ -86,7 +86,6 @@ function NetSuiteReimbursementAccountSelectPage({policy}: WithPolicyConnectionsP
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.REIMBURSEMENT_ACCOUNT_ID)}
-            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }

@@ -52,7 +52,6 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={ExistingConnectionsPage.displayName}

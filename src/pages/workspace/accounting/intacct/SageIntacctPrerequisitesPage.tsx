@@ -76,7 +76,6 @@ function SageIntacctPrerequisitesPage({route}: SageIntacctPrerequisitesPageProps
 
     return (
         <ScreenWrapper
-            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={SageIntacctPrerequisitesPage.displayName}

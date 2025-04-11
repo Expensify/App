@@ -84,7 +84,6 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBD}
             onBackButtonPress={() => Navigation.goBack()}
-            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback

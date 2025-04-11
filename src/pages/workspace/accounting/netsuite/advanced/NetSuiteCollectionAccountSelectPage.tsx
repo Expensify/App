@@ -86,7 +86,6 @@ function NetSuiteCollectionAccountSelectPage({policy}: WithPolicyConnectionsProp
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.COLLECTION_ACCOUNT)}
-            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }

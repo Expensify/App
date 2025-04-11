@@ -96,7 +96,6 @@ function XeroBankAccountSelectPage({policy}: WithPolicyConnectionsProps) {
             errors={getLatestErrorField(config ?? {}, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearXeroErrorField(policyID, CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT)}
-            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }

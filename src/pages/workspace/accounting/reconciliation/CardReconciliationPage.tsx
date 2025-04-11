@@ -80,7 +80,6 @@ function CardReconciliationPage({policy, route}: CardReconciliationPageProps) {
             shouldBeBlocked={!shouldShow}
         >
             <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={CardReconciliationPage.displayName}
             >
