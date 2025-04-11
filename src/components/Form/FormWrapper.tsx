@@ -8,6 +8,7 @@ import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormElement from '@components/FormElement';
 import ScrollView from '@components/ScrollView';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
@@ -48,6 +49,12 @@ type FormWrapperProps = ChildrenProps &
 
         /** Whether the submit button should stick to the bottom of the screen. */
         shouldSubmitButtonStickToBottom?: boolean;
+
+        /**
+         * Whether the button should have a background layer in the color of theme.appBG.
+         * This is needed for buttons that allow content to display under them.
+         */
+        shouldSubmitButtonBlendOpacity?: boolean;
     };
 
 function FormWrapper({
@@ -74,6 +81,7 @@ function FormWrapper({
     addBottomSafeAreaPadding,
     addOfflineIndicatorBottomSafeAreaPadding: addOfflineIndicatorBottomSafeAreaPaddingProp,
     shouldSubmitButtonStickToBottom: shouldSubmitButtonStickToBottomProp,
+    shouldSubmitButtonBlendOpacity = false,
 }: FormWrapperProps) {
     const styles = useThemeStyles();
     const formRef = useRef<RNScrollView>(null);
@@ -127,6 +135,16 @@ function FormWrapper({
     const shouldApplyBottomSafeAreaPadding = addBottomSafeAreaPadding ?? !isLegacyBottomSafeAreaPaddingAlreadyApplied;
     const addOfflineIndicatorBottomSafeAreaPadding = addOfflineIndicatorBottomSafeAreaPaddingProp ?? addBottomSafeAreaPadding === true;
 
+    // We need to add bottom safe are padding to the submit button when we don't use a scroll view or
+    // when the submit button is sticking to the bottom.
+    const addSubmitButtonBottomSafeAreaPadding = addBottomSafeAreaPadding && (!shouldUseScrollView || shouldSubmitButtonStickToBottom);
+    const submitButtonStylesWithBottomSafeAreaPadding = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: addSubmitButtonBottomSafeAreaPadding,
+        styleProperty: shouldSubmitButtonStickToBottom ? 'bottom' : 'paddingBottom',
+        additionalPaddingBottom: shouldSubmitButtonStickToBottom ? styles.pb5.paddingBottom : 0,
+        style: submitButtonStyles,
+    });
+
     const SubmitButton = useMemo(
         () =>
             isSubmitButtonVisible && (
@@ -142,23 +160,15 @@ function FormWrapper({
                     containerStyles={[
                         styles.mh0,
                         styles.mt5,
-                        submitFlexEnabled ? styles.flex1 : {},
-                        submitButtonStyles,
-                        shouldSubmitButtonStickToBottom
-                            ? [
-                                  styles.stickToBottom,
-                                  {
-                                      bottom: styles.pb5.paddingBottom + paddingBottom,
-                                  },
-                                  style,
-                              ]
-                            : {},
+                        submitFlexEnabled && styles.flex1,
+                        submitButtonStylesWithBottomSafeAreaPadding,
+                        shouldSubmitButtonStickToBottom && [styles.stickToBottom, style],
                     ]}
                     enabledWhenOffline={enabledWhenOffline}
                     isSubmitActionDangerous={isSubmitActionDangerous}
                     disablePressOnEnter={disablePressOnEnter}
                     enterKeyEventListenerPriority={1}
-                    shouldBlendOpacity={shouldSubmitButtonStickToBottom}
+                    shouldBlendOpacity={shouldSubmitButtonBlendOpacity}
                 />
             ),
         [
@@ -175,16 +185,15 @@ function FormWrapper({
             isSubmitDisabled,
             onFixTheErrorsLinkPressed,
             onSubmit,
-            paddingBottom,
             shouldHideFixErrorsAlert,
+            shouldSubmitButtonBlendOpacity,
             shouldSubmitButtonStickToBottom,
             style,
             styles.flex1,
             styles.mh0,
             styles.mt5,
-            styles.pb5.paddingBottom,
             styles.stickToBottom,
-            submitButtonStyles,
+            submitButtonStylesWithBottomSafeAreaPadding,
             submitButtonText,
             submitFlexEnabled,
         ],
