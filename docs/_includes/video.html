@@ -1,0 +1,27 @@
+<div class="video-container">
+    <video
+        class="video-player"
+        src="{{ include.src }}"
+        controls
+        loop
+        preload="auto"
+        autoplay="false"
+        {%
+        if
+        include.thumbnail
+        %}
+        poster="{{ site.url }}/{{ include.thumbnail }}"
+        {%
+        endif
+        %}
+    >
+        Your browser does not support the video tag.
+    </video>
+    <div class="play-button-wrapper">
+        <span
+            class="play-button"
+            role="button"
+            aria-label="Click to play"
+        ></span>
+    </div>
+</div>
