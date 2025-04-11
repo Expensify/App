@@ -52,7 +52,7 @@ type BillingReceiptDetails = {
     monthlyTeamBasePrice: number;
 
     /** A list of errors keyed by microtime */
-    errors?: OnyxCommon.Errors;
+    errors?: string;
 
     /** Indicates whether the data is loaded or not  */
     isLoading?: boolean;

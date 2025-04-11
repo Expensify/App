@@ -14,7 +14,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,7 +33,7 @@ function PayAndDowngradePage() {
     const [billingDetails] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
     const prevIsLoading = usePrevious(billingDetails?.isLoading);
 
-    const errorMessage = getLatestErrorMessage(billingDetails);
+    const errorMessage = billingDetails?.errors;
 
     const items: BillingItem[] = useMemo(() => {
         if (isEmptyObject(billingDetails)) {
