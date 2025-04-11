@@ -4616,6 +4616,10 @@ const styles = (theme: ThemeColors) =>
             margin: 4,
         },
 
+        receiptPreviewAspectRatio: {
+            aspectRatio: 16 / 9,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
             borderRadius: 12,
@@ -4782,6 +4786,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             borderWidth: 0,
         },
+
+        receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',
