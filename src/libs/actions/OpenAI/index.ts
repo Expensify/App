@@ -65,7 +65,7 @@ Onyx.connect({
         if (!session?.email) {
             return;
         }
-        
+
         currentUserEmail = session.email;
     },
 });
@@ -137,14 +137,14 @@ function connectToOpenAIRealtime(adminsChatReportID: number, ctaUsed: string): P
 
     const constraints = {
         audio: {
-          echoCancellation: true,
-          noiseSuppression: true,
-          autoGainControl: true,
-          channelCount: 1,
-          sampleRate: 24000,
-          sampleSize: 16
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 24000,
+            sampleSize: 16,
         },
-        video: false
+        video: false,
     };
 
     return new Promise((resolve, reject) => {
@@ -154,11 +154,11 @@ function connectToOpenAIRealtime(adminsChatReportID: number, ctaUsed: string): P
                 mediaStream = stream;
                 const pc = new RTCPeerConnection({
                     iceServers: [
-                        { urls: 'stun:stun.l.google.com:19302' },
-                        { urls: 'stun:stun1.l.google.com:19302' },
-                        { urls: 'stun:stun2.l.google.com:19302' },
-                        { urls: 'stun:stun3.l.google.com:19302' },
-                        { urls: 'stun:stun4.l.google.com:19302' },
+                        {urls: 'stun:stun.l.google.com:19302'},
+                        {urls: 'stun:stun1.l.google.com:19302'},
+                        {urls: 'stun:stun2.l.google.com:19302'},
+                        {urls: 'stun:stun3.l.google.com:19302'},
+                        {urls: 'stun:stun4.l.google.com:19302'},
                     ],
                     bundlePolicy: 'max-bundle',
                     rtcpMuxPolicy: 'require',
@@ -348,7 +348,7 @@ function handleTranscriptMessage(email: string, message: OpenAIRealtimeMessage) 
 
 function stopConnection() {
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
-    
+
     completeConciergeCall();
 
     if (mediaStream) {
