@@ -93,11 +93,11 @@ Onyx.connect({
     },
 });
 
-let hasTeamPricing2025: OnyxEntry<boolean>;
+let hasManualTeamPricing2025: OnyxEntry<boolean>;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_TEAM_PRICING_2025,
+    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025,
     callback: (value) => {
-        hasTeamPricing2025 = value;
+        hasManualTeamPricing2025 = value;
     },
 });
 
@@ -570,7 +570,7 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
 }
 
 function checkIfHasTeam2025Pricing() {
-    if (hasTeamPricing2025) {
+    if (hasManualTeamPricing2025) {
         return true;
     }
 

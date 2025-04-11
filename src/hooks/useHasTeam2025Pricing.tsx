@@ -5,9 +5,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 function useHasTeam2025Pricing(): boolean {
     const [firstPolicyDate] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE);
-    const [hasTeamPricing2025] = useOnyx(ONYXKEYS.NVP_PRIVATE_TEAM_PRICING_2025);
+    const [hasManualTeamPricing2025] = useOnyx(ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025);
 
-    if (hasTeamPricing2025) {
+    if (hasManualTeamPricing2025) {
         return true;
     }
 
