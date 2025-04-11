@@ -31,7 +31,7 @@ function RequireTwoFactorAuthenticationPage() {
                         <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}</Text>
                     </View>
                     <Button
-                        large
+                        medium
                         success
                         style={styles.wFitContent}
                         pressOnEnter
