@@ -650,7 +650,6 @@ function BaseSelectionList<TItem extends ListItem>(
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
                     errorText={errorText}
-                    autoFocus={textInputAutoFocus}
                 />
             </View>
         );
