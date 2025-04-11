@@ -121,10 +121,11 @@ function AccountValidatePage() {
                 shouldDisplayHelpButton={false}
             />
             <ValidateCodeActionForm
-                descriptionPrimary={<Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>}
+                descriptionPrimary={translate('mergeAccountsPage.accountValidate.confirmMerge')}
+                descriptionPrimaryStyles={{...styles.mb8, ...styles.textStrong}}
                 descriptionSecondary={
                     <View>
-                        <Text style={[styles.mb6]}>
+                        <Text style={[styles.mb8]}>
                             {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
                             <Text style={styles.textStrong}>{email}</Text>.
                         </Text>
@@ -134,6 +135,7 @@ function AccountValidatePage() {
                         </Text>
                     </View>
                 }
+                descriptionSecondaryStyles={styles.mb8}
                 handleSubmitForm={(code) => {
                     mergeWithValidateCodeAction(email, code);
                 }}

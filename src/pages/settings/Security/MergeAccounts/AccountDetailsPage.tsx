@@ -154,13 +154,13 @@ function AccountDetailsPage() {
                         label={translate('loginForm.phoneOrEmail')}
                         aria-label={translate('loginForm.phoneOrEmail')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt6]}
+                        containerStyles={[styles.mt8]}
                         autoCorrect={false}
                         onChangeText={setEmail}
                         value={email}
                     />
                     <InputWrapper
-                        style={[styles.mt6]}
+                        style={[styles.mt8]}
                         InputComponent={CheckboxWithLabel}
                         inputID={INPUT_IDS.CONSENT}
                         label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
