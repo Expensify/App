@@ -20,6 +20,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import Parser from '@libs/Parser';
 import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -137,7 +138,7 @@ function TransactionPreviewContent({
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
     const shouldShowMerchantOrDescription = shouldShowDescription || shouldShowMerchant;
     const shouldShowIOUHeader = !!from && !!to;
-    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isApproved = isReportApproved({report: iouReport});
