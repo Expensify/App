@@ -3313,6 +3313,8 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
+        TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
+        PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
@@ -3328,6 +3330,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
@@ -3338,6 +3341,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
@@ -3348,6 +3352,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
@@ -3358,6 +3363,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
         };

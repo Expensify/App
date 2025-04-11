@@ -10,16 +10,18 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Section, {CARD_LAYOUT} from '@components/Section';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import usePrevious from '@hooks/usePrevious';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import {translateLocal} from '@libs/Localize';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,35 +30,44 @@ function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
     const preferredCurrency = usePreferredCurrency();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
 
     const isCollect = subscriptionPlan === CONST.POLICY.TYPE.TEAM;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
 
+    const subscriptionPricingInfo =
+        hasTeam2025Pricing && isCollect
+            ? translateLocal('subscription.yourPlan.pricePerMemberPerMonth', {price: convertToShortDisplayString(subscriptionPrice, preferredCurrency)})
+            : translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
+                  lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
+                  upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
+              });
+
     useEffect(() => {
-        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+        clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
     const addPaymentCard = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
             const cardData = {
-                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+                cardNumber: getMCardNumberString(values.cardNumber),
+                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,
                 addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            PaymentMethods.addSubscriptionPaymentCard(accountID ?? 0, cardData);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData);
         },
         [accountID],
     );
@@ -69,7 +80,7 @@ function AddPaymentCard() {
             return;
         }
 
-        PaymentMethods.continueSetup();
+        continueSetup();
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
@@ -104,12 +115,7 @@ function AddPaymentCard() {
                                         </Text>
                                     )}
                                 />
-                                <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>
-                                    {translate(`subscription.yourPlan.${isCollect ? 'collect' : 'control'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
-                                        lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
-                                        upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
-                                    })}
-                                </Text>
+                                <Text style={[styles.textMicroSupporting, styles.mt3, styles.textAlignCenter, styles.mr5, styles.ml5]}>{subscriptionPricingInfo}</Text>
                             </>
                         }
                     />
