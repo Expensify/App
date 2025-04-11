@@ -115,11 +115,11 @@ function FormWrapper({
     }, [errors, formState?.errorFields, inputRefs]);
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
-    // we expect that the user wants to use the new edge-to-edge bottom safe area padding handling.
+    // we expect that the user wants to use the new edge-to-edge mode.
     // In this case, we want to get and apply the padding unconditionnally.
-    const enableEdgeToEdgeBottomSafeAreaPadding = addBottomSafeAreaPadding !== undefined || shouldSubmitButtonStickToBottomProp !== undefined;
+    const isUsingEdgeToEdgeMode = addBottomSafeAreaPadding !== undefined || shouldSubmitButtonStickToBottomProp !== undefined;
     const shouldSubmitButtonStickToBottom = shouldSubmitButtonStickToBottomProp ?? false;
-    const {paddingBottom} = useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding);
+    const {paddingBottom} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
 
     // Same as above, if `addBottomSafeAreaPadding` is explicitly set true, we default to the new edge-to-edge bottom safe area padding handling.
     // If the paddingBottom is 0, it has already been applied to a parent component and we don't want to apply the padding again.

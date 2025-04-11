@@ -78,11 +78,15 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
-        enableEdgeToEdgeBottomSafeAreaPadding = false,
+        enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
+    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPaddingProp !== undefined;
+    const enableEdgeToEdgeBottomSafeAreaPadding = enableEdgeToEdgeBottomSafeAreaPaddingProp ?? false;
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -216,7 +220,7 @@ function BaseModal(
             shouldAddBottomSafeAreaMargin,
             shouldAddTopSafeAreaMargin,
             // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-            shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
             shouldAddTopSafeAreaPadding,
             modalContainerStyle,
             insets,
@@ -225,8 +229,8 @@ function BaseModal(
     }, [
         StyleUtils,
         avoidKeyboard,
-        enableEdgeToEdgeBottomSafeAreaPadding,
         insets,
+        isUsingEdgeToEdgeMode,
         keyboardStateContextValue.isKeyboardActive,
         modalContainerStyle,
         shouldAddBottomSafeAreaMargin,

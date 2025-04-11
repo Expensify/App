@@ -142,7 +142,7 @@ function SelectionScreen<T = string>({
     onChangeText,
     shouldShowTextInput,
     shouldUpdateFocusedIndex = false,
-    enableEdgeToEdgeBottomSafeAreaPadding = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
 }: SelectionScreenProps<T>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();

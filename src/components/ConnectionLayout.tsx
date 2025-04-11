@@ -107,7 +107,7 @@ function ConnectionLayout({
     shouldLoadForEmptyConnection = false,
     onBackButtonPress = () => Navigation.goBack(),
     shouldBeBlocked = false,
-    enableEdgeToEdgeBottomSafeAreaPadding = false,
+    enableEdgeToEdgeBottomSafeAreaPadding,
 }: ConnectionLayoutProps) {
     const {translate} = useLocalize();
 
