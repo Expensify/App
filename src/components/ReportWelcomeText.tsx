@@ -108,6 +108,10 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             return reportName;
         }
 
+        if (isPolicyExpenseChat) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: policy?.name ?? ''});
+        }
+
         return translate('reportActionsView.sayHello');
     }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
 
