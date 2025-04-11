@@ -97,6 +97,12 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isReportApproved = isReportApprovedUtils({report});
+    const isReportSettled = isSettled(report);
+    const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+
+    if (isReportSettled || isPaymentProcessing) {
+        return false;
+    }
 
     return isExpenseReport && isReportApprover && isReportApproved;
 }
@@ -121,7 +127,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         return true;
     }
 
-    const isPaymentProcessing = isSettled(report);
+    const isPaymentProcessing = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
     const payActions = reportTransactions.reduce((acc, transaction) => {
         const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
@@ -138,6 +144,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
         return nowUTC.getTime() < cutoffTimeUTC.getTime();
     });
+    
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
