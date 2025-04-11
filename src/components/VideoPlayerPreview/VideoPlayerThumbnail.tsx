@@ -3,14 +3,14 @@ import {View} from 'react-native';
 import type {GestureResponderEvent} from 'react-native';
 import AttachmentDeletedIndicator from '@components/AttachmentDeletedIndicator';
 import Icon from '@components/Icon';
-import * as Expensicons from '@components/Icon/Expensicons';
+import {Play} from '@components/Icon/Expensicons';
 import Image from '@components/Image';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import {ShowContextMenuContext, showContextMenuForReport} from '@components/ShowContextMenuContext';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
-import * as ReportUtils from '@libs/ReportUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {isArchivedNonExpenseReport} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
@@ -51,30 +51,22 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                             accessibilityLabel={accessibilityLabel}
                             accessibilityRole={CONST.ROLE.BUTTON}
                             onPress={onPress}
-                            onPressIn={() => DeviceCapabilities.canUseTouchScreen() && ControlSelection.block()}
+                            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                             onPressOut={() => ControlSelection.unblock()}
                             onLongPress={(event) => {
                                 if (isDisabled || !shouldDisplayContextMenu) {
                                     return;
                                 }
-                                showContextMenuForReport(
-                                    event,
-                                    anchor,
-                                    report?.reportID,
-                                    action,
-                                    checkIfContextMenuActive,
-                                    ReportUtils.isArchivedNonExpenseReport(report, reportNameValuePairs),
-                                );
+                                showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
                             }}
                             shouldUseHapticsOnLongPress
                         >
                             <View style={[styles.videoThumbnailPlayButton]}>
                                 <Icon
-                                    src={Expensicons.Play}
+                                    src={Play}
                                     fill="white"
                                     width={variables.iconSizeXLarge}
                                     height={variables.iconSizeXLarge}
-                                    additionalStyles={[styles.ml1]}
                                 />
                             </View>
                         </PressableWithoutFeedback>
