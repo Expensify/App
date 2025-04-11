@@ -36,6 +36,8 @@ from = "from"i { return "from"; }
 expenseType
   = "expenseType"
   / "expense-type"i { return "expenseType"; }
+billable = "billable"i { return "billable"; }
+reimbursable = "reimbursable"i { return "reimbursable"; }
 type = "type"i { return "type"; }
 status = "status"i { return "status"; }
 sortBy
