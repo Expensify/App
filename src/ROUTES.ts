@@ -1548,7 +1548,8 @@ const ROUTES = {
     },
     WORKSPACE_COMPANY_CARD_NAME: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/name',
-        getRoute: (policyID: string, cardID: string, bank: string) => `settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/name` as const,
+        getRoute: (policyID: string, cardID: string, bank: string, backTo?: string) =>
+            getUrlWithBackToParam(`settings/workspaces/${policyID}/company-cards/${bank}/${cardID}/edit/name` as const, backTo),
     },
     WORKSPACE_COMPANY_CARD_EXPORT: {
         route: 'settings/workspaces/:policyID/company-cards/:bank/:cardID/edit/export',
