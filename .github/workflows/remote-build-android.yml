@@ -19,15 +19,14 @@ jobs:
 
           - project_root: Mobile-Expensify/
             variant: 'Debug'
-            submodules: true
-            checkout_token: ${{ secrets.OS_BOTIFY_TOKEN }}
+            is_hybrid_build: true
     steps:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          submodules: ${{ matrix.submodules || false }}
-          token: ${{ matrix.checkout_token || github.token }}
+          submodules: ${{ matrix.is_hybrid_build == 'true' || false }}
+          token: ${{ matrix.is_hybrid_build == 'true' && secrets.OS_BOTIFY_TOKEN || github.token }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
