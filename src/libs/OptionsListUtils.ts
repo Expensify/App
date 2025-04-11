@@ -24,6 +24,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportNameValuePairs,
     TransactionViolation,
 } from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -217,6 +218,7 @@ type GetOptionsConfig = {
     includeSelectedOptions?: boolean;
     recentAttendees?: Attendee[];
     excludeHiddenThreads?: boolean;
+    excludeHiddenChatRoom?: boolean;
     canShowManagerMcTest?: boolean;
 } & GetValidReportsConfig;
 
@@ -666,15 +668,18 @@ function getIOUReportIDOfLastAction(report: OnyxEntry<Report>): string | undefin
 /**
  * Get the last message text from the report directly or from other sources for special cases.
  */
-function getLastMessageTextForReport(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, policy?: OnyxEntry<Policy>): string {
+function getLastMessageTextForReport(
+    report: OnyxEntry<Report>,
+    lastActorDetails: Partial<PersonalDetails> | null,
+    policy?: OnyxEntry<Policy>,
+    reportNameValuePairs?: OnyxInputOrEntry<ReportNameValuePairs>,
+): string {
     const reportID = report?.reportID;
     const lastReportAction = reportID ? lastVisibleReportActions[reportID] : undefined;
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     const lastOriginalReportAction = reportID ? lastReportActions[reportID] : undefined;
     let lastMessageTextFromReport = '';
-
-    const reportNameValuePairs = getReportNameValuePairs(reportID);
 
     if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
         const archiveReason =
@@ -845,9 +850,10 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
+        const reportNameValuePairs = getReportNameValuePairs(report.reportID);
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
-        result.private_isArchived = getReportNameValuePairs(report.reportID)?.private_isArchived;
+        result.private_isArchived = reportNameValuePairs?.private_isArchived;
         result.isExpenseReport = isExpenseReport(report);
         result.isInvoiceRoom = isInvoiceRoom(report);
         result.isMoneyRequestReport = reportUtilsIsMoneyRequestReport(report);
@@ -882,7 +888,7 @@ function createOption(
 
         const lastActorDetails = report.lastActorAccountID ? personalDetails?.[report.lastActorAccountID] ?? null : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
-        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails);
+        const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, reportNameValuePairs);
         let lastMessageText = lastMessageTextFromReport;
 
         const lastAction = lastVisibleReportActions[report.reportID];
@@ -890,6 +896,7 @@ function createOption(
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
+            !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
             shouldShowLastActorDisplayName(report, lastActorDetails);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
@@ -1615,6 +1622,7 @@ function getValidOptions(
         shouldSeparateSelfDMChat = false,
         shouldSeparateWorkspaceChat = false,
         excludeHiddenThreads = false,
+        excludeHiddenChatRoom = false,
         canShowManagerMcTest = false,
         ...config
     }: GetOptionsConfig = {},
@@ -1703,6 +1711,10 @@ function getValidOptions(
         recentReportOptions = recentReportOptions.filter((option) => !option.isThread || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
     }
 
+    if (excludeHiddenChatRoom) {
+        recentReportOptions = recentReportOptions.filter((option) => !option.isChatRoom || option.notificationPreference !== CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN);
+    }
+
     return {
         personalDetails: personalDetailsOptions,
         recentReports: recentReportOptions,
@@ -1734,6 +1746,7 @@ function getSearchOptions(options: OptionList, betas: Beta[] = [], isUsedInChatF
         includeSelfDM: true,
         shouldBoldTitleByDefault: !isUsedInChatFinder,
         excludeHiddenThreads: true,
+        excludeHiddenChatRoom: true,
     });
     const orderedOptions = orderOptions(optionList);
     Timing.end(CONST.TIMING.LOAD_SEARCH_OPTIONS);

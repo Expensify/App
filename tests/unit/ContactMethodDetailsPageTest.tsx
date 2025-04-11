@@ -22,6 +22,7 @@ jest.mock('@libs/actions/User', () => {
         resetContactMethodValidateCodeSentState: jest.fn(),
     };
 });
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const fakeEmail = 'fake@gmail.com';
 const mockRoute = {

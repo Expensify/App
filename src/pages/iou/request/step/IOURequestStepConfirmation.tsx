@@ -29,6 +29,7 @@ import Log from '@libs/Log';
 import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import {generateReportID, getBankAccountRoute, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
@@ -185,6 +186,9 @@ function IOURequestStepConfirmation({
     useFetchRoute(transaction, transaction?.comment?.waypoints, action, shouldUseTransactionDraft(action) ? CONST.TRANSACTION.STATE.DRAFT : CONST.TRANSACTION.STATE.CURRENT);
 
     useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE_APPROVE);
+    }, []);
+    useEffect(() => {
         const policyExpenseChat = participants?.find((participant) => participant.isPolicyExpenseChat);
         if (policyExpenseChat?.policyID && policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
             openDraftWorkspaceRequest(policyExpenseChat.policyID);
@@ -212,7 +216,11 @@ function IOURequestStepConfirmation({
             : transaction?.reportID === reportID;
 
         // Exit if the transaction already exists and is associated with the current report
-        if (transaction?.transactionID && (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) && (isCurrentReportID || isMovingTransactionFromTrackExpense)) {
+        if (
+            transaction?.transactionID &&
+            (!transaction?.isFromGlobalCreate || !isEmptyObject(transaction?.participants)) &&
+            (isCurrentReportID || isMovingTransactionFromTrackExpense || iouType === CONST.IOU.TYPE.INVOICE)
+        ) {
             return;
         }
 

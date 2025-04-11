@@ -433,6 +433,7 @@ const ROUTES = {
             isAuthTokenRequired?: boolean,
             fileName?: string,
             attachmentLink?: string,
+            hashKey?: number,
         ) => {
             const reportParam = reportID ? `&reportID=${reportID}` : '';
             const accountParam = accountID ? `&accountID=${accountID}` : '';
@@ -440,10 +441,11 @@ const ROUTES = {
             const fileNameParam = fileName ? `&fileName=${fileName}` : '';
             const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
             const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
+            const hashKeyParam = hashKey ? `&hashKey=${hashKey}` : '';
 
             return `attachment?source=${encodeURIComponent(url)}&type=${
                 type as string
-            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}` as const;
+            }${reportParam}${attachmentIDParam}${accountParam}${authTokenParam}${fileNameParam}${attachmentLinkParam}${hashKeyParam}` as const;
         },
     },
     REPORT_PARTICIPANTS: {
