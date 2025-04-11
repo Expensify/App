@@ -38,6 +38,10 @@ function TestToolsModal() {
     const isAuthenticated = useIsAuthenticated();
     const route = getRouteBasedOnAuthStatus(isAuthenticated, activeRoute);
 
+    if (!isTestToolsModalOpen) {
+        return null;
+    }
+
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}
