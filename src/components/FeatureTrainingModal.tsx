@@ -1,8 +1,8 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
 import type {ImageContentFit} from 'expo-image';
 import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
-import {InteractionManager, View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import {Image, InteractionManager, View} from 'react-native';
+import type {ImageResizeMode, ImageSourcePropType, StyleProp, ViewStyle} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import type {MergeExclusive} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
@@ -96,6 +96,9 @@ type BaseFeatureTrainingModalProps = {
 
     /** Whether to disable the modal */
     isModalDisabled?: boolean;
+
+    /** Whether the modal image is a SVG */
+    shouldRenderSVG?: boolean;
 };
 
 type FeatureTrainingModalVideoProps = {
@@ -152,6 +155,7 @@ function FeatureTrainingModal({
     imageWidth,
     imageHeight,
     isModalDisabled = true,
+    shouldRenderSVG = true,
 }: FeatureTrainingModalProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -215,12 +219,23 @@ function FeatureTrainingModal({
                     (!!videoURL || !!image) && {aspectRatio},
                 ]}
             >
-                {!!image && (
+                {!!image && shouldRenderSVG ? (
                     <ImageSVG
                         src={image}
                         contentFit={contentFitImage}
                         width={imageWidth}
                         height={imageHeight}
+                    />
+                ) : (
+                    <Image
+                        source={image as ImageSourcePropType}
+                        resizeMode={contentFitImage as ImageResizeMode}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+                            borderTopRightRadius: variables.componentBorderRadiusLarge,
+                        }}
                     />
                 )}
                 {!!videoURL && videoStatus === 'video' && (
@@ -250,10 +265,6 @@ function FeatureTrainingModal({
             </View>
         );
     }, [
-        image,
-        imageHeight,
-        imageWidth,
-        contentFitImage,
         illustrationAspectRatio,
         styles.w100,
         styles.onboardingVideoPlayer,
@@ -261,12 +272,17 @@ function FeatureTrainingModal({
         styles.alignItemsCenter,
         styles.justifyContentCenter,
         styles.h100,
-        videoStatus,
+        illustrationInnerContainerStyle,
         videoURL,
+        image,
+        shouldRenderSVG,
+        contentFitImage,
+        imageWidth,
+        imageHeight,
+        videoStatus,
         animationStyle,
         animation,
         shouldUseNarrowLayout,
-        illustrationInnerContainerStyle,
     ]);
 
     const toggleWillShowAgain = useCallback(() => setWillShowAgain((prevWillShowAgain) => !prevWillShowAgain), []);

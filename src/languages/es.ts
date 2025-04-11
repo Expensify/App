@@ -6634,6 +6634,14 @@ const translations = {
         talkWithSales: 'Habla con ventas',
         hangUp: 'Colgar',
     },
+    testDrive: {
+        modal: {
+            title: 'Haz una prueba con nosotros',
+            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
+            confirmText: 'Iniciar prueba',
+            helpText: 'Omitir',
+        },
+    },
 };
 
 export default translations satisfies TranslationDeepObject<typeof en>;
