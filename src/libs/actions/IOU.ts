@@ -202,7 +202,7 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
@@ -1711,14 +1711,16 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     // Don't use nullish coalescing because we also want to use the ownerAccountID
     // if the accountID is 0.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const toAccountID = participant?.accountID || participant?.ownerAccountID;
+    const toAccountID = participant?.accountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
 
-    if (hash && toAccountID && fromAccountID && snapshotList) {
-        const existingPersonalDetails = {...personalDetailsList};
-        const snapshot = snapshotList[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+    console.log(participant);
 
-        if (snapshot?.search.status === CONST.SEARCH.STATUS.EXPENSE.ALL) {
+    if (hash && toAccountID && fromAccountID && snapshotList) {
+        const snapshot = snapshotList[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+        const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
+
+        if (snapshot?.search.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(snapshot.search.type)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
@@ -1746,15 +1748,15 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                 },
             });
 
-            failureData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-                value: {
-                    data: {
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: existingPersonalDetails,
-                    },
-                },
-            });
+            // failureData.push({
+            //     onyxMethod: Onyx.METHOD.MERGE,
+            //     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            //     value: {
+            //         data: {
+            //             [ONYXKEYS.PERSONAL_DETAILS_LIST]: existingPersonalDetails,
+            //         },
+            //     },
+            // });
         }
     }
 
