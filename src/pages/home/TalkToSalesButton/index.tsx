@@ -17,8 +17,6 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
     const {translate} = useLocalize();
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
     const styles = useThemeStyles();
-    
-    // Get intro selected data which may have additional context
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
 
