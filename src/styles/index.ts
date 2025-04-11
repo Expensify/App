@@ -372,6 +372,26 @@ const styles = (theme: ThemeColors) =>
             textAlign: 'left',
         },
 
+        textWithMiddleEllipsisContainer: {
+            width: '100%',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            display: 'flex',
+            flexDirection: 'row',
+        },
+
+        textWithMiddleEllipsisFirstPart: {
+            overflow: 'hidden',
+            textOverflow: 'clip',
+            whiteSpace: 'nowrap',
+        },
+
+        textWithMiddleEllipsisSecondPart: {
+            overflow: 'hidden',
+            direction: 'rtl',
+            textOverflow: 'ellipsis',
+        },
+
         verticalAlignTopText: {
             verticalAlign: 'text-top',
         },

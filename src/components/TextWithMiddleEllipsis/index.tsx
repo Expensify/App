@@ -26,23 +26,13 @@ function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsis
             style={[
                 style,
                 styles.flexShrink1,
-                {
-                    width: '100%',
-                    overflow: 'hidden',
-                    whiteSpace: 'nowrap',
-                    display: 'flex',
-                    flexDirection: 'row',
-                },
+                styles.textWithMiddleEllipsisContainer,
             ]}
         >
             <Text
                 style={[
                     textStyle,
-                    {
-                        overflow: 'hidden',
-                        textOverflow: 'clip',
-                        whiteSpace: 'nowrap',
-                    },
+                    styles.textWithMiddleEllipsisFirstPart,
                 ]}
                 numberOfLines={1}
             >
@@ -51,11 +41,7 @@ function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsis
             <Text
                 style={[
                     textStyle,
-                    {
-                        overflow: 'hidden',
-                        direction: 'rtl',
-                        textOverflow: 'ellipsis',
-                    },
+                    styles.textWithMiddleEllipsisSecondPart,
                 ]}
                 numberOfLines={1}
             >
