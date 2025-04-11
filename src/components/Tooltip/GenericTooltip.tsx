@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import type {LayoutRectangle} from 'react-native';
 import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
@@ -40,7 +40,9 @@ function GenericTooltip({
     onTooltipPress = () => {},
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const {windowWidth, windowHeight} = useWindowDimensions();
+    const [lastWindowHeightWhenMeasured, setLastWindowHeightWhenMeasured] = useState(windowHeight);
+    const windowHeightRef = useRef(windowHeight);
 
     // Is tooltip already rendered on the page's body? happens once.
     const [isRendered, setIsRendered] = useState(false);
@@ -66,6 +68,10 @@ function GenericTooltip({
     const isTooltipSenseInitiator = useSharedValue<boolean>(true);
     const isAnimationCanceled = useSharedValue<boolean>(false);
     const prevText = usePrevious(text);
+
+    useEffect(() => {
+        windowHeightRef.current = windowHeight;
+    }, [windowWidth, windowHeight]);
 
     useEffect(() => {
         if (!renderTooltipContent || !text) {
@@ -127,6 +133,7 @@ function GenericTooltip({
         setWrapperHeight(bounds.height);
         setXOffset(bounds.x);
         setYOffset(bounds.y);
+        setLastWindowHeightWhenMeasured(windowHeightRef.current);
     };
 
     /**
@@ -170,7 +177,7 @@ function GenericTooltip({
                     animation={animation}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
-                    yOffset={yOffset}
+                    yOffset={yOffset - (lastWindowHeightWhenMeasured - windowHeight)}
                     targetWidth={wrapperWidth}
                     targetHeight={wrapperHeight}
                     shiftHorizontal={callOrReturn(shiftHorizontal)}
