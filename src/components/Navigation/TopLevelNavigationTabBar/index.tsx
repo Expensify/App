@@ -3,10 +3,12 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import positioning from '@styles/utils/positioning';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
@@ -30,6 +32,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
+    const {canUseLeftHandBar} = usePermissions();
 
     // That means it's visible and it's not covered by the overlay.
     const isNavigationTabVisibleDirectly = getIsNavigationTabBarVisibleDirectly(state);
@@ -38,6 +41,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithNavigationTabFocused : isNavigationTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
+    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
 
     useEffect(() => {
         if (!shouldDisplayBottomBar) {
@@ -54,7 +58,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     }, [shouldDisplayBottomBar]);
 
     return (
-        <View style={styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom)}>
+        <View style={[styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom), shouldDisplayLHB ? positioning.l0 : positioning.b0]}>
             {/* We are not rendering NavigationTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
