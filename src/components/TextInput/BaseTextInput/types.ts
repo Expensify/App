@@ -148,6 +148,9 @@ type CustomBaseTextInputProps = {
     /** Style for the loading spinner */
     loadingSpinnerStyle?: StyleProp<ViewStyle>;
 
+    /** Style for the icon container */
+    iconContainerStyle?: StyleProp<ViewStyle>;
+
     /** The width of inner content */
     contentWidth?: number;
 
@@ -165,6 +168,12 @@ type CustomBaseTextInputProps = {
 
     /** Whether the input should be enforced to be uncontrolled. Default is `false` */
     uncontrolled?: boolean;
+
+    /** Whether the clear button should always be displayed */
+    shouldHideClearButton?: boolean;
+
+    /** Callback when the input is cleared using the clear button */
+    onClearInput?: () => void;
 };
 
 type BaseTextInputRef = HTMLFormElement | AnimatedTextInputRef;

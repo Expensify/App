@@ -72,6 +72,7 @@ function SetDatePage() {
                     defaultValue={DateUtils.extractDate(customClearAfter)}
                     minDate={new Date()}
                     shouldUseDefaultValue
+                    autoFocus
                 />
             </FormProvider>
         </ScreenWrapper>
