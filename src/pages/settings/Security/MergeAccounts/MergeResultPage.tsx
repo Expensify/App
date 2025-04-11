@@ -134,22 +134,21 @@ function MergeResultPage() {
             },
             [CONST.MERGE_ACCOUNT_RESULTS.ERR_SAML_NOT_SUPPORTED]: {
                 heading: translate('mergeAccountsPage.mergePendingSAML.weAreWorkingOnIt'),
-                description: (
-                    <>
-                        <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('mergeAccountsPage.mergePendingSAML.limitedSupport')}</Text>
-                        <Text style={[styles.dBlock, styles.textAlignCenter, styles.textSupporting, styles.mt2]}>
-                            {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.beforeLink')}
-                            <TextLink
-                                onPress={() => {
-                                    navigateToConciergeChat();
-                                }}
-                            >
-                                {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.linkText')}
-                            </TextLink>
-                            {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.afterLink')}
-                        </Text>
-                    </>
+                description: <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('mergeAccountsPage.mergePendingSAML.limitedSupport')}</Text>,
+                cta: (
+                    <Text style={[styles.textAlignCenter, styles.textSupporting]}>
+                        {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.beforeLink')}
+                        <TextLink
+                            onPress={() => {
+                                navigateToConciergeChat();
+                            }}
+                        >
+                            {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.linkText')}
+                        </TextLink>
+                        {translate('mergeAccountsPage.mergePendingSAML.reachOutForHelp.afterLink')}
+                    </Text>
                 ),
+                ctaStyle: styles.mt2,
                 secondaryButtonText: translate('mergeAccountsPage.mergePendingSAML.goToExpensifyClassic'),
                 onSecondaryButtonPress: () => {
                     if (CONFIG.IS_HYBRID_APP) {
