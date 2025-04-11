@@ -17,11 +17,11 @@ import usePrevious from '@hooks/usePrevious';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPrice from '@hooks/useSubscriptionPrice';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CardUtils from '@libs/CardUtils';
+import {getMCardNumberString, getMonthFromExpirationDateString, getYearFromExpirationDateString} from '@libs/CardUtils';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {translateLocal} from '@libs/Localize';
 import CardAuthenticationModal from '@pages/settings/Subscription/CardAuthenticationModal';
-import * as PaymentMethods from '@userActions/PaymentMethods';
+import {addSubscriptionPaymentCard, clearPaymentCardFormErrorAndSubmit, continueSetup} from '@userActions/PaymentMethods';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -30,7 +30,7 @@ function AddPaymentCard() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
 
     const subscriptionPlan = useSubscriptionPlan();
     const subscriptionPrice = useSubscriptionPrice();
@@ -49,25 +49,25 @@ function AddPaymentCard() {
               });
 
     useEffect(() => {
-        PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+        clearPaymentCardFormErrorAndSubmit();
 
         return () => {
-            PaymentMethods.clearPaymentCardFormErrorAndSubmit();
+            clearPaymentCardFormErrorAndSubmit();
         };
     }, []);
 
     const addPaymentCard = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>) => {
             const cardData = {
-                cardNumber: CardUtils.getMCardNumberString(values.cardNumber),
-                cardMonth: CardUtils.getMonthFromExpirationDateString(values.expirationDate),
-                cardYear: CardUtils.getYearFromExpirationDateString(values.expirationDate),
+                cardNumber: getMCardNumberString(values.cardNumber),
+                cardMonth: getMonthFromExpirationDateString(values.expirationDate),
+                cardYear: getYearFromExpirationDateString(values.expirationDate),
                 cardCVV: values.securityCode,
                 addressName: values.nameOnCard,
                 addressZip: values.addressZipCode,
                 currency: values.currency ?? CONST.PAYMENT_CARD_CURRENCY.USD,
             };
-            PaymentMethods.addSubscriptionPaymentCard(accountID ?? 0, cardData);
+            addSubscriptionPaymentCard(accountID ?? CONST.DEFAULT_NUMBER_ID, cardData);
         },
         [accountID],
     );
@@ -80,7 +80,7 @@ function AddPaymentCard() {
             return;
         }
 
-        PaymentMethods.continueSetup();
+        continueSetup();
     }, [prevFormDataSetupComplete, formData?.setupComplete]);
 
     return (
