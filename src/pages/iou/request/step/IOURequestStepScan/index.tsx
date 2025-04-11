@@ -590,7 +590,7 @@ function IOURequestStepScan({
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
             },
         },
     );
@@ -874,7 +874,11 @@ function IOURequestStepScan({
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
                         onLayout={(e) => {
-                            setElementTop(isSmallScreenWidth ? e.nativeEvent.layout.height + 10 : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8));
+                            setElementTop(
+                                isSmallScreenWidth
+                                    ? e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 10)
+                                    : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8),
+                            );
                         }}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >
