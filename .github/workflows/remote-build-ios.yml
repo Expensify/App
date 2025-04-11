@@ -14,13 +14,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - destination: simulator
-            project_root: ./
+          - project_root: ./
             scheme: 'New Expensify Dev'
             configuration: 'DebugDevelopment'
 
-          - destination: simulator
-            project_root: Mobile-Expensify/
+          - project_root: Mobile-Expensify/
             scheme: 'Expensify Dev'
             configuration: 'Debug'
     steps:
@@ -39,7 +37,7 @@ jobs:
         env:
           PROJECT_ROOT_PATH: ${{ matrix.project_root }}
         with:
-          destination: ${{ matrix.destination }}
+          destination: simulator
           scheme: ${{ matrix.scheme }}
           configuration: ${{ matrix.configuration }}
           github-token: ${{ github.token }}
