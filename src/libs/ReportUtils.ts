@@ -5505,7 +5505,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, timeOfCreation: string) {
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -5523,6 +5523,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         lastVisibleActionCreated: timeOfCreation,
         pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         parentReportID: parentReport?.reportID,
+        parentReportActionID,
         chatReportID: parentReport?.reportID,
         managerID: getSubmitToAccountID(policy, undefined),
     };

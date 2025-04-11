@@ -2509,7 +2509,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     const {accountID, login} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, policy, timeOfCreation);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, reportPreviewReportActionID, policy, timeOfCreation);
 
     const optimisticCreateAction = {
         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -2549,6 +2549,9 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
         isAttachmentOnly: false,
         reportActionID: reportPreviewReportActionID,
         message: createReportActionMessage,
+        originalMessage: {
+            linkedReportID: reportID,
+        },
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
