@@ -315,13 +315,13 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
 }
 
 function handleTranscriptMessage(email: string, message: OpenAIRealtimeMessage) {
-    if (!message.transcript) {
+    if (!message.transcript?.trim()) {
         return;
     }
 
     transcriptArray.push({
         speaker: email,
-        text: message.transcript,
+        text: message.transcript.trim(),
     });
 }
 
