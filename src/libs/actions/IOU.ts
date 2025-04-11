@@ -7890,6 +7890,7 @@ function getSendMoneyParams(
             value: {
                 [reportPreviewAction.reportActionID]: {
                     pendingAction: null,
+                    childLastActorAccountID: reportPreviewAction.childLastActorAccountID,
                 },
             },
         },
