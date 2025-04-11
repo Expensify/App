@@ -17,15 +17,17 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
     const {translate} = useLocalize();
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
     const styles = useThemeStyles();
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
-
+    
+    // Get intro selected data which may have additional context
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+
     if (!reportID || !accountID) {
         return;
     }
 
-    // Only show the button for micro companies (1-10 employees)
-    if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+    // Only show for micro companies (1-10 employees)
+    if (introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
         return null;
     }
 
