@@ -291,6 +291,17 @@ function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
                     return;
                 }
 
+                const sessionUpdate = {
+                    type: 'session.update',
+                    session: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        input_audio_transcription: {
+                            model: 'whisper-1',
+                        },
+                    },
+                };
+                connections.openai.dataChannel.send(JSON.stringify(sessionUpdate));
+
                 const initialUserMessage = {
                     type: 'response.create',
                     response: {
