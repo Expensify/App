@@ -6325,6 +6325,7 @@ const translations = {
             customPricing: 'Precios personalizados',
             asLowAs: ({price}: YourPlanPriceValueParams) => `desde ${price} por miembro activo/mes`,
             pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro/mes`,
+            pricePerMemberPerMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro por mes`,
             perMemberMonth: 'por miembro/mes',
             collect: {
                 title: 'Recopilar',
