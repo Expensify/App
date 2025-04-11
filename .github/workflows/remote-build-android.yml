@@ -1,4 +1,4 @@
-name: Remote Build Android Hybrid
+name: Remote Build Android
 
 on:
   workflow_dispatch:
@@ -14,11 +14,11 @@ jobs:
     strategy:
       matrix:
         include:
-          - project_root: "./"
-            variant: "developmentDebug"
+          - project_root: ./
+            variant: 'developmentDebug'
 
-          - project_root: "Mobile-Expensify/"
-            variant: "Debug"
+          - project_root: Mobile-Expensify/
+            variant: 'Debug'
             submodules: true
             checkout_token: ${{ secrets.OS_BOTIFY_TOKEN }}
     steps:
