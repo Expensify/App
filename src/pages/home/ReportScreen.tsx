@@ -814,6 +814,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                     <MoneyRequestReportActionsList
                                         report={report}
                                         reportActions={reportActions}
+                                        transactions={reportTransactions}
                                         hasOlderActions={hasOlderActions}
                                         hasNewerActions={hasNewerActions}
                                     />
