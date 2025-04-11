@@ -84,6 +84,7 @@ function NetSuiteExportExpensesVendorSelectPage({policy}: WithPolicyConnectionsP
             errors={getLatestErrorField(config, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
             errorRowStyles={[styles.ph5, styles.pv3]}
             onClose={() => clearNetSuiteErrorField(policyID, CONST.NETSUITE_CONFIG.DEFAULT_VENDOR)}
+            enableEdgeToEdgeBottomSafeAreaPadding
         />
     );
 }
