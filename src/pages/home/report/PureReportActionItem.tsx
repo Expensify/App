@@ -809,7 +809,12 @@ function PureReportActionItem({
                             isBillSplit={isSplitBillActionReportActionsUtils(action)}
                             containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
                             transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
-                            onPreviewPressed={() => {}}
+                            onPreviewPressed={() => {
+                                if (!action.childReportID) {
+                                    return;
+                                }
+                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action.childReportID));
+                            }}
                             isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
                         />
                     );
