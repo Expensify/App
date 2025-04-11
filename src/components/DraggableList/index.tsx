@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import SortableItem from './SortableItem';
 import type {DraggableListProps} from './types';
 
-const minimumActivationDistance = 5;  // pointer must move at least this much before starting to drag
+const minimumActivationDistance = 5; // pointer must move at least this much before starting to drag
 
 /**
  * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only
@@ -57,12 +57,12 @@ function DraggableList<T>(
                 id={key}
                 key={key}
             >
-                    {renderItem({
-                        item,
-                        getIndex: () => index,
-                        isActive: false,
-                        drag: () => {},
-                    })}
+                {renderItem({
+                    item,
+                    getIndex: () => index,
+                    isActive: false,
+                    drag: () => {},
+                })}
             </SortableItem>
         );
     });
