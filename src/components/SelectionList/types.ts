@@ -366,7 +366,7 @@ type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
 
     /** The policies which the user has access to */
-    policies: OnyxCollection<Policy>;
+    policies?: OnyxCollection<Policy>;
 };
 
 type ValidListItem =
