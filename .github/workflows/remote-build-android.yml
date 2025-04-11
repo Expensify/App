@@ -11,13 +11,23 @@ concurrency:
 jobs:
   build:
     runs-on: ubuntu-latest-xl
+    strategy:
+      matrix:
+        include:
+          - project_root: "./"
+            variant: "developmentDebug"
+
+          - project_root: "Mobile-Expensify/"
+            variant: "Debug"
+            submodules: true
+            checkout_token: ${{ secrets.OS_BOTIFY_TOKEN }}
     steps:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          submodules: true
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: ${{ matrix.submodules || false }}
+          token: ${{ matrix.checkout_token || github.token }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
@@ -25,8 +35,8 @@ jobs:
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@a49920aadab9f41951944ea52bb7983fa6b20b03
         env:
-          PROJECT_ROOT_PATH: "Mobile-Expensify/"
+          PROJECT_ROOT_PATH: ${{ matrix.project_root }}
         with:
-          variant: Debug
+          variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
           comment-bot: false
