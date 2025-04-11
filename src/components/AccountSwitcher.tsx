@@ -48,7 +48,6 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName);
 
     const createBaseMenuItem = (
         personalDetails: PersonalDetails | undefined,
@@ -159,7 +158,7 @@ function AccountSwitcher() {
                                     numberOfLines={1}
                                     style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
                                 >
-                                    {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
+                                    {currentUserPersonalDetails?.displayName}
                                 </Text>
                                 {!!canSwitchAccounts && (
                                     <View style={styles.justifyContentCenter}>
