@@ -309,8 +309,8 @@ function getExportMenuItem(
             const defaultAccount = exportQBD?.nonReimbursableAccount ?? exportQBD?.reimbursableAccount;
             let isDefaultTitle = false;
             let exportType: ValueOf<typeof CONST.COMPANY_CARDS.EXPORT_CARD_TYPES> | undefined;
-            const qboConfig = nonReimbursableExpenses ?? reimbursableExpenses;
-            switch (qboConfig) {
+            const qbdConfig = nonReimbursableExpenses ?? reimbursableExpenses;
+            switch (qbdConfig) {
                 case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY:
                 case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK:
                 case CONST.QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL:
