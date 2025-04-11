@@ -14,7 +14,7 @@ function setSpreadsheetData(data: string[][]): Promise<void | void[]> {
             return acc;
         }, {}) ?? {};
 
-    return Onyx.merge(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames});
+    return Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, {data: transposedData, columns: columnNames});
 }
 
 function setColumnName(columnIndex: number, columnName: string): Promise<void> {
