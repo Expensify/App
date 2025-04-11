@@ -13,7 +13,7 @@ import {PressableWithFeedback} from '@components/Pressable';
 import type ChatListItem from '@components/SelectionList/ChatListItem';
 import type ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import type TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ExtendedTargetedEvent, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -29,7 +29,7 @@ import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/Keyboar
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
-type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
 
 type SearchListHandle = {
@@ -310,19 +310,27 @@ function SearchList(
         [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
     );
 
+    const tableHeaderVisible = canSelectMultiple || !!SearchTableHeader;
+    const selectAllButtonVisible = canSelectMultiple && !SearchTableHeader;
+
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
-            {canSelectMultiple && (
+            {tableHeaderVisible && (
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
-                    <Checkbox
-                        accessibilityLabel={translate('workspace.people.selectAll')}
-                        isChecked={selectedItemsLength === flattenedTransactions.length}
-                        isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
-                        onPress={() => {
-                            onAllCheckboxPress();
-                        }}
-                    />
-                    {SearchTableHeader ?? (
+                    {canSelectMultiple && (
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={selectedItemsLength === flattenedTransactions.length}
+                            isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
+                            onPress={() => {
+                                onAllCheckboxPress();
+                            }}
+                        />
+                    )}
+
+                    {SearchTableHeader}
+
+                    {selectAllButtonVisible && (
                         <PressableWithFeedback
                             style={[styles.userSelectNone, styles.alignItemsCenter]}
                             onPress={onAllCheckboxPress}
@@ -336,6 +344,7 @@ function SearchList(
                     )}
                 </View>
             )}
+
             <Animated.FlatList
                 data={data}
                 renderItem={renderItem}
