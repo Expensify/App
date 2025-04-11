@@ -237,7 +237,7 @@ function PolicyDistanceRatesPage({
     };
 
     const toggleAllRates = () => {
-        if (selectedDistanceRates.length === allSelectableRates.length) {
+        if (selectedDistanceRates.length > 0) {
             setSelectedDistanceRates([]);
         } else {
             setSelectedDistanceRates([...allSelectableRates]);

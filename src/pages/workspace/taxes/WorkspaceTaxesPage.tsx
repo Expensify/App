@@ -196,7 +196,7 @@ function WorkspaceTaxesPage({
             (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         setSelectedTaxesIDs((prev) => {
-            if (prev.length === taxesToSelect.length) {
+            if (prev.length > 0) {
                 return [];
             }
             return taxesToSelect.map((item) => (item.keyForList ? item.keyForList : ''));

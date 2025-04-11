@@ -71,6 +71,9 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     /** The hash of the queryJSON */
     queryJSONHash: number;
 
+    /** Whether to group the list by reports */
+    shouldGroupByReports?: boolean;
+
     /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
     onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 };
@@ -93,12 +96,14 @@ function SearchList(
         shouldPreventDefaultFocusOnSelectRow,
         shouldPreventLongPressRow,
         queryJSONHash,
+        shouldGroupByReports,
         onViewableItemsChanged,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
-    const selectedItemsLength = data.reduce((acc, item) => {
+    const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+    const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
         return item.isSelected ? acc + 1 : acc;
     }, 0);
     const {translate} = useLocalize();
@@ -208,7 +213,7 @@ function SearchList(
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: data.length - 1,
+        maxIndex: flattenedTransactions.length - 1,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index);
@@ -328,7 +333,8 @@ function SearchList(
                 <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     <Checkbox
                         accessibilityLabel={translate('workspace.people.selectAll')}
-                        isChecked={selectedItemsLength === data.length}
+                        isChecked={selectedItemsLength === flattenedTransactions.length}
+                        isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
                         onPress={() => {
                             onAllCheckboxPress();
                         }}
@@ -339,7 +345,7 @@ function SearchList(
                             onPress={onAllCheckboxPress}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedItemsLength === data.length}}
+                            accessibilityState={{checked: selectedItemsLength === flattenedTransactions.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
