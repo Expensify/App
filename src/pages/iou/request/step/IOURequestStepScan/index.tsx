@@ -36,6 +36,7 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
@@ -123,6 +124,8 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+
+    const platform = getPlatform(true);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -862,6 +865,18 @@ function IOURequestStepScan({
         </>
     );
 
+    const elementTopOffset = useMemo(() => {
+        if (platform === CONST.PLATFORM.MOBILEWEB) {
+            return 10;
+        }
+
+        if (isSmallScreenWidth) {
+            return -variables.tabSelectorButtonHeight + 10;
+        }
+
+        return -variables.tabSelectorButtonHeight + 8;
+    }, [isSmallScreenWidth, platform]);
+
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
@@ -873,13 +888,7 @@ function IOURequestStepScan({
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
-                        onLayout={(e) => {
-                            setElementTop(
-                                isSmallScreenWidth
-                                    ? e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 10)
-                                    : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8),
-                            );
-                        }}
+                        onLayout={(e) => setElementTop(e.nativeEvent.layout.height + elementTopOffset)}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >
                         <EducationalTooltip
