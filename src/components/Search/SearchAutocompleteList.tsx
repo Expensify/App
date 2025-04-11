@@ -203,13 +203,6 @@ function SearchAutocompleteList(
                             accountID: details.accountID.toString(),
                         };
                     });
-                const currentUser = currentUserRef.current;
-                if (currentUser && currentUser.accountID) {
-                    autocompleteOptions.push({
-                        name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                        accountID: currentUser.accountID.toString(),
-                    });
-                }
 
                 return autocompleteOptions;
             }),

@@ -15,6 +15,8 @@ import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('SidebarUtils', () => {
     beforeAll(() =>
         Onyx.init({
@@ -605,6 +607,42 @@ describe('SidebarUtils', () => {
                     reportNameValuePairs,
                     reportActions: {},
                     personalDetails: {},
+                    preferredLocale,
+                    policy,
+                    parentReportAction: undefined,
+                    hasViolations: false,
+                    lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(optionData?.alternateText).toBe(`test message`);
+            });
+            it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
+                const preferredLocale = 'en';
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const report: Report = {
+                    ...createRandomReport(2),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastActorAccountID: 1,
+                };
+                const reportNameValuePairs = {
+                    private_isArchived: DateUtils.getDBTime(),
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+                const optionData = SidebarUtils.getOptionData({
+                    report,
+                    reportNameValuePairs,
+                    reportActions: {},
+                    personalDetails: LHNTestUtils.fakePersonalDetails,
                     preferredLocale,
                     policy,
                     parentReportAction: undefined,

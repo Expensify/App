@@ -80,6 +80,7 @@ type SearchContext = {
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    isOnSearch: boolean;
 };
 
 type ASTNode = {
