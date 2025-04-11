@@ -29,6 +29,7 @@ import {
     getReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    hasReceiptError,
     isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
     requiresAttentionFromCurrentUser,
@@ -40,7 +41,8 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
@@ -273,6 +275,62 @@ describe('ReportUtils', () => {
 
             // Then it should return the new avatar
             expect(getWorkspaceIcon(workspaceChat, workspace).source).toBe(newAvatarURL);
+        });
+    });
+
+    describe('hasReceiptError', () => {
+        it('should return true for transaction has receipt error', () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            const errors: Errors | ErrorFields = {
+                '1231231231313221': {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'blob:https://dev.new.expensify.com:8082/6c5b7110-42c2-4e6d-8566-657ff24caf21',
+                    filename: 'images.jpeg',
+                    action: 'replaceReceipt',
+                },
+            };
+
+            report.parentReportID = parentReport.reportID;
+            const currentReportId = '';
+            const transactionID = 1;
+
+            const transaction = {
+                ...createRandomTransaction(transactionID),
+                category: '',
+                tag: '',
+                created: testDate,
+                reportID: currentReportId,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+                errors,
+            };
+            expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(true);
+        });
+    });
+
+    describe('hasReceiptError', () => {
+        it('should return false for transaction has no receipt error', () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            report.parentReportID = parentReport.reportID;
+            const currentReportId = '';
+            const transactionID = 1;
+
+            const transaction = {
+                ...createRandomTransaction(transactionID),
+                category: '',
+                tag: '',
+                created: testDate,
+                reportID: currentReportId,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+            expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(false);
         });
     });
 
