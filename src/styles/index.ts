@@ -595,7 +595,6 @@ const styles = (theme: ThemeColors) =>
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
-            bottom: 0,
 
             // There is a missing border right on the wide layout
             borderRightWidth: shouldUseNarrowLayout ? 0 : 1,
