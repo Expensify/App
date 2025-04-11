@@ -18,7 +18,6 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import {useAnimatedRef, useSharedValue} from 'react-native-reanimated';
 import type {Emoji} from '@assets/emojis/types';
-import type {FileObject} from '@components/AttachmentModal';
 import type {MeasureParentContainerAndCursorCallback} from '@components/AutoCompleteSuggestions/types';
 import Composer from '@components/Composer';
 import type {CustomSelectionChangeEvent, TextSelection} from '@components/Composer/types';
@@ -50,6 +49,7 @@ import getScrollPosition from '@pages/home/report/ReportActionCompose/getScrollP
 import type {SuggestionsRef} from '@pages/home/report/ReportActionCompose/ReportActionCompose';
 import SilentCommentUpdater from '@pages/home/report/ReportActionCompose/SilentCommentUpdater';
 import Suggestions from '@pages/home/report/ReportActionCompose/Suggestions';
+import type {FileObject} from '@pages/media/AttachmentModalScreen/types';
 import {isEmojiPickerVisible} from '@userActions/EmojiPickerAction';
 import type {OnEmojiSelected} from '@userActions/EmojiPickerAction';
 import {inputFocusChange} from '@userActions/InputFocus';
@@ -57,7 +57,7 @@ import {areAllModalsHidden} from '@userActions/Modal';
 import {broadcastUserIsTyping, saveReportActionDraft, saveReportDraftComment} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
+import type {ReportAction} from '@src/types/onyx';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type SyncSelection = {
@@ -99,7 +99,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     inputPlaceholder: string;
 
     /** Function to display a file in a modal */
-    displayFileInModal: (file: FileObject) => void;
+    onFilePasted: (file: FileObject) => void;
 
     /** Whether the user is blocked from concierge */
     isBlockedFromConcierge: boolean;
@@ -132,7 +132,7 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
     /** The last report action */
-    lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;
+    lastReportAction?: OnyxEntry<ReportAction>;
 
     /** Whether to include chronos */
     includeChronos?: boolean;
@@ -214,7 +214,7 @@ function ComposerWithSuggestions(
         setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
-        displayFileInModal,
+        onFilePasted,
         isBlockedFromConcierge,
         disabled,
         setIsCommentEmpty,
@@ -812,7 +812,7 @@ function ComposerWithSuggestions(
                     onClick={setShouldBlockSuggestionCalcToFalse}
                     onPasteFile={(file) => {
                         textInputRef.current?.blur();
-                        displayFileInModal(file);
+                        onFilePasted(file);
                     }}
                     onClear={onClear}
                     isDisabled={isBlockedFromConcierge || disabled}
