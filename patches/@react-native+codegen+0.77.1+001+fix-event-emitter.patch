@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-native/codegen/lib/generators/modules/GenerateModuleJniCpp.js b/node_modules/@react-native/codegen/lib/generators/modules/GenerateModuleJniCpp.js
+index 9bd5a6b..4aca25b 100644
+--- a/node_modules/@react-native/codegen/lib/generators/modules/GenerateModuleJniCpp.js
++++ b/node_modules/@react-native/codegen/lib/generators/modules/GenerateModuleJniCpp.js
+@@ -122,7 +122,7 @@ ${methods
+   }${
+     eventEmitters.length > 0
+       ? `
+-  setEventEmitterCallback(params.instance);`
++  configureEventEmitterCallback();`
+       : ''
+   }
+ }`.trim();
