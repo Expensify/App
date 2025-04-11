@@ -146,6 +146,15 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
+// Check if the user can downgrade
+let canDowngrade = false;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (val) => {
+        canDowngrade = val?.canDowngrade ?? false;
+    },
+});
+
 /**
  * @returns The date when the grace period ends.
  */
@@ -538,6 +547,10 @@ function shouldRestrictUserBillableActions(policyID: string): boolean {
     return false;
 }
 
+function shouldCalculateBillNewDot(): boolean {
+    return canDowngrade && getOwnedPaidPolicies(allPolicies, currentUserAccountID).length === 1;
+}
+
 export {
     calculateRemainingFreeTrialDays,
     doesUserHavePaymentCardAdded,
@@ -557,4 +570,5 @@ export {
     shouldShowPreTrialBillingBanner,
     shouldShowDiscountBanner,
     getEarlyDiscountInfo,
+    shouldCalculateBillNewDot,
 };

@@ -47,6 +47,9 @@ type ThreeDotsMenuProps = {
 
     /** Is the menu nested? This prop is used to omit html warning when we are nesting a button inside another button */
     isNested?: boolean;
+
+    /** Ref to the menu */
+    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>;
 };
 
 type ThreeDotsMenuWithOptionalAnchorProps =

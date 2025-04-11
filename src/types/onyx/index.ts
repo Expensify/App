@@ -7,6 +7,7 @@ import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
+import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
@@ -261,4 +262,5 @@ export type {
     SidePanel,
     LastPaymentMethodType,
     TalkToAISales,
+    BillingReceiptDetails,
 };
