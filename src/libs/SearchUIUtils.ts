@@ -230,17 +230,17 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
 
     if (Array.isArray(data)) {
         return data.some((item: TransactionListItemType | ReportListItemType | TaskListItemType) => {
+            if (isTaskListItemType(item)) {
+                const taskYear = new Date(item.created).getFullYear();
+                return taskYear !== currentYear;
+            }
+
             if (isReportListItemType(item)) {
                 // If the item is a ReportListItemType, iterate over its transactions and check them
                 return item.transactions.some((transaction) => {
                     const transactionYear = new Date(getTransactionCreatedDate(transaction)).getFullYear();
                     return transactionYear !== currentYear;
                 });
-            }
-
-            if (isTaskListItemType(item)) {
-                const taskYear = new Date(item.created).getFullYear();
-                return taskYear !== currentYear;
             }
 
             const createdYear = new Date(item?.modifiedCreated ? item.modifiedCreated : item?.created || '').getFullYear();
@@ -262,6 +262,13 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
                 if (DateUtils.doesDateBelongToAPastYear(date)) {
                     return true;
                 }
+            }
+        } else if (isReportEntry(key)) {
+            const item = data[key];
+            const date = item.created;
+
+            if (date && DateUtils.doesDateBelongToAPastYear(date)) {
+                return true;
             }
         }
     }

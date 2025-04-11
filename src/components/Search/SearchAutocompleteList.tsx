@@ -305,10 +305,10 @@ function SearchAutocompleteList(
                     .slice(0, 10);
 
                 return filteredParticipants.map((participant) => ({
-                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.FROM,
+                    filterKey: autocompleteKey,
                     text: participant.name,
                     autocompleteID: participant.accountID,
-                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM,
+                    mapKey: autocompleteKey,
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN: {
