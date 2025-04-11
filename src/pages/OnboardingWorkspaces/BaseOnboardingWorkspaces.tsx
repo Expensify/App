@@ -58,7 +58,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID(policyID);
 
-            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
+            navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
         },
         [onboardingPersonalDetails?.firstName, onboardingPersonalDetails?.lastName, isSmallScreenWidth, canUseDefaultRooms, activeWorkspaceID],
     );

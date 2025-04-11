@@ -186,6 +186,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         setOnboardingPolicyID();
                     });
                     navigateAfterOnboarding(
+                        onboardingPurposeSelected,
                         isSmallScreenWidth,
                         canUseDefaultRooms,
                         onboardingPolicyID,
