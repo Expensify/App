@@ -7,7 +7,7 @@ keywords: [expense reports, submit report, edit report, copilot, view collaborat
 <div id="expensify-classic" markdown="1">
 
 You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. 
-This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and understanding report statuses. It also covers how to view collaborator reports using Copilot access and export reports to CSV.
+This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and understanding report statuses. It also covers how to view collaborator reports using Copilot access and exporting reports to CSV.
 
 ---
 
@@ -32,7 +32,7 @@ Expenses may be automatically added to a report if your Workspace has this setti
 2. Tap **Reports**, then select the report.
 3. Tap **Add Expense**, then choose expenses.
 
-## Move Expenses to Another Report (Desktop Only)
+## Move Expenses to Another Report (web-only)
 
 1. Go to the **Expenses** page.
 2. Select open expenses to move.
@@ -99,7 +99,7 @@ You can edit the report title, workspace, type, layout, and attached expenses.
 3. Tap the Workspace name to change it.
 4. Tap **Done**.
 
-## Change the Type of Report
+## Change the Type of Report 
 
 **On Desktop:**
 1. Open the report and click **Details**.
@@ -109,7 +109,7 @@ You can edit the report title, workspace, type, layout, and attached expenses.
 1. Go to the report and tap **Edit**.
 2. Tap **Expense Report** or **Invoice**.
 
-## Change the Report Layout
+## Change the Report Layout (web-only)
 
 1. Open the report and click **Details**.
 2. Adjust:
@@ -130,16 +130,19 @@ Some Workspaces automatically handle this. Otherwise, submit manually.
    - **CC** – Additional recipients.
    - **Memo** – Notes (optional).
    - **Attach PDF** – Optional.
-
-Click **Send** to submit.
+4. Click **Send** to submit.
 
 **On Mobile:**
 
 1. Go to the report and tap **Submit Report**.
-2. Fill out the same fields.
+2. Fill out:
+   - **To** – Approver’s name.
+   - **CC** – Additional recipients.
+   - **Memo** – Notes (optional).
+   - **Attach PDF** – Optional.
 3. Tap **Submit**.
 
-**Note:** The **CC** field is "sticky"—Expensify remembers previous entries. Remove them next time to stop future auto-CCs.
+**Note:** The **CC** field is "sticky"—Expensify remembers previous entries. Remove them next time to stop future auto-CCs. 
 
 ## Submit via Guided Review (web-only)
 
@@ -195,12 +198,10 @@ When impactful changes are made to the report, such as changing an expense's rei
 
 Every report passes through several statuses. Here’s what they mean:
 
-- **Open** – In progress, not yet submitted.
-  - If also labeled **Rejected**, open the report to review comments and revise.
+- **Open** – In progress, not yet submitted. If also labeled **Rejected**, open the report to review comments and revise.
 - **Processing** – Submitted and awaiting approval.
 - **Approved** – Fully approved but not reimbursed.
-- **Reimbursed** – Payment sent.
-  - **Withdrawing** or **Confirmed** may appear based on ACH status.
+- **Reimbursed** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
 - **Closed** – Finalized and no longer editable.
 
 ## Finalized state by workflow
@@ -222,13 +223,20 @@ A report is automatically marked **Closed** under these conditions:
 
 ## View collaborator reports using Copilot access
 
-If someone grants you **Copilot access**, you can view and manage their reports as if they were your own.
+If someone grants you **[Copilot access](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot)**, you can view and manage their reports as if they were your own.
 
 ### Switch to a Copilot account
 
-1. Click your profile icon in the bottom left.
-2. Use the up/down arrow next to your profile name.
-3. Choose the user’s account you have Copilot access to.
+**On Desktop:**
+
+1. Click your profile icon in the top left.
+2. Click on the user’s account you have Copilot access to.
+
+**On Mobile:**
+
+1. Tap ☰ and tap on your **Profile**.
+2. Tap **Switch to Copilot Mode**.
+3. Tap on the user's account. 
 
 You’ll now see their reports and expenses.
 
