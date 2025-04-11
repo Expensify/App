@@ -523,7 +523,6 @@ function ReportPreview({
                 text={translate('iou.approve')}
                 success
                 onPress={() => confirmApproval()}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
@@ -572,7 +571,6 @@ function ReportPreview({
             <Button
                 text={translate('common.review')}
                 onPress={() => openReportFromPreview()}
-                isDisabled={shouldDisableSubmitButton}
                 icon={Expensicons.DotIndicator}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
@@ -584,7 +582,6 @@ function ReportPreview({
                 onPress={() => {
                     openReportFromPreview();
                 }}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
     };
