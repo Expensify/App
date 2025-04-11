@@ -1,4 +1,4 @@
-import {useFocusEffect, useIsFocused} from '@react-navigation/native';
+import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
@@ -70,7 +70,6 @@ function WorkspaceReportFieldsPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const isFocused = useIsFocused();
     const {environmentURL} = useEnvironment();
     const policy = usePolicy(policyID);
     const {selectionMode} = useMobileSelectionMode();
@@ -103,11 +102,24 @@ function WorkspaceReportFieldsPage({
     useFocusEffect(fetchReportFields);
 
     useEffect(() => {
-        if (isFocused) {
+        if (!selectedReportFields.length || !canSelectMultiple) {
             return;
         }
-        setSelectedReportFields([]);
-    }, [isFocused]);
+
+        setSelectedReportFields((prevSelectedReportFields) => {
+            const newSelectedReportFields: PolicyReportField[] = [];
+
+            for (const reportField of prevSelectedReportFields) {
+                const fieldID = getReportFieldKey(reportField.fieldID);
+                if (filteredPolicyFieldList[fieldID] && filteredPolicyFieldList[fieldID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+                    newSelectedReportFields.push(reportField);
+                }
+            }
+
+            return newSelectedReportFields;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [filteredPolicyFieldList]);
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
