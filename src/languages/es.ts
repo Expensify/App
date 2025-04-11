@@ -6641,6 +6641,11 @@ const translations = {
             confirmText: 'Iniciar prueba',
             helpText: 'Omitir',
         },
+        banner: {
+            currentlyTestDrivingExpensify: 'Actualmente estás probando Expensify',
+            readyForTheRealThing: '¿Listo para la versión real?',
+            getStarted: 'Comenzar',
+        },
     },
 };
 

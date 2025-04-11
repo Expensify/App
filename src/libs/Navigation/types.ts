@@ -1763,6 +1763,10 @@ type TestDriveModalNavigatorParamList = {
     [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
 };
 
+type TestDriveDemoNavigatorParamList = {
+    [SCREENS.TEST_DRIVE_DEMO.ROOT]: undefined;
+};
+
 type SharedScreensParamList = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
@@ -1845,6 +1849,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
     [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
     [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
+    [NAVIGATORS.TEST_DRIVE_DEMO_NAVIGATOR]: NavigatorScreenParams<TestDriveDemoNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
@@ -2037,4 +2042,5 @@ export type {
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
     TestDriveModalNavigatorParamList,
+    TestDriveDemoNavigatorParamList,
 };
