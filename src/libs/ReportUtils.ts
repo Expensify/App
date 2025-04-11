@@ -232,6 +232,7 @@ import {
 import {addTrailingForwardSlash} from './Url';
 import type {AvatarSource} from './UserUtils';
 import {generateAccountID, getDefaultAvatarURL} from './UserUtils';
+import {isReservedRoomName} from './ValidationUtils';
 
 // Dynamic Import to avoid circular dependency
 const UnreadIndicatorUpdaterHelper = () => import('./UnreadIndicatorUpdater');
@@ -4571,8 +4572,12 @@ function getReportNameInternal({
 
     if (reportID) {
         const reportNameFromCache = reportNameCache.get(cacheKey);
-
-        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName && reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
+        if (
+            reportNameFromCache?.reportName &&
+            reportNameFromCache.reportName === report?.reportName &&
+            reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME &&
+            !isReservedRoomName(report?.reportName)
+        ) {
             return reportNameFromCache.reportName;
         }
     }
