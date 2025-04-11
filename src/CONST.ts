@@ -1161,8 +1161,25 @@ const CONST = {
             PAY: 'pay',
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             REMOVE_HOLD: 'removeHold',
+            MARK_AS_CASH: 'markAsCash',
+        },
+        TRANSACTION_PRIMARY_ACTIONS: {
+            REMOVE_HOLD: 'removeHold',
             REVIEW_DUPLICATES: 'reviewDuplicates',
             MARK_AS_CASH: 'markAsCash',
+        },
+        REPORT_PREVIEW_ACTIONS: {
+            VIEW: 'view',
+            REVIEW: 'review',
+            SUBMIT: 'submit',
+            APPROVE: 'approve',
+            PAY: 'pay',
+            EXPORT_TO_ACCOUNTING: 'exportToAccounting',
+        },
+        TRANSACTION_SECONDARY_ACTIONS: {
+            HOLD: 'hold',
+            VIEW_DETAILS: 'viewDetails',
+            DELETE: 'delete',
         },
         ACTIONS: {
             LIMIT: 50,
