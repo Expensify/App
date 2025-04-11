@@ -21,27 +21,6 @@ function getUrlWithBackToParam<TUrl extends string>(url: TUrl, backTo?: string, 
     return `${url}${backToParam}` as `${TUrl}`;
 }
 
-type AttachmentsRoute = 'attachment' | `r/${string}/attachment/add`;
-type AttachmentRouteParams = ReportsSplitNavigatorParamList[typeof SCREENS.ATTACHMENTS];
-function getAttachmentRoute(url: AttachmentsRoute, params?: AttachmentRouteParams) {
-    if (!params?.source) {
-        return url;
-    }
-
-    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, fileName, attachmentLink} = params;
-
-    const sourceParam = `?source=${encodeURIComponent(source)}`;
-    const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
-    const typeParam = type ? `&type=${type as string}` : '';
-    const reportIDParam = reportID ? `&reportID=${reportID}` : '';
-    const accountIDParam = accountID ? `&accountID=${accountID}` : '';
-    const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
-    const fileNameParam = fileName ? `&fileName=${fileName}` : '';
-    const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
-
-    return `${url}${sourceParam}${typeParam}${reportIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
-}
-
 const PUBLIC_SCREENS_ROUTES = {
     // If the user opens this route, we'll redirect them to the path saved in the last visited path or to the home page if the last visited path is empty.
     ROOT: '',
@@ -2391,6 +2370,30 @@ const HYBRID_APP_ROUTES = {
 
 export {HYBRID_APP_ROUTES, getUrlWithBackToParam, PUBLIC_SCREENS_ROUTES};
 export default ROUTES;
+
+type AttachmentsRoute = typeof ROUTES.ATTACHMENTS.route;
+type ReportAddAttachmentRoute = `r/${string}/attachment/add`;
+type AttachmentRoutes = AttachmentsRoute | ReportAddAttachmentRoute;
+type AttachmentRouteParams = ReportsSplitNavigatorParamList[typeof SCREENS.ATTACHMENTS];
+
+function getAttachmentRoute(url: AttachmentRoutes, params?: AttachmentRouteParams) {
+    if (!params?.source) {
+        return url;
+    }
+
+    const {source, attachmentID, type, reportID, accountID, isAuthTokenRequired, fileName, attachmentLink} = params;
+
+    const sourceParam = `?source=${encodeURIComponent(source)}`;
+    const attachmentIDParam = attachmentID ? `&attachmentID=${attachmentID}` : '';
+    const typeParam = type ? `&type=${type as string}` : '';
+    const reportIDParam = reportID ? `&reportID=${reportID}` : '';
+    const accountIDParam = accountID ? `&accountID=${accountID}` : '';
+    const authTokenParam = isAuthTokenRequired ? '&isAuthTokenRequired=true' : '';
+    const fileNameParam = fileName ? `&fileName=${fileName}` : '';
+    const attachmentLinkParam = attachmentLink ? `&attachmentLink=${attachmentLink}` : '';
+
+    return `${url}${sourceParam}${typeParam}${reportIDParam}${attachmentIDParam}${accountIDParam}${authTokenParam}${fileNameParam}${attachmentLinkParam} ` as const;
+}
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ExtractRouteName<TRoute> = TRoute extends {getRoute: (...args: any[]) => infer TRouteName} ? TRouteName : TRoute;
