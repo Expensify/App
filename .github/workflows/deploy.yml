@@ -47,10 +47,10 @@ jobs:
       - name: Create and push tag
         if: ${{ github.ref == 'refs/heads/staging' }}
         run: |
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}
+          git tag ${{ steps.getAppVersion.outputs.VERSION }}-staging
           git push origin --tags
           cd Mobile-Expensify
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}
+          git tag ${{ steps.getAppVersion.outputs.VERSION }}-staging
           git push origin --tags
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
