@@ -13,7 +13,7 @@ index 08419c5..3678f86 100644
 +    $ReadOnly<{
 +      target: Int32,
 +      items: $ReadOnlyArray<
-+        $ReadOnly<{|
++        $ReadOnly<{
 +          type: string,
 +          data: string,
 +        }>,
