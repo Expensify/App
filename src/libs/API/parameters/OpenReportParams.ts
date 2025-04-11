@@ -21,6 +21,7 @@ type OpenReportParams = {
      * If this flag is set to true, api will return oldest first starting from the beginning of report.
      */
     useTableReportView?: boolean;
+    transactionID?: string;
 };
 
 export default OpenReportParams;
