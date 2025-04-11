@@ -1530,6 +1530,7 @@ const CONST = {
         PUSHER_PING_PONG: 'pusher_ping_pong',
         LOCATION_UPDATE_INTERVAL: 5000,
         PLAY_SOUND_MESSAGE_DEBOUNCE_TIME: 500,
+        SKELETON_ANIMATION_SPEED: 3,
     },
     PRIORITY_MODE: {
         GSD: 'gsd',
