@@ -37,6 +37,9 @@ type FormWrapperProps = ChildrenProps &
         /** Callback to submit the form */
         onSubmit: () => void;
 
+        /** should render the extra button above submit button */
+        shouldRenderFooterAboveSubmit?: boolean;
+
         /** Whether the form is loading */
         isLoading?: boolean;
 
@@ -69,6 +72,7 @@ function FormWrapper({
     shouldHideFixErrorsAlert = false,
     disablePressOnEnter = false,
     isSubmitDisabled = false,
+    shouldRenderFooterAboveSubmit = false,
     isLoading = false,
     shouldScrollToEnd = false,
     addBottomSafeAreaPadding,
@@ -159,6 +163,7 @@ function FormWrapper({
                     disablePressOnEnter={disablePressOnEnter}
                     enterKeyEventListenerPriority={1}
                     shouldBlendOpacity={shouldSubmitButtonStickToBottom}
+                    shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
                 />
             ),
         [
@@ -187,6 +192,7 @@ function FormWrapper({
             submitButtonStyles,
             submitButtonText,
             submitFlexEnabled,
+            shouldRenderFooterAboveSubmit,
         ],
     );
 

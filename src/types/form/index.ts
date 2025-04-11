@@ -87,6 +87,7 @@ export type {WorkspaceCompanyCardFeedName} from './WorkspaceCompanyCardFeedName'
 export type {SearchSavedSearchRenameForm} from './SearchSavedSearchRenameForm';
 export type {WorkspaceCompanyCardEditName} from './WorkspaceCompanyCardEditName';
 export type {PersonalDetailsForm} from './PersonalDetailsForm';
+export type {OnboardingWorkEmailForm} from './OnboardingWorkEmailForm';
 export type {MergeAccountDetailsForm} from './MergeAccountDetailsForm';
 export type {WorkspaceConfirmationForm} from './WorkspaceConfirmationForm';
 export type {MoneyRequestTimeForm} from './MoneyRequestTimeForm';
