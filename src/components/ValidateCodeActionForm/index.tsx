@@ -1,11 +1,9 @@
 import React, {forwardRef, useEffect, useRef} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import type {ValidateCodeFormHandle} from '@components/ValidateCodeActionModal/ValidateCodeForm/BaseValidateCodeForm';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {ValidateCodeActionFormProps} from './type';
 
 function ValidateCodeActionForm({
@@ -13,18 +11,16 @@ function ValidateCodeActionForm({
     descriptionSecondary,
     validatePendingAction,
     validateError,
+    hasMagicCodeBeenSent,
     handleSubmitForm,
     clearError,
     sendValidateCode,
-    hasMagicCodeBeenSent,
     isLoading,
     submitButtonText,
     forwardedRef,
     shouldSkipInitialValidation,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
-
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
     const isUnmounted = useRef(false);
 
@@ -54,15 +50,15 @@ function ValidateCodeActionForm({
             {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
-                validateCodeAction={validateCodeAction}
+                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 validatePendingAction={validatePendingAction}
+                validateCodeActionErrorField="validateLogin"
                 validateError={validateError}
                 handleSubmitForm={handleSubmitForm}
                 sendValidateCode={sendValidateCode}
                 clearError={clearError}
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                 ref={forwardedRef}
-                hasMagicCodeBeenSent={hasMagicCodeBeenSent}
                 submitButtonText={submitButtonText}
             />
         </View>

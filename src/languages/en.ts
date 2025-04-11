@@ -1933,7 +1933,7 @@ const translations = {
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code.',
-            incorrectMagicCode: 'Incorrect magic code.',
+            incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code.',
         },
     },
