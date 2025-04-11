@@ -4,20 +4,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
 import Text from '@components/Text';
+import type { DayProps } from '@components/DatePicker/CalendarPicker/Day';
 
-type AvailableBookingDayProps = {
-    /** Whether day should be disabledes */
-    disabled?: boolean;
-
-    /** Specifies direction of icon */
-    selected?: boolean;
-
-    pressed?: boolean;
-    hovered?: boolean;
-    children?: number;
-};
-
-function AvailableBookingDay({disabled, selected, pressed, hovered, children}: AvailableBookingDayProps) {
+function AvailableBookingDay({disabled, selected, pressed, hovered, children}: DayProps) {
     const themeStyles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     return (
