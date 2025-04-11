@@ -5,7 +5,7 @@ import React from 'react';
 import type {SortableItemProps} from './types';
 
 function SortableItem({id, children}: SortableItemProps) {
-    const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id: props.id});
+    const {attributes, listeners, setNodeRef, transform, transition} = useSortable({id});
 
     const style = {
         touchAction: 'none',
@@ -14,7 +14,6 @@ function SortableItem({id, children}: SortableItemProps) {
     };
 
     return (
-        // eslint-disable-next-line react/jsx-props-no-spreading
         <div
             ref={setNodeRef}
             style={style}

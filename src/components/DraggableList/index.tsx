@@ -10,6 +10,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import SortableItem from './SortableItem';
 import type {DraggableListProps} from './types';
 
+const minimumActivationDistance = 5;  // pointer must move at least this much before starting to drag
+
 /**
  * Draggable (vertical) list using dnd-kit. Dragging is restricted to the vertical axis only
  *
@@ -55,14 +57,12 @@ function DraggableList<T>(
                 id={key}
                 key={key}
             >
-                <div>
                     {renderItem({
                         item,
                         getIndex: () => index,
                         isActive: false,
                         drag: () => {},
                     })}
-                </div>
             </SortableItem>
         );
     });
@@ -70,7 +70,7 @@ function DraggableList<T>(
     const sensors = [
         useSensor(PointerSensor, {
             activationConstraint: {
-                distance: 5,
+                distance: minimumActivationDistance,
             },
         }),
     ];
