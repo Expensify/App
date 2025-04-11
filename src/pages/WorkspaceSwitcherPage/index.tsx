@@ -134,4 +134,6 @@ function WorkspaceSwitcherPage() {
 
 WorkspaceSwitcherPage.displayName = 'WorkspaceSwitcherPage';
 
+export type {WorkspaceListItem};
+
 export default WorkspaceSwitcherPage;
