@@ -44,6 +44,7 @@ function SageIntacctReimbursableExpensesPage({policy}: WithPolicyConnectionsProp
                 pendingAction={settingsPendingAction(item.subscribedSettings, config?.pendingFields)}
             >
                 <MenuItemWithTopDescription
+                    key={item.title}
                     title={item.title}
                     description={item.description}
                     shouldShowRightIcon
