@@ -21,7 +21,7 @@ Managing invoices is easier than ever with Expensify. This guide walks you throu
 10. Click **Send**.
 11. The recipient will receive an email with payment instructions. They can pay through Expensify by following [these steps](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/payments/Pay-an-Invoice).
 
-![From the Reports page, click New Report and select Invoice](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice.png){:width="100%"}
+![From the Reports page, click Create Report and select Invoice](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice.png){:width="100%"}
 
 ![Click Send and enter the recipients email address](https://help.expensify.com/assets/images/ExpensifyHelp_OldDot_SendInvoice_02.png){:width="100%"}
 
@@ -30,13 +30,13 @@ Managing invoices is easier than ever with Expensify. This guide walks you throu
 # Upload Invoices in Bulk
 
 1. Go to the **Reports** tab.
-2. Click the **New Report** drop-down.
+2. Click the **Create Report** drop-down.
 3. Select **Bulk Import Invoices**.
 4. Download the sample CSV template.
 5. Fill in the invoice details (see **CSV Formatting Guide** below).
 6. Click **Upload CSV**.
 
-![Click Reports, New Reports, choose Bulk Import Invoices](https://help.expensify.com/assets/images/invoice-bulk-01.png){:width="100%"}
+![Click Reports, Create Report, choose Bulk Import Invoices](https://help.expensify.com/assets/images/invoice-bulk-01.png){:width="100%"}
 
 ![Download Sample CSV](https://help.expensify.com/assets/images/invoice-bulk-02.png){:width="100%"}
 
