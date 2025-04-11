@@ -651,6 +651,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    numberOfLinesTitle={0}
                                 />
                             )}
                             <MenuItem
