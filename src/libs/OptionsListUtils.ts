@@ -1067,8 +1067,11 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
 /**
  * Calculates count of all enabled options
  */
-function getEnabledCategoriesCount(options: PolicyCategories): number {
-    return Object.values(options).filter((option) => option.enabled).length;
+function getEnabledCategoriesCount(PolicyCategories: PolicyCategories | undefined): number {
+    if (PolicyCategories === undefined) {
+        return 0;
+    }
+    return Object.values(PolicyCategories).filter((PolicyCategory) => PolicyCategory.enabled).length;
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {

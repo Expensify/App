@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
@@ -20,6 +20,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
+    getCountOfEnabledTagsOfList,
     getTagApproverRule,
     getTagList,
     getWorkflowApprovalsUnavailable,
@@ -47,11 +48,14 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const policy = usePolicy(policyID);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
+    const [isCannotDisableLastTagModalVisible, setIsCannotDisableLastTagModalVisible] = useState(false);
+    const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
     const isQuickSettingsFlow = !!backTo;
     const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
     const approverText = approver?.displayName ?? tagApprover;
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
+    const shouldPreventDisable = policy?.requiresTag && getCountOfEnabledTagsOfList(policyTag?.tags) === 1;
 
     useEffect(() => {
         if (currentPolicyTag?.name === tagName || !currentPolicyTag) {
@@ -71,6 +75,10 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
+        if (shouldPreventDisable && !value) {
+            setIsCannotDisableLastTagModalVisible(true);
+            return;
+        }
         setWorkspaceTagEnabled(policyID, {[currentPolicyTag.name]: {name: currentPolicyTag.name, enabled: value}}, policyTag.orderWeight);
     };
 
@@ -144,6 +152,24 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     cancelText={translate('common.cancel')}
                     danger
                 />
+                <ConfirmModal
+                    isVisible={isCannotDisableLastTagModalVisible}
+                    onConfirm={() => setIsCannotDisableLastTagModalVisible(false)}
+                    onCancel={() => setIsCannotDisableLastTagModalVisible(false)}
+                    title={translate('workspace.tags.cannotDisableAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDisableAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
+                <ConfirmModal
+                    isVisible={isCannotDeleteLastTagModalVisible}
+                    onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
+                    title={translate('workspace.tags.cannotDeleteAllTags.title')}
+                    prompt={translate('workspace.tags.cannotDeleteAllTags.description')}
+                    confirmText={translate('common.buttonConfirm')}
+                    shouldShowCancelButton={false}
+                />
                 <View style={styles.flexGrow1}>
                     <OfflineWithFeedback
                         errors={getLatestErrorMessageField(currentPolicyTag)}
@@ -158,6 +184,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     isOn={currentPolicyTag.enabled}
                                     accessibilityLabel={translate('workspace.tags.enableTag')}
                                     onToggle={updateWorkspaceTagEnabled}
+                                    showLockIcon={shouldPreventDisable && currentPolicyTag?.enabled}
                                 />
                             </View>
                         </View>
@@ -212,7 +239,13 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                         <MenuItem
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}
-                            onPress={() => setIsDeleteTagModalOpen(true)}
+                            onPress={() => {
+                                if (shouldPreventDisable) {
+                                    setIsCannotDeleteLastTagModalVisible(true);
+                                    return;
+                                }
+                                setIsDeleteTagModalOpen(true);
+                            }}
                         />
                     )}
                 </View>

@@ -20,6 +20,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getEnabledCategoriesCount} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -55,8 +56,11 @@ function CategorySettingsPage({
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
 
+    const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
+    const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
+    const shouldPreventDisable = policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -112,7 +116,11 @@ function CategorySettingsPage({
         return <NotFoundPage />;
     }
 
-    const updateWorkspaceRequiresCategory = (value: boolean) => {
+    const updateWorkspaceCategoryEnabled = (value: boolean) => {
+        if (shouldPreventDisable && !value) {
+            setIsCannotDisableLastCategoryModalVisible(true);
+            return;
+        }
         setWorkspaceCategoryEnabled(policyID, {[policyCategory.name]: {name: policyCategory.name, enabled: value}});
     };
 
@@ -159,6 +167,24 @@ function CategorySettingsPage({
                             cancelText={translate('common.cancel')}
                             danger
                         />
+                        <ConfirmModal
+                            isVisible={isCannotDisableLastCategoryModalVisible}
+                            onConfirm={() => setIsCannotDisableLastCategoryModalVisible(false)}
+                            onCancel={() => setIsCannotDisableLastCategoryModalVisible(false)}
+                            title={translate('workspace.categories.cannotDisableAllCategories.title')}
+                            prompt={translate('workspace.categories.cannotDisableAllCategories.description')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
+                        />
+                        <ConfirmModal
+                            isVisible={isCannotDeleteLastTagModalVisible}
+                            onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
+                            onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
+                            title={translate('workspace.categories.cannotDeleteAllCategories.title')}
+                            prompt={translate('workspace.categories.cannotDeleteAllCategories.description')}
+                            confirmText={translate('common.buttonConfirm')}
+                            shouldShowCancelButton={false}
+                        />
                         <ScrollView contentContainerStyle={[styles.flexGrow1, safeAreaPaddingBottomStyle]}>
                             <OfflineWithFeedback
                                 errors={getLatestErrorMessageField(policyCategory)}
@@ -172,7 +198,8 @@ function CategorySettingsPage({
                                         <Switch
                                             isOn={policyCategory.enabled}
                                             accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                            onToggle={updateWorkspaceRequiresCategory}
+                                            onToggle={updateWorkspaceCategoryEnabled}
+                                            showLockIcon={policyCategory?.enabled && shouldPreventDisable}
                                         />
                                     </View>
                                 </View>
@@ -329,7 +356,13 @@ function CategorySettingsPage({
                                 <MenuItem
                                     icon={Trashcan}
                                     title={translate('common.delete')}
-                                    onPress={() => setDeleteCategoryConfirmModalVisible(true)}
+                                    onPress={() => {
+                                        if (shouldPreventDisable) {
+                                            setIsCannotDeleteLastTagModalVisible(true);
+                                            return;
+                                        }
+                                        setDeleteCategoryConfirmModalVisible(true);
+                                    }}
                                 />
                             )}
                         </ScrollView>
