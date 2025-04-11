@@ -6,6 +6,7 @@ type HybridAppSettings = {
     initialOnyxValues: {
         [ONYXKEYS.HYBRID_APP]: HybridApp;
         [ONYXKEYS.NVP_TRYNEWDOT]?: TryNewDot;
+        [ONYXKEYS.USER]?: {shouldUseStagingServer: boolean};
     };
 };
 
