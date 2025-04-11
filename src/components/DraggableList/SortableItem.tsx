@@ -23,7 +23,7 @@ function SortableItem({id, children}: SortableItemProps) {
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...listeners}
         >
-            {props.children}
+            {children}
         </div>
     );
 }
