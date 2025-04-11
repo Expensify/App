@@ -27,6 +27,7 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
                 fontSize={variables.fontSizeSmall}
                 color={theme.textSupporting}
                 style={[styles.editedLabelStyles, isPendingDelete && styles.offlineFeedback.deleted]}
+                dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             >
                 {translate('reportActionCompose.edited')}
             </Text>
