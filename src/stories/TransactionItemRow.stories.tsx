@@ -56,6 +56,8 @@ function Template({transactionItem, shouldUseNarrowLayout, isSelected, shouldSho
                     isSelected={isSelected}
                     shouldShowTooltip={shouldShowTooltip}
                     shouldShowChatBubbleComponent
+                    dateColumnSize={CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
+                    onCheckboxPress={() => {}}
                 />
             </ThemeStylesProvider>
         </ThemeProvider>

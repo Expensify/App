@@ -148,9 +148,7 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        const areAllSelected = listValues.length === selectedValuesArray.length;
-
-        setSelectedValues(areAllSelected ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(selectedValuesArray.length > 0 ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -328,7 +326,7 @@ function ReportFieldsListValuesPage({
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
                 {shouldShowEmptyState && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFieldsValues.title')}
                             subtitle={translate('workspace.reportFields.emptyReportFieldsValues.subtitle')}

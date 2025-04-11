@@ -22,7 +22,7 @@ function WorkspaceCompanyCardsFeedAddedEmptyPage({handleAssignCard, isDisabledAs
     const styles = useThemeStyles();
 
     return (
-        <ScrollView>
+        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
             <EmptyStateComponent
                 SkeletonComponent={CardRowSkeleton}
                 headerMediaType={CONST.EMPTY_STATE_MEDIA.ILLUSTRATION}

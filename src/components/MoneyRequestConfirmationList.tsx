@@ -175,6 +175,9 @@ type MoneyRequestConfirmationListProps = {
     /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
 
+    /** Whether the receipt can be replaced */
+    isReceiptEditable?: boolean;
+
     /** The PDF load error callback */
     onPDFLoadError?: () => void;
 
@@ -197,6 +200,7 @@ function MoneyRequestConfirmationList({
     shouldShowSmartScanFields = true,
     isEditingSplitBill,
     iouCurrencyCode,
+    isReceiptEditable,
     iouMerchant,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
@@ -232,6 +236,11 @@ function MoneyRequestConfirmationList({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+
+    const isTestReceipt = useMemo(() => {
+        return transaction?.receipt?.isTestReceipt ?? false;
+    }, [transaction?.receipt?.isTestReceipt]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
         Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
@@ -728,8 +737,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: !!isCreateExpenseFlow,
-                shouldShowRightIcon: isCreateExpenseFlow,
+                isInteractive: isCreateExpenseFlow && !isTestReceipt,
+                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt,
             }));
             options.push({
                 title: translate('common.to'),
@@ -739,7 +748,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID) {
@@ -1077,6 +1086,7 @@ function MoneyRequestConfirmationList({
             unit={unit}
             onPDFLoadError={onPDFLoadError}
             onPDFPassword={onPDFPassword}
+            isReceiptEditable={isReceiptEditable}
         />
     );
 
