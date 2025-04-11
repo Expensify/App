@@ -1,0 +1,76 @@
+import {findFocusedRoute} from '@react-navigation/native';
+import type {Route} from '@react-navigation/native';
+import type {OnyxEntry} from 'react-native-onyx';
+import getAttachmentDetails from '@libs/fileDownload/getAttachmentDetails';
+import {getAllReportActions, getReportActionHtml} from '@libs/ReportActionsUtils';
+import {getReportOrDraftReport, isChatThread} from '@libs/ReportUtils';
+import getStateFromPath from '@navigation/helpers/getStateFromPath';
+import Navigation from '@navigation/Navigation';
+import type {ReportDetailsNavigatorParamList} from '@navigation/types';
+import type {Route as ActiveRoute} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
+import type {Report} from '@src/types/onyx';
+
+const NO_REPORT_ID: unique symbol = Symbol(undefined);
+const NO_REPORT_ID_IN_PARAMS: unique symbol = Symbol(undefined);
+
+type ProtectedCurrentRouteReportID = string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID;
+type GetCurrentRouteReportID = (url: string) => string | ProtectedCurrentRouteReportID;
+type SearchRoute = Omit<Route<string>, 'key'> | undefined;
+type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
+
+const normalizeReportID = (reportID: string | typeof NO_REPORT_ID | typeof NO_REPORT_ID_IN_PARAMS) => {
+    if (reportID === NO_REPORT_ID_IN_PARAMS || reportID === NO_REPORT_ID) {
+        return undefined;
+    }
+
+    return reportID;
+};
+
+const getCurrentRouteReportID: GetCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
+    const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
+    const focusedRoute = findFocusedRoute(getStateFromPath(route));
+    const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID');
+
+    const focusedRouteReportID = isARouteWithReportIDInParams(focusedRoute) ? focusedRoute.params.reportID : reportIDFromUrlParams;
+
+    if (!focusedRouteReportID) {
+        return NO_REPORT_ID_IN_PARAMS;
+    }
+
+    const report = getReportOrDraftReport(focusedRouteReportID);
+    const isFocusedRouteAChatThread = isChatThread(report);
+    const firstReportThatHasURLInAttachments = findUrlInReportOrAncestorAttachments(report, url);
+
+    return isFocusedRouteAChatThread ? firstReportThatHasURLInAttachments : focusedRouteReportID;
+};
+
+const screensWithReportID = [SCREENS.SEARCH.REPORT_RHP, SCREENS.REPORT, SCREENS.SEARCH.MONEY_REQUEST_REPORT, SCREENS.ATTACHMENTS];
+
+function isARouteWithReportIDInParams(route: SearchRoute): route is RouteWithReportIDInParams<SearchRoute> {
+    return !!route && !!route.params && !!screensWithReportID.find((screen) => screen === route.name) && 'reportID' in route.params;
+}
+
+function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, url: string | null): string | typeof NO_REPORT_ID {
+    const {parentReportID, reportID} = currentReport ?? {};
+
+    const reportActions = getAllReportActions(reportID);
+    const hasUrlInAttachments = Object.values(reportActions).some((action) => {
+        const {sourceURL, previewSourceURL} = getAttachmentDetails(getReportActionHtml(action));
+        return sourceURL === url || previewSourceURL === url;
+    });
+
+    if (hasUrlInAttachments) {
+        return reportID ?? NO_REPORT_ID;
+    }
+
+    if (parentReportID) {
+        const parentReport = getReportOrDraftReport(parentReportID);
+        return findUrlInReportOrAncestorAttachments(parentReport, url);
+    }
+
+    return NO_REPORT_ID;
+}
+
+export {NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, getCurrentRouteReportID, normalizeReportID, findUrlInReportOrAncestorAttachments};
+export type {ProtectedCurrentRouteReportID};
