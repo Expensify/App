@@ -27,7 +27,6 @@ import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {openExternalLink} from '@libs/actions/Link';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -74,6 +73,7 @@ import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TalkToSalesButton from './TalkToSalesButton';
+import ROUTES from '@src/ROUTES';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -212,7 +212,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
             text={translate('getAssistancePage.scheduleADemo')}
             onPress={() => {
-                openExternalLink(account?.guideDetails?.calendarLink ?? '');
+                Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK);
             }}
             style={shouldUseNarrowLayout && shouldShowGuideBookingButtonInEarlyDiscountBanner && [styles.flex1]}
             icon={CalendarSolid}
