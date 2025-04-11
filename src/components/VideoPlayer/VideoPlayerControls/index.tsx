@@ -65,7 +65,7 @@ function VideoPlayerControls({
 }: VideoPlayerControlsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentURLAndReportID} = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const [shouldShowTime, setShouldShowTime] = useState(false);
     const iconSpacing = small ? styles.mr3 : styles.mr4;
@@ -77,9 +77,9 @@ function VideoPlayerControls({
     const enterFullScreenMode = useCallback(() => {
         // eslint-disable-next-line react-compiler/react-compiler
         isFullScreenRef.current = true;
-        updateCurrentlyPlayingURL(url, reportID);
+        updateCurrentURLAndReportID(url, reportID);
         videoPlayerRef.current?.presentFullscreenPlayer();
-    }, [isFullScreenRef, reportID, updateCurrentlyPlayingURL, url, videoPlayerRef]);
+    }, [isFullScreenRef, reportID, updateCurrentURLAndReportID, url, videoPlayerRef]);
 
     const seekPosition = useCallback(
         (newPosition: number) => {

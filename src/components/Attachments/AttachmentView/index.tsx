@@ -121,7 +121,7 @@ function AttachmentView({
 }: AttachmentViewProps) {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const {translate} = useLocalize();
-    const {updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {updateCurrentURLAndReportID} = usePlaybackContext();
 
     const theme = useTheme();
     const {safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
@@ -138,8 +138,8 @@ function AttachmentView({
         if (!isFocused && !isInFocusedModal && !(file && isUsedInAttachmentModal)) {
             return;
         }
-        updateCurrentlyPlayingURL(isVideo && typeof source === 'string' ? source : undefined, reportID);
-    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentlyPlayingURL]);
+        updateCurrentURLAndReportID(isVideo && typeof source === 'string' ? source : undefined, reportID);
+    }, [file, isFocused, isInFocusedModal, isUsedInAttachmentModal, isVideo, reportID, source, updateCurrentURLAndReportID]);
 
     const [imageError, setImageError] = useState(false);
 

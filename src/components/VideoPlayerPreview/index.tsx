@@ -50,7 +50,7 @@ type VideoPlayerPreviewProps = {
 function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentlyPlayingURL, currentRouteReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
+    const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const [isThumbnail, setIsThumbnail] = useState(true);
@@ -68,7 +68,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     };
 
     const handleOnPress = () => {
-        updateCurrentlyPlayingURL(videoUrl, reportID);
+        updateCurrentURLAndReportID(videoUrl, reportID);
         if (isSmallScreenWidth) {
             onShowModalPress();
         }
@@ -83,7 +83,7 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute, isOnSearch]);
+    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, firstRenderRoute, isOnSearch]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>

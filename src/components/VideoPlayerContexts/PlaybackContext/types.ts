@@ -16,7 +16,7 @@ type VideoElementData = {
 };
 
 type PlaybackContext = {
-    updateCurrentlyPlayingURL: (url: string | undefined, reportID: string | undefined) => void;
+    updateCurrentURLAndReportID: (url: string | undefined, reportID: string | undefined) => void;
     currentlyPlayingURL: string | null;
     currentRouteReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;

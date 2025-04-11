@@ -64,7 +64,7 @@ function BaseVideoPlayer({
         originalParent,
         shareVideoPlayerElements,
         currentVideoPlayerRef,
-        updateCurrentlyPlayingURL,
+        updateCurrentURLAndReportID,
         videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
     } = usePlaybackContext();
@@ -110,13 +110,13 @@ function BaseVideoPlayer({
         setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
-            updateCurrentlyPlayingURL(url, reportID);
+            updateCurrentURLAndReportID(url, reportID);
         } else if (isPlaying) {
             pauseVideo();
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -413,8 +413,8 @@ function BaseVideoPlayer({
         if (!shouldPlay) {
             return;
         }
-        updateCurrentlyPlayingURL(url, reportID);
-    }, [reportID, shouldPlay, updateCurrentlyPlayingURL, url]);
+        updateCurrentURLAndReportID(url, reportID);
+    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({isMuted: true});

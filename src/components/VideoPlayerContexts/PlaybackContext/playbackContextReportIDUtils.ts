@@ -11,13 +11,12 @@ import type {Route as ActiveRoute} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
+/* NO_REPORT_ID & NO_REPORT_ID_IN_PARAMS are used to differentiate if the ReportID is simply missing or if it is just missing from the route params.
+ * Since both are a unique symbol they should not be used outside of these context files to avoid having to always import them
+ * normalizeReportID is used to return the context value outside so from a calling hook perspective these symbols doesn't matter at all
+ *  */
 const NO_REPORT_ID: unique symbol = Symbol(undefined);
 const NO_REPORT_ID_IN_PARAMS: unique symbol = Symbol(undefined);
-
-type ProtectedCurrentRouteReportID = string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID;
-type GetCurrentRouteReportID = (url: string) => string | ProtectedCurrentRouteReportID;
-type SearchRoute = Omit<Route<string>, 'key'> | undefined;
-type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
 
 const normalizeReportID = (reportID: string | typeof NO_REPORT_ID | typeof NO_REPORT_ID_IN_PARAMS) => {
     if (reportID === NO_REPORT_ID_IN_PARAMS || reportID === NO_REPORT_ID) {
@@ -26,6 +25,11 @@ const normalizeReportID = (reportID: string | typeof NO_REPORT_ID | typeof NO_RE
 
     return reportID;
 };
+
+type ProtectedCurrentRouteReportID = string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID;
+type GetCurrentRouteReportID = (url: string) => string | ProtectedCurrentRouteReportID;
+type SearchRoute = Omit<Route<string>, 'key'> | undefined;
+type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList[typeof SCREENS.REPORT_DETAILS.ROOT]};
 
 const getCurrentRouteReportID: GetCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
     const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;

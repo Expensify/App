@@ -25,7 +25,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const video = usePlaybackContextVideoRefs(resetContextProperties);
 
-    const updateCurrentlyPlayingURL: PlaybackContext['updateCurrentlyPlayingURL'] = useCallback(
+    const updateCurrentURLAndReportID: PlaybackContext['updateCurrentURLAndReportID'] = useCallback(
         (url, reportID) => {
             if (!url || !reportID) {
                 return;
@@ -101,7 +101,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const contextValue = useMemo(
         () => ({
-            updateCurrentlyPlayingURL,
+            updateCurrentURLAndReportID,
             currentlyPlayingURL,
             currentRouteReportID: normalizeReportID(currentRouteReportID),
             originalParent,
@@ -115,7 +115,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
         }),
-        [updateCurrentlyPlayingURL, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
+        [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
     );
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
