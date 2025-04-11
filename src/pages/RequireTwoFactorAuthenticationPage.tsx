@@ -33,7 +33,6 @@ function RequireTwoFactorAuthenticationPage() {
                     <Button
                         medium
                         success
-                        style={styles.wFitContent}
                         pressOnEnter
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH))}
                         text={translate('twoFactorAuth.enableTwoFactorAuth')}
