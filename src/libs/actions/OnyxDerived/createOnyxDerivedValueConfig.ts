@@ -1,7 +1,7 @@
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import type {OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {OnyxDerivedValueConfig} from './types';
+import type OnyxDerivedValueConfig from './types';
 
 /**
  * Helper function to create a derived value config. This function is just here to help TypeScript infer Deps, so instead of writing this:
