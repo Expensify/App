@@ -145,6 +145,7 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'off',
         '@typescript-eslint/no-import-type-side-effects': 'error',
         '@typescript-eslint/array-type': ['error', {default: 'array-simple'}],
+        '@typescript-eslint/max-params': ['error', {max: 10}],
         '@typescript-eslint/naming-convention': [
             'error',
             {
@@ -236,6 +237,16 @@ module.exports = {
                 selector: 'TSEnumDeclaration',
                 message: "Please don't declare enums, use union types instead.",
             },
+
+            // These are the original rules from AirBnB's style guide, modified to allow for...of loops and for...in loops
+            {
+                selector: 'LabeledStatement',
+                message: 'Labels are a form of GOTO; using them makes code confusing and hard to maintain and understand.',
+            },
+            {
+                selector: 'WithStatement',
+                message: '`with` is disallowed in strict mode because it makes code impossible to predict and optimize. It is also deprecated.',
+            },
         ],
         'no-restricted-properties': [
             'error',
@@ -243,6 +254,13 @@ module.exports = {
                 object: 'Image',
                 property: 'getSize',
                 message: 'Usage of Image.getImage is restricted. Please use the `react-native-image-size`.',
+            },
+            // Disallow direct HybridAppModule.isHybridApp() usage, because it requires a native call
+            // Use CONFIG.IS_HYBRID_APP, which keeps cached value instead
+            {
+                object: 'HybridAppModule',
+                property: 'isHybridApp',
+                message: 'Use CONFIG.IS_HYBRID_APP instead.',
             },
         ],
         'no-restricted-imports': [

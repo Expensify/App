@@ -11,6 +11,7 @@ import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -42,11 +43,10 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const [error, setError] = useState('');
 
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [user] = useOnyx(ONYXKEYS.USER);
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
 
-    const isUserValidated = user?.validated;
+    const isUserValidated = useAccountValidation();
     const contactMethod = account?.primaryLogin ?? '';
 
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);

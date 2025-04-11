@@ -30,6 +30,7 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/PrivateNotesForm';
 import type {Report} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Note} from '@src/types/onyx/Report';
 
 type PrivateNotesEditPageProps = WithReportAndPrivateNotesOrNotFoundProps &
@@ -96,11 +97,24 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
 
         const hasNewNoteBeenAdded = !originalNote && editedNote;
         if (!Object.values<Note>({...report.privateNotes, [route.params.accountID]: {note: editedNote}}).some((item) => item.note) || hasNewNoteBeenAdded) {
-            goBackToDetailsPage(report, backTo);
+            goBackToDetailsPage(report, backTo, true);
         } else {
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.PRIVATE_NOTES_LIST.getRoute(report.reportID, backTo)));
         }
     };
+
+    const validate = useCallback((): Errors => {
+        const errors: Errors = {};
+        const privateNoteLength = privateNote.trim().length;
+        if (privateNoteLength > CONST.MAX_COMMENT_LENGTH) {
+            errors.privateNotes = translate('common.error.characterLimitExceedCounter', {
+                length: privateNoteLength,
+                limit: CONST.MAX_COMMENT_LENGTH,
+            });
+        }
+
+        return errors;
+    }, [privateNote, translate]);
 
     return (
         <ScreenWrapper
@@ -117,9 +131,11 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
             <FormProvider
                 formID={ONYXKEYS.FORMS.PRIVATE_NOTES_FORM}
                 onSubmit={savePrivateNote}
+                validate={validate}
                 style={[styles.flexGrow1, styles.ph5]}
                 submitButtonText={translate('common.save')}
                 enabledWhenOffline
+                shouldHideFixErrorsAlert
             >
                 <Text style={[styles.mb5]}>
                     {translate(
@@ -142,7 +158,6 @@ function PrivateNotesEditPage({route, report, accountID}: PrivateNotesEditPagePr
                         label={translate('privateNotes.composerLabel')}
                         accessibilityLabel={translate('privateNotes.title')}
                         autoCompleteType="off"
-                        maxLength={CONST.MAX_COMMENT_LENGTH}
                         autoCorrect={false}
                         autoGrowHeight
                         maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}

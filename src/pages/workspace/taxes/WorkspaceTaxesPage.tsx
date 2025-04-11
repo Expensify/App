@@ -30,6 +30,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canEditTaxRate as canEditTaxRatePolicyUtils, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
@@ -89,6 +90,29 @@ function WorkspaceTaxesPage({
 
     const cleanupSelectedOption = useCallback(() => setSelectedTaxesIDs([]), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
+
+    useEffect(() => {
+        if (selectedTaxesIDs.length === 0 || !canSelectMultiple) {
+            return;
+        }
+
+        setSelectedTaxesIDs((prevSelectedTaxesIDs) => {
+            const newSelectedTaxesIDs = [];
+
+            for (const taxID of prevSelectedTaxesIDs) {
+                if (
+                    policy?.taxRates?.taxes?.[taxID] &&
+                    policy?.taxRates?.taxes?.[taxID].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+                    canEditTaxRatePolicyUtils(policy, taxID)
+                ) {
+                    newSelectedTaxesIDs.push(taxID);
+                }
+            }
+
+            return newSelectedTaxesIDs;
+        });
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policy?.taxRates?.taxes]);
 
     useSearchBackPress({
         onClearSelection: () => {
@@ -173,7 +197,7 @@ function WorkspaceTaxesPage({
             (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         setSelectedTaxesIDs((prev) => {
-            if (prev.length === taxesToSelect.length) {
+            if (prev.length > 0) {
                 return [];
             }
             return taxesToSelect.map((item) => (item.keyForList ? item.keyForList : ''));
@@ -332,7 +356,7 @@ function WorkspaceTaxesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}

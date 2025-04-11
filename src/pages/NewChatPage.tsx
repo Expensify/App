@@ -45,6 +45,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SelectedParticipant} from '@src/types/onyx/NewGroupChatDraft';
+import KeyboardUtils from '@src/utils/keyboard';
 
 const excludedGroupEmails: string[] = CONST.EXPENSIFY_EMAILS.filter((value) => value !== CONST.EMAIL.CONCIERGE);
 
@@ -214,7 +215,9 @@ function NewChatPage() {
             }
 
             selectionListRef?.current?.clearInputAfterSelect?.();
-            selectionListRef.current?.focusTextInput();
+            if (!canUseTouchScreen()) {
+                selectionListRef.current?.focusTextInput();
+            }
             setSelectedOptions(newSelectedOptions);
         },
         [selectedOptions, setSelectedOptions],
@@ -228,10 +231,18 @@ function NewChatPage() {
     const selectOption = useCallback(
         (option?: Option) => {
             if (option?.isSelfDM) {
-                Navigation.dismissModal(option.reportID);
+                if (!option.reportID) {
+                    Navigation.dismissModal();
+                    return;
+                }
+                Navigation.dismissModalWithReport({reportID: option.reportID});
                 return;
             }
             if (selectedOptions.length && option) {
+                // Prevent excluded emails from being added to groups
+                if (option?.login && excludedGroupEmails.includes(option.login)) {
+                    return;
+                }
                 toggleOption(option);
                 return;
             }
@@ -247,7 +258,7 @@ function NewChatPage() {
                 Log.warn('Tried to create chat with empty login');
                 return;
             }
-            navigateToAndOpenReport([login]);
+            KeyboardUtils.dismiss().then(() => navigateToAndOpenReport([login]));
         },
         [selectedOptions, toggleOption],
     );

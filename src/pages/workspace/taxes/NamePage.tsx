@@ -90,6 +90,7 @@ function NamePage({
                     onSubmit={submit}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -99,7 +100,6 @@ function NamePage({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             value={name}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             onChangeText={setName}
                             ref={inputCallbackRef}
                         />

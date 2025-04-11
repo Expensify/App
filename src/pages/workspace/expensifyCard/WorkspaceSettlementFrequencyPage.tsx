@@ -6,14 +6,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useDomainFundID from '@hooks/useDomainFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
+import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Card from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -24,10 +25,15 @@ type WorkspaceSettlementFrequencyPageProps = PlatformStackScreenProps<SettingsNa
 function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const policyID = route.params?.policyID ?? '-1';
-    const workspaceAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
+    const policyID = route.params?.policyID;
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
+    const domainFundID = useDomainFundID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    // TODO: add logic for choosing between the domain and workspace feed when both available
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const fundID = domainFundID || workspaceAccountID;
+
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
 
     const shouldShowMonthlyOption = cardSettings?.isMonthlySettlementAllowed ?? false;
     const selectedFrequency = cardSettings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
@@ -56,7 +62,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
     }, [translate, shouldShowMonthlyOption, selectedFrequency]);
 
     const updateSettlementFrequency = (value: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>) => {
-        Card.updateSettlementFrequency(workspaceAccountID, value, cardSettings?.monthlySettlementDate);
+        updateSettlementFrequencyUtil(fundID, value, cardSettings?.monthlySettlementDate);
     };
 
     return (

@@ -128,6 +128,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
     // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
     const fallbackRoute = {
         name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+        params: policyID ? {policyID} : undefined,
     };
 
     if (route && isRouteWithReportID(route)) {

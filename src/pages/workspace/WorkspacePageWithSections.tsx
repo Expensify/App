@@ -11,11 +11,13 @@ import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/typ
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollViewWithContext from '@components/ScrollViewWithContext';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openWorkspaceView} from '@libs/actions/BankAccounts';
 import BankAccount from '@libs/models/BankAccount';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, isPolicyAdmin, shouldShowPolicy as shouldShowPolicyUtil} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
@@ -40,9 +42,6 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
 
         /** Content to be added as fixed footer */
         footer?: ReactNode;
-
-        /** The guides call task ID to associate with the workspace page being shown */
-        guidesCallTaskID: string;
 
         /** The route where we navigate when the user press the back button */
         backButtonRoute?: Route;
@@ -101,7 +100,6 @@ function WorkspacePageWithSections({
     children = () => null,
     footer = null,
     icon = undefined,
-    guidesCallTaskID = '',
     headerText,
     policy,
     policyDraft,
@@ -126,6 +124,7 @@ function WorkspacePageWithSections({
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
     const {isOffline} = useNetwork({onReconnect: () => fetchData(policyID, shouldSkipVBBACall)});
+    const {canUseLeftHandBar} = usePermissions();
 
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reimbursementAccount = CONST.REIMBURSEMENT_ACCOUNT.DEFAULT_DATA] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
@@ -141,6 +140,7 @@ function WorkspacePageWithSections({
     const firstRender = useRef(showLoadingAsFirstRender);
     const isFocused = useIsFocused();
     const prevPolicy = usePrevious(policy);
+
     useEffect(() => {
         // Because isLoading is false before merging in Onyx, we need firstRender ref to display loading page as well before isLoading is change to true
         firstRender.current = false;
@@ -165,6 +165,20 @@ function WorkspacePageWithSections({
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [policy, shouldShowNonAdmin, shouldShowPolicy]);
 
+    const handleOnBackButtonPress = () => {
+        if (onBackButtonPress) {
+            onBackButtonPress();
+            return;
+        }
+
+        if (backButtonRoute) {
+            Navigation.goBack(backButtonRoute);
+            return;
+        }
+
+        goBackFromWorkspaceCentralScreen(policyID);
+    };
+
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={includeSafeAreaPaddingBottom}
@@ -183,14 +197,14 @@ function WorkspacePageWithSections({
             >
                 <HeaderWithBackButton
                     title={headerText}
-                    guidesCallTaskID={guidesCallTaskID}
-                    onBackButtonPress={() => (onBackButtonPress ? onBackButtonPress() : Navigation.goBack(backButtonRoute))}
+                    onBackButtonPress={handleOnBackButtonPress}
                     shouldShowBackButton={shouldUseNarrowLayout || shouldShowBackButton}
                     icon={icon ?? undefined}
-                    style={styles.headerBarDesktopHeight}
+                    style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    shouldUseHeadlineHeader
                 >
                     {headerContent}
                 </HeaderWithBackButton>

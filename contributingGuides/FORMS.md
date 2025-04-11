@@ -35,23 +35,6 @@ Labels and hints are enabled by passing the appropriate props to each input:
 />
 ```
 
-### Character Limits
-
-If a field has a character limit, we should give that field a max limit. This is done by passing the maxLength prop to TextInput.
-
-```jsx
-<InputWrapper
-    InputComponent={TextInput}
-    maxLength={20}
-/>
-```
-Note: We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
-The phone number can be formatted in different ways.
-
-- 2109400803
-- +12109400803
-- (210)-940-0803
-
 ### Native Keyboards
 
 We should always set people up for success on native platforms by enabling the best keyboard for the type of input we’re asking them to provide. See [inputMode](https://reactnative.dev/docs/textinput#inputmode) in the React Native documentation.
@@ -175,6 +158,34 @@ function validate(values) {
 ```
 
 For a working example, check [Form story](https://github.com/Expensify/App/blob/aa1f0f34eeba5d761657168255a1ae9aebdbd95e/src/stories/Form.stories.js#L63-L72)
+
+### Character Limits
+
+If a field has a character limit, we should give that field a max limit. This is done by passing the character limit validation in the validate function.
+
+Here's an example for a form that has one input `name`, and has character limit of 100:
+
+```js
+function validate(values) {
+    const errors = {};
+    if (values.name.length > 100) {
+        ErrorUtils.addErrorMessage(errors, 'name', translate('common.error.characterLimitExceedCounter', {length: values.name.length, limit: 100}));
+    }
+    return errors;
+}
+```
+
+> [!NOTE]
+>  We shouldn't place a max limit on a field if the entered value can be formatted. eg: Phone number.
+> The phone number can be formatted in different ways.
+> 
+> - 2109400803
+> - +12109400803
+> - (210)-940-0803
+
+> [!NOTE]
+>  If we want to count number of Unicode code points instead of the number of UTF-16 code units, we should use the spread syntax.
+> Example - `[...newCategoryName].length`
 
 ### Highlight Fields and Inline Errors
 
