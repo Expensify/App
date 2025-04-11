@@ -77,7 +77,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
             shouldBeBlocked={!policyID || !rateID || isEmptyObject(selectedRate) || isEmptyObject(selectedSubrate)}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditPerDiemAmountPage.displayName}
                 shouldEnableMaxHeight
@@ -94,6 +94,7 @@ function EditPerDiemAmountPage({route}: EditPerDiemAmountPageProps) {
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         ref={inputCallbackRef}

@@ -223,6 +223,7 @@ function WorkspaceNewRoomPage() {
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
+                addBottomSafeAreaPadding
             />
             <Button
                 success
@@ -243,7 +244,7 @@ function WorkspaceNewRoomPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -259,6 +260,7 @@ function WorkspaceNewRoomPage() {
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                    shouldOffsetBottomSafeAreaPadding
                     keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
                 >
                     <FormProvider
@@ -268,6 +270,7 @@ function WorkspaceNewRoomPage() {
                         validate={validate}
                         onSubmit={submit}
                         enabledWhenOffline
+                        addBottomSafeAreaPadding
                     >
                         <View style={styles.mb5}>
                             <InputWrapper

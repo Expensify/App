@@ -46,7 +46,7 @@ function RulesReceiptRequiredAmountPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesReceiptRequiredAmountPage.displayName}
             >
@@ -64,6 +64,7 @@ function RulesReceiptRequiredAmountPage({
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

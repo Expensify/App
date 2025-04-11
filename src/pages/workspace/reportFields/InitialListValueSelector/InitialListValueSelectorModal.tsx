@@ -47,7 +47,7 @@ function InitialListValueSelectorModal({isVisible, currentValue, label, subtitle
             <ScreenWrapper
                 style={styles.pb0}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={InitialListValueSelectorModal.displayName}
             >
                 <HeaderWithBackButton

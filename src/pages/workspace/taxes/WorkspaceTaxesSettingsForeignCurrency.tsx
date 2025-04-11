@@ -49,26 +49,22 @@ function WorkspaceTaxesSettingsForeignCurrency({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceTaxesSettingsForeignCurrency.displayName}
                 style={styles.defaultModalContainer}
             >
-                {({insets}) => (
-                    <>
-                        <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
+                <HeaderWithBackButton title={translate('workspace.taxes.foreignDefault')} />
 
-                        <View style={[styles.mb4, styles.flex1]}>
-                            <TaxPicker
-                                selectedTaxRate={selectedTaxRate}
-                                policyID={policyID}
-                                insets={insets}
-                                onSubmit={submit}
-                                onDismiss={dismiss}
-                            />
-                        </View>
-                    </>
-                )}
+                <View style={[styles.mb4, styles.flex1]}>
+                    <TaxPicker
+                        selectedTaxRate={selectedTaxRate}
+                        policyID={policyID}
+                        onSubmit={submit}
+                        onDismiss={dismiss}
+                        addBottomSafeAreaPadding
+                    />
+                </View>
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
     );

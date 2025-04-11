@@ -56,7 +56,6 @@ function NetSuiteExistingConnectionsPage({route}: ExistingConnectionsPageProps) 
             shouldLoadForEmptyConnection
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING.getRoute(policyID))}
-            shouldIncludeSafeAreaPaddingBottom
         >
             <View style={[styles.flex1]}>
                 <MenuItemList

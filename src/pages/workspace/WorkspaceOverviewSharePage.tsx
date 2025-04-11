@@ -70,12 +70,16 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
             <ScreenWrapper
                 testID={WorkspaceOverviewSharePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.share')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+                <ScrollView
+                    style={[themeStyles.flex1, themeStyles.pt3]}
+                    addBottomSafeAreaPadding
+                >
                     <View style={[themeStyles.flex1, shouldUseNarrowLayout ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
                         <View style={[themeStyles.mh5]}>
                             <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
@@ -122,8 +126,8 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 shouldLimitWidth={false}
                                 wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                             />
-                            {/* Remove this once https://github.com/Expensify/App/issues/19834 is done. 
-                            We shouldn't introduce platform specific code in our codebase. 
+                            {/* Remove this once https://github.com/Expensify/App/issues/19834 is done.
+                            We shouldn't introduce platform specific code in our codebase.
                             This is a temporary solution while Web is not supported for the QR code download feature */}
                             {shouldAllowDownloadQRCode && (
                                 <MenuItem

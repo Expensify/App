@@ -77,13 +77,13 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                 onBackdropPress={Navigation.dismissModal}
                 shouldUseModalPaddingStyle={false}
                 shouldHandleNavigationBack
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <ScreenWrapper
                     style={[styles.pb0]}
-                    includePaddingTop
-                    includeSafeAreaPaddingBottom
                     testID={CurrencyPicker.displayName}
                     shouldEnableMaxHeight
+                    enableEdgeToEdgeBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={label}
@@ -97,6 +97,7 @@ function CurrencyPicker({label, value, errorText, headerContent, excludeCurrenci
                             onSelect={updateInput}
                             searchInputLabel={translate('common.search')}
                             excludedCurrencies={excludeCurrencies}
+                            addBottomSafeAreaPadding
                         />
                     </BlockingComponent>
                 </ScreenWrapper>

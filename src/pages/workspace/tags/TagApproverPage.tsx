@@ -40,7 +40,7 @@ function TagApproverPage({route}: TagApproverPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={TagApproverPage.displayName}
                 shouldEnableMaxHeight

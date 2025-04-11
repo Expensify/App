@@ -189,7 +189,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
     return (
         <ScreenWrapper
             testID={DetailsStep.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -205,6 +205,7 @@ function DetailsStep({policyID}: DetailsStepProps) {
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert={feedProvider !== CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mv3]}>
                     {!!feedProvider && !isStripeFeedProvider ? translate(`workspace.companyCards.addNewCard.feedDetails.${feedProvider}.title`) : ''}

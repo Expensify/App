@@ -54,7 +54,7 @@ function CategoryFlagAmountsOverPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryFlagAmountsOverPage.displayName}
                 shouldEnableMaxHeight
@@ -74,6 +74,7 @@ function CategoryFlagAmountsOverPage({
                     enabledWhenOffline
                     submitButtonStyles={styles.ph5}
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={[styles.mb4, styles.pt3, styles.ph5]}>
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName})}</Text>

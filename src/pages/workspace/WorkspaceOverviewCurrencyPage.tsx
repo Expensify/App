@@ -43,7 +43,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
             fullPageNotFoundViewProps={{onLinkPress: goBackFromInvalidPolicy, subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceOverviewCurrencyPage.displayName}
             >
@@ -56,6 +56,7 @@ function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPagePr
                     searchInputLabel={translate('workspace.editor.currencyInputLabel')}
                     onSelect={onSelectCurrency}
                     initiallySelectedCurrencyCode={policy?.outputCurrency}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>

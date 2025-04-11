@@ -54,6 +54,7 @@ function CardTypeStep({policyID}: CardTypeStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={1}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.chooseCardType')}</Text>
             <View style={styles.mh5}>

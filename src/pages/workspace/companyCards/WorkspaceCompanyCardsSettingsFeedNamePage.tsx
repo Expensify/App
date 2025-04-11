@@ -82,7 +82,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_COMPANY_CARDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceCompanyCardsSettingsFeedNamePage.displayName}
                 style={styles.defaultModalContainer}
@@ -100,6 +100,7 @@ function WorkspaceCompanyCardsSettingsFeedNamePage({
                     validate={validate}
                     onSubmit={submit}
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper

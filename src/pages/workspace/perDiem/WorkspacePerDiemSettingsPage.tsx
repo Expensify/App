@@ -60,13 +60,17 @@ function WorkspacePerDiemSettingsPage({route}: WorkspacePerDiemSettingsPageProps
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspacePerDiemSettingsPage.displayName}
             >
                 <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <FullPageBlockingView style={customUnit ? styles.flexGrow1 : []}>
+                <FullPageBlockingView
+                    style={customUnit ? styles.flexGrow1 : []}
+                    addBottomSafeAreaPadding
+                >
                     <ScrollView
+                        addBottomSafeAreaPadding
                         contentContainerStyle={styles.flexGrow1}
                         keyboardShouldPersistTaps="always"
                     >

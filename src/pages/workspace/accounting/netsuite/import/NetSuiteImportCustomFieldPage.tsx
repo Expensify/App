@@ -118,7 +118,6 @@ function NetSuiteImportCustomFieldPage({
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldIncludeSafeAreaPaddingBottom
             onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_IMPORT.getRoute(policyID))}
         >
             {data.length === 0 ? listEmptyComponent : listHeaderComponent}
