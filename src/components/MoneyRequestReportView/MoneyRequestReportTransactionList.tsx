@@ -127,7 +127,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
-
     return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
@@ -164,12 +163,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                 {sortedTransactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
+                            key={transaction.transactionID}
                             onPress={(e) => {
                                 if (isMouseDownOnInput) {
                                     e?.stopPropagation();
                                     return;
                                 }
-
                                 navigateToTransaction(transaction);
                             }}
                             accessibilityLabel={translate('iou.viewDetails')}

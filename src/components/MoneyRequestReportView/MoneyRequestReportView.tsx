@@ -199,6 +199,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 ) : (
                     <MoneyRequestReportActionsList
                         report={report}
+                        policy={policy}
                         transactions={transactions}
                         reportActions={reportActions}
                         hasOlderActions={hasOlderActions}
