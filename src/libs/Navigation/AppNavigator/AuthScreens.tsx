@@ -13,8 +13,8 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
@@ -485,7 +485,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}>
+        <ComposeProviders
+            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportIDsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
+        >
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen
