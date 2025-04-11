@@ -15,6 +15,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
@@ -25,6 +26,7 @@ import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getRoom} from '@libs/ReportUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
+import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {formatSubscriptionEndDate} from '@pages/settings/Subscription/utils';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 import variables from '@styles/variables';
@@ -56,6 +58,7 @@ function SubscriptionSettings() {
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const subscriptionPlan = useSubscriptionPlan();
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
     const preferredCurrency = usePreferredCurrency();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
@@ -158,6 +161,10 @@ function SubscriptionSettings() {
         const roomReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(roomReport?.reportID));
     };
+
+    if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM)) {
+        return <NotFoundPage />;
+    }
 
     return (
         <ScreenWrapper
