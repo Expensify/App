@@ -17,6 +17,7 @@ import {
     isReportFieldDisabled,
     isReportFieldOfTypeTitle,
 } from '@libs/ReportUtils';
+import type {ThemeStyles} from '@styles/index';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -44,9 +45,7 @@ type EnrichedPolicyReportField = {
     violationTranslation: string;
 } & PolicyReportField;
 
-function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, pendingAction?: PendingAction) {
-    const styles = useThemeStyles();
-
+function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
     return (
         <OfflineWithFeedback
             // Need to return undefined when we have pendingAction to avoid the duplicate pending action
@@ -77,6 +76,8 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
     );
 }
 function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
+    const styles = useThemeStyles();
+
     const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
 
     const shouldHideSingleReportField = (reportField: PolicyReportField) => {
@@ -122,7 +123,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         sortedPolicyReportFields
             .filter((reportField) => !shouldHideSingleReportField(reportField))
             .map((reportField) => {
-                return ReportFieldView(reportField, report, pendingAction);
+                return ReportFieldView(reportField, report, styles, pendingAction);
             })
     );
 }

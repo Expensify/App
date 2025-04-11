@@ -72,7 +72,7 @@ const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: S
     return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
 };
 
-function MoneyRequestReportTransactionList({report, policy, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
