@@ -35,7 +35,7 @@ function isApproveAction(report: Report, policy: Policy, reportTransactions: Tra
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isApprovalEnabled = policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isReportApprover || !isApprovalEnabled) {
+    if (!isExpenseReport || !isReportApprover || !isApprovalEnabled || reportTransactions.length === 0) {
         return false;
     }
 
