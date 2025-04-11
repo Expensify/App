@@ -2509,7 +2509,7 @@ function buildNewReportOptimisticData(policy: OnyxEntry<Policy>, reportID: strin
     const {accountID, login} = creatorPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
     const parentReport = getPolicyExpenseChat(accountID, policy?.id);
-    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport?.reportID, policy, timeOfCreation);
+    const optimisticReportData = buildOptimisticEmptyReport(reportID, accountID, parentReport, policy, timeOfCreation);
 
     const optimisticCreateAction = {
         action: CONST.REPORT.ACTIONS.TYPE.CREATED,
@@ -4869,11 +4869,14 @@ function dismissChangePolicyModal() {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
             value: {
-                [CONST.CHANGE_POLICY_TRAINING_MODAL]: DateUtils.getDBTime(date.valueOf()),
+                [CONST.CHANGE_POLICY_TRAINING_MODAL]: {
+                    timestamp: DateUtils.getDBTime(date.valueOf()),
+                    dismissedMethod: 'click',
+                },
             },
         },
     ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL}, {optimisticData});
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: CONST.CHANGE_POLICY_TRAINING_MODAL, dismissedMethod: 'click'}, {optimisticData});
 }
 
 /**
