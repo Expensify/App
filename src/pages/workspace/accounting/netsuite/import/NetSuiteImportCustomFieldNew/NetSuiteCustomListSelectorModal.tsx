@@ -65,8 +65,6 @@ function NetSuiteCustomListSelectorModal({isVisible, currentCustomListValue, onC
         };
     }, [debouncedSearchValue, policy?.connections?.netsuite?.options?.data?.customLists, translate, currentCustomListValue]);
 
-    const styles = useThemeStyles();
-
     return (
         <Modal
             type={CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED}
