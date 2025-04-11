@@ -271,6 +271,7 @@ export default {
     gbrTooltipShiftHorizontal: -15,
     gbrTooltipShiftVertical: -10,
     fabTooltipShiftHorizontal: -11,
+    lhbFabTooltipShiftHorizontal: 4,
     workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
