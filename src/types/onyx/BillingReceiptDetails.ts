@@ -1,5 +1,3 @@
-import type * as OnyxCommon from './OnyxCommon';
-
 /**
  * Billing item
  */
