@@ -50,6 +50,23 @@ const INPUT_IDS = {
         HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
         BENEFICIAL_OWNERS: 'beneficialOwners',
     },
+    SIGNER_INFO_STEP: {
+        SIGNER_FULL_NAME: 'signerFullName',
+        SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
+        SIGNER_JOB_TITLE: 'signerJobTitle',
+        SIGNER_EMAIL: 'signerEmail',
+        SIGNER_CITY: 'signer_city',
+        SIGNER_STREET: 'signer_street',
+        SIGNER_STATE: 'signer_state',
+        SIGNER_ZIP_CODE: 'signer_zipCode',
+        SIGNER_COUNTRY: 'signer_nationality',
+        SIGNER_COPY_OF_ID: 'signerCopyOfID',
+        SIGNER_ADDRESS_PROOF: 'signerAddressProof',
+        SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+        PROOF_OF_DIRECTORS: 'proofOfDirectors',
+        DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
+        SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+    },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
     AMOUNT3: 'amount3',
@@ -116,6 +133,10 @@ const INPUT_IDS = {
             BENEFICIAL_OWNERS: 'beneficialOwners',
             FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
             FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
+            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
+            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
+            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
+            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
             COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
             COMPANY_DIRECTORS_JOB_TITLE: 'companyDirectorsJobTitle',
             COMPANY_DIRECTORS_OCCUPATION: 'companyDirectorsOccupation',
@@ -124,25 +145,7 @@ const INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
-            SECOND_SIGNER_FULL_NAME: 'secondSignerFullName',
-            SECOND_SIGNER_DATE_OF_BIRTH: 'secondSignerDateOfBirth',
-            SECOND_SIGNER_JOB_TITLE: 'secondSignerJobTitle',
             SECOND_SIGNER_EMAIL: 'secondSignerEmail',
-            SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'secondSignerCompleteResidentialAddress',
-            SIGNER_PROOF_OF_DIRECTOR: 'signerProofOfDirector',
-            SIGNER_COPY_OF_ID: 'signerCopyOfID',
-            SIGNER_ADDRESS_PROOF: 'signerAddressProof',
-            SIGNER_TAX_ID: 'signerTaxID',
-            SIGNER_PDS_AND_FSG: 'signerPDSAndFSG',
-            SECOND_SIGNER_PROOF_OF_DIRECTOR: 'secondSignerProofOfDirector',
-            SECOND_SIGNER_COPY_OF_ID: 'secondSignerCopyOfID',
-            SECOND_SIGNER_ADDRESS_PROOF: 'secondSignerAddressProof',
-            SECOND_SIGNER_TAX_ID: 'secondSignerTaxID',
-            SECOND_SIGNER_PDS_AND_FSG: 'secondSignerPDSAndFSG',
-            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
-            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
-            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
-            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
         },
     },
 } as const;
@@ -215,6 +218,24 @@ type ReimbursementAccountProps = {
     [INPUT_IDS.AMOUNT1]: string;
     [INPUT_IDS.AMOUNT2]: string;
     [INPUT_IDS.AMOUNT3]: string;
+};
+
+type SignerInfoStepProps = {
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_FULL_NAME]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_DATE_OF_BIRTH]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_JOB_TITLE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_EMAIL]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CITY]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STREET]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_STATE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ZIP_CODE]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COUNTRY]: string;
+    [INPUT_IDS.SIGNER_INFO_STEP.DOWNLOADED_PDS_AND_FSG]: boolean;
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_COPY_OF_ID]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_ADDRESS_PROOF]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SIGNER_CODICE_FISCALE]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.PROOF_OF_DIRECTORS]: FileObject[];
+    [INPUT_IDS.SIGNER_INFO_STEP.SECOND_SIGNER_EMAIL]: FileObject[];
 };
 
 /** Additional props for non-USD reimbursement account */
@@ -368,53 +389,11 @@ type NonUSDReimbursementAccountAdditionalProps = {
     /** Signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_EMAIL]: string;
 
-    /** Signer complete residential address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-
-    /** Second signer full name */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_FULL_NAME]: string;
-
-    /** Second signer date of birth */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_DATE_OF_BIRTH]: string;
-
-    /** Second signer job title */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_JOB_TITLE]: string;
-
     /** Second signer email */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_EMAIL]: string;
 
-    /** Second signer complete residential address */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
-
-    /** Signer proof of director */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
-
-    /** Signer copy of ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COPY_OF_ID]: FileObject[];
-
-    /** Signer address proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_ADDRESS_PROOF]: FileObject[];
-
-    /** Signer tax ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_TAX_ID]: string;
-
-    /** Signer PDS and FSG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_PDS_AND_FSG]: string;
-
-    /** Second signer proof of director */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PROOF_OF_DIRECTOR]: FileObject[];
-
-    /** Second signer copy of ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_COPY_OF_ID]: FileObject[];
-
-    /** Second signer address proof */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_ADDRESS_PROOF]: FileObject[];
-
-    /** Second signer tax ID */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_TAX_ID]: string;
-
-    /** Second signer PDS and FSG */
-    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SECOND_SIGNER_PDS_AND_FSG]: string;
+    /** Signer complete residential address */
+    [INPUT_IDS.ADDITIONAL_DATA.CORPAY.SIGNER_COMPLETE_RESIDENTIAL_ADDRESS]: string;
 
     /** Provide truthful information */
     [INPUT_IDS.ADDITIONAL_DATA.CORPAY.PROVIDE_TRUTHFUL_INFORMATION]: boolean;
@@ -433,6 +412,7 @@ type ReimbursementAccountForm = ReimbursementAccountFormExtraProps &
     Form<
         InputID,
         BeneficialOwnersStepBaseProps &
+            SignerInfoStepProps &
             BankAccountStepProps &
             CompanyStepProps &
             RequestorStepProps &
@@ -448,6 +428,7 @@ export type {
     CompanyStepProps,
     RequestorStepProps,
     BeneficialOwnersStepProps,
+    SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
     NonUSDReimbursementAccountAdditionalProps,

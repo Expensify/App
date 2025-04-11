@@ -69,6 +69,10 @@ function NonUSDVerifiedBankAccountFlow({
             case CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS:
                 setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.SIGNER_INFO);
                 break;
+            case CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH:
+                setShouldShowContinueSetupButton(true);
+                setNonUSDBankAccountStep(null);
+                break;
             default:
                 return null;
         }

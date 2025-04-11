@@ -1,6 +1,7 @@
 import React, {useEffect, useMemo, useRef} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import type {TupleToUnion} from 'type-fest';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {PaymentType} from '@components/ButtonWithDropdownMenu/types';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -34,6 +35,8 @@ import type SettlementButtonProps from './types';
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
 
 type TriggerKYCFlow = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType) => void;
+
+type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 function SettlementButton({
     addDebitCardRoute = ROUTES.IOU_SEND_ADD_DEBIT_CARD,
@@ -156,7 +159,7 @@ function SettlementButton({
 
         if (isInvoiceReport) {
             const formattedPaymentMethods = formatPaymentMethods(bankAccountList, fundList, styles);
-            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency);
+            const isCurrencySupported = isCurrencySupportedForDirectReimbursement(currency as CurrencyType);
             const getPaymentSubitems = (payAsBusiness: boolean) =>
                 formattedPaymentMethods.map((formattedPaymentMethod) => ({
                     text: formattedPaymentMethod?.title ?? '',

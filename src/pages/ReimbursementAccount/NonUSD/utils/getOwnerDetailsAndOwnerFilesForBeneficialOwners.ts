@@ -75,8 +75,9 @@ function getOwnerDetailsAndOwnerFilesForBeneficialOwners(ownerKeys: string[], re
                 return;
             }
 
-            // TODO - We're returning only the first file for now. BE will be adjusted later to handle multiple files. I will update this in - https://github.com/Expensify/App/issues/50911
-            ownerFiles[ownerFilesKey] = reimbursementAccountDraft?.[ownerFilesKey][0];
+            // User can only upload one file per each field
+            const [uploadedFile] = reimbursementAccountDraft?.[ownerFilesKey] || [];
+            ownerFiles[ownerFilesKey] = uploadedFile;
         });
     });
 
