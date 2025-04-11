@@ -22,6 +22,7 @@ function ChatListItem<TItem extends ListItem>({
     onFocus,
     onLongPressRow,
     shouldSyncFocus,
+    policies,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
@@ -87,6 +88,7 @@ function ChatListItem<TItem extends ListItem>({
                         CONST.REPORT.ACTIONS.TYPE.FORWARDED,
                     ].some((type) => type === reportActionItem.actionName)
                 }
+                policies={policies}
             />
         </BaseListItem>
     );
