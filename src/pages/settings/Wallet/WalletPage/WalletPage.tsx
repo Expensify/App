@@ -24,6 +24,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaymentMethodState from '@hooks/usePaymentMethodState';
@@ -61,7 +62,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
     const [isLoadingPaymentMethods] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS, {initialValue: true});
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {initialValue: {}});
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const isUserValidated = useAccountValidation();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
@@ -388,6 +389,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
         />
     );
 

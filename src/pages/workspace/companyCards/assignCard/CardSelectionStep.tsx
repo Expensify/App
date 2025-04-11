@@ -16,7 +16,7 @@ import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
-import {filterInactiveCards, getBankName, getCardFeedIcon, getFilteredCardList, maskCardNumber} from '@libs/CardUtils';
+import {filterInactiveCards, getBankName, getCardFeedIcon, getFilteredCardList, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -42,11 +42,12 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -89,6 +90,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         keyForList: encryptedCardNumber,
         value: encryptedCardNumber,
         text: maskCardNumber(cardNumber, feed),
+        alternateText: lastFourNumbersFromCardName(cardNumber),
         isSelected: cardSelected === encryptedCardNumber,
         leftElement: (
             <Icon
