@@ -7,6 +7,7 @@ import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
     getMoneyRequestSpendBreakdown,
+    getParentReport,
     getReportNameValuePairs,
     getReportTransactions,
     hasViolations as hasAnyViolations,
@@ -44,6 +45,13 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
 }
 
 function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+
+    if (isChatReportArchived) {
+        return false;
+    }
+
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
@@ -52,28 +60,33 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
-    const hasViolations = hasAnyViolations(report.reportID, violations);
-    const isInvoice = isInvoiceReport(report);
-    const isIOU = isIOUReport(report);
-
-    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
-    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
-
+    const isReportFinished = isApproved || isClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (reimbursableSpend <= 0) {
+    const hasViolations = hasAnyViolations(report.reportID, violations);
+
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && !hasViolations && reimbursableSpend > 0) {
+        return true;
+    }
+
+    const isIOU = isIOUReport(report);
+
+    if (isIOU && isReportPayer) {
+        return true;
+    }
+
+    const isInvoice = isInvoiceReport(report);
+
+    if (!isInvoice) {
         return false;
     }
 
-    if (!isReportPayer) {
-        return false;
+    const parentReport = getParentReport(report);
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
 
-    if (isChatReportArchived) {
-        return false;
-    }
-
-    return (isExpense && isPaymentsEnabled && ((isApproved && !report.isWaitingOnBankAccount) || isClosed) && !hasViolations) || ((isInvoice || isIOU) && isProcessing);
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
