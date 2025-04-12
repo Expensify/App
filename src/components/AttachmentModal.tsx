@@ -448,6 +448,8 @@ function AttachmentModal({
 
         const menuItems = [];
         if (canEditReceipt) {
+            // linter keep complain about accessing ref during render
+            // eslint-disable-next-line react-compiler/react-compiler
             menuItems.push({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
