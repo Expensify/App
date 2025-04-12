@@ -541,7 +541,6 @@ function AttachmentModal({
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
                         );
-                        return;
                     }
                 }}
                 propagateSwipe
