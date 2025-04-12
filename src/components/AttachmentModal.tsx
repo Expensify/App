@@ -523,6 +523,14 @@ function AttachmentModal({
                     if (!isPDFLoadError.current) {
                         onModalHide();
                     }
+                    setShouldLoadAttachment(false);
+                    if (isPDFLoadError.current) {
+                        setIsAttachmentInvalid(true);
+                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
+                        setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        return;
+                    }
+
                     if (isReplaceReceipt.current) {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
@@ -533,13 +541,7 @@ function AttachmentModal({
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
                         );
-                        isReplaceReceipt.current = false;
-                    }
-                    setShouldLoadAttachment(false);
-                    if (isPDFLoadError.current) {
-                        setIsAttachmentInvalid(true);
-                        setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
-                        setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        return;
                     }
                 }}
                 propagateSwipe
