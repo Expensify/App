@@ -51,7 +51,7 @@ function RulesMaxExpenseAgePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={RulesMaxExpenseAgePage.displayName}
             >
@@ -69,6 +69,7 @@ function RulesMaxExpenseAgePage({
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
