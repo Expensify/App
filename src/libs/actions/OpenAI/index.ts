@@ -21,15 +21,28 @@ type OpenAIRealtimeMessage = {
     name: string;
     arguments: string;
     type: string;
+    transcript?: string;
 };
 
 type Recap = {
     recap: string;
 };
 
+type TranscriptEntry = {
+    speaker: string;
+    text: string;
+};
+
+type CompleteConciergeCallParams = {
+    adminsChatReportID: number;
+    transcript: string;
+};
+
 let currentAdminsReportID: number | null = null;
 let mediaStream: MediaStream | null = null;
 let clientSecret: TalkToAISales['clientSecret'];
+let transcriptArray: TranscriptEntry[] = [];
+let currentUserEmail = '';
 
 const connections: WebRTCConnections = {
     openai: null,
@@ -43,6 +56,17 @@ Onyx.connect({
         }
 
         clientSecret = value.clientSecret;
+    },
+});
+
+Onyx.connect({
+    key: ONYXKEYS.SESSION,
+    callback: (session) => {
+        if (!session?.email) {
+            return;
+        }
+
+        currentUserEmail = session.email;
     },
 });
 
@@ -111,13 +135,34 @@ function connectToOpenAIRealtime(adminsChatReportID: number, ctaUsed: string): P
     let rtcOffer: RTCSessionDescriptionInit;
     let dataChannel: RTCDataChannel;
 
+    const constraints = {
+        audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+            channelCount: 1,
+            sampleRate: 24000,
+            sampleSize: 16,
+        },
+        video: false,
+    };
+
     return new Promise((resolve, reject) => {
         navigator.mediaDevices
-            .getUserMedia({audio: true})
+            .getUserMedia(constraints)
             .then((stream: MediaStream) => {
                 mediaStream = stream;
                 const pc = new RTCPeerConnection({
-                    iceServers: [],
+                    iceServers: [
+                        {urls: 'stun:stun.l.google.com:19302'},
+                        {urls: 'stun:stun1.l.google.com:19302'},
+                        {urls: 'stun:stun2.l.google.com:19302'},
+                        {urls: 'stun:stun3.l.google.com:19302'},
+                        {urls: 'stun:stun4.l.google.com:19302'},
+                    ],
+                    bundlePolicy: 'max-bundle',
+                    rtcpMuxPolicy: 'require',
+                    iceCandidatePoolSize: 4,
                 });
 
                 const audioTrack = stream.getAudioTracks().at(0);
@@ -202,11 +247,30 @@ function handleOpenAIMessage(message: OpenAIRealtimeMessage) {
         case 'response.function_call_arguments.done':
             handleFunctionCall(message);
             break;
+        case 'response.audio_transcript.done':
+            handleTranscriptMessage(CONST.EMAIL.CONCIERGE, message);
+            break;
+        case 'conversation.item.input_audio_transcription.completed':
+            handleTranscriptMessage(currentUserEmail, message);
+            break;
         case 'error':
             console.error('[WebRTC] OpenAI error', {message});
             break;
         default:
     }
+}
+
+function completeConciergeCall() {
+    if (!currentAdminsReportID || transcriptArray.length === 0) {
+        return;
+    }
+
+    const params: CompleteConciergeCallParams = {
+        adminsChatReportID: currentAdminsReportID,
+        transcript: JSON.stringify(transcriptArray),
+    };
+
+    API.write(WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL, params);
 }
 
 function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
@@ -215,6 +279,7 @@ function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
     }
 
     currentAdminsReportID = adminsReportID;
+    transcriptArray = [];
 
     connectToOpenAIRealtime(adminsReportID, ctaUsed)
         .then((connection: ConnectionResult) => {
@@ -225,6 +290,17 @@ function initializeOpenAIRealtime(adminsReportID: number, ctaUsed: string) {
                 if (!connections.openai) {
                     return;
                 }
+
+                const sessionUpdate = {
+                    type: 'session.update',
+                    session: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        input_audio_transcription: {
+                            model: 'whisper-1',
+                        },
+                    },
+                };
+                connections.openai.dataChannel.send(JSON.stringify(sessionUpdate));
 
                 const initialUserMessage = {
                     type: 'response.create',
@@ -270,8 +346,21 @@ function handleFunctionCall(message: OpenAIRealtimeMessage) {
     }
 }
 
+function handleTranscriptMessage(email: string, message: OpenAIRealtimeMessage) {
+    if (!message.transcript?.trim()) {
+        return;
+    }
+
+    transcriptArray.push({
+        speaker: email,
+        text: message.transcript.trim(),
+    });
+}
+
 function stopConnection() {
     Onyx.merge(ONYXKEYS.TALK_TO_AI_SALES, {isTalkingToAISales: false});
+
+    completeConciergeCall();
 
     if (mediaStream) {
         mediaStream.getTracks().forEach((track) => {
