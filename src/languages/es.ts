@@ -5156,11 +5156,13 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
-                subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
+                subtitle: 'Crea un gasto o haz un tour por Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
-                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+                subtitle: 'Envía una factura o haz un tour por Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
             },
             emptyTripResults: {
                 title: 'No tienes viajes',
