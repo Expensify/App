@@ -8,7 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
-import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1539,7 +1539,7 @@ describe('actions/Report', () => {
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
                 callback: (reportActions) => {
                     Onyx.disconnect(connection);
-                    const action = Object.values(reportActions ?? {})[0];
+                    const action = Object.values(reportActions ?? {}).at(0);
                     resolve(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>);
                 },
             });
