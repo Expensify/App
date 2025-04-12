@@ -46,14 +46,17 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
         >
             <ScreenWrapper
                 testID={WorkspaceCardSettingsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.settings')}
                     onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
                 />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <View>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
