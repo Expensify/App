@@ -198,6 +198,7 @@ function AttachmentModal({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
+    const isReplaceReceipt = useRef(false);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
@@ -452,17 +453,8 @@ function AttachmentModal({
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal(true);
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        );
-                    });
+                    // Set the ref to true, so when the modal is hidden, we will navigate to the scan receipt screen
+                    isReplaceReceipt.current = true;
                 },
             });
         }
@@ -528,6 +520,18 @@ function AttachmentModal({
                 onModalHide={() => {
                     if (!isPDFLoadError.current) {
                         onModalHide();
+                    }
+                    if (isReplaceReceipt.current) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                iouAction ?? CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                draftTransactionID ?? transaction?.transactionID,
+                                report?.reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
+                        );
+                        isReplaceReceipt.current = false;
                     }
                     setShouldLoadAttachment(false);
                     if (isPDFLoadError.current) {
