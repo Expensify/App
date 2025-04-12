@@ -173,8 +173,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
                         subtitle: translate(hasSeenTour
-                            ? 'search.searchResults.emptyInvoiceResults.subtitle'
-                            : 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'
+                            ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton'
+                            : 'search.searchResults.emptyInvoiceResults.subtitle'
                         ),
                         buttons: [
                             ...(!hasSeenTour
