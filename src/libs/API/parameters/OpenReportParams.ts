@@ -22,6 +22,7 @@ type OpenReportParams = {
      */
     useTableReportView?: boolean;
     transactionID?: string;
+    moneyRequestPreviewReportActionID?: string;
 };
 
 export default OpenReportParams;

@@ -1022,6 +1022,7 @@ function openReport(
         transactionID,
     };
 
+    // This is a legacy transactions that doesn't have either a transaction thread or a money request preview
     if (transactionID && !parentReportActionID) {
         const transaction = allTransactions?.[transactionID];
 
@@ -1029,7 +1030,7 @@ function openReport(
             const selfDMReportID = findSelfDMReportID();
 
             if (selfDMReportID) {
-                const moneyRequestActionID = reportActionID ?? rand64();
+                const generatedReportActionID = rand64();
                 const optimisticParentAction = buildOptimisticIOUReportAction({
                     type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                     amount: Math.abs(transaction.amount),
@@ -1045,21 +1046,22 @@ function openReport(
                     key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
                     value: {
                         parentReportID: selfDMReportID,
-                        parentReportActionID: moneyRequestActionID,
+                        parentReportActionID: generatedReportActionID,
                     },
                 });
 
                 optimisticData.push({
                     onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}${moneyRequestActionID}`,
+                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}${generatedReportActionID}`,
                     value: {
                         ...optimisticParentAction,
-                        reportActionID: moneyRequestActionID,
+                        reportActionID: generatedReportActionID,
                         childReportID: reportID,
                     },
                 });
 
-                parameters.parentReportActionID = moneyRequestActionID;
+                parameters.parentReportActionID = generatedReportActionID;
+                parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
             }
         }
     }
