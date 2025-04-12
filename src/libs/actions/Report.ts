@@ -1060,7 +1060,6 @@ function openReport(
                     },
                 });
 
-                parameters.parentReportActionID = generatedReportActionID;
                 parameters.moneyRequestPreviewReportActionID = generatedReportActionID;
             }
         }
