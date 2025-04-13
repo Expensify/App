@@ -2,7 +2,7 @@ import {Str} from 'expensify-common';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {PolicySelector} from '@hooks/useReportIDs';
+import type {PartialPolicyForSidebar} from '@hooks/useSidebarOrderedReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
@@ -29,6 +29,7 @@ import {
     getDeletedApprovaRulelMessage,
     getLastVisibleMessage,
     getMessageOfOldDotReportAction,
+    getOneTransactionThreadReportID,
     getOriginalMessage,
     getPolicyChangeLogAddEmployeeMessage,
     getPolicyChangeLogChangeRoleMessage,
@@ -68,6 +69,7 @@ import {
     isRenamedAction,
     isTagModificationAction,
     isTaskAction,
+    isTransactionThread,
     shouldReportActionBeVisibleAsLastAction,
 } from './ReportActionsUtils';
 import type {OptionData} from './ReportUtils';
@@ -85,15 +87,16 @@ import {
     getPolicyName,
     getReportDescription,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportParticipantsTitle,
     getReportSubtitlePrefix,
     getWorkspaceNameUpdatedMessage,
+    hasReceiptError,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
+    isArchivedReport,
     isArchivedReportWithID,
     isChatRoom,
     isChatThread,
@@ -123,6 +126,7 @@ import {
     shouldReportShowSubscript,
 } from './ReportUtils';
 import {getTaskReportActionMessage} from './TaskUtils';
+import {getTransaction, getTransactionID} from './TransactionUtils';
 
 type WelcomeMessage = {showReportName: boolean; phrase1?: string; phrase2?: string; phrase3?: string; phrase4?: string; messageText?: string; messageHtml?: string};
 
@@ -201,11 +205,12 @@ function getOrderedReportIDs(
     currentReportId: string | undefined,
     reports: OnyxCollection<Report>,
     betas: OnyxEntry<Beta[]>,
-    policies: OnyxCollection<PolicySelector>,
+    policies: OnyxCollection<PartialPolicyForSidebar>,
     priorityMode: OnyxEntry<PriorityMode>,
     transactionViolations: OnyxCollection<TransactionViolation[]>,
     currentPolicyID = '',
     policyMemberAccountIDs: number[] = [],
+    reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
 ): string[] {
     Performance.markStart(CONST.TIMING.GET_ORDERED_REPORT_IDS);
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -296,14 +301,14 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+        const rNVPs = reportNameValuePairs?.[report?.reportID];
         if (isPinned || requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
             errorReports.push(miniReport);
         } else if (hasValidDraftComment(report?.reportID)) {
             draftReports.push(miniReport);
-        } else if (isArchivedNonExpenseReport(report, reportNameValuePairs)) {
+        } else if (isArchivedNonExpenseReport(report, rNVPs)) {
             archivedReports.push(miniReport);
         } else {
             nonArchivedReports.push(miniReport);
@@ -375,6 +380,24 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     if (hasViolations) {
         return {
             reason: CONST.RBR_REASONS.HAS_VIOLATIONS,
+        };
+    }
+    const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
+    const transactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActions ?? []);
+    if (transactionThreadReportID) {
+        const transactionID = getTransactionID(transactionThreadReportID);
+        const transaction = getTransaction(transactionID);
+        if (hasReceiptError(transaction)) {
+            return {
+                reason: CONST.RBR_REASONS.HAS_ERRORS,
+            };
+        }
+    }
+    const transactionID = getTransactionID(report.reportID);
+    const transaction = getTransaction(transactionID);
+    if (isTransactionThread(parentReportAction) && hasReceiptError(transaction)) {
+        return {
+            reason: CONST.RBR_REASONS.HAS_ERRORS,
         };
     }
 
@@ -528,7 +551,7 @@ function getOptionData({
     const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
     let lastMessageTextFromReport = lastMessageTextFromReportProp;
     if (!lastMessageTextFromReport) {
-        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy);
+        lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, policy, reportNameValuePairs);
     }
 
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
@@ -674,8 +697,7 @@ function getOptionData({
         if (!lastMessageText) {
             lastMessageText = formatReportLastMessageText(getWelcomeMessage(report, policy).messageText ?? translateLocal('report.noActivityYet'));
         }
-
-        if (shouldShowLastActorDisplayName(report, lastActorDetails)) {
+        if (shouldShowLastActorDisplayName(report, lastActorDetails) && !isArchivedReport(reportNameValuePairs)) {
             result.alternateText = `${lastActorDisplayName}: ${formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin}`;
         } else {
             result.alternateText = formatReportLastMessageText(Parser.htmlToText(lastMessageText)) || formattedLogin;

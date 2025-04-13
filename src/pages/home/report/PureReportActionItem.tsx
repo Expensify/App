@@ -30,9 +30,12 @@ import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequest
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
+import {useSearchContext} from '@components/Search/SearchContext';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -98,6 +101,7 @@ import {
     isActionableTrackExpense,
     isActionOfType,
     isChronosOOOListAction,
+    isConciergeCategoryOptions,
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
@@ -107,8 +111,10 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
@@ -116,6 +122,7 @@ import {
 import {
     canWriteInReport,
     chatIncludesConcierge,
+    getChatListItemReportName,
     getDeletedTransactionMessage,
     getDisplayNamesWithTooltips,
     getDowngradeWorkspaceMessage,
@@ -141,10 +148,11 @@ import type {MissingPaymentMethod} from '@libs/ReportUtils';
 import SelectionScraper from '@libs/SelectionScraper';
 import shouldRenderAddPaymentCard from '@libs/shouldRenderAppPaymentCard';
 import {ReactionListContext} from '@pages/home/ReportScreenContext';
+import variables from '@styles/variables';
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {hideEmojiPicker, isActive} from '@userActions/EmojiPickerAction';
 import {acceptJoinRequest, declineJoinRequest} from '@userActions/Policy/Member';
-import {expandURLPreview} from '@userActions/Report';
+import {addComment, expandURLPreview} from '@userActions/Report';
 import type {IgnoreDirection} from '@userActions/ReportActions';
 import {isAnonymousUser, signOutAndRedirectToSignIn} from '@userActions/Session';
 import {isBlockedFromConcierge} from '@userActions/User';
@@ -154,6 +162,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
+import type {SearchReport} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {RestrictedReadOnlyContextMenuActions} from './ContextMenu/ContextMenuActions';
 import MiniReportActionContextMenu from './ContextMenu/MiniReportActionContextMenu';
@@ -404,7 +413,7 @@ function PureReportActionItem({
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const reportID = report?.reportID;
+    const reportID = report?.reportID ?? action?.reportID;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -430,6 +439,8 @@ function PureReportActionItem({
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
 
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, true);
+
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
     // IOUDetails only exists when we are sending money
@@ -439,7 +450,7 @@ function PureReportActionItem({
         (isHiddenValue: boolean) => {
             setIsHidden(isHiddenValue);
             const message = Array.isArray(action.message) ? action.message?.at(-1) : action.message;
-            const isAttachment = isReportMessageAttachment(message);
+            const isAttachment = CONST.ATTACHMENT_REGEX.test(message?.html ?? '') || isReportMessageAttachment(message);
             if (!isAttachment) {
                 return;
             }
@@ -447,7 +458,7 @@ function PureReportActionItem({
         },
         [action.reportActionID, action.message, updateHiddenAttachments],
     );
-
+    const {isOnSearch, currentSearchHash} = useSearchContext();
     const [showConfirmDismissReceiptError, setShowConfirmDismissReceiptError] = useState(false);
     const dismissError = useCallback(() => {
         const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
@@ -622,11 +633,17 @@ function PureReportActionItem({
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
             isDisabled: false,
+            shouldDisplayContextMenu,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs, shouldDisplayContextMenu],
     );
 
-    const attachmentContextValue = useMemo(() => ({reportID, type: CONST.ATTACHMENT_TYPE.REPORT}), [reportID]);
+    const attachmentContextValue = useMemo(() => {
+        if (isOnSearch) {
+            return {type: CONST.ATTACHMENT_TYPE.SEARCH, currentSearchHash};
+        }
+        return {reportID, type: CONST.ATTACHMENT_TYPE.REPORT};
+    }, [reportID, isOnSearch, currentSearchHash]);
 
     const mentionReportContextValue = useMemo(() => ({currentReportID: report?.reportID, exactlyMatch: true}), [report?.reportID]);
     const actionableItemButtons: ActionableItem[] = useMemo(() => {
@@ -642,6 +659,20 @@ function PureReportActionItem({
                     isPrimary: true,
                 },
             ];
+        }
+
+        if (isConciergeCategoryOptions(action)) {
+            const options = getOriginalMessage(action)?.options;
+            if (!options) {
+                return [];
+            }
+            return options.map((option, i) => ({
+                text: `${i + 1} - ${option}`,
+                key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
+                onPress: () => {
+                    addComment(originalReportID, option);
+                },
+            }));
         }
 
         if (!isActionableWhisper && (!isActionableJoinRequest(action) || getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution))) {
@@ -740,6 +771,7 @@ function PureReportActionItem({
         dismissTrackExpenseActionableWhisper,
         resolveActionableReportMentionWhisper,
         resolveActionableMentionWhisper,
+        originalReportID,
     ]);
 
     /**
@@ -780,9 +812,26 @@ function PureReportActionItem({
                 />
             );
 
-            // Table Report View does not display these components as separate messages
-            if (canUseTableReportView) {
-                children = emptyHTML;
+            // Table Report View does not display these components as separate messages, except for self-DM
+            if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
+                    children = (
+                        <View style={[styles.mt1, styles.w100]}>
+                            <TransactionPreview
+                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                                chatReportID={reportID}
+                                reportID={reportID}
+                                action={action}
+                                isBillSplit={isSplitBillActionReportActionsUtils(action)}
+                                wrapperStyle={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
+                                onPreviewPressed={() => {}}
+                                isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                            />
+                        </View>
+                    );
+                } else {
+                    children = emptyHTML;
+                }
             }
         } else if (isTripPreview(action)) {
             children = (
@@ -793,6 +842,7 @@ function PureReportActionItem({
                     contextMenuAnchor={popoverAnchorRef.current}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
@@ -800,24 +850,24 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
             children = (
                 <MoneyRequestReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}
                     action={action}
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
                     isWhisper={isWhisper}
+                    isInvoice={action.childType === CONST.REPORT.CHAT_TYPE.INVOICE}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <ReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
                     policyID={report?.policyID}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -828,6 +878,7 @@ function PureReportActionItem({
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     isWhisper={isWhisper}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (isTaskAction(action)) {
@@ -844,6 +895,7 @@ function PureReportActionItem({
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         policyID={report?.policyID}
+                        shouldDisplayContextMenu={shouldDisplayContextMenu}
                     />
                 </ShowContextMenuContext.Provider>
             );
@@ -1079,7 +1131,8 @@ function PureReportActionItem({
                                     {actionableItemButtons.length > 0 && (
                                         <ActionableItemButtons
                                             items={actionableItemButtons}
-                                            layout={isActionableTrackExpense(action) ? 'vertical' : 'horizontal'}
+                                            layout={isActionableTrackExpense(action) || isConciergeCategoryOptions(action) ? 'vertical' : 'horizontal'}
+                                            shouldUseLocalization={!isConciergeCategoryOptions(action)}
                                         />
                                     )}
                                 </View>
@@ -1104,7 +1157,7 @@ function PureReportActionItem({
         }
         const numberOfThreadReplies = action.childVisibleActionCount ?? 0;
 
-        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction);
+        const shouldDisplayThreadReplies = shouldDisplayThreadRepliesUtils(action, isThreadReportParentAction) && !isOnSearch;
         const oldestFourAccountIDs =
             action.childOldestFourAccountIDs
                 ?.split(',')
@@ -1124,7 +1177,7 @@ function PureReportActionItem({
                     <View style={draftMessageRightAlign}>
                         <ReportActionItemEmojiReactions
                             reportAction={action}
-                            emojiReactions={emojiReactions}
+                            emojiReactions={isOnSearch ? {} : emojiReactions}
                             shouldBlockReactions={hasErrors}
                             toggleReaction={(emoji, ignoreSkinToneOnCompare) => {
                                 if (isAnonymousUser()) {
@@ -1186,7 +1239,10 @@ function PureReportActionItem({
                 <ReportActionItemSingle
                     action={action}
                     showHeader={draftMessage === undefined}
-                    wrapperStyle={isWhisper ? styles.pt1 : {}}
+                    wrapperStyle={{
+                        ...(isOnSearch && styles.p0),
+                        ...(isWhisper && styles.pt1),
+                    }}
                     shouldShowSubscriptAvatar={shouldShowSubscriptAvatar}
                     report={report}
                     iouReport={iouReport}
@@ -1257,6 +1313,32 @@ function PureReportActionItem({
     const isWhisperOnlyVisibleByUser = isWhisper && isCurrentUserTheOnlyParticipant(whisperedTo);
     const displayNamesWithTooltips = isWhisper ? getDisplayNamesWithTooltips(whisperedToPersonalDetails, isMultipleParticipant) : [];
 
+    const renderSearchHeader = (children: React.ReactNode) => {
+        if (!isOnSearch) {
+            return children;
+        }
+
+        return (
+            <View style={[styles.p4]}>
+                <View style={styles.webViewStyles.tagStyles.ol}>
+                    <View style={[styles.flexRow, styles.alignItemsCenter, !isWhisper ? styles.mb3 : {}]}>
+                        <Text style={styles.chatItemMessageHeaderPolicy}>{translate('common.in')}&nbsp;</Text>
+                        <TextLink
+                            fontSize={variables.fontSizeSmall}
+                            onPress={() => {
+                                onPress?.();
+                            }}
+                            numberOfLines={1}
+                        >
+                            {getChatListItemReportName(action, report as SearchReport)}
+                        </TextLink>
+                    </View>
+                    {children}
+                </View>
+            </View>
+        );
+    };
+
     return (
         <PressableWithSecondaryInteraction
             ref={popoverAnchorRef}
@@ -1323,35 +1405,39 @@ function PureReportActionItem({
                                     draftMessage !== undefined ? undefined : action.pendingAction ?? (action.isOptimisticAction ? CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD : undefined)
                                 }
                                 shouldHideOnDelete={!isThreadReportParentAction}
-                                errors={linkedTransactionRouteError ?? getLatestErrorMessageField(action as OnyxDataWithErrors)}
+                                errors={linkedTransactionRouteError ?? !isOnSearch ? getLatestErrorMessageField(action as OnyxDataWithErrors) : {}}
                                 errorRowStyles={[styles.ml10, styles.mr2]}
                                 needsOffscreenAlphaCompositing={isMoneyRequestAction(action)}
                                 shouldDisableStrikeThrough
                             >
-                                {isWhisper && (
-                                    <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
-                                        <View style={[styles.pl6, styles.mr3]}>
-                                            <Icon
-                                                fill={theme.icon}
-                                                src={Eye}
-                                                small
-                                            />
-                                        </View>
-                                        <Text style={[styles.chatItemMessageHeaderTimestamp]}>
-                                            {translate('reportActionContextMenu.onlyVisible')}
-                                            &nbsp;
-                                        </Text>
-                                        <DisplayNames
-                                            fullTitle={getWhisperDisplayNames(whisperedTo) ?? ''}
-                                            displayNamesWithTooltips={displayNamesWithTooltips}
-                                            tooltipEnabled
-                                            numberOfLines={1}
-                                            textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
-                                            shouldUseFullTitle={isWhisperOnlyVisibleByUser}
-                                        />
-                                    </View>
+                                {renderSearchHeader(
+                                    <>
+                                        {isWhisper && (
+                                            <View style={[styles.flexRow, styles.pl5, styles.pt2, styles.pr3]}>
+                                                <View style={[styles.pl6, styles.mr3]}>
+                                                    <Icon
+                                                        fill={theme.icon}
+                                                        src={Eye}
+                                                        small
+                                                    />
+                                                </View>
+                                                <Text style={[styles.chatItemMessageHeaderTimestamp]}>
+                                                    {translate('reportActionContextMenu.onlyVisible')}
+                                                    &nbsp;
+                                                </Text>
+                                                <DisplayNames
+                                                    fullTitle={getWhisperDisplayNames(whisperedTo) ?? ''}
+                                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                                    tooltipEnabled
+                                                    numberOfLines={1}
+                                                    textStyles={[styles.chatItemMessageHeaderTimestamp, styles.flex1]}
+                                                    shouldUseFullTitle={isWhisperOnlyVisibleByUser}
+                                                />
+                                            </View>
+                                        )}
+                                        {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
+                                    </>,
                                 )}
-                                {renderReportActionItem(!!hovered || !!isReportActionLinked, isWhisper, hasErrors)}
                             </OfflineWithFeedback>
                         </View>
                     </View>

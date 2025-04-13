@@ -110,6 +110,10 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type DuplicateTransactionParams = {
+    isSubmitted: boolean;
+};
+
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
@@ -810,6 +814,7 @@ export type {
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
+    DuplicateTransactionParams,
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
