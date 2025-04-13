@@ -303,7 +303,7 @@ function ReportActionsView({
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
             <UserTypingEventListener report={report} />
-            {/* <PopoverReactionList ref={reactionListRef} /> */}
+            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }

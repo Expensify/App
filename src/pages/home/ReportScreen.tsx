@@ -765,7 +765,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 {!report ? (
                                     <ReportActionsSkeletonView />
                                 ) : (
-                                    <ReportActionListWrapper>
+                                    // <ReportActionListWrapper>
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -775,7 +775,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
-                                    </ReportActionListWrapper>
+                                    // {/* </ReportActionListWrapper> */}
                                 )}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
