@@ -718,8 +718,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
-            {/* <ReportActionListWrapper> */}
+            {/* <ReactionListContext.Provider value={reactionListRef}> */}
+            <ReportActionListWrapper>
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
@@ -794,8 +794,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
-                {/* </ReportActionListWrapper> */}
-            </ReactionListContext.Provider>
+                </ReportActionListWrapper>
+            {/* </ReactionListContext.Provider> */}
         </ActionListContext.Provider>
     );
 }
