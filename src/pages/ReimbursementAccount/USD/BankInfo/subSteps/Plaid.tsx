@@ -5,6 +5,7 @@ import AddPlaidBankAccount from '@components/AddPlaidBankAccount';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {setBankAccountSubStep, validatePlaidSelection} from '@userActions/BankAccounts';
@@ -20,7 +21,8 @@ type PlaidProps = SubStepProps & {
 const BANK_INFO_STEP_KEYS = INPUT_IDS.BANK_INFO_STEP;
 
 function Plaid({onNext, setUSDBankAccountStep}: PlaidProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
 

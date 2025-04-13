@@ -6,6 +6,7 @@ import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
 import ScrollView from '@components/ScrollView';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Growl from '@libs/Growl';
 import * as BankAccounts from '@userActions/BankAccounts';
@@ -23,7 +24,8 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [onfidoApplicantID] = useOnyx(ONYXKEYS.ONFIDO_APPLICANT_ID);
     const [onfidoToken] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
 
