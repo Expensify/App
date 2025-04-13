@@ -1968,7 +1968,7 @@ const translations = {
     },
     onboarding: {
         welcome: 'Welcome!',
-        welcomeSignOffTitle: "It's great to meet you!",
+        welcomeSignOffTitle: 'We can explore more features such as approval workflows and rules when you have progressed on these steps as these are pre-requisites.',
         explanationModal: {
             title: 'Welcome to Expensify',
             description: 'One app to handle your business and personal spend at the speed of chat. Try it out and let us know what you think. Much more to come!',
@@ -4244,6 +4244,11 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            sap: 'SAP',
+            oracle: 'Oracle',
+            msDynamics: 'Microsoft Dynamics',
+            sage: 'Sage',
+            other: 'Other',
             talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
             talkYourAccountManager: 'Chat with your account manager.',
             talkToConcierge: 'Chat with Concierge.',
@@ -4258,6 +4263,16 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAP:
+                        return 'SAP';
+                    case CONST.POLICY.CONNECTIONS.NAME.ORACLE:
+                        return 'Oracle';
+                    case CONST.POLICY.CONNECTIONS.NAME.MS_DYNAMICS:
+                        return 'Microsoft Dynamics';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAGE:
+                        return 'Sage';
+                    case CONST.POLICY.CONNECTIONS.NAME.OTHER:
+                        return 'Other';
                     default: {
                         return '';
                     }
