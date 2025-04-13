@@ -30,6 +30,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canEditTaxRate as canEditTaxRatePolicyUtils, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
@@ -339,7 +340,7 @@ function WorkspaceTaxesPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTaxesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -355,7 +356,7 @@ function WorkspaceTaxesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -385,6 +386,7 @@ function WorkspaceTaxesPage({
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}
                     showScrollIndicator={false}
+                    addBottomSafeAreaPadding
                 />
                 <ConfirmModal
                     title={translate('workspace.taxes.actions.delete')}
