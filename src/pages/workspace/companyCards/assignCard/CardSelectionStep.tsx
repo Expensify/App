@@ -10,6 +10,7 @@ import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
@@ -42,11 +43,12 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const [searchText, setSearchText] = useState('');
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
     const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
 
     const isEditing = assignCard?.isEditing;
     const assigneeDisplayName = getPersonalDetailByEmail(assignCard?.data?.email ?? '')?.displayName ?? '';
-    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
+    const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed], workspaceCardFeeds);
 
     const [cardSelected, setCardSelected] = useState(assignCard?.data?.encryptedCardNumber ?? '');
     const [shouldShowError, setShouldShowError] = useState(false);
@@ -105,15 +107,18 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
         return cardListOptions.filter((option) => option.text.toLowerCase().includes(searchText));
     }, [searchText, cardListOptions]);
 
+    const safeAreaPaddingBottomStyle = useBottomSafeSafeAreaPaddingStyle();
+
     return (
         <InteractiveStepWrapper
             wrapperID={CardSelectionStep.displayName}
             handleBackButtonPress={handleBackButtonPress}
             headerTitle={translate('workspace.companyCards.assignCard')}
             headerSubtitle={assigneeDisplayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             {!cardListOptions.length ? (
-                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9]}>
+                <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.ph5, styles.mb9, safeAreaPaddingBottomStyle]}>
                     <Icon
                         src={BrokenMagnifyingGlass}
                         width={116}
@@ -132,49 +137,49 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     </Text>
                 </View>
             ) : (
-                <>
-                    <SelectionList
-                        sections={[{data: searchedListOptions}]}
-                        headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
-                        shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
-                        textInputLabel={translate('common.search')}
-                        textInputValue={searchText}
-                        onChangeText={setSearchText}
-                        ListItem={RadioListItem}
-                        onSelectRow={({value}) => handleSelectCard(value)}
-                        initiallyFocusedOptionKey={cardSelected}
-                        listHeaderContent={
-                            <View>
-                                <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
-                                    <InteractiveStepSubHeader
-                                        startStepIndex={1}
-                                        stepNames={CONST.COMPANY_CARD.STEP_NAMES}
-                                    />
-                                </View>
-                                <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
-                                <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
-                                    {translate('workspace.companyCards.chooseCardFor', {
-                                        assignee: assigneeDisplayName,
-                                        feed: getBankName(feed),
-                                    })}
-                                </Text>
+                <SelectionList
+                    sections={[{data: searchedListOptions}]}
+                    headerMessage={searchedListOptions.length ? undefined : translate('common.noResultsFound')}
+                    shouldShowTextInput={cardListOptions.length > CONST.COMPANY_CARDS.CARD_LIST_THRESHOLD}
+                    textInputLabel={translate('common.search')}
+                    textInputValue={searchText}
+                    onChangeText={setSearchText}
+                    ListItem={RadioListItem}
+                    onSelectRow={({value}) => handleSelectCard(value)}
+                    initiallyFocusedOptionKey={cardSelected}
+                    listHeaderContent={
+                        <View>
+                            <View style={[styles.ph5, styles.mb5, styles.mt3, {height: CONST.BANK_ACCOUNT.STEPS_HEADER_HEIGHT}]}>
+                                <InteractiveStepSubHeader
+                                    startStepIndex={1}
+                                    stepNames={CONST.COMPANY_CARD.STEP_NAMES}
+                                />
                             </View>
-                        }
-                        shouldShowTextInputAfterHeader
-                        shouldShowHeaderMessageAfterHeader
-                        includeSafeAreaPaddingBottom={false}
-                        shouldShowListEmptyContent={false}
-                        shouldUpdateFocusedIndex
-                    />
-                    <FormAlertWithSubmitButton
-                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                        onSubmit={submit}
-                        isAlertVisible={shouldShowError}
-                        containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
-                        message={translate('common.error.pleaseSelectOne')}
-                        buttonStyles={styles.mb5}
-                    />
-                </>
+                            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.companyCards.chooseCard')}</Text>
+                            <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>
+                                {translate('workspace.companyCards.chooseCardFor', {
+                                    assignee: assigneeDisplayName,
+                                    feed: getBankName(feed),
+                                })}
+                            </Text>
+                        </View>
+                    }
+                    shouldShowTextInputAfterHeader
+                    shouldShowHeaderMessageAfterHeader
+                    addBottomSafeAreaPadding
+                    shouldShowListEmptyContent={false}
+                    shouldUpdateFocusedIndex
+                    footerContent={
+                        <FormAlertWithSubmitButton
+                            buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                            onSubmit={submit}
+                            isAlertVisible={shouldShowError}
+                            containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
+                            message={translate('common.error.pleaseSelectOne')}
+                            buttonStyles={styles.mb5}
+                        />
+                    }
+                />
             )}
         </InteractiveStepWrapper>
     );

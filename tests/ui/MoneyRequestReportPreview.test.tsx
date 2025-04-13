@@ -112,6 +112,7 @@ const mockOnyxTransactions: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION}${s
 
 const mockOnyxViolations: Record<`${typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${string}`, TransactionViolations> = {
     [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockTransaction.transactionID}`]: mockViolations,
+    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${mockSecondTransaction.transactionID}`]: mockViolations,
 };
 
 const arrayOfTransactions = Object.values(mockOnyxTransactions);
@@ -150,7 +151,7 @@ describe('MoneyRequestReportPreview', () => {
         }
     });
 
-    it('renders RBR for both transaction and report if there are violations', async () => {
+    it('renders RBR for every transaction with violations', async () => {
         renderPage({});
         await waitForBatchedUpdatesWithAct();
         await Onyx.multiSet({...mockOnyxTransactions, ...mockOnyxViolations});
