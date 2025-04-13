@@ -90,6 +90,7 @@ import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
 import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
 import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import { ReportActionListWrapper } from './ReportActionListWrapper';
 
 type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
@@ -718,6 +719,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListContext.Provider value={reactionListRef}>
+            {/* <ReportActionListWrapper> */}
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
@@ -763,6 +765,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 {!report ? (
                                     <ReportActionsSkeletonView />
                                 ) : (
+                                    <ReportActionListWrapper>
                                     <ReportActionsView
                                         report={report}
                                         reportActions={reportActions}
@@ -772,6 +775,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                         parentReportAction={parentReportAction}
                                         transactionThreadReportID={transactionThreadReportID}
                                     />
+                                    </ReportActionListWrapper>
                                 )}
                                 {isCurrentReportLoadedFromOnyx ? (
                                     <ReportFooter
@@ -790,6 +794,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
+                {/* </ReportActionListWrapper> */}
             </ReactionListContext.Provider>
         </ActionListContext.Provider>
     );
