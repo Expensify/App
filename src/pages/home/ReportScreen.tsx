@@ -5,7 +5,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -23,6 +22,7 @@ import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -80,6 +80,7 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -318,6 +319,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const onBackButtonPress = useCallback(() => {
         if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
+            return;
+        }
+        if (backTo) {
+            Navigation.goBack(backTo as Route, {shouldPopToTop: true});
             return;
         }
         Navigation.goBack(undefined, {shouldPopToTop: true});
