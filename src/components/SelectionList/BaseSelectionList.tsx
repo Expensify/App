@@ -28,6 +28,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
@@ -160,6 +161,7 @@ function BaseSelectionList<TItem extends ListItem>(
     const isTextInputFocusedRef = useRef<boolean>(false);
     const {singleExecution} = useSingleExecution();
     const [itemHeights, setItemHeights] = useState<Record<string, number>>({});
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const onItemLayout = (event: LayoutChangeEvent, itemKey: string | null | undefined) => {
         if (!itemKey) {
@@ -410,6 +412,9 @@ function BaseSelectionList<TItem extends ListItem>(
 
                 if (shouldShowTextInput) {
                     clearInputAfterSelect();
+                } else if (shouldUseNarrowLayout) {
+                    onCheckboxPress?.(item);
+                    return;
                 }
             }
 
