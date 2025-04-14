@@ -124,7 +124,7 @@ function Expensify() {
         // Set a timeout to initialize the client after a short delay.
         // This is necessary because on Apple devices (web), Onyx events can be delayed,
         // causing issues with client initialization if done immediately.
-        const isAppleDevice = /Macintosh|iPhone|iPad|iPod/.test(navigator.userAgent);
+        const isAppleDevice = /iPhone|iPad/.test(navigator.userAgent);
         const isWeb = Platform.OS === 'web';
         setTimeout(ActiveClientManager.init, isAppleDevice && isWeb ? 400 : 0);
     };
