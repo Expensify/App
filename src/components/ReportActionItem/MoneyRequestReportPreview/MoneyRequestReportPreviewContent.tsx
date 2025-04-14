@@ -56,13 +56,7 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import {
-    getMerchant,
-    hasPendingUI,
-    isCardTransaction,
-    isPartialMerchant,
-    isPending,
-} from '@libs/TransactionUtils';
+import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending} from '@libs/TransactionUtils';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';

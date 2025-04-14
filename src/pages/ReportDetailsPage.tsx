@@ -565,6 +565,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isTaskReport,
         isCanceledTaskReport,
         canUsePDFExport,
+        caseID,
         shouldShowGoToWorkspace,
         shouldShowLeaveButton,
         isDebugModeEnabled,
