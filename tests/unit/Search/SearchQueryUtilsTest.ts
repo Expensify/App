@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
-import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues} from '@src/libs/SearchQueryUtils';
+import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const personalDetailsFakeData = {
@@ -155,6 +155,49 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual(
                 'sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date<2025-03-10 date>2025-03-01 amount>1 amount<1000',
             );
+        });
+    });
+
+    describe('shouldHighlight', () => {
+        it('returns false if either input is empty', () => {
+            expect(shouldHighlight('', 'test')).toBe(false);
+            expect(shouldHighlight('Some text', '')).toBe(false);
+        });
+
+        it('matches exact word at beginning', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'Take')).toBe(true);
+        });
+
+        it('matches exact word in middle', () => {
+            expect(shouldHighlight('Take a 2-minute tour', '2-minute')).toBe(true);
+        });
+
+        it('matches phrase with leading space', () => {
+            expect(shouldHighlight('Take a 2-minute tour', ' 2-minute tour')).toBe(true);
+        });
+
+        it('matches with special characters', () => {
+            expect(shouldHighlight('Explore the #%tự đặc biệt!', '#%tự')).toBe(true);
+        });
+
+        it('is case-insensitive', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'TOUR')).toBe(true);
+        });
+
+        it('does not match partial word in the middle', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'in')).toBe(false);
+        });
+
+        it('does not match incomplete trailing text', () => {
+            expect(shouldHighlight('Take a 2-minute tour', '2-minute to')).toBe(false);
+        });
+
+        it('matches multi-word phrase exactly', () => {
+            expect(shouldHighlight('Take a 2-minute tour', '2-minute tour')).toBe(true);
+        });
+
+        it('does not match words out of order', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'tour 2-minute')).toBe(false);
         });
     });
 });
