@@ -2,8 +2,6 @@ name: Remote Build Android
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: [staging, production]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
