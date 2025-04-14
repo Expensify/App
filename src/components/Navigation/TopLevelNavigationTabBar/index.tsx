@@ -6,9 +6,9 @@ import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
-import positioning from '@styles/utils/positioning';
 import variables from '@styles/variables';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
@@ -34,6 +34,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
     const {canUseLeftHandBar} = usePermissions();
+    const StyleUtils = useStyleUtils();
 
     // That means it's visible and it's not covered by the overlay.
     const isNavigationTabVisibleDirectly = getIsNavigationTabBarVisibleDirectly(state);
@@ -60,7 +61,12 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     }, [shouldDisplayBottomBar]);
 
     return (
-        <View style={[styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom, sidebarWidth), shouldDisplayLHB ? positioning.l0 : positioning.b0]}>
+        <View
+            style={[
+                styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom, sidebarWidth),
+                shouldDisplayLHB ? StyleUtils.positioning.l0 : StyleUtils.positioning.b0,
+            ]}
+        >
             {/* We are not rendering NavigationTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}
