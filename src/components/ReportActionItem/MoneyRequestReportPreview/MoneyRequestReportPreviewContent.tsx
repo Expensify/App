@@ -63,7 +63,6 @@ import {
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
-import Navigation from '@navigation/Navigation';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
@@ -87,7 +86,6 @@ const FixIconPadding = <View />;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
-    policyID,
     chatReportID,
     action,
     containerStyles,
@@ -106,11 +104,12 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
     isDelegateAccessRestricted,
-    renderItem,
-    getCurrentWidth,
+    renderTransactionItem,
+    onLayout,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
     isInvoice,
+    onPress,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -413,7 +412,7 @@ function MoneyRequestReportPreviewContent({
                 </View>
             );
         }
-        return renderItem(itemInfo);
+        return renderTransactionItem(itemInfo);
     };
 
     // The button should expand up to transaction width
@@ -448,12 +447,10 @@ function MoneyRequestReportPreviewContent({
             >
                 <View
                     style={[styles.chatItemMessage, containerStyles]}
-                    onLayout={getCurrentWidth}
+                    onLayout={onLayout}
                 >
                     <PressableWithoutFeedback
-                        onPress={() => {
-                            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
-                        }}
+                        onPress={onPress}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onLongPress={(event) => {
@@ -585,7 +582,6 @@ function MoneyRequestReportPreviewContent({
                                             onAnimationFinish={stopAnimation}
                                             formattedAmount={getSettlementAmount() ?? ''}
                                             currency={iouReport?.currency}
-                                            policyID={policyID}
                                             chatReportID={chatReportID}
                                             iouReport={iouReport}
                                             wrapperStyle={buttonMaxWidth}
@@ -628,9 +624,7 @@ function MoneyRequestReportPreviewContent({
                                             iconFill={theme.danger}
                                             iconHoverFill={theme.danger}
                                             text={translate('common.review', {amount: shouldShowSettlementButton ? getSettlementAmount() : ''})}
-                                            onPress={() => {
-                                                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
-                                            }}
+                                            onPress={onPress}
                                             style={buttonMaxWidth}
                                         />
                                     )}
@@ -652,7 +646,6 @@ function MoneyRequestReportPreviewContent({
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                     onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 />
-
                 {isHoldMenuVisible && !!iouReport && !!requestType && (
                     <ProcessMoneyReportHoldMenu
                         nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}

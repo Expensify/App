@@ -70,6 +70,17 @@ type MoneyRequestReportPreviewContentOnyxProps = {
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    MoneyRequestReportPreviewProps & {renderItem: ListRenderItem<Transaction>; getCurrentWidth: (e: LayoutChangeEvent) => void; reportPreviewStyles: MoneyRequestReportPreviewStyleType};
+    Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
+        reportPreviewStyles: MoneyRequestReportPreviewStyleType;
+
+        /** Callback passed to onLayout  */
+        onLayout: (e: LayoutChangeEvent) => void;
+
+        /** Callback to render a child preview item */
+        renderTransactionItem: ListRenderItem<Transaction>;
+
+        /** Callback called when the whole preview is pressed */
+        onPress: () => void;
+    };
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps, MoneyRequestReportPreviewStyleType};
