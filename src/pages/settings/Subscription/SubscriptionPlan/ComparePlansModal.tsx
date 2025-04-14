@@ -74,7 +74,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
                 shouldShowBackButton={false}
                 style={isSmallScreenWidth ? styles.pl4 : [styles.pr3, styles.pl8]}
             />
-            {isSmallScreenWidth ? <ScrollView>{renderPlans()}</ScrollView> : renderPlans()}
+            {isSmallScreenWidth ? <ScrollView addBottomSafeAreaPadding>{renderPlans()}</ScrollView> : renderPlans()}
         </Modal>
     );
 }
