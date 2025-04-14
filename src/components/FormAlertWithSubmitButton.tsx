@@ -71,6 +71,9 @@ type FormAlertWithSubmitButtonProps = {
      * This is needed for buttons that allow content to display under them.
      */
     shouldBlendOpacity?: boolean;
+
+    /** Whether to add a bottom padding to the button */
+    addButtonBottomPadding?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -94,9 +97,10 @@ function FormAlertWithSubmitButton({
     enterKeyEventListenerPriority = 0,
     shouldRenderFooterAboveSubmit = false,
     shouldBlendOpacity = false,
+    addButtonBottomPadding = true,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const style = [!footerContent ? {} : styles.mb3, buttonStyles];
+    const style = [footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
     // Disable pressOnEnter for Android Native to avoid issues with the Samsung keyboard,
     // where pressing Enter saves the form instead of adding a new line in multiline input.

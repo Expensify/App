@@ -99,7 +99,7 @@ function CardTypeStep() {
     return (
         <ScreenWrapper
             testID={CardTypeStep.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
         >
@@ -122,6 +122,7 @@ function CardTypeStep() {
                 showConfirmButton
                 confirmButtonText={translate('common.next')}
                 onConfirm={submit}
+                addBottomSafeAreaPadding
             >
                 {isError && (
                     <View style={[styles.ph5, styles.mb3]}>
