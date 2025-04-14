@@ -17,6 +17,22 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
     const {translate} = useLocalize();
     const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
     const styles = useThemeStyles();
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+
+    if (!reportID || !accountID) {
+        return;
+    }
+
+    // Only show for micro companies (1-10 employees)
+    if (introSelected?.companySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO) {
+        return null;
+    }
+
+    const abTestCtaText = (): string => {
+        const availableCTAs = [translate('aiSales.getHelp'), translate('aiSales.talkToSales'), translate('aiSales.talkToConcierge')];
+        return availableCTAs.at(accountID % availableCTAs.length) ?? translate('aiSales.talkToSales');
+    };
 
     const talkToSalesIcon = () => {
         if (talkToAISales?.isLoading) {
@@ -30,14 +46,14 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
 
     return (
         <Button
-            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
+            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : abTestCtaText()}
             onPress={() => {
                 if (talkToAISales?.isTalkingToAISales) {
                     stopConnection();
                     return;
                 }
 
-                initializeOpenAIRealtime(Number(reportID) ?? CONST.DEFAULT_NUMBER_ID);
+                initializeOpenAIRealtime(Number(reportID) ?? CONST.DEFAULT_NUMBER_ID, abTestCtaText());
             }}
             style={shouldUseNarrowLayout && [styles.flex1]}
             icon={talkToSalesIcon()}

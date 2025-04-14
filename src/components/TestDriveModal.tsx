@@ -27,15 +27,11 @@ function TestDriveModal() {
             onHelp={closeModal}
             onConfirm={navigateTestDriveDemo}
             shouldRenderSVG={false}
-            modalInnerContainerStyle={{
-                // On small/medium screens, we need to remove the top padding
-                paddingTop: 0,
-                // On medium screens, we need to prevent the modal from becoming too big
-                maxWidth: 500,
-            }}
+            modalInnerContainerStyle={styles.testDriveModalContainer}
         />
     );
 }
 
 TestDriveModal.displayName = 'TestDriveModal';
+
 export default TestDriveModal;
