@@ -4,7 +4,7 @@ import Onyx from 'react-native-onyx';
 import {measureRenders} from 'reassure';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import type Navigation from '@libs/Navigation/Navigation';
-import {AttachmentModalProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
+import {AttachmentModalContextProvider} from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import ComposeProviders from '@src/components/ComposeProviders';
 import {LocaleContextProvider} from '@src/components/LocaleContextProvider';
 import OnyxProvider from '@src/components/OnyxProvider';
@@ -106,7 +106,7 @@ afterEach(() => {
 function ReportActionsListWrapper() {
     const reportActions = ReportTestUtils.getMockedSortedReportActions(500);
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, AttachmentModalProvider]}>
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, AttachmentModalContextProvider]}>
             <ReactionListContext.Provider value={mockRef}>
                 <ActionListContext.Provider value={mockRef}>
                     <ReportActionsList

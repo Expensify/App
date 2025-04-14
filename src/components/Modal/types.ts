@@ -2,8 +2,8 @@ import type {FocusTrapProps} from 'focus-trap-react';
 import type {GestureResponderEvent, PanResponderGestureState, ViewStyle} from 'react-native';
 import type {Direction, ModalProps as ReactNativeModalProps} from 'react-native-modal';
 import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type BottomDockedModalProps from './BottomDockedModal/types';
-import type CONST from './src/CONST';
 
 type FocusTrapOptions = Exclude<FocusTrapProps['focusTrapOptions'], undefined>;
 

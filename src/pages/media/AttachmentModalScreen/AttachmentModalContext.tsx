@@ -19,7 +19,7 @@ const AttachmentModalContext = React.createContext<AttachmentModalContextValue>(
     getCurrentAttachment: () => undefined,
 });
 
-function AttachmentModalProvider({children}: ChildrenProps) {
+function AttachmentModalContextProvider({children}: ChildrenProps) {
     const currentReportID = useCurrentReportID();
     const hiddenAttachments = useRef<Record<string, boolean>>({});
 
@@ -52,8 +52,8 @@ function AttachmentModalProvider({children}: ChildrenProps) {
     return <AttachmentModalContext.Provider value={contextValue}>{children}</AttachmentModalContext.Provider>;
 }
 
-AttachmentModalProvider.displayName = 'AttachmentModalProvider';
+AttachmentModalContextProvider.displayName = 'AttachmentModalContextProvider';
 
 export default AttachmentModalContext;
-export {AttachmentModalProvider};
+export {AttachmentModalContextProvider};
 export type {AttachmentContextProps};

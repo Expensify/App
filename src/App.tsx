@@ -39,7 +39,7 @@ import Expensify from './Expensify';
 import {CurrentReportIDContextProvider} from './hooks/useCurrentReportID';
 import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
-import {AttachmentModalProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
+import {AttachmentModalContextProvider} from './pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type {Route} from './ROUTES';
 import './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
@@ -97,7 +97,7 @@ function App({url, hybridAppSettings, timestamp}: AppProps) {
                                 PopoverContextProvider,
                                 CurrentReportIDContextProvider,
                                 ScrollOffsetContextProvider,
-                                AttachmentModalProvider,
+                                AttachmentModalContextProvider,
                                 PickerStateProvider,
                                 EnvironmentProvider,
                                 CustomStatusBarAndBackgroundContextProvider,

@@ -1,9 +1,8 @@
 import type {StackScreenProps} from '@react-navigation/stack';
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useContext, useMemo, useState} from 'react';
 import {SafeAreaView, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
-import AttachmentModal from '@components/AttachmentModal';
 import AttachmentPreview from '@components/AttachmentPreview';
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
@@ -24,6 +23,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getReportDisplayOption} from '@libs/OptionsListUtils';
 import {getReportOrDraftReport, isDraftReport} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import UserListItem from '@src/components/SelectionList/UserListItem';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,6 +50,18 @@ function ShareDetailsPage({
     const report: OnyxEntry<ReportType> = getReportOrDraftReport(reportOrAccountID);
     const displayReport = useMemo(() => getReportDisplayOption(report, unknownUserDetails), [report, unknownUserDetails]);
 
+    const fileName = currentAttachment?.content.split('/').pop();
+
+    const reportAttachmentsContext = useContext(AttachmentModalContext);
+    const showAttachmentModal = useCallback(() => {
+        reportAttachmentsContext.setCurrentAttachment({headerTitle: fileName, originalFileName: fileName, fallbackSource: FallbackAvatar});
+        Navigation.navigate(
+            ROUTES.ATTACHMENTS.getRoute({
+                source: currentAttachment?.content,
+            }),
+        );
+    }, [reportAttachmentsContext, fileName, currentAttachment?.content]);
+
     if (isEmptyObject(report)) {
         return <NotFoundPage />;
     }
@@ -57,8 +69,6 @@ function ShareDetailsPage({
     const isDraft = isDraftReport(reportOrAccountID);
     const currentUserID = getCurrentUserAccountID();
     const shouldShowAttachment = !isTextShared;
-
-    const fileName = currentAttachment?.content.split('/').pop();
 
     const handleShare = () => {
         if (!currentAttachment) {
@@ -156,23 +166,14 @@ function ShareDetailsPage({
                                     <Text style={styles.textLabelSupporting}>{translate('common.attachment')}</Text>
                                 </View>
                                 <SafeAreaView>
-                                    <AttachmentModal
-                                        headerTitle={fileName}
-                                        source={currentAttachment?.content}
-                                        originalFileName={fileName}
-                                        fallbackSource={FallbackAvatar}
-                                    >
-                                        {({show}) => (
-                                            <AttachmentPreview
-                                                source={currentAttachment?.content ?? ''}
-                                                aspectRatio={currentAttachment?.aspectRatio}
-                                                onPress={show}
-                                                onLoadError={() => {
-                                                    showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
-                                                }}
-                                            />
-                                        )}
-                                    </AttachmentModal>
+                                    <AttachmentPreview
+                                        source={currentAttachment?.content ?? ''}
+                                        aspectRatio={currentAttachment?.aspectRatio}
+                                        onPress={showAttachmentModal}
+                                        onLoadError={() => {
+                                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                                        }}
+                                    />
                                 </SafeAreaView>
                             </>
                         )}
