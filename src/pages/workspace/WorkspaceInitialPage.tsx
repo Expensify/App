@@ -431,7 +431,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     return (
         <ScreenWrapper
             testID={WorkspaceInitialPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={shouldShowBottomTab ? <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} /> : null}
         >
             <FullPageNotFoundView
@@ -439,6 +439,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                 onLinkPress={Navigation.goBackToHome}
                 shouldShow={shouldShowNotFoundPage}
                 subtitleKey={shouldShowPolicy ? 'workspace.common.notAuthorized' : undefined}
+                addBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={policyName}

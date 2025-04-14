@@ -127,6 +127,7 @@ function WorkspaceReportFieldsPage({
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceReportFieldsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
