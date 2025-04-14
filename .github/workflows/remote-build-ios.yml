@@ -32,6 +32,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.project_root == 'Mobile-Expensify/' && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
         uses: callstackincubator/ios@4c2dcc0d6b9c35407cf294e17386b65258a3b6af

@@ -30,6 +30,8 @@ jobs:
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.project_root == 'Mobile-Expensify/' && 'true' || 'false' }}
 
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@a49920aadab9f41951944ea52bb7983fa6b20b03
