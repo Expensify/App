@@ -595,10 +595,10 @@ jobs:
 
       - name: 🚀 Create prerelease 🚀
         run: |
-          gh release create ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --target staging
+          gh release create ${{ needs.prep.outputs.APP_VERSION }}-staging --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --verify-tag --target staging
           RETRIES=0
           MAX_RETRIES=10
-          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
+          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }}-staging --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
             echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
             sleep 1
           done
@@ -786,7 +786,7 @@ jobs:
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
-      version: ${{ needs.prep.outputs.APP_VERSION }}
+      version: ${{ needs.prep.outputs.APP_VERSION }}${{ github.ref != 'refs/heads/production' && '-staging' || '' }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ needs.android.result }}
       ios: ${{ needs.ios.result }}
