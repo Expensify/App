@@ -456,7 +456,7 @@ const WRITE_COMMANDS = {
     GET_CORPAY_BANK_ACCOUNT_FIELDS: 'GetCorpayBankAccountFields',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
     UPDATE_WORKSPACE_CUSTOM_UNIT: 'UpdateWorkspaceCustomUnit',
-    GET_ACCESSIBLE_POLICIES: 'GetAccessibleDomainPolicies',
+    GET_ACCESSIBLE_POLICIES: 'GetAccessibleDomainPoliciesForOnyx',
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
     DISMISS_PRODUCT_TRAINING: 'DismissProductTraining',
     GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE: 'GetValidateCodeForAccountMerge',

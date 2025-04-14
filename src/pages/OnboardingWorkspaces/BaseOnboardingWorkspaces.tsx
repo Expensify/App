@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -36,10 +36,11 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [joinablePolicies, joinablePoliciesStatus] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
-    const fetchedPolicies = useRef(false);
+
     const joinablePoliciesLoading = getAccessiblePoliciesAction?.loading;
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
 
@@ -49,8 +50,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-
-    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const handleJoinWorkspace = useCallback(
         (policy: JoinablePolicy) => {
@@ -107,20 +106,16 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
     useEffect(() => {
-        if (!(isValidated && !joinablePoliciesLoading && joinablePoliciesStatus.status === 'loaded' && !joinablePoliciesLength) || fetchedPolicies.current) {
+        if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
             return;
         }
+
         getAccessiblePolicies();
-        fetchedPolicies.current = true;
-    }, [joinablePoliciesStatus.status, isValidated, joinablePoliciesLoading, joinablePoliciesLength]);
+    }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]);
 
     const handleBackButtonPress = useCallback(() => {
-        if (isValidated) {
-            Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
-            return;
-        }
         Navigation.goBack();
-    }, [isValidated]);
+    }, []);
 
     return (
         <ScreenWrapper

@@ -29,6 +29,8 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
     const [getAccessiblePoliciesAction] = useOnyx(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
+    const joinablePoliciesLength = Object.keys(joinablePolicies ?? {}).length;
 
     const {shouldUseNarrowLayout, onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
 
@@ -45,13 +47,19 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     }, [credentials?.login]);
 
     useEffect(() => {
-        if (!isValidated) {
-            sendValidateCode();
+        if (isValidated) {
+            return;
+        }
+        sendValidateCode();
+    }, [sendValidateCode, isValidated]);
+
+    useEffect(() => {
+        if (!isValidated || joinablePoliciesLength === 0) {
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()));
-    }, [sendValidateCode, isValidated]);
+        Navigation.navigate(ROUTES.ONBOARDING_WORKSPACES.getRoute(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute()), {forceReplace: true});
+    }, [isValidated, joinablePoliciesLength]);
 
     return (
         <ScreenWrapper
