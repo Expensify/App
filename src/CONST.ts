@@ -9,6 +9,7 @@ import type {Video} from './libs/actions/Report';
 import type {MileageRate} from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
 import {addTrailingForwardSlash} from './libs/Url';
+import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
 
@@ -767,12 +768,12 @@ const CONST = {
         NEWDOT_MERGE_ACCOUNTS: 'newDotMergeAccounts',
         NEWDOT_MANAGER_MCTEST: 'newDotManagerMcTest',
         NEWDOT_PDF_EXPORT: 'newDotPDFExport',
-        NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT: 'newDotInternationalDepositBankAccount',
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
+        LEFT_HAND_BAR: 'leftHandBar',
+        WALLET: 'newdotWallet',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1033,7 +1034,8 @@ const CONST = {
     ONFIDO_FACIAL_SCAN_POLICY_URL: 'https://onfido.com/facial-scan-policy-and-release/',
     ONFIDO_PRIVACY_POLICY_URL: 'https://onfido.com/privacy/',
     ONFIDO_TERMS_OF_SERVICE_URL: 'https://onfido.com/terms-of-service/',
-    LIST_OF_RESTRICTED_BUSINESSES: 'https://community.expensify.com/discussion/6191/list-of-restricted-businesses',
+    LIST_OF_RESTRICTED_BUSINESSES:
+        'https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Connect-US-Business-Bank-Account#are-there-certain-industries-or-businesses-for-which-expensify-cannot-process-automatic-in-app-payments',
     TRAVEL_TERMS_URL: `${EXPENSIFY_URL}/travelterms`,
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT: 'https://www.expensify.com/tools/integrations/downloadPackage',
     EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT_FILE_NAME: 'ExpensifyPackageForSageIntacct',
@@ -1234,6 +1236,7 @@ const CONST = {
                 UNHOLD: 'UNHOLD',
                 UNSHARE: 'UNSHARE', // OldDot Action
                 UPDATE_GROUP_CHAT_MEMBER_ROLE: 'UPDATEGROUPCHATMEMBERROLE',
+                CONCIERGE_CATEGORY_OPTIONS: 'CONCIERGECATEGORYOPTIONS',
                 POLICY_CHANGE_LOG: {
                     ADD_APPROVER_RULE: 'POLICYCHANGELOG_ADD_APPROVER_RULE',
                     ADD_BUDGET: 'POLICYCHANGELOG_ADD_BUDGET',
@@ -1500,6 +1503,9 @@ const CONST = {
         SIDEBAR_LOADED: 'sidebar_loaded',
         LOAD_SEARCH_OPTIONS: 'load_search_options',
         SEND_MESSAGE: 'send_message',
+        OPEN_CREATE_EXPENSE: 'open_create_expense',
+        OPEN_CREATE_EXPENSE_CONTACT: 'open_create_expense_contact',
+        OPEN_CREATE_EXPENSE_APPROVE: 'open_create_expense_approve',
         APPLY_AIRSHIP_UPDATES: 'apply_airship_updates',
         APPLY_PUSHER_UPDATES: 'apply_pusher_updates',
         APPLY_HTTPS_UPDATES: 'apply_https_updates',
@@ -1665,6 +1671,10 @@ const CONST = {
         },
     },
     OPEN_AI_REALTIME_API: 'https://api.openai.com/v1/realtime',
+    OPEN_AI_TOOL_NAMES: {
+        END_CALL: 'EndCall',
+        SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
+    },
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
@@ -5607,6 +5617,7 @@ const CONST = {
                 COMPANY_TYPE: 5,
                 INCORPORATION_DATE: 6,
                 INCORPORATION_STATE: 7,
+                INCORPORATION_CODE: 8,
             },
             UBO: {
                 LEGAL_NAME: 0,
@@ -6298,6 +6309,7 @@ const CONST = {
         ACTIVE_WORKSPACE_ID: 'ACTIVE_WORKSPACE_ID',
         RETRY_LAZY_REFRESHED: 'RETRY_LAZY_REFRESHED',
         LAST_REFRESH_TIMESTAMP: 'LAST_REFRESH_TIMESTAMP',
+        LAST_VISITED_SETTINGS_TAB_PATH: 'LAST_VISITED_SETTINGS_TAB_PATH',
     },
 
     RESERVATION_TYPE: {
@@ -6394,6 +6406,7 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6448,7 +6461,6 @@ const CONST = {
             STATUS: 'status',
             SORT_BY: 'sortBy',
             SORT_ORDER: 'sortOrder',
-            POLICY_ID: 'policyID',
             GROUP_BY: 'groupBy',
         },
         SYNTAX_FILTER_KEYS: {
@@ -6473,6 +6485,7 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
         SEARCH_ROUTER_ITEM_TYPE: {
@@ -6513,6 +6526,15 @@ const CONST = {
             BEFORE: 'Before',
             AFTER: 'After',
         },
+        SNAPSHOT_ONYX_KEYS: [
+            ONYXKEYS.COLLECTION.REPORT,
+            ONYXKEYS.COLLECTION.POLICY,
+            ONYXKEYS.COLLECTION.TRANSACTION,
+            ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
+            ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            ONYXKEYS.PERSONAL_DETAILS_LIST,
+            ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        ],
     },
 
     EXPENSE: {

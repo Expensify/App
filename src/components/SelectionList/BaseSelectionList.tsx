@@ -3,7 +3,15 @@ import lodashDebounce from 'lodash/debounce';
 import isEmpty from 'lodash/isEmpty';
 import type {ForwardedRef} from 'react';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent, SectionList as RNSectionList, TextInput as RNTextInput, SectionListData, SectionListRenderItemInfo} from 'react-native';
+import type {
+    LayoutChangeEvent,
+    NativeSyntheticEvent,
+    SectionList as RNSectionList,
+    TextInput as RNTextInput,
+    SectionListData,
+    SectionListRenderItemInfo,
+    TextInputKeyPressEventData,
+} from 'react-native';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import Checkbox from '@components/Checkbox';
@@ -23,6 +31,7 @@ import usePrevious from '@hooks/usePrevious';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
+import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
@@ -128,6 +137,7 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+        errorText,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -235,6 +245,7 @@ function BaseSelectionList<TItem extends ListItem>(
                 'Dev error: SelectionList - multiple items are selected but prop `canSelectMultiple` is false. Please enable `canSelectMultiple` or make your list have only 1 item with `isSelected: true`.',
             );
         }
+        const totalSelectable = allOptions.length - disabledOptionsIndexes.length;
 
         return {
             allOptions,
@@ -242,7 +253,8 @@ function BaseSelectionList<TItem extends ListItem>(
             disabledOptionsIndexes,
             disabledArrowKeyOptionsIndexes,
             itemLayouts,
-            allSelected: selectedOptions.length > 0 && selectedOptions.length === allOptions.length - disabledOptionsIndexes.length,
+            allSelected: selectedOptions.length > 0 && selectedOptions.length === totalSelectable,
+            someSelected: selectedOptions.length > 0 && selectedOptions.length < totalSelectable,
         };
     }, [canSelectMultiple, sections, customListHeader, customListHeaderHeight, itemHeights, getItemHeight]);
 
@@ -514,6 +526,7 @@ function BaseSelectionList<TItem extends ListItem>(
                         <Checkbox
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             isChecked={flattenedSections.allSelected}
+                            isIndeterminate={flattenedSections.someSelected}
                             onPress={selectAllRow}
                             disabled={flattenedSections.allOptions.length === flattenedSections.disabledOptionsIndexes.length}
                         />
@@ -591,10 +604,18 @@ function BaseSelectionList<TItem extends ListItem>(
         return null;
     };
 
+    const textInputKeyPress = useCallback((event: NativeSyntheticEvent<TextInputKeyPressEventData>) => {
+        const key = event.nativeEvent.key;
+        if (key === CONST.KEYBOARD_SHORTCUTS.TAB.shortcutKey) {
+            focusedItemRef?.focus();
+        }
+    }, []);
+
     const renderInput = () => {
         return (
             <View style={[styles.ph5, styles.pb3]}>
                 <TextInput
+                    onKeyPress={textInputKeyPress}
                     ref={(element) => {
                         innerTextInputRef.current = element as RNTextInput;
 
@@ -628,6 +649,7 @@ function BaseSelectionList<TItem extends ListItem>(
                     isLoading={isLoadingNewOptions}
                     testID="selection-list-text-input"
                     shouldInterceptSwipe={shouldTextInputInterceptSwipe}
+                    errorText={errorText}
                 />
             </View>
         );

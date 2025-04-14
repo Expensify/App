@@ -73,6 +73,7 @@ type SearchContext = {
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    isOnSearch: boolean;
 };
 
 type ASTNode = {
@@ -98,7 +99,7 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;

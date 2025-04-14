@@ -1757,6 +1757,12 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        topBarLabel: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+            ...headlineFont,
+        },
+
         breadcrumsContainer: {
             minHeight: 24,
         },
@@ -2394,10 +2400,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
         },
 
-        customMarginButtonWithMenuItem: {
-            marginRight: variables.bankButtonMargin,
-        },
-
         composerSizeButton: {
             alignSelf: 'center',
             height: 32,
@@ -2661,9 +2663,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
+        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
+            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
+        }),
 
         imageViewContainer: {
             width: '100%',
@@ -3025,6 +3027,12 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderedContentCardLarge: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 16,
@@ -3159,6 +3167,10 @@ const styles = (theme: ThemeColors) =>
 
         flipUpsideDown: {
             transform: `rotate(180deg)`,
+        },
+
+        mirror: {
+            transform: `scaleX(-1)`,
         },
 
         navigationScreenCardStyle: {
@@ -3941,14 +3953,6 @@ const styles = (theme: ThemeColors) =>
         cardSectionTitle: {
             fontSize: variables.fontSizeLarge,
             lineHeight: variables.lineHeightXLarge,
-        },
-
-        cardMenuItem: {
-            paddingLeft: 8,
-            paddingRight: 0,
-            borderRadius: variables.buttonBorderRadius,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
         },
 
         emptyCardSectionTitle: {
