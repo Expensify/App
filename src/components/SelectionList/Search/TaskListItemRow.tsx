@@ -19,8 +19,8 @@ import {completeTask} from '@libs/actions/Task';
 import Parser from '@libs/Parser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import AvatarWithTextCell from './AvatarWithTextCell';
 import DateCell from './DateCell';
-import ReportInfoCell from './ReportInfoCell';
 import UserInfoCell from './UserInfoCell';
 
 type TaskListItemRowProps = {
@@ -41,11 +41,10 @@ type TaskCellProps = {
 
 function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
-    const taskTitle = Parser.replace(Parser.htmlToText(taskItem.reportName));
 
     return (
         <TextWithTooltip
-            text={taskTitle}
+            text={taskItem.reportName}
             shouldShowTooltip={showTooltip}
             style={[isLargeScreenWidth ? styles.lineHeightLarge : styles.lh20, styles.pre, styles.justifyContentCenter]}
         />
@@ -54,12 +53,11 @@ function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
 
 function DescriptionCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
-    const taskDescription = Parser.replace(Parser.htmlToText(taskItem.description)).replaceAll('<br />', ' ');
 
     return (
         <TextWithTooltip
             shouldShowTooltip={showTooltip}
-            text={taskDescription}
+            text={taskItem.description}
             style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
         />
     );
@@ -118,6 +116,9 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
     const theme = useTheme();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const shouldDisplayCompactArrowIcon = !!(item.parentReportIcon || item.parentReportName);
+
     if (!isLargeScreenWidth) {
         return (
             <View style={[containerStyle, styles.gap3]}>
@@ -131,15 +132,20 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                             />
                         </View>
 
-                        <Icon
-                            src={Expensicons.ArrowRightLong}
-                            width={variables.iconSizeXXSmall}
-                            height={variables.iconSizeXXSmall}
-                            fill={theme.icon}
-                        />
+                        {shouldDisplayCompactArrowIcon && (
+                            <Icon
+                                src={Expensicons.ArrowRightLong}
+                                width={variables.iconSizeXXSmall}
+                                height={variables.iconSizeXXSmall}
+                                fill={theme.icon}
+                            />
+                        )}
 
                         <View style={[styles.flex1, styles.mw50]}>
-                            <ReportInfoCell reportID={item.parentReportID} />
+                            <AvatarWithTextCell
+                                reportName={item?.parentReportName}
+                                icon={item?.parentReportIcon}
+                            />
                         </View>
                     </View>
 
@@ -221,7 +227,10 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                     />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.IN)]}>
-                    <ReportInfoCell reportID={item.parentReportID} />
+                    <AvatarWithTextCell
+                        reportName={item?.parentReportName}
+                        icon={item?.parentReportIcon}
+                    />
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE)]}>
                     <UserInfoCell

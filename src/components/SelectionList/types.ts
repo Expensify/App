@@ -284,6 +284,12 @@ type TaskListItemType = ListItem &
         /** final and formatted "createdBy" value used for displaying and sorting */
         formattedCreatedBy: string;
 
+        /** The name of the parent report room */
+        parentReportName?: string;
+
+        /** The icon of the parent  report room */
+        parentReportIcon?: Icon;
+
         /** Key used internally by React */
         keyForList: string;
 

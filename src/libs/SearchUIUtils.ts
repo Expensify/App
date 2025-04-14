@@ -9,6 +9,7 @@ import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
 import type {ListItem, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import Parser from '@libs/Parser';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -37,9 +38,12 @@ import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {canSendInvoice} from './PolicyUtils';
+import {canSendInvoice, getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
+    getIcons,
+    getReportName,
+    getReportOrDraftReport,
     getSearchReportName,
     hasInvoiceReports,
     hasOnlyHeldExpenses,
@@ -441,15 +445,21 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
         .filter(isReportEntry)
         .map((key) => {
             const taskItem = data[key] as SearchTask;
+            const personalDetails = data.personalDetailsList;
 
-            const assignee = taskItem.managerID ? data.personalDetailsList?.[taskItem.managerID] : emptyPersonalDetails;
-            const createdBy = taskItem.accountID ? data.personalDetailsList?.[taskItem.accountID] : emptyPersonalDetails;
+            const assignee = taskItem.managerID ? personalDetails?.[taskItem.managerID] : emptyPersonalDetails;
+            const createdBy = taskItem.accountID ? personalDetails?.[taskItem.accountID] : emptyPersonalDetails;
             const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
             const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
-            const doesDataContainAPastYearTransaction = shouldShowYear(data);
 
-            return {
+            const doesDataContainAPastYearTransaction = shouldShowYear(data);
+            const reportName = Parser.replace(Parser.htmlToText(taskItem.reportName));
+            const description = Parser.replace(Parser.htmlToText(taskItem.description)).replaceAll('<br />', ' ');
+
+            const result: TaskListItemType = {
                 ...taskItem,
+                reportName,
+                description,
                 assignee,
                 formattedAssignee,
                 createdBy,
@@ -457,6 +467,20 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                 keyForList: taskItem.reportID,
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
+
+            const parentReport = getReportOrDraftReport(taskItem.parentReportID);
+
+            if (parentReport && personalDetails) {
+                const policy = getPolicy(parentReport.policyID);
+                const parentReportName = getReportName(parentReport, policy, undefined, undefined);
+                const icons = getIcons(parentReport, personalDetails, null, '', -1, policy);
+                const parentReportIcon = icons?.at(0);
+
+                result.parentReportName = parentReportName;
+                result.parentReportIcon = parentReportIcon;
+            }
+
+            return result;
         });
 }
 
