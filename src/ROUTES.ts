@@ -68,6 +68,8 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
+    SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
@@ -366,7 +368,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
@@ -385,7 +387,7 @@ const ROUTES = {
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 
-            return `${baseRoute}${queryString}` as const;
+            return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
     REPORT_AVATAR: {

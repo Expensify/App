@@ -30,7 +30,7 @@ import useStyleUtils from './useStyleUtils';
  *     // Use these values to style your component accordingly
  * }
  */
-function useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding = false) {
+function useSafeAreaPaddings(isUsingEdgeToEdgeBottomSafeAreaPadding = false) {
     const StyleUtils = useStyleUtils();
     const insets = useSafeAreaInsets();
     const {paddingTop, paddingBottom} = useMemo(() => StyleUtils.getPlatformSafeAreaPadding(insets), [StyleUtils, insets]);
@@ -41,11 +41,11 @@ function useSafeAreaPaddings(enableEdgeToEdgeBottomSafeAreaPadding = false) {
 
     const adaptedPaddingBottom = isSafeAreaBottomPaddingApplied ? 0 : paddingBottom;
     const safeAreaPaddingBottomStyle = useMemo(
-        () => ({paddingBottom: enableEdgeToEdgeBottomSafeAreaPadding ? paddingBottom : adaptedPaddingBottom}),
-        [adaptedPaddingBottom, enableEdgeToEdgeBottomSafeAreaPadding, paddingBottom],
+        () => ({paddingBottom: isUsingEdgeToEdgeBottomSafeAreaPadding ? paddingBottom : adaptedPaddingBottom}),
+        [adaptedPaddingBottom, isUsingEdgeToEdgeBottomSafeAreaPadding, paddingBottom],
     );
 
-    if (enableEdgeToEdgeBottomSafeAreaPadding) {
+    if (isUsingEdgeToEdgeBottomSafeAreaPadding) {
         return {
             paddingTop,
             paddingBottom,

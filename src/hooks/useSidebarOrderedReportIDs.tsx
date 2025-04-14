@@ -12,35 +12,34 @@ import useCurrentReportID from './useCurrentReportID';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useResponsiveLayout from './useResponsiveLayout';
 
-type PolicySelector = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
-type ReportActionsSelector = Array<Pick<OnyxTypes.ReportAction, 'reportActionID' | 'actionName' | 'errors' | 'message' | 'originalMessage'>>;
+type PartialPolicyForSidebar = Pick<OnyxTypes.Policy, 'type' | 'name' | 'avatarURL' | 'employeeList'>;
 
-type ReportIDsContextProviderProps = {
+type SidebarOrderedReportIDsContextProviderProps = {
     children: React.ReactNode;
     currentReportIDForTests?: string;
 };
 
-type ReportIDsContextValue = {
+type SidebarOrderedReportIDsContextValue = {
     orderedReportIDs: string[];
     currentReportID: string | undefined;
     policyMemberAccountIDs: number[];
 };
 
-const ReportIDsContext = createContext<ReportIDsContextValue>({
+const SidebarOrderedReportIDsContext = createContext<SidebarOrderedReportIDsContextValue>({
     orderedReportIDs: [],
     currentReportID: '',
     policyMemberAccountIDs: [],
 });
 
-const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PolicySelector =>
+const policySelector = (policy: OnyxEntry<OnyxTypes.Policy>): PartialPolicyForSidebar =>
     (policy && {
         type: policy.type,
         name: policy.name,
         avatarURL: policy.avatarURL,
         employeeList: policy.employeeList,
-    }) as PolicySelector;
+    }) as PartialPolicyForSidebar;
 
-function ReportIDsContextProvider({
+function SidebarOrderedReportIDsContextProvider({
     children,
     /**
      * Only required to make unit tests work, since we
@@ -51,7 +50,7 @@ function ReportIDsContextProvider({
      * This is a workaround to have currentReportID available in testing environment.
      */
     currentReportIDForTests,
-}: ReportIDsContextProviderProps) {
+}: SidebarOrderedReportIDsContextProviderProps) {
     const [priorityMode] = useOnyx(ONYXKEYS.NVP_PRIORITY_MODE, {initialValue: CONST.PRIORITY_MODE.DEFAULT});
     const [chatReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: (c) => mapOnyxCollectionItems(c, policySelector)});
@@ -88,7 +87,7 @@ function ReportIDsContextProvider({
     );
 
     const orderedReportIDs = useMemo(() => getOrderedReportIDs(), [getOrderedReportIDs]);
-    const contextValue: ReportIDsContextValue = useMemo(() => {
+    const contextValue: SidebarOrderedReportIDsContextValue = useMemo(() => {
         // We need to make sure the current report is in the list of reports, but we do not want
         // to have to re-generate the list every time the currentReportID changes. To do that
         // we first generate the list as if there was no current report, then we check if
@@ -115,12 +114,12 @@ function ReportIDsContextProvider({
         };
     }, [getOrderedReportIDs, orderedReportIDs, derivedCurrentReportID, policyMemberAccountIDs, shouldUseNarrowLayout]);
 
-    return <ReportIDsContext.Provider value={contextValue}>{children}</ReportIDsContext.Provider>;
+    return <SidebarOrderedReportIDsContext.Provider value={contextValue}>{children}</SidebarOrderedReportIDsContext.Provider>;
 }
 
-function useReportIDs() {
-    return useContext(ReportIDsContext);
+function useSidebarOrderedReportIDs() {
+    return useContext(SidebarOrderedReportIDsContext);
 }
 
-export {ReportIDsContext, ReportIDsContextProvider, policySelector, useReportIDs};
-export type {PolicySelector, ReportActionsSelector};
+export {SidebarOrderedReportIDsContext, SidebarOrderedReportIDsContextProvider, useSidebarOrderedReportIDs};
+export type {PartialPolicyForSidebar};
