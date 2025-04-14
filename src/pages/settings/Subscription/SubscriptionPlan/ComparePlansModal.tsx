@@ -1,7 +1,8 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
+import type {AnimationOut} from '@components/Modal/BottomDockedModal/types';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -25,6 +26,16 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to be consistent with BaseModal component
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+    const [animationOut, setAnimationOut] = useState<AnimationOut>('slideOutRight');
+
+    useEffect(() => {
+        setAnimationOut('slideOutRight');
+    }, [isModalVisible]);
+
+    const closeComparisonModalWithFadeOutAnimation = () => {
+        setAnimationOut('fadeOut');
+        setIsModalVisible(false);
+    };
 
     const renderPlans = () => (
         <View style={isSmallScreenWidth ? [styles.ph4, styles.pb8] : [styles.ph8, styles.pb8]}>
@@ -36,12 +47,12 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
             <View style={isSmallScreenWidth ? styles.flexColumn : [styles.flexRow, styles.gap3]}>
                 <SubscriptionPlanCard
                     subscriptionPlan={CONST.POLICY.TYPE.TEAM}
-                    closeComparisonModal={() => setIsModalVisible(false)}
+                    closeComparisonModal={closeComparisonModalWithFadeOutAnimation}
                     isFromComparisonModal
                 />
                 <SubscriptionPlanCard
                     subscriptionPlan={CONST.POLICY.TYPE.CORPORATE}
-                    closeComparisonModal={() => setIsModalVisible(false)}
+                    closeComparisonModal={closeComparisonModalWithFadeOutAnimation}
                     isFromComparisonModal
                 />
             </View>
@@ -53,6 +64,7 @@ function ComparePlansModal({isModalVisible, setIsModalVisible}: ComparePlansModa
             isVisible={isModalVisible}
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.CENTERED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={() => setIsModalVisible(false)}
+            animationOut={isSmallScreenWidth ? animationOut : undefined}
             innerContainerStyle={isSmallScreenWidth ? undefined : styles.workspaceSection}
         >
             <HeaderWithBackButton
