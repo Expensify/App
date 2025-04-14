@@ -8,6 +8,7 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -1529,7 +1530,22 @@ describe('actions/Report', () => {
     });
 
     it('should create new report and "create report" quick action, when createNewReport gets called', async () => {
-        const reportID = Report.createNewReport({accountID: 1234}, '5678');
+        const accountID = 1234;
+        const policyID = '5678';
+        const reportID = Report.createNewReport({accountID}, policyID);
+        const parentReport = ReportUtils.getPolicyExpenseChat(accountID, policyID);
+        const reportPreviewAction = await new Promise<OnyxEntry<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>>>((resolve) => {
+            const connection = Onyx.connect({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentReport?.reportID}`,
+                callback: (reportActions) => {
+                    Onyx.disconnect(connection);
+                    const action = Object.values(reportActions ?? {}).at(0);
+                    resolve(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>);
+                },
+            });
+        });
+        expect(getOriginalMessage(reportPreviewAction)?.linkedReportID).toBe(reportID);
+
         await new Promise<void>((resolve) => {
             const connection = Onyx.connect({
                 key: ONYXKEYS.COLLECTION.REPORT,
@@ -1541,6 +1557,7 @@ describe('actions/Report', () => {
                     // assert correctness of crucial onyx data
                     expect(createdReport?.reportID).toBe(reportID);
                     expect(createdReport?.total).toBe(0);
+                    expect(createdReport?.parentReportActionID).toBe(reportPreviewAction?.reportActionID);
 
                     resolve();
                 },
