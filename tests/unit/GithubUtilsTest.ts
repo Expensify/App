@@ -120,7 +120,7 @@ describe('GithubUtils', () => {
                     url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/labels/StagingDeployCash',
                 },
             ],
-            tag: '1.0.1-47',
+            version: '1.0.1-47',
             title: 'Andrew Test Issue',
             url: 'https://api.github.com/repos/Andrew-Test-Org/Public-Test-Repo/issues/29',
             number: 29,

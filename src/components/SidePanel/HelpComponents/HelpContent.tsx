@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import getHelpContent from '@components/SidePanel/getHelpContent';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,6 +32,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
     const {isProduction} = useEnvironment();
     const {isExtraLargeScreenWidth} = useResponsiveLayout();
     const [expandedIndex, setExpandedIndex] = useState(0);
+    const {canUseLeftHandBar} = usePermissions();
 
     const {params, routeName} = useRootNavigationState(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
@@ -84,7 +86,7 @@ function HelpContent({closeSidePanel}: HelpContentProps) {
             <HeaderGap />
             <HeaderWithBackButton
                 title={translate('common.help')}
-                style={styles.headerBarDesktopHeight}
+                style={styles.headerBarDesktopHeight(canUseLeftHandBar)}
                 onBackButtonPress={() => closeSidePanel(false)}
                 onCloseButtonPress={() => closeSidePanel(false)}
                 shouldShowBackButton={!isExtraLargeScreenWidth}
