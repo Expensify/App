@@ -16,6 +16,7 @@ import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
 import useWorkspaceList from '@hooks/useWorkspaceList';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
@@ -220,9 +221,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
 };
 
-function getFilterWorkspaceDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>) {
-    const workspaceFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
-    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceFilter}`]?.name ?? workspaceFilter;
+function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
+    return policies.filter((value) => value.policyID === filters.policyID).at(0)?.text;
 }
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
@@ -443,9 +443,6 @@ function AdvancedSearchFilters() {
         selectedPolicyID: undefined,
         searchTerm: '',
     });
-    // We check if the previously selected workspace (which might have been deleted)
-    // still exists — only then can we set it as the active one again.
-    const isWorkspaceNameStillPresent = (filterTitle: string | undefined) => workspaces.some((section) => section.data?.some((item) => item.text === filterTitle));
 
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
     const nonPersonalPolicyCategoryIds = Object.values(policies)
@@ -560,10 +557,8 @@ function AdvancedSearchFilters() {
                         if (!shouldDisplayWorkspaceFilter) {
                             return;
                         }
-                        const selectedWorkspaceName = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
-                        if (isWorkspaceNameStillPresent(selectedWorkspaceName)) {
-                            filterTitle = selectedWorkspaceName;
-                        }
+                        const workspacesData = workspaces.flatMap((value) => value.data);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
                     }
                     return {
                         key,
