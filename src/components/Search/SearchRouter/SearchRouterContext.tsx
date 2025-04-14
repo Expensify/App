@@ -2,7 +2,7 @@ import React, {useContext, useMemo, useRef, useState} from 'react';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {navigationRef} from '@libs/Navigation/Navigation';
-import * as Modal from '@userActions/Modal';
+import {close} from '@userActions/Modal';
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
@@ -34,7 +34,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
 
     const routerContext = useMemo(() => {
         const openSearchRouter = () => {
-            Modal.close(
+            close(
                 () => {
                     setIsSearchRouterDisplayed(true);
                     searchRouterDisplayedRef.current = true;
