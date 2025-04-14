@@ -213,7 +213,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                             // See https://github.com/Expensify/App/issues/57167 for more details
                             (session?.email ?? '').includes('+'),
                         );
-                    })
+                    });
                 }}
                 pressOnEnter
             />
