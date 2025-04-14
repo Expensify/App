@@ -26,7 +26,7 @@ import type SCREENS from '@src/SCREENS';
 function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {vendors} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const nonReimbursableBillDefaultVendorObject = vendors?.find((vendor) => vendor.id === qbdConfig?.export?.nonReimbursableBillDefaultVendor);
@@ -103,8 +103,18 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                             qbdConfig?.pendingFields,
                         )}
                         errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
-                        onToggle={(isOn) => updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn)}
-                        onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
+                        onToggle={(isOn) => {
+                            if (!policyID) {
+                                return;
+                            }
+                            updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn);
+                        }}
+                        onCloseError={() => {
+                            if (!policyID) {
+                                return;
+                            }
+                            clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR);
+                        }}
                     />
 
                     <Accordion
