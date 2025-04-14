@@ -1,7 +1,7 @@
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import usePrevious from '@hooks/usePrevious';
-import {createOptionFromReport, createOptionList} from '@libs/OptionsListUtils';
+import {createOptionFromReport, createOptionList, processReport} from '@libs/OptionsListUtils';
 import type {OptionList, SearchOption} from '@libs/OptionsListUtils';
 import {isSelfDM} from '@libs/ReportUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -47,33 +47,79 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         personalDetails: [],
     });
     const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-
+    const prevPreferredLocale = usePrevious(preferredLocale);
+    const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
+    const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
+
+    const generateOptions = useCallback(() => {
+        const optionLists = createOptionList(personalDetails, reports);
+        setOptions({
+            reports: optionLists.reports,
+            personalDetails: optionLists.personalDetails,
+        });
+    }, [personalDetails, reports]);
 
     /**
      * This effect is used to update the options list when reports change.
      */
     useEffect(() => {
-        // there is no need to update the options if the options are not initialized
-        if (!areOptionsInitialized.current || !reports) {
+        if (!areOptionsInitialized.current || !reports || hasInitialData) {
             return;
         }
-        // Since reports updates can happen in bulk, and some reports depend on other reports, we need to recreate the whole list from scratch.
-        const newReports = createOptionList(personalDetails, reports).reports;
+
+        if (preferredLocale !== prevPreferredLocale) {
+            generateOptions();
+            return;
+        }
+
+        generateOptions();
+    }, [reports, personalDetails, generateOptions, preferredLocale, prevPreferredLocale, hasInitialData]);
+
+    useEffect(() => {
+        if (!changedReports || !areOptionsInitialized.current) {
+            return;
+        }
 
         setOptions((prevOptions) => {
-            const newOptions = {
+            const changedReportEntries = Object.entries(changedReports);
+            if (changedReportEntries.length === 0) {
+                return prevOptions;
+            }
+
+            // Create a new map from the existing reports for modification
+            const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
+
+            // Process each changed report
+            changedReportEntries.forEach(([reportID, report]) => {
+                // Only process if this report was already in our list
+                if (!updatedReportsMap.has(reportID)) {
+                    return;
+                }
+
+                if (!report) {
+                    updatedReportsMap.delete(reportID);
+                    return;
+                }
+
+                const {reportOption} = processReport(report as Report, personalDetails);
+
+                if (reportOption) {
+                    updatedReportsMap.set(reportID, reportOption);
+                } else {
+                    updatedReportsMap.delete(reportID);
+                }
+            });
+
+            return {
                 ...prevOptions,
-                reports: newReports,
+                reports: Array.from(updatedReportsMap.values()),
             };
-
-            return newOptions;
         });
-
         // eslint-disable-next-line react-compiler/react-compiler
-    }, [reports, personalDetails, preferredLocale]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [changedReports]);
 
     /**
      * This effect is used to update the options list when personal details change.
