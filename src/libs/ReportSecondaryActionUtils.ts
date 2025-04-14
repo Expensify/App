@@ -362,7 +362,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportApproved = isReportApprovedUtils({report});
 
-    return isReportOpen || isProcessingReport || isReportApproved;
+    if (isReportApproved) {
+        return false;
+    }
+
+    return isReportOpen || isProcessingReport;
 }
 
 function getSecondaryReportActions(
