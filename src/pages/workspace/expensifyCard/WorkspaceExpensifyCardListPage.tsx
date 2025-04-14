@@ -11,6 +11,7 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -129,8 +130,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         [policyID, cardSettings],
     );
 
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
+
     return (
         <ScreenWrapper
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             shouldEnableMaxHeight
@@ -153,6 +157,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     data={sortedCards}
                     renderItem={renderItem}
                     ListHeaderComponent={renderListHeader}
+                    contentContainerStyle={bottomSafeAreaPaddingStyle}
                 />
             )}
             <DelegateNoAccessModal
