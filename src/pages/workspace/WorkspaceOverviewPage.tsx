@@ -198,6 +198,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
                 goBackFromWorkspaceCentralScreen(policy?.id);
             }}
+            addBottomSafeAreaPadding
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
