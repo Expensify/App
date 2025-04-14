@@ -12,7 +12,7 @@ function useHasTeam2025Pricing(): boolean {
     }
 
     if (!firstPolicyDate) {
-        return false;
+        return true;
     }
 
     return differenceInDays(firstPolicyDate, CONST.SUBSCRIPTION.TEAM_2025_PRICING_START_DATE) >= 0;
