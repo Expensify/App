@@ -295,7 +295,7 @@ function SearchList(
                                 return;
                             }
                             // Ignore the focus if it's caused by a touch event on mobile chrome.
-                            // For example, along press will rigger a focus event on mobile chrome
+                            // For example, a long press will trigger a focus event on mobile chrome
                             if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
                                 return;
                             }
