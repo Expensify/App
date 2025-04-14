@@ -65,6 +65,10 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
+        if (country === '') {
+            return;
+        }
+
         getCorpayBankAccountFields(country, currency);
     }, [country, currency]);
 
@@ -93,7 +97,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         }
     };
 
-    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess === false) {
+    if (corpayFields !== undefined && corpayFields?.isLoading === false && corpayFields?.isSuccess !== undefined && corpayFields?.isSuccess === false) {
         return <NotFoundPage />;
     }
 
