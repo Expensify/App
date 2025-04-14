@@ -110,6 +110,7 @@ function AttachmentPicker({
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
+    const onClosed = useRef<() => void>(() => {});
     const popoverRef = useRef(null);
 
     const {translate} = useLocalize();
@@ -274,10 +275,11 @@ function AttachmentPicker({
      * @param onPickedHandler A callback that will be called with the selected attachment
      * @param onCanceledHandler A callback that will be called without a selected attachment
      */
-    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}) => {
+    const open = (onPickedHandler: (files: FileObject[]) => void, onCanceledHandler: () => void = () => {}, onClosedHandler: () => void = () => {}) => {
         // eslint-disable-next-line react-compiler/react-compiler
         completeAttachmentSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
+        onClosed.current = onClosedHandler;
         setIsVisible(true);
     };
 
@@ -412,7 +414,10 @@ function AttachmentPicker({
                         })
                         .then((result) => pickAttachment(result))
                         .catch(console.error)
-                        .finally(() => delete onModalHide.current);
+                        .finally(() => {
+                            onClosed.current();
+                            delete onModalHide.current;
+                        });
                 }, 200);
             };
             close();
@@ -442,7 +447,7 @@ function AttachmentPicker({
      */
     const renderChildren = (): React.ReactNode =>
         children({
-            openPicker: ({onPicked, onCanceled: newOnCanceled}) => open(onPicked, newOnCanceled),
+            openPicker: ({onPicked, onCanceled: newOnCanceled, onClosed: newOnClosed}) => open(onPicked, newOnCanceled, newOnClosed),
         });
 
     return (

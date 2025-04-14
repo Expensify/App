@@ -38,6 +38,7 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -434,7 +435,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTagsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -451,7 +452,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(backTo);
+
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                     shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
                     threeDotsMenuItems={threeDotsMenuItems}
@@ -509,6 +516,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
                 )}
 

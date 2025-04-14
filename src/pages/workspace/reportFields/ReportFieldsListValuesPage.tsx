@@ -303,7 +303,7 @@ function ReportFieldsListValuesPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_REPORT_FIELDS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={styles.defaultModalContainer}
                 testID={ReportFieldsListValuesPage.displayName}
                 shouldEnableMaxHeight
@@ -340,6 +340,7 @@ function ReportFieldsListValuesPage({
                 )}
                 {!shouldShowEmptyState && (
                     <SelectionListWithModal
+                        addBottomSafeAreaPadding
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
