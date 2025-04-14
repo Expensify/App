@@ -31,7 +31,7 @@ function RequireTwoFactorAuthenticationPage() {
                         <Text style={[styles.textSupporting, styles.textAlignCenter]}>{translate('twoFactorAuth.twoFactorAuthIsRequiredForAdminsDescription')}</Text>
                     </View>
                     <Button
-                        medium
+                        large
                         success
                         pressOnEnter
                         onPress={() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH))}
