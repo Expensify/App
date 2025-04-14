@@ -2214,12 +2214,6 @@ const translations = {
         toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir Tarjetas Expensify, y cobrar y pagar facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError: {
-            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
-            phrase2: 'vuelve a iniciar sesión con un código mágico',
-            phrase3: 'o',
-            phrase4: 'verifica aquí tu cuenta',
-        },
         hasPhoneLoginError: {
             phrase1: 'Para añadir una cuenta bancaria verificada,',
             link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
