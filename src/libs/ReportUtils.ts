@@ -589,7 +589,7 @@ type OptimisticModifiedExpenseReportAction = Pick<
     | 'delegateAccountID'
 > & {reportID?: string};
 
-type BaseOptimisticMoneyRequestEntities = {
+type OptimisticMoneyRequestEntities = {
     iouReport: Report;
     type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>;
     amount: number;
@@ -606,10 +606,6 @@ type BaseOptimisticMoneyRequestEntities = {
     existingTransactionThreadReportID?: string;
     linkedTrackedExpenseReportAction?: ReportAction;
 };
-
-type OptimisticMoneyRequestEntities = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread?: boolean};
-type OptimisticMoneyRequestEntitiesWithTransactionThreadFlag = BaseOptimisticMoneyRequestEntities & {shouldGenerateOptimisticTransactionThread: boolean};
-type OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag = BaseOptimisticMoneyRequestEntities;
 
 type OptimisticTaskReport = SetRequired<
     Pick<
@@ -5515,7 +5511,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReportID: string | undefined, policy: OnyxEntry<Policy>, timeOfCreation: string) {
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, timeOfCreation: string) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -5532,8 +5528,9 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         participants: {},
         lastVisibleActionCreated: timeOfCreation,
         pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-        parentReportID,
-        chatReportID: parentReportID,
+        parentReportID: parentReport?.reportID,
+        chatReportID: parentReport?.reportID,
+        managerID: getSubmitToAccountID(policy, undefined),
     };
 
     const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticEmptyReport, policy);
@@ -7231,7 +7228,6 @@ function buildTransactionThread(
     reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>,
     moneyRequestReport: OnyxEntry<Report>,
     existingTransactionThreadReportID?: string,
-    optimisticTransactionThreadReportID?: string,
 ): OptimisticChatReport {
     const participantAccountIDs = [...new Set([currentUserAccountID, Number(reportAction?.actorAccountID)])].filter(Boolean) as number[];
     const existingTransactionThreadReport = getReportOrDraftReport(existingTransactionThreadReportID);
@@ -7254,7 +7250,6 @@ function buildTransactionThread(
         notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
         parentReportActionID: reportAction?.reportActionID,
         parentReportID: moneyRequestReport?.reportID,
-        optimisticReportID: optimisticTransactionThreadReportID,
     });
 }
 
@@ -7267,12 +7262,6 @@ function buildTransactionThread(
  * 4. Transaction Thread linked to the IOU action via `parentReportActionID`
  * 5. CREATED action for the Transaction Thread
  */
-function buildOptimisticMoneyRequestEntities(
-    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithoutTransactionThreadFlag,
-): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null];
-function buildOptimisticMoneyRequestEntities(
-    optimisticMoneyRequestEntities: OptimisticMoneyRequestEntitiesWithTransactionThreadFlag,
-): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport | undefined, OptimisticCreatedReportAction | null];
 function buildOptimisticMoneyRequestEntities({
     iouReport,
     type,
@@ -7286,17 +7275,10 @@ function buildOptimisticMoneyRequestEntities({
     isSettlingUp = false,
     isSendMoneyFlow = false,
     isOwnPolicyExpenseChat = false,
-    shouldGenerateOptimisticTransactionThread = true,
     isPersonalTrackingExpense,
     existingTransactionThreadReportID,
     linkedTrackedExpenseReportAction,
-}: OptimisticMoneyRequestEntities): [
-    OptimisticCreatedReportAction,
-    OptimisticCreatedReportAction,
-    OptimisticIOUReportAction,
-    OptimisticChatReport | undefined,
-    OptimisticCreatedReportAction | null,
-] {
+}: OptimisticMoneyRequestEntities): [OptimisticCreatedReportAction, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptimisticChatReport, OptimisticCreatedReportAction | null] {
     const createdActionForChat = buildOptimisticCreatedReportAction(payeeEmail);
 
     // The `CREATED` action must be optimistically generated before the IOU action so that it won't appear after the IOU action in the chat.
@@ -7320,11 +7302,11 @@ function buildOptimisticMoneyRequestEntities({
     });
 
     // Create optimistic transactionThread and the `CREATED` action for it, if existingTransactionThreadReportID is undefined
-    const transactionThread = shouldGenerateOptimisticTransactionThread ? buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID) : undefined;
-    const createdActionForTransactionThread = !!existingTransactionThreadReportID || !shouldGenerateOptimisticTransactionThread ? null : buildOptimisticCreatedReportAction(payeeEmail);
+    const transactionThread = buildTransactionThread(iouAction, iouReport, existingTransactionThreadReportID);
+    const createdActionForTransactionThread = existingTransactionThreadReportID ? null : buildOptimisticCreatedReportAction(payeeEmail);
 
     // The IOU action and the transactionThread are co-dependent as parent-child, so we need to link them together
-    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread?.reportID;
+    iouAction.childReportID = existingTransactionThreadReportID ?? transactionThread.reportID;
 
     return [createdActionForChat, createdActionForIOUReport, iouAction, transactionThread, createdActionForTransactionThread];
 }

@@ -383,3 +383,6 @@ export type {ChangeTransactionsReportParams, TransactionThreadInfo} from './Chan
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
+export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
+export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigitalWalletParams';
+export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
