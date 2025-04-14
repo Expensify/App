@@ -141,7 +141,6 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}
                         style={[styles.editedLabelStyles, styleAsDeleted && styles.offlineFeedback.deleted, style]}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
                         {translate('reportActionCompose.edited')}
                     </Text>
