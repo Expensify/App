@@ -682,6 +682,12 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
+    /** Number of items to render in the loader */
+    fixedNumItemsForLoader?: number;
+
+    /** Skeleton loader speed */
+    loaderSpeed?: number;
+
     /** Error text to display */
     errorText?: string;
 } & TRightHandSideComponent<TItem>;
