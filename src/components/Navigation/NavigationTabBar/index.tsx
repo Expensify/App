@@ -201,7 +201,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
                         activeWorkspaceID={activeWorkspaceID}
                     />
                 )}
-                <View style={[styles.leftNavigationTabBar, {justifyContent: 'space-between', height: '100%', borderRightWidth: 1, borderRightColor: theme.border}]}>
+                <View style={styles.leftNavigationTabBar}>
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}

@@ -616,11 +616,21 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
+        leftNavigationTabBarPosition: {
+            height: '100%',
+            width: variables.navigationTabBarSize,
+            position: 'fixed',
+            left: 0,
+        },
+
         leftNavigationTabBar: {
             height: '100%',
             width: variables.navigationTabBarSize,
             position: 'fixed',
             left: 0,
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderRightColor: theme.border,
         },
 
         leftNavigationTabBarItem: {

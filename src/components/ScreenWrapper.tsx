@@ -54,6 +54,9 @@ type ScreenWrapperProps = {
     /** Content to display under the offline indicator */
     bottomContent?: ReactNode;
 
+    /** Additional styles for bottom content */
+    bottomContentStyles?: StyleProp<ViewStyle>;
+
     /** A unique ID to find the screen wrapper in tests */
     testID: string;
 
@@ -169,6 +172,7 @@ function ScreenWrapper(
         shouldUseCachedViewportHeight = false,
         focusTrapSettings,
         bottomContent,
+        bottomContentStyles,
         enableEdgeToEdgeBottomSafeAreaPadding: enableEdgeToEdgeBottomSafeAreaPaddingProp,
         shouldMobileOfflineIndicatorStickToBottom: shouldMobileOfflineIndicatorStickToBottomProp,
         shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
@@ -344,8 +348,8 @@ function ScreenWrapper(
     }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
 
     const bottomContentStyle = useMemo(
-        () => (isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle),
-        [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle],
+        () => [isUsingEdgeToEdgeMode ? edgeToEdgeBottomContentStyle : legacyBottomContentStyle, bottomContentStyles],
+        [isUsingEdgeToEdgeMode, edgeToEdgeBottomContentStyle, legacyBottomContentStyle, bottomContentStyles],
     );
 
     /**
@@ -414,9 +418,6 @@ function ScreenWrapper(
         [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
     );
 
-    // Temporary solution to display LHB
-    const shouldWrapBottomContentWithView = shouldUseNarrowLayout;
-
     return (
         <FocusTrapForScreens focusTrapSettings={focusTrapSettings}>
             <View
@@ -482,7 +483,7 @@ function ScreenWrapper(
                         </PickerAvoidingView>
                     </KeyboardAvoidingView>
                 </View>
-                {showBottomContent && (shouldWrapBottomContentWithView ? <View style={bottomContentStyle}>{bottomContent}</View> : bottomContent)}
+                {showBottomContent && <View style={bottomContentStyle}>{bottomContent}</View>}
             </View>
         </FocusTrapForScreens>
     );
