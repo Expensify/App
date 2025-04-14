@@ -536,8 +536,10 @@ const translations = {
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
+        unreported: 'Unreported',
     },
     supportalNoAccess: {
         title: 'Not so fast',
@@ -3254,6 +3256,7 @@ const translations = {
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
+            taxSolution: 'Tax solution',
             notConfigured: 'Not configured',
             exportDate: {
                 label: 'Export date',
@@ -4579,10 +4582,11 @@ const translations = {
             allSet: "You're all set!",
             accountDescriptionWithCards: 'This bank account will be used to issue corporate cards, reimburse expenses, collect invoices, and pay bills.',
             letsFinishInChat: "Let's finish in chat!",
+            finishInChat: 'Finish in chat',
             almostDone: 'Almost done!',
             disconnectBankAccount: 'Disconnect bank account',
-            noLetsStartOver: "No, let's start over",
             startOver: 'Start over',
+            updateDetails: 'Update details',
             yesDisconnectMyBankAccount: 'Yes, disconnect my bank account',
             yesStartOver: 'Yes, start over',
             disconnectYour: 'Disconnect your ',
@@ -5162,6 +5166,8 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+            billable: 'Billable',
+            reimbursable: 'Reimbursable',
         },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses',

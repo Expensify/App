@@ -133,6 +133,7 @@ function ConnectionLayout({
             shouldBeBlocked={!!shouldBeBlocked || shouldBlockByConnection}
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includeSafeAreaPaddingBottom={!!shouldIncludeSafeAreaPaddingBottom}
                 shouldEnableMaxHeight
                 testID={displayName}
@@ -143,7 +144,12 @@ function ConnectionLayout({
                     onBackButtonPress={onBackButtonPress}
                 />
                 {shouldUseScrollView ? (
-                    <ScrollView contentContainerStyle={contentContainerStyle}>{renderSelectionContent}</ScrollView>
+                    <ScrollView
+                        contentContainerStyle={contentContainerStyle}
+                        addBottomSafeAreaPadding
+                    >
+                        {renderSelectionContent}
+                    </ScrollView>
                 ) : (
                     <View style={contentContainerStyle}>{renderSelectionContent}</View>
                 )}

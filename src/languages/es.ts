@@ -527,8 +527,10 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
+        unreported: 'No reportado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -3288,6 +3290,7 @@ const translations = {
 
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
+            taxSolution: 'Solución fiscal',
             notConfigured: 'No configurado',
             exportDate: {
                 label: 'Fecha de exportación',
@@ -4625,10 +4628,11 @@ const translations = {
             allSet: '¡Todo listo!',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas.',
             letsFinishInChat: '¡Continuemos en el chat!',
+            finishInChat: 'Continuemos en el chat',
             almostDone: '¡Casi listo!',
             disconnectBankAccount: 'Desconectar cuenta bancaria',
-            noLetsStartOver: 'No, empecemos de nuevo',
             startOver: 'Empezar de nuevo',
+            updateDetails: 'Actualizar detalles',
             yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta bancaria',
             yesStartOver: 'Sí, empezar de nuevo',
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
@@ -5215,6 +5219,8 @@ const translations = {
             paid: 'Pagado',
             exported: 'Exportado',
             posted: 'Contabilizado',
+            billable: 'Facturable',
+            reimbursable: 'Reembolsable',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos',
