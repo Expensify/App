@@ -8,10 +8,12 @@ import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFr
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
+    getReportNameValuePairs,
     getReportTransactions,
     hasNoticeTypeViolations,
     hasViolations,
     hasWarningTypeViolations,
+    isArchivedReport,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -47,6 +49,13 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
 }
 
 function canPay(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+
+    if (isChatReportArchived) {
+        return false;
+    }
+
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
@@ -88,8 +97,8 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
     const isExpense = isExpenseReport(report);
     const isExporter = policy ? isPrefferedExporter(policy) : false;
-    const isOpen = isOpenReport(report);
-    const isProcessing = isProcessingReport(report);
+    const isReimbursed = isSettled(report);
+    const isClosed = isClosedReport(report);
     const isApproved = isReportApproved({report});
     const hasAccountingConnection = hasAccountingConnections(policy);
     const connectedIntegration = getConnectedIntegration(policy);
@@ -105,10 +114,7 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
         return false;
     }
 
-    if ((isApproved || isOpen || isProcessing) && hasAnyViolations) {
-        return false;
-    }
-    return true;
+    return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
 function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
@@ -143,7 +149,6 @@ function getReportPreviewAction(
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
     if (canReview(report, violations, policy)) {
-        console.log('%%%%%\n', 'i go to review');
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 
