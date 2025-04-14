@@ -771,7 +771,6 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
@@ -6418,6 +6417,7 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',

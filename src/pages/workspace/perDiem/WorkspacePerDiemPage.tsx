@@ -366,7 +366,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspacePerDiemPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -446,6 +446,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 )}
                 {hasVisibleSubRates && !isLoading && (
                     <SelectionListWithModal
+                        addBottomSafeAreaPadding
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleSubRate(item)}
