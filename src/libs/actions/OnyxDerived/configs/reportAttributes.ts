@@ -10,9 +10,9 @@ import type {ReportAttributes} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.PERSONAL_DETAILS_LIST],
-    compute: ([reports, personalDetails], {currentValue, sourceValues}) => {
-        if (!reports || !personalDetails) {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.PERSONAL_DETAILS_LIST, ONYXKEYS.NVP_PREFERRED_LOCALE],
+    compute: ([reports, personalDetails, preferredLocale], {currentValue, sourceValues}) => {
+        if (!reports || !personalDetails || !preferredLocale) {
             return {};
         }
 
