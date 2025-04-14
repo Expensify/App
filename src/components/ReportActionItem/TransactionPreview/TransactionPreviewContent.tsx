@@ -49,7 +49,7 @@ function TransactionPreviewContent({
     navigateToReviewFields,
     onPreviewPressed,
     containerStyles,
-    wrapperStyles,
+    wrapperStyle,
     isBillSplit,
     areThereDuplicates,
     sessionAccountID,
@@ -206,7 +206,7 @@ function TransactionPreviewContent({
                         />
                     )}
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyles.width} />
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyle.width} />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -371,7 +371,7 @@ function TransactionPreviewContent({
             accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
-                wrapperStyles,
+                wrapperStyle,
                 themeStyles,
                 shouldDisableOnPress && styles.cursorDefault,
                 (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,

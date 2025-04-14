@@ -3,7 +3,7 @@ import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -30,6 +30,7 @@ import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequest
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -100,8 +101,10 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
@@ -326,6 +329,9 @@ type PureReportActionItemProps = {
 
     /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage?: string;
+
+    /** Policies */
+    policies?: OnyxCollection<OnyxTypes.Policy>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -397,6 +403,7 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
+    policies,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -425,6 +432,8 @@ function PureReportActionItem({
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
+
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, true);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -797,9 +806,26 @@ function PureReportActionItem({
                 />
             );
 
-            // Table Report View does not display these components as separate messages
-            if (canUseTableReportView) {
-                children = emptyHTML;
+            // Table Report View does not display these components as separate messages, except for self-DM
+            if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM) {
+                    children = (
+                        <View style={[styles.mt1, styles.w100]}>
+                            <TransactionPreview
+                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                                chatReportID={reportID}
+                                reportID={reportID}
+                                action={action}
+                                isBillSplit={isSplitBillActionReportActionsUtils(action)}
+                                wrapperStyle={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
+                                onPreviewPressed={() => {}}
+                                isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                            />
+                        </View>
+                    );
+                } else {
+                    children = emptyHTML;
+                }
             }
         } else if (isTripPreview(action)) {
             children = (
@@ -818,24 +844,24 @@ function PureReportActionItem({
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
             children = (
                 <MoneyRequestReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}
                     action={action}
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
                     isWhisper={isWhisper}
+                    isInvoice={action.childType === CONST.REPORT.CHAT_TYPE.INVOICE}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <ReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
                     policyID={report?.policyID}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -1199,6 +1225,7 @@ function PureReportActionItem({
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
+                    policies={policies}
                 >
                     {content}
                 </ReportActionItemSingle>

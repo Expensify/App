@@ -72,7 +72,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceEditTagsPage.displayName}
             >
@@ -88,6 +88,7 @@ function WorkspaceEditTagsPage({route}: WorkspaceEditTagsPageProps) {
                     submitButtonText={translate('common.save')}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
