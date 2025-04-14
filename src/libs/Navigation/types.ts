@@ -846,7 +846,6 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.COMPANY_CARD_NAME]: {
         policyID: string;
         cardID: string;
-        backTo?: Routes;
         bank: string;
     };
     [SCREENS.WORKSPACE.COMPANY_CARD_EXPORT]: {
