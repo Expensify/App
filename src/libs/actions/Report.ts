@@ -803,10 +803,6 @@ function addComment(reportID: string, text: string) {
     addActions(reportID, text);
 }
 
-function reportActionsExist(reportID: string): boolean {
-    return allReportActions?.[reportID] !== undefined;
-}
-
 function updateChatName(reportID: string, reportName: string, type: typeof CONST.REPORT.CHAT_TYPE.GROUP | typeof CONST.REPORT.CHAT_TYPE.TRIP_ROOM) {
     const optimisticData: OnyxUpdate[] = [
         {
