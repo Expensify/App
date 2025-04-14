@@ -1,6 +1,7 @@
+import type {OnyxCollection} from 'react-native-onyx';
 import CONST from '@src/CONST';
 import type {OriginalMessageIOU, ReportAction, Transaction} from '@src/types/onyx';
-import {getIOUActionForTransactionID, getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
+import {getIOUActionForTransactionID, getOriginalMessage, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 
 /**
  * In MoneyRequestReport we filter out some IOU action types, because expense/transaction data is displayed in a separate list
@@ -39,4 +40,26 @@ function getThreadReportIDsForTransactions(reportActions: ReportAction[], transa
         .filter((reportID): reportID is string => !!reportID);
 }
 
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions};
+/**
+ * Filters all available transactions and returns the ones that belong to a specific report (by `reportID`).
+ * It is used as an onyx selector, to make sure that report related views do not process all transactions in onyx.
+ */
+function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction>, reportID: string | undefined, reportActions: ReportAction[]) {
+    if (!reportID) {
+        return [];
+    }
+
+    return Object.values(transactions ?? {}).filter((transaction): transaction is Transaction => {
+        if (!transaction) {
+            return false;
+        }
+        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
+        return transaction.reportID === reportID && !isDeletedParentAction(action);
+    });
+}
+
+function isSingleTransactionReport(transactions: Transaction[]) {
+    return transactions.length === 1;
+}
+
+export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, selectAllTransactionsForReport, isSingleTransactionReport};
