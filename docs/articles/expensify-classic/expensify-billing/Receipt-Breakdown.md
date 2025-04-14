@@ -43,7 +43,8 @@ Your receipt provides a **line-by-line breakdown** of charges and discounts:
 - **Annual Control members @ $18.00** – Members covered under an annual **Control** plan subscription.  
 - **Pay-per-use Control members @ $36.00** – Additional **Control** plan members billed at a per-use rate.  
 - **Annual Collect members @ $10.00** – Members covered under an annual **Collect** plan subscription.  
-- **Pay-per-use Collect members @ $20.00** – Additional **Collect** plan members billed at a per-use rate.  
+- **Pay-per-use Collect members @ $20.00** – Additional **Collect** plan members billed at a per-use rate.
+- **Pay-per-use Collect members @ $5.00** – Exclusive price for brand new customers, subject to conditions
 - **X% Expensify Card discount with $Y spend** – Discount applied for total settled US purchases.  
 - **X% Expensify Card cash back credit for $Y spend** – Cash back earned on total settled US purchases.  
 - **50% ExpensifyApproved! partner discount** – Discount for approved **accounting firms**. [Learn more](https://use.expensify.com/accountants-program).  
