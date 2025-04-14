@@ -82,7 +82,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     };
 
     const getHeaderButtons = () => (
-        <View style={[styles.flexRow, styles.gap2, shouldChangeLayout && styles.mb3, shouldShowSelector && styles.mt3]}>
+        <View style={[styles.flexRow, styles.gap2, shouldChangeLayout && styles.mb3, shouldShowSelector && shouldChangeLayout && styles.mt3]}>
             <Button
                 success
                 onPress={handleIssueCardPress}
