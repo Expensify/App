@@ -545,6 +545,27 @@ describe('ReportUtils', () => {
                 expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('Ragnar Lothbrok submitted');
             });
 
+            test('Manually Approved Report Action', () => {
+                const threadOfApprovedReportAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    parentReportID: '101',
+                    policyID: policy.id,
+                };
+                const approvedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    actorAccountID: 1,
+                    originalMessage: {
+                        amount: 169,
+                        currency: 'USD',
+                    },
+                } as ReportAction;
+
+                expect(getReportName(threadOfApprovedReportAction, policy, approvedParentReportAction)).toBe('Ragnar Lothbrok approved');
+            });
+
             test('Invited/Removed Room Member Action', () => {
                 const threadOfRemovedRoomMemberAction = {
                     ...LHNTestUtils.getFakeReport(),
