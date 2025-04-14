@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 type BeneficialOwnersListProps = {
     /** Method called when user confirms data */
-    handleConfirmation: () => void;
+    handleConfirmation: (value: {anyIndividualOwn25PercentOrMore?: boolean}) => void;
 
     /** Method called when user presses on one of owners to edit its data */
     handleOwnerEdit: (value: string) => void;
@@ -91,7 +91,9 @@ function BeneficialOwnersList({handleConfirmation, ownerKeys, handleOwnerEdit}: 
                     isLoading={reimbursementAccount?.isSavingCorpayOnboardingBeneficialOwnersFields}
                     isDisabled={isOffline}
                     style={styles.w100}
-                    onPress={handleConfirmation}
+                    onPress={() => {
+                        handleConfirmation({anyIndividualOwn25PercentOrMore: true});
+                    }}
                     text={translate('common.confirm')}
                 />
             </View>
