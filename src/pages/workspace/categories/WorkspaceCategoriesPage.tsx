@@ -43,7 +43,7 @@ import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFro
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getEnabledCategoriesCount} from '@libs/OptionsListUtils';
+import {getEnabledCategoriesCount, isDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -76,7 +76,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
-    const [isCannotDeleteLastCategoryModalVisible, setIsCannotDeleteLastCategoryModalVisible] = useState(false);
+    const [isCannotDeleteLastEnabledCategoryModalVisible, setIsCannotDeleteLastEnabledCategoryModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
     const policyId = route.params.policyID;
     const backTo = route.params?.backTo;
@@ -249,10 +249,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
-                        if (policy?.requiresCategory && selectedCategoriesArray.length === categoryList.length) {
-                            setIsCannotDeleteLastCategoryModalVisible(true);
+                        if(shouldPreventDisable && isDeletingLastEnabledCategory(policyCategories, selectedCategoriesArray )) {
+                            setIsCannotDeleteLastEnabledCategoryModalVisible(true);
                             return;
                         }
+
+                        // if (policy?.requiresCategory && selectedCategoriesArray.length === categoryList.length) {
+                        //     setIsCanon(true);
+                        //     return;
+                        // }
 
                         setDeleteCategoriesConfirmModalVisible(true);
                     },
@@ -520,11 +525,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldShowCancelButton={false}
                 />
                 <ConfirmModal
-                    isVisible={isCannotDeleteLastCategoryModalVisible}
-                    onConfirm={() => setIsCannotDeleteLastCategoryModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteLastCategoryModalVisible(false)}
-                    title={translate('workspace.categories.cannotDeleteAllCategories.title')}
-                    prompt={translate('workspace.categories.cannotDeleteAllCategories.description')}
+                    isVisible={isCannotDeleteLastEnabledCategoryModalVisible}
+                    onConfirm={() => setIsCannotDeleteLastEnabledCategoryModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteLastEnabledCategoryModalVisible(false)}
+                    title={translate('workspace.categories.cannotDeleteLastEnabledCategory.title')}
+                    prompt={translate('workspace.categories.cannotDeleteLastEnabledCategory.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />

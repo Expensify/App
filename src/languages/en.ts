@@ -3867,6 +3867,10 @@ const translations = {
                 title: 'Cannot delete all categories',
                 description: `You can't delete all categories when categories are requied on the workspace.`,
             },
+            cannotDeleteLastEnabledCategory: {
+                title: 'Cannot delete last enabled category',
+                description: `You can't delete last enabled category when categories are required on the workspace.`
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',

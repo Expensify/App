@@ -180,8 +180,8 @@ function CategorySettingsPage({
                             isVisible={isCannotDeleteLastTagModalVisible}
                             onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
                             onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
-                            title={translate('workspace.categories.cannotDeleteAllCategories.title')}
-                            prompt={translate('workspace.categories.cannotDeleteAllCategories.description')}
+                            title={translate('workspace.categories.cannotDeleteLastEnabledCategory.title')}
+                            prompt={translate('workspace.categories.cannotDeleteLastEnabledCategory.description')}
                             confirmText={translate('common.buttonConfirm')}
                             shouldShowCancelButton={false}
                         />
@@ -357,7 +357,7 @@ function CategorySettingsPage({
                                     icon={Trashcan}
                                     title={translate('common.delete')}
                                     onPress={() => {
-                                        if (shouldPreventDisable) {
+                                        if (policyCategory?.enabled && shouldPreventDisable) {
                                             setIsCannotDeleteLastTagModalVisible(true);
                                             return;
                                         }
