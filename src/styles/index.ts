@@ -39,6 +39,7 @@ import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
 import textUnderline from './utils/textUnderline';
+import translateZ0 from './utils/translateZ0';
 import userSelect from './utils/userSelect';
 import visibility from './utils/visibility';
 import whiteSpace from './utils/whiteSpace';
@@ -231,6 +232,7 @@ const styles = (theme: ThemeColors) =>
         ...overflow,
         ...positioning,
         ...wordBreak,
+        ...translateZ0,
         ...whiteSpace,
         ...writingDirection,
         ...cursor,
