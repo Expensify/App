@@ -230,12 +230,7 @@ function FeatureTrainingModal({
                     <Image
                         source={image as ImageSourcePropType}
                         resizeMode={contentFitImage as ImageResizeMode}
-                        style={{
-                            width: '100%',
-                            height: '100%',
-                            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-                            borderTopRightRadius: variables.componentBorderRadiusLarge,
-                        }}
+                        style={styles.featureTrainingModalImage}
                     />
                 )}
                 {!!videoURL && videoStatus === 'video' && (
@@ -267,6 +262,7 @@ function FeatureTrainingModal({
     }, [
         illustrationAspectRatio,
         styles.w100,
+        styles.featureTrainingModalImage,
         styles.onboardingVideoPlayer,
         styles.flex1,
         styles.alignItemsCenter,
