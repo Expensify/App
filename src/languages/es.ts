@@ -529,6 +529,7 @@ const translations = {
         rateOutOfPolicy: 'Tasa fuera de póliza',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
+        unreported: 'No reportado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
