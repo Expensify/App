@@ -1,5 +1,5 @@
 import React from 'react';
-import FastTrack from '@assets/images/fast-track-cover.png';
+import FastTrack from '@assets/images/fast-track-cover.jpg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
