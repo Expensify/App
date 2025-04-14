@@ -102,6 +102,14 @@ function TaskPreview({
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
 
+    const getTaskHTML = () => {
+        if (isTaskCompleted) {
+            return `<del><comment center>${taskTitleWithoutImage}</comment></del>`;
+        }
+
+        return `<comment center>${taskTitleWithoutImage}</comment>`;
+    };
+
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
@@ -149,7 +157,7 @@ function TaskPreview({
                         </UserDetailsTooltip>
                     )}
                     <View style={[styles.alignSelfCenter, styles.flex1]}>
-                        <RenderHTML html={`<comment center>${taskTitleWithoutImage}</comment>`} />
+                        <RenderHTML html={getTaskHTML()} />
                     </View>
                 </View>
                 {shouldShowGreenDotIndicator && (
