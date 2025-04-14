@@ -366,6 +366,8 @@ export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
+export type {default as GetValidateCodeForAccountMergeParams} from './GetValidateCodeForAccountMerge';
+export type {default as MergeWithValidateCodeParams} from './MergeWithValidateCode';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
 export type {default as ResetSMSDeliveryFailureStatusParams} from './ResetSMSDeliveryFailureStatusParams';
 export type {default as CreatePerDiemRequestParams} from './CreatePerDiemRequestParams';
@@ -381,3 +383,6 @@ export type {default as ChangeTransactionsReportParams} from './ChangeTransactio
 export type {default as ResetBankAccountSetupParams} from './ResetBankAccountSetupParams';
 export type {default as SendRecapInAdminsRoomParams} from './SendRecapInAdminsRoomParams';
 export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProhibitedExpensesParams';
+export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
+export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigitalWalletParams';
+export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';

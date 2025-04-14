@@ -51,6 +51,7 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
             <ScreenWrapper
                 style={styles.pb0}
                 testID={TransactionStartDateSelectorPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.date')}
@@ -64,6 +65,8 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
                     style={[styles.flexGrow1, styles.ph5]}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={DatePicker}
