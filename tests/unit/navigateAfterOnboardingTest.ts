@@ -123,4 +123,11 @@ describe('navigateAfterOnboarding', () => {
         );
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
+
+    it('should navigate to Test Drive Modal if user wants to manage a small team', () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.MANAGE_TEAM, true, true);
+        expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT);
+    });
 });
