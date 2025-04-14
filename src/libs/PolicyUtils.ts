@@ -254,6 +254,10 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
     );
 }
 
+function isPolicyMember(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
+    return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
+}
+
 function isExpensifyTeam(email: string | undefined): boolean {
     const emailDomain = Str.extractEmailDomain(email ?? '');
     return emailDomain === CONST.EXPENSIFY_PARTNER_NAME || emailDomain === CONST.EMAIL.GUIDES_DOMAIN;
@@ -632,6 +636,11 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && policy?.preventSelfApproval) {
+        ruleApprovers.shift();
+    }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
         return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
@@ -1025,10 +1034,6 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
     return syncSuccessfulDate;
 }
 
-function getNSQSCompanyID(policy: Policy) {
-    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
-}
-
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
     const currentEntityID = policy?.connections?.intacct?.config?.entity;
     if (!currentEntityID) {
@@ -1377,7 +1382,6 @@ function isPrefferedExporter(policy: Policy) {
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
         policy.connections?.netsuite?.options?.config?.exporter,
-        policy.connections?.netsuiteQuickStart?.config?.exporter,
         policy.connections?.quickbooksDesktop?.config?.export?.exporter,
         policy.connections?.quickbooksOnline?.config?.export?.exporter,
         policy.connections?.xero?.config?.export?.exporter,
@@ -1390,7 +1394,6 @@ function isAutoSyncEnabled(policy: Policy) {
     const values = [
         policy.connections?.intacct?.config?.autoSync?.enabled,
         policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
         policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
         policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
         policy.connections?.xero?.config?.autoSync?.enabled,
@@ -1449,6 +1452,7 @@ export {
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     isPolicyOwner,
+    isPolicyMember,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -1483,7 +1487,6 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
-    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,

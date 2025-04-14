@@ -1,12 +1,23 @@
 import Onyx from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
+import DateUtils from '@libs/DateUtils';
+import {canSubmitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import * as IOUUtils from '@src/libs/IOUUtils';
 import * as ReportUtils from '@src/libs/ReportUtils';
 import * as TransactionUtils from '@src/libs/TransactionUtils';
+import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy, Report, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
+import createRandomPolicy from '../utils/collections/policies';
+import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import currencyList from './currencyList.json';
+
+const testDate = DateUtils.getDBTime();
+const currentUserAccountID = 5;
 
 function initCurrencyList() {
     Onyx.init({
@@ -168,6 +179,150 @@ describe('isValidMoneyRequestType', () => {
 
     test('Return false for invalid iou type', () => {
         expect(IOUUtils.isValidMoneyRequestType('money')).toBe(false);
+    });
+});
+
+describe('hasRTERWithoutViolation', () => {
+    test('Return true if there is at least one rter without violation in transactionViolations with given transactionIDs.', async () => {
+        const transactionIDWithViolation = 1;
+        const transactionIDWithoutViolation = 2;
+        const currentReportId = '';
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: currentReportId,
+        };
+        const transactionWithoutViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithoutViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: currentReportId,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
+        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithoutViolation), String(transactionIDWithViolation)], violations)).toBe(true);
+    });
+
+    test('Return false if there is no rter without violation in all transactionViolations with given transactionIDs.', async () => {
+        const transactionIDWithViolation = 1;
+        const currentReportId = '';
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: currentReportId,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        expect(hasAnyTransactionWithoutRTERViolation([String(transactionIDWithViolation)], violations)).toBe(false);
+    });
+});
+
+describe('canSubmitReport', () => {
+    test('Return true if report can be submitted', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(6),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: fakePolicy.id,
+            stateNum: CONST.REPORT.STATE_NUM.OPEN,
+            statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+        };
+
+        const transactionIDWithViolation = 1;
+        const transactionIDWithoutViolation = 2;
+        const transactionWithViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport?.reportID,
+        };
+        const transactionWithoutViolation: Transaction = {
+            ...createRandomTransaction(transactionIDWithoutViolation),
+            category: '',
+            tag: '',
+            created: testDate,
+            reportID: expenseReport?.reportID,
+        };
+        const transactionViolations = `transactionViolations_${transactionIDWithViolation}`;
+        const violations: OnyxCollection<TransactionViolations> = {
+            [transactionViolations]: [
+                {
+                    type: 'warning',
+                    name: 'rter',
+                    data: {
+                        tooltip: "Personal Cards: Fix your card from Account Settings. Corporate Cards: ask your Expensify admin to fix your company's card connection.",
+                        rterType: 'brokenCardConnection',
+                    },
+                    showInReview: true,
+                },
+            ],
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithViolation}`, transactionWithViolation);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionIDWithoutViolation}`, transactionWithoutViolation);
+        expect(canSubmitReport(expenseReport, fakePolicy, [transactionWithViolation, transactionWithoutViolation], violations)).toBe(true);
+    });
+
+    test('Return false if report can not be submitted', async () => {
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: currentUserAccountID});
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(6),
+            ownerAccountID: currentUserAccountID,
+            areRulesEnabled: true,
+            preventSelfApproval: false,
+        };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: currentUserAccountID,
+            ownerAccountID: currentUserAccountID,
+            policyID: fakePolicy.id,
+        };
+
+        expect(canSubmitReport(expenseReport, fakePolicy, [], undefined)).toBe(false);
     });
 });
 

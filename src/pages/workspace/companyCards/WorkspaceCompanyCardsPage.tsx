@@ -38,9 +38,9 @@ import WorkspaceCompanyCardsFeedPendingPage from './WorkspaceCompanyCardsFeedPen
 import WorkspaceCompanyCardsList from './WorkspaceCompanyCardsList';
 import WorkspaceCompanyCardsListHeaderButtons from './WorkspaceCompanyCardsListHeaderButtons';
 
-type WorkspaceCompanyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
+type WorkspaceCompanyCardsPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS>;
 
-function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
+function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -64,7 +64,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     const isNoFeed = !selectedFeedData;
     const isPending = !!selectedFeedData?.pending;
     const isFeedAdded = !isPending && !isNoFeed;
-    const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
     const isFeedConnectionBroken = checkIfFeedConnectionIsBroken(cards);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -111,6 +110,7 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
 
         let currentStep: AssignCardStep = CONST.COMPANY_CARD.STEP.ASSIGNEE;
         const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
+        const isFeedExpired = isSelectedFeedExpired(selectedFeed ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed] : undefined);
 
         if (employeeList.length === 1) {
             const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
@@ -154,8 +154,8 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
                     headerText={translate('workspace.common.companyCards')}
                     route={route}
                     shouldShowOfflineIndicatorInWideScreen
-                    includeSafeAreaPaddingBottom
                     showLoadingAsFirstRender={false}
+                    addBottomSafeAreaPadding
                 >
                     {(isFeedAdded || isPending) && !!selectedFeed && (
                         <WorkspaceCompanyCardsListHeaderButtons
@@ -195,6 +195,6 @@ function WorkspaceCompanyCardPage({route}: WorkspaceCompanyCardPageProps) {
     );
 }
 
-WorkspaceCompanyCardPage.displayName = 'WorkspaceCompanyCardPage';
+WorkspaceCompanyCardsPage.displayName = 'WorkspaceCompanyCardsPage';
 
-export default WorkspaceCompanyCardPage;
+export default WorkspaceCompanyCardsPage;

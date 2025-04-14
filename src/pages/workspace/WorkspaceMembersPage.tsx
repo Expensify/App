@@ -29,7 +29,7 @@ import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {
     clearAddMemberError,
@@ -46,6 +46,7 @@ import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWo
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -88,7 +89,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const prevIsOffline = usePrevious(isOffline);
     const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
@@ -290,9 +291,9 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
+        const someSelected = enabledAccounts.some((member) => selectedEmployees.includes(member.accountID));
 
-        if (everyoneSelected) {
+        if (someSelected) {
             setSelectedEmployees([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
@@ -672,7 +673,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             shouldShowOfflineIndicatorInWideScreen
             shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
-            threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+            threeDotsAnchorPosition={threeDotsAnchorPosition}
             shouldShowNonAdmin
             onBackButtonPress={() => {
                 if (selectionMode?.isEnabled) {
@@ -680,7 +681,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                     turnOffMobileSelectionMode();
                     return;
                 }
-                Navigation.goBack();
+                goBackFromWorkspaceCentralScreen(policyID);
             }}
         >
             {() => (
@@ -746,6 +747,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
+                            addBottomSafeAreaPadding
                         />
                     </View>
                 </>
