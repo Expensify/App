@@ -1,11 +1,13 @@
 import React from 'react';
 import {useOnyx} from 'react-native-onyx';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import AddressStep from '@components/SubStepForms/AddressStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_BUSINESS_INFO_KEY = INPUT_IDS.BUSINESS_INFO_STEP;
 
@@ -21,7 +23,8 @@ const STEP_FIELDS = [COMPANY_BUSINESS_INFO_KEY.STREET, COMPANY_BUSINESS_INFO_KEY
 function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const defaultValues = {
         street: reimbursementAccount?.achData?.addressStreet ?? '',
@@ -35,6 +38,10 @@ function AddressBusiness({onNext, onMove, isEditing}: SubStepProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    if (isLoadingReimbursementAccount) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <AddressStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
