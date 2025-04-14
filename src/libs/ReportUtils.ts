@@ -5,6 +5,7 @@ import lodashIntersection from 'lodash/intersection';
 import isEmpty from 'lodash/isEmpty';
 import lodashIsEqual from 'lodash/isEqual';
 import isNumber from 'lodash/isNumber';
+import mapValues from 'lodash/mapValues';
 import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -74,7 +75,7 @@ import DateUtils from './DateUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';
 import {getEnvironment, getEnvironmentURL} from './Environment/Environment';
 import type EnvironmentType from './Environment/getEnvironment/types';
-import {getMicroSecondOnyxErrorWithTranslationKey} from './ErrorUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import localeCompare from './LocaleCompare';
@@ -1183,7 +1184,15 @@ function getPolicyName({report, returnEmptyIfNotFound = false, policy, policies,
     if (isEmptyObject(report) || (isEmptyObject(policies) && isEmptyObject(allPolicies) && !report?.policyName)) {
         return noPolicyFound;
     }
-    const finalPolicy = isEmptyObject(policy) ? allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : policy ?? policies?.find((p) => p.id === report.policyID);
+    const finalPolicy = (() => {
+        if (isEmptyObject(policy)) {
+            if (policies) {
+                return policies.find((p) => p.id === report.policyID);
+            }
+            return allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`];
+        }
+        return policy ?? policies?.find((p) => p.id === report.policyID);
+    })();
 
     const parentReport = getRootParentReport({report, reports});
 
@@ -1354,7 +1363,7 @@ function hasParticipantInArray(report: OnyxEntry<Report>, memberAccountIDs: numb
 /**
  * Whether the Money Request report is settled
  */
-function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[]): boolean {
+function isSettled(reportOrID: OnyxInputOrEntry<Report> | SearchReport | string | undefined, reports?: SearchReport[] | OnyxCollection<Report>): boolean {
     if (!reportOrID) {
         return false;
     }
@@ -1809,6 +1818,9 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
             return chatType === CONST.REPORT.CHAT_TYPE.POLICY_ADMINS;
         });
     }
+    if (adminReport) {
+        return adminReport;
+    }
 
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const shouldFilter = excludeReportID || ignoreDomainRooms;
@@ -1835,8 +1847,15 @@ function findLastAccessedReport(ignoreDomainRooms: boolean, openOnAdminRoom = fa
 
     // At least two reports remain: self DM and Concierge chat.
     // Return the most recently visited report. Get the last read report from the report metadata.
-    const lastRead = getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
-    return adminReport ?? lastRead;
+    // If allReportMetadata is empty we'll return most recent report owned by user
+    if (isEmptyObject(allReportMetadata)) {
+        const ownedReports = reportsValues.filter((report) => report?.ownerAccountID === currentUserAccountID);
+        if (ownedReports.length > 0) {
+            return lodashMaxBy(ownedReports, (a) => a?.lastReadTime ?? '');
+        }
+        return lodashMaxBy(reportsValues, (a) => a?.lastReadTime ?? '');
+    }
+    return getMostRecentlyVisitedReport(reportsValues, allReportMetadata);
 }
 
 /**
@@ -3943,8 +3962,8 @@ function getLinkedTransaction(reportAction: OnyxEntry<ReportAction | OptimisticI
 /**
  * Check if any of the transactions in the report has required missing fields
  */
-function hasMissingSmartscanFields(iouReportID: string | undefined): boolean {
-    const reportTransactions = getReportTransactions(iouReportID);
+function hasMissingSmartscanFields(iouReportID: string | undefined, transactions?: Transaction[]): boolean {
+    const reportTransactions = transactions ?? getReportTransactions(iouReportID);
 
     return reportTransactions.some(hasMissingSmartscanFieldsTransactionUtils);
 }
@@ -4475,7 +4494,7 @@ function getInvoicesChatName({
     const isCurrentUserReceiver = (isIndividual && invoiceReceiverAccountID === currentUserAccountID) || (!isIndividual && isPolicyAdminPolicyUtils(invoiceReceiverPolicy));
 
     if (isCurrentUserReceiver) {
-        return getPolicyName({report});
+        return getPolicyName({report, policies});
     }
 
     if (isIndividual) {
@@ -5486,7 +5505,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReportID: string | undefined, policy: OnyxEntry<Policy>, timeOfCreation: string) {
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, timeOfCreation: string) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -5503,8 +5522,9 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         participants: {},
         lastVisibleActionCreated: timeOfCreation,
         pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
-        parentReportID,
-        chatReportID: parentReportID,
+        parentReportID: parentReport?.reportID,
+        chatReportID: parentReport?.reportID,
+        managerID: getSubmitToAccountID(policy, undefined),
     };
 
     const optimisticReportName = populateOptimisticReportFormula(titleReportField?.defaultValue ?? CONST.POLICY.DEFAULT_REPORT_NAME_PATTERN, optimisticEmptyReport, policy);
@@ -7355,6 +7375,26 @@ function hasViolations(
 function hasWarningTypeViolations(reportID: string | undefined, transactionViolations: OnyxCollection<TransactionViolation[]>, shouldShowInReview?: boolean): boolean {
     const transactions = getReportTransactions(reportID);
     return transactions.some((transaction) => hasWarningTypeViolation(transaction.transactionID, transactionViolations, shouldShowInReview));
+}
+
+/**
+ * Checks to see if a transaction contains receipt error
+ */
+function hasReceiptError(transaction: OnyxInputOrEntry<Transaction>): boolean {
+    const errors = {
+        ...(transaction?.errorFields?.route ?? transaction?.errorFields?.waypoints ?? transaction?.errors),
+    };
+    const errorEntries = Object.entries(errors ?? {});
+    const errorMessages = mapValues(Object.fromEntries(errorEntries), (error) => error);
+    return Object.values(errorMessages).some((error) => isReceiptError(error));
+}
+
+/**
+ * Checks to see if a report contains receipt error
+ */
+function hasReceiptErrors(reportID: string | undefined): boolean {
+    const transactions = getReportTransactions(reportID);
+    return transactions.some(hasReceiptError);
 }
 
 /**
@@ -10032,15 +10072,10 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+function isExported(reportActions: OnyxEntry<ReportActions>) {
     if (!reportActions) {
         return false;
     }
-
-    if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isExportIntegrationAction(action));
-    }
-
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -10348,7 +10383,6 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
-    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
@@ -10379,6 +10413,8 @@ export {
     hasNonReimbursableTransactions,
     hasOnlyHeldExpenses,
     hasOnlyTransactionsWithPendingRoutes,
+    hasReceiptError,
+    hasReceiptErrors,
     hasReportNameError,
     getReportActionWithSmartscanError,
     hasSmartscanError,
