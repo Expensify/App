@@ -13,11 +13,11 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
+import {filterInactiveCards, getDefaultCardName, getFilteredCardList, hasOnlyOneCardToAssign} from '@libs/CardUtils';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import {getHeaderMessage, getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {getWorkspaceAccountID, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import {isDeletedPolicyEmployee} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import {setAssignCardStepAndData} from '@userActions/CompanyCards';
 import CONST from '@src/CONST';
@@ -40,9 +40,9 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const workspaceAccountID = policy?.id ? getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
 
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`);
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards});
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[feed]);
 
@@ -177,6 +177,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
@@ -189,14 +190,17 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 onSelectRow={selectMember}
                 initiallyFocusedOptionKey={selectedMember}
                 shouldUpdateFocusedIndex
-            />
-            <FormAlertWithSubmitButton
-                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onSubmit={submit}
-                isAlertVisible={shouldShowError}
-                containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
-                message={translate('common.error.pleaseSelectOne')}
-                buttonStyles={styles.mb5}
+                addBottomSafeAreaPadding
+                footerContent={
+                    <FormAlertWithSubmitButton
+                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                        onSubmit={submit}
+                        isAlertVisible={shouldShowError}
+                        containerStyles={[!shouldShowError && styles.mt5]}
+                        addButtonBottomPadding={false}
+                        message={translate('common.error.pleaseSelectOne')}
+                    />
+                }
             />
         </InteractiveStepWrapper>
     );

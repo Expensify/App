@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -25,8 +26,15 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
     const {translate} = useLocalize();
     const login = route.params.login;
     const currentRole = route.params.currentRole;
-    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | null>();
+    const showValidateActionModalFromURL = route.params.showValidateActionModal === 'true';
+    const newRoleFromURL = route.params.newRole;
+    const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(showValidateActionModalFromURL ?? false);
+    const [newRole, setNewRole] = useState<ValueOf<typeof CONST.DELEGATE_ROLE> | undefined>(newRoleFromURL);
+    const [shouldShowLoading, setShouldShowLoading] = useState(showValidateActionModalFromURL ?? false);
+
+    useEffect(() => {
+        Navigation.setParams({showValidateActionModal: isValidateCodeActionModalVisible, newRole});
+    }, [isValidateCodeActionModalVisible, newRole]);
 
     const styles = useThemeStyles();
     const roleOptions = Object.values(CONST.DELEGATE_ROLE).map((role) => ({
@@ -89,11 +97,13 @@ function UpdateDelegateRolePage({route}: UpdateDelegateRolePageProps) {
                         role={newRole}
                         isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
                         onClose={() => {
+                            setShouldShowLoading(false);
                             setIsValidateCodeActionModalVisible(false);
                         }}
                     />
                 )}
             </DelegateNoAccessWrapper>
+            {shouldShowLoading && <FullScreenLoadingIndicator />}
         </ScreenWrapper>
     );
 }

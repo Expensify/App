@@ -19,7 +19,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
-import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidOptions} from '@libs/OptionsListUtils';
+import memoize from '@libs/memoize';
+import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
 import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
@@ -33,7 +34,8 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -71,6 +73,9 @@ type SearchAutocompleteListProps = {
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
+
+    /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
+    onHighlightFirstItem?: () => void;
 };
 
 const defaultListOptions = {
@@ -130,6 +135,7 @@ function SearchAutocompleteList(
         setTextQuery,
         updateAutocompleteSubstitutions,
         shouldSubscribeToArrowKeyEvents,
+        onHighlightFirstItem,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -156,6 +162,7 @@ function SearchAutocompleteList(
     const [isInitialRender, setIsInitialRender] = useState(true);
 
     const typeAutocompleteList = Object.values(CONST.SEARCH.DATA_TYPES);
+    const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
 
@@ -164,48 +171,41 @@ function SearchAutocompleteList(
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
-    }, [translate, workspaceCardFeeds, userCardList]);
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
     const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
 
-    const participantsAutocompleteList = useMemo(() => {
-        if (!areOptionsInitialized) {
-            return [];
-        }
+    const getParticipantsAutocompleteList = useMemo(
+        () =>
+            memoize(() => {
+                if (!areOptionsInitialized) {
+                    return [];
+                }
 
-        const filteredOptions = getValidOptions(
-            {
-                reports: options.reports,
-                personalDetails: options.personalDetails,
-            },
-            {
-                excludeLogins: CONST.EXPENSIFY_EMAILS_OBJECT,
-                includeSelfDM: true,
-                showChatPreviewLine: true,
-                shouldBoldTitleByDefault: false,
-            },
-        );
-
-        // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
-        const personalDetailsFromOptions = filteredOptions.personalDetails.map((option) => (option as SearchOption<PersonalDetails>).item);
-        const autocompleteOptions = Object.values(personalDetailsFromOptions)
-            .filter((details): details is NonNullable<PersonalDetails> => !!(details && details?.login))
-            .map((details) => {
-                return {
-                    name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
-                    accountID: details.accountID.toString(),
+                const currentUserRef = {
+                    current: undefined as OptionData | undefined,
                 };
-            });
-        const currentUser = filteredOptions.currentUserOption ? (filteredOptions.currentUserOption as SearchOption<PersonalDetails>).item : undefined;
-        if (currentUser) {
-            autocompleteOptions.push({
-                name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                accountID: currentUser.accountID?.toString(),
-            });
-        }
+                const filteredOptions = getValidPersonalDetailOptions(options.personalDetails, {
+                    loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+                    shouldBoldTitleByDefault: false,
+                    currentUserRef,
+                });
 
-        return autocompleteOptions;
-    }, [areOptionsInitialized, options.personalDetails, options.reports]);
+                // This cast is needed as something is incorrect in types OptionsListUtils.getOptions around l1490 and includeRecentReports types
+                const personalDetailsFromOptions = filteredOptions.map((option) => (option as SearchOption<PersonalDetails>).item);
+                const autocompleteOptions = Object.values(personalDetailsFromOptions)
+                    .filter((details): details is NonNullable<PersonalDetails> => !!details?.login)
+                    .map((details) => {
+                        return {
+                            name: details.displayName ?? Str.removeSMSDomain(details.login ?? ''),
+                            accountID: details.accountID.toString(),
+                        };
+                    });
+
+                return autocompleteOptions;
+            }),
+        [areOptionsInitialized, options.personalDetails],
+    );
 
     const taxAutocompleteList = useMemo(() => getAutocompleteTaxList(taxRates, policy), [policy, taxRates]);
 
@@ -219,7 +219,7 @@ function SearchAutocompleteList(
     }, [activeWorkspaceID, allRecentCategories]);
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
-    const currencyAutocompleteList = Object.keys(currencyList ?? {});
+    const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired);
     const [recentCurrencyAutocompleteList] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [allRecentTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS);
@@ -295,7 +295,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM: {
-                const filteredParticipants = participantsAutocompleteList
+                const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
@@ -307,7 +307,7 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO: {
-                const filteredParticipants = participantsAutocompleteList
+                const filteredParticipants = getParticipantsAutocompleteList()
                     .filter((participant) => participant.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(participant.name.toLowerCase()))
                     .slice(0, 10);
 
@@ -336,6 +336,12 @@ function SearchAutocompleteList(
                     .sort();
 
                 return filteredTypes.map((type) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.TYPE, text: type}));
+            }
+            case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY: {
+                const filteredGroupBy = groupByAutocompleteList.filter(
+                    (groupByValue) => groupByValue.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(groupByValue.toLowerCase()),
+                );
+                return filteredGroupBy.map((groupByValue) => ({filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.GROUP_BY, text: groupByValue}));
             }
             case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS: {
                 const filteredStatuses = statusAutocompleteList
@@ -372,7 +378,11 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
                     .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
-                    .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
+                    .filter(
+                        (card) =>
+                            (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
+                            !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
 
@@ -396,7 +406,7 @@ function SearchAutocompleteList(
         currencyAutocompleteList,
         recentCurrencyAutocompleteList,
         taxAutocompleteList,
-        participantsAutocompleteList,
+        getParticipantsAutocompleteList,
         searchOptions.recentReports,
         typeAutocompleteList,
         statusAutocompleteList,
@@ -405,6 +415,7 @@ function SearchAutocompleteList(
         workspaceCardFeeds,
         cardAutocompleteList,
         allCards,
+        groupByAutocompleteList,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -470,7 +481,12 @@ function SearchAutocompleteList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
+    const styledRecentReports = recentReportsOptions.map((item) => ({
+        ...item,
+        pressableStyle: styles.br2,
+        text: StringUtils.lineBreaksToSpaces(item.text),
+        wrapperStyle: [styles.pr3, styles.pl3],
+    }));
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
@@ -502,6 +518,17 @@ function SearchAutocompleteList(
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
 
+    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
+
+    useEffect(() => {
+        const targetText = autocompleteQueryValue;
+
+        if (shouldHighlight(normalizedReferenceText, targetText)) {
+            onHighlightFirstItem?.();
+        }
+    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+
     return (
         <SelectionList<OptionData | SearchQueryItem>
             sections={sections}
@@ -523,6 +550,7 @@ function SearchAutocompleteList(
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
         />
     );
 }

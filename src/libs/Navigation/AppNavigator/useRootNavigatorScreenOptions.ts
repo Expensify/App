@@ -1,5 +1,4 @@
 import type {StackCardInterpolationProps} from '@react-navigation/stack';
-import SidePane from '@components/SidePane';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import Animations from '@libs/Navigation/PlatformStackNavigation/navigationOptions/animation';
@@ -36,10 +35,8 @@ const useRootNavigatorScreenOptions = () => {
             animationTypeForReplace: 'pop',
             web: {
                 presentation: Presentation.TRANSPARENT_MODAL,
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePane: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, shouldAnimateSidePanel: true}),
             },
-            // @ts-expect-error SidePane is a custom screen option that was added in a patch (when we migrate to react-navigation v7 we can use screenLayout instead)
-            sidePane: SidePane,
         },
         basicModalNavigator: {
             presentation: Presentation.TRANSPARENT_MODAL,
@@ -92,7 +89,7 @@ const useRootNavigatorScreenOptions = () => {
                 cardStyle: {
                     height: '100%',
                 },
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
             },
         },
     } satisfies RootNavigatorScreenOptions;

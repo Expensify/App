@@ -31,9 +31,10 @@ import {calculateAmount, insertTagIntoTransactionTagsString, isMovingTransaction
 import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions, isSelectedManagerMcTest} from '@libs/OptionsListUtils';
+import {getIOUConfirmationOptionsFromPayeePersonalDetail, hasEnabledOptions} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {getDistanceRateCustomUnitRate, getTagLists, isTaxTrackingEnabled} from '@libs/PolicyUtils';
+import {isSelectedManagerMcTest} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {
@@ -139,7 +140,7 @@ type MoneyRequestConfirmationListProps = {
     transaction?: OnyxEntry<OnyxTypes.Transaction>;
 
     /** Whether the expense is a distance expense */
-    isDistanceRequest?: boolean;
+    isDistanceRequest: boolean;
 
     /** Whether the expense is a per diem expense */
     isPerDiemRequest?: boolean;
@@ -173,6 +174,15 @@ type MoneyRequestConfirmationListProps = {
 
     /** Whether the expense is in the process of being confirmed */
     isConfirming?: boolean;
+
+    /** Whether the receipt can be replaced */
+    isReceiptEditable?: boolean;
+
+    /** The PDF load error callback */
+    onPDFLoadError?: () => void;
+
+    /** The PDF password callback */
+    onPDFPassword?: () => void;
 };
 
 type MoneyRequestConfirmationListItem = Participant | OptionData;
@@ -183,13 +193,14 @@ function MoneyRequestConfirmationList({
     onConfirm,
     iouType = CONST.IOU.TYPE.SUBMIT,
     iouAmount,
-    isDistanceRequest = false,
+    isDistanceRequest,
     isPerDiemRequest = false,
     isPolicyExpenseChat = false,
     iouCategory = '',
     shouldShowSmartScanFields = true,
     isEditingSplitBill,
     iouCurrencyCode,
+    isReceiptEditable,
     iouMerchant,
     selectedParticipants: selectedParticipantsProp,
     payeePersonalDetails: payeePersonalDetailsProp,
@@ -211,6 +222,8 @@ function MoneyRequestConfirmationList({
     shouldPlaySound = true,
     isConfirmed,
     isConfirming,
+    onPDFLoadError,
+    onPDFPassword,
 }: MoneyRequestConfirmationListProps) {
     const [policyCategoriesReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
@@ -223,6 +236,11 @@ function MoneyRequestConfirmationList({
     const [lastSelectedDistanceRates] = useOnyx(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES);
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+
+    const isTestReceipt = useMemo(() => {
+        return transaction?.receipt?.isTestReceipt ?? false;
+    }, [transaction?.receipt?.isTestReceipt]);
+
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_CONFIRMATION,
         Permissions.canUseManagerMcTest(betas) && selectedParticipantsProp.some((participant) => isSelectedManagerMcTest(participant.login)),
@@ -719,8 +737,8 @@ function MoneyRequestConfirmationList({
             const formattedSelectedParticipants = selectedParticipants.map((participant) => ({
                 ...participant,
                 isSelected: false,
-                isInteractive: !!isCreateExpenseFlow,
-                shouldShowRightIcon: isCreateExpenseFlow,
+                isInteractive: isCreateExpenseFlow && !isTestReceipt,
+                shouldShowRightIcon: isCreateExpenseFlow && !isTestReceipt,
             }));
             options.push({
                 title: translate('common.to'),
@@ -730,7 +748,7 @@ function MoneyRequestConfirmationList({
         }
 
         return options;
-    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow]);
+    }, [isTypeSplit, translate, payeePersonalDetails, getSplitSectionHeader, splitParticipants, selectedParticipants, isCreateExpenseFlow, isTestReceipt]);
 
     useEffect(() => {
         if (!isDistanceRequest || (isMovingTransactionFromTrackExpense && !isPolicyExpenseChat) || !transactionID) {
@@ -836,6 +854,11 @@ function MoneyRequestConfirmationList({
             }
             if (iouCategory.length > CONST.API_TRANSACTION_CATEGORY_MAX_LENGTH) {
                 setFormError('iou.error.invalidCategoryLength');
+                return;
+            }
+
+            if (getTag(transaction).length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
+                setFormError('iou.error.invalidTagLength');
                 return;
             }
 
@@ -1061,6 +1084,9 @@ function MoneyRequestConfirmationList({
             transaction={transaction}
             transactionID={transactionID}
             unit={unit}
+            onPDFLoadError={onPDFLoadError}
+            onPDFPassword={onPDFPassword}
+            isReceiptEditable={isReceiptEditable}
         />
     );
 

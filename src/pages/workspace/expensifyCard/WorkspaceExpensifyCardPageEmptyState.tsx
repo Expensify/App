@@ -86,9 +86,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             icon={Illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_EXPENSIFY_CARD}
             showLoadingAsFirstRender={false}
             shouldShowOfflineIndicatorInWideScreen
+            addBottomSafeAreaPadding
         >
             <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                 <FeatureList

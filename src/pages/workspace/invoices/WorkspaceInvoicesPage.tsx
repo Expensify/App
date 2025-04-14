@@ -29,11 +29,11 @@ function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
             <WorkspacePageWithSections
                 shouldUseScrollView
                 headerText={translate('workspace.common.invoices')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
                 shouldShowOfflineIndicatorInWideScreen
                 shouldSkipVBBACall={false}
                 route={route}
                 icon={Illustrations.InvoiceBlue}
+                addBottomSafeAreaPadding
             >
                 {(_hasVBA?: boolean, policyID?: string) => (
                     <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>

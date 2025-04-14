@@ -34,12 +34,12 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 testID={PolicyRulesPage.displayName}
                 shouldUseScrollView
                 headerText={translate('workspace.common.rules')}
-                guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_RULES}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
                 icon={Illustrations.Rules}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
+                addBottomSafeAreaPadding
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />

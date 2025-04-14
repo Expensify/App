@@ -6,12 +6,14 @@ import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import {getNavigateToChatHintRegex} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library, as some components that are rendered
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const ONYXKEYS = {
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
@@ -65,8 +67,7 @@ xdescribe('Sidebar', () => {
 
                     // Then no reports are rendered in the LHN
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(0);
                     })
             );
@@ -162,8 +163,7 @@ xdescribe('Sidebar', () => {
 
                     // Then the report appears in the LHN
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(1);
                     })
             );
@@ -207,8 +207,7 @@ xdescribe('Sidebar', () => {
 
                     // Then all non-domain rooms are rendered in the LHN
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(2);
                     })
 
@@ -221,8 +220,7 @@ xdescribe('Sidebar', () => {
 
                     // Then all three reports are showing in the LHN
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(3);
                     })
             );
@@ -262,8 +260,7 @@ xdescribe('Sidebar', () => {
 
                     // Then the report is rendered in the LHN
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(1);
                     })
 
@@ -272,8 +269,7 @@ xdescribe('Sidebar', () => {
 
                     // Then the report is still rendered in the LHN
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(1);
                     })
             );
@@ -306,8 +302,7 @@ xdescribe('Sidebar', () => {
 
                     // Then the reports 1 and 2 are hidden and 3 is not
                     .then(() => {
-                        const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                        const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                        const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                         expect(optionRows).toHaveLength(1);
                     })
             );
@@ -392,14 +387,13 @@ xdescribe('Sidebar', () => {
                                     // Only one report visible
                                     const displayNamesHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                                     const displayNames = screen.queryAllByLabelText(displayNamesHintText);
-                                    const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
+
+                                    expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(1);
                                     expect(displayNames).toHaveLength(1);
                                     expect(screen.getByText('One, Two')).toBeOnTheScreen();
                                 } else {
                                     // Both reports visible
-                                    const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
+                                    expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(2);
                                 }
                             })
                     );
@@ -453,8 +447,7 @@ xdescribe('Sidebar', () => {
 
                     // Then all three chats are showing
                     .then(() => {
-                        const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                        expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(3);
+                        expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(3);
                     })
 
                     // When report 1 becomes read (it's the active report)
@@ -462,8 +455,7 @@ xdescribe('Sidebar', () => {
 
                     // Then all three chats are still showing
                     .then(() => {
-                        const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                        expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(3);
+                        expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(3);
                     })
 
                     // When report 2 becomes the active report
@@ -474,8 +466,7 @@ xdescribe('Sidebar', () => {
 
                     // Then report 1 should now disappear
                     .then(() => {
-                        const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                        expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
+                        expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(2);
                         expect(screen.queryAllByText(/One, Two/)).toHaveLength(0);
                     })
             );
@@ -740,14 +731,13 @@ xdescribe('Sidebar', () => {
                                 // Only one report visible
                                 const displayNamesHintText = translateLocal('accessibilityHints.chatUserDisplayNames');
                                 const displayNames = screen.queryAllByLabelText(displayNamesHintText);
-                                const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                                expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(1);
+
+                                expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(1);
                                 expect(displayNames).toHaveLength(1);
                                 expect(screen.getByText('One, Two')).toBeOnTheScreen();
                             } else {
                                 // Both reports visible
-                                const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                                expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(2);
+                                expect(screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex())).toHaveLength(2);
                             }
                         })
                 );
@@ -790,8 +780,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(1);
                         })
 
@@ -804,8 +793,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(1);
                         })
                 );
@@ -845,8 +833,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is not rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(0);
                         })
 
@@ -858,8 +845,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(1);
                         })
                 );
@@ -898,8 +884,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is not rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(0);
                         })
 
@@ -908,8 +893,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(1);
                         })
                 );
@@ -947,8 +931,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is not rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(0);
                         })
 
@@ -960,8 +943,7 @@ xdescribe('Sidebar', () => {
 
                         // Then the report is rendered in the LHN
                         .then(() => {
-                            const hintText = translateLocal('accessibilityHints.navigatesToChat');
-                            const optionRows = screen.queryAllByAccessibilityHint(hintText);
+                            const optionRows = screen.queryAllByAccessibilityHint(getNavigateToChatHintRegex());
                             expect(optionRows).toHaveLength(1);
                         })
                 );

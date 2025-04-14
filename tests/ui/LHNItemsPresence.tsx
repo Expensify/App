@@ -24,6 +24,7 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 // during the test depend on its methods.
 jest.mock('@libs/Permissions');
 jest.mock('@hooks/useActiveWorkspace', () => jest.fn(() => ({activeWorkspaceID: undefined})));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof reactNavigationNativeImport>('@react-navigation/native'),
@@ -71,8 +72,7 @@ const signUpWithTestUser = () => {
 };
 
 const getOptionRows = () => {
-    const hintText = translateLocal('accessibilityHints.navigatesToChat');
-    return screen.queryAllByAccessibilityHint(hintText);
+    return screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex());
 };
 
 const getDisplayNames = () => {
@@ -434,21 +434,15 @@ describe('SidebarLinksData', () => {
                     reportID: expenseReport.reportID,
                 },
             });
-            const expenseCreatedAction = buildOptimisticIOUReportAction(
-                'create',
-                100,
-                'USD',
-                '',
-                [],
-                expenseTransaction.transactionID,
-                undefined,
-                expenseReport.reportID,
-                undefined,
-                false,
-                false,
-                undefined,
-                undefined,
-            );
+            const expenseCreatedAction = buildOptimisticIOUReportAction({
+                type: 'create',
+                amount: 100,
+                currency: 'USD',
+                comment: '',
+                participants: [],
+                transactionID: expenseTransaction.transactionID,
+                iouReportID: expenseReport.reportID,
+            });
             const transactionThreadReport = buildTransactionThread(expenseCreatedAction, expenseReport);
             expenseCreatedAction.childReportID = transactionThreadReport.reportID;
 
@@ -534,6 +528,41 @@ describe('SidebarLinksData', () => {
 
             // Then the report should not disappear in the sidebar because it's read
             expect(getOptionRows()).toHaveLength(0);
+        });
+
+        it('should not display an empty submitted report having only a CREATED action', async () => {
+            // Given the SidebarLinks are rendered
+            LHNTestUtils.getDefaultRenderedSidebarLinks();
+
+            // When creating a report with total = 0, stateNum = SUBMITTED, statusNum = SUBMITTED
+            const report = {
+                ...createReport(false, [1, 2], 0),
+                total: 0,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+
+            // And setting up a report action collection with only a CREATED action
+            const reportActionID = '1';
+            const reportAction = {
+                ...LHNTestUtils.getFakeReportAction(),
+                reportActionID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+            };
+
+            // When the Onyx state is initialized with this report
+            await initializeState({
+                [`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]: report,
+            });
+
+            // And a report action collection with only a CREATED action is added
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [reportActionID]: reportAction,
+            });
+
+            // Then the report should not be displayed in the sidebar
+            expect(getOptionRows()).toHaveLength(0);
+            expect(getDisplayNames()).toHaveLength(0);
         });
     });
 });

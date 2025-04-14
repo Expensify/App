@@ -154,7 +154,7 @@ function SelectionScreen<T = string>({
             shouldBeBlocked={isConnectionEmpty || shouldBeBlocked}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={!!errors && !isEmptyObject(errors)}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={displayName}
             >
                 <HeaderWithBackButton
@@ -186,6 +186,7 @@ function SelectionScreen<T = string>({
                         shouldUpdateFocusedIndex={shouldUpdateFocusedIndex}
                         isAlternateTextMultilineSupported
                         listItemWrapperStyle={listItemWrapperStyle}
+                        addBottomSafeAreaPadding={!errors || isEmptyObject(errors)}
                     >
                         <ErrorMessageRow
                             errors={errors}

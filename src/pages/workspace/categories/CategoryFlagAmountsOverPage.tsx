@@ -11,12 +11,12 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertToFrontendAmountAsString, getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
-import * as Category from '@userActions/Policy/Category';
+import {setPolicyCategoryMaxAmount} from '@userActions/Policy/Category';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -45,7 +45,7 @@ function CategoryFlagAmountsOverPage({
     const defaultValue =
         policyCategoryMaxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategoryMaxExpenseAmount
             ? ''
-            : CurrencyUtils.convertToFrontendAmountAsString(policyCategoryMaxExpenseAmount, policy?.outputCurrency);
+            : convertToFrontendAmountAsString(policyCategoryMaxExpenseAmount, policy?.outputCurrency);
 
     return (
         <AccessOrNotFoundWrapper
@@ -54,7 +54,7 @@ function CategoryFlagAmountsOverPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CategoryFlagAmountsOverPage.displayName}
                 shouldEnableMaxHeight
@@ -67,12 +67,14 @@ function CategoryFlagAmountsOverPage({
                     style={[styles.flexGrow1]}
                     formID={ONYXKEYS.FORMS.WORKSPACE_CATEGORY_FLAG_AMOUNTS_OVER_FORM}
                     onSubmit={({maxExpenseAmount}) => {
-                        Category.setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType);
+                        setPolicyCategoryMaxAmount(policyID, categoryName, maxExpenseAmount, expenseLimitType);
                         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.goBack(ROUTES.WORKSPACE_CATEGORY_SETTINGS.getRoute(policyID, categoryName)));
                     }}
                     submitButtonText={translate('workspace.editor.save')}
                     enabledWhenOffline
                     submitButtonStyles={styles.ph5}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={[styles.mb4, styles.pt3, styles.ph5]}>
                         <Text style={styles.pb5}>{translate('workspace.rules.categoryRules.flagAmountsOverDescription', {categoryName})}</Text>
@@ -80,7 +82,7 @@ function CategoryFlagAmountsOverPage({
                             label={translate('iou.amount')}
                             InputComponent={AmountForm}
                             inputID={INPUT_IDS.MAX_EXPENSE_AMOUNT}
-                            currency={CurrencyUtils.getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
+                            currency={getCurrencySymbol(policy?.outputCurrency ?? CONST.CURRENCY.USD)}
                             defaultValue={defaultValue}
                             isCurrencyPressable={false}
                             ref={inputCallbackRef}

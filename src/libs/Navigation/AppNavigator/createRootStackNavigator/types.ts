@@ -1,5 +1,6 @@
 import type {CommonActions, DefaultNavigatorOptions, ParamListBase, StackActionType, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
 
 type RootStackNavigatorActionType =
@@ -16,6 +17,7 @@ type RootStackNavigatorActionType =
           type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
           payload: {
               policyID: string;
+              screenName: WorkspaceScreenName;
           };
       };
 
@@ -28,6 +30,8 @@ type SwitchPolicyIdActionType = RootStackNavigatorActionType & {
 };
 
 type PushActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.PUSH};
+
+type ReplaceActionType = StackActionType & {type: typeof CONST.NAVIGATION.ACTION_TYPE.REPLACE};
 
 type DismissModalActionType = RootStackNavigatorActionType & {
     type: typeof CONST.NAVIGATION.ACTION_TYPE.DISMISS_MODAL;
@@ -49,6 +53,7 @@ export type {
     OpenWorkspaceSplitActionType,
     SwitchPolicyIdActionType,
     PushActionType,
+    ReplaceActionType,
     DismissModalActionType,
     RootStackNavigatorAction,
     RootStackNavigatorActionType,

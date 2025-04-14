@@ -17,6 +17,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
+import {filterObject} from './ObjectUtils';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
@@ -186,9 +187,10 @@ function maskCard(lastFour = ''): string {
  *
  * @param cardName - card name with XXXX in the middle.
  * @param feed - card feed.
+ * @param showOriginalName - show original card name instead of masked.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string | undefined, feed: string | undefined): string {
+function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boolean): string {
     if (!cardName || cardName === '') {
         return '';
     }
@@ -197,7 +199,10 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
-        return cardName;
+        if (showOriginalName) {
+            return cardName;
+        }
+        return cardName.replace(/ - \d{4}$/, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
@@ -205,6 +210,22 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     }
 
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
+ * Returns last 4 number from company card name
+ *
+ * @param cardName - card name with dash in the middle and 4 numbers in the end.
+ * @returns - Last 4 numbers
+ */
+function lastFourNumbersFromCardName(cardName: string | undefined): string {
+    const name = cardName ?? '';
+    const hasSpace = /\s/.test(name);
+    const match = name.match(/(\d{4})$/);
+    if (!cardName || cardName === '' || !hasSpace || !match) {
+        return '';
+    }
+    return match[1];
 }
 
 /**
@@ -429,16 +450,31 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
+    // Get cards assigned across all workspaces
+    const allWorkspaceAssignedCards = new Set<string>();
+    Object.values(workspaceCardFeeds ?? {}).forEach((workspaceCards) => {
+        if (!workspaceCards) {
+            return;
+        }
+        const {cardList, ...workspaceCardItems} = workspaceCards;
+        Object.values(workspaceCardItems).forEach((card) => {
+            if (!card.cardName) {
+                return;
+            }
+            allWorkspaceAssignedCards.add(card.cardName);
+        });
+    });
+
     if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber));
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber)));
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
@@ -462,12 +498,18 @@ function checkIfNewFeedConnected(prevFeedsData: CompanyFeeds, currentFeedsData: 
     };
 }
 
+function filterInactiveCards(cards: CardList | undefined): CardList {
+    const closedStates: number[] = [CONST.EXPENSIFY_CARD.STATE.CLOSED, CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
+    return filterObject(cards ?? {}, (key, card) => !closedStates.includes(card.state));
+}
+
 function getAllCardsForWorkspace(workspaceAccountID: number, allCardList: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards): CardList {
     const cards = {};
     for (const [key, values] of Object.entries(allCardList ?? {})) {
         if (key.includes(workspaceAccountID.toString()) && values) {
             const {cardList, ...rest} = values;
-            Object.assign(cards, rest);
+            const filteredCards = filterInactiveCards(rest);
+            Object.assign(cards, filteredCards);
         }
     }
     return cards;
@@ -515,7 +557,8 @@ function flatAllCardsList(allCardsList: OnyxCollection<WorkspaceCardsList>, work
             return acc;
         }
         const {cardList, ...feedCards} = cards ?? {};
-        Object.assign(acc, feedCards);
+        const filteredCards = filterInactiveCards(feedCards);
+        Object.assign(acc, filteredCards);
         return acc;
     }, {});
 }
@@ -531,7 +574,7 @@ function checkIfFeedConnectionIsBroken(feedCards: Record<string, Card> | undefin
         return false;
     }
 
-    return Object.values(feedCards).some((card) => card.bank !== feedToExclude && card.lastScrapeResult !== 200);
+    return Object.values(feedCards).some((card) => !isEmptyObject(card) && card.bank !== feedToExclude && card.lastScrapeResult !== 200);
 }
 
 /**
@@ -593,7 +636,9 @@ export {
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
+    lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,
+    filterInactiveCards,
 };
