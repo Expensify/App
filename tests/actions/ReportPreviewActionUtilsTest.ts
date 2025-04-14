@@ -1,4 +1,4 @@
-import type { OnyxCollection } from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 // eslint-disable-next-line no-restricted-syntax
 import type * as PolicyUtils from '@libs/PolicyUtils';
@@ -7,11 +7,10 @@ import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type { Report, ReportViolations, TransactionViolation } from '@src/types/onyx';
-import type { Connections, NetSuiteConnection } from '@src/types/onyx/Policy';
+import type {Report, ReportViolations, TransactionViolation} from '@src/types/onyx';
+import type {Connections, NetSuiteConnection} from '@src/types/onyx/Policy';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
-
 
 const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'tester@mail.com';
