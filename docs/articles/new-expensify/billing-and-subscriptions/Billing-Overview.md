@@ -42,6 +42,7 @@ If your active members exceed your subscription size, additional members are bil
 
 Rates for pay-per-use plans are applied at full price:
 
+- **Collect plan:** $5 per member per month, (exclusive price for brand new customers, subject to conditions)
 - **Collect plan:** $20 per active member per month
 - **Control plan:** $36 per active member per month
 
