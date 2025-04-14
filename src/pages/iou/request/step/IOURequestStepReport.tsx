@@ -46,16 +46,17 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
+    // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
+    const policyID = Object.values(allReports ?? {}).find(
+        (report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID,
+    )?.policyID;
+    const expenseReports = getOutstandingReports(policyID, allReports ?? {});
 
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
         }
-        // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
-        const policyID = Object.values(allReports ?? {}).find(
-            (report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID,
-        )?.policyID;
-        const expenseReports = getOutstandingReports(policyID, allReports ?? {});
+
         const isTransactionReportCorrect = expenseReports.some((report) => report?.reportID === transaction?.reportID);
         return expenseReports
             .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
@@ -67,7 +68,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 keyForList: report.reportID,
                 isSelected: isTransactionReportCorrect ? report.reportID === transaction?.reportID : expenseReports.at(0)?.reportID === report.reportID,
             }));
-    }, [allReports, debouncedSearchValue, transaction]);
+    }, [allReports, debouncedSearchValue, expenseReports, transaction?.reportID]);
 
     const navigateBack = () => {
         Navigation.goBack(backTo);
@@ -86,6 +87,8 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         Navigation.goBack(backTo);
     };
 
+    const headerMessage = useMemo(() => (searchValue && !reportOptions.length ? translate('common.noResultsFound') : ''), [searchValue, reportOptions, translate]);
+
     return (
         <StepScreenWrapper
             headerTitle={translate('common.report')}
@@ -99,8 +102,9 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
                 onSelectRow={selectReport}
                 textInputValue={searchValue}
                 onChangeText={setSearchValue}
-                textInputLabel={reportOptions.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
+                textInputLabel={expenseReports.length >= CONST.STANDARD_LIST_ITEM_LIMIT ? translate('common.search') : undefined}
                 shouldSingleExecuteRowSelect
+                headerMessage={headerMessage}
                 initiallyFocusedOptionKey={transaction?.reportID}
                 ListItem={UserListItem}
             />
