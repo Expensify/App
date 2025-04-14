@@ -46,9 +46,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         iouReport={iouReportR14932}
         transaction={item}
         violations={item.errors ? violationsR14932 : []}
-        showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
-        onPreviewPressed={() => {}}
         navigateToReviewFields={() => undefined}
         isBillSplit={false}
         areThereDuplicates={false}
@@ -56,7 +54,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        wrapperStyle={style.transactionPreviewStyle}
+        transactionPreviewWidth={style.transactionPreviewStyle.width}
         containerStyles={[sizing.h100]}
     />
 );
