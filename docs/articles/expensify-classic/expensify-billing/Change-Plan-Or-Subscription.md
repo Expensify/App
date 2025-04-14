@@ -5,7 +5,7 @@ keywords: [Expensify Classic, workspace plan, subscription]
 ---
 <div id="expensify-classic" markdown="1">
 
-Expensify offers several plans based on your needs: **Track, Submit, Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually or for a group or company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
+Expensify offers several plans based on your needs: **Collect, Control,** and **Free**. Your choice depends on whether you manage expenses individually or for a group or company. You may need to upgrade if you hire employees who need access to a **Group Workspace** or require features exclusive to paid plans.
 
 ---
 
