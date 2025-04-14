@@ -143,7 +143,7 @@ function AccountSwitcher() {
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                 >
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
                             type={CONST.ICON_TYPE_AVATAR}
                             size={CONST.AVATAR_SIZE.DEFAULT}
