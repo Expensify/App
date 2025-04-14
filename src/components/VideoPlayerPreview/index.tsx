@@ -51,8 +51,11 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
+
+    /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
+
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);

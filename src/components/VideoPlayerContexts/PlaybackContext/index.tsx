@@ -6,14 +6,14 @@ import Navigation from '@navigation/Navigation';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {ProtectedCurrentRouteReportID} from './playbackContextReportIDUtils';
 import {findUrlInReportOrAncestorAttachments, getCurrentRouteReportID, NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, normalizeReportID} from './playbackContextReportIDUtils';
-import type {OriginalParent, PlaybackContext} from './types';
+import type {OriginalParent, PlaybackContext, PlaybackContextValues} from './types';
 import usePlaybackContextVideoRefs from './usePlaybackContextVideoRefs';
 
 const Context = React.createContext<PlaybackContext | null>(null);
 
 function PlaybackContextProvider({children}: ChildrenProps) {
-    const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<PlaybackContext['currentlyPlayingURL']>(null);
-    const [sharedElement, setSharedElement] = useState<PlaybackContext['sharedElement']>(null);
+    const [currentlyPlayingURL, setCurrentlyPlayingURL] = useState<PlaybackContextValues['currentlyPlayingURL']>(null);
+    const [sharedElement, setSharedElement] = useState<PlaybackContextValues['sharedElement']>(null);
     const [originalParent, setOriginalParent] = useState<OriginalParent>(null);
     const [currentRouteReportID, setCurrentRouteReportID] = useState<ProtectedCurrentRouteReportID>(NO_REPORT_ID);
     const resetContextProperties = () => {
@@ -25,7 +25,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
 
     const video = usePlaybackContextVideoRefs(resetContextProperties);
 
-    const updateCurrentURLAndReportID: PlaybackContext['updateCurrentURLAndReportID'] = useCallback(
+    const updateCurrentURLAndReportID: PlaybackContextValues['updateCurrentURLAndReportID'] = useCallback(
         (url, reportID) => {
             if (!url || !reportID) {
                 return;
@@ -36,10 +36,13 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             }
 
             const report = getReportOrDraftReport(reportID);
-            const firstReportIDThatHasURLInAttachments = findUrlInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID;
             const isReportAChatThread = isChatThread(report);
-
-            const reportIDtoSet = isReportAChatThread ? firstReportIDThatHasURLInAttachments : reportID;
+            let reportIDtoSet;
+            if (isReportAChatThread) {
+                reportIDtoSet = findUrlInReportOrAncestorAttachments(report, url) ?? NO_REPORT_ID;
+            } else {
+                reportIDtoSet = reportID;
+            }
 
             const routeReportID = getCurrentRouteReportID(url);
 
@@ -52,7 +55,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         [currentlyPlayingURL, video],
     );
 
-    const shareVideoPlayerElements: PlaybackContext['shareVideoPlayerElements'] = useCallback(
+    const shareVideoPlayerElements: PlaybackContextValues['shareVideoPlayerElements'] = useCallback(
         (
             ref: VideoWithOnFullScreenUpdate | null,
             parent: View | HTMLDivElement | null,
@@ -84,10 +87,10 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             // after the report screen in the central pane is mounted on the large screen.
             const routeReportID = currentlyPlayingURL ? getCurrentRouteReportID(currentlyPlayingURL) : undefined;
 
-            const isReportIDTheSame = routeReportID === currentRouteReportID || routeReportID === NO_REPORT_ID;
+            const isSameReportID = routeReportID === currentRouteReportID || routeReportID === NO_REPORT_ID;
             const isOnRouteWithoutReportID = !!currentlyPlayingURL && getCurrentRouteReportID(currentlyPlayingURL) === NO_REPORT_ID_IN_PARAMS;
 
-            if (isReportIDTheSame || isOnRouteWithoutReportID) {
+            if (isSameReportID || isOnRouteWithoutReportID) {
                 return;
             }
 
@@ -99,7 +102,7 @@ function PlaybackContextProvider({children}: ChildrenProps) {
         });
     }, [currentRouteReportID, currentlyPlayingURL, video, video.resetPlayerData]);
 
-    const contextValue = useMemo(
+    const contextValue: PlaybackContext = useMemo(
         () => ({
             updateCurrentURLAndReportID,
             currentlyPlayingURL,
@@ -111,12 +114,13 @@ function PlaybackContextProvider({children}: ChildrenProps) {
             currentVideoPlayerRef: video.ref,
             playVideo: video.play,
             pauseVideo: video.pause,
-            checkVideoPlaying: video.isPlaying,
+            checkIfVideoIsPlaying: video.isPlaying,
             videoResumeTryNumberRef: video.resumeTryNumberRef,
             resetVideoPlayerData: video.resetPlayerData,
         }),
         [updateCurrentURLAndReportID, currentlyPlayingURL, currentRouteReportID, originalParent, sharedElement, video, shareVideoPlayerElements],
     );
+
     return <Context.Provider value={contextValue}>{children}</Context.Provider>;
 }
 

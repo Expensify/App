@@ -1,16 +1,15 @@
 import type {AVPlaybackStatus, AVPlaybackStatusToSet} from 'expo-av';
-import {useCallback, useEffect, useRef} from 'react';
-import type {VideoWithOnFullScreenUpdate} from '@components/VideoPlayer/types';
+import {useCallback, useEffect, useMemo, useRef} from 'react';
 import Visibility from '@libs/Visibility';
-import type {PlaybackContext, PlayVideoPromiseRef, StopVideo, UnloadVideo} from './types';
+import type {PlaybackContextVideoRefs, PlayVideoPromiseRef, StopVideo, UnloadVideo} from './types';
 
 function usePlaybackContextVideoRefs(resetCallback: () => void) {
-    const currentVideoPlayerRef: PlaybackContext['currentVideoPlayerRef'] = useRef(null);
-    const videoResumeTryNumberRef: PlaybackContext['videoResumeTryNumberRef'] = useRef(0);
+    const currentVideoPlayerRef: PlaybackContextVideoRefs['ref'] = useRef(null);
+    const videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'] = useRef(0);
     const playVideoPromiseRef: PlayVideoPromiseRef = useRef();
     const isPlayPendingRef = useRef(false);
 
-    const pauseVideo: PlaybackContext['pauseVideo'] = useCallback(() => {
+    const pauseVideo: PlaybackContextVideoRefs['pause'] = useCallback(() => {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false});
     }, [currentVideoPlayerRef]);
 
@@ -18,7 +17,7 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         currentVideoPlayerRef.current?.setStatusAsync?.({shouldPlay: false, positionMillis: 0});
     }, [currentVideoPlayerRef]);
 
-    const playVideo: PlaybackContext['playVideo'] = useCallback(() => {
+    const playVideo: PlaybackContextVideoRefs['play'] = useCallback(() => {
         if (!Visibility.isVisible()) {
             isPlayPendingRef.current = true;
             return;
@@ -38,7 +37,7 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         currentVideoPlayerRef.current?.unloadAsync?.();
     }, [currentVideoPlayerRef]);
 
-    const checkVideoPlaying: PlaybackContext['checkVideoPlaying'] = useCallback(
+    const checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'] = useCallback(
         (statusCallback) => {
             currentVideoPlayerRef.current?.getStatusAsync?.().then((status) => {
                 statusCallback('isPlaying' in status && status.isPlaying);
@@ -47,7 +46,7 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         [currentVideoPlayerRef],
     );
 
-    const resetVideoPlayerData: PlaybackContext['resetVideoPlayerData'] = useCallback(() => {
+    const resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'] = useCallback(() => {
         // Play video is an async operation and if we call stop video before the promise is completed,
         // it will throw a console error. So, we'll wait until the promise is resolved before stopping the video.
         (playVideoPromiseRef.current ?? Promise.resolve()).then(stopVideo).finally(() => {
@@ -68,19 +67,22 @@ function usePlaybackContextVideoRefs(resetCallback: () => void) {
         });
     }, [playVideo]);
 
-    const updateCurrentVideoPlayerRef = (ref: VideoWithOnFullScreenUpdate | null) => {
+    const updateCurrentVideoPlayerRef: PlaybackContextVideoRefs['updateRef'] = (ref) => {
         currentVideoPlayerRef.current = ref;
     };
 
-    return {
-        resetPlayerData: resetVideoPlayerData,
-        isPlaying: checkVideoPlaying,
-        pause: pauseVideo,
-        play: playVideo,
-        ref: currentVideoPlayerRef,
-        resumeTryNumberRef: videoResumeTryNumberRef,
-        updateRef: updateCurrentVideoPlayerRef,
-    };
+    return useMemo(
+        (): PlaybackContextVideoRefs => ({
+            resetPlayerData: resetVideoPlayerData,
+            isPlaying: checkIfVideoIsPlaying,
+            pause: pauseVideo,
+            play: playVideo,
+            ref: currentVideoPlayerRef,
+            resumeTryNumberRef: videoResumeTryNumberRef,
+            updateRef: updateCurrentVideoPlayerRef,
+        }),
+        [checkIfVideoIsPlaying, pauseVideo, playVideo, resetVideoPlayerData],
+    );
 }
 
 export default usePlaybackContextVideoRefs;

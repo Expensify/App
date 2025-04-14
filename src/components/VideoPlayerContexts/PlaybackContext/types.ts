@@ -15,14 +15,12 @@ type VideoElementData = {
     reportID: string | undefined;
 };
 
-type PlaybackContext = {
+type PlaybackContextValues = {
     updateCurrentURLAndReportID: (url: string | undefined, reportID: string | undefined) => void;
     currentlyPlayingURL: string | null;
     currentRouteReportID: string | undefined;
     originalParent: View | HTMLDivElement | null;
     sharedElement: View | HTMLDivElement | null;
-    videoResumeTryNumberRef: MutableRefObject<number>;
-    currentVideoPlayerRef: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
     shareVideoPlayerElements: (
         ref: VideoWithOnFullScreenUpdate | null,
         parent: View | HTMLDivElement | null,
@@ -30,11 +28,26 @@ type PlaybackContext = {
         isUploading: boolean,
         videoElementData: VideoElementData,
     ) => void;
-    playVideo: () => void;
-    pauseVideo: () => void;
-    checkVideoPlaying: (statusCallback: StatusCallback) => void;
     setCurrentlyPlayingURL: React.Dispatch<React.SetStateAction<string | null>>;
-    resetVideoPlayerData: () => void;
 };
 
-export type {StatusCallback, PlaybackContext, OriginalParent, UnloadVideo, StopVideo, PlayVideoPromiseRef};
+type PlaybackContextVideoRefs = {
+    resetPlayerData: () => void;
+    play: () => void;
+    pause: () => void;
+    isPlaying: (statusCallback: StatusCallback) => void;
+    resumeTryNumberRef: MutableRefObject<number>;
+    ref: MutableRefObject<VideoWithOnFullScreenUpdate | null>;
+    updateRef: (ref: VideoWithOnFullScreenUpdate | null) => void;
+};
+
+type PlaybackContext = PlaybackContextValues & {
+    resetVideoPlayerData: PlaybackContextVideoRefs['resetPlayerData'];
+    playVideo: PlaybackContextVideoRefs['play'];
+    pauseVideo: PlaybackContextVideoRefs['pause'];
+    checkIfVideoIsPlaying: PlaybackContextVideoRefs['isPlaying'];
+    videoResumeTryNumberRef: PlaybackContextVideoRefs['resumeTryNumberRef'];
+    currentVideoPlayerRef: PlaybackContextVideoRefs['ref'];
+};
+
+export type {StatusCallback, PlaybackContextValues, OriginalParent, UnloadVideo, StopVideo, PlayVideoPromiseRef, PlaybackContextVideoRefs, PlaybackContext};
