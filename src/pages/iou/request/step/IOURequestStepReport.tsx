@@ -21,6 +21,7 @@ import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
 type ReportListItem = ListItem & {
+    /** reportID of the report */
     value: string;
 };
 
