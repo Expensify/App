@@ -77,7 +77,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
         if (!transaction) {
             return;
         }
-        if (item.reportID !== transaction.reportID) {
+        if (item.value !== transaction.reportID) {
             setTransactionReport(transaction.transactionID, item.value, !isEditing);
             if (isEditing) {
                 changeTransactionsReport([transaction.transactionID], item.value);
