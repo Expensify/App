@@ -8,7 +8,7 @@ import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TaskListItem from '@components/SelectionList/Search/TaskListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
-import type {ListItem, ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ListItem, ReportActionListItemType, ReportListItemType, SearchListItem, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -206,7 +206,7 @@ function isReportListItemType(item: ListItem): item is ReportListItemType {
 /**
  * Type guard that checks if something is a TransactionListItemType
  */
-function isTransactionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is TransactionListItemType {
+function isTransactionListItemType(item: SearchListItem): item is TransactionListItemType {
     const transactionListItem = item as TransactionListItemType;
     return transactionListItem.transactionID !== undefined;
 }
@@ -214,14 +214,14 @@ function isTransactionListItemType(item: TransactionListItemType | ReportListIte
 /**
  * Type guard that check if something is a TaskListItemType
  */
-function isTaskListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is TaskListItemType {
+function isTaskListItemType(item: SearchListItem): item is TaskListItemType {
     return 'type' in item && item.type === CONST.REPORT.TYPE.TASK;
 }
 
 /**
  * Type guard that checks if something is a ReportActionListItemType
  */
-function isReportActionListItemType(item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType): item is ReportActionListItemType {
+function isReportActionListItemType(item: SearchListItem): item is ReportActionListItemType {
     const reportActionListItem = item as ReportActionListItemType;
     return reportActionListItem.reportActionID !== undefined;
 }

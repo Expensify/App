@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
-import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, SearchListItem, TransactionListItemType} from '@components/SelectionList/types';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
@@ -79,12 +79,7 @@ function mapToTransactionItemWithSelectionInfo(item: TransactionListItemType, se
     return {...item, shouldAnimateInHighlight, isSelected: selectedTransactions[item.keyForList]?.isSelected && canSelectMultiple};
 }
 
-function mapToItemWithSelectionInfo(
-    item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType,
-    selectedTransactions: SelectedTransactions,
-    canSelectMultiple: boolean,
-    shouldAnimateInHighlight: boolean,
-) {
+function mapToItemWithSelectionInfo(item: SearchListItem, selectedTransactions: SelectedTransactions, canSelectMultiple: boolean, shouldAnimateInHighlight: boolean) {
     if (isTaskListItemType(item)) {
         return {
             ...item,
@@ -298,7 +293,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     );
 
     const openReport = useCallback(
-        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType, isOpenedAsReport?: boolean) => {
+        (item: SearchListItem, isOpenedAsReport?: boolean) => {
             const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
             const isTransactionItem = isTransactionListItemType(item);
 
@@ -428,7 +423,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         );
     }
 
-    const toggleTransaction = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType) => {
+    const toggleTransaction = (item: SearchListItem) => {
         if (isReportActionListItemType(item)) {
             return;
         }

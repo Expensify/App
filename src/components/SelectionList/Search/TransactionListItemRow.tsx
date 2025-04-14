@@ -22,6 +22,7 @@ import Parser from '@libs/Parser';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import StringUtils from '@libs/StringUtils';
 import {
+    getCreated,
     getTagForDisplay,
     getTaxAmount,
     getCurrency as getTransactionCurrency,
@@ -270,6 +271,8 @@ function TransactionListItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
+    const created = getCreated(item);
+
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
@@ -348,7 +351,7 @@ function TransactionListItemRow({
                                 showTooltip={false}
                             />
                             <DateCell
-                                item={item}
+                                created={created}
                                 showTooltip={showTooltip}
                                 isLargeScreenWidth={false}
                             />
@@ -387,7 +390,7 @@ function TransactionListItemRow({
                 </View>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        item={item}
+                        created={created}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />

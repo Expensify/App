@@ -184,7 +184,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                         )}
 
                         <DateCell
-                            item={item}
+                            created={item.created}
                             showTooltip={showTooltip}
                             isLargeScreenWidth={isLargeScreenWidth}
                         />
@@ -199,7 +199,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        item={item}
+                        created={item.created}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />

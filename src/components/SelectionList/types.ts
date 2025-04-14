@@ -762,6 +762,8 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+
 export type {
     BaseListItemProps,
     SelectionListProps,
@@ -792,4 +794,5 @@ export type {
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
+    SearchListItem,
 };
