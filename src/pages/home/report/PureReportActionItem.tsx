@@ -108,6 +108,7 @@ import {
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
+    useNewTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
     canWriteInReport,
@@ -336,18 +337,6 @@ type PureReportActionItemProps = {
 // If we render an empty component/fragment, this does not apply
 const emptyHTML = <RenderHTML html="" />;
 const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
-
-const useNewTableReportViewActionRenderConditionals = ({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: OnyxTypes.ReportAction) => {
-    const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
-
-    return !(
-        actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE &&
-        childMoneyRequestCount === 0 &&
-        (childVisibleActionCount ?? 0) > 0 &&
-        (previousChildMoneyRequestCount ?? 0) > 0
-    );
-};
 
 /**
  * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
