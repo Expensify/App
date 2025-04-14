@@ -1,4 +1,3 @@
-import HybridAppModule from '@expensify/react-native-hybrid-app/src';
 import {findFocusedRoute, useNavigationState, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
@@ -6,66 +5,49 @@ import type {GestureResponderEvent, ScrollView as RNScrollView, ScrollViewProps,
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import AccountSwitcher from '@components/AccountSwitcher';
-import AccountSwitcherSkeletonView from '@components/AccountSwitcherSkeletonView';
 import ConfirmModal from '@components/ConfirmModal';
-import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
-import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
-import {PressableWithFeedback} from '@components/Pressable';
+import TopBar from '@components/Navigation/TopBar';
+import {useProductTrainingContext} from '@components/ProductTrainingContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
-import Text from '@components/Text';
-import Tooltip from '@components/Tooltip';
-import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
-import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
-import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import type {SETTINGS_TO_RHP, WORKSPACE_HUB_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
+import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
+import type {WORKSPACE_HUB_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
-import {getProfilePageBrickRoadIndicator} from '@libs/UserUtils';
 import {hasGlobalWorkspaceSettingsRBR} from '@libs/WorkspacesSettingsUtils';
 import {showContextMenu} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import variables from '@styles/variables';
 import {confirmReadyToOpenApp} from '@userActions/App';
-import {buildOldDotURL, openExternalLink, openOldDotLink} from '@userActions/Link';
-import {hasPaymentMethodError} from '@userActions/PaymentMethods';
-import {isSupportAuthToken, signOutAndRedirectToSignIn} from '@userActions/Session';
+import {buildOldDotURL, openOldDotLink} from '@userActions/Link';
+import {signOutAndRedirectToSignIn} from '@userActions/Session';
 import {openInitialSettingsPage} from '@userActions/Wallet';
-import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Icon as TIcon} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-type InitialSettingsPageProps = WithCurrentUserPersonalDetailsProps;
-
-type SettingsTopLevelScreens = keyof typeof SETTINGS_TO_RHP;
 type WorkspaceHubTopLevelScreens = keyof typeof WORKSPACE_HUB_TO_RHP;
 
 type MenuData = {
     translationKey: TranslationPaths;
     icon: IconAsset;
-    // @TODO remove SettingsTopLevelScreen
-    screenName?: SettingsTopLevelScreens | WorkspaceHubTopLevelScreens;
+    screenName?: WorkspaceHubTopLevelScreens;
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
     action: () => void;
     link?: string | (() => Promise<string>);
@@ -80,47 +62,43 @@ type MenuData = {
     iconRight?: IconAsset;
     badgeText?: string;
     badgeStyle?: ViewStyle;
+    shouldRenderTooltip?: boolean;
+    renderTooltipContent?: () => React.JSX.Element;
+    onEducationTooltipPress?: () => void;
 };
 
 type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
 
-function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPageProps) {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [fundList] = useOnyx(ONYXKEYS.FUND_LIST);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
-    const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
-
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+function WorkspaceHubInitialPage() {
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const network = useNetwork();
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {isExecuting, singleExecution} = useSingleExecution();
     const popoverAnchor = useRef(null);
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-    const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
-    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`, {canBeMissing: true});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const subscriptionPlan = useSubscriptionPlan();
-    const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 
     const freeTrialText = getFreeTrialText(policies);
-    const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
+
+    const isScreenFocused = useIsSidebarRouteActive(NAVIGATORS.WORKSPACE_HUB_SPLIT_NAVIGATOR, shouldUseNarrowLayout);
+    const isWorkspacesTabSelected = focusedRouteName === SCREENS.WORKSPACE_HUB.WORKSPACES;
+
+    const {
+        renderProductTrainingTooltip: renderWorkspaceSettingsTooltip,
+        shouldShowProductTrainingTooltip: shouldShowWorkspaceSettingsTooltip,
+        hideProductTrainingTooltip: hideWorkspaceSettingsTooltip,
+    } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.WORKSPACES_SETTINGS, isScreenFocused && !isWorkspacesTabSelected);
 
     useEffect(() => {
         openInitialSettingsPage();
@@ -144,47 +122,10 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
         [network.isOffline],
     );
 
-    /**
-     * Retuns a list of menu items data for account section
-     * @returns object with translationKey, style and items for the account section
-     */
-    const accountMenuItemsData: Menu = useMemo(() => {
-        const profileBrickRoadIndicator = getProfilePageBrickRoadIndicator(loginList, privatePersonalDetails);
-        const defaultMenu: Menu = {
-            sectionStyle: styles.accountSettingsSectionContainer,
-            sectionTranslationKey: 'initialSettingsPage.account',
-            items: [
-                {
-                    translationKey: 'common.profile',
-                    icon: Expensicons.Profile,
-                    screenName: SCREENS.SETTINGS.PROFILE.ROOT,
-                    brickRoadIndicator: profileBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PROFILE),
-                },
-                {
-                    translationKey: 'common.wallet',
-                    icon: Expensicons.Wallet,
-                    screenName: SCREENS.SETTINGS.WALLET.ROOT,
-                    brickRoadIndicator: walletBrickRoadIndicator,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_WALLET),
-                },
-                {
-                    translationKey: 'common.preferences',
-                    icon: Expensicons.Gear,
-                    screenName: SCREENS.SETTINGS.PREFERENCES.ROOT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_PREFERENCES),
-                },
-                {
-                    translationKey: 'initialSettingsPage.security',
-                    icon: Expensicons.Lock,
-                    screenName: SCREENS.SETTINGS.SECURITY,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_SECURITY),
-                },
-            ],
-        };
-
-        return defaultMenu;
-    }, [loginList, privatePersonalDetails, styles.accountSettingsSectionContainer, walletBrickRoadIndicator]);
+    const navigateToWorkspacesSettings = useCallback(() => {
+        hideWorkspaceSettingsTooltip();
+        Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
+    }, [hideWorkspaceSettingsTooltip]);
 
     /**
      * Retuns a list of menu items data for workspace section
@@ -197,7 +138,10 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
                 icon: Expensicons.Buildings,
                 screenName: SCREENS.WORKSPACE_HUB.WORKSPACES,
                 brickRoadIndicator: hasGlobalWorkspaceSettingsRBR(policies, allConnectionSyncProgresses) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-                action: () => Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route),
+                action: navigateToWorkspacesSettings,
+                shouldRenderTooltip: shouldShowWorkspaceSettingsTooltip,
+                renderTooltipContent: renderWorkspaceSettingsTooltip,
+                onEducationTooltipPress: navigateToWorkspacesSettings,
             },
             {
                 translationKey: 'allSettingsScreen.domains',
@@ -228,84 +172,18 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
             sectionTranslationKey: 'common.workspaces',
             items,
         };
-    }, [allConnectionSyncProgresses, freeTrialText, policies, privateSubscription?.errors, styles.badgeSuccess, styles.workspaceSettingsSectionContainer, subscriptionPlan]);
-
-    /**
-     * Retuns a list of menu items data for general section
-     * @returns object with translationKey, style and items for the general section
-     */
-    const generalMenuItemsData: Menu = useMemo(() => {
-        const signOutTranslationKey = isSupportAuthToken() ? 'initialSettingsPage.restoreStashed' : 'initialSettingsPage.signOut';
-        return {
-            sectionStyle: {
-                ...styles.pt4,
-            },
-            sectionTranslationKey: 'initialSettingsPage.general',
-            items: [
-                {
-                    translationKey: 'initialSettingsPage.help',
-                    icon: Expensicons.QuestionMark,
-                    iconRight: Expensicons.NewWindow,
-                    shouldShowRightIcon: true,
-                    link: CONST.NEWHELP_URL,
-                    action: () => {
-                        openExternalLink(CONST.NEWHELP_URL);
-                    },
-                },
-                {
-                    translationKey: 'exitSurvey.goToExpensifyClassic',
-                    icon: Expensicons.ExpensifyLogoNew,
-                    ...(CONFIG.IS_HYBRID_APP
-                        ? {
-                              action: () => {
-                                  HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                                  setRootStatusBarEnabled(false);
-                              },
-                          }
-                        : {
-                              action() {
-                                  if (isActingAsDelegate) {
-                                      setIsNoDelegateAccessMenuVisible(true);
-                                      return;
-                                  }
-                                  resetExitSurveyForm(() => {
-                                      if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
-                                          return;
-                                      }
-                                      Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
-                                  });
-                              },
-                          }),
-                },
-                {
-                    translationKey: 'initialSettingsPage.about',
-                    icon: Expensicons.Info,
-                    screenName: SCREENS.SETTINGS.ABOUT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_ABOUT),
-                },
-                {
-                    translationKey: 'initialSettingsPage.aboutPage.troubleshoot',
-                    icon: Expensicons.Lightbulb,
-                    screenName: SCREENS.SETTINGS.TROUBLESHOOT,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_TROUBLESHOOT),
-                },
-                {
-                    translationKey: 'sidebarScreen.saveTheWorld',
-                    icon: Expensicons.Heart,
-                    screenName: SCREENS.SETTINGS.SAVE_THE_WORLD,
-                    action: () => Navigation.navigate(ROUTES.SETTINGS_SAVE_THE_WORLD),
-                },
-                {
-                    translationKey: signOutTranslationKey,
-                    icon: Expensicons.Exit,
-                    action: () => {
-                        signOut(false);
-                    },
-                },
-            ],
-        };
-    }, [styles.pt4, setRootStatusBarEnabled, isActingAsDelegate, shouldOpenBookACall, signOut]);
+    }, [
+        allConnectionSyncProgresses,
+        freeTrialText,
+        navigateToWorkspacesSettings,
+        policies,
+        privateSubscription?.errors,
+        renderWorkspaceSettingsTooltip,
+        shouldShowWorkspaceSettingsTooltip,
+        styles.badgeSuccess,
+        styles.workspaceSettingsSectionContainer,
+        subscriptionPlan,
+    ]);
 
     /**
      * Retuns JSX.Element with menu items
@@ -342,7 +220,6 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
 
             return (
                 <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                    <Text style={styles.sectionTitle}>{translate(menuItemsData.sectionTranslationKey)}</Text>
                     {menuItemsData.items.map((item) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
                         const isPaymentItem = item.translationKey === 'common.wallet';
@@ -375,51 +252,19 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
                                 iconRight={item.iconRight}
                                 shouldShowRightIcon={item.shouldShowRightIcon}
                                 shouldIconUseAutoWidthStyle
+                                shouldRenderTooltip={item.shouldRenderTooltip}
+                                renderTooltipContent={item.renderTooltipContent}
+                                onEducationTooltipPress={item.onEducationTooltipPress}
                             />
                         );
                     })}
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionTitle, styles.sectionMenuItem, translate, userWallet?.currentBalance, focusedRouteName, isExecuting, singleExecution],
+        [styles.pb4, styles.mh3, styles.sectionMenuItem, translate, userWallet?.currentBalance, focusedRouteName, isExecuting, singleExecution],
     );
 
-    const accountMenuItems = useMemo(() => getMenuItemsSection(accountMenuItemsData), [accountMenuItemsData, getMenuItemsSection]);
-    const generalMenuItems = useMemo(() => getMenuItemsSection(generalMenuItemsData), [generalMenuItemsData, getMenuItemsSection]);
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
-
-    const headerContent = (
-        <View style={[styles.ph5, styles.pv5]}>
-            {isEmptyObject(currentUserPersonalDetails) || currentUserPersonalDetails.displayName === undefined ? (
-                <AccountSwitcherSkeletonView avatarSize={CONST.AVATAR_SIZE.DEFAULT} />
-            ) : (
-                <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.gap3]}>
-                    <AccountSwitcher />
-                    <Tooltip text={translate('statusPage.status')}>
-                        <PressableWithFeedback
-                            accessibilityLabel={translate('statusPage.status')}
-                            accessibilityRole="button"
-                            accessible
-                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_STATUS)}
-                        >
-                            <View style={styles.primaryMediumIcon}>
-                                {emojiCode ? (
-                                    <Text style={styles.primaryMediumText}>{emojiCode}</Text>
-                                ) : (
-                                    <Icon
-                                        src={Expensicons.Emoji}
-                                        width={variables.iconSizeNormal}
-                                        height={variables.iconSizeNormal}
-                                        fill={theme.icon}
-                                    />
-                                )}
-                            </View>
-                        </PressableWithFeedback>
-                    </Tooltip>
-                </View>
-            )}
-        </View>
-    );
 
     const {saveScrollOffset, getScrollOffset} = useContext(ScrollOffsetContext);
     const route = useRoute();
@@ -449,11 +294,13 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={WorkspaceHubInitialPage.displayName}
-            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
-            extraContentStyles={!shouldUseNarrowLayout && styles.leftNavigationTabBarPosition}
+            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
-            {headerContent}
+            <TopBar
+                shouldDisplaySearch={shouldUseNarrowLayout}
+                breadcrumbLabel={translate('common.workspaces')}
+            />
             <ScrollView
                 ref={scrollViewRef}
                 onScroll={onScroll}
@@ -461,9 +308,7 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
                 contentContainerStyle={[styles.w100]}
                 showsVerticalScrollIndicator={false}
             >
-                {accountMenuItems}
                 {workspaceMenuItems}
-                {generalMenuItems}
                 <ConfirmModal
                     danger
                     title={translate('common.areYouSure')}
@@ -485,4 +330,4 @@ function WorkspaceHubInitialPage({currentUserPersonalDetails}: InitialSettingsPa
 
 WorkspaceHubInitialPage.displayName = 'WorkspaceHubInitialPage';
 
-export default withCurrentUserPersonalDetails(WorkspaceHubInitialPage);
+export default WorkspaceHubInitialPage;
