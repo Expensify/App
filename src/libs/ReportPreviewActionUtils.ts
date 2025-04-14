@@ -7,10 +7,14 @@ import {getCurrentUserAccountID} from './actions/Report';
 import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
 import {
     getMoneyRequestSpendBreakdown,
+    getParentReport,
+    getReportNameValuePairs,
+    getMoneyRequestSpendBreakdown,
     getReportTransactions,
     hasNoticeTypeViolations,
     hasViolations,
     hasWarningTypeViolations,
+    isArchivedReport,
     isClosedReport,
     isCurrentUserSubmitter,
     isExpenseReport,
@@ -31,6 +35,7 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasAnyViolations =
         hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
+    console.log('%%%%%\n', 'hasAnyViolations', hasAnyViolations);
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasAnyViolations;
 }
 
@@ -54,21 +59,34 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessing;
     const isApproved = isReportApproved({report}) || isSubmittedWithoutApprovalsEnabled;
     const isClosed = isClosedReport(report);
-    const hasAnyViolations =
-        hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
-    const isInvoice = isInvoiceReport(report);
-    const isIOU = isIOUReport(report);
-
+    const isReportFinished = isApproved || isClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    if (reimbursableSpend <= 0) {
+    const hasAnyViolations =
+        hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
+
+    if (isExpense && isReportPayer && isPaymentsEnabled && isReportFinished && !hasAnyViolations && reimbursableSpend > 0) {
+        return true;
+    }
+
+    const isIOU = isIOUReport(report);
+
+    if (isIOU && isReportPayer) {
+        return true;
+    }
+
+    const isInvoice = isInvoiceReport(report);
+
+    if (!isInvoice) {
         return false;
     }
 
-    if (!isReportPayer) {
-        return false;
+    const parentReport = getParentReport(report);
+    if (parentReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+        return parentReport?.invoiceReceiver?.accountID === getCurrentUserAccountID();
     }
-    return (isExpense && isPaymentsEnabled && (isApproved || isClosed) && !hasAnyViolations) || ((isInvoice || isIOU) && isProcessing);
+
+    return policy?.role === CONST.POLICY.ROLE.ADMIN;
 }
 
 function canExport(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {

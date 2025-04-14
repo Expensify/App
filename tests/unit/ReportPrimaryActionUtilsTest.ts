@@ -94,6 +94,7 @@ describe('getPrimaryAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -300,
         } as unknown as Report;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
         const policy = {

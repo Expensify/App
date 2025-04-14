@@ -36,6 +36,7 @@ import {
     isExported as isExportedUtils,
     isInvoiceReport,
     isProcessingReport,
+    isReportApproved as isReportApprovedUtils,
     isReportOwner,
     navigateToDetailsPage,
     reportTransactionsSelector,
@@ -184,7 +185,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
-
+    const isReportApproved = isReportApprovedUtils({report: moneyRequestReport});
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
             canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
@@ -204,8 +205,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
+        const isReportReimbursed = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-        if (!anyTransactionOnHold && selectedTransactions.length === 1) {
+        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
@@ -261,7 +263,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return canRemoveTransaction && isIOUActionOwner && !isActionDeleted;
         });
 
-        const canRemoveReportTransaction = canDeleteTransaction(moneyRequestReport);
+        const canRemoveReportTransaction = canDeleteTransaction(moneyRequestReport) && !isReportApproved;
 
         if (canRemoveReportTransaction && canAllSelectedTransactionsBeRemoved) {
             options.push({
@@ -286,7 +288,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             });
         }
         return options;
-    }, [moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
+    }, [isReportApproved, moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
 
     const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length;
 

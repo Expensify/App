@@ -98,6 +98,7 @@ describe('getReportPreviewAction', () => {
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
             statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+            total: -100,
         };
 
         const policy = createRandomPolicy(0);
