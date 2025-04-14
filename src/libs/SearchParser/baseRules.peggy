@@ -56,7 +56,7 @@ groupBy = "groupBy"i / "group-by"i { return "groupBy"; }
 feed = "feed"i { return "feed"; }
 title = "title"i { return "title"; }
 assignee = "assignee"i { return "assignee"; }
-createdBy = "createdBy"i { return "createdBy"; }
+createdBy = "createdBy"i  / "created-by"i { return "createdBy"; }
 
 operator "operator"
   = (":" / "=") { return "eq"; }

@@ -286,8 +286,8 @@ type TaskListItemType = ListItem &
         keyForList: string;
 
         /**
-         * Whether we should show the transaction year.
-         * This is true if at least one transaction in the dataset was created in past years
+         * Whether we should show the task year.
+         * This is true if at least one task in the dataset was created in past years
          */
         shouldShowYear: boolean;
     };
