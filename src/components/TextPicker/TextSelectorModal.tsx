@@ -65,7 +65,7 @@ function TextSelectorModal({
 
             return errors;
         },
-        [maxLength, rest.inputID, translate, required],
+        [maxLength, rest.inputID, required, translate],
     );
 
     // In TextPicker, when the modal is hidden, it is not completely unmounted, so when it is shown again, the currentValue is not updated with the value prop.
