@@ -319,6 +319,7 @@ function MoneyRequestConfirmationListFooter({
             checkIfContextMenuActive: () => {},
             onShowContextMenu: () => {},
             isDisabled: true,
+            shouldDisplayContextMenu: false,
         }),
         [],
     );

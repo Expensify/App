@@ -28,9 +28,6 @@ Onyx.connect({
             PushNotification.onReceived(PushNotification.TYPE.REPORT_COMMENT, applyOnyxData);
             PushNotification.onSelected(PushNotification.TYPE.REPORT_COMMENT, navigateToReport);
 
-            PushNotification.onReceived(PushNotification.TYPE.MONEY_REQUEST, applyOnyxData);
-            PushNotification.onSelected(PushNotification.TYPE.MONEY_REQUEST, navigateToReport);
-
             PushNotification.onReceived(PushNotification.TYPE.REPORT_ACTION, applyOnyxData);
             PushNotification.onSelected(PushNotification.TYPE.REPORT_ACTION, navigateToReport);
 
@@ -146,7 +143,7 @@ function navigateToReport({reportID}: PushNotificationData): Promise<void> {
                 }
 
                 Log.info('[PushNotification] onSelected() - Navigation is ready. Navigating...', false, {reportID});
-                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID});
+                Navigation.navigateToReportWithPolicyCheck({reportID: String(reportID), policyIDToCheck: policyID, backTo: Navigation.getActiveRoute()});
                 updateLastVisitedPath(ROUTES.REPORT_WITH_ID.getRoute(String(reportID)));
             } catch (error) {
                 let errorMessage = String(error);

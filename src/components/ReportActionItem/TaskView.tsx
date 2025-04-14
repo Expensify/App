@@ -71,6 +71,7 @@ function TaskView({report}: TaskViewProps) {
             checkIfContextMenuActive: () => {},
             isDisabled: true,
             onShowContextMenu: (callback: () => void) => callback(),
+            shouldDisplayContextMenu: false,
         }),
         [report],
     );

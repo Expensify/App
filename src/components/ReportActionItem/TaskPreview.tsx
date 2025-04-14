@@ -1,7 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Avatar from '@components/Avatar';
 import Checkbox from '@components/Checkbox';
@@ -15,6 +14,7 @@ import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -60,6 +60,9 @@ type TaskPreviewProps = WithCurrentUserPersonalDetailsProps & {
 
     /** Style for the task preview container */
     style: StyleProp<ViewStyle>;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 function TaskPreview({
@@ -72,6 +75,7 @@ function TaskPreview({
     onShowContextMenu,
     isHovered = false,
     style,
+    shouldDisplayContextMenu = true,
 }: TaskPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -102,13 +106,28 @@ function TaskPreview({
         return <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedTask')}</deleted-action>`} />;
     }
 
+    const getTaskHTML = () => {
+        if (isTaskCompleted) {
+            return `<del><comment center>${taskTitleWithoutImage}</comment></del>`;
+        }
+
+        return `<comment center>${taskTitleWithoutImage}</comment>`;
+    };
+
     return (
         <View style={[styles.chatItemMessage, !hasAssignee && styles.mv1]}>
             <PressableWithoutFeedback
                 onPress={() => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(taskReportID))}
                 onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                 onPressOut={() => ControlSelection.unblock()}
-                onLongPress={(event) => onShowContextMenu(() => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive))}
+                onLongPress={(event) =>
+                    onShowContextMenu(() => {
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+                        return showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    })
+                }
                 shouldUseHapticsOnLongPress
                 style={[styles.flexRow, styles.justifyContentBetween, style]}
                 role={CONST.ROLE.BUTTON}
@@ -144,7 +163,7 @@ function TaskPreview({
                         </UserDetailsTooltip>
                     )}
                     <View style={[styles.alignSelfCenter, styles.flex1]}>
-                        <RenderHTML html={`<comment center>${taskTitleWithoutImage}</comment>`} />
+                        <RenderHTML html={getTaskHTML()} />
                     </View>
                 </View>
                 {shouldShowGreenDotIndicator && (

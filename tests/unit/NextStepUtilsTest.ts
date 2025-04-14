@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {buildNextStep} from '@libs/NextStepUtils';
-import {buildOptimisticExpenseReport} from '@libs/ReportUtils';
+import {buildOptimisticEmptyReport, buildOptimisticExpenseReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report, ReportNextStep} from '@src/types/onyx';
@@ -73,6 +73,35 @@ describe('libs/NextStepUtils', () => {
             optimisticNextStep.message = [];
 
             Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy).then(waitForBatchedUpdates);
+        });
+
+        describe('it generates and optimistic nextStep once a report has been created', () => {
+            test('Correct next steps message', () => {
+                const emptyReport = buildOptimisticEmptyReport('fake-empty-report-id-2', currentUserAccountID, {reportID: 'fake-parent-report-id-3'}, policy, '2025-03-31 13:23:11');
+
+                optimisticNextStep.message = [
+                    {
+                        text: 'Waiting for ',
+                    },
+                    {
+                        text: `${currentUserEmail}`,
+                        type: 'strong',
+                    },
+                    {
+                        text: ' to ',
+                    },
+                    {
+                        text: 'add',
+                    },
+                    {
+                        text: ' %expenses.',
+                    },
+                ];
+
+                const result = buildNextStep(emptyReport, CONST.REPORT.STATUS_NUM.OPEN);
+
+                expect(result).toMatchObject(optimisticNextStep);
+            });
         });
 
         describe('it generates an optimistic nextStep once a report has been opened', () => {

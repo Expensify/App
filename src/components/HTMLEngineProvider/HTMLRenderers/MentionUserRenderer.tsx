@@ -70,11 +70,11 @@ function MentionUserRenderer({style, tnode, TDefaultRenderer, currentUserPersona
 
     return (
         <ShowContextMenuContext.Consumer>
-            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+            {({onShowContextMenu, anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                 <Text
                     suppressHighlighting
                     onLongPress={(event) => {
-                        if (isDisabled) {
+                        if (isDisabled || !shouldDisplayContextMenu) {
                             return;
                         }
                         return onShowContextMenu(() =>
