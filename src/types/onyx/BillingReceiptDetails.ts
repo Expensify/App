@@ -49,7 +49,7 @@ type BillingReceiptDetails = {
     /** The base monthly price for team subscriptions */
     monthlyTeamBasePrice: number;
 
-    /** A list of errors keyed by microtime */
+    /** Error message string */
     errors?: string;
 
     /** Indicates whether the data is loaded or not  */

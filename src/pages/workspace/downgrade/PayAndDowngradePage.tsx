@@ -6,6 +6,7 @@ import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOffli
 import Button from '@components/Button';
 import FixedFooter from '@components/FixedFooter';
 import FormHelpMessage from '@components/FormHelpMessage';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -18,6 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {clearBillingReceiptDetailsErrors, payAndDowngrade} from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type BillingItem = {
     key: string;
@@ -30,7 +32,7 @@ function PayAndDowngradePage() {
 
     const {translate} = useLocalize();
 
-    const [billingDetails] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
+    const [billingDetails, metadata] = useOnyx(ONYXKEYS.BILLING_RECEIPT_DETAILS);
     const prevIsLoading = usePrevious(billingDetails?.isLoading);
 
     const errorMessage = billingDetails?.errors;
@@ -66,6 +68,10 @@ function PayAndDowngradePage() {
     useEffect(() => {
         clearBillingReceiptDetailsErrors();
     }, []);
+
+    if (isLoadingOnyxValue(metadata)) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <ScreenWrapper

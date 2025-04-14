@@ -500,7 +500,11 @@ const ONYXKEYS = {
     /** Set when we are loading bill when downgrade */
     IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
 
-    /** Should bill when downgrade */
+    /**
+     * Determines whether billing is required when the user downgrades their plan.
+     * If true, the "Pay & Downgrade" RHP will be displayed to guide the user
+     * through the payment process before downgrading.
+     */
     SHOULD_BILL_WHEN_DOWNGRADING: 'shouldBillWhenDowngrading',
 
     /** Billing receipt details */
@@ -1120,8 +1124,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
-    [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean;
-    [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean;
+    [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
+    [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
 };

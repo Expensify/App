@@ -5069,6 +5069,9 @@ function getAssignedSupportData(policyID: string) {
     API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, parameters);
 }
 
+/**
+ * Call the API to calculate the bill for the new dot
+ */
 function calculateBillNewDot() {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -5098,6 +5101,9 @@ function calculateBillNewDot() {
     });
 }
 
+/**
+ * Call the API to pay and downgrade
+ */
 function payAndDowngrade() {
     const optimisticData: OnyxUpdate[] = [
         {

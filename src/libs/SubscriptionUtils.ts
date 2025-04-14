@@ -146,7 +146,7 @@ Onyx.connect({
     waitForCollectionCallback: true,
 });
 
-// Check if the user can downgrade
+// Indicates if downgrading the current subscription plan is allowed for the user.
 let canDowngrade = false;
 Onyx.connect({
     key: ONYXKEYS.ACCOUNT,
