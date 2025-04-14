@@ -16,7 +16,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {completeTask} from '@libs/actions/Task';
-import Parser from '@libs/Parser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import AvatarWithTextCell from './AvatarWithTextCell';
