@@ -62,6 +62,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isClosed = isClosedReport(report);
     const isReportFinished = isApproved || isClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const isReimbursed = isSettled(report);
 
     const hasViolations = hasAnyViolations(report.reportID, violations);
 
@@ -71,7 +72,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 
     const isIOU = isIOUReport(report);
 
-    if (isIOU && isReportPayer) {
+    if (isIOU && isReportPayer && !isReimbursed) {
         return true;
     }
 
