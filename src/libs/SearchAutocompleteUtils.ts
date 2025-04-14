@@ -158,6 +158,7 @@ function filterOutRangesWithCorrectValue(
         ...CONST.SEARCH.STATUS.TASK,
     }) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
@@ -186,6 +187,9 @@ function filterOutRangesWithCorrectValue(
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+            return booleanList.includes(range.value);
         default:
             return false;
     }

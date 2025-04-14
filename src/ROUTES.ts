@@ -71,6 +71,8 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_TITLE: 'search/filters/title',
     SEARCH_ADVANCED_FILTERS_ASSIGNEE: 'search/filters/assignee',
     SEARCH_ADVANCED_FILTERS_CREATED_BY: 'search/filters/createdBy',
+    SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
+    SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',

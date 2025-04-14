@@ -6398,6 +6398,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        BOOLEAN: {
+            YES: 'yes',
+            NO: 'no',
+        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',
@@ -6496,6 +6500,8 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             CREATED_BY: 'createdBy',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
@@ -6535,6 +6541,8 @@ const CONST = {
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             CREATED_BY: 'created-by',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',

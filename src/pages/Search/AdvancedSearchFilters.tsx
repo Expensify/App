@@ -152,6 +152,16 @@ const baseFilterConfig = {
         description: 'common.createdBy' as const,
         route: ROUTES.SEARCH_ADVANCED_FILTERS_CREATED_BY,
     },
+    reimbursable: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.reimbursable' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
+    },
+    billable: {
+        getTitle: getFilterDisplayTitle,
+        description: 'common.billable' as const,
+        route: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
+    },
     policyID: {
         getTitle: getFilterWorkspaceDisplayTitle,
         description: 'workspace.common.workspace' as const,
@@ -176,6 +186,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAG,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DESCRIPTION,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE,
         ],
         [CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID, CONST.SEARCH.SYNTAX_FILTER_KEYS.POSTED],
         [
@@ -373,6 +385,11 @@ function getFilterDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, filt
         return filters[nonDateFilterKey];
     }
 
+    if (nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || nonDateFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+        const filterValue = filters[nonDateFilterKey];
+        return filterValue ? translate(`common.${filterValue as ValueOf<typeof CONST.SEARCH.BOOLEAN>}`) : undefined;
+    }
+
     const filterValue = filters[nonDateFilterKey];
     return Array.isArray(filterValue) ? filterValue.join(', ') : filterValue;
 }
@@ -432,6 +449,7 @@ function AdvancedSearchFilters() {
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+
     const policyID = searchAdvancedFilters.policyID;
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -588,6 +606,8 @@ function AdvancedSearchFilters() {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters[key] ?? [], personalDetails);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, translate, reports);
+                    } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
                     }

@@ -70,6 +70,8 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     title: 'title',
     assignee: 'assignee',
     createdBy: 'created-by',
+    billable: 'billable',
+    reimbursable: 'reimbursable',
 };
 
 /**
@@ -357,7 +359,15 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
-            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID || filterKey === FILTER_KEYS.TITLE) && filterValue) {
+            if (
+                (filterKey === FILTER_KEYS.MERCHANT ||
+                    filterKey === FILTER_KEYS.DESCRIPTION ||
+                    filterKey === FILTER_KEYS.REPORT_ID ||
+                    filterKey === FILTER_KEYS.REIMBURSABLE ||
+                    filterKey === FILTER_KEYS.BILLABLE ||
+                    filterKey === FILTER_KEYS.TITLE) &&
+                filterValue
+            ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
@@ -387,6 +397,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
@@ -428,6 +439,7 @@ function buildFilterFormValuesFromQuery(
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
+
     for (const queryFilter of filters) {
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
@@ -514,6 +526,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.GREATER_THAN] =
                 filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
                 filtersForm[FILTER_KEYS.GREATER_THAN];
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+            const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
+            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
     }
 

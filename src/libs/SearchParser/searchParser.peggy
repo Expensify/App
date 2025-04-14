@@ -133,6 +133,8 @@ key "key"
       / title
       / assignee
       / createdBy
+      / reimbursable
+      / billable
     )
 
 filterKey
