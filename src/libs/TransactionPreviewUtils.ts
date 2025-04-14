@@ -180,7 +180,9 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     let previewHeaderText: TranslationPathOrText[] = [showCashOrCard];
 
-    if (isDistanceRequest(transaction)) {
+    if (!transaction) {
+        previewHeaderText = [{text: ''}];
+    } else if (isDistanceRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.distance'}];
     } else if (isPerDiemRequest(transaction)) {
         previewHeaderText = [{translationPath: 'common.perDiem'}];
