@@ -13,7 +13,7 @@ import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/t
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Link from '@userActions/Link';
+import {openExternalLink} from '@userActions/Link';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -112,7 +112,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             <Text style={[styles.mutedNormalTextLabel, styles.ph5, styles.pb5, styles.mt2]}>
                 <Text style={[styles.mutedNormalTextLabel]}>{translate('workspace.qbd.deepDiveExpensifyCard')}</Text>
                 <TextLink
-                    onPress={() => Link.openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
+                    onPress={() => openExternalLink(CONST.DEEP_DIVE_EXPENSIFY_CARD)}
                     style={[styles.mutedNormalTextLabel, styles.link]}
                 >
                     {` ${translate('workspace.qbd.deepDiveExpensifyCardIntegration')}`}
