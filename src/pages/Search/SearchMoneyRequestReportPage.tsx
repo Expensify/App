@@ -131,7 +131,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 <TopBar
                                     breadcrumbLabel={translate('common.reports')}
                                     shouldDisplaySearch={false}
-                                    shouldDisplayLoadingBar={false}
+                                    shouldShowLoadingBar={false}
                                 />
                                 <SearchTypeMenu queryJSON={undefined} />
                             </View>
