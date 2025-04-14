@@ -527,6 +527,7 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
         unreported: 'No reportado',
@@ -5217,6 +5218,8 @@ const translations = {
             paid: 'Pagado',
             exported: 'Exportado',
             posted: 'Contabilizado',
+            billable: 'Facturable',
+            reimbursable: 'Reembolsable',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos',
