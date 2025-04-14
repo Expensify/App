@@ -1,7 +1,9 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
+import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -18,18 +20,20 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@libs/actions/Welcome';
+import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {} from '@src/types/onyx/Bank';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type OnboardingListItem = ListItem & {
@@ -41,14 +45,14 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
+    const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
 
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const [allPolicies, allPoliciesResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const {canUseDefaultRooms} = usePermissions();
@@ -57,21 +61,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
-    const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
 
-    // If the signupQualifier is VSB, the company size step is skip.
-    // So we need to create the new workspace in the accounting step
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (!isVsb || paidGroupPolicy || isLoadingOnyxValue(allPoliciesResult)) {
-            return;
-        }
-
-        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false);
-        setOnboardingAdminsChatReportID(adminsChatReportID);
-        setOnboardingPolicyID(policyID);
-    }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
     useEffect(() => {
@@ -168,33 +159,61 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
-                    if (!onboardingPurposeSelected) {
+                    if (!onboardingPurposeSelected || !onboardingCompanySize) {
                         return;
+                    }
+
+                    switchToOldDotOnNonMicroCompanySize(onboardingCompanySize);
+
+                    const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+
+                    // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
+                    // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
+                    const {adminsChatReportID, policyID} = shouldCreateWorkspace
+                        ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false)
+                        : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+                    if (shouldCreateWorkspace) {
+                        setOnboardingAdminsChatReportID(adminsChatReportID);
+                        setOnboardingPolicyID(policyID);
                     }
 
                     completeOnboarding({
                         engagementChoice: onboardingPurposeSelected,
                         onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                        adminsChatReportID: onboardingAdminsChatReportID,
-                        onboardingPolicyID,
+                        adminsChatReportID,
+                        onboardingPolicyID: policyID,
                         companySize: onboardingCompanySize,
                         userReportedIntegration,
                     });
+
+                    if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+                        if (CONFIG.IS_HYBRID_APP) {
+                            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+                            setRootStatusBarEnabled(false);
+                        } else {
+                            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                        }
+                    }
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(
-                        isSmallScreenWidth,
-                        canUseDefaultRooms,
-                        onboardingPolicyID,
-                        activeWorkspaceID,
-                        onboardingAdminsChatReportID,
-                        // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                        // See https://github.com/Expensify/App/issues/57167 for more details
-                        (session?.email ?? '').includes('+'),
-                    );
+
+                    // We need to wait the policy is created before navigating out the onboarding flow
+                    Navigation.setNavigationActionToMicrotaskQueue(() => {
+                        navigateAfterOnboarding(
+                            isSmallScreenWidth,
+                            canUseDefaultRooms,
+                            onboardingPolicyID,
+                            activeWorkspaceID,
+                            adminsChatReportID,
+                            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+                            // See https://github.com/Expensify/App/issues/57167 for more details
+                            (session?.email ?? '').includes('+'),
+                        );
+                    })
                 }}
                 pressOnEnter
             />
