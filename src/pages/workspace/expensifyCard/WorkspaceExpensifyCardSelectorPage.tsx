@@ -22,6 +22,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 
 type ExpensifyFeedListItem = ListItem & {
     /** Expensify Card feed value */
@@ -35,6 +36,8 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
+    const defaultFundID = useDefaultFundID(policyID);
+    const lastSelectedExpensifyFeedID = lastSelectedExpensifyFeed ?? defaultFundID;
 
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
 
@@ -44,7 +47,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
             value: fundID,
             text: getDescriptionForPolicyDomainCard(value?.domainName ?? ''),
             keyForList: fundID.toString(),
-            isSelected: fundID === lastSelectedExpensifyFeed,
+            isSelected: fundID === lastSelectedExpensifyFeedID,
             leftElement: (
                 <Icon
                     src={ExpensifyCardImage}
