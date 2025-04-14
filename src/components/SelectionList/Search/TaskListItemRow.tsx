@@ -16,10 +16,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
 import {completeTask} from '@libs/actions/Task';
-import DateUtils from '@libs/DateUtils';
 import Parser from '@libs/Parser';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import DateCell from './DateCell';
 import ReportInfoCell from './ReportInfoCell';
 import UserInfoCell from './UserInfoCell';
 
@@ -38,21 +38,6 @@ type CellProps = {
 type TaskCellProps = {
     taskItem: TaskListItemType;
 } & CellProps;
-
-function DateCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
-    const styles = useThemeStyles();
-
-    const created = taskItem.created;
-    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-
-    return (
-        <TextWithTooltip
-            text={date}
-            shouldShowTooltip={showTooltip}
-            style={[styles.lineHeightLarge, styles.pre, styles.justifyContentCenter, isLargeScreenWidth ? undefined : [styles.textMicro, styles.textSupporting]]}
-        />
-    );
-}
 
 function TitleCell({taskItem, showTooltip, isLargeScreenWidth}: TaskCellProps) {
     const styles = useThemeStyles();
@@ -182,17 +167,19 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
                     </View>
 
                     <View style={[styles.gap2, styles.alignItemsEnd]}>
-                        <Avatar
-                            imageStyles={[styles.alignSelfCenter]}
-                            size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
-                            source={item.assignee.avatar}
-                            name={item.formattedAssignee}
-                            type={CONST.ICON_TYPE_AVATAR}
-                            avatarID={item.assignee.accountID}
-                        />
+                        {!!item.assignee.accountID && (
+                            <Avatar
+                                imageStyles={[styles.alignSelfCenter]}
+                                size={CONST.AVATAR_SIZE.MID_SUBSCRIPT}
+                                source={item.assignee.avatar}
+                                name={item.formattedAssignee}
+                                type={CONST.ICON_TYPE_AVATAR}
+                                avatarID={item.assignee.accountID}
+                            />
+                        )}
 
                         <DateCell
-                            taskItem={item}
+                            item={item}
                             showTooltip={showTooltip}
                             isLargeScreenWidth={isLargeScreenWidth}
                         />
@@ -207,7 +194,7 @@ function TaskListItemRow({item, containerStyle, showTooltip}: TaskListItemRowPro
             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.DATE, item.shouldShowYear)]}>
                     <DateCell
-                        taskItem={item}
+                        item={item}
                         showTooltip={showTooltip}
                         isLargeScreenWidth
                     />
