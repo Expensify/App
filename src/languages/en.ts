@@ -2073,35 +2073,35 @@ const translations = {
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
-        validationFailed: 'Validation failed because enough time hasn’t passed since your last attempt.',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
-        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
                 return 'Please wait a moment before trying again.';
             }
 
-            const parts = [];
+            const timeParts = [];
             if (timeData.days) {
-                parts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
+                timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
             }
+
             if (timeData.hours) {
-                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
+                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
             }
+
             if (timeData.minutes) {
-                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
+                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
             }
 
-            let timeText;
-            if (parts.length === 1) {
-                timeText = parts.at(0);
-            } else if (parts.length === 2) {
-                timeText = parts.join(' and ');
-            } else {
-                const lastPart = parts.pop();
-                timeText = `${parts.join(', ')} and ${lastPart}`;
+            let timeText = '';
+            if (timeParts.length === 1) {
+                timeText = timeParts.at(0) ?? '';
+            } else if (timeParts.length === 2) {
+                timeText = `${timeParts.at(0)} and ${timeParts.at(1)}`;
+            } else if (timeParts.length === 3) {
+                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
             }
 
-            return `Please wait ${timeText} before trying again.`;
+            return `Hold tight! You need to wait ${timeText} before trying to validate your number again.`;
         },
     },
     welcomeSignUpForm: {

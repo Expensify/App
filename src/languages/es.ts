@@ -2077,35 +2077,35 @@ const translations = {
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
-        validationFailed: 'La validación falló porque no ha pasado suficiente tiempo desde tu último intento.',
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
-        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
 
-            const parts = [];
+            const timeParts = [];
             if (timeData.days) {
-                parts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
+                timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
             }
+
             if (timeData.hours) {
-                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
+                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
             }
+
             if (timeData.minutes) {
-                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
+                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
             }
 
-            let timeText;
-            if (parts.length === 1) {
-                timeText = parts.at(0);
-            } else if (parts.length === 2) {
-                timeText = parts.join(' y ');
-            } else {
-                const lastPart = parts.pop();
-                timeText = `${parts.join(', ')} y ${lastPart}`;
+            let timeText = '';
+            if (timeParts.length === 1) {
+                timeText = timeParts.at(0) ?? '';
+            } else if (timeParts.length === 2) {
+                timeText = `${timeParts.at(0)} y ${timeParts.at(1)}`;
+            } else if (timeParts.length === 3) {
+                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, y ${timeParts.at(2)}`;
             }
 
-            return `Por favor, espera ${timeText} antes de intentarlo de nuevo.`;
+            return `¡Un momento! Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
         },
     },
     welcomeSignUpForm: {
