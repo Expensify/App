@@ -786,7 +786,7 @@ jobs:
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
-      version: ${{ needs.prep.outputs.APP_VERSION }}${{ github.ref != 'refs/heads/production' && '-staging' || '' }}
+      version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ needs.android.result }}
       ios: ${{ needs.ios.result }}
