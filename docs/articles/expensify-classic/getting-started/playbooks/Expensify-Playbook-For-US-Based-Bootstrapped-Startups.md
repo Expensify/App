@@ -20,7 +20,7 @@ This guide is based on best practices from processing expenses for thousands of 
 If you don’t have an account yet, sign up at [new.expensify.com](https://new.expensify.com) using your business email.
 
 ## Step 2: Create a Workspace
-Expensify offers two plans (Collect and Control). We outline the features of both plans in our [pricing article](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing), but for your needs, we recommend the Collect workspace for the following situations:
+Expensify offers three plans (Individual, Collect and Control). We outline the features of both plans in our [pricing article](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing), but for your needs, we recommend the Collect workspace for the following situations:
 
 - You are looking to capture receipts, but you don’t need an advanced approval workflow. Instead you can have a single approver for all expenses. 
 - You are a small, highly collaborative group and project-oriented Chat functionality can help you stay organized.
