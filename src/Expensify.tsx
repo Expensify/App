@@ -122,9 +122,11 @@ function Expensify() {
         }
 
         // Set a timeout to initialize the client after a short delay.
-        // This is necessary because on iPhone web, Onyx events can be delayed,
+        // This is necessary because on Apple devices (web), Onyx events can be delayed,
         // causing issues with client initialization if done immediately.
-        setTimeout(ActiveClientManager.init, 400);
+        const isAppleDevice = /Macintosh|iPhone|iPad|iPod/.test(navigator.userAgent);
+        const isWeb = Platform.OS === 'web';
+        setTimeout(ActiveClientManager.init, isAppleDevice && isWeb ? 400 : 0);
     };
 
     const setNavigationReady = useCallback(() => {
