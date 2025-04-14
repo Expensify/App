@@ -3,6 +3,7 @@ import {useOnyx} from 'react-native-onyx';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import StateSelector from '@components/StateSelector';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_INCORPORATION_STATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_STATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_STATE_KEY];
@@ -23,7 +25,8 @@ function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const defaultCompanyIncorporationState = reimbursementAccount?.achData?.incorporationState ?? '';
 
@@ -32,6 +35,10 @@ function IncorporationStateBusiness({onNext, isEditing}: SubStepProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    if (isLoadingReimbursementAccount) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <FormProvider
