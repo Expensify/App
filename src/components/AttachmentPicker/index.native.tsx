@@ -225,9 +225,14 @@ function AttachmentPicker({
         });
 
         return pickedFiles.map((file, index) => {
+            const localCopy = localCopies[index];
+            if (localCopy.status !== 'success') {
+                throw new Error("Couldn't create local file copy");
+            }
+
             return {
                 name: file.name,
-                uri: localCopies.at(index)?.sourceUri ?? file.uri,
+                uri: localCopy.localUri,
                 size: file.size,
                 type: file.type,
             };
