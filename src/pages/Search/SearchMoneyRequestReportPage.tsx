@@ -124,7 +124,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     headerGapStyles={styles.searchHeaderGap}
                 >
                     <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
-                        <View style={styles.searchSidebar}>
+                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             <View style={styles.flex1}>
                                 <HeaderGap />
                                 <TopBar

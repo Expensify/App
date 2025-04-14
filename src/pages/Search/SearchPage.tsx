@@ -418,7 +418,7 @@ function SearchPage({route}: SearchPageProps) {
             >
                 {!!queryJSON && (
                     <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
-                        <View style={styles.searchSidebar}>
+                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             {queryJSON ? (
                                 <View style={styles.flex1}>
                                     <HeaderGap />

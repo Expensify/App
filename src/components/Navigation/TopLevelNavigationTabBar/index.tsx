@@ -9,6 +9,7 @@ import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import positioning from '@styles/utils/positioning';
+import variables from '@styles/variables';
 import getIsNavigationTabBarVisibleDirectly from './getIsNavigationTabBarVisibleDirectly';
 import getIsScreenWithNavigationTabBarFocused from './getIsScreenWithNavigationTabBarFocused';
 import getSelectedTab from './getSelectedTab';
@@ -42,6 +43,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithNavigationTabFocused : isNavigationTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
     const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
+    const sidebarWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth : variables.sideBarWidth;
 
     useEffect(() => {
         if (!shouldDisplayBottomBar) {
@@ -58,7 +60,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     }, [shouldDisplayBottomBar]);
 
     return (
-        <View style={[styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom), shouldDisplayLHB ? positioning.l0 : positioning.b0]}>
+        <View style={[styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom, sidebarWidth), shouldDisplayLHB ? positioning.l0 : positioning.b0]}>
             {/* We are not rendering NavigationTabBar conditionally for two reasons
                 1. It's faster to hide/show it than mount a new when needed.
                 2. We need to hide tooltips as well if they were displayed. */}

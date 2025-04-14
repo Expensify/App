@@ -587,13 +587,13 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number) => ({
+        topLevelNavigationTabBar: (shouldDisplayTopLevelNavigationTabBar: boolean, shouldUseNarrowLayout: boolean, bottomSafeAreaOffset: number, sidebarWidth: number) => ({
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             opacity: shouldDisplayTopLevelNavigationTabBar ? 1 : 0,
             pointerEvents: shouldDisplayTopLevelNavigationTabBar ? 'auto' : 'none',
-            width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
+            width: shouldUseNarrowLayout ? '100%' : sidebarWidth,
             paddingBottom: bottomSafeAreaOffset,
 
             // There is a missing border right on the wide layout
@@ -1635,6 +1635,14 @@ const styles = (theme: ThemeColors) =>
         searchSplitContainer: {
             flex: 1,
             flexDirection: 'row',
+        },
+
+        searchSidebarWithLHB: {
+            width: variables.sideBarWithLHBWidth,
+            height: '100%',
+            justifyContent: 'space-between',
+            borderRightWidth: 1,
+            borderColor: theme.border,
         },
 
         searchSidebar: {
@@ -2970,7 +2978,7 @@ const styles = (theme: ThemeColors) =>
 
         rootNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
         rootNavigatorContainerWithLHBStyles: (isSmallScreenWidth: boolean) =>
-            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
+            ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWithLHBWidth + variables.navigationTabBarSize, flex: 1} satisfies ViewStyle),
         RHPNavigatorContainerNavigatorContainerStyles: (isSmallScreenWidth: boolean) => ({marginLeft: isSmallScreenWidth ? 0 : variables.sideBarWidth, flex: 1} satisfies ViewStyle),
 
         avatarInnerTextChat: {
@@ -3673,6 +3681,10 @@ const styles = (theme: ThemeColors) =>
         },
 
         sidebarPopover: {
+            width: variables.sideBarWidth - 68,
+        },
+
+        sidebarWithLHBPopover: {
             width: variables.sideBarWidth - 68,
         },
 
@@ -5523,6 +5535,10 @@ const styles = (theme: ThemeColors) =>
 
         accountSwitcherPopover: {
             width: variables.sideBarWidth - 19,
+        },
+
+        accountSwitcherPopoverWithLHB: {
+            width: variables.sideBarWithLHBWidth - 19,
         },
 
         progressBarWrapper: {
