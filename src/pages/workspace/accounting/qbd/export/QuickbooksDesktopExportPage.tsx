@@ -7,7 +7,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -97,7 +97,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
             {menuItems.map((menuItem) => (
                 <OfflineWithFeedback
                     key={menuItem.description}
-                    pendingAction={PolicyUtils.settingsPendingAction(menuItem?.subscribedSettings, qbdConfig?.pendingFields)}
+                    pendingAction={settingsPendingAction(menuItem?.subscribedSettings, qbdConfig?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={menuItem.title}
@@ -105,7 +105,7 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
                         description={menuItem.description}
                         shouldShowRightIcon={menuItem?.shouldShowRightIcon ?? true}
                         onPress={menuItem?.onPress}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(menuItem?.subscribedSettings, errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     />
                 </OfflineWithFeedback>
             ))}

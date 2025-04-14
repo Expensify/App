@@ -7,10 +7,10 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as QuickbooksDesktop from '@libs/actions/connections/QuickbooksDesktop';
-import * as ConnectionUtils from '@libs/ConnectionUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {updateQuickbooksDesktopShouldAutoCreateVendor} from '@libs/actions/connections/QuickbooksDesktop';
+import {getQBDNonReimbursableExportAccountType} from '@libs/ConnectionUtils';
+import {getLatestErrorField} from '@libs/ErrorUtils';
+import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -55,10 +55,10 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
         },
         {
             title: accountName,
-            description: ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable),
+            description: getQBDNonReimbursableExportAccountType(nonReimbursable),
             onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT.getRoute(policyID)),
             subscribedSettings: [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT],
-            keyForList: ConnectionUtils.getQBDNonReimbursableExportAccountType(nonReimbursable),
+            keyForList: getQBDNonReimbursableExportAccountType(nonReimbursable),
         },
     ];
 
@@ -78,13 +78,13 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             {sections.map((section) => (
                 <OfflineWithFeedback
                     key={section.keyForList}
-                    pendingAction={PolicyUtils.settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
+                    pendingAction={settingsPendingAction(section.subscribedSettings, qbdConfig?.pendingFields)}
                 >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
                         onPress={section.onPress}
-                        brickRoadIndicator={PolicyUtils.areSettingsInErrorFields(section.subscribedSettings, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                        brickRoadIndicator={areSettingsInErrorFields(section.subscribedSettings, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         shouldShowRightIcon
                         hintText={section.hintText}
                     />
@@ -98,12 +98,12 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         switchAccessibilityLabel={translate('workspace.qbd.defaultVendorDescription')}
                         wrapperStyle={[styles.ph5, styles.mb3, styles.mt1]}
                         isActive={!!qbdConfig?.shouldAutoCreateVendor}
-                        pendingAction={PolicyUtils.settingsPendingAction(
+                        pendingAction={settingsPendingAction(
                             [CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE],
                             qbdConfig?.pendingFields,
                         )}
-                        errors={ErrorUtils.getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
-                        onToggle={(isOn) => QuickbooksDesktop.updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn)}
+                        errors={getLatestErrorField(qbdConfig, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
+                        onToggle={(isOn) => updateQuickbooksDesktopShouldAutoCreateVendor(policyID, isOn)}
                         onCloseError={() => clearQBDErrorField(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR)}
                     />
 
@@ -112,7 +112,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                         isToggleTriggered={shouldAnimateAccordionSection}
                     >
                         <OfflineWithFeedback
-                            pendingAction={PolicyUtils.settingsPendingAction(
+                            pendingAction={settingsPendingAction(
                                 [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR],
                                 qbdConfig?.pendingFields,
                             )}
@@ -122,7 +122,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountPage({policy}: WithPolicyConn
                                 description={translate('workspace.accounting.defaultVendor')}
                                 onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT.getRoute(policyID))}
                                 brickRoadIndicator={
-                                    PolicyUtils.areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qbdConfig?.errorFields)
+                                    areSettingsInErrorFields([CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR], qbdConfig?.errorFields)
                                         ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
                                         : undefined
                                 }
