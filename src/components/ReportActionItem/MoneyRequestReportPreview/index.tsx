@@ -70,6 +70,7 @@ function MoneyRequestReportPreview({
             wrapperStyle={reportPreviewStyles.transactionPreviewStyle}
             containerStyles={[styles.h100, containerStyles]}
             transactionID={item.transactionID}
+            reportPreviewAction={action}
         />
     );
 

@@ -88,6 +88,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
+            reportPreviewAction={props.reportPreviewAction}
         />
     );
 }
