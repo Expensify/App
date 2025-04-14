@@ -118,7 +118,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
     const lastActionIndex = lastAction?.reportActionID;
     const previousLastIndex = useRef(lastActionIndex);
 
-    const scrollingVerticalOffset = useRef(0);
+    const scrollingVerticalBottomOffset = useRef(0);
     const readActionSkipped = useRef(false);
     const lastVisibleActionCreated = getReportLastVisibleActionCreated(report, transactionThreadReport);
     const hasNewestReportAction = lastAction?.created === lastVisibleActionCreated;
@@ -153,7 +153,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
 
     useEffect(() => {
         if (
-            scrollingVerticalOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
+            scrollingVerticalBottomOffset.current < AUTOSCROLL_TO_TOP_THRESHOLD &&
             previousLastIndex.current !== lastActionIndex &&
             reportActionSize.current > reportActions.length &&
             hasNewestReportAction
@@ -231,7 +231,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                     accountID: currentUserAccountID,
                     prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,
                     unreadMarkerTime,
-                    scrollingVerticalOffset: scrollingVerticalOffset.current,
+                    scrollingVerticalOffset: scrollingVerticalBottomOffset.current,
                     prevUnreadMarkerReportActionID: prevUnreadMarkerReportActionID.current,
                 });
 
@@ -365,11 +365,11 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
      * Show/hide the new floating message counter when user is scrolling back/forth in the history of messages.
      */
     const handleUnreadFloatingButton = () => {
-        if (scrollingVerticalOffset.current > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
+        if (scrollingVerticalBottomOffset.current > CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && !isFloatingMessageCounterVisible && !!unreadMarkerReportActionID) {
             setIsFloatingMessageCounterVisible(true);
         }
 
-        if (scrollingVerticalOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
+        if (scrollingVerticalBottomOffset.current < CONST.REPORT.ACTIONS.SCROLL_VERTICAL_OFFSET_THRESHOLD && isFloatingMessageCounterVisible) {
             if (readActionSkipped.current) {
                 readActionSkipped.current = false;
                 readNewestAction(report.reportID);
@@ -378,11 +378,19 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
         }
     };
 
-    const reportHasComments = visibleReportActions.length > 0;
     const trackVerticalScrolling = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        scrollingVerticalOffset.current = event.nativeEvent.contentOffset.y;
+        const {layoutMeasurement, contentSize, contentOffset} = event.nativeEvent;
+        const fullContentHeight = contentSize.height;
+
+        /**
+         * Count the diff between current scroll position and the bottom of the list.
+         * Diff == (height of all items in the list) - (height of the layout with the list) - (how far user scrolled)
+         */
+        scrollingVerticalBottomOffset.current = fullContentHeight - layoutMeasurement.height - contentOffset.y;
         handleUnreadFloatingButton();
     };
+
+    const reportHasComments = visibleReportActions.length > 0;
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
