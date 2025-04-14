@@ -386,6 +386,9 @@ const CONST = {
         horizontal: 12,
         vertical: 80,
     },
+    POPOVER_DATE_WIDTH: 338,
+    POPOVER_DATE_MAX_HEIGHT: 366,
+    POPOVER_DATE_MIN_HEIGHT: 322,
     // Multiplier for gyroscope animation in order to make it a bit more subtle
     ANIMATION_GYROSCOPE_VALUE: 0.4,
     ANIMATION_PAID_DURATION: 200,
@@ -771,7 +774,6 @@ const CONST = {
         NEW_DOT_TALK_TO_AI_SALES: 'newDotTalkToAISales',
         CUSTOM_RULES: 'customRules',
         TABLE_REPORT_VIEW: 'tableReportView',
-        HELP_SIDE_PANEL: 'newDotHelpSidePanel',
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
@@ -6401,6 +6403,7 @@ const CONST = {
         STATUS: {
             EXPENSE: {
                 ALL: 'all',
+                UNREPORTED: 'unreported',
                 DRAFTS: 'drafts',
                 OUTSTANDING: 'outstanding',
                 APPROVED: 'approved',
@@ -6932,6 +6935,10 @@ const CONST = {
     },
     SKIPPABLE_COLLECTION_MEMBER_IDS: [String(DEFAULT_NUMBER_ID), '-1', 'undefined', 'null', 'NaN'] as string[],
     SETUP_SPECIALIST_LOGIN: 'Setup Specialist',
+
+    CALENDAR_PICKER_DAY_HEIGHT: 45,
+    MAX_CALENDAR_PICKER_ROWS: 6,
+
     ILLUSTRATION_ASPECT_RATIO: 39 / 22,
 
     OFFLINE_INDICATOR_HEIGHT: 25,

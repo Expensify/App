@@ -11,8 +11,8 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
-import {useReportIDs} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -47,7 +47,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {orderedReportIDs} = useReportIDs();
+    const {orderedReportIDs} = useSidebarOrderedReportIDs();
     const [user] = useOnyx(ONYXKEYS.USER);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
