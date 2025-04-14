@@ -290,7 +290,7 @@ function getOrderedReportIDs(
 
         const isPinned = report?.isPinned ?? false;
         const reportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
-        const rNVPs = reportNameValuePairs?.[report?.reportID];
+        const rNVPs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`];
         if (isPinned || requiresAttentionFromCurrentUser(report, reportAction)) {
             pinnedAndGBRReports.push(miniReport);
         } else if (report?.hasErrorsOtherThanFailedReceipt) {
