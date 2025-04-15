@@ -2,6 +2,7 @@ import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
@@ -202,6 +203,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
                     />
                 )}
                 <View style={styles.leftNavigationTabBar}>
+                    <HeaderGap />
                     <View style={styles.flex1}>
                         <PressableWithFeedback
                             accessibilityRole={CONST.ROLE.BUTTON}

@@ -408,7 +408,7 @@ function SearchPage({route}: SearchPageProps) {
         <ScreenWrapper
             testID={Search.displayName}
             shouldEnableMaxHeight
-            headerGapStyles={styles.searchHeaderGap}
+            headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
