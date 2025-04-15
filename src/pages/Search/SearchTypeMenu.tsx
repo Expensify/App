@@ -1,4 +1,4 @@
-import {useRoute} from '@react-navigation/native';
+import {useIsFocused, useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useLayoutEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
@@ -17,13 +17,21 @@ import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
+import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    buildUserReadableQueryStringWithPolicyID,
+    isCannedSearchQuery,
+    isCannedSearchQueryWithPolicyIDCheck,
+} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import type {SavedSearchMenuItem, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -35,21 +43,22 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
-    queryJSON: SearchQueryJSON;
-    shouldGroupByReports?: boolean;
+    queryJSON: SearchQueryJSON | undefined;
 };
 
-function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) {
-    const {type, hash} = queryJSON;
+function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
+    const {type, groupBy, hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
+    const {canUseLeftHandBar} = usePermissions();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
+    const isFocused = useIsFocused();
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.RENAME_SAVED_SEARCH,
-        shouldShowSavedSearchesMenuItemTitle,
+        shouldShowSavedSearchesMenuItemTitle && isFocused,
     );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [session] = useOnyx(ONYXKEYS.SESSION);
@@ -61,6 +70,9 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
+    const cardFeedNamesWithType = useMemo(() => {
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
 
     const typeMenuItems: SearchTypeMenuItem[] = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
 
@@ -70,10 +82,16 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards);
+                if (canUseLeftHandBar) {
+                    title = buildUserReadableQueryStringWithPolicyID(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                } else {
+                    title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+                }
             }
 
-            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, hash);
+            const isItemFocused = Number(key) === hash;
+            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+
             return {
                 ...baseMenuItem,
                 onPress: () => {
@@ -101,19 +119,22 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
             };
         },
         [
+            allCards,
             hash,
             getOverflowMenu,
-            shouldShowProductTrainingTooltip,
-            hideProductTrainingTooltip,
             styles.alignItemsCenter,
             styles.mh4,
             styles.pv2,
             styles.productTrainingTooltipWrapper,
-            renderProductTrainingTooltip,
             personalDetails,
             reports,
             taxRates,
-            allCards,
+            shouldShowProductTrainingTooltip,
+            hideProductTrainingTooltip,
+            renderProductTrainingTooltip,
+            cardFeedNamesWithType,
+            allPolicies,
+            canUseLeftHandBar,
         ],
     );
 
@@ -163,11 +184,20 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
         [styles],
     );
 
-    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    let isCannedQuery = false;
+
+    if (queryJSON) {
+        if (canUseLeftHandBar) {
+            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
+        } else {
+            isCannedQuery = isCannedSearchQuery(queryJSON);
+        }
+    }
+
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (shouldGroupByReports) {
-                  return item.translationPath === 'common.expenseReports';
+              if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+                  return item.translationPath === 'common.expenseReports' && item.type === type;
               }
               return item.type === type;
           })
@@ -184,7 +214,7 @@ function SearchTypeMenu({queryJSON, shouldGroupByReports}: SearchTypeMenuProps) 
                     const onPress = singleExecution(() => {
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON.policyID));
+                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
                     });
 
                     return (

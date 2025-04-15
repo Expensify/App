@@ -359,10 +359,6 @@ function isValidCompanyName(name: string) {
     return !name.match(CONST.REGEX.ALL_EMOJIS);
 }
 
-function isValidReportName(name: string) {
-    return new Blob([name.trim()]).size <= CONST.REPORT_NAME_LIMIT;
-}
-
 /**
  * Checks that the provided name doesn't contain any commas or semicolons
  */
@@ -415,6 +411,15 @@ function isExistingRoomName(roomName: string, reports: OnyxCollection<Report>, p
  */
 function isValidRoomName(roomName: string): boolean {
     return CONST.REGEX.ROOM_NAME.test(roomName);
+}
+
+/**
+ * Checks if a room name is valid by checking that:
+ * - It starts with a hash '#'
+ * - After the first character, it contains only lowercase letters, numbers, and dashes
+ */
+function isValidRoomNameWithoutLimits(roomName: string): boolean {
+    return CONST.REGEX.ROOM_NAME_WITHOUT_LIMIT.test(roomName);
 }
 
 /**
@@ -679,6 +684,7 @@ export {
     isReservedRoomName,
     isExistingRoomName,
     isValidRoomName,
+    isValidRoomNameWithoutLimits,
     isValidTaxID,
     isValidValidateCode,
     isValidCompanyName,
@@ -693,7 +699,6 @@ export {
     prepareValues,
     isValidPersonName,
     isValidPercentage,
-    isValidReportName,
     isExistingTaxName,
     isValidSubscriptionSize,
     isExistingTaxCode,

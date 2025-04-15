@@ -6,9 +6,6 @@ import type {TranslationPaths} from '@src/languages/types';
 const {
     CONCEIRGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
-    WORKSAPCE_CHAT_CREATE,
-    QUICK_ACTION_BUTTON,
-    SEARCH_FILTER_BUTTON_TOOLTIP,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
     GLOBAL_CREATE_TOOLTIP,
@@ -25,7 +22,7 @@ type ShouldShowConditionProps = {
 
 type TooltipData = {
     content: Array<{text: TranslationPaths; isBold: boolean}>;
-    onHideTooltip: () => void;
+    onHideTooltip: (isDismissedUsingCloseButton?: boolean) => void;
     name: ProductTrainingTooltipName;
     priority: number;
     shouldShow: (props: ShouldShowConditionProps) => boolean;
@@ -38,17 +35,19 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
             {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
         ],
-        onHideTooltip: () => dismissProductTraining(CONCEIRGE_LHN_GBR),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCEIRGE_LHN_GBR, isDismissedUsingCloseButton),
         name: CONCEIRGE_LHN_GBR,
         priority: 1300,
-        shouldShow: ({shouldUseNarrowLayout}) => !!shouldUseNarrowLayout,
+        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
+        shouldShow: () => false,
     },
     [RENAME_SAVED_SEARCH]: {
         content: [
             {text: 'productTrainingTooltip.saveSearchTooltip.part1', isBold: true},
             {text: 'productTrainingTooltip.saveSearchTooltip.part2', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(RENAME_SAVED_SEARCH),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(RENAME_SAVED_SEARCH, isDismissedUsingCloseButton),
         name: RENAME_SAVED_SEARCH,
         priority: 1250,
         shouldShow: ({shouldUseNarrowLayout}) => !shouldUseNarrowLayout,
@@ -59,40 +58,9 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.globalCreateTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.globalCreateTooltip.part3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(GLOBAL_CREATE_TOOLTIP),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(GLOBAL_CREATE_TOOLTIP, isDismissedUsingCloseButton),
         name: GLOBAL_CREATE_TOOLTIP,
         priority: 1200,
-        shouldShow: () => true,
-    },
-    [QUICK_ACTION_BUTTON]: {
-        content: [
-            {text: 'productTrainingTooltip.quickActionButton.part1', isBold: true},
-            {text: 'productTrainingTooltip.quickActionButton.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(QUICK_ACTION_BUTTON),
-        name: QUICK_ACTION_BUTTON,
-        priority: 1150,
-        shouldShow: () => true,
-    },
-    [WORKSAPCE_CHAT_CREATE]: {
-        content: [
-            {text: 'productTrainingTooltip.workspaceChatCreate.part1', isBold: false},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part2', isBold: true},
-            {text: 'productTrainingTooltip.workspaceChatCreate.part3', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(WORKSAPCE_CHAT_CREATE),
-        name: WORKSAPCE_CHAT_CREATE,
-        priority: 1100,
-        shouldShow: () => true,
-    },
-    [SEARCH_FILTER_BUTTON_TOOLTIP]: {
-        content: [
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.searchFilterButtonTooltip.part2', isBold: false},
-        ],
-        onHideTooltip: () => dismissProductTraining(SEARCH_FILTER_BUTTON_TOOLTIP),
-        name: SEARCH_FILTER_BUTTON_TOOLTIP,
-        priority: 1000,
         shouldShow: () => true,
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
@@ -101,7 +69,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
         priority: 900,
         shouldShow: () => true,
@@ -112,7 +80,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.workspaceChatTooltip.part2', isBold: false},
             {text: 'productTrainingTooltip.workspaceChatTooltip.part3', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(LHN_WORKSPACE_CHAT_TOOLTIP, isDismissedUsingCloseButton),
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 800,
         shouldShow: () => true,
@@ -134,7 +102,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.scanTestTooltip.part4', isBold: true},
             {text: 'productTrainingTooltip.scanTestTooltip.part5', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_TOOLTIP_MANAGER, isDismissedUsingCloseButton),
         name: SCAN_TEST_TOOLTIP_MANAGER,
         priority: 1000,
         shouldShow: () => true,
@@ -145,7 +113,7 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
             {text: 'productTrainingTooltip.scanTestTooltip.part7', isBold: true},
             {text: 'productTrainingTooltip.scanTestTooltip.part8', isBold: false},
         ],
-        onHideTooltip: () => dismissProductTraining(SCAN_TEST_CONFIRMATION),
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(SCAN_TEST_CONFIRMATION, isDismissedUsingCloseButton),
         name: SCAN_TEST_CONFIRMATION,
         priority: 1100,
         shouldShow: () => true,

@@ -15,6 +15,7 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/home/sidebar/BottomTabAvatar');
 jest.mock('@src/components/Navigation/TopLevelBottomTabBar');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -55,7 +56,7 @@ describe('Navigate', () => {
 
             // When navigate to the page from the same split navigator
             act(() => {
-                Navigation.navigate(ROUTES.SETTINGS_PROFILE);
+                Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute());
             });
 
             // Then push a new page to the current split navigator
@@ -154,9 +155,17 @@ describe('Navigate', () => {
                         index: 0,
                         routes: [
                             {
-                                name: SCREENS.SEARCH.ROOT,
-                                params: {
-                                    q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
+                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SEARCH.ROOT,
+                                            params: {
+                                                q: 'type:expense status:all sortBy:date sortOrder:desc policyID:1',
+                                            },
+                                        },
+                                    ],
                                 },
                             },
                         ],
@@ -167,7 +176,7 @@ describe('Navigate', () => {
             const rootStateBeforeNavigate = navigationRef.current?.getRootState();
             const lastSplitBeforeNavigate = rootStateBeforeNavigate?.routes.at(-1);
             expect(rootStateBeforeNavigate?.index).toBe(0);
-            expect(lastSplitBeforeNavigate?.name).toBe(SCREENS.SEARCH.ROOT);
+            expect(lastSplitBeforeNavigate?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
             // When navigate to the Home page when the active workspace is set
             act(() => {

@@ -14,6 +14,9 @@ import type SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import createRandomReport from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
+
+jest.mock('@src/components/ConfirmedRoute.tsx');
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -42,6 +45,8 @@ describe('ReportDetailsPage', () => {
         const selfDMReportID = '1';
         const trackExpenseReportID = '2';
         const trackExpenseActionID = '123';
+        const transactionID = '3';
+        const transaction = createRandomTransaction(1);
         const trackExpenseReport: Report = {
             ...createRandomReport(Number(trackExpenseReportID)),
             chatType: '' as Report['chatType'],
@@ -53,6 +58,7 @@ describe('ReportDetailsPage', () => {
             chatType: CONST.REPORT.CHAT_TYPE.SELF_DM,
         });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${trackExpenseReportID}`, trackExpenseReport);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`, {
             [trackExpenseActionID]: {
                 ...createRandomReportAction(Number(trackExpenseActionID)),

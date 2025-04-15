@@ -15,6 +15,7 @@ jest.mock('@libs/getIsNarrowLayout', () => jest.fn());
 
 jest.mock('@pages/home/sidebar/BottomTabAvatar');
 jest.mock('@src/components/Navigation/TopLevelBottomTabBar');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
 const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
@@ -261,7 +262,15 @@ describe('Go back on the narrow layout', () => {
                                 },
                             },
                             {
-                                name: SCREENS.SEARCH.ROOT,
+                                name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
+                                state: {
+                                    index: 0,
+                                    routes: [
+                                        {
+                                            name: SCREENS.SEARCH.ROOT,
+                                        },
+                                    ],
+                                },
                             },
                         ],
                     }}
@@ -270,7 +279,7 @@ describe('Go back on the narrow layout', () => {
 
             const rootStateBeforeGoBack = navigationRef.current?.getRootState();
             expect(rootStateBeforeGoBack?.index).toBe(2);
-            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(SCREENS.SEARCH.ROOT);
+            expect(rootStateBeforeGoBack?.routes.at(-1)?.name).toBe(NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
 
             // When go back to the page present in the split navigator that is more than 1 route away
             act(() => {

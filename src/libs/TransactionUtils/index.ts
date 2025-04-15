@@ -1,4 +1,4 @@
-import {parse} from 'date-fns';
+import {format, isValid, parse} from 'date-fns';
 import lodashDeepClone from 'lodash/cloneDeep';
 import lodashHas from 'lodash/has';
 import lodashIsEqual from 'lodash/isEqual';
@@ -8,7 +8,7 @@ import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import {getPolicyCategoriesData} from '@libs/actions/Policy/Category';
 import {getPolicyTagsData} from '@libs/actions/Policy/Tag';
-import type {TransactionMergeParams} from '@libs/API/parameters';
+import type {MergeDuplicatesParams} from '@libs/API/parameters';
 import {getCategoryDefaultTaxRate} from '@libs/CategoryUtils';
 import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -27,6 +27,7 @@ import {
 } from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
+    getReportOrDraftReport,
     getReportTransactions,
     isCurrentUserSubmitter,
     isOpenExpenseReport,
@@ -43,7 +44,7 @@ import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Policy, RecentWaypoint, Report, ReviewDuplicates, TaxRate, TaxRates, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {SearchPolicy, SearchReport} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, TransactionChanges, TransactionCustomUnit, TransactionPendingFieldsKey, Waypoint, WaypointCollection} from '@src/types/onyx/Transaction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -176,6 +177,25 @@ function getRequestType(transaction: OnyxEntry<Transaction>): IOURequestType {
     return CONST.IOU.REQUEST_TYPE.MANUAL;
 }
 
+/**
+ * Determines the expense type of a given transaction.
+ */
+function getExpenseType(transaction: OnyxEntry<Transaction>): ValueOf<typeof CONST.IOU.EXPENSE_TYPE> | undefined {
+    if (!transaction) {
+        return undefined;
+    }
+
+    if (isExpensifyCardTransaction(transaction)) {
+        if (isPending(transaction)) {
+            return CONST.IOU.EXPENSE_TYPE.PENDING_EXPENSIFY_CARD;
+        }
+
+        return CONST.IOU.EXPENSE_TYPE.EXPENSIFY_CARD;
+    }
+
+    return getRequestType(transaction);
+}
+
 function isManualRequest(transaction: Transaction): boolean {
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (lodashHas(transaction, 'iouRequestType')) {
@@ -183,6 +203,24 @@ function isManualRequest(transaction: Transaction): boolean {
     }
 
     return getRequestType(transaction) === CONST.IOU.REQUEST_TYPE.MANUAL;
+}
+
+function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    const merchant = getMerchant(transaction);
+
+    if (!merchant || isPartialMerchant(merchant)) {
+        return true;
+    }
+
+    if (isAmountMissing(transaction) && isScanRequest(transaction)) {
+        return true;
+    }
+
+    return false;
+}
+
+function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -218,7 +256,7 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
     const transactionID = existingTransactionID ?? NumberUtils.rand64();
 
-    const commentJSON: Comment = {comment};
+    const commentJSON: Comment = {comment, attendees};
     if (source) {
         commentJSON.source = source;
     }
@@ -256,7 +294,6 @@ function buildOptimisticTransaction(params: BuildOptimisticTransactionParams): T
         taxAmount,
         billable,
         reimbursable,
-        attendees,
         inserted: DateUtils.getDBTime(),
     };
 }
@@ -291,7 +328,7 @@ function shouldShowAttendees(iouType: IOUType, policy: OnyxEntry<Policy>): boole
     return false;
     // To be renabled once feature is complete: https://github.com/Expensify/App/issues/44725
     // Keep this disabled for per diem expense
-    // return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
+    return iouType === CONST.IOU.TYPE.SUBMIT && !!policy?.id && (policy?.type === CONST.POLICY.TYPE.CORPORATE || policy?.type === CONST.POLICY.TYPE.TEAM);
 }
 
 /**
@@ -558,7 +595,11 @@ function getPostedDate(transaction: OnyxInputOrEntry<Transaction>): string {
 function getFormattedPostedDate(transaction: OnyxInputOrEntry<Transaction>, dateFormat: string = CONST.DATE.FNS_FORMAT_STRING): string {
     const postedDate = getPostedDate(transaction);
     const parsedDate = parse(postedDate, 'yyyyMMdd', new Date());
-    return DateUtils.formatWithUTCTimeZone(parsedDate.toDateString(), dateFormat);
+
+    if (isValid(parsedDate)) {
+        return DateUtils.formatWithUTCTimeZone(format(parsedDate, 'yyyy-MM-dd'), dateFormat);
+    }
+    return '';
 }
 
 /**
@@ -598,6 +639,14 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
+    if (transaction && isDistanceRequest(transaction)) {
+        const report = getReportOrDraftReport(transaction.reportID);
+        const policy = getPolicy(report?.policyID);
+        const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
+        const {unit, rate} = mileageRate;
+        const distanceInMeters = getDistanceInMeters(transaction, unit);
+        return DistanceRequestUtils.getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, (digit) => toLocaleDigit(preferredLocale, digit));
+    }
     return transaction?.modifiedMerchant ? transaction.modifiedMerchant : transaction?.merchant ?? '';
 }
 
@@ -609,7 +658,7 @@ function getMerchantOrDescription(transaction: OnyxEntry<Transaction>) {
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction: OnyxInputOrEntry<Transaction>): Attendee[] {
-    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.attendees ?? [];
+    return transaction?.modifiedAttendees ? transaction.modifiedAttendees : transaction?.comment?.attendees ?? [];
 }
 
 /**
@@ -812,43 +861,45 @@ function isBrokenConnectionViolation(violation: TransactionViolation) {
     );
 }
 
-/**
- * Check if user should see broken connection violation warning.
- */
-function shouldShowBrokenConnectionViolation(
-    transactionOrIDList: Transaction | string[] | undefined,
-    report: OnyxEntry<Report> | SearchReport,
-    policy: OnyxEntry<Policy> | SearchPolicy,
-    transactionViolations: TransactionViolation[] | OnyxCollection<TransactionViolation[]> | undefined,
-): boolean {
-    if (!transactionOrIDList) {
+function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations: TransactionViolation[], report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy) {
+    if (brokenConnectionViolations.length === 0) {
         return false;
     }
-    let violations: TransactionViolation[];
-    if (Array.isArray(transactionOrIDList)) {
-        if (Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a transactionIDList is passed in, then an OnyxCollection of violations is expected');
-        }
-        violations = transactionOrIDList.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
-    } else {
-        if (!Array.isArray(transactionViolations)) {
-            // This should not be possible except in the case of incorrect type assertions. Generally TS should prevent this at compile time.
-            throw new Error('Invalid argument combination. If a single transaction is passed in, then an array of violations for that transaction is expected');
-        }
-        violations = transactionViolations;
+
+    if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
+        return true;
     }
+
+    if (isOpenExpenseReport(report)) {
+        return true;
+    }
+
+    return isProcessingReport(report) && isInstantSubmitEnabled(policy);
+}
+
+/**
+ * Check if user should see broken connection violation warning based on violations list.
+ */
+function shouldShowBrokenConnectionViolation(report: OnyxEntry<Report> | SearchReport, policy: OnyxEntry<Policy> | SearchPolicy, transactionViolations: TransactionViolation[]): boolean {
+    const brokenConnectionViolations = transactionViolations.filter((violation) => isBrokenConnectionViolation(violation));
+
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
+}
+
+/**
+ * Check if user should see broken connection violation warning based on selected transactions.
+ */
+function shouldShowBrokenConnectionViolationForMultipleTransactions(
+    transactionIDs: string[],
+    report: OnyxEntry<Report> | SearchReport,
+    policy: OnyxEntry<Policy> | SearchPolicy,
+    transactionViolations: OnyxCollection<TransactionViolation[]>,
+): boolean {
+    const violations = transactionIDs.flatMap((id) => transactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? []);
 
     const brokenConnectionViolations = violations.filter((violation) => isBrokenConnectionViolation(violation));
 
-    if (brokenConnectionViolations.length > 0) {
-        if (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) {
-            return true;
-        }
-        return isOpenExpenseReport(report) || (isProcessingReport(report) && isInstantSubmitEnabled(policy));
-    }
-
-    return false;
+    return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
 }
 
 function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
@@ -869,6 +920,18 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
+}
+
+/**
+ * Check if there is any transaction without RTER violation within the given transactionIDs.
+ */
+function hasAnyTransactionWithoutRTERViolation(transactionIds: string[], transactionViolations: OnyxCollection<TransactionViolations> | undefined): boolean {
+    return (
+        transactionIds.length > 0 &&
+        transactionIds.some((transactionId) => {
+            return !hasBrokenConnectionViolation(transactionId, transactionViolations);
+        })
+    );
 }
 
 /**
@@ -981,7 +1044,7 @@ function isOnHold(transaction: OnyxEntry<Transaction>): boolean {
         return false;
     }
 
-    return !!transaction.comment?.hold || isDuplicate(transaction.transactionID, true);
+    return !!transaction.comment?.hold;
 }
 
 /**
@@ -1033,6 +1096,13 @@ function hasViolation(transaction: Transaction | undefined, transactionViolation
             (showInReview === undefined || showInReview === (violation.showInReview ?? false)) &&
             !isViolationDismissed(transaction, violation),
     );
+}
+
+function hasDuplicateTransactions(iouReportID?: string, allReportTransactions?: SearchTransaction[]): boolean {
+    const transactionsByIouReportID = getReportTransactions(iouReportID);
+    const reportTransactions = allReportTransactions ?? transactionsByIouReportID;
+
+    return reportTransactions.length > 0 && reportTransactions.some((transaction) => isDuplicate(transaction?.transactionID, true));
 }
 
 /**
@@ -1181,7 +1251,7 @@ function getTaxName(policy: OnyxEntry<Policy>, transaction: OnyxEntry<Transactio
     return Object.values(transformedTaxRates(policy, transaction)).find((taxRate) => taxRate.code === (transaction?.taxCode ?? defaultTaxCode))?.modifiedName;
 }
 
-function getTransaction(transactionID: string | undefined): OnyxEntry<Transaction> {
+function getTransaction(transactionID: string | number | undefined): OnyxEntry<Transaction> {
     return allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 }
 
@@ -1400,7 +1470,7 @@ function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction:
     };
 }
 
-function buildTransactionsMergeParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): TransactionMergeParams {
+function buildMergeDuplicatesParams(reviewDuplicates: OnyxEntry<ReviewDuplicates>, originalTransaction: Partial<Transaction>): MergeDuplicatesParams {
     return {
         amount: -getAmount(originalTransaction as OnyxEntry<Transaction>, true),
         reportID: originalTransaction?.reportID,
@@ -1469,6 +1539,7 @@ export {
     getUpdatedTransaction,
     getDescription,
     getRequestType,
+    getExpenseType,
     isManualRequest,
     isScanRequest,
     getAmount,
@@ -1482,6 +1553,7 @@ export {
     getOriginalAmount,
     getFormattedAttendees,
     getMerchant,
+    hasAnyTransactionWithoutRTERViolation,
     getMerchantOrDescription,
     getMCCGroup,
     getCreated,
@@ -1522,8 +1594,10 @@ export {
     getRecentTransactions,
     hasReservationList,
     hasViolation,
+    hasDuplicateTransactions,
     hasBrokenConnectionViolation,
     shouldShowBrokenConnectionViolation,
+    shouldShowBrokenConnectionViolationForMultipleTransactions,
     hasNoticeTypeViolation,
     hasWarningTypeViolation,
     isCustomUnitRateIDForP2P,
@@ -1532,7 +1606,7 @@ export {
     compareDuplicateTransactionFields,
     getTransactionID,
     buildNewTransactionAfterReviewingDuplicates,
-    buildTransactionsMergeParams,
+    buildMergeDuplicatesParams,
     getReimbursable,
     isPayAtEndExpense,
     removeSettledAndApprovedTransactions,
@@ -1547,6 +1621,8 @@ export {
     isBrokenConnectionViolation,
     checkIfShouldShowMarkAsCashButton,
     shouldShowRTERViolationMessage,
+    isPartialTransaction,
+    isPendingCardOrScanningTransaction,
 };
 
 export type {TransactionChanges};

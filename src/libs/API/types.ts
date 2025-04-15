@@ -87,7 +87,6 @@ const WRITE_COMMANDS = {
     VERIFY_IDENTITY: 'VerifyIdentity',
     ACCEPT_WALLET_TERMS: 'AcceptWalletTerms',
     ANSWER_QUESTIONS_FOR_WALLET: 'AnswerQuestionsForWallet',
-    LOG_OUT: 'LogOut',
     REQUEST_ACCOUNT_VALIDATION_LINK: 'RequestAccountValidationLink',
     REQUEST_NEW_VALIDATE_CODE: 'RequestNewValidateCode',
     SIGN_IN_WITH_APPLE: 'SignInWithApple',
@@ -105,12 +104,14 @@ const WRITE_COMMANDS = {
     CONNECT_BANK_ACCOUNT_WITH_PLAID: 'ConnectBankAccountWithPlaid',
     ADD_PERSONAL_BANK_ACCOUNT: 'AddPersonalBankAccount',
     RESTART_BANK_ACCOUNT_SETUP: 'RestartBankAccountSetup',
+    RESET_BANK_ACCOUNT_SETUP: 'ResetBankAccountSetup',
     RESEND_VALIDATE_CODE: 'ResendValidateCode',
     READ_NEWEST_ACTION: 'ReadNewestAction',
     MARK_AS_UNREAD: 'MarkAsUnread',
     TOGGLE_PINNED_CHAT: 'TogglePinnedChat',
     DELETE_COMMENT: 'DeleteComment',
     UPDATE_COMMENT: 'UpdateComment',
+    CREATE_APP_REPORT: 'CreateAppReport',
     UPDATE_REPORT_NOTIFICATION_PREFERENCE: 'UpdateReportNotificationPreference',
     UPDATE_ROOM_VISIBILITY: 'UpdateRoomVisibility',
     UPDATE_ROOM_DESCRIPTION: 'UpdateRoomDescription',
@@ -144,6 +145,7 @@ const WRITE_COMMANDS = {
     CREATE_WORKSPACE: 'CreateWorkspace',
     CREATE_WORKSPACE_FROM_IOU_PAYMENT: 'CreateWorkspaceFromIOUPayment',
     SET_WORKSPACE_CATEGORIES_ENABLED: 'SetWorkspaceCategoriesEnabled',
+    MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER: 'MoveIOUReportToPolicyAndInviteSubmitter',
     SET_POLICY_TAGS_ENABLED: 'SetPolicyTagsEnabled',
     CREATE_WORKSPACE_CATEGORIES: 'CreateWorkspaceCategories',
     IMPORT_CATEGORIES_SPREADSHEET: 'ImportCategoriesSpreadsheet',
@@ -155,6 +157,8 @@ const WRITE_COMMANDS = {
     EXPORT_TAGS_CSV: 'ExportTagsCSV',
     EXPORT_PER_DIEM_CSV: 'ExportPerDiemCSV',
     EXPORT_REPORT_TO_CSV: 'ExportReportToCSV',
+    MOVE_IOU_REPORT_TO_EXISTING_POLICY: 'MoveIOUReportToExistingPolicy',
+    EXPORT_REPORT_TO_PDF: 'ExportReportToPDF',
     RENAME_WORKSPACE_CATEGORY: 'RenameWorkspaceCategory',
     CREATE_POLICY_TAG: 'CreatePolicyTag',
     RENAME_POLICY_TAG: 'RenamePolicyTag',
@@ -230,6 +234,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_RULES_ENABLED: 'SetPolicyRulesEnabled',
     SET_POLICY_EXPENSE_MAX_AMOUNT_NO_RECEIPT: 'SetPolicyExpenseMaxAmountNoReceipt',
     SET_POLICY_EXPENSE_MAX_AMOUNT: 'SetPolicyExpenseMaxAmount',
+    SET_POLICY_PROHIBITED_EXPENSES: 'SetPolicyProhibitedExpenses',
     SET_POLICY_EXPENSE_MAX_AGE: ' SetPolicyExpenseMaxAge',
     UPDATE_CUSTOM_RULES: 'UpdateCustomRules',
     SET_POLICY_BILLABLE_MODE: ' SetPolicyBillableMode',
@@ -256,6 +261,7 @@ const WRITE_COMMANDS = {
     UPDATE_QUICKBOOKS_ONLINE_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksOnlineReimbursableExpensesAccount',
     UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT: 'UpdateQuickbooksOnlineReceivableAccount',
     UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE: 'UpdateQuickbooksOnlineExportDate',
+    UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'UpdateQuickbooksOnlineAccountingMethod',
     UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT: 'UpdateQuickbooksOnlineNonReimbursableExpensesAccount',
     UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID: 'UpdateQuickbooksOnlineCollectionAccountID',
     UPDATE_QUICKBOOKS_ONLINE_SYNC_TAX: 'UpdateQuickbooksOnlineSyncTax',
@@ -310,7 +316,7 @@ const WRITE_COMMANDS = {
     SEND_INVOICE: 'SendInvoice',
     PAY_INVOICE: 'PayInvoice',
     MARK_AS_CASH: 'MarkAsCash',
-    TRANSACTION_MERGE: 'Transaction_Merge',
+    MERGE_DUPLICATES: 'MergeDuplicates',
     RESOLVE_DUPLICATES: 'ResolveDuplicates',
     UPDATE_SUBSCRIPTION_TYPE: 'UpdateSubscriptionType',
     SIGN_UP_USER: 'SignUpUser',
@@ -372,13 +378,6 @@ const WRITE_COMMANDS = {
     UPDATE_NETSUITE_APPROVAL_ACCOUNT: 'UpdateNetSuiteApprovalAccount',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsReimbursable',
     UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE: 'UpdateNetSuiteCustomFormIDOptionsNonReimbursable',
-    CONNECT_POLICY_TO_NSQS: 'ConnectPolicyToNSQS',
-    UPDATE_NSQS_CUSTOMERS_MAPPING: 'UpdateNSQSCustomersMapping',
-    UPDATE_NSQS_PROJECTS_MAPPING: 'UpdateNSQSProjectsMapping',
-    UPDATE_NSQS_EXPORTER: 'UpdateNSQSExporter',
-    UPDATE_NSQS_EXPORT_DATE: 'UpdateNSQSExportDate',
-    UPDATE_NSQS_AUTO_SYNC: 'UpdateNSQSAutoSync',
-    UPDATE_NSQS_PAYMENT_ACCOUNT: 'UpdateNSQSPaymentAccount',
     REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE: 'RequestExpensifyCardLimitIncrease',
     CONNECT_POLICY_TO_SAGE_INTACCT: 'ConnectPolicyToSageIntacct',
     COPY_EXISTING_POLICY_CONNECTION: 'CopyExistingPolicyConnection',
@@ -398,6 +397,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_CUSTOMERS_MAPPING: 'UpdateSageIntacctCustomersMapping',
     UPDATE_SAGE_INTACCT_PROJECTS_MAPPING: 'UpdateSageIntacctProjectsMapping',
     UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION: 'UpdateSageIntacctSyncTaxConfiguration',
+    UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID: 'UpdateSageIntacctTaxSolutionID',
     UPDATE_SAGE_INTACCT_USER_DIMENSION: 'UpdateSageIntacctUserDimension',
     UPDATE_SAGE_INTACCT_EXPORTER: 'UpdateSageIntacctExporter',
     UPDATE_SAGE_INTACCT_EXPORT_DATE: 'UpdateSageIntacctExportDate',
@@ -458,9 +458,16 @@ const WRITE_COMMANDS = {
     UPDATE_WORKSPACE_CUSTOM_UNIT: 'UpdateWorkspaceCustomUnit',
     VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'ValidateUserAndGetAccessiblePolicies',
     DISMISS_PRODUCT_TRAINING: 'DismissProductTraining',
+    GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE: 'GetValidateCodeForAccountMerge',
+    MERGE_WITH_VALIDATE_CODE: 'MergeWithValidateCode',
     RESET_SMS_DELIVERY_FAILURE_STATUS: 'ResetSMSDeliveryFailureStatus',
     SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS: 'SaveCorpayOnboardingCompanyDetails',
     SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER: 'SaveCorpayOnboardingBeneficialOwner',
+    SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION: 'SaveCorpayOnboardingDirectorInformation',
+    CHANGE_REPORT_POLICY: 'ChangeReportPolicy',
+    CHANGE_TRANSACTIONS_REPORT: 'ChangeTransactionsReport',
+    SEND_RECAP_IN_ADMINS_ROOM: 'SendRecapInAdminsRoom',
+    COMPLETE_CONCIERGE_CALL: 'CompleteConciergeCall',
 } as const;
 
 type WriteCommand = ValueOf<typeof WRITE_COMMANDS>;
@@ -533,7 +540,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.VERIFY_IDENTITY]: Parameters.VerifyIdentityParams;
     [WRITE_COMMANDS.ACCEPT_WALLET_TERMS]: Parameters.AcceptWalletTermsParams;
     [WRITE_COMMANDS.ANSWER_QUESTIONS_FOR_WALLET]: Parameters.AnswerQuestionsForWalletParams;
-    [WRITE_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
     [WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK]: Parameters.RequestAccountValidationLinkParams;
     [WRITE_COMMANDS.REQUEST_NEW_VALIDATE_CODE]: Parameters.RequestNewValidateCodeParams;
     [WRITE_COMMANDS.SIGN_IN_WITH_APPLE]: Parameters.BeginAppleSignInParams;
@@ -546,10 +552,12 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.DISABLE_TWO_FACTOR_AUTH]: Parameters.DisableTwoFactorAuthParams;
     [WRITE_COMMANDS.ADD_COMMENT]: Parameters.AddCommentOrAttachementParams;
     [WRITE_COMMANDS.ADD_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
+    [WRITE_COMMANDS.CREATE_APP_REPORT]: Parameters.CreateAppReportParams;
     [WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]: Parameters.AddCommentOrAttachementParams;
     [WRITE_COMMANDS.CONNECT_BANK_ACCOUNT_WITH_PLAID]: Parameters.ConnectBankAccountParams;
     [WRITE_COMMANDS.ADD_PERSONAL_BANK_ACCOUNT]: Parameters.AddPersonalBankAccountParams;
     [WRITE_COMMANDS.RESTART_BANK_ACCOUNT_SETUP]: Parameters.RestartBankAccountSetupParams;
+    [WRITE_COMMANDS.RESET_BANK_ACCOUNT_SETUP]: Parameters.ResetBankAccountSetupParams;
     [WRITE_COMMANDS.RESEND_VALIDATE_CODE]: null;
     [WRITE_COMMANDS.READ_NEWEST_ACTION]: Parameters.ReadNewestActionParams;
     [WRITE_COMMANDS.MARK_AS_UNREAD]: Parameters.MarkAsUnreadParams;
@@ -591,7 +599,9 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_ROLE]: Parameters.UpdateWorkspaceMembersRoleParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE]: Parameters.CreateWorkspaceParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_FROM_IOU_PAYMENT]: Parameters.CreateWorkspaceFromIOUPaymentParams;
+    [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_EXISTING_POLICY]: Parameters.MoveIOUReportToExistingPolicyParams;
     [WRITE_COMMANDS.SET_WORKSPACE_CATEGORIES_ENABLED]: Parameters.SetWorkspaceCategoriesEnabledParams;
+    [WRITE_COMMANDS.MOVE_IOU_REPORT_TO_POLICY_AND_INVITE_SUBMITTER]: Parameters.MoveIOUReportToPolicyAndInviteSubmitterParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_CATEGORIES]: Parameters.CreateWorkspaceCategoriesParams;
     [WRITE_COMMANDS.IMPORT_CATEGORIES_SPREADSHEET]: Parameters.ImportCategoriesSpreadsheetParams;
     [WRITE_COMMANDS.IMPORT_PER_DIEM_RATES]: Parameters.ImportPerDiemRatesParams;
@@ -601,6 +611,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.EXPORT_MEMBERS_CSV]: Parameters.ExportMembersSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_TAGS_CSV]: Parameters.ExportTagsSpreadsheetParams;
     [WRITE_COMMANDS.EXPORT_PER_DIEM_CSV]: Parameters.ExportPerDiemCSVParams;
+    [WRITE_COMMANDS.EXPORT_REPORT_TO_PDF]: Parameters.ExportReportPDFParams;
     [WRITE_COMMANDS.RENAME_WORKSPACE_CATEGORY]: Parameters.RenameWorkspaceCategoriesParams;
     [WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY]: Parameters.SetWorkspaceRequiresCategoryParams;
     [WRITE_COMMANDS.DELETE_WORKSPACE_CATEGORIES]: Parameters.DeleteWorkspaceCategoriesParams;
@@ -747,6 +758,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID]: Parameters.UpdateQuickbooksOnlineGenericTypeParams;
+    [WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD]: Parameters.UpdateQuickbooksOnlineAccountingMethodParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_EXPORT_DATE]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_MARK_CHECKS_TO_BE_PRINTED]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
     [WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_AUTO_CREATE_VENDOR]: Parameters.UpdateQuickbooksDesktopGenericTypeParams;
@@ -781,7 +793,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.SEND_INVOICE]: Parameters.SendInvoiceParams;
     [WRITE_COMMANDS.PAY_INVOICE]: Parameters.PayInvoiceParams;
     [WRITE_COMMANDS.MARK_AS_CASH]: Parameters.MarkAsCashParams;
-    [WRITE_COMMANDS.TRANSACTION_MERGE]: Parameters.TransactionMergeParams;
+    [WRITE_COMMANDS.MERGE_DUPLICATES]: Parameters.MergeDuplicatesParams;
     [WRITE_COMMANDS.RESOLVE_DUPLICATES]: Parameters.ResolveDuplicatesParams;
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_TYPE]: Parameters.UpdateSubscriptionTypeParams;
     [WRITE_COMMANDS.SIGN_UP_USER]: Parameters.SignUpUserParams;
@@ -790,10 +802,15 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SUBSCRIPTION_SIZE]: Parameters.UpdateSubscriptionSizeParams;
     [WRITE_COMMANDS.REQUEST_TAX_EXEMPTION]: null;
     [WRITE_COMMANDS.GET_CORPAY_BANK_ACCOUNT_FIELDS]: Parameters.GetCorpayBankAccountFieldsParams;
+    [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
+    [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION]: Parameters.SaveCorpayOnboardingDirectorInformationParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_CUSTOM_UNIT]: Parameters.UpdateWorkspaceCustomUnitParams;
     [WRITE_COMMANDS.RESET_SMS_DELIVERY_FAILURE_STATUS]: Parameters.ResetSMSDeliveryFailureStatusParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_COMPANY_DETAILS]: Parameters.SaveCorpayOnboardingCompanyDetailsParams;
     [WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER]: Parameters.SaveCorpayOnboardingBeneficialOwnerParams;
+    [WRITE_COMMANDS.SEND_RECAP_IN_ADMINS_ROOM]: Parameters.SendRecapInAdminsRoomParams;
+    [WRITE_COMMANDS.SET_POLICY_PROHIBITED_EXPENSES]: Parameters.SetPolicyProhibitedExpensesParams;
+    [WRITE_COMMANDS.COMPLETE_CONCIERGE_CALL]: Parameters.CompleteConciergeCallParams;
 
     [WRITE_COMMANDS.DELETE_MONEY_REQUEST_ON_SEARCH]: Parameters.DeleteMoneyRequestOnSearchParams;
     [WRITE_COMMANDS.HOLD_MONEY_REQUEST_ON_SEARCH]: Parameters.HoldMoneyRequestOnSearchParams;
@@ -833,6 +850,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.REMOVE_WORKSPACE_REPORT_FIELD_LIST_VALUE]: Parameters.RemoveWorkspaceReportFieldListValueParams;
 
     [WRITE_COMMANDS.UPDATE_NETSUITE_SYNC_TAX_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
+    [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_TAX_SOLUTION_ID]: Parameters.UpdateNetSuiteGenericTypeParams<'taxSolutionID', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CROSS_SUBSIDIARY_CUSTOMER_CONFIGURATION]: Parameters.UpdateNetSuiteGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_DEPARTMENTS_MAPPING]: Parameters.UpdateNetSuiteGenericTypeParams<'mapping', ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CLASSES_MAPPING]: Parameters.UpdateNetSuiteGenericTypeParams<'mapping', ValueOf<typeof CONST.INTEGRATION_ENTITY_MAP_TYPES>>;
@@ -868,17 +886,11 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_REPORTS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_REPORTS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_VENDOR_BILLS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_VENDOR_BILLS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_ACCOUNTING_METHOD]: Parameters.UpdateNetSuiteAccountingMethodParams;
+
     [WRITE_COMMANDS.UPDATE_NETSUITE_JOURNALS_TO]: Parameters.UpdateNetSuiteGenericTypeParams<'value', ValueOf<typeof CONST.NETSUITE_JOURNALS_APPROVAL_LEVEL>>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_APPROVAL_ACCOUNT]: Parameters.UpdateNetSuiteGenericTypeParams<'value', string>;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
     [WRITE_COMMANDS.UPDATE_NETSUITE_CUSTOM_FORM_ID_OPTIONS_NON_REIMBURSABLE]: Parameters.UpdateNetSuiteCustomFormIDParams;
-    [WRITE_COMMANDS.CONNECT_POLICY_TO_NSQS]: Parameters.ConnectPolicyToNSQSParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_CUSTOMERS_MAPPING]: Parameters.UpdateNSQSCustomersMappingParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_PROJECTS_MAPPING]: Parameters.UpdateNSQSProjectsMappingParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_EXPORTER]: Parameters.UpdateNSQSExporterParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_EXPORT_DATE]: Parameters.UpdateNSQSExportDateParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_AUTO_SYNC]: Parameters.UpdateNSQSAutoSyncParams;
-    [WRITE_COMMANDS.UPDATE_NSQS_PAYMENT_ACCOUNT]: Parameters.UpdateNSQSPaymentAccountParams;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_ENTITY]: Parameters.UpdateSageIntacctGenericTypeParams<'entity', string>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_BILLABLE]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_DEPARTMENT_MAPPING]: Parameters.UpdateSageIntacctGenericTypeParams<'mapping', SageIntacctMappingValue>;
@@ -933,6 +945,15 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.JOIN_ACCESSIBLE_POLICY]: Parameters.JoinAccessiblePolicyParams;
     // Dismis Product Training
     [WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING]: Parameters.DismissProductTrainingParams;
+
+    // Merge accounts API
+    [WRITE_COMMANDS.GET_VALIDATE_CODE_FOR_ACCOUNT_MERGE]: Parameters.GetValidateCodeForAccountMergeParams;
+    [WRITE_COMMANDS.MERGE_WITH_VALIDATE_CODE]: Parameters.MergeWithValidateCodeParams;
+    // Change report policy
+    [WRITE_COMMANDS.CHANGE_REPORT_POLICY]: Parameters.ChangeReportPolicyParams;
+
+    // Change transaction report
+    [WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT]: Parameters.ChangeTransactionsReportParams;
 };
 
 const READ_COMMANDS = {
@@ -942,7 +963,6 @@ const READ_COMMANDS = {
     SYNC_POLICY_TO_QUICKBOOKS_ONLINE: 'SyncPolicyToQuickbooksOnline',
     SYNC_POLICY_TO_XERO: 'SyncPolicyToXero',
     SYNC_POLICY_TO_NETSUITE: 'SyncPolicyToNetSuite',
-    SYNC_POLICY_TO_NSQS: 'SyncPolicyToNSQS',
     SYNC_POLICY_TO_SAGE_INTACCT: 'SyncPolicyToSageIntacct',
     SYNC_POLICY_TO_QUICKBOOKS_DESKTOP: 'SyncPolicyToQuickbooksDesktop',
     OPEN_REIMBURSEMENT_ACCOUNT_PAGE: 'OpenReimbursementAccountPage',
@@ -961,6 +981,7 @@ const READ_COMMANDS = {
     SEARCH_FOR_REPORTS: 'SearchForReports',
     SEARCH_FOR_ROOMS_TO_MENTION: 'SearchForRoomsToMention',
     SEND_PERFORMANCE_TIMING: 'SendPerformanceTiming',
+    GRAPHITE: 'Graphite',
     GET_ROUTE: 'GetRoute',
     GET_ROUTE_FOR_DRAFT: 'GetRouteForDraft',
     GET_ROUTE_FOR_BACKUP: 'GetRouteForBackup',
@@ -974,6 +995,7 @@ const READ_COMMANDS = {
     GET_POLICY_CATEGORIES: 'GetPolicyCategories',
     OPEN_WORKSPACE: 'OpenWorkspace',
     OPEN_WORKSPACE_MEMBERS_PAGE: 'OpenWorkspaceMembersPage',
+    OPEN_POLICY_MEMBER_PROFILE_PAGE: 'OpenPolicyMemberProfilePage',
     OPEN_POLICY_CATEGORIES_PAGE: 'OpenPolicyCategoriesPage',
     OPEN_POLICY_TAGS_PAGE: 'OpenPolicyTagsPage',
     OPEN_POLICY_TAXES_PAGE: 'OpenPolicyTaxesPage',
@@ -998,8 +1020,8 @@ const READ_COMMANDS = {
     START_ISSUE_NEW_CARD_FLOW: 'StartIssueNewCardFlow',
     OPEN_CARD_DETAILS_PAGE: 'OpenCardDetailsPage',
     GET_ASSIGNED_SUPPORT_DATA: 'GetAssignedSupportData',
-    OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     GET_CORPAY_ONBOARDING_FIELDS: 'GetCorpayOnboardingFields',
+    OPEN_WORKSPACE_PLAN_PAGE: 'OpenWorkspacePlanPage',
     OPEN_SECURITY_SETTINGS_PAGE: 'OpenSecuritySettingsPage',
 } as const;
 
@@ -1011,7 +1033,6 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_ONLINE]: Parameters.SyncPolicyToQuickbooksOnlineParams;
     [READ_COMMANDS.SYNC_POLICY_TO_XERO]: Parameters.SyncPolicyToXeroParams;
     [READ_COMMANDS.SYNC_POLICY_TO_NETSUITE]: Parameters.SyncPolicyToNetSuiteParams;
-    [READ_COMMANDS.SYNC_POLICY_TO_NSQS]: Parameters.SyncPolicyToNSQSParams;
     [READ_COMMANDS.SYNC_POLICY_TO_SAGE_INTACCT]: Parameters.SyncPolicyToNetSuiteParams;
     [READ_COMMANDS.SYNC_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.SyncPolicyToQuickbooksDesktopParams;
     [READ_COMMANDS.OPEN_REIMBURSEMENT_ACCOUNT_PAGE]: Parameters.OpenReimbursementAccountPageParams;
@@ -1031,6 +1052,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.SEARCH_FOR_REPORTS]: Parameters.SearchForReportsParams;
     [READ_COMMANDS.SEARCH_FOR_ROOMS_TO_MENTION]: Parameters.SearchForRoomsToMentionParams;
     [READ_COMMANDS.SEND_PERFORMANCE_TIMING]: Parameters.SendPerformanceTimingParams;
+    [READ_COMMANDS.GRAPHITE]: Parameters.GraphiteParams;
     [READ_COMMANDS.GET_ROUTE]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_DRAFT]: Parameters.GetRouteParams;
     [READ_COMMANDS.GET_ROUTE_FOR_BACKUP]: Parameters.GetRouteParams;
@@ -1044,6 +1066,7 @@ type ReadCommandParameters = {
     [READ_COMMANDS.GET_POLICY_CATEGORIES]: Parameters.GetPolicyCategoriesParams;
     [READ_COMMANDS.OPEN_WORKSPACE]: Parameters.OpenWorkspaceParams;
     [READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE]: Parameters.OpenWorkspaceMembersPageParams;
+    [READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE]: Parameters.OpenPolicyMemberProfilePageParams;
     [READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE]: Parameters.OpenPolicyCategoriesPageParams;
     [READ_COMMANDS.OPEN_POLICY_TAGS_PAGE]: Parameters.OpenPolicyTagsPageParams;
     [READ_COMMANDS.OPEN_POLICY_TAXES_PAGE]: Parameters.OpenPolicyTaxesPageParams;
@@ -1068,8 +1091,8 @@ type ReadCommandParameters = {
     [READ_COMMANDS.START_ISSUE_NEW_CARD_FLOW]: Parameters.StartIssueNewCardFlowParams;
     [READ_COMMANDS.OPEN_CARD_DETAILS_PAGE]: Parameters.OpenCardDetailsPageParams;
     [READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA]: Parameters.GetAssignedSupportDataParams;
-    [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.GET_CORPAY_ONBOARDING_FIELDS]: Parameters.GetCorpayOnboardingFieldsParams;
+    [READ_COMMANDS.OPEN_WORKSPACE_PLAN_PAGE]: Parameters.OpenWorkspacePlanPageParams;
     [READ_COMMANDS.OPEN_SECURITY_SETTINGS_PAGE]: null;
 };
 
@@ -1077,9 +1100,7 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     AUTHENTICATE_PUSHER: 'AuthenticatePusher',
     GENERATE_SPOTNANA_TOKEN: 'GenerateSpotnanaToken',
     GET_MISSING_ONYX_MESSAGES: 'GetMissingOnyxMessages',
-    JOIN_POLICY_VIA_INVITE_LINK: 'JoinWorkspaceViaInviteLink',
     OPEN_OLD_DOT_LINK: 'OpenOldDotLink',
-    OPEN_REPORT: 'OpenReport',
     RECONNECT_APP: 'ReconnectApp',
     REVEAL_EXPENSIFY_CARD_DETAILS: 'RevealExpensifyCardDetails',
     TWO_FACTOR_AUTH_VALIDATE: 'TwoFactorAuth_Validate',
@@ -1088,20 +1109,21 @@ const SIDE_EFFECT_REQUEST_COMMANDS = {
     COMPLETE_HYBRID_APP_ONBOARDING: 'CompleteHybridAppOnboarding',
     CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP: 'ConnectPolicyToQuickbooksDesktop',
     BANK_ACCOUNT_CREATE_CORPAY: 'BankAccount_CreateCorpay',
+    GET_EMPHEMERAL_TOKEN: 'GetEmphemeralToken',
 
     // PayMoneyRequestOnSearch only works online (pattern C) and we need to play the success sound only when the request is successful
     PAY_MONEY_REQUEST_ON_SEARCH: 'PayMoneyRequestOnSearch',
+    LOG_OUT: 'LogOut',
+    CREATE_DIGITAL_WALLET: 'CreateDigitalWallet',
 } as const;
 
 type SideEffectRequestCommand = ValueOf<typeof SIDE_EFFECT_REQUEST_COMMANDS>;
 
 type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.AUTHENTICATE_PUSHER]: Parameters.AuthenticatePusherParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT]: Parameters.OpenReportParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_OLD_DOT_LINK]: Parameters.OpenOldDotLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.REVEAL_EXPENSIFY_CARD_DETAILS]: Parameters.RevealExpensifyCardDetailsParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES]: Parameters.GetMissingOnyxMessagesParams;
-    [SIDE_EFFECT_REQUEST_COMMANDS.JOIN_POLICY_VIA_INVITE_LINK]: Parameters.JoinPolicyInviteLinkParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP]: Parameters.ReconnectAppParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.GENERATE_SPOTNANA_TOKEN]: Parameters.GenerateSpotnanaTokenParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.TWO_FACTOR_AUTH_VALIDATE]: Parameters.ValidateTwoFactorAuthParams;
@@ -1111,6 +1133,9 @@ type SideEffectRequestCommandParameters = {
     [SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP]: Parameters.ConnectPolicyToQuickBooksDesktopParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
     [SIDE_EFFECT_REQUEST_COMMANDS.PAY_MONEY_REQUEST_ON_SEARCH]: Parameters.PayMoneyRequestOnSearchParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.LOG_OUT]: Parameters.LogOutParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.GET_EMPHEMERAL_TOKEN]: Parameters.GetEmphemeralTokenParams;
+    [SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET]: Parameters.CreateAppleDigitalWalletParams;
 };
 
 type ApiRequestCommandParameters = WriteCommandParameters & ReadCommandParameters & SideEffectRequestCommandParameters;

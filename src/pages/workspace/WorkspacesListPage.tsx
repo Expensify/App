@@ -1,3 +1,4 @@
+import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useMemo, useState} from 'react';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -23,24 +24,37 @@ import ScrollView from '@components/ScrollView';
 import SupportalActionRestrictedModal from '@components/SupportalActionRestrictedModal';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    clearDeleteWorkspaceError,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removeWorkspace,
+    updateDefaultPolicy,
+    updateLastAccessedWorkspaceSwitcher,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
+import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import localeCompare from '@libs/LocaleCompare';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPolicy, getPolicyBrickRoadIndicatorStatus, getWorkspaceAccountID, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import {getPolicy, getPolicyBrickRoadIndicatorStatus, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import type {AvatarSource} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 import type {Policy as PolicyType} from '@src/types/onyx';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import type {PolicyDetailsForNonMembers} from '@src/types/onyx/Policy';
@@ -120,6 +134,7 @@ function WorkspacesListPage() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const shouldShowLoadingIndicator = isLoadingApp && !isOffline;
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.WORKSPACES>>();
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
     const [policyIDToDelete, setPolicyIDToDelete] = useState<string>();
@@ -127,9 +142,9 @@ function WorkspacesListPage() {
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = getWorkspaceAccountID(policyIDToDelete);
+    const workspaceAccountID = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyIDToDelete}`]?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const policyToDelete = getPolicy(policyIDToDelete);
     const hasCardFeedOrExpensifyCard =
         !isEmptyObject(cardFeeds) ||
@@ -154,6 +169,7 @@ function WorkspacesListPage() {
         if (policyIDToDelete === activeWorkspaceID) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     };
 
@@ -423,11 +439,18 @@ function WorkspacesListPage() {
         <Button
             accessibilityLabel={translate('workspace.new.newWorkspace')}
             text={translate('workspace.new.newWorkspace')}
-            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
+            onPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
             icon={Expensicons.Plus}
             style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
         />
     );
+
+    const onBackButtonPress = () => {
+        Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS);
+        return true;
+    };
+
+    useHandleBackButton(onBackButtonPress);
 
     if (isEmptyObject(workspaces)) {
         return (
@@ -437,19 +460,23 @@ function WorkspacesListPage() {
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
                 bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                    onBackButtonPress={onBackButtonPress}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 />
                 {shouldShowLoadingIndicator ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
-                    <ScrollView contentContainerStyle={styles.pt3}>
+                    <ScrollView
+                        contentContainerStyle={styles.pt3}
+                        addBottomSafeAreaPadding
+                    >
                         <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <FeatureList
                                 menuItems={workspaceFeatures}
@@ -457,7 +484,7 @@ function WorkspacesListPage() {
                                 subtitle={translate('workspace.emptyWorkspace.subtitle')}
                                 ctaText={translate('workspace.new.newWorkspace')}
                                 ctaAccessibilityLabel={translate('workspace.new.newWorkspace')}
-                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(Navigation.getActiveRoute())))}
+                                onCtaPress={() => interceptAnonymousUser(() => Navigation.navigate(ROUTES.WORKSPACE_CONFIRMATION.getRoute(ROUTES.SETTINGS_WORKSPACES.route)))}
                                 illustration={LottieAnimations.WorkspacePlanet}
                                 // We use this style to vertically center the illustration, as the original illustration is not centered
                                 illustrationStyle={styles.emptyWorkspaceIllustrationStyle}
@@ -475,6 +502,7 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
@@ -482,7 +510,7 @@ function WorkspacesListPage() {
                     title={translate('common.workspaces')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldDisplaySearchRouter
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS)}
+                    onBackButtonPress={onBackButtonPress}
                     icon={Illustrations.Buildings}
                     shouldUseHeadlineHeader
                 >

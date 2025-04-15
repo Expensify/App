@@ -70,6 +70,7 @@ function SearchFiltersAmountPage() {
                         role={CONST.ROLE.PRESENTATION}
                         ref={inputCallbackRef}
                         uncontrolled
+                        inputMode={CONST.INPUT_MODE.DECIMAL}
                     />
                 </View>
                 <View style={styles.mb5}>
@@ -82,6 +83,7 @@ function SearchFiltersAmountPage() {
                         accessibilityLabel={translate('search.filters.amount.lessThan')}
                         role={CONST.ROLE.PRESENTATION}
                         uncontrolled
+                        inputMode={CONST.INPUT_MODE.DECIMAL}
                     />
                 </View>
             </FormProvider>

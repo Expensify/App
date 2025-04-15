@@ -9,11 +9,12 @@ import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Log from './Log';
+import Parser from './Parser';
 import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';
-import {getTagArrayFromName} from './TransactionUtils';
+import {getFormattedAttendees, getTagArrayFromName} from './TransactionUtils';
 
 let allPolicyTags: OnyxCollection<PolicyTagLists> = {};
 Onyx.connect({
@@ -222,8 +223,8 @@ function getForReportAction({
     const hasModifiedComment = isReportActionOriginalMessageAnObject && 'oldComment' in reportActionOriginalMessage && 'newComment' in reportActionOriginalMessage;
     if (hasModifiedComment) {
         buildMessageFragmentForValue(
-            reportActionOriginalMessage?.newComment ?? '',
-            reportActionOriginalMessage?.oldComment ?? '',
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.newComment ?? ''),
+            Parser.htmlToMarkdown(reportActionOriginalMessage?.oldComment ?? ''),
             translateLocal('common.description'),
             true,
             setFragments,
@@ -343,17 +344,11 @@ function getForReportAction({
         );
     }
 
-    const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'attendees' in reportActionOriginalMessage;
+    const hasModifiedAttendees = isReportActionOriginalMessageAnObject && 'oldAttendees' in reportActionOriginalMessage && 'newAttendees' in reportActionOriginalMessage;
     if (hasModifiedAttendees) {
-        buildMessageFragmentForValue(
-            reportActionOriginalMessage.oldAttendees ?? '',
-            reportActionOriginalMessage.attendees ?? '',
-            translateLocal('iou.attendees'),
-            false,
-            setFragments,
-            removalFragments,
-            changeFragments,
-        );
+        const [oldAttendees, attendees] = getFormattedAttendees(reportActionOriginalMessage.newAttendees, reportActionOriginalMessage.oldAttendees);
+
+        buildMessageFragmentForValue(oldAttendees, attendees, translateLocal('iou.attendees'), false, setFragments, removalFragments, changeFragments);
     }
 
     const message =

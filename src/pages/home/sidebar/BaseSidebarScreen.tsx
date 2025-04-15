@@ -13,8 +13,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import {isMobile} from '@libs/Browser';
 import getInitialSplitNavigatorState from '@libs/Navigation/AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
-import {getPreservedSplitNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveSplitNavigatorState';
+import {getPreservedNavigatorState} from '@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState';
 import getTopmostReportsSplitNavigator from '@libs/Navigation/helpers/getTopmostReportsSplitNavigator';
+import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import Performance from '@libs/Performance';
 import Timing from '@userActions/Timing';
@@ -48,19 +49,22 @@ function BaseSidebarScreen() {
         }
 
         // Switching workspace to global should only be performed from the currently opened sidebar screen
-        const topmostReportSplitState = topmostReportSplit?.state ?? getPreservedSplitNavigatorState(topmostReportSplit?.key);
+        const topmostReportSplitState = topmostReportSplit?.state ?? getPreservedNavigatorState(topmostReportSplit?.key);
         const isCurrentSidebar = topmostReportSplitState?.routes.some((route) => currentRoute.key === route.key);
 
         if (!isCurrentSidebar) {
             return;
         }
 
+        updateLastAccessedWorkspace(undefined);
+
+        if (!isReportTopmostSplitNavigator()) {
+            return;
+        }
+
         const reportsSplitNavigatorWithoutPolicyID = getInitialSplitNavigatorState({name: SCREENS.HOME}, {name: SCREENS.REPORT});
         Navigation.replaceWithSplitNavigator(reportsSplitNavigatorWithoutPolicyID);
-        updateLastAccessedWorkspace(undefined);
     }, [activeWorkspace, isLoading, currentRoute.key, activeWorkspaceResult]);
-
-    const shouldDisplaySearch = shouldUseNarrowLayout;
 
     return (
         <ScreenWrapper
@@ -74,7 +78,8 @@ function BaseSidebarScreen() {
                     <TopBar
                         breadcrumbLabel={translate('common.inbox')}
                         activeWorkspaceID={activeWorkspaceID}
-                        shouldDisplaySearch={shouldDisplaySearch}
+                        shouldDisplaySearch={shouldUseNarrowLayout}
+                        shouldDisplayHelpButton={shouldUseNarrowLayout}
                     />
                     <View style={[styles.flex1]}>
                         <SidebarLinksData insets={insets} />

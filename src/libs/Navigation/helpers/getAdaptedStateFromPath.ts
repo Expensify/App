@@ -73,7 +73,7 @@ function getMatchingFullScreenRoute(route: NavigationPartialRoute, policyID?: st
         const paramsFromRoute = getParamsFromRoute(SCREENS.SEARCH.ROOT);
 
         return {
-            name: SCREENS.SEARCH.ROOT,
+            name: NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR,
             params: paramsFromRoute.length > 0 ? pick(route.params, paramsFromRoute) : undefined,
         };
     }
@@ -128,6 +128,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
     // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
     const fallbackRoute = {
         name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+        params: policyID ? {policyID} : undefined,
     };
 
     if (route && isRouteWithReportID(route)) {

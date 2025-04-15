@@ -1,8 +1,8 @@
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -61,6 +61,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
@@ -108,8 +109,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             return reportName;
         }
 
+        if (isPolicyExpenseChat) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        }
+
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
     return (
         <>
@@ -153,8 +158,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                         </Text>
                     ))}
                 {isChatRoom &&
-                    (!isInvoiceRoom || isArchivedRoom) &&
-                    !isAdminRoom &&
+                    ((!isInvoiceRoom && !isAdminRoom) || isArchivedRoom) &&
                     (welcomeMessage?.messageHtml ? (
                         <View style={styles.renderHTML}>
                             <RenderHTML html={welcomeMessage.messageHtml} />
@@ -174,7 +178,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
                             {welcomeMessage.phrase2 !== undefined && <Text>{welcomeMessage.phrase2}</Text>}
                         </Text>
                     ))}
-                {isChatRoom && isAdminRoom && (
+                {isChatRoom && isAdminRoom && !isArchivedRoom && (
                     <Text>
                         <Text>{welcomeMessage.phrase1}</Text>
                         {welcomeMessage.phrase2 !== undefined && <Text style={styles.textStrong}>{welcomeMessage.phrase2}</Text>}

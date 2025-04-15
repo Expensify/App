@@ -13,6 +13,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
         ignoreAllLogs: jest.fn(),
     },
 }));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('AppComponent', () => {
     it('renders correctly', () => {

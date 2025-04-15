@@ -31,6 +31,7 @@ const FILTER_KEYS = {
     CATEGORY: 'category',
     POLICY_ID: 'policyID',
     CARD_ID: 'cardID',
+    FEED: 'feed',
     MERCHANT: 'merchant',
     DESCRIPTION: 'description',
     REPORT_ID: 'reportID',
@@ -43,6 +44,8 @@ const FILTER_KEYS = {
     FROM: 'from',
     TO: 'to',
     IN: 'in',
+    REIMBURSABLE: 'reimbursable',
+    BILLABLE: 'billable',
 } as const;
 
 type InputID = ValueOf<typeof FILTER_KEYS>;
@@ -68,6 +71,7 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.CATEGORY]: string[];
         [FILTER_KEYS.POLICY_ID]: string;
         [FILTER_KEYS.CARD_ID]: string[];
+        [FILTER_KEYS.FEED]: string[];
         [FILTER_KEYS.MERCHANT]: string;
         [FILTER_KEYS.DESCRIPTION]: string;
         [FILTER_KEYS.REPORT_ID]: string;
@@ -80,6 +84,8 @@ type SearchAdvancedFiltersForm = Form<
         [FILTER_KEYS.FROM]: string[];
         [FILTER_KEYS.TO]: string[];
         [FILTER_KEYS.IN]: string[];
+        [FILTER_KEYS.REIMBURSABLE]: string;
+        [FILTER_KEYS.BILLABLE]: string;
     }
 >;
 

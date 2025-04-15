@@ -35,23 +35,24 @@ function SearchRouterModal() {
             popoverAnchorPosition={{right: 6, top: 6}}
             fullscreen
             propagateSwipe
+            swipeDirection={shouldUseNarrowLayout ? CONST.SWIPE_DIRECTION.RIGHT : undefined}
             shouldHandleNavigationBack={isMobileChrome()}
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
+            shouldApplySidePanelOffset={!shouldUseNarrowLayout}
         >
             <KeyboardAvoidingView
                 behavior="padding"
                 style={[styles.flex1, {maxHeight: windowHeight}]}
             >
-                {isSearchRouterDisplayed && (
-                    <FocusTrapForModal active={isSearchRouterDisplayed}>
-                        <SearchRouter
-                            onRouterClose={closeSearchRouter}
-                            shouldHideInputCaret={shouldHideInputCaret}
-                        />
-                    </FocusTrapForModal>
-                )}
+                <FocusTrapForModal active={isSearchRouterDisplayed}>
+                    <SearchRouter
+                        onRouterClose={closeSearchRouter}
+                        shouldHideInputCaret={shouldHideInputCaret}
+                        isSearchRouterDisplayed={isSearchRouterDisplayed}
+                    />
+                </FocusTrapForModal>
             </KeyboardAvoidingView>
         </Modal>
     );

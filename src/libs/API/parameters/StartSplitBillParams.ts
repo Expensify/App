@@ -16,6 +16,7 @@ type StartSplitBillParams = {
     chatType?: string;
     taxCode?: string;
     taxAmount?: number;
+    description?: string;
 };
 
 export default StartSplitBillParams;

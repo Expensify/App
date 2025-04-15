@@ -100,13 +100,13 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const closeImportPageAndModal = () => {
         setIsImporting(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
     };
 
     return (
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}

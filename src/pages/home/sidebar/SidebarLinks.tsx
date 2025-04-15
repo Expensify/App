@@ -9,9 +9,9 @@ import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {confirmReadyToOpenApp, setSidebarLoaded} from '@libs/actions/App';
 import Navigation from '@libs/Navigation/Navigation';
 import * as ReportActionContextMenu from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as App from '@userActions/App';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report} from '@src/types/onyx';
@@ -44,7 +44,7 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     useEffect(() => {
-        App.confirmReadyToOpenApp();
+        confirmReadyToOpenApp();
     }, []);
 
     useEffect(() => {
@@ -68,7 +68,16 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
             // or when continuously clicking different LHNs, only apply to small screen
             // since getTopmostReportId always returns on other devices
             const reportActionID = Navigation.getTopmostReportActionId();
-            if ((option.reportID === Navigation.getTopmostReportId() && !reportActionID) || (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID)) {
+
+            // Prevent opening a new Report page if the user quickly taps on another conversation
+            // before the first one is displayed.
+            const shouldBlockReportNavigation = Navigation.getActiveRoute() !== '/home' && shouldUseNarrowLayout;
+
+            if (
+                (option.reportID === Navigation.getTopmostReportId() && !reportActionID) ||
+                (shouldUseNarrowLayout && isActiveReport(option.reportID) && !reportActionID) ||
+                shouldBlockReportNavigation
+            ) {
                 return;
             }
             Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(option.reportID));
@@ -91,10 +100,10 @@ function SidebarLinks({insets, optionListItems, isLoading, priorityMode = CONST.
                     onSelectRow={showReportPage}
                     shouldDisableFocusOptions={shouldUseNarrowLayout}
                     optionMode={viewMode}
-                    onFirstItemRendered={App.setSidebarLoaded}
+                    onFirstItemRendered={setSidebarLoaded}
                 />
                 {!!isLoading && optionListItems?.length === 0 && (
-                    <View style={[StyleSheet.absoluteFillObject, styles.appBG]}>
+                    <View style={[StyleSheet.absoluteFillObject, styles.appBG, styles.mt3]}>
                         <OptionsListSkeletonView shouldAnimate />
                     </View>
                 )}

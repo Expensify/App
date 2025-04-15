@@ -1,20 +1,19 @@
 import {useFocusEffect} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
+import Performance from '@libs/Performance';
 import {getPerDiemCustomUnit, getPerDiemCustomUnits} from '@libs/PolicyUtils';
 import {getPayeeName} from '@libs/ReportUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -53,7 +52,6 @@ function IOURequestStartPage({
     // eslint-disable-next-line  @typescript-eslint/prefer-nullish-coalescing
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${route?.params.transactionID || CONST.DEFAULT_NUMBER_ID}`);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const {canUsePerDiem} = usePermissions();
 
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.createExpense'),
@@ -80,6 +78,10 @@ function IOURequestStartPage({
             initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
         }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
     );
+
+    useEffect(() => {
+        Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
+    }, []);
 
     const navigateBack = () => {
         Navigation.closeRHPFlow();
@@ -113,16 +115,7 @@ function IOURequestStartPage({
     const doesCurrentPolicyPerDiemExist = !isEmptyObject(currentPolicyPerDiemUnit) && !!currentPolicyPerDiemUnit.enabled;
 
     const shouldShowPerDiemOption =
-        iouType !== CONST.IOU.TYPE.SPLIT &&
-        iouType !== CONST.IOU.TYPE.TRACK &&
-        canUsePerDiem &&
-        ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
-
-    if (!transaction?.transactionID) {
-        // The draft transaction is initialized only after the component is mounted,
-        // which will lead to briefly displaying the Not Found page without this loader.
-        return <FullScreenLoadingIndicator />;
-    }
+        iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && ((!isFromGlobalCreate && doesCurrentPolicyPerDiemExist) || (isFromGlobalCreate && doesPerDiemPolicyExist));
 
     return (
         <AccessOrNotFoundWrapper

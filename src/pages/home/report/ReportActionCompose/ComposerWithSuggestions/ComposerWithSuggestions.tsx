@@ -7,11 +7,12 @@ import type {
     MeasureInWindowOnSuccessCallback,
     NativeSyntheticEvent,
     TextInput,
+    TextInputContentSizeChangeEventData,
     TextInputFocusEventData,
     TextInputKeyPressEventData,
     TextInputScrollEventData,
 } from 'react-native';
-import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, View} from 'react-native';
+import {DeviceEventEmitter, findNodeHandle, InteractionManager, NativeModules, StyleSheet, View} from 'react-native';
 import {useFocusedInputHandler} from 'react-native-keyboard-controller';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -25,6 +26,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -86,6 +88,9 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
 
     /** Whether the composer is full size */
     isComposerFullSize: boolean;
+
+    /** Function to set whether the full composer is available */
+    setIsFullComposerAvailable: (isFullComposerAvailable: boolean) => void;
 
     /** Whether the menu is visible */
     isMenuVisible: boolean;
@@ -206,6 +211,7 @@ function ComposerWithSuggestions(
 
         // Composer
         isComposerFullSize,
+        setIsFullComposerAvailable,
         isMenuVisible,
         inputPlaceholder,
         displayFileInModal,
@@ -235,6 +241,7 @@ function ComposerWithSuggestions(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -560,14 +567,14 @@ function ComposerWithSuggestions(
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused) {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
 
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
     );
 
     /**
@@ -587,6 +594,11 @@ function ComposerWithSuggestions(
                 return;
             }
 
+            // Do not focus the composer if the Side Panel is visible
+            if (!isSidePanelHiddenOrLargeScreen) {
+                return;
+            }
+
             if (!shouldAutoFocusOnKeyPress(e)) {
                 return;
             }
@@ -598,7 +610,7 @@ function ComposerWithSuggestions(
 
             focus();
         },
-        [checkComposerVisibility, focus],
+        [checkComposerVisibility, focus, isSidePanelHiddenOrLargeScreen],
     );
 
     const blur = useCallback(() => {
@@ -637,7 +649,7 @@ function ComposerWithSuggestions(
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager]);
+    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePanelHiddenOrLargeScreen]);
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
@@ -655,6 +667,11 @@ function ComposerWithSuggestions(
             return;
         }
 
+        // Do not focus the composer if the Side Panel is visible
+        if (!isSidePanelHiddenOrLargeScreen) {
+            return;
+        }
+
         // We want to focus or refocus the input when a modal has been closed or the underlying screen is refocused.
         // We avoid doing this on native platforms since the software keyboard popping
         // open creates a jarring and broken UX.
@@ -667,7 +684,7 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit
@@ -753,11 +770,23 @@ function ComposerWithSuggestions(
     );
 
     const isTouchEndedRef = useRef(false);
+    const containerComposeStyles = StyleSheet.flatten(StyleUtils.getContainerComposeStyles());
+
+    const updateIsFullComposerAvailable = useCallback(
+        (e: NativeSyntheticEvent<TextInputContentSizeChangeEventData>) => {
+            const paddingTopAndBottom = (containerComposeStyles.paddingVertical as number) * 2;
+            const inputHeight = e.nativeEvent.contentSize.height;
+            const totalHeight = inputHeight + paddingTopAndBottom;
+            const isFullComposerAvailable = totalHeight >= CONST.COMPOSER.FULL_COMPOSER_MIN_HEIGHT;
+            setIsFullComposerAvailable?.(isFullComposerAvailable);
+        },
+        [setIsFullComposerAvailable, containerComposeStyles],
+    );
 
     return (
         <>
             <View
-                style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder]}
+                style={[containerComposeStyles, styles.textInputComposeBorder]}
                 onTouchEndCapture={() => {
                     isTouchEndedRef.current = true;
                 }}
@@ -790,6 +819,7 @@ function ComposerWithSuggestions(
                     selection={selection}
                     onSelectionChange={onSelectionChange}
                     isComposerFullSize={isComposerFullSize}
+                    onContentSizeChange={updateIsFullComposerAvailable}
                     value={value}
                     testID="composer"
                     shouldCalculateCaretPosition

@@ -13,6 +13,7 @@ import type {
     VerifyIdentityForBankAccountParams,
 } from '@libs/API/parameters';
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
+import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {translateLocal} from '@libs/Localize';
@@ -33,12 +34,13 @@ export {
     goToWithdrawalAccountSetupStep,
     setBankAccountFormValidationErrors,
     resetReimbursementAccount,
-    resetFreePlanBankAccount,
+    resetUSDBankAccount,
+    resetNonUSDBankAccount,
     hideBankAccountErrors,
     setBankAccountSubStep,
     updateReimbursementAccountDraft,
-    requestResetFreePlanBankAccount,
-    cancelResetFreePlanBankAccount,
+    requestResetBankAccount,
+    cancelResetBankAccount,
 } from './ReimbursementAccount';
 export {openPlaidBankAccountSelector, openPlaidBankLogin} from './Plaid';
 export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTerms} from './Wallet';
@@ -310,7 +312,10 @@ function deletePaymentBankAccount(bankAccountID: number) {
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string, isConfirmPage: boolean) {
+function updatePersonalInformationForBankAccount(bankAccountID: number, params: RequestorStepProps, policyID: string | undefined, isConfirmPage: boolean) {
+    if (!policyID) {
+        return;
+    }
     API.write(
         WRITE_COMMANDS.UPDATE_PERSONAL_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -542,6 +547,44 @@ function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBe
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters, onyxData);
 }
 
+function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardingDirectorInformationParams) {
+    const onyxData: OnyxData = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingDirectorInformation: true,
+                    errors: null,
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingDirectorInformation: false,
+                    isSuccess: true,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.REIMBURSEMENT_ACCOUNT,
+                value: {
+                    isSavingCorpayOnboardingDirectorInformation: false,
+                    isSuccess: false,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                },
+            },
+        ],
+    };
+
+    return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, parameters, onyxData);
+}
+
 function clearReimbursementAccount() {
     Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
 }
@@ -560,6 +603,10 @@ function clearReimbursementAccountSaveCorpayOnboardingCompanyDetails() {
 
 function clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingBeneficialOwnersFields: null});
+}
+
+function clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation() {
+    Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {isSuccess: null, isSavingCorpayOnboardingDirectorInformation: null});
 }
 
 /**
@@ -616,7 +663,7 @@ function openReimbursementAccountPage(stepToOpen: ReimbursementAccountStep, subS
  * @param policyID - ID of the policy we're setting the bank account on
  * @param isConfirmPage - If we're submitting from the confirmation substep, to trigger all external checks
  */
-function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string, isConfirmPage: boolean) {
+function updateCompanyInformationForBankAccount(bankAccountID: number, params: Partial<CompanyStepProps>, policyID: string | undefined, isConfirmPage: boolean) {
     API.write(
         WRITE_COMMANDS.UPDATE_COMPANY_INFORMATION_FOR_BANK_ACCOUNT,
         {
@@ -846,7 +893,9 @@ export {
     saveCorpayOnboardingCompanyDetails,
     clearReimbursementAccountSaveCorpayOnboardingCompanyDetails,
     saveCorpayOnboardingBeneficialOwners,
+    saveCorpayOnboardingDirectorInformation,
     clearReimbursementAccountSaveCorpayOnboardingBeneficialOwners,
+    clearReimbursementAccoungSaveCorplayOnboardingDirectorInformation,
     clearCorpayBankAccountFields,
 };
 
