@@ -40,5 +40,3 @@ Expensify Travel provides various ESG metrics, including carbon footprint analys
 1. Click the **Analytics** tab at the top and select Company Reports.
 2. Click **Air Manifest** in the left menu. 
 3. Review the CO2 Emissions column in the table.
-
-</div>
