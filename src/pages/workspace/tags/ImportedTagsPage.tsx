@@ -147,6 +147,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );
