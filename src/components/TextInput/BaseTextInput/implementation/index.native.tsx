@@ -65,6 +65,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldHideClearButton = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -73,6 +74,8 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled,
         placeholderTextColor,
+        onClearInput,
+        iconContainerStyle,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -284,7 +287,7 @@ function BaseTextInput(
                             !isAutoGrowHeightMarkdown &&
                             styles.autoGrowHeightInputContainer(textInputHeight, variables.componentSizeLarge, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : 0),
                         isAutoGrowHeightMarkdown && {minHeight: variables.componentSizeLarge},
-                        !isMultiline && styles.componentHeightLarge,
+                        !isMultiline && styles.componentMinHeightLarge,
                         touchableInputWrapperStyle,
                     ]}
                 >

@@ -1041,6 +1041,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.highlightBG,
             borderWidth: 1,
             padding: 8,
+            paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.borderLighter,
             // Adding browser specefic style to bring consistency between Safari and other platforms.
@@ -1181,8 +1182,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 20,
         },
 
-        componentHeightLarge: {
-            height: variables.inputHeight,
+        componentMinHeightLarge: {
+            minHeight: variables.inputHeight,
         },
 
         calendarHeader: {
@@ -1241,6 +1242,7 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderWidth: 1,
             padding: 8,
+            paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.border,
         },
