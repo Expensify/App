@@ -33,7 +33,7 @@ jobs:
         run: |
           git submodule foreach '\
             git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
-            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production" && \
+            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production"'
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
