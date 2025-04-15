@@ -1,3 +1,4 @@
+import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchQueryJSON} from '@components/Search/types';
@@ -26,6 +27,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     // Ref to track if the search was triggered by this hook
     const triggeredByHookRef = useRef(false);
     const searchTriggeredRef = useRef(false);
+    const hasNewItemsRef = useRef(false);
     const previousSearchResults = usePrevious(searchResults?.data);
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
@@ -47,11 +49,16 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         if (searchTriggeredRef.current) {
             return;
         }
-        const hasTransactionsIDsChange = transactionsIDs.length > previousTransactionsIDs.length;
-        const hasReportActionsIDsChange = reportActionsIDs.length > previousReportActionsIDs.length;
+        const hasTransactionsIDsChange = !isEqual(transactionsIDs, previousTransactionsIDs);
+        const hasReportActionsIDsChange = !isEqual(reportActionsIDs, previousReportActionsIDs);
 
         // Check if there is a change in the transactions or report actions list
         if ((!isChat && hasTransactionsIDsChange) || hasReportActionsIDsChange) {
+            // We only want to highlight new items if the addition of transactions or report actions triggered the search.
+            // This is because, on deletion of items, the backend sometimes returns old items in place of the deleted ones.
+            // We don't want to highlight these old items, even if they appear new in the current search results.
+            hasNewItemsRef.current = isChat ? reportActionsIDs.length > previousReportActionsIDs.length : transactionsIDs.length > previousTransactionsIDs.length;
+
             // Set the flag indicating the search is triggered by the hook
             triggeredByHookRef.current = true;
 
@@ -91,7 +98,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Find new report action IDs that are not in the previousReportActionIDs and not already highlighted
             const newReportActionIDs = currentReportActionIDs.filter((id) => !previousReportActionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newReportActionIDs.length === 0) {
+            if (!triggeredByHookRef.current || newReportActionIDs.length === 0 || !hasNewItemsRef.current) {
                 return;
             }
 
@@ -107,7 +114,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
             // Find new transaction IDs that are not in the previousTransactionIDs and not already highlighted
             const newTransactionIDs = currentTransactionIDs.filter((id) => !previousTransactionIDs.includes(id) && !highlightedIDs.current.has(id));
 
-            if (!triggeredByHookRef.current || newTransactionIDs.length === 0) {
+            if (!triggeredByHookRef.current || newTransactionIDs.length === 0 || !hasNewItemsRef.current) {
                 return;
             }
 
