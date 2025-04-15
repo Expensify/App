@@ -389,6 +389,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
             shouldUseHeadlineHeader
             shouldShowBackButton={shouldUseNarrowLayout}
             shouldDisplaySearchRouter
+            onBackButtonPress={() => Navigation.goBack(undefined, {shouldPopToTop: true})}
         />
     );
 
@@ -650,6 +651,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    numberOfLinesTitle={0}
                                 />
                             )}
                             <MenuItem
