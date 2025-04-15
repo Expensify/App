@@ -68,8 +68,8 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            bottomContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
-            bottomContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
+            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
+            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
         >
             {({insets}) => (
                 <>
