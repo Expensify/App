@@ -108,6 +108,9 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         /** Card expiration date */
         expirationDate?: string;
 
+        /** List of token reference ids */
+        expensifyCard_tokenReferenceIdList?: string[];
+
         /** Collection of errors coming from BE */
         errors?: OnyxCommon.Errors;
 

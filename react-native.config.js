@@ -13,10 +13,6 @@ const config = {
     dependencies: {},
 };
 
-const fs = require('fs');
-let data = `isHybridAppRepo: ${process.env.IS_HYBRID_APP_REPO} \n isStandalone: ${isStandalone} \n wynik: ${isHybrid}`;
-fs.writeFileSync('/Users/zuzannafurtak/Desktop/DUPA.txt', data, 'utf8');
-
 if (!isHybrid) {
     config.dependencies['@expensify/react-native-wallet'] = {
         platforms: {
