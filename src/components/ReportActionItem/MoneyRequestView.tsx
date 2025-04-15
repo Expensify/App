@@ -239,7 +239,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
-    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
@@ -247,8 +248,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
-
-    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
@@ -386,7 +385,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
-                    title={isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : rateToDisplay}
+                    title={rateToDisplay}
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
@@ -400,7 +399,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     }}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
-                    copyValue={!canEditDistanceRate ? (isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : rateToDisplay) : undefined}
+                    copyValue={!canEditDistanceRate ? rateToDisplay : undefined}
                 />
             </OfflineWithFeedback>
         </>
