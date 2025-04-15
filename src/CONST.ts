@@ -1208,6 +1208,8 @@ const CONST = {
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                MOVED_TRANSACTION: 'MOVEDTRANSACTION',
+                UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -2091,6 +2093,7 @@ const CONST = {
         },
         SYNC_ITEMS: 'syncItems',
         TAX: 'tax',
+        TAX_SOLUTION_ID: 'taxSolutionID',
         EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
         NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
@@ -3316,6 +3319,8 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
+        TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
+        PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
@@ -3331,6 +3336,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
@@ -3341,6 +3347,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
@@ -3351,6 +3358,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
@@ -3361,6 +3369,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
         };
@@ -6397,6 +6406,10 @@ const CONST = {
         GROUP_BY: {
             REPORTS: 'reports',
         },
+        BOOLEAN: {
+            YES: 'yes',
+            NO: 'no',
+        },
         TABLE_COLUMN_SIZES: {
             NORMAL: 'normal',
             WIDE: 'wide',
@@ -6483,6 +6496,8 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
             POLICY_ID: 'policyID',
         },
         EMPTY_VALUE: 'none',
@@ -6519,6 +6534,8 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            REIMBURSABLE: 'reimbursable',
+            BILLABLE: 'billable',
         },
         DATE_MODIFIERS: {
             BEFORE: 'Before',

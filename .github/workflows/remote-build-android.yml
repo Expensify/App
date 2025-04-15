@@ -2,8 +2,6 @@ name: Remote Build Android
 
 on:
   workflow_dispatch:
-  push:
-    branches-ignore: [staging, production]
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -12,23 +10,27 @@ jobs:
   build:
     runs-on: ubuntu-latest-xl
     strategy:
+      fail-fast: false
       matrix:
         include:
           - project_root: ./
             variant: 'developmentDebug'
 
           - project_root: Mobile-Expensify/
+            is_hybrid_build: true
             variant: 'Debug'
     steps:
       - name: Checkout
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          submodules: true
+          submodules: ${{ matrix.is_hybrid_build || false }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@a49920aadab9f41951944ea52bb7983fa6b20b03
