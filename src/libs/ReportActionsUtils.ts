@@ -19,7 +19,7 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isExpensifyCardPendingActivate, isExpensifyCardPendingIssue} from './CardUtils';
+import {isCardPendingActivate, isCardPendingIssue} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2267,12 +2267,12 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
 
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (isExpensifyCardPendingIssue(card) || missingDetails);
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (isCardPendingIssue(card) || missingDetails);
 }
 
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isExpensifyCardPendingActivate(card) && !missingDetails;
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isCardPendingActivate(card) && !missingDetails;
 }
 
 function getCardIssuedMessage({

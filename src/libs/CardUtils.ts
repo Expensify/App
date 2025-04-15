@@ -614,20 +614,20 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
-function isExpensifyCardPendingIssue(card?: Card) {
-    return card?.bank === CONST.EXPENSIFY_CARD.BANK && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+function isCardPendingIssue(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
 
-function isExpensifyCardPendingActivate(card?: Card) {
-    return card?.bank === CONST.EXPENSIFY_CARD.BANK && card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+function isCardPendingActivate(card?: Card) {
+    return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
-function isCardPendingAction(card?: Card) {
-    return card?.bank === CONST.EXPENSIFY_CARD.BANK && (isExpensifyCardPendingIssue(card) || isExpensifyCardPendingActivate(card) || isMissingPrivatePersonalDetails(privatePersonalDetails));
+function isExpensifyCardPendingAction(card?: Card) {
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && (isCardPendingIssue(card) || isCardPendingActivate(card) || isMissingPrivatePersonalDetails(privatePersonalDetails));
 }
 
 function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards) {
-    return Object.values(cards ?? {}).some(isCardPendingAction);
+    return Object.values(cards ?? {}).some(isExpensifyCardPendingAction);
 }
 
 function getFundIdFromSettingsKey(key: string) {
@@ -685,9 +685,9 @@ export {
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
-    isExpensifyCardPendingIssue,
-    isExpensifyCardPendingActivate,
+    isCardPendingIssue,
+    isCardPendingActivate,
     hasPendingExpensifyCardAction,
-    isCardPendingAction,
+    isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
 };
