@@ -13,13 +13,13 @@ const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList
 
 function TestToolsModalNavigator() {
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     return (
         <NoDropZone>
             <Overlay />
-            <View style={styles.TestToolsNavigatorOuterView(isSmallScreenWidth)}>
-                <View style={styles.TestToolsNavigatorInnerView(isSmallScreenWidth)}>
+            <View style={styles.TestToolsNavigatorOuterView(shouldUseNarrowLayout)}>
+                <View style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout)}>
                     <Stack.Navigator screenOptions={{headerShown: false}}>
                         <Stack.Screen
                             name={SCREENS.TEST_TOOLS_MODAL.ROOT}

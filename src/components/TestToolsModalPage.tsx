@@ -1,11 +1,7 @@
 import React from 'react';
 import {View} from 'react-native';
-import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import Navigation from '@navigation/Navigation';
@@ -14,6 +10,7 @@ import ROUTES from '@src/ROUTES';
 import Button from './Button';
 import ClientSideLoggingToolMenu from './ClientSideLoggingToolMenu';
 import ProfilingToolMenu from './ProfilingToolMenu';
+import SafeAreaConsumer from './SafeAreaConsumer';
 import ScrollView from './ScrollView';
 import TestToolMenu from './TestToolMenu';
 import TestToolRow from './TestToolRow';
@@ -24,11 +21,8 @@ function getRouteBasedOnAuthStatus(isAuthenticated: boolean, activeRoute: string
 }
 
 function TestToolsModalPage() {
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowWidth, windowHeight} = useWindowDimensions();
-    const StyleUtils = useStyleUtils();
+    const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
-    const theme = useTheme();
     const {translate} = useLocalize();
     const activeRoute = Navigation.getActiveRoute();
     const isAuthenticated = useIsAuthenticated();
