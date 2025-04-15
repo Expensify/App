@@ -207,16 +207,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         hasNewerActions={hasNewerActions}
                     />
                 )}
-                <Button
-                    success
-                    large
-                    text="Add unreported expense"
-                    onPress={() => {
-                        console.log(report?.reportID);
-                        openUnreportedExpense(report?.reportID);
-                    }}
-                    isDisabled={false}
-                />
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
                         report={report}

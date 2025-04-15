@@ -27,7 +27,9 @@ type AddUnreportedExpensesParamList = {
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
+    const allTransactions = getAllTransactions();
     const unreportedExpensesList: Transaction[] = Object.values(getAllTransactions()).filter((item) => item.reportID === '0');
+    debugger;
     const sections: Array<SectionListDataType<Transaction & ListItem>> = [
         {
             shouldShow: true,

@@ -584,10 +584,6 @@ function getAllTransactions() {
     return allTransactions;
 }
 
-function changeTransactionsReport(transactionIDList: string, reportID: string) {
-    return allTransactions;
-}
-
 function changeTransactionsReport(transactionIDs: string[], reportID: string, transactionIDToReportActionAndThreadData: Record<string, string>) {
     const optimisticData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -711,7 +707,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string, tr
     const parameters: ChangeTransactionsReportParams = {
         transactionList: transactionIDs.join(','),
         reportID,
-        reportActionIDToThreadReportIDMap: transactionIDToReportActionAndThreadData,
+        transactionIDToReportActionAndThreadData,
     };
 
     API.write(WRITE_COMMANDS.CHANGE_TRANSACTIONS_REPORT, parameters, {
@@ -741,5 +737,4 @@ export {
     getAllTransactions,
     getLastModifiedExpense,
     revert,
-    changeTransactionsReport,
 };

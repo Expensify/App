@@ -10,7 +10,7 @@ import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {exportReportToCSV, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
+import {exportReportToCSV, exportToIntegration, markAsManuallyExported, openUnreportedExpense} from '@libs/actions/Report';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
@@ -525,6 +525,15 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     }
 
                     changeMoneyRequestHoldStatus(moneyRequestAction);
+                }}
+            />
+        ),
+        [CONST.REPORT.PRIMARY_ACTIONS.MOVE_UNREPORTED_EXPENSE]: (
+            <Button
+                success
+                text={translate('iou.moveUnreportedExpense')}
+                onPress={() => {
+                    openUnreportedExpense(moneyRequestReport?.reportID);
                 }}
             />
         ),

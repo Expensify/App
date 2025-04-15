@@ -1161,6 +1161,7 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             REMOVE_HOLD: 'removeHold',
             MARK_AS_CASH: 'markAsCash',
+            MOVE_UNREPORTED_EXPENSE: 'moveUnreportedExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',

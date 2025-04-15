@@ -544,15 +544,6 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
             shouldCallAfterModalHide: shouldUseNarrowLayout,
             onSelected: () => interceptAnonymousUser(startNewChat),
         },
-        {
-            icon: Expensicons.ChatBubble,
-            text: 'Add unreported Expense',
-            onSelected: () =>
-                interceptAnonymousUser(() => {
-                    console.log(reportId);
-                    openUnreportedExpense(reportId);
-                }),
-        },
         ...(canSendInvoice
             ? [
                   {

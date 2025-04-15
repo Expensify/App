@@ -230,6 +230,9 @@ function getReportPrimaryAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    if (reportTransactions.length === 0) {
+        return CONST.REPORT.PRIMARY_ACTIONS.MOVE_UNREPORTED_EXPENSE;
+    }
     if (isRemoveHoldAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
