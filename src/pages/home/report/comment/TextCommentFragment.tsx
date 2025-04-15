@@ -131,12 +131,7 @@ function TextCommentFragment({fragment, styleAsDeleted, reportActionID, styleAsM
             )}
             {!!fragment?.isEdited && (
                 <>
-                    <Text
-                        style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight, styles.userSelectNone]}
-                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                    >
-                        {' '}
-                    </Text>
+                    <Text style={[containsOnlyEmojis && styles.onlyEmojisTextLineHeight]}> </Text>
                     <Text
                         fontSize={variables.fontSizeSmall}
                         color={theme.textSupporting}

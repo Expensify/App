@@ -13,12 +13,7 @@ function EditedRenderer({tnode, TDefaultRenderer, style, ...defaultRendererProps
     const isPendingDelete = !!(tnode.attributes.deleted !== undefined);
     return (
         <Text fontSize={variables.fontSizeSmall}>
-            <Text
-                style={styles.userSelectNone}
-                fontSize={variables.fontSizeSmall}
-            >
-                {' '}
-            </Text>
+            <Text fontSize={variables.fontSizeSmall}> </Text>
             <Text
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...defaultRendererProps}
