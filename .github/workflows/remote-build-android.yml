@@ -34,7 +34,7 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - Android
-        uses: callstackincubator/android@c8d74af24a488284c7f7b11b7a26bbd2577a45f4
+        uses: callstackincubator/android@333f590005be752c28f07e36fa7151be3b2e18da
         env:
           PROJECT_ROOT_PATH: ${{ matrix.project_root }}
         with:
