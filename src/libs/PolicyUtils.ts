@@ -1562,7 +1562,7 @@ export {
     isPrefferedExporter,
     isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
-    isUserInvitedToWorkspace
+    isUserInvitedToWorkspace,
 };
 
 export type {MemberEmailsToAccountIDs};
