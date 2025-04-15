@@ -35,7 +35,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             key: policy.id,
             avatarID: policy.id,
             icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
-            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
+            iconType: CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
             description: date
                 ? translate('workspace.common.lastSyncDate', {
