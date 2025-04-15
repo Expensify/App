@@ -63,9 +63,7 @@ function SMSDeliveryFailurePage() {
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>
-                            {translate('smsDeliveryFailurePage.validationFailed')} {timeData && translate('smsDeliveryFailurePage.pleaseWaitBeforeTryingAgain', {timeData})}
-                        </Text>
+                        <Text>{timeData && translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
