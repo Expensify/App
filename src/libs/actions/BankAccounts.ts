@@ -546,10 +546,6 @@ function saveCorpayOnboardingBeneficialOwners(parameters: SaveCorpayOnboardingBe
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_BENEFICIAL_OWNER, parameters, onyxData);
 }
 
-function clearReimbursementAccount() {
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
-}
-
 function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
@@ -819,7 +815,6 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
-    clearPlaid,
     setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,
@@ -829,7 +824,6 @@ export {
     handlePlaidError,
     setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
-    clearReimbursementAccount,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,

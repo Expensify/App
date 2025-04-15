@@ -29,4 +29,4 @@ function useInputBlurContext() {
     return useContext(InputBlurContext);
 }
 
-export {InputBlurContext, useInputBlurContext, InputBlurContextProvider};
+export {useInputBlurContext, InputBlurContextProvider};

@@ -1,8 +1,7 @@
-import type {ComponentType, ForwardedRef, ReactElement, ReactNode, RefAttributes} from 'react';
-import React, {createContext, forwardRef, useContext, useEffect, useMemo, useState} from 'react';
+import type {ReactElement, ReactNode} from 'react';
+import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
 import * as Environment from '@libs/Environment/Environment';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
 import CONST from '@src/CONST';
 
 type EnvironmentProviderProps = {
@@ -46,27 +45,6 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
 }
 
 EnvironmentProvider.displayName = 'EnvironmentProvider';
-
-export default function withEnvironment<TProps extends EnvironmentContextValue, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof EnvironmentContextValue> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithEnvironment(props: Omit<TProps, keyof EnvironmentContextValue>, ref: ForwardedRef<TRef>): ReactElement {
-        const {environment, environmentURL} = useContext(EnvironmentContext);
-        return (
-            <WrappedComponent
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...(props as TProps)}
-                ref={ref}
-                environment={environment}
-                environmentURL={environmentURL}
-            />
-        );
-    }
-
-    WithEnvironment.displayName = `withEnvironment(${getComponentDisplayName(WrappedComponent)})`;
-
-    return forwardRef(WithEnvironment);
-}
 
 export {EnvironmentContext, EnvironmentProvider};
 export type {EnvironmentContextValue};
