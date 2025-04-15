@@ -829,43 +829,41 @@ function TimePicker(
                         </>
                     )}
                 </View>
-                <View style={styles.timePickerSwitcherContainer}>
-                    <Button
-                        shouldEnableHapticFeedback
-                        innerStyles={styleForAM}
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        text={translate('common.am')}
-                        onLongPress={() => {}}
-                        onPress={() => {
-                            setAmPmValue(CONST.TIME_PERIOD.AM);
-                        }}
-                        onPressOut={() => {}}
-                        onMouseDown={(e) => e.preventDefault()}
-                    />
-                    <Button
-                        shouldEnableHapticFeedback
-                        innerStyles={[styleForPM, styles.ml1]}
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        text={translate('common.pm')}
-                        onLongPress={() => {}}
-                        onPress={() => {
-                            setAmPmValue(CONST.TIME_PERIOD.PM);
-                        }}
-                        onPressOut={() => {}}
-                        onMouseDown={(e) => e.preventDefault()}
-                    />
-                </View>
+            </View>
+            <View style={styles.timePickerSwitcherContainer}>
+                <Button
+                    shouldEnableHapticFeedback
+                    innerStyles={styleForAM}
+                    small
+                    text={translate('common.am')}
+                    onLongPress={() => {}}
+                    onPress={() => {
+                        setAmPmValue(CONST.TIME_PERIOD.AM);
+                    }}
+                    onPressOut={() => {}}
+                    onMouseDown={(e) => e.preventDefault()}
+                />
+                <Button
+                    shouldEnableHapticFeedback
+                    innerStyles={[styleForPM, styles.ml1]}
+                    small
+                    text={translate('common.pm')}
+                    onLongPress={() => {}}
+                    onPress={() => {
+                        setAmPmValue(CONST.TIME_PERIOD.PM);
+                    }}
+                    onPressOut={() => {}}
+                    onMouseDown={(e) => e.preventDefault()}
+                />
             </View>
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
                     message={errorMessage}
-                    style={[styles.ph5]}
+                    style={[styles.ph5, styles.mb2, styles.mt5]}
                 />
             ) : (
-                <View style={styles.formHelperMessage} />
+                <View style={[styles.formHelperMessage, styles.mb2, styles.mt5]} />
             )}
             <View
                 style={[styles.numberPadWrapper, styles.pb4]}
