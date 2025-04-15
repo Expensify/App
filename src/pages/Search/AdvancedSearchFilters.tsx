@@ -462,7 +462,7 @@ function AdvancedSearchFilters() {
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
     const shouldDisplayWorkspaceFilter = useMemo(() => {
-        return !(workspaces.length === 0 || (workspaces.every((section) => section.data.length === 0) && canUseLeftHandBar));
+        return canUseLeftHandBar && workspaces.some((section) => section.data.length !== 0);
     }, [canUseLeftHandBar, workspaces]);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
