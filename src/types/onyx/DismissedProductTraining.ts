@@ -78,16 +78,16 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the outstanding filter product training tooltip, we store the timestamp here.
      */
-    [OUTSANDING_FILTER]: string;
+    [OUTSANDING_FILTER]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the settings tab product training tooltip, we store the timestamp here.
      */
-    [SETTINGS_TAB]: string;
+    [SETTINGS_TAB]: DismissedProductTrainingElement;
     /**
      * When user dismisses the workspaces settings product training tooltip, we store the timestamp here.
      */
-    [WORKSPACES_SETTINGS]: string;
+    [WORKSPACES_SETTINGS]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
