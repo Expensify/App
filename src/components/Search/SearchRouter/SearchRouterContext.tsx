@@ -16,6 +16,10 @@ type SearchRouterContext = {
     unregisterSearchPageInput: () => void;
 };
 
+type HistoryState = {
+    isSearchModalOpen?: boolean;
+};
+
 const defaultSearchContext: SearchRouterContext = {
     isSearchRouterDisplayed: false,
     openSearchRouter: () => {},
@@ -36,10 +40,13 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const searchPageInputRef = useRef<AnimatedTextInputRef>();
 
     useEffect(() => {
-        if (!canListenPopState) return;
+        if (!canListenPopState) {
+            return;
+        }
 
         const handlePopState = (event: PopStateEvent) => {
-            if (event.state?.isSearchModalOpen) {
+            const state = event.state as HistoryState | null;
+            if (state?.isSearchModalOpen) {
                 setIsSearchRouterDisplayed(true);
                 searchRouterDisplayedRef.current = true;
             } else {
@@ -59,7 +66,7 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
                     setIsSearchRouterDisplayed(true);
                     searchRouterDisplayedRef.current = true;
                     if (supportsHistoryAPI) {
-                        window.history.pushState({isSearchModalOpen: true}, '');
+                        window.history.pushState({isSearchModalOpen: true} satisfies HistoryState, '');
                     }
                 },
                 false,
@@ -69,8 +76,11 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
         const closeSearchRouter = () => {
             setIsSearchRouterDisplayed(false);
             searchRouterDisplayedRef.current = false;
-            if (supportsHistoryAPI && window.history.state?.isSearchModalOpen) {
-                window.history.back();
+            if (supportsHistoryAPI) {
+                const state = window.history.state as HistoryState | null;
+                if (state?.isSearchModalOpen) {
+                    window.history.back();
+                }
             }
         };
 
