@@ -18,6 +18,7 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isExpensifyCardPendingActivate, isExpensifyCardPendingIssue} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -29,7 +30,7 @@ import {formatMessageElementList, translateLocal} from './Localize';
 import Log from './Log';
 import type {MessageElementBase, MessageTextElement} from './MessageElement';
 import Parser from './Parser';
-import {getEffectiveDisplayName, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
+import {getEffectiveDisplayName, getPersonalDetailsByIDs, isMissingPrivatePersonalDetails} from './PersonalDetailsUtils';
 import {getPolicy, isPolicyAdmin as isPolicyAdminPolicyUtils} from './PolicyUtils';
 import type {getReportName, OptimisticIOUReportAction, PartialReportAction} from './ReportUtils';
 import StringUtils from './StringUtils';
@@ -2245,15 +2246,14 @@ function isCardIssuedAction(reportAction: OnyxEntry<ReportAction>) {
 }
 
 function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card) {
-    const missingDetails =
-        !privatePersonalDetails?.legalFirstName ||
-        !privatePersonalDetails?.legalLastName ||
-        !privatePersonalDetails?.dob ||
-        !privatePersonalDetails?.phoneNumber ||
-        isEmptyObject(privatePersonalDetails?.addresses) ||
-        privatePersonalDetails.addresses.length === 0;
+    const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
 
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED || missingDetails);
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && (isExpensifyCardPendingIssue(card) || missingDetails);
+}
+
+function shouldShowActivateCard(actionName?: ReportActionName, card?: Card) {
+    const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isExpensifyCardPendingActivate(card) && !missingDetails;
 }
 
 function getCardIssuedMessage({
@@ -2289,6 +2289,7 @@ function getCardIssuedMessage({
         : translateLocal('workspace.companyCards.companyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, card);
+    const shouldShowActivateCardMessage = !isAssigneeCurrentUser || shouldShowActivateCard(reportAction?.actionName, card);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
@@ -2297,7 +2298,13 @@ function getCardIssuedMessage({
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return translateLocal(`workspace.expensifyCard.${shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {assignee});
+            if (shouldShowAddMissingDetailsMessage) {
+                return translateLocal('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
+            }
+            if (shouldShowActivateCardMessage) {
+                return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
+            }
+            return translateLocal(`workspace.expensifyCard.replacedCard`, {assignee});
         default:
             return '';
     }
@@ -2483,6 +2490,7 @@ export {
     getWorkspaceReportFieldUpdateMessage,
     getWorkspaceReportFieldDeleteMessage,
     getReportActions,
+    shouldShowActivateCard,
 };
 
 export type {LastVisibleMessage};

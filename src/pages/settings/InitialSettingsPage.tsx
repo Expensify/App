@@ -31,7 +31,7 @@ import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {resetExitSurveyForm} from '@libs/actions/ExitSurvey';
-import {checkIfFeedConnectionIsBroken} from '@libs/CardUtils';
+import {checkIfFeedConnectionIsBroken, hasPendingExpensifyCardAction} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFreeTrialText, hasSubscriptionRedDotError} from '@libs/SubscriptionUtils';
@@ -107,8 +107,16 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
-    const walletBrickRoadIndicator =
-        hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection ? 'error' : undefined;
+    const hasPendingCardAction = hasPendingExpensifyCardAction(allCards);
+    const walletBrickRoadIndicator = useMemo(() => {
+        if (hasPaymentMethodError(bankAccountList, fundList) || !isEmptyObject(userWallet?.errors) || !isEmptyObject(walletTerms?.errors) || hasBrokenFeedConnection) {
+            return 'error';
+        }
+        if (hasPendingCardAction) {
+            return 'info';
+        }
+        return undefined;
+    }, [bankAccountList, fundList, hasBrokenFeedConnection, hasPendingCardAction, userWallet?.errors, walletTerms?.errors]);
 
     const [shouldShowSignoutConfirmModal, setShouldShowSignoutConfirmModal] = useState(false);
 

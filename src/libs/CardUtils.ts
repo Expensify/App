@@ -10,7 +10,18 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxValues} from '@src/ONYXKEYS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {BankAccountList, Card, CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, PersonalDetailsList, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {
+    BankAccountList,
+    Card,
+    CardFeeds,
+    CardList,
+    CompanyCardFeed,
+    ExpensifyCardSettings,
+    PersonalDetailsList,
+    Policy,
+    PrivatePersonalDetails,
+    WorkspaceCardsList,
+} from '@src/types/onyx';
 import type {FilteredCardList} from '@src/types/onyx/Card';
 import type {CompanyCardFeedWithNumber, CompanyCardNicknames, CompanyFeeds, DirectCardFeedData} from '@src/types/onyx/CardFeeds';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -18,7 +29,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import localeCompare from './LocaleCompare';
 import {translateLocal} from './Localize';
 import {filterObject} from './ObjectUtils';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, isMissingPrivatePersonalDetails} from './PersonalDetailsUtils';
 
 let allCards: OnyxValues[typeof ONYXKEYS.CARD_LIST] = {};
 Onyx.connect({
@@ -39,6 +50,12 @@ Onyx.connect({
     callback: (value) => {
         allWorkspaceCards = value;
     },
+});
+
+let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
+Onyx.connect({
+    key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+    callback: (val) => (privatePersonalDetails = val),
 });
 
 /**
@@ -597,6 +614,22 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function isExpensifyCardPendingIssue(card?: Card) {
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+}
+
+function isExpensifyCardPendingActivate(card?: Card) {
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
+}
+
+function isCardPendingAction(card?: Card) {
+    return card?.bank === CONST.EXPENSIFY_CARD.BANK && (isExpensifyCardPendingIssue(card) || isExpensifyCardPendingActivate(card) || isMissingPrivatePersonalDetails(privatePersonalDetails));
+}
+
+function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards) {
+    return Object.values(cards ?? {}).some(isCardPendingAction);
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -641,4 +674,8 @@ export {
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
+    isExpensifyCardPendingIssue,
+    isExpensifyCardPendingActivate,
+    hasPendingExpensifyCardAction,
+    isCardPendingAction,
 };

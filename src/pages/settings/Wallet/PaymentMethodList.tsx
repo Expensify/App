@@ -21,7 +21,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAddPaymentMethodError, clearDeletePaymentMethodError} from '@libs/actions/PaymentMethods';
-import {getCardFeedIcon, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
+import {getCardFeedIcon, isCardPendingAction, isExpensifyCard, lastFourNumbersFromCardName, maskCardNumber} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
@@ -210,6 +210,16 @@ function PaymentMethodList({
     const [isLoadingPaymentMethods = true, isLoadingPaymentMethodsResult] = useOnyx(ONYXKEYS.IS_LOADING_PAYMENT_METHODS);
     const isLoadingPaymentMethodsOnyx = isLoadingOnyxValue(isLoadingPaymentMethodsResult);
 
+    const getCardBrickRoadIndicator = useCallback((card: Card) => {
+        if (card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
+        }
+        if (isCardPendingAction(card)) {
+            return CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
+        }
+        return undefined;
+    }, []);
+
     const filteredPaymentMethods = useMemo(() => {
         if (shouldShowAssignedCards) {
             const assignedCards = Object.values(isLoadingCardList ? {} : cardList ?? {})
@@ -298,10 +308,7 @@ function PaymentMethodList({
                     canDismissError: true,
                     errors: card.errors,
                     pendingAction: card.pendingAction,
-                    brickRoadIndicator:
-                        card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN || card.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL
-                            ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                            : undefined,
+                    brickRoadIndicator: getCardBrickRoadIndicator(card),
                     icon,
                     iconStyles: [styles.cardIcon],
                     iconWidth: variables.cardIconWidth,
@@ -372,6 +379,7 @@ function PaymentMethodList({
         isLoadingCardList,
         illustrations,
         translate,
+        getCardBrickRoadIndicator,
     ]);
 
     /**
