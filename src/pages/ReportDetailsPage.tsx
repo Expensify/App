@@ -283,6 +283,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         caseID = CASES.DEFAULT;
     }
 
+    console.log('caseID', caseID)
+
     const transactionIDList = useMemo(() => {
         if (caseID !== CASES.MONEY_REPORT || !transactions) {
             return [];
@@ -1069,7 +1071,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
-                            title={caseID === CASES.DEFAULT ? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
+                            title={(caseID === CASES.DEFAULT || caseID === CASES.MONEY_REPORT)? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
                             onPress={() => {
                                 console.log('report?.reportID::: ', report?.reportID);
                                 deleteAppReport(report?.reportID);

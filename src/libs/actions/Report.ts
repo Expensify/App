@@ -107,9 +107,11 @@ import {
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticReportPreview,
     buildOptimisticRoomDescriptionUpdatedReportAction,
+    buildOptimisticSelfDMReport,
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     completeShortMention,
     findLastAccessedReport,
+    findSelfDMReportID,
     formatReportLastMessageText,
     generateReportID,
     getAllPolicyReports,
@@ -4586,8 +4588,24 @@ function deleteAppReport(reportID: string | undefined) {
         },
     });
 
+    const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
+
+Object.values(reportActionsForReport ?? {})
+    .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => 
+        ReportActionsUtils.isMoneyRequestAction(reportAction)
+    )
+    .forEach((reportAction) => {
+        const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+        if (transactionID) {
+            transactionIDToMoneyRequestReportActionIDMap[transactionID] = reportAction.reportActionID;
+        }
+
+        // your existing moving logic...
+    });
+
     const parameters: DeleteAppReportParams = {
         reportID,
+        transactionIDToMoneyRequestReportActionIDMap: JSON.stringify(transactionIDToMoneyRequestReportActionIDMap),
     };
 
     API.write(WRITE_COMMANDS.DELETE_APP_REPORT, parameters, {optimisticData});
