@@ -6922,7 +6922,17 @@ function updateMoneyRequestAmountAndCurrency({
     if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
         data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
     } else {
-        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null, undefined, undefined, allowNegative);
+        data = getUpdateMoneyRequestParams(
+            transactionID,
+            transactionThreadReportID,
+            transactionChanges,
+            policy,
+            policyTagList ?? null,
+            policyCategories ?? null,
+            undefined,
+            undefined,
+            allowNegative,
+        );
     }
     const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);

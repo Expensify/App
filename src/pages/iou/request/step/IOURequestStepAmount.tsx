@@ -11,9 +11,9 @@ import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat, doesReportBelongToWorkspace} from '@libs/ReportUtils';
 import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
+import {isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {doesReportBelongToWorkspace, getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getRequestType, getTaxValue} from '@libs/TransactionUtils';
@@ -312,7 +312,17 @@ function IOURequestStepAmount({
         const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
         const isWorkspace = doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID);
 
-        updateMoneyRequestAmountAndCurrency({transactionID, transactionThreadReportID: reportID, currency, amount: newAmount, taxAmount, policy, taxCode, policyCategories, allowNegative: isWorkspace});
+        updateMoneyRequestAmountAndCurrency({
+            transactionID,
+            transactionThreadReportID: reportID,
+            currency,
+            amount: newAmount,
+            taxAmount,
+            policy,
+            taxCode,
+            policyCategories,
+            allowNegative: isWorkspace,
+        });
         navigateBack();
     };
 
