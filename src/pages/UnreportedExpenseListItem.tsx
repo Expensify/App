@@ -63,6 +63,7 @@ function UnreportedExpenseListItem<TItem extends ListItem & Transaction>({
                     shouldShowTooltip={false}
                     dateColumnSize="normal"
                     onCheckboxPress={() => {}}
+                    containerStyles={emptyStylesArray}
                 />
                 <View style={[styles.pb3, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
                     <SelectCircle isChecked={isSelected} />

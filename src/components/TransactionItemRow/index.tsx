@@ -1,5 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {ViewStyle} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import type {TableColumnSize} from '@components/Search/types';
@@ -26,6 +27,7 @@ function TransactionItemRow({
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
+    containerStyles,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -34,6 +36,7 @@ function TransactionItemRow({
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
+    containerStyles?: ViewStyle[];
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -48,7 +51,7 @@ function TransactionItemRow({
             {shouldUseNarrowLayout ? (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
+                        <View style={containerStyles ?? [hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
@@ -110,7 +113,7 @@ function TransactionItemRow({
             ) : (
                 <Hoverable>
                     {(hovered) => (
-                        <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
+                        <View style={containerStyles ?? [hovered ? styles.hoveredComponentBG : backgroundColor, styles.p2, styles.expenseWidgetRadius]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
                                 <View style={[styles.mr1]}>
                                     <Checkbox

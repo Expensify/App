@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {moveUnreportedTransactionToReport} from '@userActions/Report';
-import {getAllTransactions, getAllTransactionsItems} from '@userActions/Transaction';
+import {getAllTransactionsItems} from '@userActions/Transaction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
