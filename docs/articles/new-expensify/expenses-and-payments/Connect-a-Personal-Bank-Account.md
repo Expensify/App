@@ -11,7 +11,7 @@ You can add a personal bank account to receive expense reimbursements in Expensi
 
 ## Overview
 
-You can add a personal bank account to receive reimbursements in 190+ countries worldwide. All accounts are added in `Settings > Wallet > Bank accounts`. The steps vary depending on the country selected.
+You can add a personal bank account to receive reimbursements in 190+ countries worldwide. All accounts are added in Settings > Wallet > Bank accounts. The steps vary depending on the country selected.
 
 ---
 
@@ -26,11 +26,11 @@ To add a US bank account, we use **Plaid**, an encrypted third-party financial d
 4. Complete the Plaid connection flow by choosing your bank and entering your credentials.
 5. Once connected, you’ll see your account in the **Bank accounts** section.
 
-![Click Add bank account on the Wallet page]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
+![Click Add bank account on the Wallet page]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
 
-![Select United States, tap Next, and then follow the Plaid prompts]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-2.png){:width="100%"}
+![Select United States, tap Next, and then follow the Plaid prompts]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-2.png){:width="100%"}
 
-![After connecting with Plaid, your account is shown in the Bank accounts section]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-3.png){:width="100%"}
+![After connecting with Plaid, your account is shown in the Bank accounts section]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-3.png){:width="100%"}
 
 ---
 
@@ -56,13 +56,13 @@ You can add a non-US deposit account by manually entering the account details. T
    - Accept the Terms of Service and click **Confirm**.
 10. Once added, you’ll see your account in the **Bank accounts** section.
 
-![Click Add bank account on the Wallet page]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
+![Click Add bank account on the Wallet page]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-1.png){:width="100%"}
 
-![Select your country from the list and tap Next]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-4.png){:width="100%"}
+![Select your country from the list and tap Next]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-4.png){:width="100%"}
 
-![Follow the prompts to enter your account details]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-5.png){:width="100%"}
+![Follow the prompts to enter your account details]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-5.png){:width="100%"}
 
-![After connecting, your account is shown in the Bank accounts section]({{site.url}}/docs/assets/images/ExpensiHelp-DepositAccount-6.png){:width="100%"}
+![After connecting, your account is shown in the Bank accounts section]({{site.url}}/assets/images/ExpensiHelp-DepositAccount-6.png){:width="100%"}
 
 ---
 
