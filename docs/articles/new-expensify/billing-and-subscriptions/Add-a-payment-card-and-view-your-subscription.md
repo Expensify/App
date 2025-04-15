@@ -1,5 +1,5 @@
 ---
-title: Manage Your Expensify Subscription
+title: Manage Expensify Subscription
 description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
 keywords: [New Expensify, subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings]
 ---
@@ -7,7 +7,9 @@ keywords: [New Expensify, subscription, billing, payment card, cancel subscripti
 
 Easily manage your subscription in New Expensify—update payment details, adjust your plan, request early cancellation, or delete a workspace if needed.
 
-# Manage your subscription
+---
+
+# Manage Subscription
 
 To view or manage your subscription in New Expensify:
 
@@ -18,7 +20,7 @@ To view or manage your subscription in New Expensify:
 
 ---
 
-## Add a payment card
+## Add Payment Card
 
 Click **Add Payment Card** and enter your card details to ensure uninterrupted billing.
 
@@ -26,7 +28,7 @@ Click **Add Payment Card** and enter your card details to ensure uninterrupted b
 
 ---
 
-## Manage your subscription plan
+## Manage Subscription Plan
 
 In the Subscription section, you can view and update your plan details, including:
 
@@ -41,12 +43,12 @@ In the Subscription section, you can view and update your plan details, includin
 
 ---
 
-## Request early cancellation
+## Request Early Cancellation
 
 To request an early cancellation:
 
-- Go to the **Subscription** section.
-- Click **Request Early Cancellation**.
+1. Go to the **Subscription** section.
+2. Click **Request Early Cancellation**.
 
 **Note:** Early cancellations aren’t available to all customers.
 
@@ -54,11 +56,11 @@ To request an early cancellation:
 
 ---
 
-## Delete a workspace
+## Delete a Workspace
 
 To permanently delete a workspace:
 
-1. Go to `Settings > Workspaces`.
+1. Go to **Settings > Workspaces**.
 2. Click the three dots next to the workspace name.
 3. Select **Delete workspace** from the dropdown.
 4. Confirm the deletion when prompted.
@@ -67,7 +69,7 @@ To permanently delete a workspace:
 
 ---
 
-## Pricing information
+## Pricing Information
 
 Visit our [Billing page](https://help.expensify.com/new-expensify/hubs/billing-and-subscriptions/) for full pricing details.
 

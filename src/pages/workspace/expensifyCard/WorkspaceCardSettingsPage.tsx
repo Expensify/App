@@ -11,6 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -45,11 +46,17 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
         >
             <ScreenWrapper
                 testID={WorkspaceCardSettingsPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton title={translate('workspace.common.settings')} />
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <HeaderWithBackButton
+                    title={translate('workspace.common.settings')}
+                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                />
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <View>
                         <OfflineWithFeedback errorRowStyles={styles.mh5}>
                             <MenuItemWithTopDescription
