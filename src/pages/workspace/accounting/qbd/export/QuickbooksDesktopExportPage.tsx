@@ -33,7 +33,12 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
         [qbdConfig?.export?.nonReimbursable],
     );
 
-    const shouldGoBackToSpecificRoute = shouldShowVendorMenuItems && backTo;
+    const shouldShowCheckMenuItems = useMemo(
+        () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
+        [qbdConfig?.export?.nonReimbursable],
+    );
+
+    const shouldGoBackToSpecificRoute = shouldShowCheckMenuItems && backTo;
     const activeRoute = Navigation.getActiveRoute();
 
     const menuItems = [

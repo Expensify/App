@@ -73,7 +73,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
         {
             title: reimbursable ? translate(`workspace.qbd.accounts.${reimbursable}`) : undefined,
             description: translate('workspace.accounting.exportAs'),
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             hintText: exportHintText,
             subscribedSettings: accountOrExportDestination,
             pendingAction: settingsPendingAction(accountOrExportDestination, qbdConfig?.pendingFields),
@@ -84,7 +84,7 @@ function QuickbooksDesktopOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             title: accountsList.find(({id}) => qbdConfig?.export.reimbursableAccount === id)?.name || accountsList.at(0)?.name || translate('workspace.qbd.notConfigured'),
             description: accountDescription,
-            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID)),
+            onPress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT.getRoute(policyID, Navigation.getActiveRoute())),
             subscribedSettings: account,
             pendingAction: settingsPendingAction(account, qbdConfig?.pendingFields),
             brickRoadIndicator: areSettingsInErrorFields(account, qbdConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
