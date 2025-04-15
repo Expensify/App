@@ -1704,8 +1704,7 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     });
 
     if (searchUpdate) {
-        optimisticData.push(searchUpdate.optimisticData);
-        failureData.push(searchUpdate.failureData);
+        optimisticData.push({...searchUpdate});
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -2578,8 +2577,7 @@ function buildOnyxDataForTrackExpense({
     });
 
     if (searchUpdate) {
-        optimisticData.push(searchUpdate.optimisticData);
-        failureData.push(searchUpdate.failureData);
+        optimisticData.push({...searchUpdate});
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -10547,8 +10545,6 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
 }
 
 function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdateParams) {
-    const currentPersonalDetails = {...allPersonalDetails};
-
     const toAccountID = participant?.accountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
@@ -10560,40 +10556,27 @@ function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdatePara
 
         if (shouldOptimisticallyUpdate) {
             return {
-                optimisticData: {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                    value: {
-                        data: {
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                                [toAccountID]: {
-                                    accountID: toAccountID,
-                                    displayName: participant?.displayName,
-                                    login: participant?.login,
-                                },
-                                [fromAccountID]: {
-                                    accountID: fromAccountID,
-                                    avatar: currentUserPersonalDetails?.avatar,
-                                    displayName: currentUserPersonalDetails?.displayName,
-                                    login: currentUserPersonalDetails?.login,
-                                },
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
                             },
-                            [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            [fromAccountID]: {
                                 accountID: fromAccountID,
-                                managerID: toAccountID,
-                                ...transaction,
+                                avatar: currentUserPersonalDetails?.avatar,
+                                displayName: currentUserPersonalDetails?.displayName,
+                                login: currentUserPersonalDetails?.login,
                             },
                         },
-                    },
-                },
-
-                // On error, remove any personal details that were not successfully added
-                failureData: {
-                    onyxMethod: Onyx.METHOD.SET,
-                    key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
-                    value: {
-                        data: {
-                            [ONYXKEYS.PERSONAL_DETAILS_LIST]: currentPersonalDetails,
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            accountID: fromAccountID,
+                            managerID: toAccountID,
+                            ...transaction,
                         },
                     },
                 },
