@@ -7,14 +7,12 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import {useSession} from '@components/OnyxProvider';
 import ReceiptAudit, {ReceiptAuditMessages} from '@components/ReceiptAudit';
 import ReceiptEmptyState from '@components/ReceiptEmptyState';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
 import ViolationMessages from '@components/ViolationMessages';
 import useActiveRoute from '@hooks/useActiveRoute';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -38,7 +36,6 @@ import {
     getTransactionDetails,
     getTripIDFromTransactionParentReportID,
     isInvoiceReport,
-    isMoneyRequestReport,
     isPaidGroupPolicy,
     isReportApproved,
     isReportInGroupPolicy,
@@ -109,7 +106,6 @@ const receiptFieldViolationNames: OnyxTypes.ViolationName[] = [CONST.VIOLATIONS.
 
 function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = false, updatedTransaction, isFromReviewDuplicates = false}: MoneyRequestViewProps) {
     const styles = useThemeStyles();
-    const session = useSession();
     const {isOffline} = useNetwork();
     const {canUseTableReportView} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
@@ -201,12 +197,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const didReceiptScanSucceed = hasReceipt && didReceiptScanSucceedTransactionUtils(transaction);
     const canEditDistance = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE);
     const canEditDistanceRate = canUserPerformWriteAction && canEditFieldOfMoneyRequest(parentReportAction, CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE);
-
-    const isAdmin = policy?.role === 'admin';
-    const isApprover = isMoneyRequestReport(moneyRequestReport) && moneyRequestReport?.managerID !== null && session?.accountID === moneyRequestReport?.managerID;
-
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isRequestor = currentUserPersonalDetails.accountID === parentReportAction?.actorAccountID;
 
     // A flag for verifying that the current report is a sub-report of a workspace chat
     // if the policy of the report is either Collect or Control, then this report must be tied to workspace chat
@@ -410,9 +400,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     );
 
     const isReceiptAllowed = !isPaidReport && !isInvoice;
-    const shouldShowReceiptEmptyState =
-        isReceiptAllowed && !hasReceipt && !isApproved && !isSettled && (canEditReceipt || isAdmin || isApprover || isRequestor) && (canEditReceipt || isPaidGroupPolicy(report));
-
+    const shouldShowReceiptEmptyState = isReceiptAllowed && !hasReceipt;
     const [receiptImageViolations, receiptViolations] = useMemo(() => {
         const imageViolations = [];
         const allViolations = [];
@@ -581,6 +569,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                                     ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                                 );
                             }}
+                            isThumbnail={!canEditReceipt}
                             isInMoneyRequestView
                         />
                     </OfflineWithFeedback>
