@@ -9,7 +9,7 @@
     font-family: Expensify Neue;
     font-weight: 700;
     font-style: normal;
-    src: url('../assets/fonts/web/ExpensifyNeue-Bold.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeue-Bold.woff') format('woff');
+    src: url('../assets/fonts/web/ExpensifyNeueX1-Bold.woff2') format('woff2'), url('../assets/fonts/web/ExpensifyNeueX1-Bold.woff') format('woff');
 }
 
 @font-face {
