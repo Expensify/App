@@ -476,8 +476,8 @@ function MoneyRequestReportPreviewContent({
                             <View style={[reportPreviewStyles.wrapperStyle]}>
                                 <View style={[reportPreviewStyles.contentContainerStyle]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, (isApproved || iouSettled) && styles.mtn1]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3, StyleUtils.getMinimumHeight(28)]}>
+                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                 <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
                                                         onLayout={onTextLayoutChange}
