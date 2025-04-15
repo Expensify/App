@@ -75,6 +75,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={4}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.giveItName')}</Text>
             <FormProvider
@@ -85,6 +86,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
                 style={[styles.mh5, styles.flexGrow1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
+                addBottomSafeAreaPadding
             >
                 <InputWrapper
                     InputComponent={TextInput}

@@ -176,6 +176,7 @@ function ReportListItem<TItem extends ListItem>({
                                 <Checkbox
                                     onPress={() => onCheckboxPress?.(item)}
                                     isChecked={item.isSelected}
+                                    isIndeterminate={reportItem?.transactions?.some((transaction) => transaction.isSelected) && !item.isSelected}
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}

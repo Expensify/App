@@ -65,6 +65,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldHideClearButton = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -73,6 +74,8 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled,
         placeholderTextColor,
+        onClearInput,
+        iconContainerStyle,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -101,6 +104,7 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [height, setHeight] = useState<number>(variables.componentSizeLarge);
     const [width, setWidth] = useState<number | null>(null);
+    const [prefixCharacterPadding, setPrefixCharacterPadding] = useState(8);
     const labelScale = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_SCALE : styleConst.INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? styleConst.ACTIVE_LABEL_TRANSLATE_Y : styleConst.INACTIVE_LABEL_TRANSLATE_Y);
     const input = useRef<TextInput | null>(null);
@@ -263,8 +267,8 @@ function BaseTextInput(
         isAutoGrowHeightMarkdown && styles.pb2,
     ]);
 
-    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
-    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
+    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
+    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(prefixCharacterPadding + styles.pr1.paddingRight);
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
@@ -323,6 +327,9 @@ function BaseTextInput(
                             {!!prefixCharacter && (
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
+                                        onLayout={(event) => {
+                                            setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
+                                        }}
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -399,7 +406,14 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && <TextInputClearButton onPressButton={() => setValue('')} />}
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
+                                <TextInputClearButton
+                                    onPressButton={() => {
+                                        setValue('');
+                                        onClearInput?.();
+                                    }}
+                                />
+                            )}
                             {inputProps.isLoading !== undefined && (
                                 <ActivityIndicator
                                     size="small"
@@ -423,7 +437,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}

@@ -1,7 +1,6 @@
 import mapValues from 'lodash/mapValues';
 import React, {useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -18,6 +17,7 @@ import useActiveRoute from '@hooks/useActiveRoute';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -239,7 +239,8 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const {unit, rate} = DistanceRequestUtils.getRate({transaction, policy});
     const distance = getDistanceInMeters(transactionBackup ?? transaction, unit);
     const currency = transactionCurrency ?? CONST.CURRENCY.USD;
-    const rateToDisplay = DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
+    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
+    const rateToDisplay = isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : DistanceRequestUtils.getRateForDisplay(unit, rate, currency, translate, toLocaleDigit, isOffline);
     const distanceToDisplay = DistanceRequestUtils.getDistanceForDisplay(hasRoute, distance, unit, rate, translate);
     let merchantTitle = isEmptyMerchant ? '' : transactionMerchant;
     let amountTitle = formattedTransactionAmount ? formattedTransactionAmount.toString() : '';
@@ -247,8 +248,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
     }
-
-    const isCustomUnitOutOfPolicy = transactionViolations.some((violation) => violation.name === CONST.VIOLATIONS.CUSTOM_UNIT_OUT_OF_POLICY);
 
     const updatedTransactionDescription = useMemo(() => {
         if (!updatedTransaction) {
@@ -380,12 +379,13 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction.transactionID, report.reportID, getReportRHPActiveRoute()),
                         );
                     }}
+                    copyValue={!canEditDistance ? distanceToDisplay : undefined}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={getPendingFieldAction('customUnitRateID')}>
                 <MenuItemWithTopDescription
                     description={translate('common.rate')}
-                    title={isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : rateToDisplay}
+                    title={rateToDisplay}
                     interactive={canEditDistanceRate}
                     shouldShowRightIcon={canEditDistanceRate}
                     titleStyle={styles.flex1}
@@ -399,6 +399,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     }}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
+                    copyValue={!canEditDistanceRate ? rateToDisplay : undefined}
                 />
             </OfflineWithFeedback>
         </>
@@ -647,6 +648,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             brickRoadIndicator={getErrorForField('merchant') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                             errorText={getErrorForField('merchant')}
                             numberOfLinesTitle={0}
+                            copyValue={!canEditMerchant ? updatedMerchantTitle : undefined}
                         />
                     </OfflineWithFeedback>
                 )}
@@ -667,6 +669,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         }}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
+                        copyValue={!canEditDate ? transactionDate : undefined}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
@@ -800,6 +803,27 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             disabled={!canEdit}
                         />
                     </View>
+                )}
+                {!!parentReportID && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon
+                            title={parentReport?.reportName}
+                            description={translate('common.report')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!report?.reportID || !transaction?.transactionID) {
+                                    return;
+                                }
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                );
+                            }}
+                            interactive
+                            shouldRenderAsHTML
+                        />
+                    </OfflineWithFeedback>
                 )}
             </>
             <ConfirmModal
