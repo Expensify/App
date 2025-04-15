@@ -832,7 +832,7 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             children = (
                 <MoneyRequestReportPreview
                     iouReportID={getIOUReportIDFromReportActionPreview(action)}
