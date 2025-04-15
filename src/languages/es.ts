@@ -3219,7 +3219,6 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
                 },
             },
-            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión',
         },
         workspaceList: {
             joinNow: 'Únete ahora',

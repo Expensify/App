@@ -3189,7 +3189,6 @@ const translations = {
                     [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Out-of-pocket expenses will export when paid',
                 },
             },
-            noAccountsFoundDescription: 'Add the account in QuickBooks Online and sync the connection again',
         },
         workspaceList: {
             joinNow: 'Join now',
