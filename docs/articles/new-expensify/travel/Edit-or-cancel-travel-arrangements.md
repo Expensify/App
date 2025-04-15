@@ -17,5 +17,3 @@ If there is an unexpected change to the itinerary (for example, a flight cancell
 {% include info.html %}
 You can click **Get Support** on your emailed travel itinerary for real-time help with the booking. Any modifications, exchanges, or voidings made to a trip via support will incur a $25 booking change fee.
 {% include end-info.html %}
-
-</div>
