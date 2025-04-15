@@ -828,7 +828,7 @@ function getSearchOnyxUpdate({currentUserPersonalDetails, participant, transacti
     const fromAccountID = currentUserPersonalDetails?.accountID;
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
-    if (currentSearchQueryJSON && toAccountID && fromAccountID) {
+    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
         const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
         const shouldOptimisticallyUpdate =
             currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type) && currentSearchQueryJSON.flatFilters.length === 0;
