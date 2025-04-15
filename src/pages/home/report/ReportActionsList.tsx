@@ -29,7 +29,6 @@ import {
     isConsecutiveActionMadeByPreviousActor,
     isConsecutiveChronosAutomaticTimerAction,
     isDeletedParentAction,
-    isReportActionUnread,
     isReportPreviewAction,
     isReversedTransaction,
     isTransactionThread,
@@ -241,7 +240,6 @@ function ReportActionsList({
         for (let index = startIndex; index < sortedVisibleReportActions.length; index++) {
             const reportAction = sortedVisibleReportActions.at(index);
             const nextAction = sortedVisibleReportActions.at(index + 1);
-            const isNextMessageUnread = !!nextAction && isReportActionUnread(nextAction, unreadMarkerTime);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             // eslint-disable-next-line react-compiler/react-compiler
@@ -249,7 +247,7 @@ function ReportActionsList({
                 reportAction &&
                 shouldDisplayNewMarkerOnReportAction({
                     message: reportAction,
-                    isNextMessageUnread,
+                    nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
                     accountID,
                     prevSortedVisibleReportActionsObjects,

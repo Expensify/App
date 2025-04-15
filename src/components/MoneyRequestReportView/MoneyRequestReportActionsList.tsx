@@ -24,7 +24,6 @@ import {
     hasNextActionMadeBySameActor,
     isConsecutiveChronosAutomaticTimerAction,
     isDeletedParentAction,
-    isReportActionUnread,
     shouldReportActionBeVisible,
     wasMessageReceivedWhileOffline,
 } from '@libs/ReportActionsUtils';
@@ -219,14 +218,13 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
         for (let index = startIndex; index >= endIndex; index--) {
             const reportAction = visibleReportActions.at(index);
             const nextAction = visibleReportActions.at(index - 1);
-            const isNextMessageUnread = !!nextAction && isReportActionUnread(nextAction, unreadMarkerTime);
             const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
 
             const shouldDisplayNewMarker =
                 reportAction &&
                 shouldDisplayNewMarkerOnReportAction({
                     message: reportAction,
-                    isNextMessageUnread,
+                    nextMessage: nextAction,
                     isEarliestReceivedOfflineMessage,
                     accountID: currentUserAccountID,
                     prevSortedVisibleReportActionsObjects: prevVisibleActionsMap,

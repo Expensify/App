@@ -6,8 +6,8 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** The reportAction for which the check is done */
     message: OnyxTypes.ReportAction;
 
-    /** Whether the next message in a list is unread */
-    isNextMessageUnread: boolean;
+    /** The reportAction adjacent to `message` (either previous or next one) */
+    nextMessage: OnyxTypes.ReportAction | undefined;
 
     /** Is it the earliestReceivedOfflineMessage */
     isEarliestReceivedOfflineMessage: boolean;
@@ -34,7 +34,7 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
  */
 const shouldDisplayNewMarkerOnReportAction = ({
     message,
-    isNextMessageUnread,
+    nextMessage,
     isEarliestReceivedOfflineMessage,
     unreadMarkerTime,
     accountID,
@@ -42,8 +42,9 @@ const shouldDisplayNewMarkerOnReportAction = ({
     prevUnreadMarkerReportActionID,
     scrollingVerticalOffset,
 }: ShouldDisplayNewMarkerOnReportActionParams): boolean => {
+    const isNextMessageUnread = !!nextMessage && isReportActionUnread(nextMessage, unreadMarkerTime);
+
     // If the current message is the earliest message received while offline, we want to display the unread marker above this message.
-    // const isEarliestReceivedOfflineMessage = index === earliestReceivedOfflineMessageIndex;
     if (isEarliestReceivedOfflineMessage && !isNextMessageUnread) {
         return true;
     }
