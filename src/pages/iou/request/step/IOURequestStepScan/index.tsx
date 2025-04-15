@@ -74,6 +74,9 @@ import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
 
+const SMALL_SCREEN_TOOLTIP_OFFSET = 10;
+const DEFAULT_TOOLTIP_OFFSET = 8;
+
 function IOURequestStepScan({
     report,
     route: {
@@ -867,14 +870,14 @@ function IOURequestStepScan({
 
     const elementTopOffset = useMemo(() => {
         if (platform === CONST.PLATFORM.MOBILEWEB) {
-            return 10;
+            return SMALL_SCREEN_TOOLTIP_OFFSET;
         }
 
         if (isSmallScreenWidth) {
-            return -variables.tabSelectorButtonHeight + 10;
+            return -variables.tabSelectorButtonHeight + SMALL_SCREEN_TOOLTIP_OFFSET;
         }
 
-        return -variables.tabSelectorButtonHeight + 8;
+        return -variables.tabSelectorButtonHeight + DEFAULT_TOOLTIP_OFFSET;
     }, [isSmallScreenWidth, platform]);
 
     return (
