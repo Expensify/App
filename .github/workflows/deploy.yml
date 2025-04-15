@@ -17,6 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
+      TAG: ${{ steps.getTagName.outputs.TAG }}
     steps:
       - name: Checkout
         # v4
@@ -44,13 +45,17 @@ jobs:
         id: getAppVersion
         run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 
+      - name: Get tag name
+        id: getTagName
+        run: echo "TAG=${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
+
       - name: Create and push tag
-        if: ${{ github.ref == 'refs/heads/staging' }}
+        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}-staging
+          git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
           cd Mobile-Expensify
-          git tag ${{ steps.getAppVersion.outputs.VERSION }}-staging
+          git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
@@ -595,10 +600,10 @@ jobs:
 
       - name: 🚀 Create prerelease 🚀
         run: |
-          gh release create ${{ needs.prep.outputs.APP_VERSION }}-staging --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --verify-tag --target staging
+          gh release create ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --verify-tag --target staging
           RETRIES=0
           MAX_RETRIES=10
-          until [[ $(gh release view ${{ needs.prep.outputs.APP_VERSION }}-staging --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
+          until [[ $(gh release view ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
             echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
             sleep 1
           done
@@ -630,7 +635,7 @@ jobs:
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
           for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry" || {
+            gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber "$file_entry" || {
               echo "Failed to upload $file_entry. Continuing with the next file."
               continue
             }
@@ -670,8 +675,8 @@ jobs:
       - name: 🚀 Edit the release to be no longer a prerelease 🚀
         run: |
           LATEST_RELEASE="$(gh release list --repo ${{ github.repository }} --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
-          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.APP_VERSION }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
-          gh release edit ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
+          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.TAG }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
+          gh release edit ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -695,7 +700,7 @@ jobs:
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
           for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.APP_VERSION }} --repo ${{ github.repository }} --clobber "$file_entry" || {
+            gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber "$file_entry" || {
               echo "Failed to upload $file_entry. Continuing with the next file."
               continue
             }
@@ -786,7 +791,7 @@ jobs:
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
     with:
-      version: ${{ needs.prep.outputs.APP_VERSION }}${{ github.ref != 'refs/heads/production' && '-staging' || '' }}
+      version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}
       android: ${{ needs.android.result }}
       ios: ${{ needs.ios.result }}
