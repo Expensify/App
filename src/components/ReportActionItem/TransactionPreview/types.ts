@@ -4,6 +4,12 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+// string type union is here for percentage values
+type TransactionPreviewStyleType = {
+    width: number | string;
+    maxWidth?: number | string;
+};
+
 type TransactionPreviewProps = {
     /** The active IOUReport, used for Onyx subscription */
     iouReportID: string | undefined;
@@ -15,10 +21,10 @@ type TransactionPreviewProps = {
     reportID: string | undefined;
 
     /** Callback for the preview pressed */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** All the data of the action, used for showing context menu */
-    action: ReportAction;
+    action: OnyxEntry<ReportAction>;
 
     /** Popover context menu anchor, used for showing context menu */
     contextMenuAnchor?: ContextMenuAnchor;
@@ -26,8 +32,11 @@ type TransactionPreviewProps = {
     /** Callback for updating context menu active state, used for showing context menu */
     checkIfContextMenuActive?: () => void;
 
-    /** Extra styles to pass to View wrapper */
+    /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Optional custom styles to be applied to wrapper component. */
+    wrapperStyle: TransactionPreviewStyleType;
 
     /** True if this IOU has a type of split */
     isBillSplit: boolean;
@@ -48,6 +57,9 @@ type TransactionPreviewProps = {
 
     /** Whether  context menu should be shown on press */
     shouldDisplayContextMenu?: boolean;
+
+    /** In the case where we have access to the transactionID in the parent */
+    transactionID?: string;
 };
 
 type TransactionPreviewContentProps = {
@@ -61,7 +73,7 @@ type TransactionPreviewContentProps = {
     navigateToReviewFields: () => void;
 
     /** General callback for handling presses on the preview component, can also handle keyboard events. */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     /** Whether the transaction is whisper. */
     isWhisper?: boolean;
@@ -69,8 +81,11 @@ type TransactionPreviewContentProps = {
     /** Determines if the element is currently hovered over. */
     isHovered?: boolean;
 
-    /** Optional custom styles to be applied to container components. */
+    /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
+
+    /** Optional custom styles to be applied to wrapper component. */
+    wrapperStyle: TransactionPreviewStyleType;
 
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
@@ -85,7 +100,7 @@ type TransactionPreviewContentProps = {
     transaction: OnyxEntry<Transaction>;
 
     /** Represents the action entry from Onyx */
-    action: ReportAction;
+    action: OnyxEntry<ReportAction>;
 
     /** Contains data about potential transaction violations */
     violations: TransactionViolations;
@@ -109,4 +124,4 @@ type TransactionPreviewContentProps = {
     shouldHideOnDelete?: boolean;
 };
 
-export type {TransactionPreviewProps, TransactionPreviewContentProps};
+export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};

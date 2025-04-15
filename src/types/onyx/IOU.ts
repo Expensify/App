@@ -172,13 +172,13 @@ type IOU = {
 /** Model of IOU attendee */
 type Attendee = {
     /** IOU attendee email */
-    email?: string;
+    email: string;
 
     /** IOU attendee display name */
-    displayName?: string;
+    displayName: string;
 
     /** IOU attendee avatar url */
-    avatarUrl?: string;
+    avatarUrl: string;
 
     /** Account ID */
     accountID?: number;
