@@ -37,7 +37,7 @@ function SMSDeliveryFailurePage() {
     };
 
     const timeData = useMemo<TimeData | null>(() => {
-        if (!SMSDeliveryFailureMessage) {
+        if (!SMSDeliveryFailureMessage?.length) {
             return null;
         }
         return JSON.parse(SMSDeliveryFailureMessage) as TimeData;
@@ -63,7 +63,7 @@ function SMSDeliveryFailurePage() {
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>{timeData && translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
+                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>
