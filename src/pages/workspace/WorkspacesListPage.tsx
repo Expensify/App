@@ -31,7 +31,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    clearDeleteWorkspaceError,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removeWorkspace,
+    updateDefaultPolicy,
+    updateLastAccessedWorkspaceSwitcher,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -161,6 +169,7 @@ function WorkspacesListPage() {
         if (policyIDToDelete === activeWorkspaceID) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     };
 
@@ -451,6 +460,7 @@ function WorkspacesListPage() {
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
                 bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
@@ -463,7 +473,10 @@ function WorkspacesListPage() {
                 {shouldShowLoadingIndicator ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
-                    <ScrollView contentContainerStyle={styles.pt3}>
+                    <ScrollView
+                        contentContainerStyle={styles.pt3}
+                        addBottomSafeAreaPadding
+                    >
                         <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <FeatureList
                                 menuItems={workspaceFeatures}
@@ -489,6 +502,7 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
             bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
