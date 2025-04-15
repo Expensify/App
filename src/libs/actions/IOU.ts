@@ -157,7 +157,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {getSearchOnyxUpdate} from '@libs/SearchUIUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -203,7 +203,7 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchDataTypes, SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
@@ -595,6 +595,11 @@ type ReplaceReceipt = {
     transactionID: string;
     file?: File;
     source: string;
+};
+
+type GetSearchOnyxUpdateParams = {
+    transaction: OnyxTypes.Transaction;
+    participant?: Participant;
 };
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
@@ -10539,6 +10544,47 @@ function resolveDuplicates(params: MergeDuplicatesParams) {
     };
 
     API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
+}
+
+function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdateParams) {
+    const toAccountID = participant?.accountID;
+    const fromAccountID = currentUserPersonalDetails?.accountID;
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+
+    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
+        const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
+        const shouldOptimisticallyUpdate =
+            currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type) && currentSearchQueryJSON.flatFilters.length === 0;
+
+        if (shouldOptimisticallyUpdate) {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
+                            },
+                            [fromAccountID]: {
+                                accountID: fromAccountID,
+                                avatar: currentUserPersonalDetails?.avatar,
+                                displayName: currentUserPersonalDetails?.displayName,
+                                login: currentUserPersonalDetails?.login,
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            accountID: fromAccountID,
+                            managerID: toAccountID,
+                            ...transaction,
+                        },
+                    },
+                },
+            };
+        }
+    }
 }
 
 export {
