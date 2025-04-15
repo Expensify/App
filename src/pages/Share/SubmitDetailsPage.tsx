@@ -8,7 +8,6 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import LocationPermissionModal from '@components/LocationPermissionModal';
 import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationList';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';

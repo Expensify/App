@@ -14,7 +14,6 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import {usePersonalDetails} from '@components/OnyxProvider';
 import PDFThumbnail from '@components/PDFThumbnail';
 import ScreenWrapper from '@components/ScreenWrapper';
-import {useSearchContext} from '@components/Search/SearchContext';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
@@ -84,7 +83,6 @@ function IOURequestStepConfirmation({
 }: IOURequestStepConfirmationProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const personalDetails = usePersonalDetails();
-    const {currentSearchHash} = useSearchContext();
 
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${getIOURequestPolicyID(transaction, reportDraft)}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getIOURequestPolicyID(transaction, reportReal)}`);
@@ -393,7 +391,6 @@ function IOURequestStepConfirmation({
             const isTestReceipt = receiptObj?.isTestReceipt ?? false;
             requestMoneyIOUActions({
                 report,
-                hash: currentSearchHash,
                 participantParams: {
                     payeeEmail: currentUserPersonalDetails.login,
                     payeeAccountID: currentUserPersonalDetails.accountID,

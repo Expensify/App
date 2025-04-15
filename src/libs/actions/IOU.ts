@@ -203,7 +203,7 @@ import type {QuickActionName} from '@src/types/onyx/QuickAction';
 import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {SearchDataTypes, SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
@@ -400,7 +400,6 @@ type RequestMoneyInformation = {
     reimbursible?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
-    hash?: number;
 };
 
 type MoneyRequestInformationParams = {
@@ -412,7 +411,6 @@ type MoneyRequestInformationParams = {
     existingTransactionID?: string;
     existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
-    hash?: number;
 };
 
 type MoneyRequestOptimisticParams = {
