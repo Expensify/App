@@ -62,7 +62,7 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             ...signerFiles,
             bankAccountID,
         });
-    }, [account?.primaryLogin, bankAccountID, directorKeys, isUserOwner, reimbursementAccountDraft]);
+    }, [account?.primaryLogin, bankAccountID, isUserOwner, reimbursementAccountDraft]);
 
     useEffect(() => {
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
