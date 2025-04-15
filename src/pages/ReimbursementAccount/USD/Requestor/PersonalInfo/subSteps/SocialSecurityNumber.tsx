@@ -1,14 +1,16 @@
 import React, {useCallback} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import SingleFieldStep from '@components/SubStepForms/SingleFieldStep';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidSSNLastFour} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const PERSONAL_INFO_STEP_KEY = INPUT_IDS.PERSONAL_INFO_STEP;
 const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
@@ -16,15 +18,16 @@ const STEP_FIELDS = [PERSONAL_INFO_STEP_KEY.SSN_LAST_4];
 function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
 
     const defaultSsnLast4 = reimbursementAccount?.achData?.[PERSONAL_INFO_STEP_KEY.SSN_LAST_4] ?? '';
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = ValidationUtils.getFieldRequiredErrors(values, STEP_FIELDS);
+            const errors = getFieldRequiredErrors(values, STEP_FIELDS);
 
-            if (values.ssnLast4 && !ValidationUtils.isValidSSNLastFour(values.ssnLast4)) {
+            if (values.ssnLast4 && !isValidSSNLastFour(values.ssnLast4)) {
                 errors.ssnLast4 = translate('bankAccount.error.ssnLast4');
             }
 
@@ -38,6 +41,10 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
         onNext,
         shouldSaveDraft: isEditing,
     });
+
+    if (isLoadingReimbursementAccount) {
+        return <FullScreenLoadingIndicator />;
+    }
 
     return (
         <SingleFieldStep<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>
@@ -54,6 +61,7 @@ function SocialSecurityNumber({onNext, onMove, isEditing}: SubStepProps) {
             inputMode={CONST.INPUT_MODE.NUMERIC}
             defaultValue={defaultSsnLast4}
             maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.SSN}
+            enabledWhenOffline
         />
     );
 }
