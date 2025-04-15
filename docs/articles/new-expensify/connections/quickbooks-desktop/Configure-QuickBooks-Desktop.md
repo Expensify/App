@@ -53,9 +53,7 @@ These options manage syncing behavior and automation preferences.
 1. Still in the **Accounting** section, select the **Advanced** tab.
 2. Review and configure each setting:
    - **Auto-Sync**: Enable automatic syncing between QuickBooks Desktop and Expensify.
-   - **Invite Employees**: Allow Expensify to import and invite employees from QuickBooks Desktop.
    - **Automatically Create Entities**: Expensify will create vendors/customers in QBD if no match is found.
-   - **Sync Reimbursed Reports**: Reports marked as **Paid** in QBD will also be marked as **Paid** in Expensify.
 
 ---
 
