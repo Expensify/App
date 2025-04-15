@@ -183,6 +183,10 @@ function WorkspacesListPage() {
 
     const shouldCalculateBillNewDot = shouldCalculateBillNewDotFn();
 
+    const resetLoadingSpinnerIconIndex = useCallback(() => {
+        setLoadingSpinnerIconIndex(null);
+    }, []);
+
     /**
      * Gets the menu item for each workspace
      */
@@ -298,7 +302,7 @@ function WorkspacesListPage() {
                                 style={[item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? styles.offlineFeedback.deleted : {}]}
                                 isDefault={isDefault}
                                 isLoadingBill={isLoadingBill}
-                                resetLoadingSpinnerIconIndex={() => setLoadingSpinnerIconIndex(null)}
+                                resetLoadingSpinnerIconIndex={resetLoadingSpinnerIconIndex}
                             />
                         )}
                     </PressableWithoutFeedback>
@@ -321,6 +325,7 @@ function WorkspacesListPage() {
             isLoadingBill,
             shouldCalculateBillNewDot,
             loadingSpinnerIconIndex,
+            resetLoadingSpinnerIconIndex,
         ],
     );
 
