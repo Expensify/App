@@ -5572,8 +5572,8 @@ const styles = (theme: ThemeColors) =>
         },
         reportPreviewArrowButton: {
             borderRadius: 50,
-            width: 28,
-            height: 28,
+            width: variables.h28,
+            height: variables.w28,
             alignItems: 'center',
             justifyContent: 'center',
             marginLeft: 4,
