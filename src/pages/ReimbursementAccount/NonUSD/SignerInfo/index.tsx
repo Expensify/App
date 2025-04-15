@@ -41,7 +41,6 @@ const userIsOwnerBodyContent: Array<ComponentType<SignerDetailsFormProps>> = [Jo
 function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
     const {translate} = useLocalize();
 
-    const [directorKeys, setDirectorKeys] = useState<string[]>([]);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -109,7 +108,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
                 // user is director so we gather their data
                 if (value) {
                     setIsUserDirector(value);
-                    setDirectorKeys([CONST.NON_USD_BANK_ACCOUNT.CURRENT_USER_KEY]);
                     setCurrentSubStep(SUBSTEP.SIGNER_DETAILS_FORM);
                     return;
                 }
