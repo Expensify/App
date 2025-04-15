@@ -803,7 +803,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </View>
                 )}
-                {!!parentReportID && canUseTableReportView && (
+                {!!parentReportID && !!canUseTableReportView && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
