@@ -1813,6 +1813,20 @@ const styles = (theme: ThemeColors) =>
                 overflow: 'hidden',
             } satisfies ViewStyle),
 
+        TestToolsNavigatorOuterView: (shouldUseNarrowLayout: boolean) => ({
+            flex: 1,
+            justifyContent: shouldUseNarrowLayout ? 'flex-end' : 'center',
+            alignItems: 'center',
+        }),
+
+        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean) => ({
+            width: shouldUseNarrowLayout ? '100%' : '91%',
+            height: shouldUseNarrowLayout ? '78%' : '75%',
+            borderRadius: variables.componentBorderRadiusLarge,
+            backgroundColor: theme.appBG,
+            overflow: 'hidden',
+        }),
+
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
             lineHeight: variables.fontSizeOnlyEmojisHeight,

@@ -1821,6 +1821,8 @@ const ROUTES = {
     },
     MIGRATED_USER_WELCOME_MODAL: 'onboarding/migrated-user-welcome',
 
+    TEST_TOOLS_MODAL: 'test-tools',
+
     TRANSACTION_RECEIPT: {
         route: 'r/:reportID/transaction/:transactionID/receipt',
         getRoute: (reportID: string | undefined, transactionID: string | undefined, readonly = false, isFromReviewDuplicates = false) => {
