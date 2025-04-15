@@ -509,6 +509,7 @@ type CreateTrackExpenseParams = {
     policyParams?: BasePolicyParams;
     transactionParams: TrackExpenseTransactionParams;
     isRetry?: boolean;
+    hash?: number;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -568,6 +569,7 @@ type GetTrackExpenseInformationParams = {
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    hash?: number;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -1213,6 +1215,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         personalDetailListAction,
         nextStep,
     } = optimisticParams;
+    const toAccountID = participant?.accountID;
+    const fromAccountID = currentUserPersonalDetails?.accountID;
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
@@ -1707,9 +1711,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
             },
         });
     }
-
-    const toAccountID = participant?.accountID;
-    const fromAccountID = currentUserPersonalDetails?.accountID;
 
     if (hash && toAccountID != null && fromAccountID != null && snapshotList) {
         const snapshot = snapshotList[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
