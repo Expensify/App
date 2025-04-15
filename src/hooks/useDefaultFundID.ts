@@ -5,8 +5,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
 /**
- * Hook to get the default fund ID for a given policy ID. This is used to get the settings and cards for each of the feed.
- * It will always return lasteSelectedExpensifyFeed if it exists or fallback to the workspaceAccountID or domainFundID.
+ * Hook to get the default fundID for a given policyID. This is used to get the settings and cards for each of the feeds.
+ * It will always return lastSelectedExpensifyCardFeed if it exists or fallback to the workspaceAccountID or domainFundID.
  */
 function useDefaultFundID(policyID: string | undefined) {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
