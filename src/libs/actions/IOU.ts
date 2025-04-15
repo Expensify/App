@@ -157,7 +157,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
-import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSearchOnyxUpdate} from '@libs/SearchUIUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -1199,15 +1199,12 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         personalDetailListAction,
         nextStep,
     } = optimisticParams;
-    const toAccountID = participant?.accountID;
-    const fromAccountID = currentUserPersonalDetails?.accountID;
 
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
-    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -1698,37 +1695,14 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
-        const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
+    const searchUpdate = getSearchOnyxUpdate({
+        transaction,
+        participant,
+        currentUserPersonalDetails,
+    });
 
-        if (currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type)) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
-                value: {
-                    data: {
-                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
-                            [toAccountID]: {
-                                accountID: toAccountID,
-                                displayName: participant?.displayName,
-                                login: participant?.login,
-                            },
-                            [fromAccountID]: {
-                                accountID: fromAccountID,
-                                avatar: currentUserPersonalDetails?.avatar,
-                                displayName: currentUserPersonalDetails?.displayName,
-                                login: currentUserPersonalDetails?.login,
-                            },
-                        },
-                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
-                            accountID: fromAccountID,
-                            managerID: toAccountID,
-                            ...transaction,
-                        },
-                    },
-                },
-            });
-        }
+    if (searchUpdate) {
+        optimisticData.push(searchUpdate);
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -2182,6 +2156,7 @@ type BuildOnyxDataForTrackExpenseParams = {
     existingTransactionThreadReportID?: string;
     actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    participant?: Participant;
 };
 
 /** Builds the Onyx data for track expense */
@@ -2194,6 +2169,7 @@ function buildOnyxDataForTrackExpense({
     existingTransactionThreadReportID,
     actionableTrackExpenseWhisper,
     retryParams,
+    participant,
 }: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
     const {report: chatReport, previewAction: reportPreviewAction} = chat;
     const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
@@ -2203,6 +2179,7 @@ function buildOnyxDataForTrackExpense({
     const isScanRequest = isScanRequestTransactionUtils(transaction);
     const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
+
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     const failureData: OnyxUpdate[] = [];
@@ -2590,6 +2567,16 @@ function buildOnyxDataForTrackExpense({
                 },
             },
         });
+    }
+
+    const searchUpdate = getSearchOnyxUpdate({
+        transaction,
+        participant,
+        currentUserPersonalDetails,
+    });
+
+    if (searchUpdate) {
+        optimisticData.push(searchUpdate);
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -3619,6 +3606,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
 
     // STEP 5: Build Onyx Data
     const trackExpenseOnyxData = buildOnyxDataForTrackExpense({
+        participant,
         chat: {report: chatReport, previewAction: reportPreviewAction},
         iou: {report: iouReport, action: iouAction, createdAction: optimisticCreatedActionForIOUReport},
         transactionParams: {

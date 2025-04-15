@@ -1,6 +1,6 @@
 import type {TextStyle, ViewStyle} from 'react-native';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
 import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
@@ -15,6 +15,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {Participant} from '@src/types/onyx/IOU';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import type {
@@ -49,7 +50,7 @@ import {
     isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
-import {buildCannedSearchQuery} from './SearchQueryUtils';
+import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from './SearchQueryUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
@@ -104,6 +105,12 @@ type SearchTypeMenuItem = {
     type: SearchDataTypes;
     icon: IconAsset;
     getRoute: (policyID?: string) => Route;
+};
+
+type GetSearchOnyxUpdateParams = {
+    transaction: OnyxTypes.Transaction;
+    participant?: Participant;
+    currentUserPersonalDetails?: OnyxEntry<OnyxTypes.PersonalDetails>;
 };
 
 /**
@@ -816,6 +823,47 @@ function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, las
     return isDataLoaded;
 }
 
+function getSearchOnyxUpdate({currentUserPersonalDetails, participant, transaction}: GetSearchOnyxUpdateParams) {
+    const toAccountID = participant?.accountID;
+    const fromAccountID = currentUserPersonalDetails?.accountID;
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+
+    if (currentSearchQueryJSON && toAccountID && fromAccountID) {
+        const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
+        const shouldOptimisticallyUpdate =
+            currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type) && currentSearchQueryJSON.flatFilters.length === 0;
+
+        if (shouldOptimisticallyUpdate) {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
+                            },
+                            [fromAccountID]: {
+                                accountID: fromAccountID,
+                                avatar: currentUserPersonalDetails?.avatar,
+                                displayName: currentUserPersonalDetails?.displayName,
+                                login: currentUserPersonalDetails?.login,
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            accountID: fromAccountID,
+                            managerID: toAccountID,
+                            ...transaction,
+                        },
+                    },
+                },
+            };
+        }
+    }
+}
+
 export {
     getListItem,
     getSections,
@@ -836,5 +884,6 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    getSearchOnyxUpdate,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};
