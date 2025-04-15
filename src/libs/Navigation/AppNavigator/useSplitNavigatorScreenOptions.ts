@@ -51,8 +51,9 @@ const useSplitNavigatorScreenOptions = () => {
             headerShown: false,
             title: CONFIG.SITE_TITLE,
             animation: shouldUseNarrowLayout ? undefined : Animations.NONE,
+            animationTypeForReplace: 'pop',
             web: {
-                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePane: true}),
+                cardStyleInterpolator: (props: StackCardInterpolationProps) => modalCardStyleInterpolator({props, isFullScreenModal: true, shouldAnimateSidePanel: true}),
                 cardStyle: shouldUseNarrowLayout ? StyleUtils.getNavigationModalCardStyle() : themeStyles.h100,
             },
         },

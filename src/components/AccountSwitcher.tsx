@@ -10,11 +10,11 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
+import {close} from '@libs/actions/Modal';
 import {getProcessedText, splitTextWithEmojis} from '@libs/EmojiUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
-import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails} from '@src/types/onyx';
@@ -29,6 +29,7 @@ import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
 import EducationalTooltip from './Tooltip/EducationalTooltip';
+import Tooltip from './Tooltip';
 
 type AccountSwitcherProps = {
     /* Whether the screen is focused. Used to hide the product training tooltip */
@@ -156,6 +157,13 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onPressSwitcher}
             >
+            <Tooltip
+                text={translate('delegate.copilotAccess')}
+                shiftVertical={8}
+                shiftHorizontal={8}
+                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                shouldRender={canSwitchAccounts}
+            >
                 <PressableWithFeedback
                     accessible
                     accessibilityLabel={translate('common.profile')}
@@ -209,6 +217,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                         </View>
                     </View>
                 </PressableWithFeedback>
+            </Tooltip>
             </EducationalTooltip>
 
             {!!canSwitchAccounts && (
