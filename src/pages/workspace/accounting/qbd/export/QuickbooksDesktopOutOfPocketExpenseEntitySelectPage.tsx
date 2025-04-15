@@ -32,7 +32,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const reimbursable = qbdConfig?.export.reimbursable;
     const hasErrors = !!qbdConfig?.errorFields?.reimbursable;
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT>>();
     const backTo = route.params?.backTo;
 
@@ -74,7 +74,7 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
 
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
-            if (row.value !== reimbursable) {
+            if (row.value !== reimbursable && policyID) {
                 updateQuickbooksDesktopExpensesExportDestination(
                     policyID,
                     {

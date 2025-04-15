@@ -29,7 +29,7 @@ type MenuItem = ListItem & {
 function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const qbdConfig = policy?.connections?.quickbooksDesktop?.config;
     const {creditCardAccounts, payableAccounts, vendors, bankAccounts} = policy?.connections?.quickbooksDesktop?.data ?? {};
     const nonReimbursable = qbdConfig?.export?.nonReimbursable;
@@ -74,7 +74,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {
-            if (row.value !== nonReimbursable) {
+            if (row.value !== nonReimbursable && policyID) {
                 updateQuickbooksCompanyCardExpenseAccount(
                     policyID,
                     {

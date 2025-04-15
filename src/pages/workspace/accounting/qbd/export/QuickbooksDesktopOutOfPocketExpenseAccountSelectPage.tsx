@@ -70,7 +70,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
         }));
     }, [policy?.connections?.quickbooksDesktop, qbdConfig?.export?.reimbursableAccount]);
 
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
 
     const goBack = useCallback(() => {
         Navigation.goBack(backTo ?? (policyID && ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES.getRoute(policyID)));
@@ -78,7 +78,7 @@ function QuickbooksDesktopOutOfPocketExpenseAccountSelectPage({policy}: WithPoli
 
     const selectExportAccount = useCallback(
         (row: CardListItem) => {
-            if (row.value.id !== qbdConfig?.export?.reimbursableAccount) {
+            if (row.value.id !== qbdConfig?.export?.reimbursableAccount && policyID) {
                 updateQuickbooksDesktopReimbursableExpensesAccount(policyID, row.value.id, qbdConfig?.export?.reimbursableAccount);
             }
             goBack();
