@@ -535,6 +535,7 @@ type BuildOnyxDataForInvoiceParams = {
     };
     companyName?: string;
     companyWebsite?: string;
+    participant?: Participant;
 };
 
 type GetTrackExpenseInformationTransactionParams = {
@@ -1742,7 +1743,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
 
 /** Builds the Onyx data for an invoice */
 function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite} = invoiceParams;
+    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
+    const transaction = transactionParams.transaction;
 
     const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
     const optimisticData: OnyxUpdate[] = [
@@ -2120,6 +2122,15 @@ function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): 
                 },
             },
         });
+    }
+
+    const searchUpdate = getSearchOnyxUpdate({
+        transaction,
+        participant,
+    });
+
+    if (searchUpdate) {
+        optimisticData.push({...searchUpdate});
     }
 
     // We don't need to compute violations unless we're on a paid policy
@@ -2959,6 +2970,7 @@ function getSendInvoiceInformation(
             policyRecentlyUsedCategories: optimisticPolicyRecentlyUsedCategories,
             policyRecentlyUsedTags: optimisticPolicyRecentlyUsedTags,
         },
+        participant: receiver,
         companyName,
         companyWebsite,
     });
