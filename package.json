@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.27-2",
+  "version": "9.1.28-1",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -185,7 +185,7 @@
     "react-native-release-profiler": "^0.2.1",
     "react-native-render-html": "6.3.1",
     "react-native-safe-area-context": "4.12.0",
-    "react-native-screens": "3.35.0",
+    "react-native-screens": "3.37.0",
     "react-native-share": "11.0.2",
     "react-native-sound": "^0.11.2",
     "react-native-svg": "15.9.0",
