@@ -65,7 +65,6 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
-        shouldHideClearButton = true,
         prefixContainerStyle = [],
         prefixStyle = [],
         suffixContainerStyle = [],
@@ -74,8 +73,6 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled,
         placeholderTextColor,
-        onClearInput,
-        iconContainerStyle,
         ...props
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
