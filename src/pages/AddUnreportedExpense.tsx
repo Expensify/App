@@ -8,7 +8,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {moveUnreportedTransactionToReport} from '@userActions/Report';
-import {getAllTransactions} from '@userActions/Transaction';
+import {getAllTransactions, getAllTransactionsItems} from '@userActions/Transaction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -27,9 +27,7 @@ type AddUnreportedExpensesParamList = {
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const allTransactions = getAllTransactions();
-    const unreportedExpensesList: Transaction[] = Object.values(getAllTransactions()).filter((item) => item.reportID === '0');
-    debugger;
+    const unreportedExpensesList: Transaction[] = Object.values(getAllTransactionsItems()).filter((item) => item.reportID === '0');
     const sections: Array<SectionListDataType<Transaction & ListItem>> = [
         {
             shouldShow: true,
