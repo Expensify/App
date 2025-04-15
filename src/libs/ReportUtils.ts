@@ -5695,24 +5695,6 @@ function getUnreportedTransactionMessage(action: ReportAction) {
     return message;
 }
 
-function getMovedTransactionMessage(action: ReportAction) {
-    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
-    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
-    const message = translateLocal('iou.movedTransaction', {
-        reportID: toReportID,
-    });
-    return message;
-}
-
-function getUnreportedTransactionMessage(action: ReportAction) {
-    const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
-    const {oldReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
-    const message = translateLocal('iou.unreportedTransaction', {
-        reportID: oldReportID,
-    });
-    return message;
-}
-
 function getPolicyChangeMessage(action: ReportAction) {
     const PolicyChangeOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY>) ?? {};
     const {fromPolicy: fromPolicyID, toPolicy: toPolicyID} = PolicyChangeOriginalMessage as OriginalMessageChangePolicy;
@@ -10217,15 +10199,10 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
+function isExported(reportActions: OnyxEntry<ReportActions>) {
     if (!reportActions) {
         return false;
     }
-
-    if (Array.isArray(reportActions)) {
-        return reportActions.some((action) => isExportIntegrationAction(action));
-    }
-
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -10533,7 +10510,6 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
-    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
@@ -10738,7 +10714,6 @@ export {
     getMovedTransactionMessage,
     getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
-    populateOptimisticReportFormula,
     buildOptimisticUnreportedTransactionAction,
     buildOptimisticResolvedDuplicatesReportAction,
     getTitleReportField,
