@@ -337,13 +337,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                         </View>
                         <View style={styles.w100}>
-                        <MenuItemWithTopDescription
-                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                        interactive={false}
-                                    />
-
+                            <MenuItemWithTopDescription
+                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                            />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                 title={translate(`workspace.common.roleName`, {role: member?.role})}

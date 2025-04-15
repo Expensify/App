@@ -400,6 +400,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                     }}
                     brickRoadIndicator={getErrorForField('customUnitRateID') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                     errorText={getErrorForField('customUnitRateID')}
+                    copyValue={!canEditDistanceRate ? (isCustomUnitOutOfPolicy ? translate('common.rateOutOfPolicy') : rateToDisplay) : undefined}
                 />
             </OfflineWithFeedback>
         </>
@@ -669,6 +670,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         }}
                         brickRoadIndicator={getErrorForField('date') ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                         errorText={getErrorForField('date')}
+                        copyValue={!canEditDate ? transactionDate : undefined}
                     />
                 </OfflineWithFeedback>
                 {!!shouldShowCategory && (
