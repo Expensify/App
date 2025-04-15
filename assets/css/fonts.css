@@ -2,14 +2,14 @@
     font-family: Expensify Neue;
     font-weight: 400;
     font-style: normal;
-    src: url('/fonts/ExpensifyNeueX1-Regular.woff2') format('woff2'), url('/fonts/ExpensifyNeueX1-Regular.woff') format('woff');
+    src: url('/fonts/ExpensifyNeue-Regular.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Regular.woff') format('woff');
 }
 
 @font-face {
     font-family: Expensify Neue;
     font-weight: 700;
     font-style: normal;
-    src: url('/fonts/ExpensifyNeueX1-Bold.woff2') format('woff2'), url('/fonts/ExpensifyNeueX1-Bold.woff') format('woff');
+    src: url('/fonts/ExpensifyNeue-Bold.woff2') format('woff2'), url('/fonts/ExpensifyNeue-Bold.woff') format('woff');
 }
 
 @font-face {
