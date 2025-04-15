@@ -51,6 +51,7 @@ import {
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
     isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils,
+    isConciergeChatReport,
     isCurrentUserSubmitter,
     isDeprecatedGroupDM,
     isExpenseRequest,
@@ -124,7 +125,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
-    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
+    const shouldShowTalkToSales = !!canUseTalkToAISales && (isAdminRoom(report) || isConciergeChatReport(report));
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
