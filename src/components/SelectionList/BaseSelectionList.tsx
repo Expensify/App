@@ -440,6 +440,8 @@ function BaseSelectionList<TItem extends ListItem>(
             shouldPreventDefaultFocusOnSelectRow,
             isFocused,
             isScreenFocused,
+            shouldUseNarrowLayout,
+            onCheckboxPress,
         ],
     );
 
