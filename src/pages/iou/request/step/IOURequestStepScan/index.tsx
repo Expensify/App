@@ -596,7 +596,7 @@ function IOURequestStepScan({
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
-                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP);
+                dismissProductTraining(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP, true);
             },
         },
     );

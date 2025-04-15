@@ -108,6 +108,7 @@ function WorkspaceMembersSelectionList({policyID, selectedApprover, setApprover}
             showScrollIndicator
             showLoadingPlaceholder={!didScreenTransitionEnd}
             shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
+            addBottomSafeAreaPadding
         />
     );
 }
