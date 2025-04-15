@@ -74,12 +74,13 @@ function QuickbooksDesktopOutOfPocketExpenseEntitySelectPage({policy}: WithPolic
 
     const selectExportEntity = useCallback(
         (row: MenuItem) => {
-            if (row.value !== reimbursable && policyID) {
+            const account = row?.accounts?.at(0)?.id;
+            if (row.value !== reimbursable && policyID && account) {
                 updateQuickbooksDesktopExpensesExportDestination(
                     policyID,
                     {
                         [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: row.value,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: row.accounts.at(0)?.id ?? '',
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE_ACCOUNT]: account,
                     },
                     {
                         [CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE]: reimbursable,

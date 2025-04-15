@@ -74,12 +74,13 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
 
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {
-            if (row.value !== nonReimbursable && policyID) {
+            const account = row.accounts.at(0)?.id;
+            if (row.value !== nonReimbursable && policyID && account) {
                 updateQuickbooksCompanyCardExpenseAccount(
                     policyID,
                     {
                         [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE]: row.value,
-                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: row.accounts.at(0)?.id ?? '',
+                        [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_ACCOUNT]: account,
                         [CONST.QUICKBOOKS_DESKTOP_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR]: row.defaultVendor,
                     },
                     {
