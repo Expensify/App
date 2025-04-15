@@ -9,6 +9,7 @@ import {
     getRateDisplayValue,
     getSubmitToAccountID,
     getUnitRateValue,
+    isUserInvitedToWorkspace,
     isWorkspaceEligibleForReportChange,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
@@ -765,6 +766,81 @@ describe('PolicyUtils', () => {
             const oldPolicy = createRandomPolicy(0);
 
             expect(isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin)).toBe(false);
+        });
+    });
+
+    describe('isUserInvitedToWorkspace', () => {
+        beforeEach(() => {
+            wrapOnyxWithWaitForBatchedUpdates(Onyx);
+            // Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+        afterEach(async () => {
+            await Onyx.clear();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should return false if user has no policies', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, {});
+
+            const result = isUserInvitedToWorkspace();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return false if user owns a workspace', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), ownerAccountID: approverAccountID};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isUserInvitedToWorkspace();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return false if expense chat is not enabled', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), isPolicyExpenseChatEnabled: false};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isUserInvitedToWorkspace();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return false if its a fake policy id', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), id: CONST.POLICY.ID_FAKE};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isUserInvitedToWorkspace();
+
+            expect(result).toBeFalsy();
+        });
+
+        it('should return true if user is invited to a workspace', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            const policies = {...createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL, `John's Workspace`), ownerAccountID, isPolicyExpenseChatEnabled: true};
+
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+            await Onyx.set(ONYXKEYS.COLLECTION.POLICY, policies);
+
+            const result = isUserInvitedToWorkspace();
+
+            expect(result).toBeTruthy();
         });
     });
 });
