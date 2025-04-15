@@ -7,8 +7,8 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as ReportActions from '@userActions/Report';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
+import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -40,6 +40,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
+    | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES
     | typeof SCREENS.MONEY_REQUEST.STEP_UPGRADE
@@ -66,13 +67,11 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
 
-        const canUserPerformWriteAction = ReportUtils.canUserPerformWriteAction(report ?? {reportID: ''});
-
         useEffect(() => {
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
             }
-            ReportActions.openReport(route.params.reportID);
+            openReport(route.params.reportID);
             // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
         }, []);
 
@@ -80,7 +79,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             return <FullScreenLoadingIndicator />;
         }
 
-        if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
+        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''})) {
             return <FullPageNotFoundView shouldShow />;
         }
 
