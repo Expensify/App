@@ -86,10 +86,11 @@ import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
+import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
-import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
+import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
@@ -139,7 +140,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
-    const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -720,7 +720,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
+            <ReactionListWrapper>
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
@@ -793,7 +793,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
-            </ReactionListContext.Provider>
+            </ReactionListWrapper>
         </ActionListContext.Provider>
     );
 }

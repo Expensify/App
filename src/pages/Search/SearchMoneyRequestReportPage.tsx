@@ -20,10 +20,11 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/pages/home/ReportScreenContext';
+import {ActionListContext} from '@src/pages/home/ReportScreenContext';
+import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -54,7 +55,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
-    const reactionListRef = useRef<ReactionListRef>(null);
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const reportID = report?.reportID;
@@ -113,7 +113,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
+            <ReactionListWrapper>
                 <ScreenWrapper
                     testID={SearchMoneyRequestReportPage.displayName}
                     shouldEnableMaxHeight
@@ -158,7 +158,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         </View>
                     </View>
                 </ScreenWrapper>
-            </ReactionListContext.Provider>
+            </ReactionListWrapper>
         </ActionListContext.Provider>
     );
 }
