@@ -61,7 +61,6 @@ function SignerInfo({onBackButtonPress, onSubmit}: SignerInfoProps) {
             inputs: JSON.stringify(signerDetails),
             ...signerFiles,
             bankAccountID,
-            directorIDs: `${directorKeys.toString()}`,
         });
     }, [account?.primaryLogin, bankAccountID, directorKeys, isUserOwner, reimbursementAccountDraft]);
 
