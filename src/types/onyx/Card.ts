@@ -109,6 +109,7 @@ type Card = OnyxCommon.OnyxValueWithOfflineFeedback<{
         expirationDate?: string;
 
         /** List of token reference ids */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         expensifyCard_tokenReferenceIdList?: string[];
 
         /** Collection of errors coming from BE */
