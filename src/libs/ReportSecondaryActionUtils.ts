@@ -253,8 +253,10 @@ function isHoldAction(report: Report, reportTransactions: Transaction[]): boolea
 
 function isHoldActionForTransation(report: Report, reportTransaction: Transaction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
+    const iouOrExpenseReport = isExpenseReport || isIOUReport;
 
-    if (!isExpenseReport) {
+    if (!iouOrExpenseReport) {
         return false;
     }
 
