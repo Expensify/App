@@ -22,10 +22,14 @@ type DraggableListProps<T> = {
     /** Rendered at the bottom of all the items. Just like in the FlatList. */
     ListFooterComponent?: React.ReactElement;
 
-    /** Heights for dynamic sizing of list */
+    /** For dynamic sizing of list */
     heights?: {
-        element: number,
-        footer: number
+        /** height of one row */
+        element: number, 
+        /** height for footer */
+        footer: number,
+        /** max rows (for autosizing) */
+        maxRows: number
     }
 } & DraggableListData<T>;
 

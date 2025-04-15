@@ -32,7 +32,8 @@ type DistanceRequestProps = {
 /** Height hints to autosize list of items */
 const distanceRequestHeights = {
     element: 70,
-    footer: 30
+    footer: 30,
+    maxRows: 4
 };
 
 function DistanceRequestRenderItem({waypoints, item = '', onSecondaryInteraction, getIndex, isActive = false, onPress = () => {}, disabled = false}: DistanceRequestProps) {

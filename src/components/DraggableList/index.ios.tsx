@@ -2,30 +2,27 @@ import React from 'react';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import type {FlatList} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { View } from 'react-native';
 
 import type {DraggableListProps} from './types';
 
 function DraggableList<T>({...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
     const styles = useThemeStyles();
 
-    const viewStyle = viewProps.heights 
-        ? { height: viewProps.data.length * viewProps.heights.element + viewProps.heights.footer} 
-        : styles.flex1;
 
-    console.log(`viewStyle = ${JSON.stringify(viewStyle)}`);
+    const containerStyle = viewProps.heights 
+        ? { height: Math.min(viewProps.data.length, viewProps.heights.maxRows) * viewProps.heights.element 
+            + viewProps.heights.footer} 
+        : styles.flex1;
       
     return (
-        <View style={viewStyle}>
             <DraggableFlatList
                 ref={ref}
-                containerStyle={styles.flex1}
+                containerStyle={containerStyle}
                 contentContainerStyle={styles.flexGrow1}
                 ListFooterComponentStyle={styles.flex1}
                 // eslint-disable-next-line react/jsx-props-no-spreading
                 {...viewProps}
             />
-        </View>
     );
 }
 
