@@ -1708,15 +1708,10 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    // Don't use nullish coalescing because we also want to use the ownerAccountID
-    // if the accountID is 0.
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const toAccountID = participant?.accountID;
     const fromAccountID = currentUserPersonalDetails?.accountID;
 
-    console.log(participant);
-
-    if (hash && toAccountID && fromAccountID && snapshotList) {
+    if (hash && toAccountID != null && fromAccountID != null && snapshotList) {
         const snapshot = snapshotList[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
         const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
 
@@ -1747,16 +1742,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
                     },
                 },
             });
-
-            // failureData.push({
-            //     onyxMethod: Onyx.METHOD.MERGE,
-            //     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
-            //     value: {
-            //         data: {
-            //             [ONYXKEYS.PERSONAL_DETAILS_LIST]: existingPersonalDetails,
-            //         },
-            //     },
-            // });
         }
     }
 

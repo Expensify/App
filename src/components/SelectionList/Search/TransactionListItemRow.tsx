@@ -286,8 +286,6 @@ function TransactionListItemRow({
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
 
-    console.log(item);
-
     if (!isLargeScreenWidth) {
         return (
             <View style={containerStyle}>
