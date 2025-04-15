@@ -49,7 +49,7 @@ function TransactionPreviewContent({
     navigateToReviewFields,
     onPreviewPressed,
     containerStyles,
-    wrapperStyles,
+    wrapperStyle,
     isBillSplit,
     areThereDuplicates,
     sessionAccountID,
@@ -202,10 +202,11 @@ function TransactionPreviewContent({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isHovered={isHovered || isScanning}
                             size={1}
+                            shouldUseAspectRatio
                         />
                     )}
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyles.width} />
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyle.width} />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -370,7 +371,7 @@ function TransactionPreviewContent({
             accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
             style={[
                 styles.moneyRequestPreviewBox,
-                wrapperStyles,
+                wrapperStyle,
                 themeStyles,
                 shouldDisableOnPress && styles.cursorDefault,
                 (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
