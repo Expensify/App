@@ -97,6 +97,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             shouldShowWrapper
             testID={IOURequestStepReport.displayName}
             includeSafeAreaPaddingBottom
+            shouldShowNotFoundPage={expenseReports.length === 0}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}

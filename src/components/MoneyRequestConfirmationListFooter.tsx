@@ -296,6 +296,7 @@ function MoneyRequestConfirmationListFooter({
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
+    const shouldReportBeEditable = !!getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -654,7 +655,7 @@ function MoneyRequestConfirmationListFooter({
             item: (
                 <MenuItemWithTopDescription
                     key={translate('common.report')}
-                    shouldShowRightIcon
+                    shouldShowRightIcon={shouldReportBeEditable}
                     title={reportName}
                     description={translate('common.report')}
                     style={[styles.moneyRequestMenuItem]}
@@ -665,7 +666,7 @@ function MoneyRequestConfirmationListFooter({
                         }
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
                     }}
-                    interactive
+                    interactive={shouldReportBeEditable}
                     shouldRenderAsHTML
                 />
             ),
