@@ -3,11 +3,19 @@ import type {NonEmptyTuple, ValueOf} from 'type-fest';
 import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
 
+type OnyxCollectionSourceValue<K extends OnyxKey> = K extends OnyxCollectionKey
+    ? K extends keyof OnyxCollectionValuesMapping
+        ? OnyxCollection<OnyxCollectionValuesMapping[K]>
+        : never
+    : never;
+
+type DerivedSourceValues<Deps extends readonly OnyxKey[]> = Partial<{
+    [K in Deps[number]]: OnyxCollectionSourceValue<K>;
+}>;
+
 type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
     currentValue?: OnyxValue<Key>;
-    sourceValues?: {
-        [K in Deps[number] as K extends OnyxCollectionKey ? K : never]?: K extends keyof OnyxCollectionValuesMapping ? OnyxCollection<OnyxCollectionValuesMapping[K]> : never;
-    };
+    sourceValues?: DerivedSourceValues<Deps>;
 };
 
 /**
