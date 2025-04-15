@@ -83,27 +83,21 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         }
 
         setOptions((prevOptions) => {
-            const changedReportEntries = Object.entries(changedReports);
+            const changedReportEntries = Object.values(changedReports);
             if (changedReportEntries.length === 0) {
                 return prevOptions;
             }
 
             // Create a new map from the existing reports for modification
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-
             // Process each changed report
-            changedReportEntries.forEach(([reportID, report]) => {
-                // Only process if this report was already in our list
-                if (!updatedReportsMap.has(reportID)) {
-                    return;
-                }
-
+            changedReportEntries.forEach((report) => {
                 if (!report) {
-                    updatedReportsMap.delete(reportID);
                     return;
                 }
 
-                const {reportOption} = processReport(report as Report, personalDetails);
+                const reportID = report?.reportID;
+                const {reportOption} = processReport(report, personalDetails);
 
                 if (reportOption) {
                     updatedReportsMap.set(reportID, reportOption);
