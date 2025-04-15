@@ -582,6 +582,7 @@ function AttachmentModal({
                             />
                         )}
                         {!shouldShowNotFoundPage &&
+                            !isLoading &&
                             // We shouldn't show carousel arrow in search result attachment
                             (!isEmptyObject(report) && !isReceiptAttachment && type !== CONST.ATTACHMENT_TYPE.SEARCH ? (
                                 <AttachmentCarousel

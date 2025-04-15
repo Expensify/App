@@ -4,19 +4,17 @@ import AttachmentModal from '@components/AttachmentModal';
 import type {Attachment} from '@components/Attachments/types';
 import useNetwork from '@hooks/useNetwork';
 import {openReport} from '@libs/actions/Report';
-import getAttachmentSource from '@libs/AttachmentUtils';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {isReportNotFound} from '@libs/ReportUtils';
-import shouldFetchReport from '@libs/shouldFetchReport';
+import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ReportAttachmentsProps = PlatformStackScreenProps<AuthScreensParamList, typeof SCREENS.ATTACHMENTS>;
 
@@ -28,12 +26,10 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const accountID = route.params.accountID;
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const attachmentLink = route.params.attachmentLink;
-    const [report, reportResult] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID || CONST.DEFAULT_NUMBER_ID}`, {canEvict: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
-    const isLoadingReportOnyx = isLoadingOnyxValue(reportResult);
     const fileName = route.params?.fileName;
 
     const isLoading = useMemo(() => {
@@ -41,39 +37,22 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        const isEmptyReportActions = isEmptyObject(reportActions);
-        return !!isLoadingApp || isEmptyReport || isEmptyReportActions;
-    }, [isOffline, reportID, isLoadingApp, report, reportActions]);
+        return !!isLoadingApp || isEmptyReport || !!reportMetadata?.isLoadingInitialReportActions;
+    }, [isOffline, reportID, isLoadingApp, report]);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
-    const source = Number(route.params.source) || route.params.source;
-    const attachmentSource = useMemo(() => getAttachmentSource(source), [source]);
-
+    const source = Number(route.params.source) || tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source));
     const fetchReport = useCallback(() => {
         openReport(reportID);
     }, [reportID]);
 
-    const fetchReportIfNeeded = useCallback(() => {
-        if (isLoadingApp !== false) {
-            return;
-        }
-        if (!shouldFetchReport(report, reportMetadata?.isOptimisticReport)) {
-            return;
-        }
-        if (!isLoadingReportOnyx && !isEmptyObject(report)) {
+    useEffect(() => {
+        if (!reportID) {
             return;
         }
 
         fetchReport();
-    }, [reportMetadata, report, isLoadingReportOnyx, isLoadingApp, fetchReport]);
-
-    useEffect(() => {
-        if (!reportID || isLoadingReportOnyx) {
-            return;
-        }
-
-        fetchReportIfNeeded();
-    }, [reportID, isLoadingReportOnyx, fetchReportIfNeeded]);
+    }, [reportID]);
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
@@ -101,7 +80,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             defaultOpen
             report={report}
             isLoading={isLoading}
-            source={attachmentSource}
+            source={source}
             attachmentID={attachmentID}
             onModalClose={() => {
                 Navigation.dismissModal();

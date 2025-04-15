@@ -84,8 +84,10 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
     const compareImage = useCallback(
-        (attachment: Attachment) =>
-            (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink),
+        (attachment: Attachment) => {
+            console.log('compare image', attachmentID, attachment.source, source);
+            return (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink);
+        },
         [attachmentLink, attachmentID, source],
     );
 
@@ -99,7 +101,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
         } else {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
         }
-
+        console.log('newAttachments', attachments, newAttachments);
         if (isEqual(attachments, newAttachments)) {
             if (attachments.length === 0) {
                 setPage(-1);
@@ -286,6 +288,8 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
                 .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
         [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
+
+    console.log('page index', page);
 
     return (
         <View
