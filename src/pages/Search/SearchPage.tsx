@@ -114,7 +114,8 @@ function SearchPage({route}: SearchPageProps) {
                     return;
                 }
 
-                if (isExportMode) {
+                // Direct user to scheduled export via conceirge for 200+ items to prevent timeouts.
+                if (isExportMode || selectedTransactionsKeys.length > 200) {
                     setIsDownloadExportModalVisible(true);
                     return;
                 }
