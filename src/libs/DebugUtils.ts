@@ -628,6 +628,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
