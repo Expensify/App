@@ -157,6 +157,7 @@ import {
     shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
     updateReportPreview,
 } from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {getSession} from '@libs/SessionUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -449,7 +450,6 @@ type BuildOnyxDataForMoneyRequestParams = {
     optimisticParams: MoneyRequestOptimisticParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
     participant?: Participant;
-    hash?: number;
 };
 
 type DistanceRequestTransactionParams = BaseTransactionParams & {
@@ -509,7 +509,6 @@ type CreateTrackExpenseParams = {
     policyParams?: BasePolicyParams;
     transactionParams: TrackExpenseTransactionParams;
     isRetry?: boolean;
-    hash?: number;
 };
 
 type BuildOnyxDataForInvoiceParams = {
@@ -569,7 +568,6 @@ type GetTrackExpenseInformationParams = {
     policyParams: BasePolicyParams;
     transactionParams: GetTrackExpenseInformationTransactionParams;
     retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
-    hash?: number;
 };
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
@@ -727,19 +725,6 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
-});
-
-let snapshotList: OnyxCollection<OnyxTypes.SearchResults> = {};
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.SNAPSHOT,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-
-        snapshotList = value;
-    },
 });
 
 /**
@@ -1204,7 +1189,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         optimisticParams,
         retryParams,
         participant,
-        hash,
     } = moneyRequestParams;
     const {policy, policyCategories, policyTagList} = policyParams;
     const {
@@ -1223,6 +1207,8 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const outstandingChildRequest = getOutstandingChildRequest(iou.report);
     const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
     const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
     let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
@@ -1712,14 +1698,13 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
         });
     }
 
-    if (hash && toAccountID != null && fromAccountID != null && snapshotList) {
-        const snapshot = snapshotList[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`];
+    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
         const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
 
-        if (snapshot?.search.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(snapshot.search.type)) {
+        if (currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type)) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`,
                 value: {
                     data: {
                         [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
@@ -3024,7 +3009,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
         existingTransactionID,
         moneyRequestReportID = '',
         retryParams,
-        hash,
     } = moneyRequestInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
@@ -3179,7 +3163,6 @@ function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInforma
 
     // STEP 5: Build Onyx Data
     const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
-        hash,
         participant,
         isNewChatReport,
         shouldCreateNewMoneyRequestReport,
@@ -4891,7 +4874,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible, hash} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
     transactionParams.comment = parsedComment;
@@ -4965,7 +4948,6 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         existingTransactionID,
         existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
         retryParams,
-        hash,
     });
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
