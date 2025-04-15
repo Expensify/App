@@ -71,14 +71,8 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
                     shouldChangeLayout={shouldChangeLayout}
                     feedName={formattedFeedName}
                     supportingText={translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}
-                >
-                    {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed) && (
-                        <Icon
-                            src={Expensicons.DotIndicator}
-                            fill={theme.danger}
-                        />
-                    )}
-                </FeedSelector>
+                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed)}
+                />
                 <View style={[styles.flexRow, styles.gap2]}>
                     {!!shouldShowAssignCardButton && (
                         <Button

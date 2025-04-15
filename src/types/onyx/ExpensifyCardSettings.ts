@@ -36,7 +36,7 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
     marqetaBusinessToken?: number;
 
     /** Name of the domain card was issued for */
-    domainName: string;
+    domainName?: string;
 }>;
 
 export default ExpensifyCardSettings;

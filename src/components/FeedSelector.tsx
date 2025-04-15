@@ -1,10 +1,12 @@
 import React from 'react';
 import {View} from 'react-native';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import type IconAsset from '@src/types/utils/IconAsset';
 import CaretWrapper from './CaretWrapper';
 import Icon from './Icon';
+import * as Expensicons from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -24,12 +26,13 @@ type Props = {
     /** Supporting text */
     supportingText?: string;
 
-    /** Children components */
-    children?: React.ReactNode;
+    /** Whether the RBR indicator should be shown */
+    shouldShowRBR?: boolean;
 };
 
-function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, children}: Props) {
+function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, supportingText, shouldShowRBR = false}: Props) {
     const styles = useThemeStyles();
+    const theme = useTheme();
 
     return (
         <PressableWithFeedback
@@ -48,7 +51,12 @@ function FeedSelector({onFeedSelect, cardIcon, shouldChangeLayout, feedName, sup
                     <CaretWrapper style={styles.flex1}>
                         <Text style={[styles.textStrong, styles.flexShrink1]}>{feedName}</Text>
                     </CaretWrapper>
-                    {children}
+                    {shouldShowRBR && (
+                        <Icon
+                            src={Expensicons.DotIndicator}
+                            fill={theme.danger}
+                        />
+                    )}
                 </View>
                 <Text style={styles.textLabelSupporting}>{supportingText}</Text>
             </View>
