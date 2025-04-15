@@ -5,21 +5,17 @@ keywords: [bank account, personal bank account, reimbursements, wallet, internat
 ---
 <div id="new-expensify" markdown="1">
 
-You can add a personal bank account to receive expense reimbursements in Expensify. This guide covers setting up US and international bank accounts in New Expensify.
-
-# Connect a personal bank account
-
-## Overview
+# Overview
 
 You can add a personal bank account to receive reimbursements in 190+ countries worldwide. All accounts are added in Settings > Wallet > Bank accounts. The steps vary depending on the country selected.
 
 ---
 
-## Add a US-based bank account
+# Add a US-based bank account
 
 To add a US bank account, we use **Plaid**, an encrypted third-party financial data platform that securely verifies your banking information.
 
-### Steps:
+## Steps:
 1. Go to Settings > Wallet > Bank accounts.
 2. Select **Add bank account**.
 3. When prompted, select **United States** as your country.
@@ -34,11 +30,11 @@ To add a US bank account, we use **Plaid**, an encrypted third-party financial d
 
 ---
 
-## Add a non-US bank account
+# Add a non-US bank account
 
 You can add a non-US deposit account by manually entering the account details. The steps vary depending on your country and selected currency.
 
-### Steps:
+## Steps:
 1. Go to Settings > Wallet > Bank accounts.
 2. Select **Add bank account**.
 3. Select your country from the list.
