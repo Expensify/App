@@ -37,3 +37,31 @@ index c690fcc..b6841c7 100644
          if (!(childNode instanceof Element)) {
              throw new Error("Child's corresponding DOM node should be an Element");
          }
+diff --git a/node_modules/@react-ng/bounds-observer/dist/index.js b/node_modules/@react-ng/bounds-observer/dist/index.js
+index b3c9cb3..9ffd885 100644
+--- a/node_modules/@react-ng/bounds-observer/dist/index.js
++++ b/node_modules/@react-ng/bounds-observer/dist/index.js
+@@ -33,11 +33,10 @@ var BoundsObserver = exports.BoundsObserver = /** @class */ (function (_super) {
+         return _this;
+     }
+     BoundsObserver.prototype.componentDidMount = function () {
+-        var childRef = this._childRef.current;
+-        if (!childRef) {
++        var childNode = this._childRef.current;
++        if (!childNode) {
+             throw new Error("Reference should have been set by the time the component is mounted");
+         }
+-        var childNode = react_dom_1.default.findDOMNode(childRef);
+         if (!(childNode instanceof Element)) {
+             throw new Error("Child's corresponding DOM node should be an Element");
+         }
+@@ -126,9 +125,6 @@ var BoundsObserver = exports.BoundsObserver = /** @class */ (function (_super) {
+         var observer = args.observer;
+         observer.disconnect();
+     };
+-    BoundsObserver.propTypes = {
+-        children: prop_types_1.default.element.isRequired,
+-    };
+     return BoundsObserver;
+ }(react_1.default.Component));
+ //# sourceMappingURL=index.js.map
