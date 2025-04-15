@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import isEqual from 'lodash/isEqual';
 import {useCallback, useEffect, useRef, useState} from 'react';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -8,7 +9,6 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
-import {useIsFocused} from '@react-navigation/native';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {

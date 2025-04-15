@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import type * as NavigationTypes from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
@@ -6,6 +7,14 @@ import * as Search from '@libs/actions/Search';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock(
+    '@react-navigation/native',
+    () =>
+        ({
+            ...jest.requireActual('@react-navigation/native'),
+            useIsFocused: () => true,
+        } as typeof NavigationTypes),
+);
 
 describe('useSearchHighlightAndScroll', () => {
     it('should trigger Search when transactionIDs list change', () => {
