@@ -63,7 +63,10 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
             onBackButtonPress={() => Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_EXPORT.getRoute(policyID))}
         >
             {sections.map((section) => (
-                <OfflineWithFeedback pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}>
+                <OfflineWithFeedback
+                    key={section.title}
+                    pendingAction={settingsPendingAction(section.subscribedSettings, qboConfig?.pendingFields)}
+                >
                     <MenuItemWithTopDescription
                         title={section.title}
                         description={section.description}
@@ -101,6 +104,7 @@ function QuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConnections
                             )
                         }
                         onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR)}
+                        shouldPlaceSubtitleBelowSwitch
                     />
                     <Accordion
                         isExpanded={isAccordionExpanded}
