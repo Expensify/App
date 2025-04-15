@@ -18,6 +18,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import useViolations from '@hooks/useViolations';
@@ -110,6 +111,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
     const styles = useThemeStyles();
     const session = useSession();
     const {isOffline} = useNetwork();
+    const {canUseTableReportView} = usePermissions();
     const {translate, toLocaleDigit} = useLocalize();
     const {getReportRHPActiveRoute} = useActiveRoute();
     const parentReportID = report?.parentReportID;
@@ -801,7 +803,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </View>
                 )}
-                {!!parentReportID && (
+                {!!parentReportID && canUseTableReportView && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
                         <MenuItemWithTopDescription
                             shouldShowRightIcon
