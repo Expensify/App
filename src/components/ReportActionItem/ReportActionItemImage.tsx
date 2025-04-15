@@ -14,7 +14,7 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isDistanceRequest as isDistanceRequestUtils, isFetchingWaypointsFromServer, isPerDiemRequest} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -63,6 +63,9 @@ type ReportActionItemImageProps = {
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
 };
 
 /**
@@ -86,11 +89,12 @@ function ReportActionItemImage({
     shouldMapHaveBorderRadius,
     isFromReviewDuplicates = false,
     onPress,
+    shouldUseFullHeight,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const isDistanceRequest = !!transaction && TransactionUtils.isDistanceRequest(transaction);
-    const hasPendingWaypoints = transaction && TransactionUtils.isFetchingWaypointsFromServer(transaction);
+    const isDistanceRequest = !!transaction && isDistanceRequestUtils(transaction);
+    const hasPendingWaypoints = transaction && isFetchingWaypointsFromServer(transaction);
     const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     const showMapAsImage = isDistanceRequest && (hasErrors || hasPendingWaypoints);
 
@@ -110,7 +114,7 @@ function ReportActionItemImage({
 
     const attachmentModalSource = tryResolveUrlFromApiRoot(image ?? '');
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    const isEReceipt = transaction && !TransactionUtils.hasReceiptSource(transaction) && TransactionUtils.hasEReceipt(transaction);
+    const isEReceipt = transaction && !hasReceiptSource(transaction) && hasEReceipt(transaction);
 
     let propsObj: ReceiptImageProps;
 
@@ -140,6 +144,8 @@ function ReportActionItemImage({
         };
     }
 
+    propsObj.isPerDiemRequest = isPerDiemRequest(transaction);
+
     if (enablePreviewModal) {
         return (
             <ShowContextMenuContext.Consumer>
@@ -148,12 +154,7 @@ function ReportActionItemImage({
                         style={[styles.w100, styles.h100, styles.noOutline as ViewStyle]}
                         onPress={() =>
                             Navigation.navigate(
-                                ROUTES.TRANSACTION_RECEIPT.getRoute(
-                                    transactionThreadReport?.reportID ?? report?.reportID ?? '-1',
-                                    transaction?.transactionID ?? '-1',
-                                    readonly,
-                                    isFromReviewDuplicates,
-                                ),
+                                ROUTES.TRANSACTION_RECEIPT.getRoute(transactionThreadReport?.reportID ?? report?.reportID, transaction?.transactionID, readonly, isFromReviewDuplicates),
                             )
                         }
                         accessibilityLabel={translate('accessibilityHints.viewAttachment')}
@@ -166,7 +167,12 @@ function ReportActionItemImage({
         );
     }
 
-    return <ReceiptImage {...propsObj} />;
+    return (
+        <ReceiptImage
+            {...propsObj}
+            shouldUseFullHeight={shouldUseFullHeight}
+        />
+    );
 }
 
 ReportActionItemImage.displayName = 'ReportActionItemImage';

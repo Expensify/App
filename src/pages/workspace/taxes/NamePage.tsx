@@ -74,7 +74,7 @@ function NamePage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={NamePage.displayName}
             >
@@ -90,6 +90,8 @@ function NamePage({
                     onSubmit={submit}
                     enabledWhenOffline
                     validate={validate}
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
                         <InputWrapper
@@ -99,7 +101,6 @@ function NamePage({
                             label={translate('workspace.editor.nameInputLabel')}
                             accessibilityLabel={translate('workspace.editor.nameInputLabel')}
                             value={name}
-                            maxLength={CONST.TAX_RATES.NAME_MAX_LENGTH}
                             onChangeText={setName}
                             ref={inputCallbackRef}
                         />

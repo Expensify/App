@@ -143,12 +143,22 @@ function StatusPage() {
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, []);
 
-    const validateForm = useCallback((): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
-        if (brickRoadIndicator) {
-            return {clearAfter: ''};
-        }
-        return {};
-    }, [brickRoadIndicator]);
+    const validateForm = useCallback(
+        ({statusText}: FormOnyxValues<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> => {
+            if (brickRoadIndicator) {
+                return {clearAfter: ''};
+            }
+            const errors: FormInputErrors<typeof ONYXKEYS.FORMS.SETTINGS_STATUS_SET_FORM> = {};
+            if (statusText.length > CONST.STATUS_TEXT_MAX_LENGTH) {
+                errors[INPUT_IDS.STATUS_TEXT] = translate('common.error.characterLimitExceedCounter', {
+                    length: statusText.length,
+                    limit: CONST.STATUS_TEXT_MAX_LENGTH,
+                });
+            }
+            return errors;
+        },
+        [brickRoadIndicator, translate],
+    );
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
@@ -201,7 +211,6 @@ function StatusPage() {
                             label={translate('statusPage.message')}
                             accessibilityLabel={INPUT_IDS.STATUS_TEXT}
                             defaultValue={defaultText}
-                            maxLength={CONST.STATUS_TEXT_MAX_LENGTH}
                         />
                     </View>
                     <MenuItemWithTopDescription

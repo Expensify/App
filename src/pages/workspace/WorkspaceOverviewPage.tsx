@@ -20,14 +20,23 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft} from '@libs/actions/Policy/Member';
-import {clearAvatarErrors, clearPolicyErrorField, deleteWorkspace, deleteWorkspaceAvatar, openPolicyProfilePage, updateWorkspaceAvatar} from '@libs/actions/Policy/Policy';
+import {
+    clearAvatarErrors,
+    clearPolicyErrorField,
+    deleteWorkspace,
+    deleteWorkspaceAvatar,
+    openPolicyProfilePage,
+    updateLastAccessedWorkspaceSwitcher,
+    updateWorkspaceAvatar,
+} from '@libs/actions/Policy/Policy';
+import {filterInactiveCards} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import resetPolicyIDInNavigationState from '@libs/Navigation/helpers/resetPolicyIDInNavigationState';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import Parser from '@libs/Parser';
-import {getUserFriendlyWorkspaceType, getWorkspaceAccountID, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
+import {getUserFriendlyWorkspaceType, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
@@ -62,9 +71,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const formattedCurrency = !isEmptyObject(policy) && !isEmptyObject(currencyList) ? `${outputCurrency} - ${currencySymbol}` : '';
 
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
-    const workspaceAccountID = policy?.id ? getWorkspaceAccountID(policy.id) : CONST.DEFAULT_NUMBER_ID;
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
@@ -112,10 +121,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_PLAN.getRoute(policy.id));
     }, [policy?.id]);
     const policyName = policy?.name ?? '';
-    const policyDescription =
-        // policy?.description can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        policy?.description || Parser.replace(translate('workspace.common.defaultDescription'));
+    const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
     const readOnly = !isPolicyAdminPolicyUtils(policy);
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
@@ -169,6 +175,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         if (activeWorkspaceID === policy.id) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
 
@@ -176,7 +183,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
         <WorkspacePageWithSections
             headerText={translate('workspace.common.profile')}
             route={route}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_OVERVIEW}
             // When we create a new workspaces, the policy prop will not be set on the first render. Therefore, we have to delay rendering until it has been set in Onyx.
             shouldShowLoading={policy === undefined}
             shouldUseScrollView
@@ -184,7 +190,15 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowNonAdmin
             icon={Illustrations.Building}
             shouldShowNotFoundPage={policy === undefined}
-            onBackButtonPress={() => Navigation.goBack(backTo)}
+            onBackButtonPress={() => {
+                if (backTo) {
+                    Navigation.goBack(backTo);
+                    return;
+                }
+
+                goBackFromWorkspaceCentralScreen(policy?.id);
+            }}
+            addBottomSafeAreaPadding
         >
             {(hasVBA?: boolean) => (
                 <View style={[styles.flex1, styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
@@ -219,7 +233,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 styles.sectionMenuItemTopDescription,
                             ]}
                             editIconStyle={styles.smallEditIconWorkspace}
-                            isUsingDefaultAvatar={!policy?.avatarURL ?? false}
+                            isUsingDefaultAvatar={!policy?.avatarURL}
                             onImageSelected={(file) => {
                                 if (!policy?.id) {
                                     return;
@@ -257,6 +271,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 interactive={!readOnly}
                                 wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
                                 onPress={onPressName}
+                                numberOfLinesTitle={0}
                             />
                         </OfflineWithFeedback>
                         {(!StringUtils.isEmptyString(policy?.description ?? '') || !readOnly) && (

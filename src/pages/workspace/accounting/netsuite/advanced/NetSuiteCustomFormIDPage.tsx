@@ -10,15 +10,15 @@ import TextInput from '@components/TextInput';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isNumeric} from '@libs/ValidationUtils';
 import type {ExpenseRouteParams} from '@pages/workspace/accounting/netsuite/types';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
-import * as Policy from '@userActions/Policy/Policy';
+import {updateNetSuiteCustomFormIDOptions} from '@userActions/connections/NetSuiteCommands';
+import {clearNetSuiteErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -28,9 +28,9 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const styles = useThemeStyles();
-    const policyID = policy?.id ?? '-1';
     const route = useRoute();
     const params = route.params as ExpenseRouteParams;
+    const policyID = params.policyID;
     const isReimbursable = params.expenseType === CONST.NETSUITE_EXPENSE_TYPE.REIMBURSABLE;
 
     const config = policy?.connections?.netsuite?.options.config;
@@ -43,8 +43,8 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM> = {};
 
-            if (values[params.expenseType] && !ValidationUtils.isNumeric(values[params.expenseType])) {
-                ErrorUtils.addErrorMessage(errors, params.expenseType, translate('workspace.netsuite.advancedConfig.error.customFormID'));
+            if (values[params.expenseType] && !isNumeric(values[params.expenseType])) {
+                addErrorMessage(errors, params.expenseType, translate('workspace.netsuite.advancedConfig.error.customFormID'));
             }
 
             return errors;
@@ -55,7 +55,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
     const updateCustomFormID = useCallback(
         (formValues: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_FORM_ID_FORM>) => {
             if (config?.customFormIDOptions?.[customFormIDKey]?.[CONST.NETSUITE_MAP_EXPORT_DESTINATION[exportDestination]] !== formValues[params.expenseType]) {
-                Connections.updateNetSuiteCustomFormIDOptions(policyID, formValues[params.expenseType], isReimbursable, exportDestination, config?.customFormIDOptions);
+                updateNetSuiteCustomFormIDOptions(policyID, formValues[params.expenseType], isReimbursable, exportDestination, config?.customFormIDOptions);
             }
             Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
         },
@@ -73,7 +73,6 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldIncludeSafeAreaPaddingBottom
             shouldBeBlocked={!config?.customFormIDOptions?.enabled}
             shouldUseScrollView={false}
         >
@@ -86,12 +85,14 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                     submitButtonText={translate('common.confirm')}
                     shouldValidateOnBlur
                     shouldValidateOnChange
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback
                         pendingAction={settingsPendingAction([customFormIDKey], config?.pendingFields)}
-                        errors={ErrorUtils.getLatestErrorField(config, customFormIDKey)}
+                        errors={getLatestErrorField(config, customFormIDKey)}
                         errorRowStyles={[styles.ph5, styles.pv3]}
-                        onClose={() => Policy.clearNetSuiteErrorField(policyID, customFormIDKey)}
+                        onClose={() => clearNetSuiteErrorField(policyID, customFormIDKey)}
                     >
                         <InputWrapper
                             InputComponent={TextInput}

@@ -80,6 +80,9 @@ type BaseTextInputWithCurrencySymbolProps = {
 
     /** Whether the amount is negative */
     isNegative?: boolean;
+    
+    /** The test ID of TextInput. Used to locate the view in end-to-end tests. */
+    testID?: string;
 } & Pick<BaseTextInputProps, 'autoFocus' | 'autoGrow' | 'autoGrowExtraSpace' | 'contentWidth' | 'onPress'>;
 
 type TextInputWithCurrencySymbolProps = Omit<BaseTextInputWithCurrencySymbolProps, 'onSelectionChange'> & {

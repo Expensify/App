@@ -134,13 +134,13 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const closeImportPageAndModal = () => {
         setIsImportingPerDiemRates(false);
         closeImportPage();
-        Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
+        Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
     };
 
     return (
         <ScreenWrapper
             testID={ImportedPerDiemPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.perDiem.importPerDiemRates')}

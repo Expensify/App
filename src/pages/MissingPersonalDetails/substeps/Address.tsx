@@ -12,7 +12,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import usePersonalDetailsFormSubmit from '@hooks/usePersonalDetailsFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CountryZipRegex, CustomSubStepProps} from '@pages/MissingPersonalDetails/types';
 import CONST from '@src/CONST';
 import type {Country} from '@src/CONST';
@@ -43,11 +43,32 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             const addressRequiredFields = [INPUT_IDS.ADDRESS_LINE_1, INPUT_IDS.CITY, INPUT_IDS.COUNTRY, INPUT_IDS.STATE] as const;
             addressRequiredFields.forEach((fieldKey) => {
                 const fieldValue = values[fieldKey] ?? '';
-                if (ValidationUtils.isRequiredFulfilled(fieldValue)) {
+                if (isRequiredFulfilled(fieldValue)) {
                     return;
                 }
                 errors[fieldKey] = translate('common.error.fieldRequired');
             });
+
+            if (values.addressLine2.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.addressLine2 = translate('common.error.characterLimitExceedCounter', {
+                    length: values.addressLine2.length,
+                    limit: CONST.FORM_CHARACTER_LIMIT,
+                });
+            }
+
+            if (values.city.length > CONST.FORM_CHARACTER_LIMIT) {
+                errors.city = translate('common.error.characterLimitExceedCounter', {
+                    length: values.city.length,
+                    limit: CONST.FORM_CHARACTER_LIMIT,
+                });
+            }
+
+            if (values.country !== CONST.COUNTRY.US && values.state.length > CONST.STATE_CHARACTER_LIMIT) {
+                errors.state = translate('common.error.characterLimitExceedCounter', {
+                    length: values.state.length,
+                    limit: CONST.STATE_CHARACTER_LIMIT,
+                });
+            }
 
             // If no country is selected, default value is an empty string and there's no related regex data so we default to an empty object
             const countryRegexDetails = (values.country ? CONST.COUNTRY_ZIP_REGEX_DATA?.[values.country] : {}) as CountryZipRegex;
@@ -57,7 +78,7 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
             const countryZipFormat = countryRegexDetails?.samples ?? '';
             if (countrySpecificZipRegex) {
                 if (!countrySpecificZipRegex.test(values[INPUT_IDS.ZIP_POST_CODE]?.trim().toUpperCase())) {
-                    if (ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
+                    if (isRequiredFulfilled(values[INPUT_IDS.ZIP_POST_CODE]?.trim())) {
                         errors[INPUT_IDS.ZIP_POST_CODE] = translate('privatePersonalDetails.error.incorrectZipFormat', {zipFormat: countryZipFormat});
                     } else {
                         errors[INPUT_IDS.ZIP_POST_CODE] = translate('common.error.fieldRequired');
@@ -144,7 +165,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     aria-label={translate('common.addressLine', {lineNumber: 2})}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={personalDetailsValues[INPUT_IDS.ADDRESS_LINE_2]}
-                    maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     containerStyles={styles.mt5}
                 />
@@ -173,7 +193,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                         aria-label={translate('common.stateOrProvince')}
                         role={CONST.ROLE.PRESENTATION}
                         value={state}
-                        maxLength={CONST.STATE_CHARACTER_LIMIT}
                         spellCheck={false}
                         onValueChange={handleAddressChange}
                         containerStyles={styles.mt2}
@@ -186,7 +205,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     aria-label={translate('common.city')}
                     role={CONST.ROLE.PRESENTATION}
                     defaultValue={city}
-                    maxLength={CONST.FORM_CHARACTER_LIMIT}
                     spellCheck={false}
                     onValueChange={handleAddressChange}
                     containerStyles={isUSAForm ? styles.mt2 : styles.mt5}
@@ -199,7 +217,6 @@ function AddressStep({isEditing, onNext, personalDetailsValues}: CustomSubStepPr
                     role={CONST.ROLE.PRESENTATION}
                     autoCapitalize="characters"
                     defaultValue={zipcode}
-                    maxLength={CONST.BANK_ACCOUNT.MAX_LENGTH.ZIP_CODE}
                     hint={zipFormat}
                     onValueChange={handleAddressChange}
                     containerStyles={styles.mt5}

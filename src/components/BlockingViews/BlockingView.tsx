@@ -11,6 +11,7 @@ import Lottie from '@components/Lottie';
 import type DotLottieAnimation from '@components/LottieAnimations/types';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,18 @@ type BaseBlockingViewProps = {
 
     /** Additional styles to apply to the container */
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Whether to add bottom safe area padding to the view. */
+    addBottomSafeAreaPadding?: boolean;
+
+    /** Accessibility label for the view */
+    accessibilityLabel?: string;
+
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** A testing ID that can be applied to the element on the page */
+    testID?: string;
 };
 
 type BlockingViewIconProps = {
@@ -92,9 +105,13 @@ function BlockingView({
     shouldEmbedLinkWithSubtitle = false,
     animationStyles = [],
     animationWebStyle = {},
+    accessibilityLabel = '',
     CustomSubtitle,
     contentFitImage,
-    containerStyle,
+    containerStyle: containerStyleProp,
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    testID,
 }: BlockingViewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -132,8 +149,14 @@ function BlockingView({
         );
     }, [styles, subtitleText, shouldEmbedLinkWithSubtitle, CustomSubtitle]);
 
+    const containerStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding, addOfflineIndicatorBottomSafeAreaPadding, style: containerStyleProp});
+
     return (
-        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}>
+        <View
+            style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph10, containerStyle]}
+            accessibilityLabel={accessibilityLabel}
+            testID={testID}
+        >
             {!!animation && (
                 <Lottie
                     source={animation}

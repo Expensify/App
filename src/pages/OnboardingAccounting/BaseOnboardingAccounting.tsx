@@ -172,23 +172,29 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
-                    completeOnboarding(
-                        onboardingPurposeSelected,
-                        CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                        undefined,
-                        undefined,
-                        onboardingAdminsChatReportID ?? undefined,
+                    completeOnboarding({
+                        engagementChoice: onboardingPurposeSelected,
+                        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+                        adminsChatReportID: onboardingAdminsChatReportID,
                         onboardingPolicyID,
-                        undefined,
-                        onboardingCompanySize,
+                        companySize: onboardingCompanySize,
                         userReportedIntegration,
-                    );
+                    });
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
                         setOnboardingAdminsChatReportID();
                         setOnboardingPolicyID();
                     });
-                    navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, onboardingPolicyID, activeWorkspaceID, onboardingAdminsChatReportID);
+                    navigateAfterOnboarding(
+                        isSmallScreenWidth,
+                        canUseDefaultRooms,
+                        onboardingPolicyID,
+                        activeWorkspaceID,
+                        onboardingAdminsChatReportID,
+                        // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
+                        // See https://github.com/Expensify/App/issues/57167 for more details
+                        (session?.email ?? '').includes('+'),
+                    );
                 }}
                 pressOnEnter
             />

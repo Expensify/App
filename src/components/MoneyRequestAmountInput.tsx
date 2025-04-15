@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -104,6 +105,8 @@ type MoneyRequestAmountInputProps = {
 
     /** Whether to allow flipping amount */
     allowFlippingAmount?: boolean;
+    /** The testID of the input. Used to locate this view in end-to-end tests. */
+    testID?: string;
 } & Pick<TextInputWithCurrencySymbolProps, 'autoGrowExtraSpace'>;
 
 type Selection = {
@@ -145,10 +148,12 @@ function MoneyRequestAmountInput(
         allowFlippingAmount = false,
         toggleNegative,
         clearNegative,
+        testID,
         ...props
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
+    const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -356,7 +361,7 @@ function MoneyRequestAmountInput(
             style={props.inputStyle}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
-            prefixContainerStyle={props.prefixContainerStyle}
+            prefixContainerStyle={[styles.pb2half, props.prefixContainerStyle]}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
@@ -364,6 +369,7 @@ function MoneyRequestAmountInput(
             onMouseUp={handleMouseUp}
             contentWidth={contentWidth}
             isNegative={isNegative}
+            testID={testID}
         />
     );
 }

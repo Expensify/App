@@ -406,6 +406,7 @@ function MoneyRequestAmountForm(
                             style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt3]}
                             onPress={() => submitAndNavigateToNextPage()}
                             text={buttonText}
+                            testID="next-button"
                         />
                     )}
                 </View>

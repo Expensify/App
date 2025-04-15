@@ -94,6 +94,9 @@ type ConfirmModalProps = {
     /** Image to display with content */
     image?: IconAsset;
 
+    /** Styles for the image */
+    imageStyles?: StyleProp<ViewStyle>;
+
     /**
      * Whether the modal should enable the new focus manager.
      * We are attempting to migrate to a new refocus manager, adding this property for gradual migration.
@@ -105,6 +108,9 @@ type ConfirmModalProps = {
 
     /** Whether the confirm button is loading */
     isConfirmLoading?: boolean;
+
+    /** Whether to handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
 };
 
 function ConfirmModal({
@@ -129,6 +135,7 @@ function ConfirmModal({
     isVisible,
     onConfirm,
     image,
+    imageStyles,
     iconWidth,
     iconHeight,
     iconFill,
@@ -139,6 +146,7 @@ function ConfirmModal({
     shouldEnableNewFocusManagement,
     restoreFocusType,
     isConfirmLoading,
+    shouldHandleNavigationBack,
 }: ConfirmModalProps) {
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to use the correct modal type
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -156,6 +164,7 @@ function ConfirmModal({
             innerContainerStyle={image ? styles.pt0 : {}}
             shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             restoreFocusType={restoreFocusType}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
         >
             <ConfirmContent
                 title={title}
@@ -186,6 +195,7 @@ function ConfirmModal({
                 shouldStackButtons={shouldStackButtons}
                 shouldReverseStackedButtons={shouldReverseStackedButtons}
                 image={image}
+                imageStyles={imageStyles}
                 isConfirmLoading={isConfirmLoading}
             />
         </Modal>

@@ -22,8 +22,9 @@ function CodeRenderer({TDefaultRenderer, key, style, ...defaultRendererProps}: C
 
     // Determine the font size for the code based on whether it's inside an H1 element.
     const isInsideH1 = HTMLEngineUtils.isChildOfH1(defaultRendererProps.tnode);
+    const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
 
-    const fontSize = StyleUtils.getCodeFontSize(isInsideH1);
+    const fontSize = StyleUtils.getCodeFontSize(isInsideH1, isInsideTaskTitle);
 
     const textStyleOverride = {
         fontSize,

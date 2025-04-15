@@ -1,39 +1,51 @@
 ---
-title: Zenefits Integration
-description: Automatically sync employees between Zenefits and Expensify
+title: Zenefits-Integration.md
+description: Learn how to integrate Zenefits with Expensify to automatically sync employees and manage approvals.
+keywords: [Zenefits, Expensify, HR integration, employee sync, approval workflow]
 ---
-# How the Zenefits integration works with Expensify
+<div id="expensify-classic" markdown="1">
 
-Expensify's direct integration with Zenefits will automatically:
-- **Create new Expensify accounts** for full-time, active employees when they're hired
-- **Update the approval workflow in Expensify** based on any changes in Zenefits
-- **Deprovision an employee's Expensify account** upon Zenefits termination date
+Expensify's integration with Zenefits automates employee management by syncing employee data and approval workflows. This ensures seamless expense management when onboarding, updating, or offboarding employees.
 
-# How to connect the Zenefits integration
-## Before connecting Expensify with Zenefits, please review the prerequisites:
+# How the Zenefits Integration Works
 
-- You must be an admin in Zenefits and in Expensify to establish the integration
-- You must have a Control or Collect workspace in Expensify to integrate with Zenefits. If you do not, you'll be given the opportunity to upgrade to Control or Collect during the integration setup.
-- Every employee record in Zenefits must have a work email address since we use this as the unique identifier in Expensify. 
-- Zenefits will add all your employees to one Expensify workspace. If your company uses multiple Expensify workspaces, you'll be given the option to choose which workspace to connect to when you're setting up the integration.
+Once connected, the Zenefits integration will:
+- **Create Expensify accounts** for full-time, active employees when they’re hired.
+- **Update approval workflows** based on changes in Zenefits.
+- **Deactivate Expensify accounts** when employees are removed from Zenefits.
 
-## To connect your Expensify workspace to Zenefits:
+# Prerequisites
 
-1. Navigate to **Settings > Workspaces > Group > _[Workspace Name]_ > Connections**
-2. Scroll down to HR Integrations, click the **Connect to Zenefits** radio button, then click **Sync with Zenefits**
-3. Login to your Zenefits account using your Zenefits admin credentials and authorize Expensify to access your Zenefits account.
-4. If you want to exclude an individual user from syncing with Expensify, make your selections before clicking **Authorize**
+Before connecting Expensify with Zenefits, ensure that:
+- You are an **admin** in both Zenefits and Expensify.
+- You have a **Control** or **Collect** workspace in Expensify. If not, you’ll have the option to upgrade during setup.
+- Every employee in Zenefits has a **work email address**, as this is used as the unique identifier in Expensify.
+- Zenefits will sync all employees to **one** Expensify workspace. If your company uses multiple workspaces, you can select which one to connect during setup.
 
-## To configure the connection:
+# How to Connect Zenefits to Expensify
 
-1. Select the Approval Workflow that works best for your team:
-    - **Basic Approval:** Each employee will submit expense reports to one final approver. By default, the final approver is the workspace's Billing Owner.
-    - **Manager Approval:** Expense reports will first be submitted to each employee's direct manager, and then forwarded to one final approver. By default, the final approver is the workspace's Billing Owner.
-    - **Configure Manually:** Use the members table to manually configure how employees submit reports. In this case, you're choosing to not import an employee's manager. You will need to set and update the approval workflow for each employee manually. If your team has a highly complex approval workflow, this option will allow for multi-tiered approval chains.
+## Step 1: Enable the Integration
+1. Go to **Settings > Workspaces > Group > _[Workspace Name]_ > Connections**.
+2. Under **HR Integrations**, select **Connect to Zenefits**, then click **Sync with Zenefits**.
+3. Log in to Zenefits using your admin credentials.
+4. Authorize Expensify to access your Zenefits account.
 
-# Zenefit integration FAQs
-## Will this notify my employees?
-Each employee will receive a welcome email at their work email address along with a request to validate their account and choose a password. They can also download our mobile app for iOS and Android devices. Please note that there is no way to disable the welcome email.
+**Note:** You can exclude specific users from syncing before authorizing the connection.
 
-## Should I connect the integration from Expensify or from Zenefits?
-It's totally up to you! You'll have the same options available to you when syncing from either product.
+## Step 2: Configure the Approval Workflow
+1. Choose the approval process that best fits your team:
+   - **Basic Approval:** Employees submit reports to one final approver (default: Workspace Billing Owner).
+   - **Manager Approval:** Reports first go to the employee’s direct manager before a final approver (default: Workspace Billing Owner).
+   - **Manual Configuration:** Customize report submission manually. This option does **not** import manager data from Zenefits.
+
+# FAQ
+
+## Will my employees receive a notification?
+Yes, each employee will get a **welcome email** at their work email address. This email includes account validation steps and a password setup link. Employees can also download the Expensify app for iOS and Android.
+
+**Note:** The welcome email **cannot** be disabled.
+
+## Should I set up the integration from Expensify or Zenefits?
+It’s up to you! You’ll have the same setup options regardless of whether you start the sync from Expensify or Zenefits.
+
+</div>
