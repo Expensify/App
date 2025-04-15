@@ -39,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -334,6 +335,9 @@ function SearchPage({route}: SearchPageProps) {
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
     // 2. On unmount: Stops video when leaving this screen
@@ -421,6 +425,7 @@ function SearchPage({route}: SearchPageProps) {
                                 <View style={styles.flex1}>
                                     <HeaderGap />
                                     <TopBar
+                                        shouldShowLoadingBar={shouldShowLoadingState}
                                         activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}

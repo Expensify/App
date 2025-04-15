@@ -173,7 +173,7 @@ describe('createOrUpdateStagingDeployCash', () => {
         });
 
         mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-            if (fromRef === '1.0.1-0' && toRef === '1.0.2-1-staging') {
+            if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                 return [...baseNewPullRequests];
             }
             return [];
@@ -270,7 +270,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             // New pull requests to add to open StagingDeployCash
             const newPullRequests = [9, 10];
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-2-staging') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-2-staging') {
                     return [...baseNewPullRequests, ...newPullRequests];
                 }
                 return [];
@@ -347,7 +347,7 @@ describe('createOrUpdateStagingDeployCash', () => {
                 return 'fake_token';
             });
             mockGetPullRequestsMergedBetween.mockImplementation((fromRef, toRef) => {
-                if (fromRef === '1.0.1-0' && toRef === '1.0.2-1-staging') {
+                if (fromRef === '1.0.1-0-staging' && toRef === '1.0.2-1-staging') {
                     return [...baseNewPullRequests];
                 }
                 return [];
