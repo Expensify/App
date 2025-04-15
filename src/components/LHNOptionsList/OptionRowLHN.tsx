@@ -24,7 +24,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import DomUtils from '@libs/DomUtils';
-import {containsCustomEmoji as containsCustomEmojiUtils} from '@libs/EmojiUtils';
+import {containsCustomEmoji as containsCustomEmojiUtils, containsOnlyCustomEmoji} from '@libs/EmojiUtils';
 import {shouldOptionShowTooltip, shouldUseBoldText} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -133,7 +133,7 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
     const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
-    const alternateTextContainsCustomEmoji = containsCustomEmojiUtils(optionItem.alternateText);
+    const alternateTextContainsCustomEmojiWithText = containsCustomEmojiUtils(optionItem.alternateText) && !containsOnlyCustomEmoji(optionItem.alternateText);
     /**
      * Show the ReportActionContextMenu modal popover.
      *
@@ -303,21 +303,20 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
                                                     </Tooltip>
                                                 )}
                                             </View>
-                                            {!!optionItem.alternateText && !alternateTextContainsCustomEmoji && (
+                                            {!!optionItem.alternateText && (
                                                 <Text
                                                     style={alternateTextStyle}
                                                     numberOfLines={1}
                                                     accessibilityLabel={translate('accessibilityHints.lastChatMessagePreview')}
                                                 >
-                                                    {Parser.htmlToText(optionItem.alternateText)}
-                                                </Text>
-                                            )}
-                                            {!!optionItem.alternateText && alternateTextContainsCustomEmoji && (
-                                                <Text numberOfLines={1}>
-                                                    <TextWithEmojiFragment
-                                                        message={optionItem.alternateText}
-                                                        style={[alternateTextStyle, styles.mh0]}
-                                                    />
+                                                    {alternateTextContainsCustomEmojiWithText ? (
+                                                        <TextWithEmojiFragment
+                                                            message={Parser.htmlToText(optionItem.alternateText)}
+                                                            style={[alternateTextStyle, styles.mh0]}
+                                                        />
+                                                    ) : (
+                                                        Parser.htmlToText(optionItem.alternateText)
+                                                    )}
                                                 </Text>
                                             )}
                                         </View>
