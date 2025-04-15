@@ -590,8 +590,8 @@ const ONYXKEYS = {
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
 
-        /** Currently displaying Expensify feed */
-        LAST_SELECTED_EXPENSIFY_FEED: 'lastSelectedExpensifyFeed_',
+        /** Currently displaying Expensify Card feed */
+        LAST_SELECTED_EXPENSIFY_CARD_FEED: 'lastSelectedExpensifyCardFeed_',
 
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
@@ -949,7 +949,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeed;
-    [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED]: OnyxTypes.FundID;
+    [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
 };

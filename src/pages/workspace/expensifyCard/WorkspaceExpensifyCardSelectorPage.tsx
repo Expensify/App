@@ -18,7 +18,7 @@ import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
-import {updateSelectedExpensifyFeed} from '@userActions/Card';
+import {updateSelectedExpensifyCardFeed} from '@userActions/Card';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,9 +35,9 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const {policyID} = route.params;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [lastSelectedExpensifyFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_FEED}${policyID}`);
+    const [lastSelectedExpensifyCardFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`);
     const defaultFundID = useDefaultFundID(policyID);
-    const lastSelectedExpensifyFeedID = lastSelectedExpensifyFeed ?? defaultFundID;
+    const lastSelectedExpensifyCardFeedID = lastSelectedExpensifyCardFeed ?? defaultFundID;
 
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
 
@@ -47,7 +47,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
             value: fundID,
             text: getDescriptionForPolicyDomainCard(value?.domainName ?? ''),
             keyForList: fundID.toString(),
-            isSelected: fundID === lastSelectedExpensifyFeedID,
+            isSelected: fundID === lastSelectedExpensifyCardFeedID,
             leftElement: (
                 <Icon
                     src={ExpensifyCardImage}
@@ -62,7 +62,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_EXPENSIFY_CARD.getRoute(policyID));
 
     const selectFeed = (feed: ExpensifyFeedListItem) => {
-        updateSelectedExpensifyFeed(feed.value, policyID);
+        updateSelectedExpensifyCardFeed(feed.value, policyID);
         goBack();
     };
 
@@ -86,7 +86,7 @@ function WorkspaceExpensifyCardSelectorPage({route}: WorkspaceExpensifyCardSelec
                     sections={[{data: feeds}]}
                     shouldUpdateFocusedIndex
                     isAlternateTextMultilineSupported
-                    initiallyFocusedOptionKey={lastSelectedExpensifyFeed?.toString()}
+                    initiallyFocusedOptionKey={lastSelectedExpensifyCardFeed?.toString()}
                 />
             </ScreenWrapper>
         </AccessOrNotFoundWrapper>
