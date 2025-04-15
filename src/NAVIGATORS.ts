@@ -17,5 +17,4 @@ export default {
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
     PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
-    TEST_TOOLS_MODAL_NAVIGATOR: 'TestToolsModalNavigator',
 } as const;
