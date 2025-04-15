@@ -1,9 +1,19 @@
+import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
+
+/** Workspace member custom field key types */
+type CustomFieldType = typeof CONST.CUSTOM_FIELD_KEYS.customField1 | typeof CONST.CUSTOM_FIELD_KEYS.customField2;
 
 /** Model of policy employee */
 type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Role of the user in the policy */
     role?: string;
+
+    /** Custom field 1 of the member of the workspace */
+    employeeUserID?: string;
+
+    /** Custom field 2 of the member of the workspace */
+    employeePayrollID?: string;
 
     /** Email of the user */
     email?: string;
@@ -31,4 +41,4 @@ type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{
 type PolicyEmployeeList = Record<string, PolicyEmployee>;
 
 export default PolicyEmployee;
-export type {PolicyEmployeeList};
+export type {PolicyEmployeeList, CustomFieldType};

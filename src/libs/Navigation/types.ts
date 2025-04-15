@@ -367,6 +367,11 @@ type SettingsNavigatorParamList = {
         policyID: string;
         accountID: string;
     };
+    [SCREENS.WORKSPACE.CUSTOM_FIELDS]: {
+        policyID: string;
+        accountID: string;
+        customFieldType: keyof typeof CONST.CUSTOM_FIELD_KEYS;
+    };
     [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
         policyID: string;
         accountID: string;
