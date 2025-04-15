@@ -54,7 +54,7 @@ function TextSelectorModal({
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM>) => {
             let errors: FormInputErrors<typeof ONYXKEYS.FORMS.TEXT_PICKER_MODAL_FORM> = {};
             const formValue = values[rest.inputID];
-            
+
             if (required) {
                 errors = getFieldRequiredErrors(values, [rest.inputID]);
             }
