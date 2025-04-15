@@ -1701,7 +1701,6 @@ function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyR
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
-        currentUserPersonalDetails,
     });
 
     if (searchUpdate) {
@@ -2575,7 +2574,6 @@ function buildOnyxDataForTrackExpense({
     const searchUpdate = getSearchOnyxUpdate({
         transaction,
         participant,
-        currentUserPersonalDetails,
     });
 
     if (searchUpdate) {
