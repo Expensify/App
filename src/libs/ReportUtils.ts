@@ -9443,13 +9443,15 @@ function isReportOutsanding(iouReport: OnyxInputOrEntry<Report>, policyID: strin
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
+    const policy = getPolicy(iouReport.policyID);
+    const shouldIncludeSubmitted = policy?.harvesting?.enabled;
     if (
         isExpenseReport(iouReport) &&
         iouReport?.stateNum !== undefined &&
         iouReport?.statusNum !== undefined &&
         iouReport?.policyID === policyID &&
-        iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-        iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED &&
+        (shouldIncludeSubmitted ? iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
+        (shouldIncludeSubmitted ? iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED : iouReport?.statusNum < CONST.REPORT.STATUS_NUM.SUBMITTED) &&
         !hasForwardedAction(iouReport.reportID)
     ) {
         return true;
