@@ -566,25 +566,13 @@ type OriginalMessageChangePolicy = {
 /** Model of `UNREPORTED_TRANSACTION` report action */
 type OriginalMessageUnreportedTransaction = {
     /** ID of the old report */
-    oldReportID: string | undefined;
-
-    /** ID of the new report */
-    toReportID: string;
-
-    /** ID of the transaction */
-    transactionID: string;
+    fromReportID: string;
 };
 
 /** Model of `MOVEDTRANSACTION` report action */
 type OriginalMessageMovedTransaction = {
-    /** ID of the old report */
-    oldReportID: string | undefined;
-
     /** ID of the new report */
     toReportID: string;
-
-    /** ID of the transaction */
-    transactionID: string;
 };
 
 /** Model of `moved` report action */

@@ -17,7 +17,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, isExpenseReport, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, isReportOutsanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -278,20 +278,20 @@ function MoneyRequestConfirmationListFooter({
         return canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
     }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
 
-    const outstandingReport = Object.values(allReports ?? {})
-        .filter(
-            (report) =>
-                isExpenseReport(report) &&
-                report?.stateNum &&
-                report?.statusNum &&
-                report?.policyID === senderWorkspace?.id &&
-                report?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED &&
-                report?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED,
-        )
-        .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0)
-        .at(0);
+    /**
+     * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
+     * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
+     */
+    const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
+    const shouldUseTransactionReport = !!transactionReport && isReportOutsanding(transactionReport, selectedParticipants?.at(0)?.policyID);
+    let reportName: string | undefined;
+    if (shouldUseTransactionReport) {
+        reportName = transactionReport.reportName;
+    } else {
+        const firstOutstangingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
+        reportName = firstOutstangingReport?.reportName;
+    }
 
-    let reportName = outstandingReport?.reportName;
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
@@ -653,7 +653,7 @@ function MoneyRequestConfirmationListFooter({
         {
             item: (
                 <MenuItemWithTopDescription
-                    key="report"
+                    key={translate('common.report')}
                     shouldShowRightIcon
                     title={reportName}
                     description={translate('common.report')}
