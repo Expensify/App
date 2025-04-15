@@ -123,6 +123,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
     const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
     const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
+    
+    console.log('Debug Talk To Sales:', {
+        canUseTalkToAISales,
+        isAdminRoom: isAdminRoom(report),
+        shouldShowTalkToSales,
+        shouldShowEarlyDiscountBanner: shouldShowDiscountBanner() && isChatUsedForOnboardingReportUtils(report, useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED)[0]),
+        reportID: report?.reportID
+    });
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -347,7 +355,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && !shouldUseNarrowLayout && talkToSalesButton}
+                                    {shouldShowTalkToSales && !shouldUseNarrowLayout && (!shouldShowEarlyDiscountBanner || isDismissedDiscountBanner) && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -380,7 +388,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
-                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && shouldUseNarrowLayout && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
+                    {shouldShowTalkToSales && shouldUseNarrowLayout && (!shouldShowEarlyDiscountBanner || isDismissedDiscountBanner) && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && !isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && (
                         <View style={getActionButtonStyles()}>{guideBookingButton}</View>
                     )}
