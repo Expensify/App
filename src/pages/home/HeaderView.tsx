@@ -21,10 +21,12 @@ import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
@@ -61,7 +63,7 @@ import {
     shouldDisableDetailPage as shouldDisableDetailPageReportUtils,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
-import {shouldShowDiscountBanner} from '@libs/SubscriptionUtils';
+import {shouldShowDiscountBanner, getEarlyDiscountInfo} from '@libs/SubscriptionUtils';
 import EarlyDiscountBanner from '@pages/settings/Subscription/CardSection/BillingBanner/EarlyDiscountBanner';
 import FreeTrial from '@pages/settings/Subscription/FreeTrial';
 import {joinRoom} from '@userActions/Report';
@@ -185,11 +187,20 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         );
     };
 
-    // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
-    // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const subscriptionPlan = useSubscriptionPlan();
+    const discountInfo = getEarlyDiscountInfo();
+    
     const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial, reportNameValuePairs]);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
+    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
+    
+    // The banner will actually show only if all these conditions are met
+    const shouldShowBanner = shouldShowEarlyDiscountBanner && 
+        !(hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) &&
+        !!(firstDayFreeTrial && lastDayFreeTrial && discountInfo) &&
+        !(isDismissedDiscountBanner);
 
     const shouldShowSubscript = shouldReportShowSubscript(report);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -202,9 +213,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
-    const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
 
     const guideBookingButton = (
@@ -347,7 +355,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && !shouldUseNarrowLayout && talkToSalesButton}
+                                    {shouldShowTalkToSales && !shouldUseNarrowLayout && !shouldShowBanner && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -380,7 +388,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
-                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && shouldUseNarrowLayout && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
+                    {shouldShowTalkToSales && shouldUseNarrowLayout && !shouldShowBanner && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && !isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && (
                         <View style={getActionButtonStyles()}>{guideBookingButton}</View>
                     )}
@@ -402,7 +410,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 )}
                 <LoadingBar shouldShow={(isLoadingReportData && shouldUseNarrowLayout) ?? false} />
             </View>
-            {shouldShowEarlyDiscountBanner && (
+            {shouldShowBanner && (
                 <EarlyDiscountBanner
                     TalkToSalesButton={shouldShowTalkToSales ? talkToSalesButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
