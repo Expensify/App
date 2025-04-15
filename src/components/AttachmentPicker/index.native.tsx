@@ -208,7 +208,7 @@ function AttachmentPicker({
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
      */
     // eslint-disable-next-line @lwc/lwc/no-async-await
-    const showDocumentPicker = useCallback(async (): Promise<LocalCopy[] | void> => {
+    const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
         const pickedFiles = await pick({
             type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
             allowMultiSelection: fileLimit !== 1,
@@ -334,7 +334,7 @@ function AttachmentPicker({
                 }
 
                 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
-                const fileDataName = ('name' in fileData && fileData.name) || '';
+                const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
                 const fileDataUri = ('uri' in fileData && fileData.uri) || '';
 
                 const fileDataObject: FileResponse = {
