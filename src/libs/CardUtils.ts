@@ -630,6 +630,17 @@ function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards) {
     return Object.values(cards ?? {}).some(isCardPendingAction);
 }
 
+function getFundIdFromSettingsKey(key: string) {
+    const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
+    if (!key?.startsWith(prefix)) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    const fundIDStr = key.substring(prefix.length);
+
+    const fundID = Number(fundIDStr);
+    return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
+}
+
 export {
     isExpensifyCard,
     isCorporateCard,
@@ -678,4 +689,5 @@ export {
     isExpensifyCardPendingActivate,
     hasPendingExpensifyCardAction,
     isCardPendingAction,
+    getFundIdFromSettingsKey,
 };
