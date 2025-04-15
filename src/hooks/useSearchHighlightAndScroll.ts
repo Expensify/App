@@ -8,6 +8,7 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
+import {useIsFocused} from '@react-navigation/native';
 import usePrevious from './usePrevious';
 
 type UseSearchHighlightAndScroll = {
@@ -33,9 +34,14 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
     const isChat = queryJSON.type === CONST.SEARCH.DATA_TYPES.CHAT;
+    const isFocused = useIsFocused();
 
     // Trigger search when a new report action is added while on chat or when a new transaction is added for the other search types.
     useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+
         const previousTransactionsIDs = Object.keys(previousTransactions ?? {});
         const transactionsIDs = Object.keys(transactions ?? {});
 
@@ -73,7 +79,7 @@ function useSearchHighlightAndScroll({searchResults, transactions, previousTrans
         return () => {
             searchTriggeredRef.current = false;
         };
-    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat]);
+    }, [transactions, previousTransactions, queryJSON, offset, reportActions, previousReportActions, isChat, isFocused]);
 
     // Initialize the set with existing IDs only once
     useEffect(() => {
