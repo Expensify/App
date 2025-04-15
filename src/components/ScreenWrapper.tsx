@@ -79,6 +79,9 @@ type ScreenWrapperProps = {
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
     keyboardAvoidingViewBehavior?: 'padding' | 'height' | 'position';
 
+    /** The vertical offset to pass to the KeyboardAvoidingView */
+    keyboardVerticalOffset?: number;
+
     /** Whether KeyboardAvoidingView should be enabled. Use false for screens where this functionality is not necessary */
     shouldEnableKeyboardAvoidingView?: boolean;
 
@@ -152,6 +155,7 @@ function ScreenWrapper(
         shouldEnableMinHeight = false,
         includePaddingTop = true,
         keyboardAvoidingViewBehavior = 'padding',
+        keyboardVerticalOffset,
         includeSafeAreaPaddingBottom: includeSafeAreaPaddingBottomProp = true,
         shouldEnableKeyboardAvoidingView = true,
         shouldEnablePickerAvoiding = true,
@@ -438,6 +442,7 @@ function ScreenWrapper(
                         // Whether the mobile offline indicator or the content in general
                         // should be offset by the bottom safe area padding when the keyboard is open.
                         shouldOffsetBottomSafeAreaPadding={shouldKeyboardOffsetBottomSafeAreaPadding || shouldOffsetMobileOfflineIndicator}
+                        keyboardVerticalOffset={keyboardVerticalOffset}
                     >
                         <PickerAvoidingView
                             style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
