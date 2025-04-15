@@ -39,6 +39,7 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
     ANDROID_MODE="Debug"
     SCHEME="Expensify Dev"
     APP_ID="org.me.mobiexpensifyg.dev"
+
     # Build Yapl JS
     cd Mobile-Expensify && npm run grunt:build:shared && cd ..
 
@@ -64,7 +65,7 @@ case "$BUILD" in
         npx rnef run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose
+        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit
