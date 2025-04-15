@@ -13,11 +13,12 @@ import {useSearchRouterContext} from '@components/Search/SearchRouter/SearchRout
 import SearchRouterModal from '@components/Search/SearchRouter/SearchRouterModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnboardingFlowRouter from '@hooks/useOnboardingFlow';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import useTheme from '@hooks/useTheme';
 import {connect} from '@libs/actions/Delegate';
 import setFullscreenVisibility from '@libs/actions/setFullscreenVisibility';
+import {init, isClientTheLeader} from '@libs/ActiveClientManager';
 import {READ_COMMANDS} from '@libs/API/types';
 import HttpUtils from '@libs/HttpUtils';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
@@ -283,6 +284,11 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         NetworkConnection.onReconnect(handleNetworkReconnect);
         PusherConnectionManager.init();
         initializePusher();
+        // Sometimes when we transition from old dot to new dot, the client is not the leader
+        // so we need to initialize the client again
+        if (!isClientTheLeader() && isTransitioning) {
+            init();
+        }
 
         // In Hybrid App we decide to call one of those method when booting ND and we don't want to duplicate calls
         if (!CONFIG.IS_HYBRID_APP) {
@@ -479,7 +485,9 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     }
 
     return (
-        <ComposeProviders components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, ReportIDsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}>
+        <ComposeProviders
+            components={[OptionsListContextProvider, ActiveWorkspaceContextProvider, SidebarOrderedReportIDsContextProvider, SearchContextProvider, MoneyRequestReportContextProvider]}
+        >
             <RootStack.Navigator persistentScreens={[NAVIGATORS.REPORTS_SPLIT_NAVIGATOR, SCREENS.SEARCH.ROOT]}>
                 {/* This has to be the first navigator in auth screens. */}
                 <RootStack.Screen

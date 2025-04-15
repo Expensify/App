@@ -39,6 +39,7 @@ function PolicyRulesPage({route}: PolicyRulesPageProps) {
                 icon={Illustrations.Rules}
                 shouldShowNotFoundPage={false}
                 shouldShowLoading={false}
+                addBottomSafeAreaPadding
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     <IndividualExpenseRulesSection policyID={policyID} />
