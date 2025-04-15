@@ -5267,72 +5267,68 @@ describe('actions/IOU', () => {
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
-            try {
-                // Which owns a workspace
-                await waitForBatchedUpdates();
-                createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
-                await waitForBatchedUpdates();
+            // Which owns a workspace
+            await waitForBatchedUpdates();
+            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            await waitForBatchedUpdates();
 
-                // Get the policy expense chat report
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            // Get the policy expense chat report
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                },
+            });
+
+            if (chatReport) {
+                // When an IOU expense is submitted to that policy expense chat
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant,
+                        comment,
                     },
                 });
-
-                if (chatReport) {
-                    // When an IOU expense is submitted to that policy expense chat
-                    requestMoney({
-                        report: chatReport,
-                        participantParams: {
-                            payeeEmail: RORY_EMAIL,
-                            payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                        },
-                        transactionParams: {
-                            amount,
-                            attendees: [],
-                            currency: CONST.CURRENCY.USD,
-                            created: '',
-                            merchant,
-                            comment,
-                        },
-                    });
-                }
-                await waitForBatchedUpdates();
-
-                // And given an expense report has now been created which holds the IOU
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
-                    },
-                });
-
-                if (chatReport && expenseReport) {
-                    mockFetch?.pause?.();
-                    // And when the payment is cancelled
-                    cancelPayment(expenseReport, chatReport);
-                }
-                await waitForBatchedUpdates();
-
-                mockFetch?.fail?.();
-
-                await mockFetch?.resume?.();
-
-                await getOnyxData({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    callback: (allReportActions) => {
-                        const action = Object.values(allReportActions ?? {}).find((action) => action?.actionName === 'REIMBURSEMENTDEQUEUED');
-                        expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                    },
-                });
-            } catch (error) {
-                throw error;
             }
+            await waitForBatchedUpdates();
+
+            // And given an expense report has now been created which holds the IOU
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                },
+            });
+
+            if (chatReport && expenseReport) {
+                mockFetch?.pause?.();
+                // And when the payment is cancelled
+                cancelPayment(expenseReport, chatReport);
+            }
+            await waitForBatchedUpdates();
+
+            mockFetch?.fail?.();
+
+            await mockFetch?.resume?.();
+
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                callback: (allReportActions) => {
+                    const action = Object.values(allReportActions ?? {}).find((a) => a?.actionName === 'REIMBURSEMENTDEQUEUED');
+                    expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                },
+            });
         });
     });
 
@@ -5351,75 +5347,71 @@ describe('actions/IOU', () => {
 
             // Given a signed in account, which owns a workspace, and has a policy expense chat
             Onyx.set(ONYXKEYS.SESSION, {email: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID});
-            try {
-                // Which owns a workspace
-                await waitForBatchedUpdates();
-                createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
-                await waitForBatchedUpdates();
+            // Which owns a workspace
+            await waitForBatchedUpdates();
+            createWorkspace(CARLOS_EMAIL, true, "Carlos's Workspace");
+            await waitForBatchedUpdates();
 
-                // Get the policy expense chat report
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+            // Get the policy expense chat report
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    chatReport = Object.values(allReports ?? {}).find((report) => report?.chatType === CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT);
+                },
+            });
+
+            if (chatReport) {
+                // When an IOU expense is submitted to that policy expense chat
+                requestMoney({
+                    report: chatReport,
+                    participantParams: {
+                        payeeEmail: RORY_EMAIL,
+                        payeeAccountID: RORY_ACCOUNT_ID,
+                        participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
+                    },
+                    transactionParams: {
+                        amount,
+                        attendees: [],
+                        currency: CONST.CURRENCY.USD,
+                        created: '',
+                        merchant,
+                        comment,
                     },
                 });
-
-                if (chatReport) {
-                    // When an IOU expense is submitted to that policy expense chat
-                    requestMoney({
-                        report: chatReport,
-                        participantParams: {
-                            payeeEmail: RORY_EMAIL,
-                            payeeAccountID: RORY_ACCOUNT_ID,
-                            participant: {login: CARLOS_EMAIL, accountID: CARLOS_ACCOUNT_ID},
-                        },
-                        transactionParams: {
-                            amount,
-                            attendees: [],
-                            currency: CONST.CURRENCY.USD,
-                            created: '',
-                            merchant,
-                            comment,
-                        },
-                    });
-                }
-                await waitForBatchedUpdates();
-
-                // And given an expense report has now been created which holds the IOU
-                await getOnyxData({
-                    key: ONYXKEYS.COLLECTION.REPORT,
-                    waitForCollectionCallback: true,
-                    callback: (allReports) => {
-                        expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
-                    },
-                });
-
-                // When the expense report is paid elsewhere (but really, any payment option would work)
-                if (chatReport && expenseReport) {
-                    mockFetch?.pause?.();
-                    payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
-                }
-                await waitForBatchedUpdates();
-
-                mockFetch?.fail?.();
-
-                await mockFetch?.resume?.();
-
-                await getOnyxData({
-                    key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
-                    callback: (allReportActions) => {
-                        const action = Object.values(allReportActions ?? {}).find((action) => {
-                            const originalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
-                            return originalMessage?.type === 'pay';
-                        });
-                        expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-                    },
-                });
-            } catch (error) {
-                throw error;
             }
+            await waitForBatchedUpdates();
+
+            // And given an expense report has now been created which holds the IOU
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                waitForCollectionCallback: true,
+                callback: (allReports) => {
+                    expenseReport = Object.values(allReports ?? {}).find((report) => report?.type === CONST.REPORT.TYPE.IOU);
+                },
+            });
+
+            // When the expense report is paid elsewhere (but really, any payment option would work)
+            if (chatReport && expenseReport) {
+                mockFetch?.pause?.();
+                payMoneyRequest(CONST.IOU.PAYMENT_TYPE.ELSEWHERE, chatReport, expenseReport);
+            }
+            await waitForBatchedUpdates();
+
+            mockFetch?.fail?.();
+
+            await mockFetch?.resume?.();
+
+            await getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+                callback: (allReportActions) => {
+                    const action = Object.values(allReportActions ?? {}).find((a) => {
+                        const originalMessage = isMoneyRequestAction(a) ? getOriginalMessage(a) : undefined;
+                        return originalMessage?.type === 'pay';
+                    });
+                    expect(action?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+                },
+            });
         });
     });
 });
