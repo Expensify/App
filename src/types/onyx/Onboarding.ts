@@ -26,6 +26,9 @@ type Onboarding = {
 
     /** A Boolean that informs whether the user has completed merge account step */
     isMergeAccountStepCompleted?: boolean;
+
+    /** A Boolean that tells whether the onboarding flow is loading */
+    isLoading?: boolean;
 };
 
 export default Onboarding;

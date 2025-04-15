@@ -23,7 +23,7 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>9.1.27</string>
+	<string>9.1.28</string>
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
@@ -44,7 +44,7 @@
 		</dict>
 	</array>
 	<key>CFBundleVersion</key>
-	<string>9.1.27.2</string>
+	<string>9.1.28.1</string>
 	<key>FullStory</key>
 	<dict>
 		<key>OrgId</key>

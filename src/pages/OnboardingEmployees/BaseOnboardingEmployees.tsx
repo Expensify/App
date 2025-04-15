@@ -1,5 +1,5 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useContext, useMemo, useState} from 'react';
+import React, {useContext, useEffect, useMemo, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
@@ -11,6 +11,8 @@ import RadioListItem from '@components/SelectionList/RadioListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getPlatform from '@libs/getPlatform';
@@ -39,6 +41,12 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
     const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
+
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const {isOffline} = useNetwork();
+
+    const isLoading = onboarding?.isLoading;
+    const prevIsLoading = usePrevious(isLoading);
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find(isPaidGroupPolicy);
 
@@ -109,16 +117,25 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                     }
 
                     if (CONFIG.IS_HYBRID_APP) {
-                        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                        setRootStatusBarEnabled(false);
-                    } else {
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                        return;
                     }
+                    openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                 }}
                 pressOnEnter
+                isLoading={isLoading}
+                isDisabled={isOffline && selectedCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
             />
         </>
     );
+
+    useEffect(() => {
+        if (!!isLoading || !prevIsLoading || !CONFIG.IS_HYBRID_APP) {
+            return;
+        }
+
+        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+        setRootStatusBarEnabled(false);
+    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     return (
         <ScreenWrapper
