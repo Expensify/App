@@ -18,6 +18,10 @@ function setBankAccountSubStep(subStep: BankAccountSubStep | null): Promise<void
     return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {subStep}});
 }
 
+function setBankAccountState(state: string): Promise<void | void[]> {
+    return Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {achData: {state}});
+}
+
 function hideBankAccountErrors() {
     Onyx.merge(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {error: '', errors: null});
 }
@@ -54,4 +58,5 @@ export {
     requestResetBankAccount,
     cancelResetBankAccount,
     clearReimbursementAccountDraft,
+    setBankAccountState,
 };
