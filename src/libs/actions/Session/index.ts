@@ -1448,8 +1448,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
                 return;
             }
 
-            updateSessionAuthTokens(response.authToken, response.encryptedAuthToken);
-            NetworkStore.setAuthToken(response.authToken);
+            updateAuthTokenAndOpenApp(response.authToken, response.encryptedAuthToken);
         });
     });
 }
