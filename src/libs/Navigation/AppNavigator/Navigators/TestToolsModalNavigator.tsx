@@ -1,11 +1,15 @@
-import React from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
+import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
+import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {TestToolsModalModalNavigatorParamList} from '@libs/Navigation/types';
+import toggleTestToolsModal from '@userActions/TestTool';
+import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import Overlay from './Overlay';
 
@@ -14,19 +18,35 @@ const Stack = createPlatformStackNavigator<TestToolsModalModalNavigatorParamList
 function TestToolsModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const outerViewRef = useRef<View>(null);
+
+    const handleOuterClick = useCallback(() => {
+        toggleTestToolsModal();
+    }, []);
+
+    useKeyboardShortcut(CONST.KEYBOARD_SHORTCUTS.ESCAPE, handleOuterClick, {shouldBubble: true});
 
     return (
         <NoDropZone>
             <Overlay />
-            <View style={styles.TestToolsNavigatorOuterView(shouldUseNarrowLayout)}>
-                <View style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout)}>
-                    <Stack.Navigator screenOptions={{headerShown: false}}>
-                        <Stack.Screen
-                            name={SCREENS.TEST_TOOLS_MODAL.ROOT}
-                            component={TestToolsModalPage}
-                        />
-                    </Stack.Navigator>
-                </View>
+            <View
+                ref={outerViewRef}
+                onClick={handleOuterClick}
+                style={styles.TestToolsNavigatorOuterView(shouldUseNarrowLayout)}
+            >
+                <FocusTrapForScreens>
+                    <View
+                        onClick={(e) => e.stopPropagation()}
+                        style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout)}
+                    >
+                        <Stack.Navigator screenOptions={{headerShown: false}}>
+                            <Stack.Screen
+                                name={SCREENS.TEST_TOOLS_MODAL.ROOT}
+                                component={TestToolsModalPage}
+                            />
+                        </Stack.Navigator>
+                    </View>
+                </FocusTrapForScreens>
             </View>
         </NoDropZone>
     );
