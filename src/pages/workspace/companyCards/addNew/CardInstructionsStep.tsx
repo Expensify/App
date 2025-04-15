@@ -87,6 +87,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
             testID={CardInstructionsStep.displayName}
             shouldEnablePickerAvoiding={false}
             shouldEnableMaxHeight
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.companyCards.addCards')}
@@ -95,6 +96,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
             <ScrollView
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>
                     {translate('workspace.companyCards.addNewCard.enableFeed.title', {provider: getBankName(feedProvider)})}

@@ -179,7 +179,8 @@ describe('getSecondaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
         } as unknown as Report;
         const policy = {role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
         const TRANSACTION_ID = 'transaction_id';

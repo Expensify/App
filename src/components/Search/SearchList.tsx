@@ -3,6 +3,7 @@ import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, 
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Animated from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -28,6 +29,7 @@ import {isMobileChrome} from '@libs/Browser';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType;
 type SearchListItemComponentType = typeof TransactionListItem | typeof ChatListItem | typeof ReportListItem;
@@ -124,6 +126,8 @@ function SearchList(
     const wasSelectionOnRef = useRef(false);
     // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
+
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
@@ -290,8 +294,15 @@ function SearchList(
                     onSelectRow={onSelectRow}
                     onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
-                            return;
+                        if (isMobileChrome() && event.nativeEvent) {
+                            if (!event.nativeEvent.sourceCapabilities) {
+                                return;
+                            }
+                            // Ignore the focus if it's caused by a touch event on mobile chrome.
+                            // For example, a long press will trigger a focus event on mobile chrome
+                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                return;
+                            }
                         }
                         setFocusedIndex(index);
                     }}
@@ -304,10 +315,23 @@ function SearchList(
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
                     queryJSONHash={queryJSONHash}
+                    policies={policies}
                 />
             );
         },
-        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
+        [
+            ListItem,
+            canSelectMultiple,
+            focusedIndex,
+            handleLongPressRow,
+            itemsToHighlight,
+            onCheckboxPress,
+            onSelectRow,
+            policies,
+            queryJSONHash,
+            setFocusedIndex,
+            shouldPreventDefaultFocusOnSelectRow,
+        ],
     );
 
     return (

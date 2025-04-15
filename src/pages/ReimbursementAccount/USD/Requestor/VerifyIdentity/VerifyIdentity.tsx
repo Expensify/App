@@ -55,8 +55,9 @@ function VerifyIdentity({onBackButtonPress}: VerifyIdentityProps) {
             handleBackButtonPress={onBackButtonPress}
             startStepIndex={2}
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <FullPageOfflineBlockingView>
+            <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                 <ScrollView contentContainerStyle={styles.flex1}>
                     <Onfido
                         sdkToken={onfidoToken ?? ''}

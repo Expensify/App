@@ -144,7 +144,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
         return nowUTC.getTime() < cutoffTimeUTC.getTime();
     });
-    
+
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
@@ -364,7 +364,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportApproved = isReportApprovedUtils({report});
 
-    return isReportOpen || isProcessingReport || isReportApproved;
+    if (isReportApproved) {
+        return false;
+    }
+
+    return isReportOpen || isProcessingReport;
 }
 
 function getSecondaryReportActions(
