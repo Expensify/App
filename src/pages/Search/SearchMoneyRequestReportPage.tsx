@@ -97,7 +97,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     shouldDisplaySearchRouter
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
-                    linkKey="notFound.noAccess"
                 >
                     <MoneyRequestReportView
                         report={report}
@@ -140,7 +139,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 shouldDisplaySearchRouter
                                 shouldShowBackButton={shouldUseNarrowLayout}
                                 onBackButtonPress={Navigation.goBack}
-                                linkKey="notFound.noAccess"
                             >
                                 <DragAndDropProvider isDisabled={isEditingDisabled}>
                                     <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
