@@ -363,9 +363,12 @@ function updateQuickbooksCompanyCardExpenseAccount<
 }
 
 function updateQuickbooksDesktopShouldAutoCreateVendor<TSettingValue extends Connections['quickbooksDesktop']['config']['shouldAutoCreateVendor']>(
-    policyID: string,
+    policyID: string | undefined,
     settingValue: TSettingValue,
 ) {
+    if (!policyID) {
+        return;
+    }
     const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_DESKTOP_CONFIG.SHOULD_AUTO_CREATE_VENDOR, settingValue, !settingValue);
 
     const parameters: UpdateQuickbooksDesktopGenericTypeParams = {
