@@ -10,6 +10,7 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
@@ -39,7 +40,8 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const validate = useCallback(

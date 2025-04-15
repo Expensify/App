@@ -6,6 +6,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +24,8 @@ const STEP_FIELDS = [BUSINESS_CONTACT_NUMBER, BUSINESS_CONFIRMATION_EMAIL];
 function ContactInformation({onNext, isEditing}: ContactInformationProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
 
     const phoneNumberDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONTACT_NUMBER] ?? '';
     const confirmationEmailDefaultValue = reimbursementAccount?.achData?.corpay?.[BUSINESS_CONFIRMATION_EMAIL] ?? '';

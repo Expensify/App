@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmationStep from '@components/SubStepForms/ConfirmationStep';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import getSubStepValues from '@pages/ReimbursementAccount/utils/getSubStepValues';
@@ -15,7 +16,8 @@ const PERSONAL_INFO_STEP_INDEXES = CONST.REIMBURSEMENT_ACCOUNT.SUBSTEP_INDEX.PER
 function Confirmation({onNext, onMove, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const isLoading = reimbursementAccount?.isLoading ?? false;

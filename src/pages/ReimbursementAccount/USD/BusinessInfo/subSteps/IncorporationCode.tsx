@@ -5,6 +5,7 @@ import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,7 +20,8 @@ const STEP_FIELDS = [COMPANY_INCORPORATION_CODE_KEY];
 function IncorporationCode({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
 
     const handleSubmit = useReimbursementAccountStepFormSubmit({
         fieldIds: STEP_FIELDS,

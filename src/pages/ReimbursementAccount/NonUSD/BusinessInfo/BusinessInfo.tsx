@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getInitialSubStepForBusinessInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBusinessInfoStep';
@@ -65,7 +66,8 @@ const INPUT_KEYS = {
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const policyID = reimbursementAccount?.achData?.policyID;
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);

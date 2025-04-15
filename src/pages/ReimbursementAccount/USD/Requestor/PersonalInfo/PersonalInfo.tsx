@@ -3,6 +3,7 @@ import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import BankAccount from '@libs/models/BankAccount';
@@ -29,7 +30,8 @@ const bodyContent: Array<React.ComponentType<SubStepProps>> = [FullName, DateOfB
 function PersonalInfo({onBackButtonPress}: PersonalInfoProps, ref: React.ForwardedRef<View>) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const policyID = reimbursementAccount?.achData?.policyID;

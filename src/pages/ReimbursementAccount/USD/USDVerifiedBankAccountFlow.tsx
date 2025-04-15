@@ -1,6 +1,7 @@
 import React from 'react';
 import type {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import BankInfo from './BankInfo/BankInfo';
@@ -29,7 +30,8 @@ function USDVerifiedBankAccountFlow({
     setUSDBankAccountStep,
     setShouldShowConnectedVerifiedBankAccount,
 }: USDVerifiedBankAccountFlowProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
 
     switch (USDBankAccountStep) {
         case CONST.BANK_ACCOUNT.STEP.BANK_ACCOUNT:

@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useReimbursementPolicyIDParam from '@hooks/usePolicyParam';
 import useSubStep from '@hooks/useSubStep';
 import type {SubStepProps} from '@hooks/useSubStep/types';
 import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirectURI';
@@ -36,7 +37,8 @@ const plaidSubSteps: Array<React.ComponentType<BankInfoSubStepProps>> = [Plaid];
 const receivedRedirectURI = getPlaidOAuthReceivedRedirectURI();
 
 function BankInfo({onBackButtonPress, policyID, setUSDBankAccountStep}: BankInfoProps) {
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const policyIDParam = useReimbursementPolicyIDParam();
+    const [reimbursementAccount] = useOnyx(`${ONYXKEYS.COLLECTION.REIMBURSEMENT_ACCOUNT}${policyIDParam}`);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
     const [plaidLinkToken] = useOnyx(ONYXKEYS.PLAID_LINK_TOKEN);
     const {translate} = useLocalize();
