@@ -12,6 +12,7 @@ jobs:
   build:
     runs-on: macos-15-xlarge
     strategy:
+      fail-fast: false
       matrix:
         include:
           - project_root: ./
@@ -19,6 +20,7 @@ jobs:
             configuration: 'DebugDevelopment'
 
           - project_root: Mobile-Expensify/
+            is_hybrid_build: true
             scheme: 'Expensify Dev'
             configuration: 'Debug'
     steps:
@@ -26,11 +28,13 @@ jobs:
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
-          submodules: true
+          submodules: ${{ matrix.is_hybrid_build || false }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
         uses: callstackincubator/ios@4c2dcc0d6b9c35407cf294e17386b65258a3b6af
