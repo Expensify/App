@@ -1,6 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
@@ -18,9 +17,11 @@ import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHead
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
+import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -38,6 +39,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -327,11 +329,33 @@ function SearchPage({route}: SearchPageProps) {
     };
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
-
+    const {resetVideoPlayerData} = usePlaybackContext();
     const shouldShowOfflineIndicator = currentSearchResults?.data ?? lastNonEmptySearchResults;
 
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
+
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+
+    // Handles video player cleanup:
+    // 1. On mount: Resets player if navigating from report screen
+    // 2. On unmount: Stops video when leaving this screen
+    // in narrow layout, the reset will be handled by the attachment modal, so we don't need to do it here to preserve autoplay
+    useEffect(() => {
+        if (shouldUseNarrowLayout) {
+            return;
+        }
+        resetVideoPlayerData();
+        return () => {
+            if (shouldUseNarrowLayout) {
+                return;
+            }
+            resetVideoPlayerData();
+        };
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     if (shouldUseNarrowLayout) {
         return (
@@ -401,6 +425,7 @@ function SearchPage({route}: SearchPageProps) {
                                 <View style={styles.flex1}>
                                     <HeaderGap />
                                     <TopBar
+                                        shouldShowLoadingBar={shouldShowLoadingState}
                                         activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
