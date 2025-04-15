@@ -137,6 +137,8 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldSubscribeToArrowKeyEvents = true,
         addBottomSafeAreaPadding = false,
         addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+        fixedNumItemsForLoader,
+        loaderSpeed,
         errorText,
     }: SelectionListProps<TItem>,
     ref: ForwardedRef<SelectionListHandle>,
@@ -596,7 +598,13 @@ function BaseSelectionList<TItem extends ListItem>(
 
     const renderListEmptyContent = () => {
         if (showLoadingPlaceholder) {
-            return <OptionsListSkeletonView shouldStyleAsTable={shouldUseUserSkeletonView} />;
+            return (
+                <OptionsListSkeletonView
+                    fixedNumItems={fixedNumItemsForLoader}
+                    shouldStyleAsTable={shouldUseUserSkeletonView}
+                    speed={loaderSpeed}
+                />
+            );
         }
         if (shouldShowListEmptyContent) {
             return listEmptyContent;

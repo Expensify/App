@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -198,6 +198,7 @@ function AttachmentModal({
     const [isConfirmButtonDisabled, setIsConfirmButtonDisabled] = useState(false);
     const [isDownloadButtonReadyToBeShown, setIsDownloadButtonReadyToBeShown] = React.useState(true);
     const isPDFLoadError = useRef(false);
+    const isReplaceReceipt = useRef(false);
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const nope = useSharedValue(false);
@@ -447,22 +448,15 @@ function AttachmentModal({
 
         const menuItems = [];
         if (canEditReceipt) {
+            // linter keep complain about accessing ref during render
+            // eslint-disable-next-line react-compiler/react-compiler
             menuItems.push({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
                     closeModal(true);
-                    InteractionManager.runAfterInteractions(() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
-                                iouAction ?? CONST.IOU.ACTION.EDIT,
-                                iouType,
-                                draftTransactionID ?? transaction?.transactionID,
-                                report?.reportID,
-                                Navigation.getActiveRouteWithoutParams(),
-                            ),
-                        );
-                    });
+                    // Set the ref to true, so when the modal is hidden, we will navigate to the scan receipt screen
+                    isReplaceReceipt.current = true;
                 },
             });
         }
@@ -534,6 +528,19 @@ function AttachmentModal({
                         setIsAttachmentInvalid(true);
                         setAttachmentInvalidReasonTitle('attachmentPicker.attachmentError');
                         setAttachmentInvalidReason('attachmentPicker.errorWhileSelectingCorruptedAttachment');
+                        return;
+                    }
+
+                    if (isReplaceReceipt.current) {
+                        Navigation.navigate(
+                            ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
+                                iouAction ?? CONST.IOU.ACTION.EDIT,
+                                iouType,
+                                draftTransactionID ?? transaction?.transactionID,
+                                report?.reportID,
+                                Navigation.getActiveRouteWithoutParams(),
+                            ),
+                        );
                     }
                 }}
                 propagateSwipe
@@ -616,6 +623,7 @@ function AttachmentModal({
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
                                             isUploaded={!isEmptyObject(report)}
+                                            reportID={!isEmptyObject(report) ? report.reportID : undefined}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )

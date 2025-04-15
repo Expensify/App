@@ -111,6 +111,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
     NoLongerHaveAccessParams,
@@ -171,6 +172,7 @@ import type {
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
+    SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
@@ -183,6 +185,7 @@ import type {
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
+    UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
     UpdatedPolicyCategoryNameParams,
@@ -229,6 +232,7 @@ import type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
+    YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
@@ -446,6 +450,7 @@ const translations = {
         showMore: 'Show more',
         merchant: 'Merchant',
         category: 'Category',
+        report: 'Report',
         billable: 'Billable',
         nonBillable: 'Non-billable',
         tag: 'Tag',
@@ -536,6 +541,7 @@ const translations = {
         help: 'Help',
         expenseReports: 'Expense Reports',
         rateOutOfPolicy: 'Rate out of policy',
+        reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
         unreported: 'Unreported',
@@ -925,6 +931,8 @@ const translations = {
         posted: 'Posted',
         deleteReceipt: 'Delete receipt',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `deleted an expense on this report, ${merchant} - ${amount}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `moved this expense to <a href="${reportUrl}">${reportName}</a>`,
+        unreportedTransaction: ({reportUrl, reportName}: UnreportedTransactionParams) => `removed this expense from <a href="${reportUrl}">${reportName}</a>`,
         pendingMatchWithCreditCard: 'Receipt pending match with card transaction',
         pendingMatch: 'Pending match',
         pendingMatchWithCreditCardDescription: 'Receipt pending match with card transaction. Mark as cash to cancel.',
@@ -2070,35 +2078,35 @@ const translations = {
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
-        validationFailed: 'Validation failed because enough time hasn’t passed since your last attempt.',
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
-        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
             if (!timeData) {
                 return 'Please wait a moment before trying again.';
             }
 
-            const parts = [];
+            const timeParts = [];
             if (timeData.days) {
-                parts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
+                timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'day' : 'days'}`);
             }
+
             if (timeData.hours) {
-                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
+                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hour' : 'hours'}`);
             }
+
             if (timeData.minutes) {
-                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
+                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minute' : 'minutes'}`);
             }
 
-            let timeText;
-            if (parts.length === 1) {
-                timeText = parts.at(0);
-            } else if (parts.length === 2) {
-                timeText = parts.join(' and ');
-            } else {
-                const lastPart = parts.pop();
-                timeText = `${parts.join(', ')} and ${lastPart}`;
+            let timeText = '';
+            if (timeParts.length === 1) {
+                timeText = timeParts.at(0) ?? '';
+            } else if (timeParts.length === 2) {
+                timeText = `${timeParts.at(0)} and ${timeParts.at(1)}`;
+            } else if (timeParts.length === 3) {
+                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
             }
 
-            return `Please wait ${timeText} before trying again.`;
+            return `Hold tight! You need to wait ${timeText} before trying to validate your number again.`;
         },
     },
     welcomeSignUpForm: {
@@ -3255,6 +3263,7 @@ const translations = {
         },
         sageIntacct: {
             preferredExporter: 'Preferred exporter',
+            taxSolution: 'Tax solution',
             notConfigured: 'Not configured',
             exportDate: {
                 label: 'Export date',
@@ -5164,6 +5173,8 @@ const translations = {
             paid: 'Paid',
             exported: 'Exported',
             posted: 'Posted',
+            billable: 'Billable',
+            reimbursable: 'Reimbursable',
         },
         moneyRequestReport: {
             emptyStateTitle: 'This report has no expenses',
@@ -5815,38 +5826,60 @@ const translations = {
         },
         yourPlan: {
             title: 'Your plan',
+            exploreAllPlans: 'Explore all plans',
+            customPricing: 'Custom pricing',
+            asLowAs: ({price}: YourPlanPriceValueParams) => `as low as ${price} per active member/month`,
+            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} per member/month`,
+            pricePerMemberPerMonth: ({price}: YourPlanPriceValueParams) => `${price} per member per month`,
+            perMemberMonth: 'per member/month',
             collect: {
                 title: 'Collect',
+                description: 'The SMB plan that gives you expense, travel, and chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
-                benefit1: 'Unlimited SmartScans and distance tracking',
-                benefit2: 'Expensify Cards with Smart Limits',
-                benefit3: 'Bill pay and invoicing',
-                benefit4: 'Expense approvals',
-                benefit5: 'ACH reimbursement',
-                benefit6: 'QuickBooks and Xero integrations',
-                benefit7: 'Custom insights and reporting',
+                benefit1: 'Receipt scanning',
+                benefit2: 'Reimbursements',
+                benefit3: 'Corporate card management',
+                benefit4: 'Expense and travel approvals',
+                benefit5: 'Travel booking and rules',
+                benefit6: 'QuickBooks/Xero integrations',
+                benefit7: 'Chat on expenses, reports, and rooms',
+                benefit8: 'AI and human support',
             },
             control: {
                 title: 'Control',
+                description: 'Expense, travel, and chat for larger businesses.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `From ${lower}/active member with the Expensify Card, ${upper}/active member without the Expensify Card.`,
-                benefit1: 'Everything in Collect, plus:',
-                benefit2: 'NetSuite and Sage Intacct integrations',
-                benefit3: 'Certinia and Workday sync',
-                benefit4: 'Multiple expense approvers',
-                benefit5: 'SAML/SSO',
-                benefit6: 'Budgeting',
+                benefit1: 'Everything in the Collect plan',
+                benefit2: 'Multi-level approval workflows',
+                benefit3: 'Custom expense rules',
+                benefit4: 'ERP integrations (NetSuite, Sage Intacct, Oracle)',
+                benefit5: 'HR integrations (Workday, Certinia)',
+                benefit6: 'SAML/SSO',
+                benefit7: 'Custom insights and reporting',
+                benefit8: 'Budgeting',
             },
+            thisIsYourCurrentPlan: 'This is your current plan',
+            downgrade: 'Downgrade to Collect',
+            upgrade: 'Upgrade to Control',
+            addMembers: 'Add members',
             saveWithExpensifyTitle: 'Save with the Expensify Card',
             saveWithExpensifyDescription: 'Use our savings calculator to see how cash back from the Expensify Card can reduce your Expensify bill.',
             saveWithExpensifyButton: 'Learn more',
+        },
+        compareModal: {
+            comparePlans: 'Compare Plans',
+            unlockTheFeatures: 'Unlock the features you need with the plan that’s right for you. ',
+            viewOurPricing: 'View our pricing page',
+            forACompleteFeatureBreakdown: ' for a complete feature breakdown of each of our plans.',
         },
         details: {
             title: 'Subscription details',
             annual: 'Annual subscription',
             taxExempt: 'Request tax exempt status',
             taxExemptEnabled: 'Tax exempt',
+            taxExemptStatus: 'Tax exempt status',
             payPerUse: 'Pay-per-use',
             subscriptionSize: 'Subscription size',
             headsUp:
@@ -5879,6 +5912,12 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Subscription settings',
+            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Subscription type: ${subscriptionType}, Subscription size: ${subscriptionSize}, Auto renew: ${autoRenew}, Auto increase annual seats: ${autoIncrease}`,
+            none: 'none',
+            on: 'on',
+            off: 'off',
+            annual: 'Annual',
             autoRenew: 'Auto-renew',
             autoIncrease: 'Auto-increase annual seats',
             saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `Save up to ${amountWithCurrency}/month per active member`,
@@ -5888,6 +5927,15 @@ const translations = {
             helpUsImprove: 'Help us improve Expensify',
             whatsMainReason: "What's the main reason you're disabling auto-renew?",
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Renews on ${date}.`,
+            pricingConfiguration: 'Pricing depends on configuration. For the lowest price, choose an annual subscription and get the Expensify Card.',
+            learnMore: {
+                part1: 'Learn more on our ',
+                pricingPage: 'pricing page',
+                part2: ' or chat with our team in your ',
+                adminsRoom: '#admins room.',
+            },
+            estimatedPrice: 'Estimated price',
+            changesBasedOn: 'This changes based on your Expensify Card usage and the subscription options below.',
         },
         requestEarlyCancellation: {
             title: 'Request early cancellation',

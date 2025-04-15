@@ -61,6 +61,8 @@ const SCREENS = {
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
+        ADVANCED_FILTERS_REIMBURSABLE_RHP: 'Search_Advanced_Filters_Reimbursable_RHP',
+        ADVANCED_FILTERS_BILLABLE_RHP: 'Search_Advanced_Filters_Billable_RHP',
         ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
@@ -136,6 +138,7 @@ const SCREENS = {
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
+            SETTINGS_DETAILS: 'Settings_Subscription_Details',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
@@ -257,6 +260,7 @@ const SCREENS = {
         STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
+        STEP_REPORT: 'Money_Request_Report',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -460,6 +464,8 @@ const SCREENS = {
             SAGE_INTACCT_IMPORT: 'Policy_Accounting_Sage_Intacct_Import',
             SAGE_INTACCT_TOGGLE_MAPPING: 'Policy_Accounting_Sage_Intacct_Toggle_Mapping',
             SAGE_INTACCT_MAPPING_TYPE: 'Policy_Accounting_Sage_Intacct_Mapping_Type',
+            SAGE_INTACCT_IMPORT_TAX: 'Policy_Accounting_Sage_Intacct_Import_Tax',
+            SAGE_INTACCT_IMPORT_TAX_MAPPING: 'Policy_Accounting_Sage_Intacct_Import_Tax_Mapping',
             SAGE_INTACCT_USER_DIMENSIONS: 'Policy_Accounting_Sage_Intacct_User_Dimensions',
             SAGE_INTACCT_ADD_USER_DIMENSION: 'Policy_Accounting_Sage_Intacct_Add_User_Dimension',
             SAGE_INTACCT_EDIT_USER_DIMENSION: 'Policy_Accounting_Sage_Intacct_Edit_User_Dimension',
