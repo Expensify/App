@@ -126,7 +126,7 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^4.3.0",
     "expensify-common": "2.0.127",
-    "expo": "53.0.0-canary-20250408-7f0ab53",
+    "expo": "53.0.0-preview.7",
     "expo-asset": "11.1.1-canary-20250408-7f0ab53",
     "expo-av": "15.1.1-canary-20250408-7f0ab53",
     "expo-font": "13.1.1-canary-20250408-7f0ab53",
@@ -381,9 +381,7 @@
     "regexpu-core": "5.3.2",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "expo": "53.0.0-canary-20250408-7f0ab53",
-    "metro": "^0.81.3",
-    "metro-core": "^0.81.3"
+    "expo": "53.0.0-preview.7"
   },
   "expo": {
     "autolinking": {

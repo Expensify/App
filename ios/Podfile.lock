@@ -59,7 +59,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - Expo (53.0.0-canary-20250408-7f0ab53):
+  - Expo (53.0.0-preview.7):
     - DoubleConversion
     - ExpoModulesCore
     - glog
@@ -101,7 +101,7 @@ PODS:
     - EXImageLoader
     - ExpoModulesCore
     - SDWebImageWebPCoder
-  - ExpoModulesCore (2.3.1-canary-20250408-7f0ab53):
+  - ExpoModulesCore (2.3.5):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3633,12 +3633,12 @@ SPEC CHECKSUMS:
   EXAV: 61f46d00f0fb30e0f216e5da95c838f3e45f8844
   EXImageLoader: 7a6c83196db2da8a8283756e3b828629cf0951e2
   expensify-react-native-background-task: 47792ed07f5a1a6d1fe27eaff09148f033321f46
-  Expo: 7eeb07f1bf3160788fc839fb964eba9c2091591b
+  Expo: 484fcc97508bd7651f66d9ce5a18a7dfcf93eeb5
   ExpoAsset: 5a9fc80f20aa7d821508a6680be54b636e0d4288
   ExpoFont: f9d53edb5a01a0882066dc621c398adcb88984c6
   ExpoImage: 3295482c1eafa09b6a6f483fbacd6d5e480a4d4e
   ExpoImageManipulator: d7a0ce1afdb04fdaec95a7dbb868c2b91b0913db
-  ExpoModulesCore: cba6f42b8446382d5b3dc016834583fd6f3ed90d
+  ExpoModulesCore: 177738c057b6ec1f72a23c6f42be287beb184b0e
   fast_float: 06eeec4fe712a76acc9376682e4808b05ce978b6
   FBLazyVector: 758fbc1be5fb7ce700b23160033d82e574c2b6b7
   Firebase: 629510f1a9ddb235f3a7c5c8ceb23ba887f0f814

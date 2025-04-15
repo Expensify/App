@@ -1,5 +1,5 @@
-import type {PushPayload} from '@ua/react-native-airship';
-import Airship, {EventType} from '@ua/react-native-airship';
+// import type {PushPayload} from '@ua/react-native-airship';
+// import Airship, {EventType} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import ShortcutManager from '@libs/ShortcutManager';
 import ForegroundNotifications from './ForegroundNotifications';
@@ -13,14 +13,14 @@ type NotificationEventHandler<T extends NotificationTypes> = (data: Notification
 
 type NotificationEventHandlerMap<T extends NotificationTypes> = Partial<Record<T, NotificationEventHandler<T>>>;
 
-type NotificationEventActionMap = Partial<Record<EventType, NotificationEventHandlerMap<NotificationTypes>>>;
+type NotificationEventActionMap = Partial<Record<Any, NotificationEventHandlerMap<NotificationTypes>>>;
 
 const notificationEventActionMap: NotificationEventActionMap = {};
 
 /**
  * Handle a push notification event, and trigger and bound actions.
  */
-function pushNotificationEventCallback(eventType: EventType, notification: PushPayload) {
+function pushNotificationEventCallback(eventType: Any, notification: PushPayload) {
     const actionMap = notificationEventActionMap[eventType] ?? {};
 
     const data = parsePushNotificationPayload(notification.extras.payload);
@@ -63,11 +63,11 @@ function pushNotificationEventCallback(eventType: EventType, notification: PushP
  */
 const init: Init = () => {
     // Setup event listeners
-    Airship.addListener(EventType.PushReceived, (notification) => pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload));
+    // Airship.addListener(EventType.PushReceived, (notification) => pushNotificationEventCallback(EventType.PushReceived, notification.pushPayload));
 
     // Note: the NotificationResponse event has a nested PushReceived event,
     // so event.notification refers to the same thing as notification above ^
-    Airship.addListener(EventType.NotificationResponse, (event) => pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload));
+    // Airship.addListener(EventType.NotificationResponse, (event) => pushNotificationEventCallback(EventType.NotificationResponse, event.pushPayload));
 
     ForegroundNotifications.configureForegroundNotifications();
 };
@@ -76,31 +76,31 @@ const init: Init = () => {
  * Register this device for push notifications for the given notificationID.
  */
 const register: Register = (notificationID) => {
-    Airship.contact
-        .getNamedUserId()
-        .then((userID) => {
-            if (userID === notificationID.toString()) {
-                // No need to register again for this notificationID.
-                return;
-            }
-
-            // Get permissions to display push notifications (prompts user on iOS, but not Android)
-            Airship.push.enableUserNotifications().then((isEnabled) => {
-                if (isEnabled) {
-                    return;
-                }
-
-                Log.info('[PushNotification] User has disabled visible push notifications for this app.');
-            });
-
-            // Register this device as a named user in AirshipAPI.
-            // Regardless of the user's opt-in status, we still want to receive silent push notifications.
-            Log.info(`[PushNotification] Subscribing to notifications`);
-            Airship.contact.identify(notificationID.toString());
-        })
-        .catch((error: Record<string, unknown>) => {
-            Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
-        });
+    // Airship.contact
+    //     .getNamedUserId()
+    //     .then((userID) => {
+    //         if (userID === notificationID.toString()) {
+    //             // No need to register again for this notificationID.
+    //             return;
+    //         }
+    //
+    //         // Get permissions to display push notifications (prompts user on iOS, but not Android)
+    //         Airship.push.enableUserNotifications().then((isEnabled) => {
+    //             if (isEnabled) {
+    //                 return;
+    //             }
+    //
+    //             Log.info('[PushNotification] User has disabled visible push notifications for this app.');
+    //         });
+    //
+    //         // Register this device as a named user in AirshipAPI.
+    //         // Regardless of the user's opt-in status, we still want to receive silent push notifications.
+    //         Log.info(`[PushNotification] Subscribing to notifications`);
+    //         Airship.contact.identify(notificationID.toString());
+    //     })
+    //     .catch((error: Record<string, unknown>) => {
+    //         Log.warn('[PushNotification] Failed to register for push notifications! Reason: ', error);
+    //     });
 };
 
 /**
@@ -108,9 +108,9 @@ const register: Register = (notificationID) => {
  */
 const deregister: Deregister = () => {
     Log.info('[PushNotification] Unsubscribing from push notifications.');
-    Airship.contact.reset();
-    Airship.removeAllListeners(EventType.PushReceived);
-    Airship.removeAllListeners(EventType.NotificationResponse);
+    // Airship.contact.reset();
+    // Airship.removeAllListeners(EventType.PushReceived);
+    // Airship.removeAllListeners(EventType.NotificationResponse);
     ForegroundNotifications.disableForegroundNotifications();
     ShortcutManager.removeAllDynamicShortcuts();
 };
@@ -126,7 +126,7 @@ const deregister: Deregister = () => {
  *
  * @param triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
  */
-function bind<T extends NotificationTypes>(triggerEvent: EventType, notificationType: T, callback: NotificationEventHandler<T>) {
+function bind<T extends NotificationTypes>(triggerEvent: Any, notificationType: T, callback: NotificationEventHandler<T>) {
     let actionMap = notificationEventActionMap[triggerEvent] as NotificationEventHandlerMap<T> | undefined;
 
     if (!actionMap) {
@@ -141,21 +141,21 @@ function bind<T extends NotificationTypes>(triggerEvent: EventType, notification
  * Bind a callback to be executed when a push notification of a given type is received.
  */
 const onReceived: OnReceived = (notificationType, callback) => {
-    bind(EventType.PushReceived, notificationType, callback);
+    // bind(EventType.PushReceived, notificationType, callback);
 };
 
 /**
  * Bind a callback to be executed when a push notification of a given type is tapped by the user.
  */
 const onSelected: OnSelected = (notificationType, callback) => {
-    bind(EventType.NotificationResponse, notificationType, callback);
+    // bind(EventType.NotificationResponse, notificationType, callback);
 };
 
 /**
  * Clear all push notifications
  */
 const clearNotifications: ClearNotifications = () => {
-    Airship.push.clearNotifications();
+    // Airship.push.clearNotifications();
 };
 
 const PushNotification: PushNotificationType = {
