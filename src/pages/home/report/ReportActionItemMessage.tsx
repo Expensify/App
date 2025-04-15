@@ -28,6 +28,7 @@ import ROUTES from '@src/ROUTES';
 import type {ReportAction} from '@src/types/onyx';
 import TextCommentFragment from './comment/TextCommentFragment';
 import ReportActionItemFragment from './ReportActionItemFragment';
+import {navigateToBankAccountRoute} from '@userActions/ReimbursementAccount';
 
 type ReportActionItemMessageProps = {
     /** The report action */
@@ -89,7 +90,7 @@ function ReportActionItemMessage({action, displayAsGroup, reportID, style, isHid
     }
 
     const handleEnterSignerInfoPress = () => {
-
+        navigateToBankAccountRoute(policy?.id, ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id));
     };
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED) {
