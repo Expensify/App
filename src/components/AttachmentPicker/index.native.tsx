@@ -1,7 +1,7 @@
 import type {FileToCopy} from '@react-native-documents/picker';
 import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -70,7 +70,7 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
     const fileName = fileData.name || 'chat_attachment';
     const fileResult: FileObject = {
-        name: FileUtils.cleanFileName(fileName),
+        name: cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
@@ -143,7 +143,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                FileUtils.showCameraPermissionsAlert();
+                                showCameraPermissionsAlert();
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -161,11 +161,13 @@ function AttachmentPicker({
                     }
 
                     if (targetAsset?.type?.startsWith('image')) {
-                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
+                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
+                                    ImageManipulator.manipulate(targetAssetUri)
+                                        .renderAsync()
+                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
                                         .then((manipResult) => {
                                             const uri = manipResult.uri;
                                             const convertedAsset = {
