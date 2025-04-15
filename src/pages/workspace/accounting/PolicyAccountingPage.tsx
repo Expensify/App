@@ -1,6 +1,5 @@
 import {useFocusEffect, useRoute} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {LayoutChangeEvent} from 'react-native';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -22,7 +21,6 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import type ThreeDotsMenuProps from '@components/ThreeDotsMenu/types';
-import type {LayoutChangeEventWithTarget} from '@components/ThreeDotsMenu/types';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
@@ -34,6 +32,7 @@ import {isAuthenticationError, isConnectionInProgress, isConnectionUnverified, r
 import {shouldShowQBOReimbursableExportDestinationAccountError} from '@libs/actions/connections/QuickbooksOnline';
 import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import {isExpensifyCardFullySetUp} from '@libs/CardUtils';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import {
     areSettingsInErrorFields,
     findCurrentXeroOrganization,
@@ -78,7 +77,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const {canUseNetSuiteUSATax} = usePermissions();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [threeDotsMenuPosition, setThreeDotsMenuPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
     const [isDisconnectModalOpen, setIsDisconnectModalOpen] = useState(false);
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
@@ -187,6 +185,20 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         }
         getAssignedSupportData(policyID);
     }, [policyID]);
+
+    const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
+        if (shouldUseNarrowLayout) {
+            return Promise.resolve({horizontal: 0, vertical: 0});
+        }
+        return new Promise<AnchorPosition>((resolve) => {
+            threeDotsMenuContainerRef.current?.measureInWindow((x, y, width, height) => {
+                resolve({
+                    horizontal: x + width,
+                    vertical: y + height,
+                });
+            });
+        });
+    }, [shouldUseNarrowLayout]);
 
     const integrationSpecificMenuItems = useMemo(() => {
         const sageIntacctEntityList = policy?.connections?.intacct?.data?.entities ?? [];
@@ -389,21 +401,10 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                         color={theme.spinner}
                     />
                 ) : (
-                    <View
-                        ref={threeDotsMenuContainerRef}
-                        onLayout={(e: LayoutChangeEvent) => {
-                            const target = e.target || (e as LayoutChangeEventWithTarget).nativeEvent.target;
-                            target?.measureInWindow((x, y, width) => {
-                                setThreeDotsMenuPosition({
-                                    horizontal: x + width,
-                                    vertical: y,
-                                });
-                            });
-                        }}
-                    >
+                    <View ref={threeDotsMenuContainerRef}>
                         <ThreeDotsMenu
+                            getAnchorPosition={calculateAndSetThreeDotsMenuPosition}
                             menuItems={overflowMenu}
-                            anchorPosition={threeDotsMenuPosition}
                             anchorAlignment={{
                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
                                 vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -432,7 +433,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         datetimeToRelative,
         theme.spinner,
         overflowMenu,
-        threeDotsMenuPosition,
+        calculateAndSetThreeDotsMenuPosition,
         integrationSpecificMenuItems,
         accountingIntegrations,
         isOffline,
@@ -525,7 +526,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         >
             <ScreenWrapper
                 testID={PolicyAccountingPage.displayName}
-                includeSafeAreaPaddingBottom={false}
                 shouldShowOfflineIndicatorInWideScreen
             >
                 <HeaderWithBackButton
@@ -534,8 +534,12 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                     icon={Illustrations.Accounting}
                     shouldUseHeadlineHeader
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
                 />
-                <ScrollView contentContainerStyle={styles.pt3}>
+                <ScrollView
+                    contentContainerStyle={styles.pt3}
+                    addBottomSafeAreaPadding
+                >
                     <View style={[styles.flex1, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                         <Section
                             title={translate('workspace.accounting.title')}

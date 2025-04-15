@@ -110,6 +110,10 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type DuplicateTransactionParams = {
+    isSubmitted: boolean;
+};
+
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
@@ -118,6 +122,16 @@ type RequestCountParams = {
 type DeleteTransactionParams = {
     amount: string;
     merchant: string;
+};
+
+type MovedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
+};
+
+type UnreportedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
 };
 
 type SettleExpensifyCardParams = {
@@ -303,7 +317,7 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
-type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean};
+type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
@@ -448,6 +462,8 @@ type BadgeFreeTrialParams = {numOfDays: number};
 
 type BillingBannerSubtitleWithDateParams = {date: string};
 
+type BillingBannerOwnerAmountOwedOverdueParams = {date?: string; purchaseAmountOwed?: string};
+
 type BillingBannerDisputePendingParams = {amountOwed: number; cardEnding: string};
 
 type BillingBannerCardAuthenticationRequiredParams = {cardEnding: string};
@@ -472,11 +488,15 @@ type CardInfoParams = {name: string; expiration: string; currency: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
+type YourPlanPriceValueParams = {price: string};
+
 type SubscriptionSizeParams = {size: number};
 
 type SubscriptionCommitmentParams = {size: number; date: string};
 
 type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
+
+type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; autoRenew: string; autoIncrease: string};
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
@@ -706,6 +726,7 @@ export type {
     SubscriptionSettingsRenewsOnParams,
     BadgeFreeTrialParams,
     BillingBannerSubtitleWithDateParams,
+    BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerDisputePendingParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerInsufficientFundsParams,
@@ -775,6 +796,7 @@ export type {
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
+    DuplicateTransactionParams,
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
@@ -790,6 +812,8 @@ export type {
     RequestAmountParams,
     RequestCountParams,
     DeleteTransactionParams,
+    MovedTransactionParams,
+    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -898,6 +922,8 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
+    SubscriptionSettingsSummaryParams,
     ReviewParams,
 };

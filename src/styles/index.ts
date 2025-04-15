@@ -169,17 +169,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 flexShrink: 1,
             },
 
-            blockquote: {
-                borderLeftColor: theme.border,
-                borderLeftWidth: 4,
-                paddingLeft: 12,
-                marginTop: 4,
-                marginBottom: 4,
-
-                // Overwrite default HTML margin for blockquotes
-                marginLeft: 0,
-            },
-
             pre: {
                 ...baseCodeTagStyles(theme),
                 paddingVertical: 8,
@@ -259,8 +248,18 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             justifyContent: 'center',
             overflow: 'hidden',
-            boxShadow: variables.popoverMenuShadow,
+            boxShadow: theme.shadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+        blockquote: {
+            borderLeftColor: theme.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         h1: {
@@ -796,7 +795,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonSuccessText: {
-            color: theme.textLight,
+            color: theme.buttonSuccessText,
         },
 
         buttonDangerText: {
@@ -1189,17 +1188,22 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 15,
-            paddingRight: 5,
             ...userSelect.userSelectNone,
         },
 
         calendarDayRoot: {
             flex: 1,
-            height: 45,
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
             ...userSelect.userSelectNone,
+        },
+
+        calendarBodyContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT * CONST.MAX_CALENDAR_PICKER_ROWS,
+        },
+        calendarWeekContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
         },
 
         calendarDayContainer: {
@@ -1240,6 +1244,12 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
+        },
+
+        outlinedButton: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         optionRowAmountInput: {
@@ -1311,7 +1321,6 @@ const styles = (theme: ThemeColors) =>
         textInputIconContainer: {
             paddingHorizontal: 11,
             justifyContent: 'center',
-            margin: 1,
         },
 
         textInputLeftIconContainer: {
@@ -1752,6 +1761,12 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        topBarLabel: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+            ...headlineFont,
+        },
+
         breadcrumsContainer: {
             minHeight: 24,
         },
@@ -1859,11 +1874,6 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
-        createMenuPositionRightSidepane: {
-            right: 18,
-            bottom: 75,
-        },
-
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -1909,7 +1919,7 @@ const styles = (theme: ThemeColors) =>
 
         popoverInnerContainer: {
             paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
-            maxHeight: '95%',
+            backgroundColor: theme.modalBackground,
         },
 
         menuItemTextContainer: {
@@ -2394,10 +2404,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
         },
 
-        customMarginButtonWithMenuItem: {
-            marginRight: variables.bankButtonMargin,
-        },
-
         composerSizeButton: {
             alignSelf: 'center',
             height: 32,
@@ -2661,9 +2667,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
+        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
+            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
+        }),
 
         imageViewContainer: {
             width: '100%',
@@ -2721,6 +2727,12 @@ const styles = (theme: ThemeColors) =>
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 400,
+            alignSelf: 'center',
+        },
+
+        blockingErrorViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
             alignSelf: 'center',
         },
 
@@ -3019,6 +3031,12 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderedContentCardLarge: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 16,
@@ -3153,6 +3171,10 @@ const styles = (theme: ThemeColors) =>
 
         flipUpsideDown: {
             transform: `rotate(180deg)`,
+        },
+
+        mirror: {
+            transform: `scaleX(-1)`,
         },
 
         navigationScreenCardStyle: {
@@ -3476,13 +3498,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.textReversed,
             ...spacing.ml4,
-        },
-
-        blockquote: {
-            borderLeftColor: theme.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginVertical: 4,
         },
 
         noSelect: {
@@ -3942,14 +3957,6 @@ const styles = (theme: ThemeColors) =>
         cardSectionTitle: {
             fontSize: variables.fontSizeLarge,
             lineHeight: variables.lineHeightXLarge,
-        },
-
-        cardMenuItem: {
-            paddingLeft: 8,
-            paddingRight: 0,
-            borderRadius: variables.buttonBorderRadius,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
         },
 
         emptyCardSectionTitle: {
@@ -5534,9 +5541,9 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-        // We have to use 10000 here as sidePane has to be displayed on top of modals which have z-index of 9999
-        sidePaneContainer: {zIndex: 10000},
-        sidePaneOverlay: (isOverlayVisible: boolean) => ({
+        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
+        sidePanelContainer: {zIndex: 10000},
+        sidePanelOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,
             bottom: 0,
@@ -5545,7 +5552,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
-        sidePaneContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+        sidePanelContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
             bottom: 0,
