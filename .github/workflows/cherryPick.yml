@@ -33,8 +33,7 @@ jobs:
         run: |
           git submodule foreach '\
             git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
-            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production" && \
-            git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"'
+            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production"'
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
@@ -53,9 +52,20 @@ jobs:
 
       - name: Fetch history of relevant refs
         run: |
-          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          # Temporary hack during transition when -staging suffix is being added to tags
+          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          else
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
+          fi
+
           cd Mobile-Expensify
-          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          # Temporary hack during transition when -staging suffix is being added to tags
+          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          else
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
+          fi
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit

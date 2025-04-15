@@ -39,6 +39,7 @@ import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
 import textUnderline from './utils/textUnderline';
+import translateZ0 from './utils/translateZ0';
 import userSelect from './utils/userSelect';
 import visibility from './utils/visibility';
 import whiteSpace from './utils/whiteSpace';
@@ -231,6 +232,7 @@ const styles = (theme: ThemeColors) =>
         ...overflow,
         ...positioning,
         ...wordBreak,
+        ...translateZ0,
         ...whiteSpace,
         ...writingDirection,
         ...cursor,
@@ -1191,17 +1193,22 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 15,
-            paddingRight: 5,
             ...userSelect.userSelectNone,
         },
 
         calendarDayRoot: {
             flex: 1,
-            height: 45,
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
             ...userSelect.userSelectNone,
+        },
+
+        calendarBodyContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT * CONST.MAX_CALENDAR_PICKER_ROWS,
+        },
+        calendarWeekContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
         },
 
         calendarDayContainer: {
@@ -1245,6 +1252,12 @@ const styles = (theme: ThemeColors) =>
             paddingBottom: 0,
             borderRadius: 8,
             borderColor: theme.border,
+        },
+
+        outlinedButton: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         optionRowAmountInput: {
@@ -1316,7 +1329,6 @@ const styles = (theme: ThemeColors) =>
         textInputIconContainer: {
             paddingHorizontal: 11,
             justifyContent: 'center',
-            margin: 1,
         },
 
         textInputLeftIconContainer: {
@@ -1755,6 +1767,12 @@ const styles = (theme: ThemeColors) =>
         sidebarListItem: {
             justifyContent: 'center',
             textDecorationLine: 'none',
+        },
+
+        topBarLabel: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+            ...headlineFont,
         },
 
         breadcrumsContainer: {
@@ -2394,10 +2412,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
         },
 
-        customMarginButtonWithMenuItem: {
-            marginRight: variables.bankButtonMargin,
-        },
-
         composerSizeButton: {
             alignSelf: 'center',
             height: 32,
@@ -2661,9 +2675,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
+        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
+            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
+        }),
 
         imageViewContainer: {
             width: '100%',
@@ -3953,14 +3967,6 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightXLarge,
         },
 
-        cardMenuItem: {
-            paddingLeft: 8,
-            paddingRight: 0,
-            borderRadius: variables.buttonBorderRadius,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
-        },
-
         emptyCardSectionTitle: {
             fontSize: variables.fontSizeXLarge,
             lineHeight: variables.lineHeightXXLarge,
@@ -4616,6 +4622,10 @@ const styles = (theme: ThemeColors) =>
             margin: 4,
         },
 
+        receiptPreviewAspectRatio: {
+            aspectRatio: 16 / 9,
+        },
+
         reportActionItemImages: {
             flexDirection: 'row',
             borderRadius: 12,
@@ -4782,6 +4792,8 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             borderWidth: 0,
         },
+
+        receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',

@@ -68,6 +68,7 @@ function BaseTextInput(
         type = 'default',
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
+        shouldHideClearButton = true,
         shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
@@ -77,6 +78,8 @@ function BaseTextInput(
         loadingSpinnerStyle,
         uncontrolled = false,
         placeholderTextColor,
+        onClearInput,
+        iconContainerStyle,
         ...inputProps
     }: BaseTextInputProps,
     ref: ForwardedRef<BaseTextInputRef>,
@@ -102,6 +105,7 @@ function BaseTextInput(
     const [textInputWidth, setTextInputWidth] = useState(0);
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [width, setWidth] = useState<number | null>(null);
+    const [prefixCharacterPadding, setPrefixCharacterPadding] = useState(8);
 
     const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
@@ -264,8 +268,8 @@ function BaseTextInput(
     ]);
     const isMultiline = multiline || autoGrowHeight;
 
-    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(StyleUtils.getCharacterPadding(prefixCharacter) + styles.pl1.paddingLeft);
-    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
+    const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
+    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(prefixCharacterPadding + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
@@ -329,6 +333,9 @@ function BaseTextInput(
                             {!!prefixCharacter && (
                                 <View style={[styles.textInputPrefixWrapper, prefixContainerStyle]}>
                                     <Text
+                                        onLayout={(event) => {
+                                            setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
+                                        }}
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
                                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
@@ -405,7 +412,7 @@ function BaseTextInput(
                                     </Text>
                                 </View>
                             )}
-                            {isFocused && !isReadOnly && shouldShowClearButton && !!value && (
+                            {((isFocused && !isReadOnly && shouldShowClearButton) || !shouldHideClearButton) && !!value && (
                                 <View
                                     onLayout={() => {
                                         if (didScrollToEndRef.current || !input.current) {
@@ -415,7 +422,12 @@ function BaseTextInput(
                                         didScrollToEndRef.current = true;
                                     }}
                                 >
-                                    <TextInputClearButton onPressButton={() => setValue('')} />
+                                    <TextInputClearButton
+                                        onPressButton={() => {
+                                            setValue('');
+                                            onClearInput?.();
+                                        }}
+                                    />
                                 </View>
                             )}
                             {inputProps.isLoading !== undefined && (
@@ -441,7 +453,7 @@ function BaseTextInput(
                                 </Checkbox>
                             )}
                             {!inputProps.secureTextEntry && !!icon && (
-                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone]}>
+                                <View style={[styles.textInputIconContainer, !isReadOnly ? styles.cursorPointer : styles.pointerEventsNone, iconContainerStyle]}>
                                     <Icon
                                         src={icon}
                                         fill={theme.icon}
