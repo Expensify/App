@@ -6,7 +6,7 @@ import useLocalize from '@hooks/useLocalize';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
 import type AddToWalletButtonProps from './types';
 
-function AddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButtonProps) {
+function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
@@ -22,23 +22,20 @@ function AddToWalletButton({card, cardHolderName, buttonStyle}: AddToWalletButto
     }, [card]);
 
     const handleOnPress = useCallback(() => {
-        handleAddCardToWallet(card, cardHolderName ?? '', checkIfCardIsInWallet);
-    }, [card, cardHolderName, checkIfCardIsInWallet]);
+        handleAddCardToWallet(card, cardHolderName, cardDescription, checkIfCardIsInWallet);
+    }, [card, cardDescription, cardHolderName, checkIfCardIsInWallet]);
 
     useEffect(() => {
         checkIfCardIsInWallet();
     }, [checkIfCardIsInWallet]);
 
-    console.log('[ZUZA LOG] is in wallet: ', !isWalletAvailable, '|', isInWallet == null);
     useEffect(() => {
         checkIfWalletIsAvailable()
             .then((result) => {
                 setIsWalletAvailable(result);
-                console.log('[ZUZA LOG]: checkWalletAvailability: ', result);
             })
-            .catch((e) => {
+            .catch(() => {
                 setIsWalletAvailable(false);
-                console.log('[ZUZA LOG]: checkWalletAvailability catch: ', e);
             });
     }, []);
 

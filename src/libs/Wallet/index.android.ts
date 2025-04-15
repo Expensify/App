@@ -5,11 +5,9 @@ import Log from '@libs/Log';
 import type {Card} from '@src/types/onyx';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
-    console.log('[ZUZA LOG]: checkIfWalletIsAvailable funkcja sie wykonuje index.android');
     return checkWalletAvailability();
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function handleAddCardToWallet(card: Card, cardHolderName: string) {
     getSecureWalletInfo().then((data: AndroidWalletData) => {
         createDigitalGoogleWallet(data)
