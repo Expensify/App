@@ -100,11 +100,11 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {translate} = useLocalize();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
     const emojiCode = currentUserPersonalDetails?.status?.emojiCode ?? '';
-    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
+    const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`, {canBeMissing: true});
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {canUseLeftHandBar} = usePermissions();
 
-    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
+    const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const subscriptionPlan = useSubscriptionPlan();
     const hasBrokenFeedConnection = checkIfFeedConnectionIsBroken(allCards, CONST.EXPENSIFY_CARD.BANK);
     const hasPendingCardAction = hasPendingExpensifyCardAction(allCards);
