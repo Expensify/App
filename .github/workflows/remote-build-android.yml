@@ -9,7 +9,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest-xl
+    runs-on: ${{ github.repository_owner == 'Expensify' && ubuntu-latest-xl || ubuntu-latest }}
     strategy:
       fail-fast: false
       matrix:
