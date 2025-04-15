@@ -37,10 +37,17 @@ function SMSDeliveryFailurePage() {
     };
 
     const timeData = useMemo<TimeData | null>(() => {
-        if (!SMSDeliveryFailureMessage?.length) {
+        if (!SMSDeliveryFailureMessage) {
             return null;
         }
-        return JSON.parse(SMSDeliveryFailureMessage) as TimeData;
+
+        const parsedData = JSON.parse(SMSDeliveryFailureMessage) as TimeData | [];
+
+        if (Array.isArray(parsedData) && !parsedData.length) {
+            return null;
+        }
+
+        return parsedData as TimeData;
     }, [SMSDeliveryFailureMessage]);
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
