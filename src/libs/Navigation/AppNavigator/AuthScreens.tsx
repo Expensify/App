@@ -68,6 +68,7 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
+import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
@@ -677,6 +678,12 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={SCREENS.BANK_CONNECTION_COMPLETE}
                     options={rootNavigatorScreenOptions.fullScreen}
                     component={ConnectionCompletePage}
+                />
+                <RootStack.Screen
+                    name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
+                    options={rootNavigatorScreenOptions.basicModalNavigator}
+                    component={TestToolsModalNavigator}
+                    listeners={modalScreenListeners}
                 />
             </RootStack.Navigator>
             <SearchRouterModal />
