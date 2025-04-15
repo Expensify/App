@@ -5587,6 +5587,12 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
         },
+
+        earlyDiscountButton: {
+            flexGrow: 1,
+            flexShrink: 1,
+            flexBasis: 'auto',
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

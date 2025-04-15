@@ -55,7 +55,7 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
 
                 initializeOpenAIRealtime(Number(reportID) ?? CONST.DEFAULT_NUMBER_ID, abTestCtaText());
             }}
-            style={shouldUseNarrowLayout && [styles.flex1, styles.flexBasisAuto]}
+            style={shouldUseNarrowLayout && styles.earlyDiscountButton}
             icon={talkToSalesIcon()}
             isLoading={talkToAISales?.isLoading}
         />
