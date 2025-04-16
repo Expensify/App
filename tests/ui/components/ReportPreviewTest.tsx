@@ -77,6 +77,7 @@ describe('ReportPreview', () => {
                         action={createRandomReportAction(0)}
                         policyID=""
                         checkIfContextMenuActive={() => {}}
+                        onShowContextMenu={() => {}}
                     />
                 </LocaleContextProvider>
             </OnyxProvider>,

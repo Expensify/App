@@ -6,6 +6,7 @@ import {InteractionManager, Keyboard, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
+import * as ActionSheetAwareScrollView from '@components/ActionSheetAwareScrollView';
 import {AttachmentContext} from '@components/AttachmentContext';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
@@ -393,6 +394,7 @@ function PureReportActionItem({
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
 }: PureReportActionItemProps) {
+    const actionSheetAwareScrollViewContext = useContext(ActionSheetAwareScrollView.ActionSheetAwareScrollViewContext);
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const reportID = report?.reportID ?? action?.reportID;
@@ -545,6 +547,29 @@ function PureReportActionItem({
         setIsContextMenuActive(isActiveReportAction(action.reportActionID));
     }, [action.reportActionID]);
 
+    const handleShowContextMenu = useCallback(
+        (callback: () => void) => {
+            if (!(popoverAnchorRef.current && 'measureInWindow' in popoverAnchorRef.current)) {
+                return;
+            }
+
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
+                actionSheetAwareScrollViewContext.transitionActionSheetState({
+                    type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
+                    payload: {
+                        popoverHeight: 0,
+                        frameY,
+                        height,
+                    },
+                });
+
+                callback();
+            });
+        },
+        [actionSheetAwareScrollViewContext],
+    );
+
     const disabledActions = useMemo(() => (!canWriteInReport(report) ? RestrictedReadOnlyContextMenuActions : []), [report]);
 
     /**
@@ -559,30 +584,32 @@ function PureReportActionItem({
                 return;
             }
 
-            setIsContextMenuActive(true);
-            const selection = SelectionScraper.getCurrentSelection();
-            showContextMenu({
-                type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
-                event,
-                selection,
-                contextMenuAnchor: popoverAnchorRef.current,
-                report: {
-                    reportID,
-                    originalReportID,
-                    isArchivedRoom,
-                    isChronos: isChronosReport,
-                },
-                reportAction: {
-                    reportActionID: action.reportActionID,
-                    draftMessage,
-                    isThreadReportParentAction,
-                },
-                callbacks: {
-                    onShow: toggleContextMenuFromActiveReportAction,
-                    onHide: toggleContextMenuFromActiveReportAction,
-                    setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
-                },
-                disabledOptions: disabledActions,
+            handleShowContextMenu(() => {
+                setIsContextMenuActive(true);
+                const selection = SelectionScraper.getCurrentSelection();
+                showContextMenu({
+                    type: CONST.CONTEXT_MENU_TYPES.REPORT_ACTION,
+                    event,
+                    selection,
+                    contextMenuAnchor: popoverAnchorRef.current,
+                    report: {
+                        reportID,
+                        originalReportID,
+                        isArchivedRoom,
+                        isChronos: isChronosReport,
+                    },
+                    reportAction: {
+                        reportActionID: action.reportActionID,
+                        draftMessage,
+                        isThreadReportParentAction,
+                    },
+                    callbacks: {
+                        onShow: toggleContextMenuFromActiveReportAction,
+                        onHide: toggleContextMenuFromActiveReportAction,
+                        setIsEmojiPickerActive: setIsEmojiPickerActive as () => void,
+                    },
+                    disabledOptions: disabledActions,
+                });
             });
         },
         [
@@ -595,6 +622,7 @@ function PureReportActionItem({
             disabledActions,
             isArchivedRoom,
             isChronosReport,
+            handleShowContextMenu,
             isThreadReportParentAction,
         ],
     );
@@ -614,10 +642,11 @@ function PureReportActionItem({
             action,
             transactionThreadReport,
             checkIfContextMenuActive: toggleContextMenuFromActiveReportAction,
+            onShowContextMenu: handleShowContextMenu,
             isDisabled: false,
             shouldDisplayContextMenu,
         }),
-        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, reportNameValuePairs, shouldDisplayContextMenu],
+        [report, action, toggleContextMenuFromActiveReportAction, transactionThreadReport, handleShowContextMenu, reportNameValuePairs, shouldDisplayContextMenu],
     );
 
     const attachmentContextValue = useMemo(() => {
@@ -789,6 +818,7 @@ function PureReportActionItem({
                     isMostRecentIOUReportAction={isMostRecentIOUReportAction}
                     isHovered={hovered}
                     contextMenuAnchor={popoverAnchorRef.current}
+                    onShowContextMenu={handleShowContextMenu}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     style={displayAsGroup ? [] : [styles.mt2]}
                     isWhisper={isWhisper}
@@ -857,6 +887,7 @@ function PureReportActionItem({
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
                     action={action}
                     isHovered={hovered}
+                    onShowContextMenu={handleShowContextMenu}
                     contextMenuAnchor={popoverAnchorRef.current}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
@@ -876,6 +907,7 @@ function PureReportActionItem({
                         chatReportID={reportID}
                         action={action}
                         isHovered={hovered}
+                        onShowContextMenu={handleShowContextMenu}
                         contextMenuAnchor={popoverAnchorRef.current}
                         checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                         policyID={report?.policyID}
