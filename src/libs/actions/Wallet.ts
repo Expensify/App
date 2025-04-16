@@ -1,4 +1,4 @@
-import type {AndroidCardData, AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import type {AndroidCardData, AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';

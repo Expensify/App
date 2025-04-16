@@ -1,5 +1,5 @@
 import {addCardToAppleWallet, checkWalletAvailability, getCardStatus} from '@expensify/react-native-wallet';
-import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import type {IOSCardData} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import Log from '@libs/Log';

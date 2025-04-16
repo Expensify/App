@@ -1,5 +1,5 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardTokenStatus, getSecureWalletInfo} from '@expensify/react-native-wallet';
-import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
