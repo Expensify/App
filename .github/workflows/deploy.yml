@@ -45,20 +45,16 @@ jobs:
         id: getAppVersion
         run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Get tag name
-        id: getTagName
-        run: echo "TAG=${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
-
       - name: Create and push tag
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          git tag ${{ steps.getTagName.outputs.TAG }}
+          TAG_NAME=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{}-staging', steps.getAppVersion.outputs.VERSION)}}
+          git tag "$TAG_NAME"
           git push origin --tags
           cd Mobile-Expensify
-          git tag ${{ steps.getTagName.outputs.TAG }}
+          git tag "$TAG_NAME"
           git push origin --tags
 
-  # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
+    # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
     name: Create or update deploy checklist
     uses: ./.github/workflows/createDeployChecklist.yml
