@@ -123,7 +123,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
     return (
         <ScreenWrapper
             testID={ImportedTagsPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.tags.importTags')}
@@ -147,6 +147,7 @@ function ImportedTagsPage({route}: ImportedTagsPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );
