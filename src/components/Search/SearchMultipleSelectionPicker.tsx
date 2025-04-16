@@ -8,7 +8,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {OptionData} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
@@ -48,7 +47,8 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
     }, [initiallySelectedItems]);
 
     const {sections, noResultsFound} = useMemo(() => {
-        const selectedItemsSection = tokenizedSearch(selectedItems, debouncedSearchTerm, (item) => [item?.name])
+        const selectedItemsSection = selectedItems
+            .filter((item) => item?.name.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))
             .map((item) => ({
                 text: item.name,
@@ -56,7 +56,6 @@ function SearchMultipleSelectionPicker({items, initiallySelectedItems, pickerTit
                 isSelected: true,
                 value: item.value,
             }));
-
         const remainingItemsSection = items
             .filter((item) => selectedItems.some((selectedItem) => selectedItem.value === item.value) === false && item?.name?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase()))
             .sort((a, b) => sortOptionsWithEmptyValue(a, b))

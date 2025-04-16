@@ -19,7 +19,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -100,7 +99,7 @@ function NewReportWorkspaceSelectionPage() {
     }, [policies, isOffline, currentUserPersonalDetails?.login]);
 
     const filteredAndSortedUserWorkspaces = useMemo<WorkspaceListItem[]>(
-        () => tokenizedSearch(usersWorkspaces, debouncedSearchTerm, (policy) => [policy.text ?? '']),
+        () => usersWorkspaces.filter((policy) => policy.text?.toLowerCase().includes(debouncedSearchTerm?.toLowerCase() ?? '')),
         [debouncedSearchTerm, usersWorkspaces],
     );
 

@@ -33,7 +33,6 @@ import type {MemberEmailsToAccountIDs} from '@libs/PolicyUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getReportName, isHiddenForCurrentUser} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -132,7 +131,7 @@ function RoomInvitePage({
                 const isOptionInPersonalDetails = personalDetails ? personalDetails.some((personalDetail) => accountID && personalDetail?.accountID === accountID) : false;
                 const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(debouncedSearchTerm)));
                 const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number ? parsedPhoneNumber.number.e164 : debouncedSearchTerm.toLowerCase();
-                const isPartOfSearchTerm = tokenizedSearch([option.text, option.login], searchValue, (value) => (value ? [value] : [])).length > 0;
+                const isPartOfSearchTerm = (option.text?.toLowerCase() ?? '').includes(searchValue) || (option.login?.toLowerCase() ?? '').includes(searchValue);
                 return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }

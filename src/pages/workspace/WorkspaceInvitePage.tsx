@@ -28,7 +28,6 @@ import type {MemberForList} from '@libs/OptionsListUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
 import {getIneligibleInvitees, getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import tokenizedSearch from '@libs/tokenizedSearch';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -171,12 +170,14 @@ function WorkspaceInvitePage({route, policy}: WorkspaceInvitePageProps) {
         // Filter all options that is a part of the search term or in the personal details
         let filterSelectedOptions = selectedOptions;
         if (debouncedSearchTerm !== '') {
-            const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
-            filterSelectedOptions = tokenizedSearch(selectedOptions, searchValue, (option) => {
+            filterSelectedOptions = selectedOptions.filter((option) => {
                 const accountID = option.accountID;
                 const isOptionInPersonalDetails = Object.values(personalDetails).some((personalDetail) => personalDetail.accountID === accountID);
-                const searchableFields = [option.text?.toLowerCase(), option.login?.toLowerCase()].filter(Boolean);
-                return isOptionInPersonalDetails ? [] : searchableFields;
+
+                const searchValue = getSearchValueForPhoneOrEmail(debouncedSearchTerm);
+
+                const isPartOfSearchTerm = !!option.text?.toLowerCase().includes(searchValue) || !!option.login?.toLowerCase().includes(searchValue);
+                return isPartOfSearchTerm || isOptionInPersonalDetails;
             });
         }
 
