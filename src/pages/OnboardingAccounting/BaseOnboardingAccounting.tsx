@@ -52,20 +52,20 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
-    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID);
-    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: false});
+    const [onboardingPolicyID] = useOnyx(ONYXKEYS.ONBOARDING_POLICY_ID, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [onboardingAdminsChatReportID] = useOnyx(ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID, {canBeMissing: false});
+    const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE, {canBeMissing: false});
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const [userReportedIntegration, setUserReportedIntegration] = useState<OnboardingAccounting | undefined>(undefined);
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
-    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: false});
     const {isOffline} = useNetwork();
     const isLoading = onboarding?.isLoading;
     const prevIsLoading = usePrevious(isLoading);
