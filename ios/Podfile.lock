@@ -1,24 +1,24 @@
 PODS:
-  - Airship (19.2.0):
-    - Airship/Automation (= 19.2.0)
-    - Airship/Basement (= 19.2.0)
-    - Airship/Core (= 19.2.0)
-    - Airship/FeatureFlags (= 19.2.0)
-    - Airship/MessageCenter (= 19.2.0)
-    - Airship/PreferenceCenter (= 19.2.0)
-  - Airship/Automation (19.2.0):
+  - Airship (19.1.0):
+    - Airship/Automation (= 19.1.0)
+    - Airship/Basement (= 19.1.0)
+    - Airship/Core (= 19.1.0)
+    - Airship/FeatureFlags (= 19.1.0)
+    - Airship/MessageCenter (= 19.1.0)
+    - Airship/PreferenceCenter (= 19.1.0)
+  - Airship/Automation (19.1.0):
     - Airship/Core
-  - Airship/Basement (19.2.0)
-  - Airship/Core (19.2.0):
+  - Airship/Basement (19.1.0)
+  - Airship/Core (19.1.0):
     - Airship/Basement
-  - Airship/FeatureFlags (19.2.0):
+  - Airship/FeatureFlags (19.1.0):
     - Airship/Core
-  - Airship/MessageCenter (19.2.0):
+  - Airship/MessageCenter (19.1.0):
     - Airship/Core
-  - Airship/PreferenceCenter (19.2.0):
+  - Airship/PreferenceCenter (19.1.0):
     - Airship/Core
-  - AirshipFrameworkProxy (14.1.0):
-    - Airship (= 19.2.0)
+  - AirshipFrameworkProxy (13.2.0):
+    - Airship (= 19.1.0)
   - AirshipServiceExtension (18.7.2)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
@@ -1735,7 +1735,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - Yoga
   - react-native-airship (22.0.0):
-    - AirshipFrameworkProxy (= 14.1.0)
+    - AirshipFrameworkProxy (= 13.2.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3624,9 +3624,9 @@ CHECKOUT OPTIONS:
 
 SPEC CHECKSUMS:
   Airship: eb4783c5465b9440a995169bdabfa6194ca8e3c5
-  AirshipFrameworkProxy: 6b6bee0ef983258931a67f701f1171e9ded2d8c5
-  AirshipServiceExtension: b97fc3d231d21833aa9a27cffab8d67accd8a4cc
-  AppAuth: d4f13a8fe0baf391b2108511793e4b479691fb73
+  AirshipFrameworkProxy: de286bad2060f857bbe35215ac9711512c645b2b
+  AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
+  AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
   boost: 7e761d76ca2ce687f7cc98e698152abd03a18f90
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
