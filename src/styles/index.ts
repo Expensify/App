@@ -1135,8 +1135,6 @@ const styles = (theme: ThemeColors) =>
             width: variables.sideBarWidth,
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginTop: 0,
-            paddingTop: 0,
         },
 
         reportOptions: {
@@ -1635,8 +1633,6 @@ const styles = (theme: ThemeColors) =>
             justifyContent: 'space-between',
             borderRightWidth: 1,
             borderColor: theme.border,
-            marginTop: 0,
-            paddingTop: 0,
         },
 
         // Sidebar Styles
