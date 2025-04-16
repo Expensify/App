@@ -378,7 +378,9 @@ function MoneyRequestReportPreviewContent({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [lastVisibleIndex, setLastVisibleIndex] = useState(0);
+    const [visibleItemsCount, setVisibleItemsCount] = useState(0);
+    const [optimisticLast, setOptimisticLast] = useState(transactions.length === 1);
+    const [optimisticFirst, setOptimisticFirst] = useState(true);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 90};
@@ -387,18 +389,28 @@ function MoneyRequestReportPreviewContent({
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
-        const lastIndex = viewableItems.at(viewableItems.length - 1)?.index;
+        setVisibleItemsCount(viewableItems.length);
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);
-        }
-        if (typeof lastIndex === 'number') {
-            setLastVisibleIndex(lastIndex);
+            if (newIndex + viewableItems.length === transactions.length) {
+                setOptimisticLast(false);
+            }
+            if (newIndex === 0) {
+                setOptimisticFirst(false);
+            }
         }
     }).current;
 
     const handleChange = (index: number) => {
         if (index >= transactions.length || index < 0) {
             return;
+        }
+        if (index === 0) {
+            setOptimisticFirst(true);
+        }
+
+        if (index + visibleItemsCount === transactions.length) {
+            setOptimisticLast(true);
         }
         carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
     };
@@ -504,7 +516,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityLabel="button"
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
-                                                        disabled={currentIndex === 0}
+                                                        disabled={(currentIndex === 0 || optimisticFirst) && !optimisticLast}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
@@ -520,7 +532,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityLabel="button"
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
-                                                        disabled={lastVisibleIndex === Math.min(transactions.length - 1, 10)}
+                                                        disabled={(currentIndex + visibleItemsCount === transactions.length || optimisticLast) && !optimisticFirst}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
