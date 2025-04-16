@@ -47,7 +47,7 @@ jobs:
 
       - name: Create and push tag
         run: |
-          TAG_NAME=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{}-staging', steps.getAppVersion.outputs.VERSION)}}
+          TAG_NAME=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION)}}
           git tag "$TAG_NAME"
           git push origin --tags
           cd Mobile-Expensify
