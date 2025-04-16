@@ -1893,6 +1893,7 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
+    TEST_DRIVE_MODAL_ROOT: 'onboarding/test-drive',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
