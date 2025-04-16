@@ -5,6 +5,7 @@ import isEmpty from 'lodash/isEmpty';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -800,6 +801,15 @@ function isResolvedActionableWhisper(reportAction: OnyxEntry<ReportAction>): boo
 }
 
 /**
+ * Checks whether an action is concierge category options and resolved.
+ */
+function isResolvedConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): boolean {
+    const originalMessage = getOriginalMessage(reportAction);
+    const selectedCategory = originalMessage && typeof originalMessage === 'object' && 'selectedCategory' in originalMessage ? originalMessage?.selectedCategory : null;
+    return !!selectedCategory;
+}
+
+/**
  * Checks if a reportAction is fit for display, meaning that it's not deprecated, is of a valid
  * and supported type, it's not deleted and also not closed.
  */
@@ -1115,6 +1125,24 @@ function getIOUReportIDFromReportActionPreview(reportAction: OnyxEntry<ReportAct
  */
 function isMessageDeleted(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
     return getReportActionMessage(reportAction)?.isDeletedParentAction ?? false;
+}
+
+/**
+ * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
+ */
+function useNewTableReportViewActionRenderConditionals({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: ReportAction) {
+    const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
+
+    const isActionAReportPreview = actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    const isActionInUpdateState = pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    const reportsCount = childMoneyRequestCount;
+    const previousReportsCount = previousChildMoneyRequestCount ?? 0;
+    const commentsCount = childVisibleActionCount ?? 0;
+
+    const isEmptyPreviewWithComments = reportsCount === 0 && commentsCount > 0 && previousReportsCount > 0;
+
+    // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a PureReportActionItem with no ReportPreview but only comments
+    return !(isActionAReportPreview && isActionInUpdateState && isEmptyPreviewWithComments);
 }
 
 /**
@@ -1617,6 +1645,10 @@ function isActionableJoinRequestPendingReportAction(reportAction: OnyxEntry<Repo
     return isActionableJoinRequest(reportAction) && getOriginalMessage(reportAction)?.choice === ('' as JoinWorkspaceResolution);
 }
 
+function isConciergeCategoryOptions(reportAction: OnyxEntry<ReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS> {
+    return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS);
+}
+
 function getActionableJoinRequestPendingReportAction(reportID: string): OnyxEntry<ReportAction> {
     const findPendingRequest = Object.values(getAllReportActions(reportID)).find((reportActionItem) => isActionableJoinRequestPendingReportAction(reportActionItem));
     return findPendingRequest;
@@ -1691,8 +1723,7 @@ function getIOUActionForReportID(reportID: string | undefined, transactionID: st
     if (!reportID || !transactionID) {
         return undefined;
     }
-    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportActions = getAllReportActions(report?.reportID);
+    const reportActions = getAllReportActions(reportID);
 
     return getIOUActionForTransactionID(Object.values(reportActions ?? {}), transactionID);
 }
@@ -1957,7 +1988,7 @@ function getWorkspaceCategoryUpdateMessage(action: ReportAction): string {
 }
 
 function getWorkspaceTagUpdateMessage(action: ReportAction): string {
-    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField} =
+    const {tagListName, tagName, enabled, newName, newValue, oldName, oldValue, updatedField, count} =
         getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY>) ?? {};
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
@@ -1974,8 +2005,9 @@ function getWorkspaceTagUpdateMessage(action: ReportAction): string {
         });
     }
 
-    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && tagListName) {
+    if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
         return translateLocal('workspaceActions.deleteMultipleTags', {
+            count,
             tagListName,
         });
     }
@@ -2377,6 +2409,8 @@ export {
     isActionableMentionWhisper,
     isActionableReportMentionWhisper,
     isActionableTrackExpense,
+    isConciergeCategoryOptions,
+    isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
     isChronosOOOListAction,
@@ -2393,6 +2427,7 @@ export {
     isMemberChangeAction,
     isExportIntegrationAction,
     isMessageDeleted,
+    useNewTableReportViewActionRenderConditionals,
     isModifiedExpenseAction,
     isMoneyRequestAction,
     isNotifiableReportAction,
@@ -2425,6 +2460,7 @@ export {
     isForwardedAction,
     isWhisperActionTargetedToOthers,
     isTagModificationAction,
+    isResolvedActionableWhisper,
     shouldHideNewMarker,
     shouldReportActionBeVisible,
     shouldReportActionBeVisibleAsLastAction,

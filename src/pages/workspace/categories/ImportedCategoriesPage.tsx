@@ -134,7 +134,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     return (
         <ScreenWrapper
             testID={ImportedCategoriesPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
@@ -160,6 +160,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );

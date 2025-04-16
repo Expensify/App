@@ -31,8 +31,8 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -589,14 +589,7 @@ type ModalPaddingStylesParams = {
     shouldAddTopSafeAreaMargin: boolean;
     shouldAddBottomSafeAreaPadding: boolean;
     shouldAddTopSafeAreaPadding: boolean;
-    safeAreaPaddingTop: number;
-    safeAreaPaddingBottom: number;
-    safeAreaPaddingLeft: number;
-    safeAreaPaddingRight: number;
-    modalContainerStyleMarginTop: MarginPaddingValue;
-    modalContainerStyleMarginBottom: MarginPaddingValue;
-    modalContainerStylePaddingTop: MarginPaddingValue;
-    modalContainerStylePaddingBottom: MarginPaddingValue;
+    modalContainerStyle: ViewStyle;
     insets: EdgeInsets;
 };
 
@@ -605,24 +598,19 @@ function getModalPaddingStyles({
     shouldAddTopSafeAreaMargin,
     shouldAddBottomSafeAreaPadding,
     shouldAddTopSafeAreaPadding,
-    safeAreaPaddingTop,
-    safeAreaPaddingBottom,
-    safeAreaPaddingLeft,
-    safeAreaPaddingRight,
-    modalContainerStyleMarginTop,
-    modalContainerStyleMarginBottom,
-    modalContainerStylePaddingTop,
-    modalContainerStylePaddingBottom,
+    modalContainerStyle,
     insets,
 }: ModalPaddingStylesParams): ViewStyle {
+    const {paddingTop: safeAreaPaddingTop, paddingBottom: safeAreaPaddingBottom, paddingLeft: safeAreaPaddingLeft, paddingRight: safeAreaPaddingRight} = getPlatformSafeAreaPadding(insets);
+
     // use fallback value for safeAreaPaddingBottom to keep padding bottom consistent with padding top.
     // More info: issue #17376
-    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStylePaddingTop === 'number' ? modalContainerStylePaddingTop ?? 0 : safeAreaPaddingBottom;
+    const safeAreaPaddingBottomWithFallback = insets.bottom === 0 && typeof modalContainerStyle.paddingTop === 'number' ? modalContainerStyle.paddingTop ?? 0 : safeAreaPaddingBottom;
     return {
-        marginTop: getCombinedSpacing(modalContainerStyleMarginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
-        marginBottom: getCombinedSpacing(modalContainerStyleMarginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
-        paddingTop: getCombinedSpacing(modalContainerStylePaddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
-        paddingBottom: getCombinedSpacing(modalContainerStylePaddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
+        marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
+        marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
+        paddingTop: getCombinedSpacing(modalContainerStyle.paddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStyle.paddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -701,6 +689,15 @@ function getPaddingLeft(paddingLeft: number): ViewStyle {
 function getPaddingRight(paddingRight: number): ViewStyle {
     return {
         paddingRight,
+    };
+}
+
+/**
+ * Get variable padding-bottom as style
+ */
+function getPaddingBottom(paddingBottom: number): ViewStyle {
+    return {
+        paddingBottom,
     };
 }
 
@@ -1201,6 +1198,7 @@ const staticStyleUtils = {
     getBackgroundColorWithOpacityStyle,
     getPaddingLeft,
     getPaddingRight,
+    getPaddingBottom,
     hasSafeAreas,
     getHeight,
     getMinimumHeight,
@@ -1250,7 +1248,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
-    getSearchBottomTabHeaderStyles,
+    getSearchPageNarrowHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
