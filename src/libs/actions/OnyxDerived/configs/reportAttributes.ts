@@ -1,7 +1,7 @@
 import {generateReportName} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributes} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 /**
  * This derived value is used to get the report attributes for the report.
@@ -13,12 +13,15 @@ export default createOnyxDerivedValueConfig({
     dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.PERSONAL_DETAILS_LIST, ONYXKEYS.NVP_PREFERRED_LOCALE],
     compute: ([reports, personalDetails, preferredLocale], {currentValue, sourceValues}) => {
         if (!reports || !personalDetails || !preferredLocale) {
-            return {};
+            return {
+                reports: {},
+                locale: null,
+            };
         }
 
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
 
-        return Object.values(reportUpdates ?? reports).reduce<Record<string, ReportAttributes>>(
+        const reportAttributes = Object.values(reportUpdates ?? reports).reduce<ReportAttributesDerivedValue['reports']>(
             (acc, report) => {
                 if (!report) {
                     return acc;
@@ -30,7 +33,12 @@ export default createOnyxDerivedValueConfig({
 
                 return acc;
             },
-            reportUpdates && currentValue ? currentValue : {},
+            reportUpdates && currentValue ? currentValue.reports : {},
         );
+
+        return {
+            reports: reportAttributes,
+            locale: preferredLocale,
+        };
     },
 });

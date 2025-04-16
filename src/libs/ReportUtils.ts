@@ -43,7 +43,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
-    ReportAttributes,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -1036,14 +1036,14 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+let reportAttributes: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value;
+        reportAttributes = value.reports;
     },
 });
 

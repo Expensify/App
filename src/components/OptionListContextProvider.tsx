@@ -46,8 +46,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         reports: [],
         personalDetails: [],
     });
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: false});
-    const prevPreferredLocale = usePrevious(preferredLocale);
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {canBeMissing: true});
+    const prevReportAttributesLocale = usePrevious(reportAttributes?.locale);
     const [reports, {sourceValue: changedReports}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
@@ -73,15 +73,16 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [reports, personalDetails, hasInitialData, loadOptions]);
 
     /**
-     * This effect is responsible for generating the options list when the preferred locale changes
+     * This effect is responsible for generating the options list when the locale changes
+     * Since options might use report attributes, it's necessary to call this after report attributes are loaded with the new locale to make sure the options are generated in a proper language
      */
     useEffect(() => {
-        if (preferredLocale === prevPreferredLocale) {
+        if (reportAttributes?.locale === prevReportAttributesLocale) {
             return;
         }
 
         loadOptions();
-    }, [preferredLocale, prevPreferredLocale, loadOptions]);
+    }, [prevReportAttributesLocale, loadOptions, reportAttributes?.locale]);
 
     /**
      * This effect is responsible for updating the options only for changed reports
