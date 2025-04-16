@@ -72,6 +72,7 @@ function SubscriptionSettings() {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
+    const adminsRoomReport = activePolicyID ? getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID) : undefined;
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -157,11 +158,7 @@ function SubscriptionSettings() {
     );
 
     const openAdminsRoom = () => {
-        if (!activePolicyID) {
-            return;
-        }
-        const roomReport = getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(roomReport?.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsRoomReport?.reportID));
     };
 
     if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM)) {
@@ -183,7 +180,11 @@ function SubscriptionSettings() {
                     {translate('subscription.subscriptionSettings.learnMore.part1')}
                     <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
                     {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
+                    {adminsRoomReport ? (
+                        <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
+                    ) : (
+                        translate('subscription.subscriptionSettings.learnMore.adminsRoom')
+                    )}
                 </Text>
                 <Text style={styles.mutedNormalTextLabel}>{translate('subscription.subscriptionSettings.estimatedPrice')}</Text>
                 <Text style={styles.mv1}>{priceDetails}</Text>
