@@ -46,6 +46,7 @@ type EnrichedPolicyReportField = {
 } & PolicyReportField;
 
 function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
+    const ERROR = 'error';
     return (
         <OfflineWithFeedback
             // Need to return undefined when we have pendingAction to avoid the duplicate pending action
@@ -65,11 +66,11 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 wrapperStyle={[styles.pv2, styles.taskDescriptionMenuItem]}
                 shouldGreyOutWhenDisabled={false}
                 numberOfLinesTitle={0}
-                interactive
+                interactive={!reportField.isFieldDisabled}
                 shouldStackHorizontally={false}
                 onSecondaryInteraction={() => {}}
                 titleWithTooltips={[]}
-                brickRoadIndicator={reportField.violation ? 'error' : undefined}
+                brickRoadIndicator={reportField.violation ? ERROR : undefined}
                 errorText={reportField.violationTranslation}
             />
         </OfflineWithFeedback>
@@ -91,6 +92,7 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
         const fields = getAvailableReportFields(report, Object.values(policy?.fieldList ?? {}));
         return fields
             .filter((field) => field.target === report?.type)
+            .filter((reportField) => !shouldHideSingleReportField(reportField))
             .sort(({orderWeight: firstOrderWeight}, {orderWeight: secondOrderWeight}) => firstOrderWeight - secondOrderWeight)
             .map((field): EnrichedPolicyReportField => {
                 const fieldValue = field.value ?? field.defaultValue;
@@ -116,15 +118,13 @@ function MoneyRequestViewReportFields({report, policy, isCombinedReport = false,
     const isPaidGroupPolicyExpenseReport = isPaidGroupPolicyExpenseReportUtils(report);
     const isInvoiceReport = isInvoiceReportUtils(report);
 
+    const shouldDisplayReportFields = (isPaidGroupPolicyExpenseReport || isInvoiceReport) && policy?.areReportFieldsEnabled && (!isOnlyTitleFieldEnabled || !isCombinedReport);
+
     return (
-        (isPaidGroupPolicyExpenseReport || isInvoiceReport) &&
-        policy?.areReportFieldsEnabled &&
-        (!isOnlyTitleFieldEnabled || !isCombinedReport) &&
-        sortedPolicyReportFields
-            .filter((reportField) => !shouldHideSingleReportField(reportField))
-            .map((reportField) => {
-                return ReportFieldView(reportField, report, styles, pendingAction);
-            })
+        shouldDisplayReportFields &&
+        sortedPolicyReportFields.map((reportField) => {
+            return ReportFieldView(reportField, report, styles, pendingAction);
+        })
     );
 }
 MoneyRequestViewReportFields.displayName = 'MoneyRequestViewReportFields';
