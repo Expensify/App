@@ -8,11 +8,9 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
-import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -44,8 +42,6 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
 
     const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
     const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const hasTeam2025Pricing = useHasTeam2025Pricing();
-    const subscriptionPlan = useSubscriptionPlan();
 
     const initialDiscountInfo = getEarlyDiscountInfo();
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);
