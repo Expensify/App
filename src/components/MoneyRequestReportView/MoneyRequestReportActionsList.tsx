@@ -278,9 +278,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
         }
 
         setUnreadMarkerTime(mostRecentReportActionCreated);
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [lastAction?.created]);
+    }, [lastAction?.created, unreadMarkerReportActionID, unreadMarkerTime]);
 
     const scrollToBottomForCurrentUserAction = useCallback(
         (isFromCurrentUser: boolean) => {
@@ -302,7 +300,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
     );
 
     useEffect(() => {
-        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.js. This allows us to maintain
+        // This callback is triggered when a new action arrives via Pusher and the event is emitted from Report.ts. This allows us to maintain
         // a single source of truth for the "new action" event instead of trying to derive that a new action has appeared from looking at props.
         const unsubscribe = subscribeToNewActionEvent(report.reportID, scrollToBottomForCurrentUserAction);
 
@@ -313,6 +311,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
             unsubscribe();
         };
 
+        // This effect handles subscribing to events, so we only want to run it to run on mount, and in case reportID changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 

@@ -24,7 +24,7 @@ type ShouldDisplayNewMarkerOnReportActionParams = {
     /** Current value for vertical offset */
     scrollingVerticalOffset: number;
 
-    /** Current value for vertical offset */
+    /** The id of reportAction that was last marked as read */
     prevUnreadMarkerReportActionID: string | null;
 };
 
