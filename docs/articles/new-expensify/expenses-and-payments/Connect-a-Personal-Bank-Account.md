@@ -1,11 +1,9 @@
 ---
-title: connect-a-personal-bank-account.md
+title: Connect a Personal Bank Account
 description: Learn how to connect your personal bank account to receive reimbursements in Expensify, including support for both US and international accounts.
-keywords: [bank account, personal bank account, reimbursements, wallet, international deposit, US deposit, Plaid, Corpay, connect bank, add bank, Settings > Wallet]
+keywords: [New Expensify, bank account, personal bank account, reimbursements, wallet, US bank account, non-US bank account]
 ---
 <div id="new-expensify" markdown="1">
-
-# Overview
 
 You can add a personal bank account to receive reimbursements in 190+ countries worldwide. All accounts are added in Settings > Wallet > Bank accounts. The steps vary depending on the country selected.
 
@@ -15,7 +13,7 @@ You can add a personal bank account to receive reimbursements in 190+ countries 
 
 To add a US bank account, we use **Plaid**, an encrypted third-party financial data platform that securely verifies your banking information.
 
-## Steps:
+**To connect a US bank account:**
 1. Go to Settings > Wallet > Bank accounts.
 2. Select **Add bank account**.
 3. When prompted, select **United States** as your country.
@@ -34,7 +32,7 @@ To add a US bank account, we use **Plaid**, an encrypted third-party financial d
 
 You can add a non-US deposit account by manually entering the account details. The steps vary depending on your country and selected currency.
 
-## Steps:
+**To connect a non-US bank account:**
 1. Go to Settings > Wallet > Bank accounts.
 2. Select **Add bank account**.
 3. Select your country from the list.
@@ -81,4 +79,3 @@ No. Expensify does not charge you to add or use a personal account. It’s inclu
 Yes. Expensify supports personal bank accounts from 190+ countries, but there’s a small number not supported. The full list of supported countries is available when adding a personal bank account. 
 
 </div>
-
