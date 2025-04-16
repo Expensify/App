@@ -332,6 +332,8 @@ const WRITE_COMMANDS = {
     APPROVE_MONEY_REQUEST_ON_SEARCH: 'ApproveMoneyRequestOnSearch',
     UNHOLD_MONEY_REQUEST_ON_SEARCH: 'UnholdMoneyRequestOnSearch',
     REQUEST_REFUND: 'User_RefundPurchase',
+    OPEN_SIDE_PANEL: 'OpenSidePanel',
+    CLOSE_SIDE_PANEL: 'CloseSidePanel',
     UPDATE_NETSUITE_SUBSIDIARY: 'UpdateNetSuiteSubsidiary',
     CREATE_WORKSPACE_REPORT_FIELD: 'CreatePolicyReportField',
     UPDATE_WORKSPACE_REPORT_FIELD_INITIAL_VALUE: 'SetPolicyReportFieldDefault',
@@ -821,6 +823,8 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.BANK_ACCOUNT_CREATE_CORPAY]: Parameters.BankAccountCreateCorpayParams;
 
     [WRITE_COMMANDS.REQUEST_REFUND]: null;
+    [WRITE_COMMANDS.OPEN_SIDE_PANEL]: null;
+    [WRITE_COMMANDS.CLOSE_SIDE_PANEL]: null;
     [WRITE_COMMANDS.CONNECT_POLICY_TO_SAGE_INTACCT]: Parameters.ConnectPolicyToSageIntacctParams;
     [WRITE_COMMANDS.COPY_EXISTING_POLICY_CONNECTION]: Parameters.CopyExistingPolicyConnectionParams;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_EXPORTER]: Parameters.UpdateSageIntacctGenericTypeParams<'email', string>;

@@ -3,7 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import {Animated} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import {triggerSidePanel} from '@libs/actions/SidePanel';
+import SidePanelActions from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
@@ -90,21 +90,13 @@ function useSidePanel() {
     const openSidePanel = useCallback(() => {
         setIsSidePanelTransitionEnded(false);
         KeyboardUtils.dismiss();
-
-        triggerSidePanel({
-            isOpen: true,
-            isOpenNarrowScreen: isExtraLargeScreenWidth ? undefined : true,
-        });
+        SidePanelActions.openSidePanel(!isExtraLargeScreenWidth);
     }, [isExtraLargeScreenWidth]);
 
     const closeSidePanel = useCallback(
         (shouldUpdateNarrow = false) => {
             setIsSidePanelTransitionEnded(false);
-            const shouldOnlyUpdateNarrowLayout = !isExtraLargeScreenWidth || shouldUpdateNarrow;
-            triggerSidePanel({
-                isOpen: shouldOnlyUpdateNarrowLayout ? undefined : false,
-                isOpenNarrowScreen: shouldOnlyUpdateNarrowLayout ? false : undefined,
-            });
+            SidePanelActions.closeSidePanel(!isExtraLargeScreenWidth || shouldUpdateNarrow);
 
             // Focus the composer after closing the Side Panel
             focusComposerWithDelay(ReportActionComposeFocusManager.composerRef.current, CONST.ANIMATED_TRANSITION + CONST.COMPOSER_FOCUS_DELAY)(true);
