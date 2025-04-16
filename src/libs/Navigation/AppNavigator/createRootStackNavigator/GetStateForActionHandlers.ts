@@ -209,35 +209,8 @@ function handlePushSettingsSplitAction(
     action: PushActionType,
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
-    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
 ) {
-    const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
-    let policyID;
-
-    const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
-
-    if (haveParamsPolicyID) {
-        policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
-        setActiveWorkspaceID(policyID);
-    } else if (policyIDFromState) {
-        policyID = policyIDFromState;
-    } else {
-        policyID = lastAccessedWorkspaceSwitcherID;
-        setActiveWorkspaceID(policyID);
-    }
-
-    const modifiedAction = {
-        ...action,
-        payload: {
-            ...action.payload,
-            params: {
-                ...action.payload.params,
-                policyID,
-            },
-        },
-    };
-
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
@@ -247,7 +220,7 @@ function handlePushSettingsSplitAction(
     const lastFullScreenRoute = stateWithReportsSplitNavigator.routes.at(-1);
     const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
 
-    // ReportScreen should always be opened with an animation
+    // Profile screen should always be opened with an animation
     if (actionPayloadScreen === SCREENS.SETTINGS.PROFILE.ROOT && lastFullScreenRoute?.key) {
         settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
     }

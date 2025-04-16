@@ -115,7 +115,7 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 }
 
                 if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
-                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter);
                 }
             }
 
