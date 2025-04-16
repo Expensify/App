@@ -39,7 +39,7 @@ function AssignCardFeedPage({route, policy}: AssignCardFeedPageProps) {
         return (
             <ScreenWrapper
                 testID={AssignCardFeedPage.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
             >
                 <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]} />
