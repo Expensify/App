@@ -3,6 +3,7 @@ import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/sr
 import {Alert} from 'react-native';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
+import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
@@ -29,6 +30,10 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
+    if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
+        return Promise.resolve(false);
+    }
+
     if (card.lastFourPAN) {
         return getCardStatus(card.lastFourPAN)
             .then((status) => {
