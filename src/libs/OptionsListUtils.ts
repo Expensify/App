@@ -510,13 +510,13 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         accountID: detail?.accountID,
         text: displayName,
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        firstName: (detail?.firstName || ('firstName' in participant ? participant.firstName : '')) ?? '',
+        firstName: (detail?.firstName || participant.firstName) ?? '',
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        lastName: (detail?.lastName || ('lastName' in participant ? participant.lastName : '')) ?? '',
+        lastName: (detail?.lastName || participant.lastName) ?? '',
         alternateText: formatPhoneNumber(login) || displayName,
         icons: [
             {
-                source: ('avatar' in participant ? participant.avatar : detail?.avatar) ?? FallbackAvatar,
+                source: (participant.avatar || detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
                 id: detail?.accountID,

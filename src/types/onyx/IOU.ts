@@ -77,6 +77,9 @@ type Participant = {
 
     /** The report associated to the IOU participant */
     item?: Report;
+
+    /** The avatar of the IOU participant */
+    avatar?: string;
 };
 
 /** Model of IOU split */
