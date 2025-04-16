@@ -523,13 +523,17 @@ function getOptionData({
     // We only create tooltips for the first 10 users or so since some reports have hundreds of users, causing performance to degrade.
     const displayNamesWithTooltips = getDisplayNamesWithTooltips((participantPersonalDetailList || []).slice(0, 10), hasMultipleParticipants, undefined, isSelfDM(report));
 
+    const lastAction = visibleReportActionItems[report.reportID];
+    // lastActorAccountID can be an empty string
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const lastActorAccountID = report.lastActorAccountID || lastAction.actorAccountID;
     // If the last actor's details are not currently saved in Onyx Collection,
     // then try to get that from the last report action if that action is valid
     // to get data from.
-    let lastActorDetails: Partial<PersonalDetails> | null = report.lastActorAccountID && personalDetails?.[report.lastActorAccountID] ? personalDetails[report.lastActorAccountID] : null;
+    let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? personalDetails?.[lastActorAccountID] ?? null : null;
 
-    if (!lastActorDetails && visibleReportActionItems[report.reportID]) {
-        const lastActorDisplayName = visibleReportActionItems[report.reportID]?.person?.[0]?.text;
+    if (!lastActorDetails && lastAction) {
+        const lastActorDisplayName = lastAction?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
             ? {
                   displayName: lastActorDisplayName,
@@ -547,7 +551,6 @@ function getOptionData({
     // We need to remove sms domain in case the last message text has a phone number mention with sms domain.
     let lastMessageText = Str.removeSMSDomain(lastMessageTextFromReport);
 
-    const lastAction = visibleReportActionItems[report.reportID];
     const isGroupChat = isGroupChatUtil(report) || isDeprecatedGroupDM(report);
 
     const isThreadMessage = isThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
