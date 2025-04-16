@@ -13,13 +13,12 @@ function TextWithEmojiFragment({message = '', style}: TextWithEmojiFragmentProps
     return (
         <Text style={style}>
             {processedTextArray.map(({text, isEmoji}, index) => {
-                const textContainsCustomEmoji = containsCustomEmoji(text);
                 return isEmoji ? (
                     <View
                         // eslint-disable-next-line react/no-array-index-key
                         key={index}
                     >
-                        <Text style={[styles.emojisWithTextFontSizeAligned, textContainsCustomEmoji && styles.customEmojiFontAlignment]}>{text}</Text>
+                        <Text style={[styles.emojisWithTextFontSizeAligned, containsCustomEmoji(text) && styles.customEmojiFontAlignment]}>{text}</Text>
                     </View>
                 ) : (
                     convertToLTR(text)
