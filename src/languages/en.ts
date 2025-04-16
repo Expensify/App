@@ -2079,7 +2079,7 @@ const translations = {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `We've been unable to deliver SMS messages to ${login}, so we've suspended it temporarily. Please try validating your number:`,
         validationSuccess: 'Your number has been validated! Click below to send a new magic sign-in code.',
-        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
                 return 'Please wait a moment before trying again.';
             }
@@ -5653,6 +5653,7 @@ const translations = {
         memberBrokenConnectionError: 'Receipt pending due to broken bank connection. Please ask a workspace admin to resolve.',
         markAsCashToIgnore: 'Mark as cash to ignore and request payment.',
         smartscanFailed: ({canEdit = true}) => `Receipt scanning failed.${canEdit ? ' Enter details manually.' : ''}`,
+        receiptGeneratedWithAI: 'Potential AI-generated receipt',
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Missing ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `${tagName ?? 'Tag'} no longer valid`,
         taxAmountChanged: 'Tax amount was modified',
