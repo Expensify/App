@@ -113,10 +113,6 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
         dismissButton,
     ]);
 
-    if (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
-        return null;
-    }
-
     if (!firstDayFreeTrial || !lastDayFreeTrial || !discountInfo) {
         return null;
     }
