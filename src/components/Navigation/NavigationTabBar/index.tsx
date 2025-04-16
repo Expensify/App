@@ -137,12 +137,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         const lastRouteOfTopmostFullScreenRoute = 'state' in topmostFullScreenRoute ? topmostFullScreenRoute.state?.routes.at(-1) : undefined;
 
         if (lastRouteOfTopmostFullScreenRoute && lastRouteOfTopmostFullScreenRoute.name === SCREENS.WORKSPACE_HUB.WORKSPACES && shouldUseNarrowLayout) {
-            Navigation.goBack(ROUTES.SETTINGS);
+            Navigation.goBack(ROUTES.WORKSPACE_HUB_INITIAL);
             return;
         }
 
         if (topmostFullScreenRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-            Navigation.goBack(ROUTES.SETTINGS);
+            Navigation.goBack(ROUTES.WORKSPACE_HUB_INITIAL);
             return;
         }
 
@@ -151,7 +151,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
             const lastWorkspacesTabNavigatorRoute = state.routes.findLast((route) => isWorkspacesTabScreenName(route.name));
             // If there is no settings or workspace navigator route, then we should open the settings navigator.
             if (!lastWorkspacesTabNavigatorRoute) {
-                Navigation.navigate(ROUTES.SETTINGS);
+                Navigation.navigate(ROUTES.WORKSPACE_HUB_INITIAL);
                 return;
             }
 
