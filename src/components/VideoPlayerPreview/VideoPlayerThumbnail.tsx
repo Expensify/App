@@ -69,7 +69,6 @@ function VideoPlayerThumbnail({thumbnailUrl, onPress, accessibilityLabel, isDele
                                     fill="white"
                                     width={variables.iconSizeXLarge}
                                     height={variables.iconSizeXLarge}
-                                    additionalStyles={[styles.ml1]}
                                 />
                             </View>
                         </PressableWithoutFeedback>
