@@ -99,7 +99,7 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
         } else {
             newAttachments = extractAttachments(CONST.ATTACHMENT_TYPE.REPORT, {parentReportAction, reportActions: reportActions ?? undefined, report});
         }
-        console.log('newAttachments', attachments, newAttachments);
+
         if (isEqual(attachments, newAttachments)) {
             if (attachments.length === 0) {
                 setPage(-1);
