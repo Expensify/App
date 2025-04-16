@@ -2819,10 +2819,10 @@ const translations = {
             class: 'Clase de cabina',
             recordLocator: 'Localizador de la reserva',
             cabinClasses: {
-                unknown: 'Desconocida',
+                unknown: 'Desconocido',
                 economy: 'Económica',
                 premiumEconomy: 'Económica Premium',
-                business: 'Business',
+                business: 'Ejecutiva',
                 first: 'Primera',
             },
         },
