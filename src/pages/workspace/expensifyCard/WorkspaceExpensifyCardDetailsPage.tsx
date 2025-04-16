@@ -44,7 +44,6 @@ type WorkspaceExpensifyCardDetailsPageProps = PlatformStackScreenProps<
 
 function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetailsPageProps) {
     const {policyID, cardID, backTo} = route.params;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const defaultFundID = useDefaultFundID(policyID);
 
     const [isDeactivateModalVisible, setIsDeactivateModalVisible] = useState(false);
@@ -79,7 +78,7 @@ function WorkspaceExpensifyCardDetailsPage({route}: WorkspaceExpensifyCardDetail
         setIsDeactivateModalVisible(false);
         Navigation.goBack();
         InteractionManager.runAfterInteractions(() => {
-            deactivateCardAction(workspaceAccountID, card);
+            deactivateCardAction(defaultFundID, card);
         });
     };
 
