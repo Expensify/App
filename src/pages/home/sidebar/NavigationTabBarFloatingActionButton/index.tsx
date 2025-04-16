@@ -2,11 +2,11 @@ import React, {useCallback, useRef} from 'react';
 import FloatingActionButtonAndPopover from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import type FloatingActionButtonPopoverMenuRef from './types';
 
-type BottomTabBarFloatingActionButtonProps = {
+type NavigationTabBarFloatingActionButtonProps = {
     isTooltipAllowed: boolean;
 };
 
-function BottomTabBarFloatingActionButton({isTooltipAllowed}: BottomTabBarFloatingActionButtonProps) {
+function NavigationTabBarFloatingActionButton({isTooltipAllowed}: NavigationTabBarFloatingActionButtonProps) {
     const popoverModal = useRef<FloatingActionButtonPopoverMenuRef>(null);
 
     /**
@@ -43,4 +43,4 @@ function BottomTabBarFloatingActionButton({isTooltipAllowed}: BottomTabBarFloati
     );
 }
 
-export default BottomTabBarFloatingActionButton;
+export default NavigationTabBarFloatingActionButton;
