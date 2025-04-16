@@ -28,6 +28,7 @@ import {
     setWorkspaceApprovalMode,
     setWorkspaceAutoReportingFrequency,
     setWorkspaceReimbursement,
+    updateGeneralSettings,
 } from '@libs/actions/Policy/Policy';
 import {setApprovalWorkflow} from '@libs/actions/Workflow';
 import {getAllCardsForWorkspace, isSmartLimitEnabled as isSmartLimitEnabledUtil} from '@libs/CardUtils';
@@ -80,6 +81,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             }),
         [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
     );
+    const {canUseGlobalReimbursementsOnND} = usePermissions();
 
     const isAdvanceApproval = approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1;
     const updateApprovalMode = isAdvanceApproval ? CONST.POLICY.APPROVAL_MODE.ADVANCED : CONST.POLICY.APPROVAL_MODE.BASIC;
@@ -98,13 +100,19 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         if (!policy) {
             return;
         }
+
         setIsUpdateWorkspaceCurrencyModalOpen(false);
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
-    }, [policy, setIsUpdateWorkspaceCurrencyModalOpen]);
+
+        if (canUseGlobalReimbursementsOnND) {
+            Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
+        } else {
+            updateGeneralSettings(policy.id, policy.name, CONST.CURRENCY.USD);
+            navigateToBankAccountRoute(route.params.policyID, ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID));
+        }
+    }, [canUseGlobalReimbursementsOnND, policy, route.params.policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const isPolicyAdmin = isPolicyAdminUtil(policy);
-    const {canUseGlobalReimbursementsOnND} = usePermissions();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -365,15 +373,28 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             >
                 <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                     {optionItems.map(renderOptionItem)}
-                    <ConfirmModal
-                        title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
-                        isVisible={isUpdateWorkspaceCurrencyModalOpen}
-                        onConfirm={confirmCurrencyChangeAndHideModal}
-                        onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
-                        prompt={updateWorkspaceCurrencyPrompt}
-                        confirmText={translate('workspace.bankAccount.updateWorkspaceCurrency')}
-                        cancelText={translate('common.cancel')}
-                    />
+                    {canUseGlobalReimbursementsOnND ? (
+                        <ConfirmModal
+                            title={translate('workspace.bankAccount.workspaceCurrencyNotSupported')}
+                            isVisible={isUpdateWorkspaceCurrencyModalOpen}
+                            onConfirm={confirmCurrencyChangeAndHideModal}
+                            onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                            prompt={updateWorkspaceCurrencyPrompt}
+                            confirmText={translate('workspace.bankAccount.updateWorkspaceCurrency')}
+                            cancelText={translate('common.cancel')}
+                        />
+                    ) : (
+                        <ConfirmModal
+                            title={translate('workspace.bankAccount.workspaceCurrency')}
+                            isVisible={isUpdateWorkspaceCurrencyModalOpen}
+                            onConfirm={confirmCurrencyChangeAndHideModal}
+                            onCancel={() => setIsUpdateWorkspaceCurrencyModalOpen(false)}
+                            prompt={translate('workspace.bankAccount.updateCurrencyPrompt')}
+                            confirmText={translate('workspace.bankAccount.updateToUSD')}
+                            cancelText={translate('common.cancel')}
+                            danger
+                        />
+                    )}
                 </View>
             </WorkspacePageWithSections>
         </AccessOrNotFoundWrapper>
