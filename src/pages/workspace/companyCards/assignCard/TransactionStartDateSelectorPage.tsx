@@ -74,6 +74,7 @@ function TransactionStartDateSelectorPage({route}: TransactionStartDateSelectorM
                         minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                         maxDate={new Date()}
                         defaultValue={startDate}
+                        autoFocus
                     />
                 </FormProvider>
             </ScreenWrapper>

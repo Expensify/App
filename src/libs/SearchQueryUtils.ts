@@ -67,6 +67,8 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     exported: 'exported',
     posted: 'posted',
     groupBy: 'group-by',
+    billable: 'billable',
+    reimbursable: 'reimbursable',
 };
 
 /**
@@ -354,7 +356,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
-            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+            if (
+                (filterKey === FILTER_KEYS.MERCHANT ||
+                    filterKey === FILTER_KEYS.DESCRIPTION ||
+                    filterKey === FILTER_KEYS.REPORT_ID ||
+                    filterKey === FILTER_KEYS.REIMBURSABLE ||
+                    filterKey === FILTER_KEYS.BILLABLE) &&
+                filterValue
+            ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
@@ -382,6 +391,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
@@ -423,6 +433,7 @@ function buildFilterFormValuesFromQuery(
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
+
     for (const queryFilter of filters) {
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
@@ -499,6 +510,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.GREATER_THAN] =
                 filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
                 filtersForm[FILTER_KEYS.GREATER_THAN];
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+            const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
+            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
     }
 
@@ -777,7 +792,6 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * A copy of `isDefaultExpensesQuery` handling the policy ID, used if you have access to the leftHandBar beta.
  * When this beta is no longer needed, this method will be renamed to `isDefaultExpensesQuery` and will replace the old method.
- *
  */
 function isDefaultExpensesQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
@@ -853,6 +867,20 @@ function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTA
     return UserFriendlyKeyMap[keyName];
 }
 
+function shouldHighlight(referenceText: string, searchText: string) {
+    if (!referenceText || !searchText) {
+        return false;
+    }
+
+    const escapedText = searchText
+        .toLowerCase()
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
+
+    return pattern.test(referenceText.toLowerCase());
+}
+
 export {
     buildSearchQueryJSON,
     buildSearchQueryString,
@@ -869,5 +897,6 @@ export {
     getQueryWithUpdatedValues,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
+    shouldHighlight,
     isDefaultExpensesQueryWithPolicyIDCheck,
 };

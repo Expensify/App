@@ -7,8 +7,8 @@ import variables from '@styles/variables';
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
-import ImageView from './ImageView';
+import {Play} from './Icon/Expensicons';
+import Image from './Image';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
 
@@ -56,11 +56,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 <View style={[styles.h100, styles.w100, styles.pAbsolute, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View style={styles.videoThumbnailPlayButton}>
                         <Icon
-                            src={Expensicons.Play}
+                            src={Play}
                             fill="white"
                             width={variables.iconSizeXLarge}
                             height={variables.iconSizeXLarge}
-                            additionalStyles={styles.ml1}
                         />
                     </View>
                 </View>
@@ -79,9 +78,9 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 accessibilityLabel="Image Thumbnail"
             >
                 <View style={[fillStyle, styles.br4, styles.overflowHidden, {aspectRatio}]}>
-                    <ImageView
-                        url={source}
-                        fileName={fileName ?? ''}
+                    <Image
+                        source={{uri: source}}
+                        style={[[styles.w100, styles.h100], styles.overflowHidden]}
                     />
                 </View>
             </PressableWithFeedback>
@@ -90,11 +89,21 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
 
     if (typeof source === 'string' && Str.isPDF(source) && !isEncryptedPDF) {
         return (
-            <PDFThumbnail
-                previewSourceURL={source}
-                onLoadError={onLoadError}
-                onPassword={() => setIsEncryptedPDF(true)}
-            />
+            <PressableWithFeedback
+                accessibilityRole="button"
+                style={[styles.justifyContentStart, {aspectRatio: 1}]}
+                onPress={onPress}
+                accessible
+                accessibilityLabel="PDF Thumbnail"
+            >
+                <PDFThumbnail
+                    fitPolicy={1}
+                    previewSourceURL={source}
+                    style={[styles.br4]}
+                    onLoadError={onLoadError}
+                    onPassword={() => setIsEncryptedPDF(true)}
+                />
+            </PressableWithFeedback>
         );
     }
 
