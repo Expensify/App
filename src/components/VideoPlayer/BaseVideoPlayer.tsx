@@ -224,7 +224,7 @@ function BaseVideoPlayer({
 
             // These two conditions are essential for the mute and unmute functionality to work properly during
             // fullscreen playback on the web
-            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted && status.volume === 0) {
                 updateVolume(lastNonZeroVolume.get());
             }
 
