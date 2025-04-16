@@ -8,12 +8,12 @@ on:
         required: true
 
 jobs:
-  createNewVersion:
-    uses: ./.github/workflows/createNewVersion.yml
-    secrets: inherit
+  # createNewVersion:
+  #   uses: ./.github/workflows/createNewVersion.yml
+  #   secrets: inherit
 
   cherryPick:
-    needs: createNewVersion
+    # needs: createNewVersion
     runs-on: ubuntu-latest
     steps:
       - name: Checkout staging branch
