@@ -37,6 +37,7 @@ function useMarkdownStyle(message: string | null = null, excludeStyles: Array<ke
                 fontSize: variables.fontSizeLarge,
             },
             emoji: {
+                ...FontUtils.fontFamily.platform.CUSTOM_EMOJI_FONT,
                 fontSize: emojiFontSize,
                 lineHeight: variables.lineHeightXLarge,
             },
