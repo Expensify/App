@@ -25,7 +25,6 @@ const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
     const {translate} = useLocalize();
 
-    // TODO https://github.com/Expensify/App/issues/50912 - check if BE is resetting non USD flow correctly when changing currency
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {
             return;
