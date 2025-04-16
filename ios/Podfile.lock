@@ -1714,7 +1714,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-document-picker (9.3.1):
+  - react-native-document-picker (10.1.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2991,7 +2991,7 @@ DEPENDENCIES:
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
-  - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
@@ -3227,7 +3227,7 @@ EXTERNAL SOURCES:
   react-native-config:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
-    :path: "../node_modules/react-native-document-picker"
+    :path: "../node_modules/@react-native-documents/picker"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-image-picker:
@@ -3469,7 +3469,7 @@ SPEC CHECKSUMS:
   react-native-blob-util: d65692a2acce17b7a836805114828142a3634033
   react-native-cameraroll: 78710a5d35b0c6f41899a193e714564d8fd648b0
   react-native-config: 5b9e180ca7beb5748ba473b257bb9a7d10e2a957
-  react-native-document-picker: da64a39fd71a84a9d3f7f58c8b0623c393e9991c
+  react-native-document-picker: 5cb1c6615796389f4f1b7fe2e4f103e38e4d6398
   react-native-geolocation: cd91e4fd914de585933c836fd71f6bdb3c97a410
   react-native-image-picker: 9e419813377d42566b0168121ab9483614488db5
   react-native-key-command: 96c9dfb09bc89ecd1d58348c0d3ed84d0255648b

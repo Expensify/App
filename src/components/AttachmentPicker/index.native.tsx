@@ -1,10 +1,10 @@
+import type {FileToCopy} from '@react-native-documents/picker';
+import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import {Str} from 'expensify-common';
-import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
+import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
-import RNDocumentPicker from 'react-native-document-picker';
-import type {DocumentPickerOptions, DocumentPickerResponse} from 'react-native-document-picker';
 import {launchImageLibrary} from 'react-native-image-picker';
 import type {Asset, Callback, CameraOptions, ImageLibraryOptions, ImagePickerResponse} from 'react-native-image-picker';
 import ImageSize from 'react-native-image-size';
@@ -19,12 +19,19 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
+import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
 import launchCamera from './launchCamera/launchCamera';
 import type AttachmentPickerProps from './types';
+
+type LocalCopy = {
+    name: string | null;
+    uri: string;
+    size: number | null;
+    type: string | null;
+};
 
 type Item = {
     /** The icon associated with the item. */
@@ -32,7 +39,7 @@ type Item = {
     /** The key in the translations file to use for the title */
     textTranslationKey: TranslationPaths;
     /** Function to call when the user clicks the item */
-    pickAttachment: () => Promise<Asset[] | void | DocumentPickerResponse[]>;
+    pickAttachment: () => Promise<Asset[] | void | LocalCopy[]>;
 };
 
 /**
@@ -57,35 +64,13 @@ const getImagePickerOptions = (type: string, fileLimit: number): CameraOptions |
 };
 
 /**
- * Return documentPickerOptions based on the type
- * @param {String} type
- * @param {Number} fileLimit
- * @returns {Object}
- */
-
-const getDocumentPickerOptions = (type: string, fileLimit: number): DocumentPickerOptions => {
-    if (type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE) {
-        return {
-            type: [RNDocumentPicker.types.images],
-            copyTo: 'cachesDirectory',
-            allowMultiSelection: fileLimit !== 1,
-        };
-    }
-    return {
-        type: [RNDocumentPicker.types.allFiles],
-        copyTo: 'cachesDirectory',
-        allowMultiSelection: fileLimit !== 1,
-    };
-};
-
-/**
  * The data returned from `show` is different on web and mobile, so use this function to ensure the data we
  * send to the xhr will be handled properly.
  */
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
     const fileName = fileData.name || 'chat_attachment';
     const fileResult: FileObject = {
-        name: FileUtils.cleanFileName(fileName),
+        name: cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
@@ -158,7 +143,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                FileUtils.showCameraPermissionsAlert();
+                                showCameraPermissionsAlert();
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -176,11 +161,13 @@ function AttachmentPicker({
                     }
 
                     if (targetAsset?.type?.startsWith('image')) {
-                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
+                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
+                                    ImageManipulator.manipulate(targetAssetUri)
+                                        .renderAsync()
+                                        .then((manipulatedImage) => manipulatedImage.saveAsync({format: SaveFormat.JPEG}))
                                         .then((manipResult) => {
                                             const uri = manipResult.uri;
                                             const convertedAsset = {
@@ -211,21 +198,38 @@ function AttachmentPicker({
     );
     /**
      * Launch the DocumentPicker. Results are in the same format as ImagePicker
-     *
-     * @returns {Promise<DocumentPickerResponse[] | void>}
      */
-    const showDocumentPicker = useCallback(
-        (): Promise<DocumentPickerResponse[] | void> =>
-            RNDocumentPicker.pick(getDocumentPickerOptions(type, fileLimit)).catch((error: Error) => {
-                if (RNDocumentPicker.isCancel(error)) {
-                    return;
-                }
+    // eslint-disable-next-line @lwc/lwc/no-async-await
+    const showDocumentPicker = useCallback(async (): Promise<LocalCopy[]> => {
+        const pickedFiles = await pick({
+            type: [type === CONST.ATTACHMENT_PICKER_TYPE.IMAGE ? types.images : types.allFiles],
+            allowMultiSelection: fileLimit !== 1,
+        });
 
-                showGeneralAlert(error.message);
-                throw error;
-            }),
-        [fileLimit, showGeneralAlert, type],
-    );
+        const localCopies = await keepLocalCopy({
+            files: pickedFiles.map((file) => {
+                return {
+                    uri: file.uri,
+                    fileName: file.name ?? '',
+                };
+            }) as [FileToCopy, ...FileToCopy[]],
+            destination: 'cachesDirectory',
+        });
+
+        return pickedFiles.map((file, index) => {
+            const localCopy = localCopies[index];
+            if (localCopy.status !== 'success') {
+                throw new Error("Couldn't create local file copy");
+            }
+
+            return {
+                name: file.name,
+                uri: localCopy.localUri,
+                size: file.size,
+                type: file.type,
+            };
+        });
+    }, [fileLimit, type]);
 
     const menuItemData: Item[] = useMemo(() => {
         const data: Item[] = [
@@ -309,7 +313,7 @@ function AttachmentPicker({
      * sends the selected attachment to the caller (parent component)
      */
     const pickAttachment = useCallback(
-        (attachments: Asset[] | DocumentPickerResponse[] | void = []): Promise<void[]> | undefined => {
+        (attachments: Asset[] | LocalCopy[] | void = []): Promise<void[]> | undefined => {
             if (!attachments || attachments.length === 0) {
                 onCanceled.current();
                 return Promise.resolve([]);
@@ -323,7 +327,7 @@ function AttachmentPicker({
 
                 /* eslint-disable @typescript-eslint/prefer-nullish-coalescing */
                 const fileDataName = ('fileName' in fileData && fileData.fileName) || ('name' in fileData && fileData.name) || '';
-                const fileDataUri = ('fileCopyUri' in fileData && fileData.fileCopyUri) || ('uri' in fileData && fileData.uri) || '';
+                const fileDataUri = ('uri' in fileData && fileData.uri) || '';
 
                 const fileDataObject: FileResponse = {
                     name: fileDataName ?? '',
@@ -397,6 +401,14 @@ function AttachmentPicker({
             onModalHide.current = () => {
                 setTimeout(() => {
                     item.pickAttachment()
+                        .catch((error: Error) => {
+                            if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
+                                return;
+                            }
+
+                            showGeneralAlert(error.message);
+                            throw error;
+                        })
                         .then((result) => pickAttachment(result))
                         .catch(console.error)
                         .finally(() => {
@@ -407,7 +419,7 @@ function AttachmentPicker({
             };
             close();
         },
-        [pickAttachment, onOpenPicker],
+        [onOpenPicker, pickAttachment, showGeneralAlert],
     );
 
     useKeyboardShortcut(
