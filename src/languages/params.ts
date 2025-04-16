@@ -621,6 +621,14 @@ type WorkspaceYouMayJoin = {
     email: string;
 };
 
+type WorkEmailResendCodeParams = {
+    workEmail: string | undefined;
+};
+
+type WorkEmailMergingBlockedParams = {
+    workEmail: string | undefined;
+};
+
 type WorkspaceMemberList = {
     employeeCount: number;
     policyOwner: string;
@@ -912,6 +920,8 @@ export type {
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    WorkEmailResendCodeParams,
+    WorkEmailMergingBlockedParams,
     NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,

@@ -227,6 +227,8 @@ import type {
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkEmailMergingBlockedParams,
+    WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -532,6 +534,7 @@ const translations = {
         skip: 'Skip',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `Need something specific? Chat with your account manager, ${accountManagerDisplayName}.`,
         chatNow: 'Chat now',
+        workEmail: 'Work email',
         destination: 'Destination',
         subrate: 'Subrate',
         perDiem: 'Per diem',
@@ -2020,6 +2023,28 @@ const translations = {
         },
         error: {
             requiredFirstName: 'Please input your first name to continue',
+        },
+        workEmail: {
+            title: 'What’s your work email?',
+            subtitle: 'Expensify works best when you connect your work email.',
+            explanationModal: {
+                descriptionOne: 'Forward to receipts@expensify.com for scanning',
+                descriptionTwo: 'Join your colleagues already using Expensify',
+                descriptionThree: 'Enjoy a more customized experience',
+            },
+            addWorkEmail: 'Add work email',
+        },
+        workEmailValidation: {
+            title: 'Verify your work email',
+            magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Please enter the magic code sent to ${workEmail}. It should arrive in a minute or two.`,
+        },
+        workEmailValidationError: {
+            publicEmail: 'Please enter a valid work email from a private domain e.g. mitch@company.com',
+            offline: 'We couldn’t add your work email as you appear to be offline',
+        },
+        mergeBlockScreen: {
+            title: 'Couldn’t add work email',
+            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) => `We couldn’t add ${workEmail}. Please try again later in Settings or chat with Concierge for guidance.`,
         },
     },
     featureTraining: {
