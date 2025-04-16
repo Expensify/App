@@ -378,9 +378,10 @@ function MoneyRequestReportPreviewContent({
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [visibleItemsCount, setVisibleItemsCount] = useState(0);
-    const [optimisticLast, setOptimisticLast] = useState(transactions.length === 1);
-    const [optimisticFirst, setOptimisticFirst] = useState(true);
+    const [visibleItemsCount, setVisibleItemsCount] = useState(1);
+    // const [optimisticLast, setOptimisticLast] = useState(transactions.length === 1);
+    // const [optimisticFirst, setOptimisticFirst] = useState(true);
+    const [optimistic, setOptimistic] = useState(0);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 90};
@@ -389,15 +390,24 @@ function MoneyRequestReportPreviewContent({
     // eslint-disable-next-line react-compiler/react-compiler
     const onViewableItemsChanged = useRef(({viewableItems}: {viewableItems: ViewToken[]; changed: ViewToken[]}) => {
         const newIndex = viewableItems.at(0)?.index;
-        setVisibleItemsCount(viewableItems.length);
+        // setVisibleItemsCount(viewableItems.length);
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);
-            if (newIndex + viewableItems.length === transactions.length) {
-                setOptimisticLast(false);
-            }
-            if (newIndex === 0) {
-                setOptimisticFirst(false);
-            }
+            // if (newIndex + viewableItems.length === transactions.length) {
+            //     setOptimisticLast(false);
+            //     // setOptimistic(-1);
+            // }
+            // if (newIndex === 0) {
+            //     setOptimisticFirst(false);
+            //     // setOptimistic(-1);
+            // }
+            // if (optimistic === -5){
+            //     setOp
+            // }
+            // if (newIndex === optimistic) {
+            //     setOptimistic(-5);
+            // }
+            setOptimistic(newIndex);
         }
     }).current;
 
@@ -405,13 +415,14 @@ function MoneyRequestReportPreviewContent({
         if (index >= transactions.length || index < 0) {
             return;
         }
-        if (index === 0) {
-            setOptimisticFirst(true);
-        }
+        // if (index === 0) {
+        //     setOptimisticFirst(true);
+        // }
 
-        if (index + visibleItemsCount === transactions.length) {
-            setOptimisticLast(true);
-        }
+        // if (index + visibleItemsCount === transactions.length) {
+        //     setOptimisticLast(true);
+        // }
+        setOptimistic(index);
         carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
     };
 
@@ -459,7 +470,10 @@ function MoneyRequestReportPreviewContent({
             >
                 <View
                     style={[styles.chatItemMessage, containerStyles]}
-                    onLayout={getCurrentWidth}
+                    onLayout={(e: LayoutChangeEvent) => {
+                        getCurrentWidth(e);
+                        setVisibleItemsCount(Math.floor(e.nativeEvent.layout.width / reportPreviewStyles.transactionPreviewStyle.width));
+                    }}
                 >
                     <PressableWithoutFeedback
                         onPress={() => {}}
@@ -516,7 +530,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityLabel="button"
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
-                                                        disabled={(currentIndex === 0 || optimisticFirst) && !optimisticLast}
+                                                        disabled={optimistic === 0}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
@@ -532,7 +546,11 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityLabel="button"
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
-                                                        disabled={(currentIndex + visibleItemsCount === transactions.length || optimisticLast) && !optimisticFirst}
+                                                        // disabled={
+                                                        //     (currentIndex + visibleItemsCount === transactions.length || optimistic + visibleItemsCount === transactions.length) &&
+                                                        //     optimistic !== 0
+                                                        // }
+                                                        disabled={optimistic + visibleItemsCount === transactions.length}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
