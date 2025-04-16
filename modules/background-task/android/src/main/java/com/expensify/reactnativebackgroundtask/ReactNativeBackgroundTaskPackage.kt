@@ -24,7 +24,7 @@ class ReactNativeBackgroundTaskPackage : TurboReactPackage() {
         ReactNativeBackgroundTaskModule.NAME,
         ReactNativeBackgroundTaskModule.NAME,
         false,  // canOverrideExistingModule
-        false,  // needsEagerInit
+        true,  // needsEagerInit
         true,  // hasConstants
         false,  // isCxxModule
         isTurboModule // isTurboModule

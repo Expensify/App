@@ -1,5 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {LogBox} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
@@ -41,7 +41,7 @@ import useDefaultDragAndDrop from './hooks/useDefaultDragAndDrop';
 import OnyxUpdateManager from './libs/actions/OnyxUpdateManager';
 import {ReportAttachmentsProvider} from './pages/home/report/ReportAttachmentsContext';
 import type {Route} from './ROUTES';
-import './setup/backgroundTask';
+import registerBackgroundTasks from './setup/backgroundTask';
 import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 
 /**
@@ -73,6 +73,10 @@ const StrictModeWrapper = CONFIG.USE_REACT_STRICT_MODE_IN_DEV ? React.StrictMode
 function App({url, hybridAppSettings, timestamp}: AppProps) {
     useDefaultDragAndDrop();
     OnyxUpdateManager();
+
+    useEffect(() => {
+        registerBackgroundTasks();
+    }, []);
 
     return (
         <StrictModeWrapper>
