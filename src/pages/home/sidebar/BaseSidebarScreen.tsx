@@ -2,12 +2,13 @@ import {useRoute} from '@react-navigation/native';
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
@@ -33,6 +34,8 @@ function BaseSidebarScreen() {
     const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
     const currentRoute = useRoute();
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
+    const {canUseLeftHandBar} = usePermissions();
+    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -71,7 +74,8 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.HOME} />}
+            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
+            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
         >
             {({insets}) => (
                 <>
