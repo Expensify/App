@@ -292,7 +292,7 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
             } as IOSEncryptPayload;
         })
         .catch((error) => {
-            Log.warn(`issuerEncryptPlayloadCallback error: ${error}`);
+            Log.warn(`issuerEncryptPayloadCallback error: ${error}`);
             return {} as IOSEncryptPayload;
         });
 }
