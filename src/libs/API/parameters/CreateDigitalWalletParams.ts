@@ -1,14 +1,14 @@
 type CreateDigitalAppleWalletParams = {
-    platform: string;
+    platform: 'ios';
     appVersion: string;
-    // stringified {"certificates": string[]}
+    // stringified {"certificates": string[]} object
     certificates: string;
     nonce: string;
     nonceSignature: string;
 };
 
 type CreateDigitalGoogleWalletParams = {
-    platform: string;
+    platform: 'android';
     appVersion: string;
     walletAccountID: string;
     deviceID: string;

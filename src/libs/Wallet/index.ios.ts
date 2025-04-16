@@ -29,18 +29,19 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescripti
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
-    if (card.lastFourPAN) {
-        return getCardStatus(card.lastFourPAN)
-            .then((status) => {
-                Log.info(`Card status: ${status}`);
-                return status === 'active';
-            })
-            .catch((e) => {
-                Log.warn(`isCardInWallet error: ${e}`);
-                return Promise.resolve(false);
-            });
+    if (!card.lastFourPAN) {
+        return Promise.resolve(false);
     }
-    return Promise.resolve(false);
+
+    return getCardStatus(card.lastFourPAN)
+        .then((status) => {
+            Log.info(`Card status: ${status}`);
+            return status === 'active';
+        })
+        .catch((e) => {
+            Log.warn(`isCardInWallet error: ${e}`);
+            return Promise.resolve(false);
+        });
 }
 
 export {handleAddCardToWallet, isCardInWallet, checkIfWalletIsAvailable};

@@ -13,6 +13,8 @@ const config = {
     dependencies: {},
 };
 
+// We need to unlink the react-native-wallet package from the Android standalone build
+// cause we want to prevent the build from failing due to missing Google TapAndPay SDK
 if (!isHybrid) {
     config.dependencies['@expensify/react-native-wallet'] = {
         platforms: {

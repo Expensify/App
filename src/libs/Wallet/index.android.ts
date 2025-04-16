@@ -1,5 +1,6 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardTokenStatus, getSecureWalletInfo} from '@expensify/react-native-wallet';
 import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
+import {Alert} from 'react-native';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import type {Card} from '@src/types/onyx';
@@ -8,28 +9,40 @@ function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
-function handleAddCardToWallet(card: Card, cardHolderName: string) {
-    getSecureWalletInfo().then((data: AndroidWalletData) => {
-        createDigitalGoogleWallet(data)
-            .then((cardData: AndroidCardData) => {
-                addCardToGoogleWallet({...cardData, cardHolderName})
-                    .then(() => Log.info('addCardToWallet COMPLETE'))
-                    .catch((error) => Log.warn(`addCardToGoogleWallet error: ${error}`));
-            })
-            .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
-    });
+function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
+    getSecureWalletInfo()
+        .then((walletData: AndroidWalletData) => {
+            createDigitalGoogleWallet(walletData)
+                .then((cardData: AndroidCardData) => {
+                    addCardToGoogleWallet({...cardData, cardHolderName})
+                        .then(() => {
+                            Log.info('Card added to wallet');
+                            onFinished?.();
+                        })
+                        .catch((error) => {
+                            Log.warn(`addCardToGoogleWallet error: ${error}`);
+                            Alert.alert('Failed to add card to wallet', 'Please try again later.');
+                        });
+                })
+                .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
+        })
+        .catch((error) => Log.warn(`getSecureWalletInfo error: ${error}`));
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {
     const tokenRefId = card.nameValuePairs?.expensifyCard_tokenReferenceIdList?.at(0);
-    if (tokenRefId === undefined) {
+    if (!tokenRefId) {
         return Promise.resolve(false);
     }
-    return getCardTokenStatus('visa', tokenRefId)
-        .then((status: CardStatus) => status === 'active')
+
+    return getCardTokenStatus('VISA', tokenRefId)
+        .then((status: CardStatus) => {
+            Log.info(`Card status: ${status}`);
+            return status === 'active';
+        })
         .catch((error) => {
             Log.warn(`getCardTokenStatus error: ${error}`);
-            return false;
+            return Promise.resolve(false);
         });
 }
 
