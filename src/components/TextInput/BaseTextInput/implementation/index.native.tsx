@@ -49,7 +49,7 @@ function BaseTextInput(
         forceActiveLabel = false,
         autoFocus = false,
         disableKeyboard = false,
-        autoGrow: autoGrowProp = false,
+        autoGrow = false,
         autoGrowExtraSpace = 0,
         autoGrowHeight = false,
         maxAutoGrowHeight,
@@ -83,7 +83,7 @@ function BaseTextInput(
 ) {
     // For iOS, we don't need to measure the text input because it already has auto grow behavior
     // See TextInputMeasurement.ios.tsx for more details
-    const autoGrow = Platform.OS !== 'ios' && autoGrowProp;
+    const isExternalAutoGrowMeasurement = Platform.OS !== 'ios' && autoGrow;
 
     const InputComponent = InputComponentMap.get(type) ?? RNTextInput;
     const isMarkdownEnabled = type === 'markdown';
@@ -266,7 +266,7 @@ function BaseTextInput(
         styles.textInputContainer,
         textInputContainerStyles,
         !!contentWidth && StyleUtils.getWidthStyle(textInputWidth),
-        autoGrow && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
+        isExternalAutoGrowMeasurement && StyleUtils.getAutoGrowWidthInputContainerStyles(textInputWidth, autoGrowExtraSpace),
         !hideFocusedState && isFocused && styles.borderColorFocus,
         (!!hasError || !!errorText) && styles.borderColorDanger,
         autoGrowHeight && {scrollPaddingTop: typeof maxAutoGrowHeight === 'number' ? 2 * maxAutoGrowHeight : undefined},
@@ -369,8 +369,8 @@ function BaseTextInput(
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}
                                 underlineColorAndroid="transparent"
                                 style={[
-                                    autoGrow && styles.flex1,
-                                    autoGrow && styles.w100,
+                                    !autoGrow && styles.flex1,
+                                    !autoGrow && styles.w100,
                                     inputStyle,
                                     (!hasLabel || isMultiline) && styles.pv0,
                                     inputPaddingLeft,
