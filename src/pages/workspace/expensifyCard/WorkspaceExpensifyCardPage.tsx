@@ -40,7 +40,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID && !defaultFundID) {
+        if (!!isLoading && !paymentBankAccountID) {
             return (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -49,7 +49,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!!paymentBankAccountID || defaultFundID) {
+        if (paymentBankAccountID) {
             return (
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}
