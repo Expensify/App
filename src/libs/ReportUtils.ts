@@ -4515,7 +4515,8 @@ const reportNameCache = new Map<string, {lastVisibleActionCreated: string; repor
 /**
  * Get a cache key for the report name.
  */
-const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
+const getCacheKey = (report: OnyxEntry<Report>): string =>
+    `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}-${getReportNameValuePairs(report?.reportID)?.private_isArchived}`;
 
 /**
  * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
