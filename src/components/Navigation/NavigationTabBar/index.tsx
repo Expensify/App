@@ -2,8 +2,10 @@ import React, {memo, useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import HeaderGap from '@components/HeaderGap';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import ImageSVG from '@components/ImageSVG';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import {PressableWithFeedback} from '@components/Pressable';
 import {useProductTrainingContext} from '@components/ProductTrainingContext';
@@ -11,8 +13,10 @@ import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import clearSelectedText from '@libs/clearSelectedText/clearSelectedText';
@@ -27,22 +31,22 @@ import {isFullScreenName, isSettingsTabScreenName} from '@navigation/helpers/isN
 import Navigation from '@navigation/Navigation';
 import navigationRef from '@navigation/navigationRef';
 import type {RootNavigatorParamList, SearchFullscreenNavigatorParamList, State, WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import BottomTabAvatar from '@pages/home/sidebar/BottomTabAvatar';
-import BottomTabBarFloatingActionButton from '@pages/home/sidebar/BottomTabBarFloatingActionButton';
+import NavigationTabBarAvatar from '@pages/home/sidebar/NavigationTabBarAvatar';
+import NavigationTabBarFloatingActionButton from '@pages/home/sidebar/NavigationTabBarFloatingActionButton';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import BOTTOM_TABS from './BOTTOM_TABS';
+import NAVIGATION_TABS from './NAVIGATION_TABS';
 
-type BottomTabBarProps = {
-    selectedTab: ValueOf<typeof BOTTOM_TABS>;
+type NavigationTabBarProps = {
+    selectedTab: ValueOf<typeof NAVIGATION_TABS>;
     isTooltipAllowed?: boolean;
 };
 
-function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps) {
+function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTabBarProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -57,8 +61,11 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
     const {renderProductTrainingTooltip, shouldShowProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP,
-        isTooltipAllowed && selectedTab !== BOTTOM_TABS.HOME,
+        isTooltipAllowed && selectedTab !== NAVIGATION_TABS.HOME,
     );
+    const StyleUtils = useStyleUtils();
+    const {canUseLeftHandBar} = usePermissions();
+
     useEffect(() => {
         setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
@@ -66,7 +73,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     }, [activeWorkspaceID, reports, reportActions]);
 
     const navigateToChats = useCallback(() => {
-        if (selectedTab === BOTTOM_TABS.HOME) {
+        if (selectedTab === NAVIGATION_TABS.HOME) {
             return;
         }
 
@@ -75,7 +82,7 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
     }, [hideProductTrainingTooltip, selectedTab]);
 
     const navigateToSearch = useCallback(() => {
-        if (selectedTab === BOTTOM_TABS.SEARCH) {
+        if (selectedTab === NAVIGATION_TABS.SEARCH) {
             return;
         }
         clearSelectedText();
@@ -185,6 +192,116 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
         });
     }, [shouldUseNarrowLayout]);
 
+    if (!shouldUseNarrowLayout && canUseLeftHandBar) {
+        return (
+            <>
+                {!!user?.isDebugModeEnabled && (
+                    <DebugTabView
+                        selectedTab={selectedTab}
+                        chatTabBrickRoad={chatTabBrickRoad}
+                        activeWorkspaceID={activeWorkspaceID}
+                    />
+                )}
+                <View style={styles.leftNavigationTabBar}>
+                    <HeaderGap />
+                    <View style={styles.flex1}>
+                        <PressableWithFeedback
+                            accessibilityRole={CONST.ROLE.BUTTON}
+                            accessibilityLabel="Home"
+                            accessible
+                            testID="ExpensifyLogoButton"
+                            onPress={navigateToChats}
+                            wrapperStyle={styles.leftNavigationTabBarItem}
+                        >
+                            <ImageSVG
+                                style={StyleUtils.getAvatarStyle(CONST.AVATAR_SIZE.DEFAULT)}
+                                src={Expensicons.ExpensifyAppIcon}
+                            />
+                        </PressableWithFeedback>
+                        <EducationalTooltip
+                            shouldRender={shouldShowProductTrainingTooltip}
+                            anchorAlignment={{
+                                horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                                vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+                            }}
+                            shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
+                            renderTooltipContent={renderProductTrainingTooltip}
+                            wrapperStyle={styles.productTrainingTooltipWrapper}
+                            shouldHideOnNavigate={false}
+                            onTooltipPress={navigateToChats}
+                        >
+                            <PressableWithFeedback
+                                onPress={navigateToChats}
+                                role={CONST.ROLE.BUTTON}
+                                accessibilityLabel={translate('common.inbox')}
+                                style={styles.leftNavigationTabBarItem}
+                            >
+                                <View>
+                                    <Icon
+                                        src={Expensicons.Inbox}
+                                        fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
+                                        width={variables.iconBottomBar}
+                                        height={variables.iconBottomBar}
+                                    />
+                                    {!!chatTabBrickRoad && (
+                                        <View
+                                            style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)}
+                                        />
+                                    )}
+                                </View>
+                                <Text
+                                    style={[
+                                        styles.textSmall,
+                                        styles.textAlignCenter,
+                                        styles.mt1Half,
+                                        selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                        styles.navigationTabBarLabel,
+                                    ]}
+                                >
+                                    {translate('common.inbox')}
+                                </Text>
+                            </PressableWithFeedback>
+                        </EducationalTooltip>
+                        <PressableWithFeedback
+                            onPress={navigateToSearch}
+                            role={CONST.ROLE.BUTTON}
+                            accessibilityLabel={translate('common.reports')}
+                            style={styles.leftNavigationTabBarItem}
+                        >
+                            <View>
+                                <Icon
+                                    src={Expensicons.MoneySearch}
+                                    fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
+                                    width={variables.iconBottomBar}
+                                    height={variables.iconBottomBar}
+                                />
+                            </View>
+                            <Text
+                                style={[
+                                    styles.textSmall,
+                                    styles.textAlignCenter,
+                                    styles.mt1Half,
+                                    selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                                    styles.navigationTabBarLabel,
+                                ]}
+                            >
+                                {translate('common.reports')}
+                            </Text>
+                        </PressableWithFeedback>
+                        <NavigationTabBarAvatar
+                            style={styles.leftNavigationTabBarItem}
+                            isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
+                            onPress={showSettingsPage}
+                        />
+                    </View>
+                    <View style={styles.leftNavigationTabBarItem}>
+                        <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                    </View>
+                </View>
+            </>
+        );
+    }
+
     return (
         <>
             {!!user?.isDebugModeEnabled && (
@@ -194,14 +311,14 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     activeWorkspaceID={activeWorkspaceID}
                 />
             )}
-            <View style={styles.bottomTabBarContainer}>
+            <View style={styles.navigationTabBarContainer}>
                 <EducationalTooltip
                     shouldRender={shouldShowProductTrainingTooltip}
                     anchorAlignment={{
                         horizontal: isWebOrDesktop ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.CENTER : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
                         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
                     }}
-                    shiftHorizontal={isWebOrDesktop ? 0 : variables.bottomTabInboxTooltipShiftHorizontal}
+                    shiftHorizontal={isWebOrDesktop ? 0 : variables.navigationTabBarInboxTooltipShiftHorizontal}
                     renderTooltipContent={renderProductTrainingTooltip}
                     wrapperStyle={styles.productTrainingTooltipWrapper}
                     shouldHideOnNavigate={false}
@@ -212,17 +329,17 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('common.inbox')}
                         wrapperStyle={styles.flex1}
-                        style={styles.bottomTabBarItem}
+                        style={styles.navigationTabBarItem}
                     >
                         <View>
                             <Icon
                                 src={Expensicons.Inbox}
-                                fill={selectedTab === BOTTOM_TABS.HOME ? theme.iconMenu : theme.icon}
+                                fill={selectedTab === NAVIGATION_TABS.HOME ? theme.iconMenu : theme.icon}
                                 width={variables.iconBottomBar}
                                 height={variables.iconBottomBar}
                             />
                             {!!chatTabBrickRoad && (
-                                <View style={styles.bottomTabStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
+                                <View style={styles.navigationTabBarStatusIndicator(chatTabBrickRoad === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO ? theme.iconSuccessFill : theme.danger)} />
                             )}
                         </View>
                         <Text
@@ -230,8 +347,8 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                                 styles.textSmall,
                                 styles.textAlignCenter,
                                 styles.mt1Half,
-                                selectedTab === BOTTOM_TABS.HOME ? styles.textBold : styles.textSupporting,
-                                styles.bottomTabBarLabel,
+                                selectedTab === NAVIGATION_TABS.HOME ? styles.textBold : styles.textSupporting,
+                                styles.navigationTabBarLabel,
                             ]}
                         >
                             {translate('common.inbox')}
@@ -243,12 +360,12 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('common.reports')}
                     wrapperStyle={styles.flex1}
-                    style={styles.bottomTabBarItem}
+                    style={styles.navigationTabBarItem}
                 >
                     <View>
                         <Icon
                             src={Expensicons.MoneySearch}
-                            fill={selectedTab === BOTTOM_TABS.SEARCH ? theme.iconMenu : theme.icon}
+                            fill={selectedTab === NAVIGATION_TABS.SEARCH ? theme.iconMenu : theme.icon}
                             width={variables.iconBottomBar}
                             height={variables.iconBottomBar}
                         />
@@ -258,25 +375,26 @@ function BottomTabBar({selectedTab, isTooltipAllowed = false}: BottomTabBarProps
                             styles.textSmall,
                             styles.textAlignCenter,
                             styles.mt1Half,
-                            selectedTab === BOTTOM_TABS.SEARCH ? styles.textBold : styles.textSupporting,
-                            styles.bottomTabBarLabel,
+                            selectedTab === NAVIGATION_TABS.SEARCH ? styles.textBold : styles.textSupporting,
+                            styles.navigationTabBarLabel,
                         ]}
                     >
                         {translate('common.reports')}
                     </Text>
                 </PressableWithFeedback>
-                <BottomTabAvatar
-                    isSelected={selectedTab === BOTTOM_TABS.SETTINGS}
+                <NavigationTabBarAvatar
+                    style={styles.navigationTabBarItem}
+                    isSelected={selectedTab === NAVIGATION_TABS.SETTINGS}
                     onPress={showSettingsPage}
                 />
-                <View style={[styles.flex1, styles.bottomTabBarItem]}>
-                    <BottomTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
+                <View style={[styles.flex1, styles.navigationTabBarItem]}>
+                    <NavigationTabBarFloatingActionButton isTooltipAllowed={isTooltipAllowed} />
                 </View>
             </View>
         </>
     );
 }
 
-BottomTabBar.displayName = 'BottomTabBar';
+NavigationTabBar.displayName = 'NavigationTabBar';
 
-export default memo(BottomTabBar);
+export default memo(NavigationTabBar);

@@ -1,7 +1,7 @@
-const BOTTOM_TABS = {
+const NAVIGATION_TABS = {
     HOME: 'HOME',
     SEARCH: 'SEARCH',
     SETTINGS: 'SETTINGS',
 } as const;
 
-export default BOTTOM_TABS;
+export default NAVIGATION_TABS;
