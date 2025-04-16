@@ -32,7 +32,7 @@ function TermsAndConditionsLabel() {
     return (
         <Text>
             {translate('common.iAcceptThe')}
-            <TextLink href="https://cross-border.corpay.com/tc/">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>
+            <TextLink href="https://cross-border.corpay.com/tc/">{`${translate('agreementsStep.termsAndConditions')}`}</TextLink>.
         </Text>
     );
 }
@@ -41,7 +41,7 @@ function ConsentToPrivacyNoticeLabel() {
     const {translate} = useLocalize();
     return (
         <Text>
-            {translate('agreementsStep.iConsentToThe')} <TextLink href="https://payments.corpay.com/compliance">{`${translate('agreementsStep.privacyNotice')}`}</TextLink>
+            {translate('agreementsStep.iConsentToThe')} <TextLink href="https://payments.corpay.com/compliance">{`${translate('agreementsStep.privacyNotice')}`}</TextLink>.
         </Text>
     );
 }

@@ -2733,7 +2733,7 @@ const translations = {
         regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
         iAmAuthorized: 'Estoy autorizado para usar la cuenta bancaria para gastos del negocio.',
         iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
-        termsAndConditions: 'términos y condiciones.',
+        termsAndConditions: 'términos y condiciones',
         accept: 'Agregar y aceptar cuenta bancaria',
         iConsentToThe: 'Doy mi consentimiento para el',
         privacyNotice: 'aviso de privacidad',
