@@ -311,7 +311,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
             unsubscribe();
         };
 
-        // This effect handles subscribing to events, so we only want to run it to run on mount, and in case reportID changes
+        // This effect handles subscribing to events, so we only want to run it on mount, and in case reportID changes
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [report.reportID]);
 
