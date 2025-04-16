@@ -3,20 +3,20 @@ import {useCallback, useEffect, useRef} from 'react';
 import Navigation from '@navigation/Navigation';
 import ROUTES from '@src/ROUTES';
 
-function usePreviousScreen(): () => boolean {
-    const previousScreen = useRef<string | undefined>(undefined);
+function useIsOnInitialRenderReportScreen(): () => boolean {
+    const initialRenderReportScreen = useRef<string | undefined>(undefined);
     const navigation = useNavigation();
 
-    const isOnPreviousScreen = useCallback(() => {
-        return previousScreen.current === Navigation.getActiveRouteWithoutParams();
+    const isOnInitialRenderReportScreen = useCallback(() => {
+        return initialRenderReportScreen.current === Navigation.getActiveRouteWithoutParams();
     }, []);
 
     useEffect(() => {
         Navigation.isNavigationReady().then(() => {
-            if (previousScreen.current !== undefined) {
+            if (initialRenderReportScreen.current !== undefined) {
                 return;
             }
-            previousScreen.current = Navigation.getActiveRouteWithoutParams();
+            initialRenderReportScreen.current = Navigation.getActiveRouteWithoutParams();
         });
     }, []);
 
@@ -26,11 +26,11 @@ function usePreviousScreen(): () => boolean {
             if (Navigation.getActiveRouteWithoutParams() === `/${ROUTES.ATTACHMENTS.route}`) {
                 return;
             }
-            previousScreen.current = Navigation.getActiveRouteWithoutParams();
+            initialRenderReportScreen.current = Navigation.getActiveRouteWithoutParams();
         });
     }, [navigation]);
 
-    return isOnPreviousScreen;
+    return isOnInitialRenderReportScreen;
 }
 
-export default usePreviousScreen;
+export default useIsOnInitialRenderReportScreen;

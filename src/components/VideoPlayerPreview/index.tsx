@@ -9,8 +9,8 @@ import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
 import useFirstRenderRoute from '@hooks/useFirstRenderRoute';
+import useIsOnInitialRenderReportScreen from '@hooks/useIsOnInitialRenderReportScreen';
 import useLocalize from '@hooks/useLocalize';
-import usePreviousScreen from '@hooks/usePreviousScreen';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThumbnailDimensions from '@hooks/useThumbnailDimensions';
@@ -66,9 +66,9 @@ function VideoPlayerPreview({videoUrl, thumbnailUrl, reportID, fileName, videoDi
     const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
 
-    const isPreviousScreenACorrespondingReport = usePreviousScreen();
+    const isOnInitialRenderReportScreen = useIsOnInitialRenderReportScreen();
     // We want to play the video only when the user is on the page where it was rendered
-    const firstRenderRoute = useFirstRenderRoute(isPreviousScreenACorrespondingReport);
+    const firstRenderRoute = useFirstRenderRoute(isOnInitialRenderReportScreen);
 
     // `onVideoLoaded` is passed to VideoPlayerPreview's `Video` element which is displayed only on web.
     // VideoReadyForDisplayEvent type is lacking srcElement, that's why it's added here
