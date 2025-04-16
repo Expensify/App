@@ -7,7 +7,7 @@ import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
 import useWorkletStateMachine from '@hooks/useWorkletStateMachine';
 
 type MeasuredElements = {
-    fy?: number;
+    frameY?: number;
     popoverHeight?: number;
     height?: number;
     composerHeight?: number;

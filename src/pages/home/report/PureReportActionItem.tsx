@@ -562,12 +562,12 @@ function PureReportActionItem({
             }
 
             // eslint-disable-next-line @typescript-eslint/naming-convention
-            popoverAnchorRef.current?.measureInWindow((_fx, fy, _width, height) => {
+            popoverAnchorRef.current?.measureInWindow((_fx, frameY, _width, height) => {
                 actionSheetAwareScrollViewContext.transitionActionSheetState({
                     type: ActionSheetAwareScrollView.Actions.OPEN_POPOVER,
                     payload: {
                         popoverHeight: 0,
-                        fy,
+                        frameY,
                         height,
                     },
                 });

@@ -114,15 +114,15 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
 
         // Sometimes we need to know the last keyboard height
         const lastKeyboardHeight = keyboard.heightWhenOpened.get() - paddingBottom;
-        const {popoverHeight = 0, fy, height} = current.payload ?? {};
+        const {popoverHeight = 0, frameY, height} = current.payload ?? {};
         const invertedKeyboardHeight = keyboard.state.get() === KeyboardState.CLOSED ? lastKeyboardHeight : 0;
-        const elementOffset = fy !== undefined && height !== undefined && popoverHeight !== undefined ? fy + paddingTop + height - (windowHeight - popoverHeight) : 0;
+        const elementOffset = frameY !== undefined && height !== undefined && popoverHeight !== undefined ? frameY + paddingTop + height - (windowHeight - popoverHeight) : 0;
 
         // when the state is not idle we know for sure we have the previous state
         const previousPayload = previous.payload ?? {};
         const previousElementOffset =
-            previousPayload.fy !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined
-                ? previousPayload.fy + paddingTop + previousPayload.height - (windowHeight - previousPayload.popoverHeight)
+            previousPayload.frameY !== undefined && previousPayload.height !== undefined && previousPayload.popoverHeight !== undefined
+                ? previousPayload.frameY + paddingTop + previousPayload.height - (windowHeight - previousPayload.popoverHeight)
                 : 0;
 
         const isOpeningKeyboard = syncLocalWorkletState.get() === 1;
@@ -202,7 +202,7 @@ function ActionSheetKeyboardSpace(props: ActionSheetKeyboardSpaceProps) {
                 }
 
                 if (elementOffset < 0) {
-                    const heightDifference = (fy ?? 0) - keyboardHeight - paddingTop - paddingBottom;
+                    const heightDifference = (frameY ?? 0) - keyboardHeight - paddingTop - paddingBottom;
                     if (isClosingKeyboard) {
                         if (hasWhiteGap) {
                             const targetOffset = Math.max(heightDifference - (scrollOffset > 0 ? scrollOffset / 2 : 0), -popoverHeight);
