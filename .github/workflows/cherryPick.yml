@@ -33,12 +33,13 @@ jobs:
       - name: Verify repository
         run: |
           if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ]; then
-            echo "::error::❌ Cherry picks are only supported for the Expensify/App repository. Found: ${{ steps.GetPRInfo.outputs.REPO_FULL_NAME }}"
+            echo "::error::❌ Cherry picks are only supported for the Expensify/App repository. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
 
       - name: Set conflict branch name
-        run: echo "CONFLICT_BRANCH_NAME=cherry-pick-staging-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_ENV"
+        id: getBranchName
+        run: echo "CONFLICT_BRANCH_NAME=cherry-pick-staging-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
       # This command is necessary to fetch any branch other than main in the submodule.
       # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
@@ -150,8 +151,8 @@ jobs:
       - name: Push changes
         run: |
           if [[ ${{steps.cherryPick.outputs.HAS_CONFLICTS}} == 'true' ]]; then
-            git checkout -b ${{ env.CONFLICT_BRANCH_NAME }}
-            git push --set-upstream origin ${{ env.CONFLICT_BRANCH_NAME }}
+            git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
+            git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
             git push origin staging
           fi
@@ -169,7 +170,7 @@ jobs:
 
           \`\`\`bash
           git fetch
-          git checkout ${{ env.CONFLICT_BRANCH_NAME }}
+          git checkout ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}
           \`\`\`
 
@@ -179,7 +180,7 @@ jobs:
           git commit --amend -m "\$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})"
           \`\`\`
 
-          That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ env.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
+          That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
 
           Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main.
 
@@ -191,7 +192,7 @@ jobs:
 
           # Create PR
           gh pr create \
-            --title "🍒 Cherry pick PR #${{ steps.GetPRInfo.outputs.PR_NUMBER }} to staging 🍒" \
+            --title "🍒 Cherry pick PR #${{ steps.getPRInfo.outputs.PR_NUMBER }} to staging 🍒" \
             --body "$PR_DESCRIPTION" \
             --label "Engineering,Hourly" \
             --base "staging"
