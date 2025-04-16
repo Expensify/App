@@ -502,7 +502,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
         setSelectedTransactionsID([]);
-    }, [transactionThreadReportID]);
+    }, [transactionThreadReportID, setSelectedTransactionsID]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
