@@ -1,10 +1,10 @@
-import type {ResultMetadata} from 'react-native-onyx';
+import type {OnyxCollection, ResultMetadata} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CardFeeds, CompanyCardFeed} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
-const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, ResultMetadata] => {
+const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const defaultFeed = allFeeds?.[`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`];
