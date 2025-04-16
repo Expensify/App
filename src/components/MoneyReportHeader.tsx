@@ -63,6 +63,7 @@ import {
     getNextApproverAccountID,
     payInvoice,
     payMoneyRequest,
+    startMoneyRequest,
     submitReport,
     unapproveExpenseReport,
     unholdRequest,
@@ -535,6 +536,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onPress={markAsCash}
             />
         ),
+        [CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE]: (
+            <Button
+                success
+                text={translate('iou.addExpense')}
+                onPress={() => {
+                    if (!moneyRequestReport?.reportID) {
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
+                }}
+            />
+        ),
     };
 
     const secondaryActions = useMemo(() => {
@@ -668,6 +681,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             value: CONST.REPORT.SECONDARY_ACTIONS.DELETE,
             onSelected: () => {
                 setIsDeleteModalVisible(true);
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE]: {
+            text: translate('iou.addExpense'),
+            icon: Expensicons.Plus,
+            value: CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE,
+            onSelected: () => {
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, moneyRequestReport?.reportID);
             },
         },
     };

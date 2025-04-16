@@ -1153,6 +1153,7 @@ const CONST = {
             CHANGE_WORKSPACE: 'changeWorkspace',
             VIEW_DETAILS: 'viewDetails',
             DELETE: 'delete',
+            ADD_EXPENSE: 'addExpense',
         },
         PRIMARY_ACTIONS: {
             SUBMIT: 'submit',
@@ -1161,6 +1162,7 @@ const CONST = {
             EXPORT_TO_ACCOUNTING: 'exportToAccounting',
             REMOVE_HOLD: 'removeHold',
             MARK_AS_CASH: 'markAsCash',
+            ADD_EXPENSE: 'addExpense',
         },
         TRANSACTION_PRIMARY_ACTIONS: {
             REMOVE_HOLD: 'removeHold',

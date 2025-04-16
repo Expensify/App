@@ -902,6 +902,7 @@ const translations = {
         original: 'Original',
         split: 'Dividir',
         splitExpense: 'Dividir gasto',
+        addExpense: 'Agregar gasto',
         expense: 'Gasto',
         categorize: 'Categorizar',
         share: 'Compartir',

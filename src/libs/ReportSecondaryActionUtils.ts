@@ -17,6 +17,7 @@ import {
 } from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
+    canAddTransaction,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -32,6 +33,16 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
+
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (!isReportSubmitter || reportTransactions.length === 0) {
+        return false;
+    }
+
+    return canAddTransaction(report);
+}
 
 function isSubmitAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
@@ -376,6 +387,10 @@ function getSecondaryReportActions(
     policy?: Policy,
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
+
+    if (isAddExpenseAction(report, reportTransactions)) {
+        options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
+    }
 
     if (isSubmitAction(report, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);

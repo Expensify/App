@@ -40,6 +40,14 @@ import {
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
 
+function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
+    const isExpenseReport = isExpenseReportUtils(report);
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+    const isOpenReport = isOpenReportUtils(report);
+
+    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length === 0;
+}
+
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
@@ -230,6 +238,10 @@ function getReportPrimaryAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    if (isAddExpenseAction(report, reportTransactions)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
+
     if (isRemoveHoldAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
