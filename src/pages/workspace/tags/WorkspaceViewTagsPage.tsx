@@ -17,6 +17,7 @@ import Switch from '@components/Switch';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -46,7 +47,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {TagListItem} from './types';
 
 type WorkspaceViewTagsProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.TAG_LIST_VIEW>;
@@ -58,7 +58,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const dropdownButtonRef = useRef(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
@@ -70,6 +69,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
+    const [selectedTags, setSelectedTags] = usePersistSelection(currentPolicyTag);
 
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
@@ -87,26 +87,6 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             turnOffMobileSelectionMode();
         };
     }, [isFocused]);
-
-    useEffect(() => {
-        if (isEmptyObject(selectedTags) || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedTags((prevSelectedTags) => {
-            const newSelectedTags: Record<string, boolean> = {};
-
-            Object.keys(prevSelectedTags).forEach((key) => {
-                if (isEmptyObject(currentPolicyTag?.tags?.[key]) || currentPolicyTag?.tags?.[key]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return;
-                }
-                newSelectedTags[key] = prevSelectedTags[key];
-            });
-
-            return newSelectedTags;
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [currentPolicyTag]);
 
     useSearchBackPress({
         onClearSelection: () => {

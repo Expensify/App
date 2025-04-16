@@ -29,6 +29,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -53,7 +54,6 @@ import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {PolicyCategory} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PolicyOption = ListItem & {
     /** Category name is used as a key for the selectedCategories state */
@@ -71,7 +71,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const {translate} = useLocalize();
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
-    const [selectedCategories, setSelectedCategories] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [deleteCategoriesConfirmModalVisible, setDeleteCategoriesConfirmModalVisible] = useState(false);
     const {environmentURL} = useEnvironment();
@@ -87,6 +86,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
     const {canUseLeftHandBar} = usePermissions();
+    const [selectedCategories, setSelectedCategories] = usePersistSelection(policyCategories);
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -102,28 +102,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
+    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), [setSelectedCategories]);
     useCleanupSelectedOptions(cleanupSelectedOption);
-
-    useEffect(() => {
-        if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedCategories((prevSelectedCategories) => {
-            const keys = Object.keys(prevSelectedCategories);
-            const newSelectedCategories: Record<string, boolean> = {};
-
-            for (const key of keys) {
-                if (policyCategories?.[key] && policyCategories[key].pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    newSelectedCategories[key] = prevSelectedCategories[key];
-                }
-            }
-
-            return newSelectedCategories;
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [policyCategories]);
 
     useSearchBackPress({
         onClearSelection: () => setSelectedCategories({}),
@@ -169,15 +149,18 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
-    const toggleCategory = useCallback((category: PolicyOption) => {
-        setSelectedCategories((prev) => {
-            if (prev[category.keyForList]) {
-                const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
-                return newCategories;
-            }
-            return {...prev, [category.keyForList]: true};
-        });
-    }, []);
+    const toggleCategory = useCallback(
+        (category: PolicyOption) => {
+            setSelectedCategories((prev) => {
+                if (prev[category.keyForList]) {
+                    const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
+                    return newCategories;
+                }
+                return {...prev, [category.keyForList]: true};
+            });
+        },
+        [setSelectedCategories],
+    );
 
     const toggleAllCategories = () => {
         const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);

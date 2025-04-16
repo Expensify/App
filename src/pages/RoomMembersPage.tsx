@@ -19,6 +19,7 @@ import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentU
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePersistSelection from '@hooks/usePersistSelection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +40,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PersonalDetails} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
@@ -52,7 +54,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
-    const [selectedMembers, setSelectedMembers] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [userSearchPhrase] = useOnyx(ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE);
     const [searchValue, setSearchValue] = useState('');
@@ -61,6 +62,48 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const policy = useMemo(() => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`], [policies, report?.policyID]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
+
+    const participants = useMemo(() => getParticipantsList(report, personalDetails, true), [report, personalDetails]);
+
+    const personalDetailsParticipants = useMemo(
+        () =>
+            participants.reduce<Record<number, PersonalDetails>>((acc, accountID) => {
+                const details = personalDetails?.[accountID];
+                if (details) {
+                    acc[accountID] = details;
+                }
+                return acc;
+            }, {}),
+        // explicitly adding reportMetadata to the dependency array to force re-render when removing user
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [participants, personalDetails, reportMetadata],
+    );
+
+    const shouldIncludeMember = useCallback(
+        (participant?: PersonalDetails) => {
+            if (!participant) {
+                return false;
+            }
+            const isInParticipants = participants.includes(participant.accountID);
+            const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === participant.accountID.toString());
+
+            const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+
+            // Keep the member only if they're still in the room and not pending removal
+            return isInParticipants && !isPendingDelete;
+        },
+        [participants, reportMetadata?.pendingChatMembers],
+    );
+
+    const [selectedMembers, setSelectedMembers] = usePersistSelection(personalDetailsParticipants, shouldIncludeMember);
+
+    const selectedMembersAccountIDs = useMemo(
+        () =>
+            Object.keys(selectedMembers)
+                .filter((accountID) => selectedMembers[accountID])
+                .map(Number),
+        [selectedMembers],
+    );
 
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
@@ -105,10 +148,10 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
      */
     const removeUsers = () => {
         if (report) {
-            removeFromRoom(report.reportID, selectedMembers);
+            removeFromRoom(report.reportID, selectedMembersAccountIDs);
         }
         setSearchValue('');
-        setSelectedMembers([]);
+        setSelectedMembers({});
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             clearUserSearchPhrase();
@@ -118,16 +161,22 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /**
      * Add user from the selectedMembers list
      */
-    const addUser = useCallback((accountID: number) => {
-        setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
-    }, []);
+    const addUser = useCallback(
+        (accountID: number) => {
+            setSelectedMembers((prevSelected) => ({...prevSelected, [accountID]: true}));
+        },
+        [setSelectedMembers],
+    );
 
     /**
      * Remove user from the selectedEmployees list
      */
-    const removeUser = useCallback((accountID: number) => {
-        setSelectedMembers((prevSelected) => prevSelected.filter((selected) => selected !== accountID));
-    }, []);
+    const removeUser = useCallback(
+        (accountID: number) => {
+            setSelectedMembers((prevSelected) => ({...prevSelected, [accountID]: false}));
+        },
+        [setSelectedMembers],
+    );
 
     /** Toggle user from the selectedMembers list */
     const toggleUser = useCallback(
@@ -137,13 +186,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (selectedMembers.includes(accountID)) {
+            if (selectedMembersAccountIDs.includes(accountID)) {
                 removeUser(accountID);
             } else {
                 addUser(accountID);
             }
         },
-        [selectedMembers, addUser, removeUser],
+        [selectedMembersAccountIDs, addUser, removeUser],
     );
 
     /** Add or remove all users passed from the selectedMembers list */
@@ -153,39 +202,22 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             if (!member.accountID) {
                 return false;
             }
-            return selectedMembers.includes(member.accountID);
+            return selectedMembersAccountIDs.includes(member.accountID);
         });
 
         if (someSelected) {
-            setSelectedMembers([]);
+            setSelectedMembers({});
         } else {
-            const everyAccountId = enabledAccounts.map((member) => member.accountID).filter((accountID): accountID is number => !!accountID);
+            const everyAccountId = enabledAccounts
+                .map((member) => member.accountID)
+                .filter((accountID): accountID is number => !!accountID)
+                .reduce<Record<number, boolean>>((acc, accountID) => {
+                    acc[accountID] = true;
+                    return acc;
+                }, {});
             setSelectedMembers(everyAccountId);
         }
     };
-
-    const participants = useMemo(() => getParticipantsList(report, personalDetails, true), [report, personalDetails]);
-
-    useEffect(() => {
-        if (selectedMembers.length === 0 || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedMembers((prevSelectedMembers) => {
-            const updatedSelectedMembers = prevSelectedMembers.filter((accountID) => {
-                const isInParticipants = participants.includes(accountID);
-                const pendingChatMember = reportMetadata?.pendingChatMembers?.find((member) => member.accountID === accountID.toString());
-
-                const isPendingDelete = pendingChatMember?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-                // Keep the member only if they're still in the room and not pending removal
-                return isInParticipants && !isPendingDelete;
-            });
-
-            return updatedSelectedMembers;
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [participants, reportMetadata?.pendingChatMembers, canSelectMultiple]);
 
     /** Include the search bar when there are 8 or more active members in the selection list */
     const shouldShowTextInput = useMemo(() => {
@@ -225,7 +257,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedMembers([]),
+        onClearSelection: () => setSelectedMembers({}),
         onNavigationCallBack: () => {
             setSearchValue('');
             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
@@ -254,7 +286,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             result.push({
                 keyForList: String(accountID),
                 accountID,
-                isSelected: selectedMembers.includes(accountID),
+                isSelected: selectedMembersAccountIDs.includes(accountID),
                 isDisabled,
                 isDisabledCheckbox,
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
@@ -284,7 +316,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         report.ownerAccountID,
         reportMetadata?.pendingChatMembers,
         searchValue,
-        selectedMembers,
+        selectedMembersAccountIDs,
         session?.accountID,
     ]);
 
@@ -307,29 +339,29 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedMembersAccountIDs.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
         ];
         return options;
-    }, [translate, selectedMembers.length]);
+    }, [translate, selectedMembersAccountIDs.length]);
 
     const headerButtons = useMemo(() => {
         return (
             <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
+                {(isSmallScreenWidth ? canSelectMultiple : selectedMembersAccountIDs.length > 0) ? (
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
+                        customText={translate('workspace.common.selected', {count: selectedMembersAccountIDs.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         isSplitButton={false}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                        isDisabled={!selectedMembers.length}
+                        isDisabled={!selectedMembersAccountIDs.length}
                     />
                 ) : (
                     <Button
@@ -343,7 +375,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembersAccountIDs, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
@@ -392,7 +424,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedMembers([]);
+                            setSelectedMembers({});
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -404,13 +436,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
                     danger
-                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
+                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembersAccountIDs.length})}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
-                        count: selectedMembers.length,
-                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
+                        count: selectedMembersAccountIDs.length,
+                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembersAccountIDs, currentUserAccountID}).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}

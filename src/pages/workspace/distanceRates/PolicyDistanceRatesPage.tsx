@@ -16,6 +16,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -56,7 +57,6 @@ function PolicyDistanceRatesPage({
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const [selectedDistanceRates, setSelectedDistanceRates] = useState<Rate[]>([]);
     const [isWarningModalVisible, setIsWarningModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
     const policy = usePolicy(policyID);
@@ -66,11 +66,28 @@ function PolicyDistanceRatesPage({
 
     const customUnit = getDistanceRateCustomUnit(policy);
     const customUnitRates: Record<string, Rate> = useMemo(() => customUnit?.rates ?? {}, [customUnit]);
-    // Filter out rates that will be deleted
-    const allSelectableRates = useMemo(() => Object.values(customUnitRates).filter((rate) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE), [customUnitRates]);
+
+    const selectableRates = useMemo(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        () => Object.fromEntries(Object.entries(customUnitRates).filter(([_, rate]) => rate.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)),
+        [customUnitRates],
+    );
+
+    const filterRate = useCallback(
+        (rate?: Rate) => !!rate && !!customUnitRates?.[rate.customUnitRateID] && customUnitRates?.[rate.customUnitRateID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+        [customUnitRates],
+    );
+
+    const [selectedDistanceRates, setSelectedDistanceRates] = usePersistSelection(selectableRates, filterRate);
+
+    const selectedDistanceRatesIDs = useMemo(() => Object.keys(selectedDistanceRates).filter((key) => selectedDistanceRates[key]), [selectedDistanceRates]);
+
     const canDisableOrDeleteSelectedRates = useMemo(
-        () => allSelectableRates.filter((rate: Rate) => !selectedDistanceRates.some((selectedRate) => selectedRate.customUnitRateID === rate.customUnitRateID)).some((rate) => rate.enabled),
-        [allSelectableRates, selectedDistanceRates],
+        () =>
+            Object.keys(selectableRates)
+                .filter((rateID) => !selectedDistanceRatesIDs.some((selectedRateID) => selectedRateID === rateID))
+                .some((rateID) => selectableRates[rateID].enabled),
+        [selectableRates, selectedDistanceRatesIDs],
     );
 
     const fetchDistanceRates = useCallback(() => {
@@ -101,27 +118,8 @@ function PolicyDistanceRatesPage({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    useEffect(() => {
-        if (selectedDistanceRates.length === 0 || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedDistanceRates((prevSelectedRates) => {
-            const updatedSelectedRates = prevSelectedRates.filter((rate) => {
-                const isInRate = !!customUnitRates?.[rate.customUnitRateID];
-
-                const isPendingDelete = customUnitRates?.[rate.customUnitRateID]?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-
-                return isInRate && !isPendingDelete;
-            });
-
-            return updatedSelectedRates;
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [customUnitRates, canSelectMultiple]);
-
     useSearchBackPress({
-        onClearSelection: () => setSelectedDistanceRates([]),
+        onClearSelection: () => setSelectedDistanceRates({}),
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
@@ -137,15 +135,6 @@ function PolicyDistanceRatesPage({
             );
 
             if (!rate?.enabled || canDisableOrDeleteRate) {
-                setSelectedDistanceRates((prevSelectedRates) =>
-                    prevSelectedRates.map((selectedRate) => {
-                        if (selectedRate.customUnitRateID === rateID) {
-                            return {...selectedRate, enabled: value};
-                        }
-                        return selectedRate;
-                    }),
-                );
-
                 setPolicyDistanceRatesEnabled(policyID, customUnit, [{...rate, enabled: value}]);
             } else {
                 setIsWarningModalVisible(true);
@@ -164,7 +153,7 @@ function PolicyDistanceRatesPage({
                         `common.${customUnit?.attributes?.unit ?? CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES}`,
                     )}`,
                     keyForList: value.customUnitRateID,
-                    isSelected: selectedDistanceRates.find((rate) => rate.customUnitRateID === value.customUnitRateID) !== undefined && canSelectMultiple,
+                    isSelected: selectedDistanceRatesIDs.includes(value.customUnitRateID) && canSelectMultiple,
                     isDisabled: value.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                     pendingAction:
                         value.pendingAction ??
@@ -184,7 +173,7 @@ function PolicyDistanceRatesPage({
                         />
                     ),
                 })),
-        [customUnitRates, translate, customUnit, selectedDistanceRates, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
+        [customUnitRates, translate, customUnit, selectedDistanceRatesIDs, canSelectMultiple, policy?.pendingAction, updateDistanceRateEnabled],
     );
 
     const addRate = () => {
@@ -207,9 +196,12 @@ function PolicyDistanceRatesPage({
         setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
-            selectedDistanceRates.filter((rate) => rate.enabled).map((rate) => ({...rate, enabled: false})),
+            selectedDistanceRatesIDs
+                .map((rateID) => selectableRates[rateID])
+                .filter((rate) => rate.enabled)
+                .map((rate) => ({...rate, enabled: false})),
         );
-        setSelectedDistanceRates([]);
+        setSelectedDistanceRates({});
     };
 
     const enableRates = () => {
@@ -220,9 +212,12 @@ function PolicyDistanceRatesPage({
         setPolicyDistanceRatesEnabled(
             policyID,
             customUnit,
-            selectedDistanceRates.filter((rate) => !rate.enabled).map((rate) => ({...rate, enabled: true})),
+            selectedDistanceRatesIDs
+                .map((rateID) => selectableRates[rateID])
+                .filter((rate) => !rate.enabled)
+                .map((rate) => ({...rate, enabled: true})),
         );
-        setSelectedDistanceRates([]);
+        setSelectedDistanceRates({});
     };
 
     const deleteRates = () => {
@@ -230,28 +225,28 @@ function PolicyDistanceRatesPage({
             return;
         }
 
-        deletePolicyDistanceRates(
-            policyID,
-            customUnit,
-            selectedDistanceRates.map((rate) => rate.customUnitRateID),
-        );
-        setSelectedDistanceRates([]);
+        deletePolicyDistanceRates(policyID, customUnit, selectedDistanceRatesIDs);
+        setSelectedDistanceRates({});
         setIsDeleteModalVisible(false);
     };
 
     const toggleRate = (rate: RateForList) => {
-        if (selectedDistanceRates.find((selectedRate) => selectedRate.customUnitRateID === rate.value) !== undefined) {
-            setSelectedDistanceRates((prev) => prev.filter((selectedRate) => selectedRate.customUnitRateID !== rate.value));
-        } else {
-            setSelectedDistanceRates((prev) => [...prev, customUnitRates[rate.value]]);
-        }
+        setSelectedDistanceRates((prevSelectedRates) => ({
+            ...prevSelectedRates,
+            [rate.value]: !prevSelectedRates[rate.value],
+        }));
     };
 
     const toggleAllRates = () => {
-        if (selectedDistanceRates.length > 0) {
-            setSelectedDistanceRates([]);
+        if (selectedDistanceRatesIDs.length > 0) {
+            setSelectedDistanceRates({});
         } else {
-            setSelectedDistanceRates([...allSelectableRates]);
+            setSelectedDistanceRates(
+                Object.keys(selectableRates).reduce<Record<string, boolean>>((acc, rateID) => {
+                    acc[rateID] = true;
+                    return acc;
+                }, {}),
+            );
         }
     };
 
@@ -268,14 +263,14 @@ function PolicyDistanceRatesPage({
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceDistanceRatesBulkActionType>> = [
             {
-                text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
+                text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRatesIDs.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: Expensicons.Trashcan,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? setIsDeleteModalVisible(true) : setIsWarningModalVisible(true)),
             },
         ];
 
-        const enabledRates = selectedDistanceRates.filter((rate) => rate.enabled);
+        const enabledRates = Object.values(selectableRates).filter((rate) => rate.enabled && selectedDistanceRatesIDs.includes(rate.customUnitRateID));
         if (enabledRates.length > 0) {
             options.push({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
@@ -285,7 +280,7 @@ function PolicyDistanceRatesPage({
             });
         }
 
-        const disabledRates = selectedDistanceRates.filter((rate) => !rate.enabled);
+        const disabledRates = Object.values(selectableRates).filter((rate) => !rate.enabled && selectedDistanceRatesIDs.includes(rate.customUnitRateID));
         if (disabledRates.length > 0) {
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),
@@ -302,7 +297,7 @@ function PolicyDistanceRatesPage({
 
     const headerButtons = (
         <View style={[styles.w100, styles.flexRow, styles.gap2, shouldUseNarrowLayout && styles.mb3]}>
-            {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRates.length === 0) ? (
+            {(shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedDistanceRatesIDs.length === 0) ? (
                 <>
                     <Button
                         text={translate('workspace.distanceRates.addRate')}
@@ -323,14 +318,14 @@ function PolicyDistanceRatesPage({
                 <ButtonWithDropdownMenu<WorkspaceDistanceRatesBulkActionType>
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
-                    customText={translate('workspace.common.selected', {count: selectedDistanceRates.length})}
+                    customText={translate('workspace.common.selected', {count: selectedDistanceRatesIDs.length})}
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                     onPress={() => null}
                     options={getBulkActionsButtonOptions()}
                     style={[shouldUseNarrowLayout && styles.flexGrow1]}
                     wrapperStyle={styles.w100}
                     isSplitButton={false}
-                    isDisabled={!selectedDistanceRates.length}
+                    isDisabled={!selectedDistanceRatesIDs.length}
                 />
             )}
         </View>
@@ -363,7 +358,7 @@ function PolicyDistanceRatesPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedDistanceRates([]);
+                            setSelectedDistanceRates({});
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -414,7 +409,7 @@ function PolicyDistanceRatesPage({
                     isVisible={isDeleteModalVisible}
                     onConfirm={deleteRates}
                     onCancel={() => setIsDeleteModalVisible(false)}
-                    prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRates.length})}
+                    prompt={translate('workspace.distanceRates.areYouSureDelete', {count: selectedDistanceRatesIDs.length})}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

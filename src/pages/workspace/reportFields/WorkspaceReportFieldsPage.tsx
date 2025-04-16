@@ -1,6 +1,6 @@
 import {useFocusEffect} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -27,6 +27,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -48,7 +49,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PolicyReportField} from '@src/types/onyx/Policy';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 
 type ReportFieldForList = ListItem & {
@@ -80,7 +80,6 @@ function WorkspaceReportFieldsPage({
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         return Object.fromEntries(Object.entries(policy.fieldList).filter(([_, value]) => value.fieldID !== 'text_title'));
     }, [policy]);
-    const [selectedReportFields, setSelectedReportFields] = useState<PolicyReportField[]>([]);
     const [deleteReportFieldsConfirmModalVisible, setDeleteReportFieldsConfirmModalVisible] = useState(false);
     const hasReportAccountingConnections = hasAccountingConnections(policy);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
@@ -91,6 +90,9 @@ function WorkspaceReportFieldsPage({
 
     const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
+    const [selectedReportFields, setSelectedReportFields] = usePersistSelection(filteredPolicyFieldList);
+
+    const selectedReportFieldsKeys = useMemo(() => Object.keys(selectedReportFields).filter((key) => selectedReportFields[key]), [selectedReportFields]);
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);
     }, [policyID]);
@@ -100,26 +102,6 @@ function WorkspaceReportFieldsPage({
     const hasVisibleReportField = Object.values(filteredPolicyFieldList).some((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     useFocusEffect(fetchReportFields);
-
-    useEffect(() => {
-        if (!selectedReportFields.length || !canSelectMultiple) {
-            return;
-        }
-
-        setSelectedReportFields((prevSelectedReportFields) => {
-            const newSelectedReportFields: PolicyReportField[] = [];
-
-            for (const reportField of prevSelectedReportFields) {
-                const fieldID = getReportFieldKey(reportField.fieldID);
-                if (filteredPolicyFieldList[fieldID] && filteredPolicyFieldList[fieldID]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    newSelectedReportFields.push(reportField);
-                }
-            }
-
-            return newSelectedReportFields;
-        });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [filteredPolicyFieldList]);
 
     const reportFieldsSections = useMemo(() => {
         if (!policy) {
@@ -136,7 +118,7 @@ function WorkspaceReportFieldsPage({
                         keyForList: String(reportField.fieldID),
                         orderWeight: reportField.orderWeight,
                         pendingAction: reportField.pendingAction,
-                        isSelected: selectedReportFields.find((selectedReportField) => selectedReportField.name === reportField.name) !== undefined && canSelectMultiple,
+                        isSelected: selectedReportFieldsKeys.includes(getReportFieldKey(reportField.fieldID)) && canSelectMultiple,
                         isDisabled: reportField.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
                         text: reportField.name,
                         rightElement: <ListItemRightCaretWithLabel labelText={Str.recapitalize(translate(getReportFieldTypeTranslationKey(reportField.type)))} />,
@@ -144,21 +126,27 @@ function WorkspaceReportFieldsPage({
                 isDisabled: false,
             },
         ];
-    }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
+    }, [filteredPolicyFieldList, policy, canSelectMultiple, translate, selectedReportFieldsKeys]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = getReportFieldKey(item.fieldID);
-        const updatedReportFields = selectedReportFields.find((selectedReportField) => selectedReportField.name === item.value)
-            ? selectedReportFields.filter((selectedReportField) => selectedReportField.name !== item.value)
-            : [...selectedReportFields, filteredPolicyFieldList[fieldKey]];
-        setSelectedReportFields(updatedReportFields);
+        setSelectedReportFields((prevSelectedReportFields) => ({
+            ...prevSelectedReportFields,
+            [fieldKey]: !prevSelectedReportFields[fieldKey],
+        }));
     };
 
     const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        setSelectedReportFields(selectedReportFields.length > 0 ? [] : availableReportFields);
+        const availableReportFields = Object.fromEntries(
+            Object.entries(filteredPolicyFieldList)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .filter(([_, reportField]) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                .map(([key, value]) => [key, !!value]),
+        );
+        setSelectedReportFields(selectedReportFieldsKeys.length > 0 ? {} : availableReportFields);
     };
 
     const navigateToReportFieldsSettings = (reportField: ReportFieldForList) => {
@@ -166,9 +154,8 @@ function WorkspaceReportFieldsPage({
     };
 
     const handleDeleteReportFields = () => {
-        const reportFieldKeys = selectedReportFields.map((selectedReportField) => getReportFieldKey(selectedReportField.fieldID));
-        setSelectedReportFields([]);
-        deleteReportFields(policyID, reportFieldKeys);
+        setSelectedReportFields({});
+        deleteReportFields(policyID, selectedReportFieldsKeys);
         setDeleteReportFieldsConfirmModalVisible(false);
     };
 
@@ -179,10 +166,10 @@ function WorkspaceReportFieldsPage({
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
 
-        if (shouldUseNarrowLayout ? canSelectMultiple : selectedReportFields.length > 0) {
+        if (shouldUseNarrowLayout ? canSelectMultiple : selectedReportFieldsKeys.length > 0) {
             options.push({
                 icon: Trashcan,
-                text: translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
+                text: translate(selectedReportFieldsKeys.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => setDeleteReportFieldsConfirmModalVisible(true),
             });
@@ -193,11 +180,11 @@ function WorkspaceReportFieldsPage({
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedReportFields.length})}
+                    customText={translate('workspace.common.selected', {count: selectedReportFieldsKeys.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedReportFields.length}
+                    isDisabled={!selectedReportFieldsKeys.length}
                 />
             );
         }
@@ -264,7 +251,7 @@ function WorkspaceReportFieldsPage({
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={() => {
                         if (selectionModeHeader) {
-                            setSelectedReportFields([]);
+                            setSelectedReportFields({});
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -278,8 +265,8 @@ function WorkspaceReportFieldsPage({
                     isVisible={deleteReportFieldsConfirmModalVisible}
                     onConfirm={handleDeleteReportFields}
                     onCancel={() => setDeleteReportFieldsConfirmModalVisible(false)}
-                    title={translate(selectedReportFields.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields')}
-                    prompt={translate(selectedReportFields.length === 1 ? 'workspace.reportFields.deleteConfirmation' : 'workspace.reportFields.deleteFieldsConfirmation')}
+                    title={translate(selectedReportFieldsKeys.length === 1 ? 'workspace.reportFields.delete' : 'workspace.reportFields.deleteFields')}
+                    prompt={translate(selectedReportFieldsKeys.length === 1 ? 'workspace.reportFields.deleteConfirmation' : 'workspace.reportFields.deleteFieldsConfirmation')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger
