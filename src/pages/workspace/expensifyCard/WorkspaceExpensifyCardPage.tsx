@@ -2,11 +2,10 @@ import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback} from 'react';
 import {ActivityIndicator} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
-import useDomainFundID from '@hooks/useDomainFundID';
+import useDefaultFundID from '@hooks/useDefaultFundID';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {filterInactiveCards} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -22,21 +21,16 @@ type WorkspaceExpensifyCardPageProps = PlatformStackScreenProps<WorkspaceSplitNa
 
 function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const policyID = route.params.policyID;
-    const workspaceAccountID = useWorkspaceAccountID(policyID);
-
     const styles = useThemeStyles();
     const theme = useTheme();
-    const domainFundID = useDomainFundID(policyID);
+    const defaultFundID = useDefaultFundID(policyID);
 
-    // TODO: add logic for choosing between the domain and workspace feed when both available
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const fundID = domainFundID || workspaceAccountID;
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${fundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards});
 
     const fetchExpensifyCards = useCallback(() => {
-        openPolicyExpensifyCardsPage(policyID, fundID);
-    }, [policyID, fundID]);
+        openPolicyExpensifyCardsPage(policyID, defaultFundID);
+    }, [policyID, defaultFundID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchExpensifyCards});
 
@@ -46,7 +40,7 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
     const isLoading = !isOffline && (!cardSettings || cardSettings.isLoading);
 
     const renderContent = () => {
-        if (!!isLoading && !paymentBankAccountID && !domainFundID) {
+        if (!!isLoading && !paymentBankAccountID && !defaultFundID) {
             return (
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -55,11 +49,11 @@ function WorkspaceExpensifyCardPage({route}: WorkspaceExpensifyCardPageProps) {
                 />
             );
         }
-        if (!!paymentBankAccountID || domainFundID) {
+        if (!!paymentBankAccountID || defaultFundID) {
             return (
                 <WorkspaceExpensifyCardListPage
                     cardsList={cardsList}
-                    fundID={fundID}
+                    fundID={defaultFundID}
                     route={route}
                 />
             );
