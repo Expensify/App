@@ -800,18 +800,18 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     ];
 
     const parameters = {
-        policyID,
         assigneeEmail,
         limit,
         limitType,
         cardTitle,
         validateCode,
+        domainAccountID
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
         API.write(
             WRITE_COMMANDS.CREATE_EXPENSIFY_CARD,
-            {...parameters, feedCountry, domainAccountID},
+            {...parameters, feedCountry},
             {
                 optimisticData,
                 successData,
@@ -824,7 +824,7 @@ function issueExpensifyCard(domainAccountID: number, policyID: string | undefine
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters, domainAccountID},
+        {...parameters},
         {
             optimisticData,
             successData,
