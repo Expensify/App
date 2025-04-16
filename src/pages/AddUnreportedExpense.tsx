@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
@@ -8,7 +9,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {moveUnreportedTransactionToReport} from '@userActions/Report';
-import {getAllTransactionsItems} from '@userActions/Transaction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -25,13 +25,24 @@ type AddUnreportedExpensesParamList = {
 };
 
 function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
+    function getUnreportedTransactions(transactions: OnyxCollection<Transaction>) {
+        if (!transactions) {
+            return [];
+        }
+        return Object.values(transactions || {}).filter((item) => item?.reportID === '0');
+    }
+
+    const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        selector: (_transactions) => getUnreportedTransactions(_transactions),
+        initialValue: [],
+    });
+
     const styles = useThemeStyles();
     const selectionListRef = useRef<SelectionListHandle>(null);
-    const unreportedExpensesList: Transaction[] = Object.values(getAllTransactionsItems()).filter((item) => item.reportID === '0');
     const sections: Array<SectionListDataType<Transaction & ListItem>> = [
         {
             shouldShow: true,
-            data: unreportedExpensesList,
+            data: transactions,
         },
     ];
     const reportID = route.params.reportID;
