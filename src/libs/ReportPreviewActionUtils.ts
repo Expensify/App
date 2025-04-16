@@ -10,6 +10,7 @@ import {
     getParentReport,
     getReportNameValuePairs,
     getReportTransactions,
+    hasMissingSmartscanFields,
     hasNoticeTypeViolations,
     hasViolations,
     hasWarningTypeViolations,
@@ -66,6 +67,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
     const isClosed = isClosedReport(report);
     const isReportFinished = isApproved || isClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+    const isReimbursed = isSettled(report);
 
     const hasAnyViolations =
         hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
@@ -76,7 +78,7 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
 
     const isIOU = isIOUReport(report);
 
-    if (isIOU && isReportPayer) {
+    if (isIOU && isReportPayer && !isReimbursed) {
         return true;
     }
 
@@ -117,9 +119,12 @@ function canExport(report: Report, violations: OnyxCollection<TransactionViolati
     return (isApproved || isReimbursed || isClosed) && !hasAnyViolations;
 }
 
-function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canReview(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const hasAnyViolations =
-        hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
+        hasMissingSmartscanFields(report.reportID, transactions) ||
+        hasViolations(report.reportID, violations) ||
+        hasNoticeTypeViolations(report.reportID, violations, true) ||
+        hasWarningTypeViolations(report.reportID, violations, true);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReimbursed = isSettled(report);
     const isApprover = isApproverMember(policy, getCurrentUserAccountID());
@@ -148,7 +153,7 @@ function getReportPreviewAction(
     if (canExport(report, violations, policy)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.EXPORT_TO_ACCOUNTING;
     }
-    if (canReview(report, violations, policy)) {
+    if (canReview(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.REVIEW;
     }
 

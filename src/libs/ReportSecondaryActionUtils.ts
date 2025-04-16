@@ -64,6 +64,12 @@ function isSubmitAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    if (isAdmin) {
+        return true;
+    }
+
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
@@ -264,8 +270,10 @@ function isHoldAction(report: Report, reportTransactions: Transaction[]): boolea
 
 function isHoldActionForTransation(report: Report, reportTransaction: Transaction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
+    const iouOrExpenseReport = isExpenseReport || isIOUReport;
 
-    if (!isExpenseReport) {
+    if (!iouOrExpenseReport) {
         return false;
     }
 
