@@ -60,7 +60,7 @@ import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 import createRootStackNavigator from './createRootStackNavigator';
-import {reportsSplitsWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
+import {reportsSplitsWithEnteringAnimation, settingsSplitWithEnteringAnimation, workspaceSplitsWithoutEnteringAnimation} from './createRootStackNavigator/GetStateForActionHandlers';
 import defaultScreenOptions from './defaultScreenOptions';
 import {ShareModalStackNavigator} from './ModalStackNavigators';
 import ExplanationModalNavigator from './Navigators/ExplanationModalNavigator';
@@ -453,6 +453,19 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     };
 
+    const getSettingsSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+        if (!shouldUseNarrowLayout) {
+            return rootNavigatorScreenOptions.splitNavigator;
+        }
+
+        const animationEnabled = settingsSplitWithEnteringAnimation.has(route.key);
+
+        return {
+            ...rootNavigatorScreenOptions.splitNavigator,
+            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+        };
+    };
+
     const clearStatus = () => {
         User.clearCustomStatus();
         User.clearDraftCustomStatus();
@@ -497,7 +510,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.splitNavigator}
+                    options={getSettingsSplitNavigatorOptions}
                     getComponent={loadSettingsSplitNavigator}
                 />
                 <RootStack.Screen

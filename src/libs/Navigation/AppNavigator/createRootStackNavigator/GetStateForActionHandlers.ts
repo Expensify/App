@@ -30,6 +30,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
 
 const workspaceSplitsWithoutEnteringAnimation = new Set();
 const reportsSplitsWithEnteringAnimation = new Set();
+const settingsSplitWithEnteringAnimation = new Set();
 
 let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
 Onyx.connect({
@@ -203,6 +204,57 @@ function handlePushReportSplitAction(
     return stateWithReportsSplitNavigator;
 }
 
+function handlePushSettingsSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+    setActiveWorkspaceID: (workspaceID: string | undefined) => void,
+) {
+    const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
+    let policyID;
+
+    const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
+
+    if (haveParamsPolicyID) {
+        policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
+        setActiveWorkspaceID(policyID);
+    } else if (policyIDFromState) {
+        policyID = policyIDFromState;
+    } else {
+        policyID = lastAccessedWorkspaceSwitcherID;
+        setActiveWorkspaceID(policyID);
+    }
+
+    const modifiedAction = {
+        ...action,
+        payload: {
+            ...action.payload,
+            params: {
+                ...action.payload.params,
+                policyID,
+            },
+        },
+    };
+
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
+
+    if (!stateWithReportsSplitNavigator) {
+        Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithReportsSplitNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+
+    // ReportScreen should always be opened with an animation
+    if (actionPayloadScreen === SCREENS.SETTINGS.PROFILE.ROOT && lastFullScreenRoute?.key) {
+        settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithReportsSplitNavigator;
+}
+
 /**
  * If a new Search page is opened, it is necessary to check whether workspace is currently selected in the application.
  * If so, the id of the current policy has to be passed to the new Search page
@@ -317,6 +369,8 @@ export {
     handleSwitchPolicyIDAction,
     handleSwitchPolicyIDFromSearchAction,
     handleNavigatingToModalFromModal,
+    handlePushSettingsSplitAction,
     workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,
+    settingsSplitWithEnteringAnimation,
 };
