@@ -127,7 +127,9 @@ function SearchList(
     // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+    });
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;

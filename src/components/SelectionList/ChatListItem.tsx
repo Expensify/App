@@ -25,7 +25,10 @@ function ChatListItem<TItem extends ListItem>({
     policies,
 }: ChatListItemProps<TItem>) {
     const reportActionItem = item as unknown as ReportActionListItemType;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const reportID = Number(reportActionItem?.reportID ?? CONST.DEFAULT_NUMBER_ID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        canBeMissing: true,
+    });
     const styles = useThemeStyles();
     const theme = useTheme();
     const animatedHighlightStyle = useAnimatedHighlightStyle({
