@@ -2710,11 +2710,14 @@ const translations = {
         regulationRequiresUs: 'Regulation requires us to verify the identity of any individual who owns more than 25% of the business.',
         iAmAuthorized: 'I am authorized to use the business bank account for business spend.',
         iCertify: 'I certify that the information provided is true and accurate.',
-        termsAndConditions: 'terms and conditions.',
+        termsAndConditions: 'terms and conditions',
         accept: 'Accept and add bank account',
+        iConsentToThe: 'I consent to the',
+        privacyNotice: 'privacy notice',
         error: {
             authorized: 'You must be a controlling officer with authorization to operate the business bank account',
             certify: 'Please certify that the information is true and accurate',
+            consent: 'Please consent to the privacy notice',
         },
     },
     finishStep: {
