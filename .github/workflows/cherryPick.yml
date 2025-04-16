@@ -25,7 +25,7 @@ jobs:
           submodules: true
 
       - name: Extract PR information
-        id: GetPRInfo
+        id: getPRInfo
         run: |
           echo "REPO_FULL_NAME=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|https://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
           echo "PR_NUMBER=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')" >> "$GITHUB_OUTPUT"
