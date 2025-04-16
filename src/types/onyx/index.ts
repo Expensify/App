@@ -14,7 +14,7 @@ import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -23,6 +23,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type ReportAttributes from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
@@ -146,6 +147,7 @@ export type {
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
+    FundID,
     FundList,
     IntroSelected,
     IOU,
@@ -262,5 +264,6 @@ export type {
     TravelProvisioning,
     SidePanel,
     LastPaymentMethodType,
+    ReportAttributes,
     TalkToAISales,
 };

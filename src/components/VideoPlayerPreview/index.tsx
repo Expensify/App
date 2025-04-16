@@ -4,6 +4,7 @@ import React, {useEffect, useState} from 'react';
 import type {GestureResponderEvent} from 'react-native';
 import {View} from 'react-native';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useSearchContext} from '@components/Search/SearchContext';
 import VideoPlayer from '@components/VideoPlayer';
 import IconButton from '@components/VideoPlayer/IconButton';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -54,13 +55,17 @@ type VideoPlayerPreviewProps = {
 function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fileName, videoDimensions, videoDuration, onShowModalPress, isDeleted}: VideoPlayerPreviewProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL} = usePlaybackContext();
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const {currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID} = usePlaybackContext();
+
+    /* This needs to be isSmallScreenWidth because we want to be able to play video in chat (not in attachment modal) when preview is inside an RHP */
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
+
     const [isThumbnail, setIsThumbnail] = useState(true);
     const [measuredDimensions, setMeasuredDimensions] = useState(videoDimensions);
     const {thumbnailDimensionsStyles} = useThumbnailDimensions(measuredDimensions.width, measuredDimensions.height);
+    const {isOnSearch} = useSearchContext();
     const navigation = useNavigation();
-
     // We want to play the video only when the user is on the page where it was rendered
     const firstRenderRoute = useFirstRenderRoute([`/${ROUTES.ATTACHMENTS.route}`]);
 
@@ -79,8 +84,8 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     };
 
     const handleOnPress = () => {
-        updateCurrentlyPlayingURL(videoUrl);
-        if (shouldUseNarrowLayout) {
+        updateCurrentURLAndReportID(videoUrl, reportID);
+        if (isSmallScreenWidth) {
             onShowModalPress();
         }
     };
@@ -98,15 +103,15 @@ function VideoPlayerPreview({attachmentID, videoUrl, thumbnailUrl, reportID, fil
     }, [navigation, firstRenderRoute]);
 
     useEffect(() => {
-        if (videoUrl !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID || !firstRenderRoute.isFocused) {
+        if (videoUrl !== currentlyPlayingURL || reportID !== currentRouteReportID || !firstRenderRoute.isFocused) {
             return;
         }
         setIsThumbnail(false);
-    }, [currentlyPlayingURL, currentlyPlayingURLReportID, updateCurrentlyPlayingURL, videoUrl, reportID, firstRenderRoute]);
+    }, [currentlyPlayingURL, currentRouteReportID, updateCurrentURLAndReportID, videoUrl, reportID, firstRenderRoute, isOnSearch]);
 
     return (
         <View style={[styles.webViewStyles.tagStyles.video, thumbnailDimensionsStyles]}>
-            {((shouldUseNarrowLayout || isThumbnail) && thumbnailUrl) || isDeleted ? (
+            {isSmallScreenWidth || isThumbnail || isDeleted ? (
                 <VideoPlayerThumbnail
                     thumbnailUrl={thumbnailUrl}
                     onPress={handleOnPress}

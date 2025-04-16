@@ -128,6 +128,14 @@ function ConfirmationBusiness({onNext, onMove}: SubStepProps) {
                     onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_STATE);
                 }}
             />
+            <MenuItemWithTopDescription
+                description={translate('companyStep.industryClassificationCode')}
+                title={values[BUSINESS_INFO_STEP_KEYS.INCORPORATION_CODE]}
+                shouldShowRightIcon
+                onPress={() => {
+                    onMove(BUSINESS_INFO_STEP_INDEXES.INCORPORATION_CODE);
+                }}
+            />
             <FormProvider
                 formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
                 validate={validate}

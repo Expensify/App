@@ -7,6 +7,7 @@ type AttachmentContextProps = {
     reportID?: string;
     reportActionID?: string;
     accountID?: number;
+    hashKey?: number;
 };
 
 const AttachmentContext = createContext<AttachmentContextProps>({
@@ -14,6 +15,7 @@ const AttachmentContext = createContext<AttachmentContextProps>({
     reportID: undefined,
     reportActionID: undefined,
     accountID: undefined,
+    hashKey: undefined,
 });
 
 AttachmentContext.displayName = 'AttachmentContext';

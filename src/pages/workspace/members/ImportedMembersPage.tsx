@@ -106,7 +106,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     return (
         <ScreenWrapper
             testID={ImportedMembersPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.people.importMembers')}
@@ -130,6 +130,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );
