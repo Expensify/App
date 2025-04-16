@@ -13,8 +13,8 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import type {MenuItemProps} from '@components/MenuItem';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import type {OfflineWithFeedbackProps} from '@components/OfflineWithFeedback';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -31,7 +31,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isConnectionInProgress} from '@libs/actions/connections';
-import {clearDeleteWorkspaceError, clearErrors, deleteWorkspace, leaveWorkspace, removeWorkspace, updateDefaultPolicy} from '@libs/actions/Policy/Policy';
+import {
+    clearDeleteWorkspaceError,
+    clearErrors,
+    deleteWorkspace,
+    leaveWorkspace,
+    removeWorkspace,
+    updateDefaultPolicy,
+    updateLastAccessedWorkspaceSwitcher,
+} from '@libs/actions/Policy/Policy';
 import {callFunctionIfActionIsAllowed, isSupportAuthToken} from '@libs/actions/Session';
 import {filterInactiveCards} from '@libs/CardUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -161,6 +169,7 @@ function WorkspacesListPage() {
         if (policyIDToDelete === activeWorkspaceID) {
             setActiveWorkspaceID(undefined);
             resetPolicyIDInNavigationState();
+            updateLastAccessedWorkspaceSwitcher(undefined);
         }
     };
 
@@ -450,7 +459,8 @@ function WorkspacesListPage() {
                 shouldEnableMaxHeight
                 testID={WorkspacesListPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
-                bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
+                extraContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+                enableEdgeToEdgeBottomSafeAreaPadding={false}
             >
                 <HeaderWithBackButton
                     title={translate('common.workspaces')}
@@ -463,7 +473,10 @@ function WorkspacesListPage() {
                 {shouldShowLoadingIndicator ? (
                     <FullScreenLoadingIndicator style={[styles.flex1, styles.pRelative]} />
                 ) : (
-                    <ScrollView contentContainerStyle={styles.pt3}>
+                    <ScrollView
+                        contentContainerStyle={styles.pt3}
+                        addBottomSafeAreaPadding
+                    >
                         <View style={[styles.flex1, isLessThanMediumScreen ? styles.workspaceSectionMobile : styles.workspaceSection]}>
                             <FeatureList
                                 menuItems={workspaceFeatures}
@@ -489,7 +502,8 @@ function WorkspacesListPage() {
             shouldEnablePickerAvoiding={false}
             shouldShowOfflineIndicatorInWideScreen
             testID={WorkspacesListPage.displayName}
-            bottomContent={shouldUseNarrowLayout && <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
+            enableEdgeToEdgeBottomSafeAreaPadding={false}
+            extraContent={shouldUseNarrowLayout && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
         >
             <View style={styles.flex1}>
                 <HeaderWithBackButton

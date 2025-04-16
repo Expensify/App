@@ -32,12 +32,13 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
 import {isConnectionInProgress} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearPolicyTagErrors, deletePolicyTags, downloadTagsCSV, openPolicyTagsPage, setPolicyTagsRequired, setWorkspaceTagEnabled} from '@libs/actions/Policy/Tag';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
@@ -69,7 +70,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
-    const {windowWidth} = useWindowDimensions();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
@@ -223,8 +224,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
     const toggleAllTags = () => {
         const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const isAllSelected = availableTags.length === Object.keys(selectedTags).length;
-        setSelectedTags(isAllSelected ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
+        setSelectedTags(Object.keys(selectedTags).length > 0 ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
     const getCustomListHeader = () => {
@@ -435,7 +435,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTagsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -452,11 +452,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack(backTo);
+
+                        if (backTo) {
+                            Navigation.goBack(backTo);
+                            return;
+                        }
+
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                     shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
                     threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={styles.threeDotsPopoverOffsetNoCloseButton(windowWidth)}
+                    threeDotsAnchorPosition={threeDotsAnchorPosition}
                 >
                     {!shouldUseNarrowLayout && getHeaderButtons()}
                 </HeaderWithBackButton>
@@ -480,7 +486,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     />
                 )}
                 {!hasVisibleTags && !isLoading && (
-                    <ScrollView>
+                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
@@ -510,6 +516,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
                 )}
 

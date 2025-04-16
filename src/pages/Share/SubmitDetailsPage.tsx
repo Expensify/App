@@ -12,7 +12,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {GpsPoint} from '@libs/actions/IOU';
-import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
+import {getIOURequestPolicyID, getMoneyRequestParticipantsFromReport, initMoneyRequest, requestMoney, trackExpense, updateLastLocationPermissionPrompt} from '@libs/actions/IOU';
 import DateUtils from '@libs/DateUtils';
 import {getFileName, readFileAsync} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
@@ -20,7 +20,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isSelfDM} from '@libs/ReportUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,13 +50,23 @@ function SubmitDetailsPage({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
 
+    const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
+    const [errorMessage, setErrorMessage] = useState<string | undefined>(undefined);
+
+    useEffect(() => {
+        if (!errorTitle || !errorMessage) {
+            return;
+        }
+
+        showErrorAlert(errorTitle, errorMessage);
+    }, [errorTitle, errorMessage]);
+
     useEffect(() => {
         initMoneyRequest(reportOrAccountID, policy, false, CONST.IOU.REQUEST_TYPE.SCAN, CONST.IOU.REQUEST_TYPE.SCAN);
     }, [reportOrAccountID, policy]);
 
     const selectedParticipants = unknownUserDetails ? [unknownUserDetails] : getMoneyRequestParticipantsFromReport(report);
     const participants = selectedParticipants.map((participant) => (participant?.accountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant)));
-
     const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -67,30 +77,57 @@ function SubmitDetailsPage({
         if (!transaction) {
             return;
         }
-        requestMoney({
-            report,
-            participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
-            policyParams: {policy, policyTagList: policyTags, policyCategories},
-            gpsPoints,
-            action: CONST.IOU.TYPE.CREATE,
-            transactionParams: {
-                attendees: transaction.attendees,
-                amount: transactionAmount,
-                currency: transaction.currency,
-                comment: trimmedComment,
-                receipt,
-                category: transaction.category,
-                tag: transaction.tag,
-                taxCode: transactionTaxCode,
-                taxAmount: transactionTaxAmount,
-                billable: transaction.billable,
-                merchant: transaction.merchant ?? '',
-                created: transaction.created,
-                actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
-                linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
-                linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
-            },
-        });
+
+        if (isSelfDM(report)) {
+            trackExpense({
+                report: report ?? {reportID: reportOrAccountID},
+                isDraftPolicy: false,
+                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                policyParams: {policy, policyTagList: policyTags, policyCategories},
+                action: CONST.IOU.TYPE.CREATE,
+                transactionParams: {
+                    amount: transactionAmount,
+                    currency: transaction.currency,
+                    comment: trimmedComment,
+                    receipt,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    merchant: transaction.merchant ?? '',
+                    created: transaction.created,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                },
+            });
+        } else {
+            requestMoney({
+                report,
+                participantParams: {payeeEmail: currentUserPersonalDetails.login, payeeAccountID: currentUserPersonalDetails.accountID, participant},
+                policyParams: {policy, policyTagList: policyTags, policyCategories},
+                gpsPoints,
+                action: CONST.IOU.TYPE.CREATE,
+                transactionParams: {
+                    attendees: transaction.comment?.attendees,
+                    amount: transactionAmount,
+                    currency: transaction.currency,
+                    comment: trimmedComment,
+                    receipt,
+                    category: transaction.category,
+                    tag: transaction.tag,
+                    taxCode: transactionTaxCode,
+                    taxAmount: transactionTaxAmount,
+                    billable: transaction.billable,
+                    merchant: transaction.merchant ?? '',
+                    created: transaction.created,
+                    actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
+                },
+            });
+        }
     };
 
     const onSuccess = (file: File, locationPermissionGranted?: boolean) => {
@@ -175,10 +212,18 @@ function SubmitDetailsPage({
                         shouldShowSmartScanFields={false}
                         isDistanceRequest={false}
                         onPDFLoadError={() => {
-                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
+                            if (errorTitle) {
+                                return;
+                            }
+                            setErrorTitle(translate('attachmentPicker.attachmentError'));
+                            setErrorMessage(translate('attachmentPicker.errorWhileSelectingCorruptedAttachment'));
                         }}
                         onPDFPassword={() => {
-                            showErrorAlert(translate('attachmentPicker.attachmentError'), translate('attachmentPicker.protectedPDFNotSupported'));
+                            if (errorTitle) {
+                                return;
+                            }
+                            setErrorTitle(translate('attachmentPicker.attachmentError'));
+                            setErrorMessage(translate('attachmentPicker.protectedPDFNotSupported'));
                         }}
                     />
                 </View>

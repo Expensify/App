@@ -129,7 +129,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
-                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -169,7 +169,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -233,7 +233,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <ScrollView showsVerticalScrollIndicator={false}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
+            >
                 <EmptyStateComponent
                     SkeletonComponent={SearchRowSkeleton}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
