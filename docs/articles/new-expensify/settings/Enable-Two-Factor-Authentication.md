@@ -49,3 +49,4 @@ Your recovery codes work the same way as your authenticator codes. Just enter a 
 {% include faq-end.md %}
 
 </div>
+
