@@ -126,7 +126,7 @@ function TimePicker(
     ref: ForwardedRef<TimePickerRef>,
 ) {
     const {numberFormat, translate} = useLocalize();
-    const {isSmallScreenWidth, isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {shouldUseNarrowLayout, isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
@@ -728,33 +728,36 @@ function TimePicker(
         }
     };
 
-    const amPmButtons = (
-        <View style={styles.timePickerSwitcherContainer}>
-            <Button
-                shouldEnableHapticFeedback
-                innerStyles={styleForAM}
-                small
-                text={translate('common.am')}
-                onLongPress={() => {}}
-                onPress={() => {
-                    setAmPmValue(CONST.TIME_PERIOD.AM);
-                }}
-                onPressOut={() => {}}
-                onMouseDown={(e) => e.preventDefault()}
-            />
-            <Button
-                shouldEnableHapticFeedback
-                innerStyles={[styleForPM, styles.ml1]}
-                small
-                text={translate('common.pm')}
-                onLongPress={() => {}}
-                onPress={() => {
-                    setAmPmValue(CONST.TIME_PERIOD.PM);
-                }}
-                onPressOut={() => {}}
-                onMouseDown={(e) => e.preventDefault()}
-            />
-        </View>
+    const renderedAmPmButtons = useMemo(
+        () => (
+            <View style={styles.timePickerSwitcherContainer}>
+                <Button
+                    shouldEnableHapticFeedback
+                    innerStyles={styleForAM}
+                    small
+                    text={translate('common.am')}
+                    onLongPress={() => {}}
+                    onPress={() => {
+                        setAmPmValue(CONST.TIME_PERIOD.AM);
+                    }}
+                    onPressOut={() => {}}
+                    onMouseDown={(e) => e.preventDefault()}
+                />
+                <Button
+                    shouldEnableHapticFeedback
+                    innerStyles={[styleForPM, styles.ml1]}
+                    small
+                    text={translate('common.pm')}
+                    onLongPress={() => {}}
+                    onPress={() => {
+                        setAmPmValue(CONST.TIME_PERIOD.PM);
+                    }}
+                    onPressOut={() => {}}
+                    onMouseDown={(e) => e.preventDefault()}
+                />
+            </View>
+        ),
+        [styles, styleForAM, styleForPM, translate, setAmPmValue],
     );
 
     return (
@@ -858,9 +861,9 @@ function TimePicker(
                         </>
                     )}
                 </View>
-                {!isSmallScreenWidth && amPmButtons}
+                {!shouldUseNarrowLayout && renderedAmPmButtons}
             </View>
-            {isSmallScreenWidth && amPmButtons}
+            {shouldUseNarrowLayout && renderedAmPmButtons}
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
