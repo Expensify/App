@@ -234,7 +234,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     );
 
     const getActionButtonStyles = () => {
-        if (isChatUsedForOnboarding && !shouldShowDiscount) {
+        if (isChatUsedForOnboarding && shouldShowDiscount) {
             return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
         }
         return [styles.pb3, styles.ph5];
