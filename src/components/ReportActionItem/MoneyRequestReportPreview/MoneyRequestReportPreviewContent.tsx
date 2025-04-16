@@ -70,7 +70,7 @@ import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import EmptyRequestReport from './EmptyRequestReport';
+import EmptyMoneyRequestReportPreview from './EmptyMoneyRequestReportPreview';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
 type WebLayoutNativeEvent = {
@@ -111,6 +111,7 @@ function MoneyRequestReportPreviewContent({
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
+    const shouldShowEmptyPlaceholder = transactions.length === 0;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -633,7 +634,7 @@ function MoneyRequestReportPreviewContent({
                                 )}
                             </View>
                         </View>
-                        {transactions.length === 0 && <EmptyRequestReport />}
+                        {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview />}
                     </View>
                 </PressableWithoutFeedback>
             </View>

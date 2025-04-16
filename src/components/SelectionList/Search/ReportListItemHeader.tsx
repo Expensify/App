@@ -14,7 +14,7 @@ import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import ActionCell from './ActionCell';
 
-type MoneyReportHeaderProps<TItem extends ListItem> = {
+type ReportListItemHeaderProps<TItem extends ListItem> = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
 
@@ -37,15 +37,11 @@ type MoneyReportHeaderProps<TItem extends ListItem> = {
     isDisabled?: boolean | null;
 };
 
-type CellProps = {
-    showTooltip: boolean;
-
-    isLargeScreenWidth: boolean;
-};
-
 type ReportCellProps = {
+    showTooltip: boolean;
+    isLargeScreenWidth: boolean;
     reportItem: ReportListItemType;
-} & CellProps;
+};
 
 function TotalCell({showTooltip, isLargeScreenWidth, reportItem}: ReportCellProps) {
     const styles = useThemeStyles();
@@ -73,7 +69,7 @@ function ReportListItemHeader<TItem extends ListItem>({
     onSelectRow,
     onCheckboxPress,
     isDisabled,
-}: MoneyReportHeaderProps<TItem>) {
+}: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const shouldDisplaySearchRouter = false;
     const shouldShowBackButton = false;

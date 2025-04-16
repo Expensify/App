@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-function EmptyRequestReport() {
+function EmptyMoneyRequestReportPreview() {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -37,6 +37,6 @@ function EmptyRequestReport() {
     );
 }
 
-EmptyRequestReport.displayName = 'EmptyRequestReport';
+EmptyMoneyRequestReportPreview.displayName = 'EmptyRequestReport';
 
-export default EmptyRequestReport;
+export default EmptyMoneyRequestReportPreview;
