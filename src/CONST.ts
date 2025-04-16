@@ -5292,6 +5292,7 @@ const CONST = {
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
+        RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
