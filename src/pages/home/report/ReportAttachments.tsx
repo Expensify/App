@@ -38,10 +38,11 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         }
         const isEmptyReport = isEmptyObject(report);
         return !!isLoadingApp || isEmptyReport || !!reportMetadata?.isLoadingInitialReportActions;
-    }, [isOffline, reportID, isLoadingApp, report]);
+    }, [isOffline, reportID, isLoadingApp, report, reportMetadata]);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
     const source = Number(route.params.source) || tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source));
+
     const fetchReport = useCallback(() => {
         openReport(reportID);
     }, [reportID]);
@@ -52,7 +53,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         }
 
         fetchReport();
-    }, [reportID]);
+    }, [reportID, fetchReport]);
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
@@ -79,9 +80,9 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
             allowDownload
             defaultOpen
             report={report}
+            attachmentID={attachmentID}
             isLoading={isLoading}
             source={source}
-            attachmentID={attachmentID}
             onModalClose={() => {
                 Navigation.dismissModal();
                 // This enables Composer refocus when the attachments modal is closed by the browser navigation

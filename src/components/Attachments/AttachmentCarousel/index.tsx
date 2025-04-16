@@ -84,10 +84,8 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
     }, [canUseTouchScreen, page, setShouldShowArrows]);
 
     const compareImage = useCallback(
-        (attachment: Attachment) => {
-            console.log('compare image', attachmentID, attachment.source, source);
-            return (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink);
-        },
+        (attachment: Attachment) =>
+            (attachmentID ? attachment.attachmentID === attachmentID : attachment.source === source) && (!attachmentLink || attachment.attachmentLink === attachmentLink),
         [attachmentLink, attachmentID, source],
     );
 
@@ -288,8 +286,6 @@ function AttachmentCarousel({report, attachmentID, source, onNavigate, setDownlo
                 .withRef(pagerRef as MutableRefObject<GestureType | undefined>),
         [attachments.length, canUseTouchScreen, cellWidth, page, isScrollEnabled, scrollRef, isPagerScrolling],
     );
-
-    console.log('page index', page);
 
     return (
         <View
