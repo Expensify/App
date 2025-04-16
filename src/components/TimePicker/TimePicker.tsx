@@ -126,7 +126,7 @@ function TimePicker(
     ref: ForwardedRef<TimePickerRef>,
 ) {
     const {numberFormat, translate} = useLocalize();
-    const {isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {isSmallScreenWidth, isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
@@ -728,12 +728,41 @@ function TimePicker(
         }
     };
 
+    const amPmButtons = (
+        <View style={styles.timePickerSwitcherContainer}>
+            <Button
+                shouldEnableHapticFeedback
+                innerStyles={styleForAM}
+                small
+                text={translate('common.am')}
+                onLongPress={() => {}}
+                onPress={() => {
+                    setAmPmValue(CONST.TIME_PERIOD.AM);
+                }}
+                onPressOut={() => {}}
+                onMouseDown={(e) => e.preventDefault()}
+            />
+            <Button
+                shouldEnableHapticFeedback
+                innerStyles={[styleForPM, styles.ml1]}
+                small
+                text={translate('common.pm')}
+                onLongPress={() => {}}
+                onPress={() => {
+                    setAmPmValue(CONST.TIME_PERIOD.PM);
+                }}
+                onPressOut={() => {}}
+                onMouseDown={(e) => e.preventDefault()}
+            />
+        </View>
+    );
+
     return (
         <View style={styles.flex1}>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb8]}
+                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb6]}
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
@@ -829,41 +858,17 @@ function TimePicker(
                         </>
                     )}
                 </View>
+                {!isSmallScreenWidth && amPmButtons}
             </View>
-            <View style={styles.timePickerSwitcherContainer}>
-                <Button
-                    shouldEnableHapticFeedback
-                    innerStyles={styleForAM}
-                    small
-                    text={translate('common.am')}
-                    onLongPress={() => {}}
-                    onPress={() => {
-                        setAmPmValue(CONST.TIME_PERIOD.AM);
-                    }}
-                    onPressOut={() => {}}
-                    onMouseDown={(e) => e.preventDefault()}
-                />
-                <Button
-                    shouldEnableHapticFeedback
-                    innerStyles={[styleForPM, styles.ml1]}
-                    small
-                    text={translate('common.pm')}
-                    onLongPress={() => {}}
-                    onPress={() => {
-                        setAmPmValue(CONST.TIME_PERIOD.PM);
-                    }}
-                    onPressOut={() => {}}
-                    onMouseDown={(e) => e.preventDefault()}
-                />
-            </View>
+            {isSmallScreenWidth && amPmButtons}
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
                     message={errorMessage}
-                    style={[styles.ph5, styles.mb2, styles.mt5]}
+                    style={[styles.ph5, styles.formHelperMessage]}
                 />
             ) : (
-                <View style={[styles.formHelperMessage, styles.mb2, styles.mt5]} />
+                <View style={[styles.formHelperMessage]} />
             )}
             <View
                 style={[styles.numberPadWrapper, styles.pb4]}

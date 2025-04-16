@@ -4928,6 +4928,8 @@ const styles = (theme: ThemeColors) =>
         },
         formHelperMessage: {
             height: 32,
+            marginBottom: 8,
+            marginTop: 20,
         },
         timePickerInputExtraSmall: {
             fontSize: 50,
