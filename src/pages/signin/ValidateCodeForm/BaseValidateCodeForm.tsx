@@ -47,9 +47,9 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
 function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
