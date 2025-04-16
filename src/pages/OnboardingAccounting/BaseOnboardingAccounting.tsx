@@ -68,7 +68,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
             return;
         }
 
-        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false);
+        const {adminsChatReportID, policyID} = createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize);
         setOnboardingAdminsChatReportID(adminsChatReportID);
         setOnboardingPolicyID(policyID);
     }, [isVsb, paidGroupPolicy, allPolicies, allPoliciesResult]);
