@@ -288,7 +288,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return options;
     }, [moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
 
-    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length;
+    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
@@ -496,6 +496,13 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
+
+    useEffect(() => {
+        if (!transactionThreadReportID) {
+            return;
+        }
+        setSelectedTransactionsID([]);
+    }, [transactionThreadReportID]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 

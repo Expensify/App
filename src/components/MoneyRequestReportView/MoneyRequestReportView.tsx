@@ -175,7 +175,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     report={report}
                     policy={policy}
                     reportActions={reportActions}
-                    transactionThreadReportID={undefined}
+                    transactionThreadReportID={transactionThreadReportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
