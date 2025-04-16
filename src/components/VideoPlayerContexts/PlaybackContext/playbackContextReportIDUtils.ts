@@ -32,9 +32,9 @@ type RouteWithReportIDInParams<T> = T & {params: ReportDetailsNavigatorParamList
 const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteReportID = (url): string | typeof NO_REPORT_ID_IN_PARAMS | typeof NO_REPORT_ID => {
     const route = Navigation.getActiveRouteWithoutParams() as ActiveRoute;
     const focusedRoute = findFocusedRoute(getStateFromPath(route));
-    const reportIDFromUrlParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID');
+    const reportIDFromURLParams = new URLSearchParams(Navigation.getActiveRoute()).get('reportID');
 
-    const focusedRouteReportID = hasReportIdInRouteParams(focusedRoute) ? focusedRoute.params.reportID : reportIDFromUrlParams;
+    const focusedRouteReportID = hasReportIdInRouteParams(focusedRoute) ? focusedRoute.params.reportID : reportIDFromURLParams;
 
     if (!focusedRouteReportID) {
         return NO_REPORT_ID_IN_PARAMS;
@@ -42,7 +42,7 @@ const getCurrentRouteReportID: (url: string) => string | ProtectedCurrentRouteRe
 
     const report = getReportOrDraftReport(focusedRouteReportID);
     const isFocusedRouteAChatThread = isChatThread(report);
-    const firstReportThatHasURLInAttachments = findUrlInReportOrAncestorAttachments(report, url);
+    const firstReportThatHasURLInAttachments = findURLInReportOrAncestorAttachments(report, url);
 
     return isFocusedRouteAChatThread ? firstReportThatHasURLInAttachments : focusedRouteReportID;
 };
@@ -53,7 +53,15 @@ function hasReportIdInRouteParams(route: SearchRoute): route is RouteWithReportI
     return !!route && !!route.params && !!screensWithReportID.find((screen) => screen === route.name) && 'reportID' in route.params;
 }
 
-function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, url: string | null): string | typeof NO_REPORT_ID {
+/**
+ * Searches recursively through a report and its ancestor reports to find a specified URL in their attachments.
+ * The search continues up the ancestry chain until the URL is found or there are no more ancestors.
+ *
+ * @param currentReport - The current report entry, potentially containing the URL.
+ * @param url - The URL to be located in the report or its ancestors' attachments.
+ * @returns The report ID where the URL is found, or undefined if not found.
+ */
+function findURLInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, url: string | null): string | typeof NO_REPORT_ID {
     const {parentReportID, reportID} = currentReport ?? {};
 
     const reportActions = getAllReportActions(reportID);
@@ -68,11 +76,11 @@ function findUrlInReportOrAncestorAttachments(currentReport: OnyxEntry<Report>, 
 
     if (parentReportID) {
         const parentReport = getReportOrDraftReport(parentReportID);
-        return findUrlInReportOrAncestorAttachments(parentReport, url);
+        return findURLInReportOrAncestorAttachments(parentReport, url);
     }
 
     return NO_REPORT_ID;
 }
 
-export {NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, getCurrentRouteReportID, normalizeReportID, findUrlInReportOrAncestorAttachments};
+export {NO_REPORT_ID, NO_REPORT_ID_IN_PARAMS, getCurrentRouteReportID, normalizeReportID, findURLInReportOrAncestorAttachments};
 export type {ProtectedCurrentRouteReportID};

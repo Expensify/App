@@ -480,6 +480,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
             return validateBoolean(value);
+        case 'exportFailedTime':
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'lastActorAccountID':
@@ -628,6 +629,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
