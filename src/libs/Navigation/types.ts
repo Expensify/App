@@ -237,6 +237,9 @@ type SettingsNavigatorParamList = {
         policyID?: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
+        policyID?: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
         backTo?: Routes;
@@ -1753,6 +1756,12 @@ type OnboardingModalNavigatorParamList = {
         backTo?: string;
     };
     [SCREENS.ONBOARDING.ACCOUNTING]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK_EMAIL]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
         backTo?: string;
     };
 };

@@ -34,7 +34,7 @@ jest.mock('react-native/Libraries/LogBox/LogBox', () => ({
     },
 }));
 
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
+jest.mock('@src/components/Navigation/TopLevelNavigationTabBar/useIsNavigationTabBarVisibleDirectly');
 
 /**
  * We need to keep track of the transitionEnd callback so we can trigger it in our tests
@@ -97,26 +97,27 @@ function signInAndGetApp(reportName = '', participantAccountIDs?: number[]): Pro
         })
         .then(async () => {
             // Simulate setting an unread report and personal details
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
-                reportID: REPORT_ID,
-                reportName,
-                lastMessageText: 'Test',
-                participants,
-                lastActorAccountID: USER_B_ACCOUNT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.GROUP,
-            });
-
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
-                [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
-                [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
-                [USER_D_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_D_EMAIL, USER_D_ACCOUNT_ID, 'D'),
-                [USER_E_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_E_EMAIL, USER_E_ACCOUNT_ID, 'E'),
-                [USER_F_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_F_EMAIL, USER_F_ACCOUNT_ID, 'F'),
-                [USER_G_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_G_EMAIL, USER_G_ACCOUNT_ID, 'G'),
-                [USER_H_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_H_EMAIL, USER_H_ACCOUNT_ID, 'H'),
-            });
+            await Promise.all([
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {
+                    reportID: REPORT_ID,
+                    reportName,
+                    lastMessageText: 'Test',
+                    participants,
+                    lastActorAccountID: USER_B_ACCOUNT_ID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+                }),
+                Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                    [USER_A_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_A_EMAIL, USER_A_ACCOUNT_ID, 'A'),
+                    [USER_B_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_B_EMAIL, USER_B_ACCOUNT_ID, 'B'),
+                    [USER_C_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_C_EMAIL, USER_C_ACCOUNT_ID, 'C'),
+                    [USER_D_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_D_EMAIL, USER_D_ACCOUNT_ID, 'D'),
+                    [USER_E_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_E_EMAIL, USER_E_ACCOUNT_ID, 'E'),
+                    [USER_F_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_F_EMAIL, USER_F_ACCOUNT_ID, 'F'),
+                    [USER_G_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_G_EMAIL, USER_G_ACCOUNT_ID, 'G'),
+                    [USER_H_ACCOUNT_ID]: TestHelper.buildPersonalDetails(USER_H_EMAIL, USER_H_ACCOUNT_ID, 'H'),
+                }),
+            ]);
 
             // We manually setting the sidebar as loaded since the onLayout event does not fire in tests
             setSidebarLoaded();

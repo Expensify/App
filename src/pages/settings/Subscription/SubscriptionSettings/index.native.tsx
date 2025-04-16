@@ -13,6 +13,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getRoom} from '@libs/ReportUtils';
@@ -31,6 +32,7 @@ function SubscriptionSettings() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
+    const illustrations = useThemeIllustrations();
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const subscriptionPrice = getSubscriptionPrice(subscriptionPlan, preferredCurrency, privateSubscription?.type);
     const priceDetails = translate(`subscription.yourPlan.${subscriptionPlan === CONST.POLICY.TYPE.CORPORATE ? 'control' : 'collect'}.${isAnnual ? 'priceAnnual' : 'pricePayPerUse'}`, {
@@ -80,7 +82,7 @@ function SubscriptionSettings() {
                 {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                     <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                         <Icon
-                            src={Illustrations.ExpensifyApprovedLogo}
+                            src={illustrations.ExpensifyApprovedLogo}
                             width={variables.modalTopIconWidth}
                             height={variables.menuIconSize}
                         />

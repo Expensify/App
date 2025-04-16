@@ -685,6 +685,7 @@ const CONST = {
         FILE_LIMIT: 10,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
+        CURRENT_USER_KEY: 'currentUser',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -739,7 +740,6 @@ const CONST = {
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
-            CURRENT_USER_KEY: 'currentUser',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
@@ -748,7 +748,26 @@ const CONST = {
                 IS_DIRECTOR: 1,
                 ENTER_EMAIL: 2,
                 SIGNER_DETAILS_FORM: 3,
-                HANG_TIGHT: 4,
+                DIRECTOR_DETAILS_FORM: 4,
+                HANG_TIGHT: 5,
+            },
+            SIGNER_INFO_DATA: {
+                SIGNER_PREFIX: 'signer',
+                FULL_NAME: 'signerFullName',
+                DATE_OF_BIRTH: 'signerDateOfBirth',
+                JOB_TITLE: 'signerJobTitle',
+                EMAIL: 'signerEmail',
+                ADDRESS: 'signerCompleteResidentialAddress',
+                STREET: 'signer_street',
+                CITY: 'signer_city',
+                STATE: 'signer_state',
+                ZIP_CODE: 'signer_zipCode',
+                COUNTRY: 'signer_nationality',
+                PROOF_OF_DIRECTORS: 'proofOfDirectors',
+                COPY_OF_ID: 'signerCopyOfID',
+                ADDRESS_PROOF: 'signerAddressProof',
+                CODICE_FISCALE: 'signerCodiceFiscale',
+                DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
@@ -1331,7 +1350,7 @@ const CONST = {
                 },
             },
             THREAD_DISABLED: ['CREATED'],
-            // Used when displaying reportActions list to handle of unread messages icon/button
+            // Used when displaying reportActions list to handle unread messages icon/button
             SCROLL_VERTICAL_OFFSET_THRESHOLD: 200,
             ACTION_VISIBLE_THRESHOLD: 250,
         },
@@ -2048,6 +2067,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -5149,6 +5169,7 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
+        TEST_DRIVE_COVER_ASPECT_RATIO: 500 / 300,
     },
 
     /**
@@ -5264,6 +5285,7 @@ const CONST = {
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
+        RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',
@@ -5603,6 +5625,9 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
+
+    // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
+    MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
