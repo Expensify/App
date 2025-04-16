@@ -53,7 +53,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     const prevPersonalDetails = usePrevious(personalDetails);
     const hasInitialData = useMemo(() => Object.keys(personalDetails ?? {}).length > 0, [personalDetails]);
 
-    const generateOptions = useCallback(() => {
+    const loadOptions = useCallback(() => {
         const optionLists = createOptionList(personalDetails, reports);
         setOptions({
             reports: optionLists.reports,
@@ -62,21 +62,30 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
     }, [personalDetails, reports]);
 
     /**
-     * This effect is used to update the options list when reports change.
+     * This effect is responsible for generating the options list when there data is not yet initialized
      */
     useEffect(() => {
         if (!areOptionsInitialized.current || !reports || hasInitialData) {
             return;
         }
 
-        if (preferredLocale !== prevPreferredLocale) {
-            generateOptions();
+        loadOptions();
+    }, [reports, personalDetails, hasInitialData, loadOptions]);
+
+    /**
+     * This effect is responsible for generating the options list when the preferred locale changes
+     */
+    useEffect(() => {
+        if (preferredLocale === prevPreferredLocale) {
             return;
         }
 
-        generateOptions();
-    }, [reports, personalDetails, generateOptions, preferredLocale, prevPreferredLocale, hasInitialData]);
+        loadOptions();
+    }, [preferredLocale, prevPreferredLocale, loadOptions]);
 
+    /**
+     * This effect is responsible for updating the options only for changed reports
+     */
     useEffect(() => {
         if (!changedReports || !areOptionsInitialized.current) {
             return;
@@ -88,9 +97,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 return prevOptions;
             }
 
-            // Create a new map from the existing reports for modification
             const updatedReportsMap = new Map(prevOptions.reports.map((report) => [report.reportID, report]));
-            // Process each changed report
             changedReportEntries.forEach((report) => {
                 if (!report) {
                     return;
@@ -111,9 +118,7 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
                 reports: Array.from(updatedReportsMap.values()),
             };
         });
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [changedReports]);
+    }, [changedReports, personalDetails]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -181,14 +186,6 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         // This effect is used to update the options list when personal details change so we ignore all dependencies except personalDetails
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [personalDetails]);
-
-    const loadOptions = useCallback(() => {
-        const optionLists = createOptionList(personalDetails, reports);
-        setOptions({
-            reports: optionLists.reports,
-            personalDetails: optionLists.personalDetails,
-        });
-    }, [personalDetails, reports]);
 
     const initializeOptions = useCallback(() => {
         loadOptions();
