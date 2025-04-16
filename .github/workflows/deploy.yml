@@ -47,7 +47,7 @@ jobs:
 
       - name: Get tag
         id: getTagName
-        run: echo "TAG=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION)}}" >> "$GITHUB_OUTPUT"
+        run: echo "TAG=${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
         run: |
