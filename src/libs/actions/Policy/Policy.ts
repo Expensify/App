@@ -2097,7 +2097,7 @@ function buildPolicyData(
         engagementChoice,
         currency: outputCurrency,
         file: clonedFile,
-        companySize: companySize,
+        companySize,
     };
 
     if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
