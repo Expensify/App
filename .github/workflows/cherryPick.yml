@@ -203,7 +203,7 @@ jobs:
         if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
         run: |
           gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
-          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ steps.GetPRInfo.outputs.PR_NUMBER }} --json author --jq .author.login)"
+          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json author --jq .author.login)"
           gh pr edit --add-assignee "$ORIGINAL_PR_AUTHOR"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
@@ -211,7 +211,7 @@ jobs:
         continue-on-error: true
 
       - name: Label original PR with CP Staging
-        run: gh pr edit ${{ steps.GetPRInfo.outputs.PR_NUMBER }} --add-label 'CP Staging'
+        run: gh pr edit ${{  github.event.inputs.PULL_REQUEST_URL }} --add-label 'CP Staging'
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
