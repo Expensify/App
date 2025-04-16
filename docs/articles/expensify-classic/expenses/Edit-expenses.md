@@ -29,8 +29,8 @@ Editing restrictions apply based on expense type and report status.
 - **Approved expenses** cannot be edited unless reopened (also called unapproved).
 - **Expenses in a Closed report** cannot be edited.
 
-## Description and Policy Violations
-- If an expense has a policy violation but includes a **description or comment**, it will still be submitted via Scheduled Submit.
+## Description and Workspace Violations
+- If an expense has a violation but includes a **description or comment**, it will still be submitted via Scheduled Submit.
 - The **description acts as the user’s explanation** for why the violation wasn’t resolved.
 - This allows the report to move forward while providing visibility for approvers or Workspace Admins.
 
