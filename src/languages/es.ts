@@ -2083,7 +2083,7 @@ const translations = {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
-        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
@@ -6169,6 +6169,7 @@ const translations = {
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
+        receiptGeneratedWithAI: 'Posible recibo generado por IA',
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
