@@ -16,6 +16,7 @@ import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,6 +69,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
     const policyName = policy?.name ?? '';
     const policyIDParam = route.params?.policyID;
+    const backTo = route.params.backTo;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -78,6 +80,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     const {isDevelopment} = useEnvironment();
     const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    // shouldUseNarrowLayout cannot be used here because this page is displayed in a RHP
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {isSmallScreenWidth} = useResponsiveLayout();
 
     // TODO once nonUSD flow is complete update the flags below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
     // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
@@ -385,7 +390,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 <Text>{translate('bankAccount.hasPhoneLoginError.phrase1')}</Text>{' '}
                 <TextLink
                     style={styles.link}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(route.params.backTo))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
                 >
                     {translate('bankAccount.hasPhoneLoginError.link')}
                 </TextLink>
@@ -395,7 +400,23 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     } else if (throttledDate) {
         errorText = translate('bankAccount.hasBeenThrottledError');
     } else if (hasUnsupportedCurrency) {
-        errorText = translate('bankAccount.hasCurrencyError');
+        errorText = (
+            <Text style={styles.flexRow}>
+                {translate('bankAccount.hasCurrencyError.phrase1')}
+                <TextLink
+                    style={styles.link}
+                    onPress={() => {
+                        const routeToNavigate = isSmallScreenWidth
+                            ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyIDParam, Navigation.getActiveRoute())
+                            : ROUTES.WORKSPACE_INITIAL.getRoute(policyIDParam, Navigation.getActiveRoute());
+                        Navigation.goBack(routeToNavigate);
+                    }}
+                >
+                    {translate('bankAccount.hasCurrencyError.link')}
+                </TextLink>
+                {translate('bankAccount.hasCurrencyError.phrase2')}
+            </Text>
+        );
     }
 
     if (errorText) {
@@ -404,7 +425,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
                 <HeaderWithBackButton
                     title={translate('workspace.common.connectBankAccount')}
                     subtitle={policyName}
-                    onBackButtonPress={Navigation.goBack}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <View style={[styles.m5, styles.mv3, styles.flex1]}>
                     <Text>{errorText}</Text>
