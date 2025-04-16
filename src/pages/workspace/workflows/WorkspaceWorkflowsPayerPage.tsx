@@ -173,7 +173,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                 onLinkPress={goBackFromInvalidPolicy}
             >
                 <ScreenWrapper
-                    includeSafeAreaPaddingBottom={false}
+                    enableEdgeToEdgeBottomSafeAreaPadding
                     testID={WorkspaceWorkflowsPayerPage.displayName}
                 >
                     <HeaderWithBackButton
@@ -191,6 +191,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
                         onSelectRow={setPolicyAuthorizedPayer}
                         shouldSingleExecuteRowSelect
                         showScrollIndicator
+                        addBottomSafeAreaPadding
                     />
                 </ScreenWrapper>
             </FullPageNotFoundView>

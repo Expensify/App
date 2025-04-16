@@ -97,7 +97,10 @@ type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEv
 
 type ExtendedTargetedEvent = TargetedEvent & {
     /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
-    sourceCapabilities?: unknown;
+    sourceCapabilities?: {
+        /** A boolean value that indicates whether the device dispatches touch events. */
+        firesTouchEvents: boolean;
+    };
 };
 
 type ListItem = {
@@ -329,6 +332,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
+    /** Test ID of the component. Used to locate this view in end-to-end tests. */
+    testID?: string;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -674,6 +679,15 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Number of items to render in the loader */
+    fixedNumItemsForLoader?: number;
+
+    /** Skeleton loader speed */
+    loaderSpeed?: number;
+
+    /** Error text to display */
+    errorText?: string;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -698,6 +712,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
+    someSelected: boolean;
 };
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';

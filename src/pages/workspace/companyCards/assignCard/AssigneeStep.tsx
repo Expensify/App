@@ -178,6 +178,7 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
             startStepIndex={0}
             stepNames={CONST.COMPANY_CARD.STEP_NAMES}
             headerTitle={translate('workspace.companyCards.assignCard')}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.whoNeedsCardAssigned')}</Text>
             <SelectionList
@@ -190,14 +191,17 @@ function AssigneeStep({policy, feed}: AssigneeStepProps) {
                 onSelectRow={selectMember}
                 initiallyFocusedOptionKey={selectedMember}
                 shouldUpdateFocusedIndex
-            />
-            <FormAlertWithSubmitButton
-                buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-                onSubmit={submit}
-                isAlertVisible={shouldShowError}
-                containerStyles={[styles.ph5, !shouldShowError && styles.mt5]}
-                message={translate('common.error.pleaseSelectOne')}
-                buttonStyles={styles.mb5}
+                addBottomSafeAreaPadding
+                footerContent={
+                    <FormAlertWithSubmitButton
+                        buttonText={translate(isEditing ? 'common.confirm' : 'common.next')}
+                        onSubmit={submit}
+                        isAlertVisible={shouldShowError}
+                        containerStyles={[!shouldShowError && styles.mt5]}
+                        addButtonBottomPadding={false}
+                        message={translate('common.error.pleaseSelectOne')}
+                    />
+                }
             />
         </InteractiveStepWrapper>
     );

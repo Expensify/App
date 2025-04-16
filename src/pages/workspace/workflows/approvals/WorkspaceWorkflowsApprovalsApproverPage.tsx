@@ -209,6 +209,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                 onSubmit={nextStep}
                 containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
                 enabledWhenOffline
+                shouldBlendOpacity
             />
         );
     }, [isInitialCreationFlow, nextStep, selectedApproverEmail, shouldShowListEmptyContent, styles.flexBasisAuto, styles.flexGrow0, styles.flexReset, styles.flexShrink0, translate]);
@@ -248,12 +249,16 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
             policyID={route.params.policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
-            <ScreenWrapper testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}>
+            <ScreenWrapper
+                testID={WorkspaceWorkflowsApprovalsApproverPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <FullPageNotFoundView
                     shouldShow={shouldShowNotFoundView}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
                     onBackButtonPress={goBackFromInvalidPolicy}
                     onLinkPress={goBackFromInvalidPolicy}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.approver')}
@@ -278,6 +283,7 @@ function WorkspaceWorkflowsApprovalsApproverPage({policy, personalDetails, isLoa
                         initiallyFocusedOptionKey={selectedApproverEmail}
                         shouldUpdateFocusedIndex
                         shouldShowTextInput={shouldShowTextInput}
+                        addBottomSafeAreaPadding
                     />
                 </FullPageNotFoundView>
             </ScreenWrapper>
