@@ -126,6 +126,7 @@ import {
     isSubmitAndClose,
     shouldShowPolicy,
 } from './PolicyUtils';
+// eslint-disable-next-line import/no-cycle
 import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
@@ -146,6 +147,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getRenamedAction,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
@@ -176,6 +178,7 @@ import {
     isPendingRemove,
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
+    isRenamedAction,
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
@@ -4740,6 +4743,10 @@ function getReportNameInternal({
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction});
         }
+        if (isRenamedAction(parentReportAction)) {
+            return getRenamedAction(parentReportAction, getReport(report.parentReportID, allReports));
+        }
+
         return reportActionMessage;
     }
 
