@@ -7,10 +7,11 @@ on:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
-    runs-on: macos-15-xlarge
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
     strategy:
       fail-fast: false
       matrix:
@@ -37,7 +38,7 @@ jobs:
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
 
       - name: RNEF Remote Build - iOS
-        uses: callstackincubator/ios@4c2dcc0d6b9c35407cf294e17386b65258a3b6af
+        uses: callstackincubator/ios@f8aeffabe13be32e9aa69b86726de67bff5a694e
         env:
           PROJECT_ROOT_PATH: ${{ matrix.project_root }}
         with:
