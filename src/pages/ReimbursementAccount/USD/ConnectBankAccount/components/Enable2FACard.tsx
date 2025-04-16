@@ -1,6 +1,6 @@
 import React from 'react';
 import {View} from 'react-native';
-import {NewWindow, Shield} from '@components/Icon/Expensicons';
+import {Shield} from '@components/Icon/Expensicons';
 import {ShieldYellow} from '@components/Icon/Illustrations';
 import Section from '@components/Section';
 import Text from '@components/Text';
