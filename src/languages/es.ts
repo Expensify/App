@@ -110,6 +110,7 @@ import type {
     MarkReimbursedFromIntegrationParams,
     MissingPropertyParams,
     MovedFromPersonalSpaceParams,
+    MovedTransactionParams,
     NeedCategoryForExportToIntegrationParams,
     NewWorkspaceNameParams,
     NoLongerHaveAccessParams,
@@ -170,6 +171,7 @@ import type {
     SubscriptionCommitmentParams,
     SubscriptionSettingsRenewsOnParams,
     SubscriptionSettingsSaveUpToParams,
+    SubscriptionSettingsSummaryParams,
     SubscriptionSizeParams,
     SyncStageNameConnectionsParams,
     TaskCreatedActionParams,
@@ -182,6 +184,7 @@ import type {
     TrialStartedTitleParams,
     UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
+    UnreportedTransactionParams,
     UnshareParams,
     UntilTimeParams,
     UpdatedPolicyCategoryNameParams,
@@ -229,6 +232,7 @@ import type {
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
     WorkspaceYouMayJoin,
     YourPlanPriceParams,
+    YourPlanPriceValueParams,
     ZipCodeExampleFormatParams,
 } from './params';
 import type {TranslationDeepObject} from './types';
@@ -439,6 +443,7 @@ const translations = {
         showMore: 'Mostrar más',
         merchant: 'Comerciante',
         category: 'Categoría',
+        report: 'Informe',
         billable: 'Facturable',
         nonBillable: 'No facturable',
         tag: 'Etiqueta',
@@ -527,8 +532,10 @@ const translations = {
         help: 'Ayuda',
         expenseReports: 'Informes de Gastos',
         rateOutOfPolicy: 'Tasa fuera de póliza',
+        reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
+        unreported: 'No reportado',
     },
     supportalNoAccess: {
         title: 'No tan rápido',
@@ -924,6 +931,8 @@ const translations = {
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
         deletedTransaction: ({amount, merchant}: DeleteTransactionParams) => `eliminó un gasto de este informe, ${merchant} - ${amount}`,
+        movedTransaction: ({reportUrl, reportName}: MovedTransactionParams) => `movió este gasto a <a href="${reportUrl}">${reportName}</a>`,
+        unreportedTransaction: ({reportUrl, reportName}: UnreportedTransactionParams) => `eliminó este gasto de <a href="${reportUrl}">${reportName}</a>`,
         receiptIssuesFound: () => ({
             one: 'Problema encontrado',
             other: 'Problemas encontrados',
@@ -2073,35 +2082,35 @@ const translations = {
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
-        validationFailed: 'La validación falló porque no ha pasado suficiente tiempo desde tu último intento.',
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
-        pleaseWaitBeforeTryingAgain: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
 
-            const parts = [];
+            const timeParts = [];
             if (timeData.days) {
-                parts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
+                timeParts.push(`${timeData.days} ${timeData.days === 1 ? 'día' : 'días'}`);
             }
+
             if (timeData.hours) {
-                parts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
+                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? 'hora' : 'horas'}`);
             }
+
             if (timeData.minutes) {
-                parts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
+                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
             }
 
-            let timeText;
-            if (parts.length === 1) {
-                timeText = parts.at(0);
-            } else if (parts.length === 2) {
-                timeText = parts.join(' y ');
-            } else {
-                const lastPart = parts.pop();
-                timeText = `${parts.join(', ')} y ${lastPart}`;
+            let timeText = '';
+            if (timeParts.length === 1) {
+                timeText = timeParts.at(0) ?? '';
+            } else if (timeParts.length === 2) {
+                timeText = `${timeParts.at(0)} y ${timeParts.at(1)}`;
+            } else if (timeParts.length === 3) {
+                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, y ${timeParts.at(2)}`;
             }
 
-            return `Por favor, espera ${timeText} antes de intentarlo de nuevo.`;
+            return `¡Un momento! Debes esperar ${timeText} antes de intentar validar tu número nuevamente.`;
         },
     },
     welcomeSignUpForm: {
@@ -2697,7 +2706,6 @@ const translations = {
         jobTitle: 'Título profesional',
         whatsYourDOB: '¿Cual es tu fecha de nacimiento?',
         uploadID: 'Subir documento de identidad y prueba de domicilio',
-        id: 'Identificación (licencia de conducir o pasaporte)',
         personalAddress: 'Prueba de domicilio personal (por ejemplo, factura de servicios públicos)',
         letsDoubleCheck: 'Vamos a verificar que todo esté correcto.',
         legalName: 'Nombre legal',
@@ -2709,6 +2717,15 @@ const translations = {
         sendReminder: 'Enviar un recordatorio',
         chooseFile: 'Seleccionar archivo',
         weAreWaiting: 'Estamos esperando que otros verifiquen sus identidades como directores o altos funcionarios de la empresa.',
+        id: 'Copia de identificación',
+        proofOfDirectors: 'Prueba de director(es)',
+        proofOfDirectorsDescription: 'Ejemplos: Perfil Corporativo de Oncorp o Registro Comercial.',
+        codiceFiscale: 'Codice Fiscale',
+        codiceFiscaleDescription: 'Codice Fiscale para firmantes, usuarios autorizados y beneficiarios finales.',
+        PDSandFSG: 'Documentación de divulgación PDS + FSG',
+        PDSandFSGDescription:
+            'Nuestra colaboración con Corpay utiliza una conexión API para aprovechar su amplia red de socios bancarios internacionales y facilitar los reembolsos globales en Expensify. Según la normativa australiana, te proporcionamos la Guía de Servicios Financieros (FSG) y el Documento de Divulgación del Producto (PDS) de Corpay.\n\nPor favor, lee detenidamente los documentos FSG y PDS, ya que contienen información completa e importante sobre los productos y servicios que ofrece Corpay. Conserva estos documentos para futuras consultas.',
+        pleaseUpload: 'Sube documentación adicional a continuación para ayudarnos a verificar tu identidad como director o alto ejecutivo de la entidad comercial.',
     },
     agreementsStep: {
         agreements: 'Acuerdos',
@@ -3205,7 +3222,19 @@ const translations = {
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Para usar la exportación de cheques, configura una cuenta bancaria en QuickBooks Online',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión',
+            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
+            accountingMethods: {
+                label: 'Cuándo Exportar',
+                description: 'Elige cuándo exportar los gastos:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                },
+            },
         },
         workspaceList: {
             joinNow: 'Únete ahora',
@@ -3288,6 +3317,7 @@ const translations = {
 
         sageIntacct: {
             preferredExporter: 'Exportador preferido',
+            taxSolution: 'Solución fiscal',
             notConfigured: 'No configurado',
             exportDate: {
                 label: 'Fecha de exportación',
@@ -4625,10 +4655,11 @@ const translations = {
             allSet: '¡Todo listo!',
             accountDescriptionWithCards: 'Esta cuenta bancaria se utilizará para emitir tarjetas corporativas, reembolsar gastos y cobrar y pagar facturas.',
             letsFinishInChat: '¡Continuemos en el chat!',
+            finishInChat: 'Continuemos en el chat',
             almostDone: '¡Casi listo!',
             disconnectBankAccount: 'Desconectar cuenta bancaria',
-            noLetsStartOver: 'No, empecemos de nuevo',
             startOver: 'Empezar de nuevo',
+            updateDetails: 'Actualizar detalles',
             yesDisconnectMyBankAccount: 'Sí, desconecta mi cuenta bancaria',
             yesStartOver: 'Sí, empezar de nuevo',
             disconnectYour: 'Desconecta tu cuenta bancaria de ',
@@ -5155,11 +5186,13 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
-                subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
+                subtitle: 'Crea un gasto o haz un tour por Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
-                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+                subtitle: 'Envía una factura o haz un tour por Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
             },
             emptyTripResults: {
                 title: 'No tienes viajes',
@@ -5215,6 +5248,8 @@ const translations = {
             paid: 'Pagado',
             exported: 'Exportado',
             posted: 'Contabilizado',
+            billable: 'Facturable',
+            reimbursable: 'Reembolsable',
         },
         moneyRequestReport: {
             emptyStateTitle: 'Este informe no tiene gastos',
@@ -6142,6 +6177,7 @@ const translations = {
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
+        receiptGeneratedWithAI: 'Posible recibo generado por IA',
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
@@ -6340,38 +6376,60 @@ const translations = {
         },
         yourPlan: {
             title: 'Tu plan',
+            exploreAllPlans: 'Explorar todos los planes',
+            customPricing: 'Precios personalizados',
+            asLowAs: ({price}: YourPlanPriceValueParams) => `desde ${price} por miembro activo/mes`,
+            pricePerMemberMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro/mes`,
+            pricePerMemberPerMonth: ({price}: YourPlanPriceValueParams) => `${price} por miembro por mes`,
+            perMemberMonth: 'por miembro/mes',
             collect: {
                 title: 'Recopilar',
+                description: 'El plan SMB que te ofrece gestión de gastos, viajes y chat.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
-                benefit1: 'SmartScans ilimitados y seguimiento de la distancia',
-                benefit2: 'Tarjetas Expensify con Límites Inteligentes',
-                benefit3: 'Pago de facturas y facturación',
-                benefit4: 'Aprobación de gastos',
-                benefit5: 'Reembolso ACH',
-                benefit6: 'Integraciones con QuickBooks y Xero',
-                benefit7: 'Reportes e informes personalizados',
+                benefit1: 'Escaneo de recibos',
+                benefit2: 'Reembolsos',
+                benefit3: 'Gestión de tarjetas corporativas',
+                benefit4: 'Aprobaciones de gastos y viajes',
+                benefit5: 'Reservas y reglas de viaje',
+                benefit6: 'Integraciones con QuickBooks/Xero',
+                benefit7: 'Chat sobre gastos, reportes y salas',
+                benefit8: 'Soporte con IA y asistencia humana',
             },
             control: {
                 title: 'Controlar',
+                description: 'Gastos, viajes y chat para empresas más grandes.',
                 priceAnnual: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
                 pricePayPerUse: ({lower, upper}: YourPlanPriceParams) => `Desde ${lower}/miembro activo con la Tarjeta Expensify, ${upper}/miembro activo sin la Tarjeta Expensify.`,
-                benefit1: 'Todo en Recopilar, más:',
-                benefit2: 'Integraciones con NetSuite y Sage Intacct',
-                benefit3: 'Sincronización de Certinia y Workday',
-                benefit4: 'Varios aprobadores de gastos',
-                benefit5: 'SAML/SSO',
-                benefit6: 'Presupuestos',
+                benefit1: 'Todo lo incluido en el plan Collect',
+                benefit2: 'Flujos de aprobación multinivel',
+                benefit3: 'Reglas de gastos personalizadas',
+                benefit4: 'Integraciones con ERP (NetSuite, Sage Intacct, Oracle)',
+                benefit5: 'Integraciones con RR. HH. (Workday, Certinia)',
+                benefit6: 'SAML/SSO',
+                benefit7: 'Informes y análisis personalizados',
+                benefit8: 'Presupuestación',
             },
+            thisIsYourCurrentPlan: 'Este es tu plan actual',
+            downgrade: 'Reducir a Collect',
+            upgrade: 'Actualizar a Control',
+            addMembers: 'Agregar miembros',
             saveWithExpensifyTitle: 'Ahorra con la Tarjeta Expensify',
             saveWithExpensifyDescription: 'Utiliza nuestra calculadora de ahorro para ver cómo el reembolso en efectivo de la Tarjeta Expensify puede reducir tu factura de Expensify',
             saveWithExpensifyButton: 'Más información',
+        },
+        compareModal: {
+            comparePlans: 'Comparar planes',
+            unlockTheFeatures: 'Desbloquea las funciones que necesitas con el plan adecuado para ti. ',
+            viewOurPricing: 'Consulta nuestra página de precios',
+            forACompleteFeatureBreakdown: ' para ver un desglose completo de las funciones de cada uno de nuestros planes.',
         },
         details: {
             title: 'Datos de suscripción',
             annual: 'Suscripción anual',
             taxExempt: 'Solicitar estado de exención de impuestos',
             taxExemptEnabled: 'Exento de impuestos',
+            taxExemptStatus: 'Estado de exención de impuestos',
             payPerUse: 'Pago por uso',
             subscriptionSize: 'Tamaño de suscripción',
             headsUp:
@@ -6404,6 +6462,12 @@ const translations = {
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
+            summary: ({subscriptionType, subscriptionSize, autoRenew, autoIncrease}: SubscriptionSettingsSummaryParams) =>
+                `Tipo de suscripción: ${subscriptionType}, Tamaño de suscripción: ${subscriptionSize}, Renovación automática: ${autoRenew}, Aumento automático de asientos anuales: ${autoIncrease}`,
+            none: 'ninguno',
+            on: 'activado',
+            off: 'desactivado',
+            annual: 'Anual',
             autoRenew: 'Auto-renovación',
             autoIncrease: 'Auto-incremento',
             saveUpTo: ({amountWithCurrency}: SubscriptionSettingsSaveUpToParams) => `Ahorre hasta ${amountWithCurrency} al mes por miembro activo`,
@@ -6413,6 +6477,15 @@ const translations = {
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
             renewsOn: ({date}: SubscriptionSettingsRenewsOnParams) => `Se renovará el ${date}.`,
+            pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
+            learnMore: {
+                part1: 'Obtén más información en nuestra ',
+                pricingPage: 'página de precios',
+                part2: ' o chatea con nuestro equipo en tu ',
+                adminsRoom: 'sala #admins.',
+            },
+            estimatedPrice: 'Precio estimado',
+            changesBasedOn: 'Esto varía según el uso de tu Tarjeta Expensify y las opciones de suscripción que elijas a continuación.',
         },
         requestEarlyCancellation: {
             title: 'Solicitar cancelación anticipada',
