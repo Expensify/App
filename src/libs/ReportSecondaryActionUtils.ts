@@ -53,6 +53,12 @@ function isSubmitAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    if (isAdmin) {
+        return true;
+    }
+
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
