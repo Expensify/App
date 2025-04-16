@@ -160,6 +160,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );
