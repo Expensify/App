@@ -15,6 +15,9 @@ jobs:
   cherryPick:
     needs: createNewVersion
     runs-on: ubuntu-latest
+    env:
+      # The name of the branch created if there are conflicts when CPing the PR.
+      CONFLICT_BRANCH_NAME: cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - name: Checkout staging branch
         # v4
@@ -30,8 +33,7 @@ jobs:
         run: |
           git submodule foreach '\
             git config --add remote.origin.fetch "+refs/heads/staging:refs/remotes/origin/staging" && \
-            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production" && \
-            git config --add remote.origin.fetch "+refs/tags/*:refs/tags/*"'
+            git config --add remote.origin.fetch "+refs/heads/production:refs/remotes/origin/production"'
 
       - name: Set up git for OSBotify
         id: setupGitForOSBotify
@@ -50,9 +52,20 @@ jobs:
 
       - name: Fetch history of relevant refs
         run: |
-          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          # Temporary hack during transition when -staging suffix is being added to tags
+          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          else
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
+          fi
+
           cd Mobile-Expensify
-          git fetch origin main staging --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          # Temporary hack during transition when -staging suffix is being added to tags
+          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+          else
+            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
+          fi
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit
@@ -124,8 +137,8 @@ jobs:
       - name: Push changes
         run: |
           if [[ ${{steps.cherryPick.outputs.HAS_CONFLICTS}} == 'true' ]]; then
-            git checkout -b ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}
-            git push --set-upstream origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}
+            git checkout -b ${{ env.CONFLICT_BRANCH_NAME }}
+            git push --set-upstream origin ${{ env.CONFLICT_BRANCH_NAME }}
           else
             git push origin staging
           fi
@@ -143,7 +156,7 @@ jobs:
 
           \`\`\`bash
           git fetch
-          git checkout ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}
+          git checkout ${{ env.CONFLICT_BRANCH_NAME }}
           git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}
           \`\`\`
 
@@ -153,7 +166,7 @@ jobs:
           git commit --amend -m "\$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})"
           \`\`\`
 
-          That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ github.actor }}-cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_attempt }}\`, and then open this PR for review.
+          That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ env.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
 
           Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main.
 
@@ -170,10 +183,19 @@ jobs:
             --label "Engineering,Hourly" \
             --base "staging"
           sleep 5
-          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
-          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }},$ORIGINAL_PR_AUTHOR"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+
+      - name: Add assignees to conflict PRs
+        if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
+        run: |
+          gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
+          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
+          gh pr edit --add-assignee "$ORIGINAL_PR_AUTHOR"
+        env:
+          GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
+        # In cases when the original PR author is outside the org, the `gh pr edit` command will fail. But we don't want to fail the workflow in that case.
+        continue-on-error: true
 
       - name: Label original PR with CP Staging
         run: gh pr edit ${{ inputs.PULL_REQUEST_NUMBER }} --add-label 'CP Staging'

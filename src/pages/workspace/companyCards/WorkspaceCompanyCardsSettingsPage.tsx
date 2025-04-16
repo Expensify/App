@@ -88,8 +88,12 @@ function WorkspaceCompanyCardsSettingsPage({
             <ScreenWrapper
                 testID={WorkspaceCompanyCardsSettingsPage.displayName}
                 style={styles.defaultModalContainer}
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ScrollView
+                    contentContainerStyle={styles.flexGrow1}
+                    addBottomSafeAreaPadding
+                >
                     <HeaderWithBackButton title={translate('common.settings')} />
                     <View style={styles.flex1}>
                         <MenuItemWithTopDescription

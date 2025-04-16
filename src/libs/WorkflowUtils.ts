@@ -117,7 +117,7 @@ function convertPolicyEmployeesToApprovalWorkflows({employees, defaultApprover, 
     // Add each employee to the appropriate workflow
     Object.values(employees).forEach((employee) => {
         const {email, submitsTo, pendingAction} = employee;
-        if (!email || !submitsTo) {
+        if (!email || !submitsTo || !employees[submitsTo]) {
             return;
         }
 

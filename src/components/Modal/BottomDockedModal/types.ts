@@ -12,6 +12,8 @@ type GestureProps = {
     deviceWidth?: number | null;
 };
 
+type AnimationOut = ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
+
 type ModalProps = ViewProps &
     GestureProps & {
         /** Content inside the modal */
@@ -50,7 +52,7 @@ type ModalProps = ViewProps &
         animationInTiming?: number;
 
         /** Enum for animation type when modal disappears */
-        animationOut?: ValueOf<Pick<ReactNativeModalProps, 'animationOut'>>;
+        animationOut?: AnimationOut;
 
         /** Duration of the animation when modal disappears */
         animationOutTiming?: number;
@@ -147,4 +149,4 @@ type ContainerProps = {
 };
 
 export default ModalProps;
-export type {BackdropProps, ContainerProps, GestureProps};
+export type {BackdropProps, ContainerProps, GestureProps, AnimationOut};
