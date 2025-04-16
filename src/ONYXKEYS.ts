@@ -231,6 +231,12 @@ const ONYXKEYS = {
     /** A timestamp of when the last full reconnect should have been done */
     NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE: 'nvp_reconnectAppIfFullReconnectBefore',
 
+    /** User's first policy creation date */
+    NVP_PRIVATE_FIRST_POLICY_CREATED_DATE: 'nvp_private_firstPolicyCreatedDate',
+
+    /** If the user should see the team 2025 subscription pricing */
+    NVP_PRIVATE_MANUAL_TEAM_PRICING_2025: 'nvp_private_manualTeamPricing2025',
+
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
 
@@ -584,6 +590,9 @@ const ONYXKEYS = {
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
 
+        /** Currently displaying Expensify Card feed */
+        LAST_SELECTED_EXPENSIFY_CARD_FEED: 'lastSelectedExpensifyCardFeed_',
+
         /**  Whether the bank account chosen for Expensify Card in on verification waitlist */
         NVP_EXPENSIFY_ON_CARD_WAITLIST: 'nvp_expensify_onCardWaitlist_',
 
@@ -784,6 +793,7 @@ const ONYXKEYS = {
     },
     DERIVED: {
         CONCIERGE_CHAT_REPORT_ID: 'conciergeChatReportID',
+        REPORT_ATTRIBUTES: 'reportAttributes',
     },
 } as const;
 
@@ -940,6 +950,7 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeed;
+    [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
     [ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD]: OnyxTypes.IssueNewCard;
 };
@@ -1094,6 +1105,8 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
+    [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
+    [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025]: string;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
@@ -1116,6 +1129,7 @@ type OnyxValuesMapping = {
 
 type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
+    [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: Record<string, OnyxTypes.ReportAttributes>;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

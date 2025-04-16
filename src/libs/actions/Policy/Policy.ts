@@ -691,7 +691,10 @@ function clearQBOErrorField(policyID: string | undefined, fieldName: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearQBDErrorField(policyID: string, fieldName: string) {
+function clearQBDErrorField(policyID: string | undefined, fieldName: string) {
+    if (!policyID) {
+        return;
+    }
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksDesktop: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
@@ -738,8 +741,12 @@ function clearSageIntacctErrorField(policyID: string | undefined, fieldName: str
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {intacct: {config: {errorFields: {[fieldName]: null}}}}});
 }
 
-function clearNetSuiteAutoSyncErrorField(policyID: string) {
+function clearNetSuiteAutoSyncErrorField(policyID: string | undefined) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {netsuite: {config: {errorFields: {autoSync: null}}}}});
+}
+
+function clearQuickbooksOnlineAutoSyncErrorField(policyID: string | undefined) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {connections: {quickbooksOnline: {config: {errorFields: {autoSync: null}}}}});
 }
 
 function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueOf<typeof CONST.POLICY.REIMBURSEMENT_CHOICES>, reimburserEmail: string) {
@@ -1775,6 +1782,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
+                requiresCategory: true,
             },
         },
     ];
@@ -1883,6 +1891,7 @@ function buildPolicyData(
                 avatarURL: file?.uri,
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
+                requiresCategory: true,
             },
         },
         {
@@ -2216,6 +2225,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 },
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
+                requiresCategory: true,
             },
         },
         {
@@ -2545,6 +2555,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         },
         defaultBillable: false,
         disabledFields: {defaultBillable: true},
+        requiresCategory: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -5169,6 +5180,7 @@ export {
     updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
+    clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
 };
 

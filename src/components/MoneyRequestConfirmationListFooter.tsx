@@ -8,6 +8,7 @@ import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
@@ -17,7 +18,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, isReportOutsanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -249,9 +250,12 @@ function MoneyRequestConfirmationListFooter({
 }: MoneyRequestConfirmationListFooterProps) {
     const styles = useThemeStyles();
     const {translate, toLocaleDigit} = useLocalize();
+    const {canUseTableReportView} = usePermissions();
     const {isOffline} = useNetwork();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
     // A flag and a toggler for showing the rest of the form fields
     const [shouldExpandFields, toggleShouldExpandFields] = useReducer((state) => !state, false);
@@ -275,6 +279,25 @@ function MoneyRequestConfirmationListFooter({
 
         return canSendInvoice(allPolicies, currentUserLogin) && !!transaction?.isFromGlobalCreate && !isInvoiceRoomParticipant;
     }, [allPolicies, currentUserLogin, selectedParticipants, transaction?.isFromGlobalCreate]);
+
+    /**
+     * We need to check if the transaction report exists first in order to prevent the outstanding reports from being used.
+     * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
+     */
+    const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
+    const shouldUseTransactionReport = !!transactionReport && isReportOutsanding(transactionReport, selectedParticipants?.at(0)?.policyID);
+    let reportName: string | undefined;
+    if (shouldUseTransactionReport) {
+        reportName = transactionReport.reportName;
+    } else {
+        const firstOutstangingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
+        reportName = firstOutstangingReport?.reportName;
+    }
+
+    if (!reportName) {
+        const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
+        reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
+    }
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
@@ -627,6 +650,28 @@ function MoneyRequestConfirmationListFooter({
                 </View>
             ),
             shouldShow: shouldShowBillable,
+            isSupplementary: true,
+        },
+        {
+            item: (
+                <MenuItemWithTopDescription
+                    key={translate('common.report')}
+                    shouldShowRightIcon
+                    title={reportName}
+                    description={translate('common.report')}
+                    style={[styles.moneyRequestMenuItem]}
+                    titleStyle={styles.flex1}
+                    onPress={() => {
+                        if (!transactionID) {
+                            return;
+                        }
+                        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute()));
+                    }}
+                    interactive
+                    shouldRenderAsHTML
+                />
+            ),
+            shouldShow: isPolicyExpenseChat && canUseTableReportView,
             isSupplementary: true,
         },
     ];
