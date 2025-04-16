@@ -42,18 +42,18 @@ const client = Log.client;
  * For example:
  * 1. Initial state is idle. It can react to KEYBOARD_OPEN action.
  * 2. We open emoji picker. It sends EMOJI_PICKER_OPEN action.
- * 2. There is no handling for this action in idle state so we do nothing.
- * 3. We close emoji picker and it sends EMOJI_PICKER_CLOSE action which again does nothing.
- * 4. We open keyboard. It sends KEYBOARD_OPEN action. idle can react to this action
+ * 3. There is no handling for this action in idle state so we do nothing.
+ * 4. We close emoji picker and it sends EMOJI_PICKER_CLOSE action which again does nothing.
+ * 5. We open keyboard. It sends KEYBOARD_OPEN action. idle can react to this action
  * by transitioning into keyboardOpen state
- * 5. Our state is keyboardOpen. It can react to KEYBOARD_CLOSE, EMOJI_PICKER_OPEN actions
- * 6. We open emoji picker again. It sends EMOJI_PICKER_OPEN action which transitions our state
+ * 6. Our state is keyboardOpen. It can react to KEYBOARD_CLOSE, EMOJI_PICKER_OPEN actions
+ * 7. We open emoji picker again. It sends EMOJI_PICKER_OPEN action which transitions our state
  * into emojiPickerOpen state. Now we react only to EMOJI_PICKER_CLOSE action.
- * 7. Before rendering the emoji picker, the app hides the keyboard.
+ * 8. Before rendering the emoji picker, the app hides the keyboard.
  * It sends KEYBOARD_CLOSE action. But we ignore it since our emojiPickerOpen state can only handle
  * EMOJI_PICKER_CLOSE action. So we write the logic for handling hiding the keyboard,
  * but maintaining the offset based on the keyboard state shared value
- * 7. We close the picker and send EMOJI_PICKER_CLOSE action which transitions us back into keyboardOpen state.
+ * 9. We close the picker and send EMOJI_PICKER_CLOSE action which transitions us back into keyboardOpen state.
  *
  * State machine object example:
  * const stateMachine = {
