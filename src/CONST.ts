@@ -683,6 +683,7 @@ const CONST = {
         FILE_LIMIT: 10,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
+        CURRENT_USER_KEY: 'currentUser',
         STEP: {
             COUNTRY: 'CountryStep',
             BANK_INFO: 'BankInfoStep',
@@ -737,7 +738,6 @@ const CONST = {
                 FULL_NAME: 'fullName',
                 RESIDENTIAL_ADDRESS: 'residentialAddress',
             },
-            CURRENT_USER_KEY: 'currentUser',
         },
         STEP_NAMES: ['1', '2', '3', '4', '5', '6'],
         STEP_HEADER_HEIGHT: 40,
@@ -746,7 +746,26 @@ const CONST = {
                 IS_DIRECTOR: 1,
                 ENTER_EMAIL: 2,
                 SIGNER_DETAILS_FORM: 3,
-                HANG_TIGHT: 4,
+                DIRECTOR_DETAILS_FORM: 4,
+                HANG_TIGHT: 5,
+            },
+            SIGNER_INFO_DATA: {
+                SIGNER_PREFIX: 'signer',
+                FULL_NAME: 'signerFullName',
+                DATE_OF_BIRTH: 'signerDateOfBirth',
+                JOB_TITLE: 'signerJobTitle',
+                EMAIL: 'signerEmail',
+                ADDRESS: 'signerCompleteResidentialAddress',
+                STREET: 'signer_street',
+                CITY: 'signer_city',
+                STATE: 'signer_state',
+                ZIP_CODE: 'signer_zipCode',
+                COUNTRY: 'signer_nationality',
+                PROOF_OF_DIRECTORS: 'proofOfDirectors',
+                COPY_OF_ID: 'signerCopyOfID',
+                ADDRESS_PROOF: 'signerAddressProof',
+                CODICE_FISCALE: 'signerCodiceFiscale',
+                DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
             },
         },
         BANK_INFO_STEP_ACCOUNT_HOLDER_KEY_PREFIX: 'accountHolder',
@@ -1208,6 +1227,8 @@ const CONST = {
                 MERGED_WITH_CASH_TRANSACTION: 'MERGEDWITHCASHTRANSACTION',
                 MODIFIED_EXPENSE: 'MODIFIEDEXPENSE',
                 MOVED: 'MOVED',
+                MOVED_TRANSACTION: 'MOVEDTRANSACTION',
+                UNREPORTED_TRANSACTION: 'UNREPORTEDTRANSACTION',
                 OUTDATED_BANK_ACCOUNT: 'OUTDATEDBANKACCOUNT', // OldDot Action
                 REIMBURSED: 'REIMBURSED',
                 REIMBURSEMENT_ACH_BOUNCE: 'REIMBURSEMENTACHBOUNCE', // OldDot Action
@@ -2037,6 +2058,7 @@ const CONST = {
         AUTO_CREATE_VENDOR: 'autoCreateVendor',
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
+        ACCOUNTING_METHOD: 'accountingMethod',
     },
 
     XERO_CONFIG: {
@@ -2091,6 +2113,7 @@ const CONST = {
         },
         SYNC_ITEMS: 'syncItems',
         TAX: 'tax',
+        TAX_SOLUTION_ID: 'taxSolutionID',
         EXPORT: 'export',
         EXPORT_DATE: 'exportDate',
         NON_REIMBURSABLE_CREDIT_CARD_VENDOR: 'nonReimbursableCreditCardChargeDefaultVendor',
@@ -3316,6 +3339,8 @@ const CONST = {
         DEFAULT: 'default',
     },
     SUBSCRIPTION: {
+        TEAM_2025_PRICING_START_DATE: new Date(2025, 3, 1),
+        PRICING_TYPE_2025: 'team2025Pricing',
         TYPE: {
             ANNUAL: 'yearly2018',
             PAYPERUSE: 'monthly2018',
@@ -3331,6 +3356,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 500,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1000,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.AUD]: {
@@ -3341,6 +3367,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 700,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1400,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 800,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.GBP]: {
@@ -3351,6 +3378,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 400,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 800,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 500,
                 },
             },
             [this.PAYMENT_CARD_CURRENCY.NZD]: {
@@ -3361,6 +3389,7 @@ const CONST = {
                 [this.POLICY.TYPE.TEAM]: {
                     [this.SUBSCRIPTION.TYPE.ANNUAL]: 800,
                     [this.SUBSCRIPTION.TYPE.PAYPERUSE]: 1600,
+                    [this.SUBSCRIPTION.PRICING_TYPE_2025]: 900,
                 },
             },
         };
@@ -5246,6 +5275,7 @@ const CONST = {
         TAX_RATE_CHANGED: 'taxRateChanged',
         TAX_REQUIRED: 'taxRequired',
         HOLD: 'hold',
+        RECEIPT_GENERATED_WITH_AI: 'receiptGeneratedWithAI',
     },
     RTER_VIOLATION_TYPES: {
         BROKEN_CARD_CONNECTION: 'brokenCardConnection',

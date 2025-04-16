@@ -1,19 +1,21 @@
 ---
 title: Edit and Submit Reports
-description: Learn how to edit, submit, and manage expense reports in Expensify, including workspace changes, approvals, and report statuses.
+description: Learn how to create, edit, submit, and export expense reports—including how to access collaborator reports using Copilot and export reports as CSV.
+keywords: [expense reports, submit report, edit report, copilot, view collaborator reports, csv export, Expensify reports, report layout, report submission]
 ---
 
 <div id="expensify-classic" markdown="1">
 
-You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and managing report statuses.
+You can easily edit and submit reports in Expensify to keep your expenses organized and ensure they go through the right approval process. 
+This guide walks you through adding expenses to a report, updating report details, submitting reports for approval, and understanding report statuses. It also covers how to view collaborator reports using Copilot access and exporting reports to CSV.
 
 ---
 
 # Add Expenses to Reports
 
-Once you’ve created your expenses, they may be automatically added to a report if your company has this feature enabled. Otherwise, you’ll need to manually add them to a report for submission.
+Expenses may be automatically added to a report if your Workspace has this setting enabled. If not, you can manually add them.
 
-**Note:** Your ability to create reports may be restricted by your workspace settings.
+**Note:** Your ability to create reports may be restricted by your Workspace settings.
 
 ## Add Expenses to an Existing Report
 
@@ -22,35 +24,36 @@ Once you’ve created your expenses, they may be automatically added to a report
 2. Open the report.
 3. Click **Add Expenses**.
 4. Select the expenses to add.
-   - If an expense doesn’t appear, use the filter to search by merchant name or adjust the date range.
-   - Only expenses not already on a report will be listed.
+   - If an expense doesn’t appear, adjust filters (e.g., merchant or date range).
+   - Only expenses not already on a report will appear.
 
 **On Mobile:**
 1. Tap ☰ in the top left.
-2. Tap **Reports**.
-3. Open the report.
-4. Tap **Add Expense**, then select an expense to add.
+2. Tap **Reports**, then select the report.
+3. Tap **Add Expense**, then choose expenses.
 
-## Move Expenses to Another Report (Desktop Only)
-1. Open **Expenses**.
-2. Select the open expenses to move.
+## Move Expenses to Another Report (web-only)
+
+1. Go to the **Expenses** page.
+2. Select open expenses to move.
 3. Click **Add to Report**.
 4. Choose the destination report.
-   - Only open expenses can be moved.
-   - Submitted expenses in **Processing, Approved, Reimbursed, or Closed** states cannot be moved.
+
+**Note:** Only **Open** expenses can be moved. Expenses in **Processing**, **Approved**, **Reimbursed**, or **Closed** statuses cannot be moved.
 
 ## Create a New Report
 
 **On Desktop:**
 1. Click **Reports**.
-   - If a report has been automatically created for your most recent expense, no action is needed.
+   - If a report was auto-created for your most recent expense, no action is needed.
 2. Click **New Report**, then select **Expense Report**.
 3. Click **Add Expenses** and select expenses to add.
-4. (Optional) Edit the report:
-   - Click the **Edit** icon to rename the report.
-   - Click **X** next to an expense to remove it.
-   - Click **Expense Details** to edit an expense.
-   - Add comments or attachments at the bottom of the report.
+
+**Optional edits:**
+- Click the pencil icon to rename the report.
+- Click the X next to an expense to remove it.
+- Click **Expense Details** to edit.
+- Add comments or attachments at the bottom.
 
 **On Mobile:**
 1. Tap ☰ in the top left.
@@ -58,145 +61,128 @@ Once you’ve created your expenses, they may be automatically added to a report
    - If a report was automatically created, no action is needed.
 3. Tap **+**, then select **Expense Report**.
 4. Tap **Add Expenses** and select expenses.
-5. (Optional) Edit the report:
-   - Tap the report name to rename it.
-   - Tap an expense to edit details.
-   - Add comments or attachments.
+
+**Optional edits:**
+- Tap the report name to rename it.
+- Tap an expense to edit details.
+- Add comments or attachments.
 
 ---
 
-# Edit Reports
+# Edit Report Details
 
-You can update a report’s details such as the **report title**, **workspace**, **report type**, **layout**, and **attached expenses**.
+You can edit the report title, workspace, type, layout, and attached expenses.
 
-**Note:** Some report details may be restricted from editing depending on your workspace settings.
+**Note:** Some settings may be locked depending on your Workspace.
 
 ## Edit the Title
 
 **On Desktop:**
-1. Click the **Reports** tab and select the report.
-2. Click the **pencil icon** next to the name and edit the title.
-3. Press **Enter** to save changes.
+1. Go to **Reports** and select the report.
+2. Click the pencil icon next to the title.
+3. Press **Enter** to save.
 
 **On Mobile:**
-1. Tap the ☰ **menu** icon in the top left.
-2. Tap the **Reports** tab, then select the report.
-3. Tap the **report name** to edit it.
+1. Tap ☰ and go to **Reports**.
+2. Select the report and tap the name to edit.
 
 ## Change the Workspace
 
 **On Desktop:**
-1. Click the **Reports** tab and select the report.
-2. Click **Details** in the top right of the report.
-3. Click the **Workspace** dropdown list and select the correct workspace.
+1. Go to **Reports** and open the report.
+2. Click **Details** in the top right.
+3. Select a Workspace from the dropdown.
 
 **On Mobile:**
-1. Tap the ☰ **menu** icon in the top left.
-2. Tap the **Reports** tab, then select the report.
-3. Tap **Edit** in the top right.
-4. Tap the **current workspace name** to select a new one.
-5. Tap **Done**.
+1. Tap ☰ and go to **Reports**.
+2. Select the report and tap **Edit**.
+3. Tap the Workspace name to change it.
+4. Tap **Done**.
 
-## Change the Type of Expense Report
+## Change the Type of Report 
 
 **On Desktop:**
-1. Click the **Reports** tab and select the report.
-2. Click **Details** in the top right of the report.
-3. Click the **Type** dropdown and select either **Expense Report** or **Invoice**.
+1. Open the report and click **Details**.
+2. Change the type using the **Type** dropdown.
 
 **On Mobile:**
-1. Tap the ☰ **menu** icon in the top left.
-2. Tap the **Reports** tab, then select the report.
-3. Tap **Edit** in the top right.
-4. Tap either **Expense Report** or **Invoice**.
-5. Tap **Done**.
+1. Go to the report and tap **Edit**.
+2. Tap **Expense Report** or **Invoice**.
 
-## Change the Report Layout
+## Change the Report Layout (web-only)
 
-1. Click the **Reports** tab and select the report.
-2. Click **Details** in the top right of the report.
-3. Adjust the following layout options:
-   - **View**: Choose between a **basic** or **detailed** report view.
-   - **Group By**: Group expenses by **category** or **tag**.
-   - **Split By**: Separate expenses by **reimbursable** or **billable** status.
+1. Open the report and click **Details**.
+2. Adjust:
+   - **View** – Choose Basic or Detailed.
+   - **Group By** – Group by category or tag.
+   - **Split By** – Separate by reimbursable or billable status.
 
 ---
 
 # Submit a Report for Approval
-Some workspaces automatically submit or approve reports, removing the need for manual submission.
+Some Workspaces automatically handle this. Otherwise, submit manually.
 
 **On Desktop:**
-1. Click the **Reports** tab.
-2. Select the **report**.
-3. Click **Submit**.
-4. Enter submission details:
-   - **To**: Approver’s name(s).
-   - **CC**: Additional recipients (comma-separated).
-   - **Memo**: Additional notes.
-   - **Attach PDF**: Attach a report copy (optional).
-5. Click **Send**.
-   
-**Note:** The **CC field** is *sticky*—Expensify remembers the last manually entered value and automatically applies it to future reports. To stop CCing someone automatically, remove their email from the **CC** field the next time you submit a report.
+1. Go to **Reports** and select the report.
+2. Click **Submit**.
+3. Fill out:
+   - **To** – Approver’s name.
+   - **CC** – Additional recipients.
+   - **Memo** – Notes (optional).
+   - **Attach PDF** – Optional.
+4. Click **Send** to submit.
 
 **On Mobile:**
-1. Tap the ☰ **menu** icon in the top left.
-2. Tap the **Reports** tab.
-3. Select the **report**.
-4. Tap **Submit Report**.
-5. Enter submission details:
-   - **To**: Approver’s name(s).
-   - **CC**: Additional recipients (comma-separated).
-   - **Memo**: Additional notes.
-   - **Attach PDF**: Attach a report copy (optional).
-6. Tap **Submit**.
 
-**Note:** The **CC field** is *sticky*—Expensify remembers the last manually entered value and automatically applies it to future reports. To stop CCing someone automatically, remove their email from the **CC** field the next time you submit a report.
+1. Go to the report and tap **Submit Report**.
+2. Fill out:
+   - **To** – Approver’s name.
+   - **CC** – Additional recipients.
+   - **Memo** – Notes (optional).
+   - **Attach PDF** – Optional.
+3. Tap **Submit**.
+
+**Note:** The **CC** field is "sticky"—Expensify remembers previous entries. Remove them next time to stop future auto-CCs. 
 
 ## Submit via Guided Review (web-only)
 
-1. Click the **Reports** tab on the Expensify website.
-2. Select the **report**.
-3. Click **Review**.
-4. Follow the guided review steps.
-5. Click **Submit** for each expense.
+1. Open the report.
+2. Click **Review**.
+3. Complete the steps shown.
+4. Click **Submit** for each expense.
 
 ## Retract a Submitted Report
 
 **On Desktop:**
-1. Click the **Reports** tab.
-2. Select the **report**.
-3. Click **Undo Submit**.
+1. Open the report.
+2. Click **Undo Submit**.
 
 **On Mobile:**
-1. Tap the ☰ **menu** icon in the top left.
-2. Tap the **Reports** tab.
-3. Select the **report**.
-4. Tap **Retract**.
+1. Tap the report.
+2. Tap **Retract**.
 
-**Note:** Reports with **Instant Submit** cannot be fully retracted, only individual expenses can be edited.
+**Note:** Reports with **Instant Submit** cannot be fully retracted. Only individual expenses can be edited.
 
 ---
 
 # Add Comments & Attachments to a Report
 
-You can add comments and attachments to a report to clarify or justify expenses.
+You can add context or receipts.
 
 **On Desktop:**
-1. Click **Reports**.
-2. Select the report.
-3. Scroll to the bottom of the report and:
-   - **To add a comment**: Type your comment and click the **Send** icon or press **Enter**.
-   - **To add an attachment**: Click the **paperclip** icon, select a **jpeg, jpg, png, gif, CSV, or PDF** file, then click **Upload**.
+
+1. Open the report and scroll to the bottom.
+2. Add a comment or click the paperclip icon to upload a file.
 
 **On Mobile:**
-1. Tap the ☰ **menu** icon in the top left.
-2. Tap **Reports**.
-3. Select the report.
-4. At the bottom of the report:
-   - **To add a comment**: Type your comment and tap the **Send** icon.
-   - **To add an attachment**: Tap the **paperclip** icon, select a **jpeg, jpg, png, gif, CSV, or PDF** file, then tap **Confirm**.
+
+1. Open the report.
+2. Scroll to the bottom to comment or attach a file.
+
+Supported file types: **jpeg, jpg, png, gif, CSV, PDF**
 
 ## Report History
+
 Expensify logs all actions taken on the report in the **Report History & Comments** section at the bottom of the report.
 
 **To access a report's history:**
@@ -210,32 +196,21 @@ When impactful changes are made to the report, such as changing an expense's rei
 
 # Report Statuses
 
-In Expensify, every report moves through different statuses based on its stage in the approval process. Understanding these statuses helps ensure reports are properly submitted, approved, and reimbursed.
+Every report passes through several statuses. Here’s what they mean:
 
-## Status Definitions
-- **Open** – The report is "In Progress" and has not been submitted.  
-  - If a report is also labeled **Rejected**, it means an Approver has sent it back for changes.  
-  - Open the report to review comments and make necessary adjustments.  
+- **Open** – In progress, not yet submitted. If also labeled **Rejected**, open the report to review comments and revise.
+- **Processing** – Submitted and awaiting approval.
+- **Approved** – Fully approved but not reimbursed.
+- **Reimbursed** – Payment sent. **Withdrawing** or **Confirmed** may appear based on ACH status. 
+- **Closed** – Finalized and no longer editable.
 
-- **Processing** – The report has been submitted and is pending approval.
+## Finalized state by workflow
 
-- **Approved** – The report has been approved but not reimbursed.  
-  - For non-reimbursable reports, this is the final status.  
+- **Non-reimbursable** – Finalized at **Approved**.
+- **Reimbursable** – Finalized at **Reimbursed**.
+- **Mixed** – Finalized at **Reimbursed**, even if only some expenses are reimbursable.
 
-- **Reimbursed** – The report has been successfully reimbursed.  
-  - If a reimbursed report is labeled:  
-    - **Withdrawing** – The ACH process has been initiated.  
-    - **Confirmed** – The ACH process is in progress or completed.  
-
-- **Closed** – The report has been finalized and is no longer editable.  
-
-## Report Statuses Based on Approval Workflow
-
-For Workspaces using Submit and Approve or Advanced Approval Workflows, reports are finalized based on the expense type:
-- **Non-reimbursable expenses** – The report is finalized when it enters the **Approved** state.  
-- **Reimbursable expenses** – The report is finalized when it enters the **Reimbursed** state.  
-  - This applies whether the report is reimbursed via Expensify or manually marked as reimbursed outside Expensify.  
-- **Mixed reimbursable and non-reimbursable expenses** – The report is finalized when it reaches the **Reimbursed** state.
+---
 
 ## Reports Marked as Closed
 
@@ -246,28 +221,73 @@ A report is automatically marked **Closed** under these conditions:
 
 ---
 
+## View collaborator reports using Copilot access
+
+If someone grants you **[Copilot access](https://help.expensify.com/articles/expensify-classic/copilots-and-delegates/Assign-or-remove-a-Copilot)**, you can view and manage their reports as if they were your own.
+
+### Switch to a Copilot account
+
+**On Desktop:**
+
+1. Click your profile icon in the top left.
+2. Click on the user’s account you have Copilot access to.
+
+**On Mobile:**
+
+1. Tap ☰ and tap on your **Profile**.
+2. Tap **Switch to Copilot Mode**.
+3. Tap on the user's account. 
+
+You’ll now see their reports and expenses.
+
+**Note:** You must be granted Copilot access first. [Learn how to add or request Copilot access here.](https://docs.expensify.com/copilot-access)
+
+---
+
+## Export a report to CSV (web-only)
+
+You can export full reports for archiving or analysis.
+
+1. Open the **Reports** tab.
+2. Select the report.
+3. Click **Details** in the top right.
+4. Click the **Export to** dropdown.
+5. Choose:
+   - **Default CSV** – Expensify’s built-in layout.
+   - **Create new CSV export layout** – Customize your export format.
+
 # FAQ
 
-## How are credits or refunds displayed on Expense Reports?
-Credits appear as negative expenses (e.g., -$1.00). They offset the total report amount.
+## Can I view my teammate's expense reports?
 
-**For example:**
-- A report with $400 and $500 reimbursable expenses shows a total of $900.
-- A report with -$400 and $500 expenses results in a $100 total.
+Yes, if you have **Copilot access**. Ask your teammate to add you as a Copilot so you can view, edit, or submit their reports.
+
+---
+
+## Can I export an expense report as a spreadsheet?
+
+Yes! Open the report, click **Details**, then choose **Export to CSV**.
+
+---
+
+## How are credits or refunds displayed?
+
+They appear as **negative expenses** (e.g., -$1.00) and reduce the report total.
+
+---
 
 ## What’s the difference between an expense, a receipt, and a report attachment?
 
-- **Expense:** Created when you SmartScan or manually upload a receipt.
-- **Receipt:** Image file automatically attached to an expense via SmartScan.
-- **Report Attachment:** Additional documents (e.g., supporting documents) added via the paperclip icon in report comments.
+- **Expense** – Created when a receipt is scanned or manually entered.
+- **Receipt** – Image attached to an expense.
+- **Attachment** – Additional files added at the bottom of the report (e.g., documents).
 
-## What’s the Difference Between Expense Reports, Bills, and Invoices?
+---
 
-- **Expense Report**: Submitted by an employee to their employer. This may include:
-  - **Reimbursable expenses** (e.g., business travel paid for with personal funds).
-  - **Non-reimbursable expenses** (e.g., a company card lunch expense).
-- **Invoice**: A report a business or contractor sends to another business to charge for goods or services received. For example:
-  - A contractor providing an hourly-rate service sends an invoice detailing services provided and their hourly rate.
-  - Invoices are generally expected to be paid within a set timeframe (e.g., 30 days of receipt).
-- **Bill**: A document used by businesses and contractors to request payment for goods or services.
-  - For example, a restaurant, store, or hair salon provides bills, typically expected to be paid upon receipt.
+## What’s the difference between reports, invoices, and bills?
+
+- **Expense Report** – Submitted by employees for business expenses.
+- **Invoice** – Sent between businesses to request payment.
+- **Bill** – Generated at the point of sale (e.g., in-store or service receipt).
+
+</div>
