@@ -175,9 +175,9 @@ function TransactionPreviewContent({
         ],
     );
 
-    const previewTextViewGap = (isBillSplit || shouldShowMerchantOrDescription || shouldShowCategoryOrTag) && styles.gap2;
+    const shouldWrapDisplayAmount = !(isBillSplit || shouldShowMerchantOrDescription || isScanning);
+    const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
-    const shouldWrapDisplayAmount = !(shouldShowMerchantOrDescription || isBillSplit);
 
     const transactionContent = (
         <View style={[styles.border, styles.reportContainerBorderRadius, containerStyles]}>
@@ -203,6 +203,7 @@ function TransactionPreviewContent({
                             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                             isHovered={isHovered || isScanning}
                             size={1}
+                            shouldUseAspectRatio
                         />
                     )}
                     {shouldShowSkeleton ? (
