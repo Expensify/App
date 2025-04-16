@@ -45,7 +45,7 @@ jobs:
         id: getAppVersion
         run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Get tag name
+      - name: Get tag
         id: getTagName
         run: echo "TAG=${{ github.ref == 'refs/heads/production' && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION)}}" >> "$GITHUB_OUTPUT"
 
