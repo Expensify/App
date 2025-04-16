@@ -34,12 +34,20 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {onboardingIsMediumOrLargerScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
-    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES);
-    const [joinablePoliciesLoading] = useOnyx(ONYXKEYS.JOINABLE_POLICIES_LOADING);
+    const [joinablePolicies] = useOnyx(ONYXKEYS.JOINABLE_POLICIES, {
+        canBeMissing: false,
+    });
+    const [joinablePoliciesLoading] = useOnyx(ONYXKEYS.JOINABLE_POLICIES_LOADING, {
+        canBeMissing: false,
+    });
 
-    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM);
+    const [onboardingPersonalDetails] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
+        canBeMissing: false,
+    });
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {
+        canBeMissing: false,
+    });
 
     const isValidated = isCurrentUserValidated(loginList);
 
