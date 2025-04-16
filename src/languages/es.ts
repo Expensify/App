@@ -5230,7 +5230,7 @@ const translations = {
         suggestions: 'Sugerencias',
         exportSearchResults: {
             title: 'Crear exportación',
-            description: '¡Vaya, eso es un montón de elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
+            description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
         },
         exportAll: {
             selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
