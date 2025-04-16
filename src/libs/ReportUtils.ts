@@ -9446,7 +9446,7 @@ function hasForwardedAction(reportID: string): boolean {
     return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
 }
 
-function isReportOutsanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined): boolean {
+function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined): boolean {
     if (!iouReport || isEmptyObject(iouReport)) {
         return false;
     }
@@ -9477,7 +9477,7 @@ function getOutstandingReports(policyID: string | undefined, reports: OnyxCollec
         return [];
     }
     return Object.values(reports)
-        .filter((report) => isReportOutsanding(report, policyID))
+        .filter((report) => isReportOutstanding(report, policyID))
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
@@ -10740,7 +10740,7 @@ export {
     buildOptimisticMovedTransactionAction,
     populateOptimisticReportFormula,
     getOutstandingReports,
-    isReportOutsanding,
+    isReportOutstanding,
 };
 
 export type {
