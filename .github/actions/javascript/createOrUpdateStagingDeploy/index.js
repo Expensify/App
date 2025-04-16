@@ -11496,7 +11496,7 @@ async function run() {
         const previousChecklistData = GithubUtils_1.default.getStagingDeployCashData(previousChecklist);
         const currentChecklistData = shouldCreateNewDeployChecklist ? undefined : GithubUtils_1.default.getStagingDeployCashData(mostRecentChecklist);
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.version ?? '', newStagingTag);
+        const mergedPRs = await GitUtils_1.default.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees = [];
@@ -11987,7 +11987,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12000,6 +12000,7 @@ class GithubUtils {
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
+                tag: `${version}-staging`,
             };
         }
         catch (exception) {

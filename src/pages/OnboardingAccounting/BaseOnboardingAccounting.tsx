@@ -15,7 +15,9 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -63,6 +65,10 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
     const [error, setError] = useState('');
 
     const paidGroupPolicy = Object.values(allPolicies ?? {}).find((policy) => isPaidGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const {isOffline} = useNetwork();
+    const isLoading = onboarding?.isLoading;
+    const prevIsLoading = usePrevious(isLoading);
 
     // Set onboardingPolicyID and onboardingAdminsChatReportID if a workspace is created by the backend for OD signups
     useEffect(() => {
@@ -72,6 +78,15 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         setOnboardingAdminsChatReportID(paidGroupPolicy.chatReportIDAdmins?.toString());
         setOnboardingPolicyID(paidGroupPolicy.id);
     }, [paidGroupPolicy, onboardingPolicyID]);
+
+    useEffect(() => {
+        if (!!isLoading || !prevIsLoading || !CONFIG.IS_HYBRID_APP) {
+            return;
+        }
+
+        HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
+        setRootStatusBarEnabled(false);
+    }, [isLoading, prevIsLoading, setRootStatusBarEnabled]);
 
     const accountingOptions: OnboardingListItem[] = useMemo(() => {
         const policyAccountingOptions = Object.values(CONST.POLICY.CONNECTIONS.NAME)
@@ -189,11 +204,9 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
                     if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
                         if (CONFIG.IS_HYBRID_APP) {
-                            HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: true});
-                            setRootStatusBarEnabled(false);
-                        } else {
-                            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                            return;
                         }
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                     }
                     // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
                     InteractionManager.runAfterInteractions(() => {
@@ -215,6 +228,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         );
                     });
                 }}
+                isLoading={isLoading}
+                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
                 pressOnEnter
             />
         </>
