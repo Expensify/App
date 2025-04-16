@@ -36,7 +36,7 @@ function ReportVirtualCardFraudPage({
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
-    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: false});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: true});
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
 
