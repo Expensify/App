@@ -2083,7 +2083,7 @@ const translations = {
         smsDeliveryFailureMessage: ({login}: OurEmailProviderParams) =>
             `No hemos podido entregar mensajes SMS a ${login}, así que lo hemos suspendido temporalmente. Por favor, intenta validar tu número:`,
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
-        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number}}) => {
+        validationFailed: ({timeData}: {timeData?: {days?: number; hours?: number; minutes?: number} | null}) => {
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
@@ -3225,7 +3225,19 @@ const translations = {
                 [CONST.QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK]: 'Para usar la exportación de cheques, configura una cuenta bancaria en QuickBooks Online',
             },
             noAccountsFound: 'No se ha encontrado ninguna cuenta',
-            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión',
+            noAccountsFoundDescription: 'Añade la cuenta en QuickBooks Online y sincroniza de nuevo la conexión.',
+            accountingMethods: {
+                label: 'Cuándo Exportar',
+                description: 'Elige cuándo exportar los gastos:',
+                values: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Devengo',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Efectivo',
+                },
+                alternateText: {
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.ACCRUAL]: 'Los gastos por cuenta propia se exportarán cuando estén aprobados definitivamente',
+                    [COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD.CASH]: 'Los gastos por cuenta propia se exportarán cuando estén pagados',
+                },
+            },
         },
         workspaceList: {
             joinNow: 'Únete ahora',
@@ -5177,11 +5189,13 @@ const translations = {
             },
             emptyExpenseResults: {
                 title: 'Aún no has creado ningún gasto',
-                subtitle: 'Usa el botón verde de abajo para crear un gasto o haz un tour por Expensify para aprender más.',
+                subtitle: 'Crea un gasto o haz un tour por Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para crear un gasto.',
             },
             emptyInvoiceResults: {
                 title: 'Aún no has creado \nninguna factura',
-                subtitle: 'Usa el botón verde de abajo para crear una factura o haz un tour por Expensify para aprender más.',
+                subtitle: 'Envía una factura o haz un tour por Expensify para aprender más.',
+                subtitleWithOnlyCreateButton: 'Usa el botón verde de abajo para enviar una factura.',
             },
             emptyTripResults: {
                 title: 'No tienes viajes',
@@ -6158,6 +6172,7 @@ const translations = {
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
         smartscanFailed: ({canEdit = true}) => `No se pudo escanear el recibo.${canEdit ? ' Introduce los datos manualmente.' : ''}`,
+        receiptGeneratedWithAI: 'Posible recibo generado por IA',
         someTagLevelsRequired: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `Falta ${tagName ?? 'Tag'}`,
         tagOutOfPolicy: ({tagName}: ViolationsTagOutOfPolicyParams = {}) => `La etiqueta ${tagName ? `${tagName} ` : ''}ya no es válida`,
         taxAmountChanged: 'El importe del impuesto fue modificado',
