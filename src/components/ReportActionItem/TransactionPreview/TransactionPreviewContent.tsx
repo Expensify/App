@@ -52,10 +52,6 @@ function TransactionPreviewContent({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const themeStyles = {
-        backgroundColor: theme.cardBG,
-    };
-
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -156,13 +152,7 @@ function TransactionPreviewContent({
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
     const shouldWrapDisplayAmount = !(shouldShowMerchantOrDescription || isBillSplit);
 
-    const transactionWrapperStyles = [
-        styles.moneyRequestPreviewBox,
-        styles.border,
-        styles.reportContainerBorderRadius,
-        themeStyles,
-        (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
-    ];
+    const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending];
 
     return (
         <View style={[transactionWrapperStyles, containerStyles]}>
@@ -176,7 +166,7 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
+                <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder]]}>
                     {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}

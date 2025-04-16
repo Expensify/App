@@ -58,6 +58,12 @@ function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction
     });
 }
 
+/**
+ * Even though this function does not accept `Report` or ID as an argument, it nevertheless decides about a report property.
+ * In the app there are special behaviors for a report that has exactly 1 transaction attached to it, and we need a function to check for it.
+ * As transactions come from onyx I don't want to enclose fetching transactions for report in this function,
+ * so it ends up accepting only transactions as an argument, but it makes decision about a report.
+ */
 function isSingleTransactionReport(transactions: Transaction[]) {
     return transactions.length === 1;
 }
