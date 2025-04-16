@@ -9,9 +9,7 @@ import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
-import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 import pkg from '../../../package.json';
-import {clearErrors} from './FormActions';
 
 type WalletQuestionAnswer = {
     question: string;
@@ -51,11 +49,6 @@ function openOnfidoFlow() {
 
 function setAdditionalDetailsQuestions(questions: WalletAdditionalQuestionDetails[] | null, idNumber?: string) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {questions, idNumber});
-}
-
-function setAdditionalDetailsErrors(errorFields: OnyxCommon.ErrorFields) {
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields: null});
-    Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errorFields});
 }
 
 /**
@@ -257,23 +250,6 @@ function resetWalletAdditionalDetailsDraft() {
     Onyx.set(ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS_DRAFT, null);
 }
 
-/**
- * Clear the error of specific card
- * @param cardID The card id of the card that you want to clear the errors.
- */
-function clearPhysicalCardError(cardID?: string) {
-    if (!cardID) {
-        return;
-    }
-
-    clearErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM);
-    Onyx.merge(ONYXKEYS.CARD_LIST, {
-        [cardID]: {
-            errors: null,
-        },
-    });
-}
-
 function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, certificates: string[]): Promise<IOSEncryptPayload> {
     // eslint-disable-next-line rulesdir/no-api-side-effects-method, rulesdir/no-api-in-views
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
@@ -301,7 +277,6 @@ export {
     openOnfidoFlow,
     openInitialSettingsPage,
     openEnablePaymentsPage,
-    setAdditionalDetailsErrors,
     setAdditionalDetailsQuestions,
     updateCurrentStep,
     answerQuestionsForWallet,
@@ -310,6 +285,5 @@ export {
     acceptWalletTerms,
     setKYCWallSource,
     resetWalletAdditionalDetailsDraft,
-    clearPhysicalCardError,
     issuerEncryptPayloadCallback,
 };

@@ -537,21 +537,6 @@ function updateBillingCurrency(currency: ValueOf<typeof CONST.PAYMENT_CARD_CURRE
 }
 
 /**
- * Set payment card form with API data
- *
- */
-function setPaymentCardForm(values: AccountData) {
-    Onyx.merge(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM, {
-        [INPUT_IDS.CARD_NUMBER]: values.cardNumber,
-        [INPUT_IDS.EXPIRATION_DATE]: `${values.cardMonth}${values.cardYear?.toString()?.substring(2)}`,
-        [INPUT_IDS.ADDRESS_STREET]: values.addressStreet,
-        [INPUT_IDS.ADDRESS_ZIP_CODE]: values.addressZip?.toString(),
-        [INPUT_IDS.ADDRESS_STATE]: values.addressState,
-        [INPUT_IDS.CURRENCY]: values.currency,
-    });
-}
-
-/**
  *  Sets the default bank account to use for receiving payouts from
  *
  */
@@ -617,7 +602,6 @@ export {
     setPaymentMethodCurrency,
     clearPaymentCard3dsVerification,
     clearWalletTermsError,
-    setPaymentCardForm,
     verifySetupIntent,
     addPaymentCardGBP,
     setInvoicingTransferBankAccount,

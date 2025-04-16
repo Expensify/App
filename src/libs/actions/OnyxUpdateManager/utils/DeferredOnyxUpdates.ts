@@ -99,15 +99,6 @@ function enqueue(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, opt
     }
 }
 
-/**
- * Adds updates to the deferred updates queue and processes them immediately
- * @param updates The updates that should be applied (e.g. updates from push notifications)
- */
-function enqueueAndProcess(updates: OnyxUpdatesFromServer | DeferredUpdatesDictionary, options?: EnqueueDeferredOnyxUpdatesOptions) {
-    enqueue(updates, options);
-    process();
-}
-
 type ClearDeferredOnyxUpdatesOptions = {
     shouldResetGetMissingOnyxUpdatesPromise?: boolean;
     shouldUnpauseSequentialQueue?: boolean;
@@ -130,4 +121,4 @@ function clear(options?: ClearDeferredOnyxUpdatesOptions) {
     }
 }
 
-export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, enqueueAndProcess, clear};
+export {getMissingOnyxUpdatesQueryPromise, setMissingOnyxUpdatesQueryPromise, getUpdates, isEmpty, process, enqueue, clear};
