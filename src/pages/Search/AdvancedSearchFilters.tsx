@@ -16,6 +16,8 @@ import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
+import type {WorkspaceListItem} from '@hooks/useWorkspaceList';
+import useWorkspaceList from '@hooks/useWorkspaceList';
 import {clearAllFilters, saveSearch} from '@libs/actions/Search';
 import {createCardFeedKey, getCardFeedKey, getCardFeedNamesWithType, getWorkspaceCardFeedKey} from '@libs/CardFeedUtils';
 import {getCardDescription, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
@@ -160,7 +162,7 @@ const baseFilterConfig = {
  */
 const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>>>> = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: [
-        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO],
+        [CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD, CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, CONST.SEARCH.SYNTAX_FILTER_KEYS.TO, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID],
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT,
@@ -231,9 +233,8 @@ const typeFiltersKeys: Record<string, Array<Array<ValueOf<typeof CONST.SEARCH.SY
     ],
 };
 
-function getFilterWorkspaceDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, policies: OnyxCollection<Policy>) {
-    const workspaceFilter = filters[CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
-    return policies?.[`${ONYXKEYS.COLLECTION.POLICY}${workspaceFilter}`]?.name ?? workspaceFilter;
+function getFilterWorkspaceDisplayTitle(filters: SearchAdvancedFiltersForm, policies: WorkspaceListItem[]) {
+    return policies.filter((value) => value.policyID === filters.policyID).at(0)?.text;
 }
 
 function getFilterCardDisplayTitle(filters: Partial<SearchAdvancedFiltersForm>, cards: CardList, translate: LocaleContextProps['translate']) {
@@ -433,24 +434,6 @@ function AdvancedSearchFilters() {
     const personalDetails = usePersonalDetails();
     const {canUseLeftHandBar} = usePermissions();
 
-    // If users have access to the leftHandBar beta, then the workspace filter is displyed in the first section of the advanced search filters
-    const typeFiltersKeysWithOptionalPolicy = useMemo(
-        () =>
-            canUseLeftHandBar
-                ? Object.fromEntries(
-                      Object.entries(typeFiltersKeys).map(([key, arrays]) => {
-                          const firstFiltersSection = arrays.at(0);
-                          if (!firstFiltersSection) {
-                              return [key, arrays];
-                          }
-
-                          const modifiedFirstFiltersSection = [...firstFiltersSection, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID];
-                          return [key, [modifiedFirstFiltersSection, ...arrays.slice(1)]];
-                      }),
-                  )
-                : typeFiltersKeys,
-        [canUseLeftHandBar],
-    );
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: (policyCategories) =>
@@ -469,6 +452,16 @@ function AdvancedSearchFilters() {
         .map(getTagNamesFromTagsLists)
         .flat();
 
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+
+    const {sections: workspaces} = useWorkspaceList({
+        policies,
+        currentUserLogin,
+        shouldShowPendingDeletePolicy: false,
+        selectedPolicyID: undefined,
+        searchTerm: '',
+    });
+
     // When looking if a user has any categories to display, we want to ignore the policies that are of type PERSONAL
     const nonPersonalPolicyCategoryIds = Object.values(policies)
         .filter((policy): policy is NonNullable<Policy> => !!(policy && policy.type !== CONST.POLICY.TYPE.PERSONAL))
@@ -486,9 +479,12 @@ function AdvancedSearchFilters() {
     const shouldDisplayTagFilter = shouldDisplayFilter(tagListsUnpacked.length, areTagsEnabled, !!singlePolicyTagLists);
     const shouldDisplayCardFilter = shouldDisplayFilter(Object.keys(allCards).length, areCardsEnabled);
     const shouldDisplayTaxFilter = shouldDisplayFilter(Object.keys(taxRates).length, areTaxEnabled);
+    const shouldDisplayWorkspaceFilter = useMemo(() => {
+        return canUseLeftHandBar && workspaces.some((section) => section.data.length !== 0);
+    }, [canUseLeftHandBar, workspaces]);
 
     let currentType = searchAdvancedFilters?.type ?? CONST.SEARCH.DATA_TYPES.EXPENSE;
-    if (!Object.keys(typeFiltersKeysWithOptionalPolicy).includes(currentType)) {
+    if (!Object.keys(typeFiltersKeys).includes(currentType)) {
         currentType = CONST.SEARCH.DATA_TYPES.EXPENSE;
     }
 
@@ -520,7 +516,7 @@ function AdvancedSearchFilters() {
         applyFiltersAndNavigate();
     };
 
-    const filters = typeFiltersKeysWithOptionalPolicy[currentType]
+    const filters = typeFiltersKeys[currentType]
         .map((section) => {
             return section
                 .map((key) => {
@@ -578,7 +574,11 @@ function AdvancedSearchFilters() {
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE || key === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE) {
                         filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, key, translate);
                     } else if (key === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
-                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, policies);
+                        if (!shouldDisplayWorkspaceFilter) {
+                            return;
+                        }
+                        const workspacesData = workspaces.flatMap((value) => value.data);
+                        filterTitle = baseFilterConfig[key].getTitle(searchAdvancedFilters, workspacesData);
                     }
                     return {
                         key,
