@@ -21,7 +21,12 @@ import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
 
 const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>) => {
-    const {originalTransactionID, source} = transaction?.comment ?? {};
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    // If splits property is defined in the transaction, it is actually an original transaction
+    if (splits && splits.length > 0) {
+        return {isSplit: true, originalTransaction: transaction};
+    }
 
     if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return {isSplit: false, originalTransaction: transaction};
