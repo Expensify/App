@@ -68,6 +68,8 @@ const ROUTES = {
     SEARCH_ADVANCED_FILTERS_PAID: 'search/filters/paid',
     SEARCH_ADVANCED_FILTERS_EXPORTED: 'search/filters/exported',
     SEARCH_ADVANCED_FILTERS_POSTED: 'search/filters/posted',
+    SEARCH_ADVANCED_FILTERS_REIMBURSABLE: 'search/filters/reimbursable',
+    SEARCH_ADVANCED_FILTERS_BILLABLE: 'search/filters/billable',
     SEARCH_ADVANCED_FILTERS_WORKSPACE: 'search/filters/workspace',
     SEARCH_REPORT: {
         route: 'search/view/:reportID/:reportActionID?',
@@ -91,14 +93,15 @@ const ROUTES = {
 
             const queryParams = [];
 
-            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
-            if (moneyRequestReportActionID && transactionID) {
-                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            // When we are opening a transaction thread but don't have the transaction thread report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (transactionID) {
                 queryParams.push(`transactionID=${transactionID}`);
+            }
+            if (moneyRequestReportActionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
-
             return getUrlWithBackToParam(queryString, backTo);
         },
     },
@@ -185,6 +188,7 @@ const ROUTES = {
         route: 'settings/subscription/subscription-size',
         getRoute: (canChangeSize: 0 | 1) => `settings/subscription/subscription-size?canChangeSize=${canChangeSize as number}` as const,
     },
+    SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS: 'settings/subscription/details',
     SETTINGS_SUBSCRIPTION_ADD_PAYMENT_CARD: 'settings/subscription/add-payment-card',
     SETTINGS_SUBSCRIPTION_CHANGE_BILLING_CURRENCY: 'settings/subscription/change-billing-currency',
     SETTINGS_SUBSCRIPTION_CHANGE_PAYMENT_CURRENCY: 'settings/subscription/add-payment-card/change-payment-currency',
@@ -366,7 +370,7 @@ const ROUTES = {
     REPORT: 'r',
     REPORT_WITH_ID: {
         route: 'r/:reportID?/:reportActionID?',
-        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string) => {
+        getRoute: (reportID: string | undefined, reportActionID?: string, referrer?: string, moneyRequestReportActionID?: string, transactionID?: string, backTo?: string) => {
             if (!reportID) {
                 Log.warn('Invalid reportID is used to build the REPORT_WITH_ID route');
             }
@@ -385,7 +389,7 @@ const ROUTES = {
 
             const queryString = queryParams.length > 0 ? `?${queryParams.join('&')}` : '';
 
-            return `${baseRoute}${queryString}` as const;
+            return getUrlWithBackToParam(`${baseRoute}${queryString}` as const, backTo);
         },
     },
     REPORT_AVATAR: {
@@ -669,6 +673,11 @@ const ROUTES = {
         route: ':action/:iouType/subrate/:transactionID/:reportID/edit/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = 0, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
+    },
+    MONEY_REQUEST_STEP_REPORT: {
+        route: ':action/:iouType/report/:transactionID/:reportID',
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
+            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}`, backTo),
     },
     SETTINGS_TAGS_ROOT: {
         route: 'settings/:policyID/tags',
@@ -1033,15 +1042,30 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account',
@@ -1073,7 +1097,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const,
+        getRoute: (policyID: string | undefined) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT route');
+            }
+            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const;
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/setup-modal',
@@ -1247,11 +1276,19 @@ const ROUTES = {
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/quickbooks-online/account-selector` as const,
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_INVOICE_ACCOUNT_SELECTOR: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-online/invoice-account-selector',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/quickbooks-online/invoice-account-selector` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_AUTO_SYNC: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync',
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync` as const,
+    },
+    WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: {
+        route: 'settings/workspaces/:policyID/connections/quickbooks-online/advanced/autosync/accounting-method',
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/connections/quickbooks-online/advanced/autosync/accounting-method` as const,
     },
     WORKSPACE_ACCOUNTING_CARD_RECONCILIATION: {
         route: 'settings/workspaces/:policyID/accounting/:connection/card-reconciliation',
@@ -1616,6 +1653,10 @@ const ROUTES = {
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/account',
         getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/settings/account`, backTo),
+    },
+    WORKSPACE_EXPENSIFY_CARD_SELECT_FEED: {
+        route: 'settings/workspaces/:policyID/expensify-card/select-feed',
+        getRoute: (policyID: string, backTo?: string) => getUrlWithBackToParam(`settings/workspaces/${policyID}/expensify-card/select-feed`, backTo),
     },
     WORKSPACE_EXPENSIFY_CARD_SETTINGS_FREQUENCY: {
         route: 'settings/workspaces/:policyID/expensify-card/settings/frequency',
@@ -2211,19 +2252,28 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/sage-intacct/import` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/toggle-mapping/:mapping',
-        getRoute: (policyID: string, mapping: SageIntacctMappingName) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping as string}` as const,
+        getRoute: (policyID: string | undefined, mapping: SageIntacctMappingName) =>
+            `settings/workspaces/${policyID}/accounting/sage-intacct/import/toggle-mapping/${mapping as string}` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/mapping-type/:mapping',
         getRoute: (policyID: string, mapping: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/mapping-type/${mapping}` as const,
     },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/tax',
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/tax` as const,
+    },
+    POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX_MAPPING: {
+        route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/tax/mapping',
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/tax/mapping` as const,
+    },
     POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/user-dimensions',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
+        getRoute: (policyID: string | undefined) => `settings/workspaces/${policyID}/accounting/sage-intacct/import/user-dimensions` as const,
     },
     POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION: {
         route: 'settings/workspaces/:policyID/accounting/sage-intacct/import/add-user-dimension',

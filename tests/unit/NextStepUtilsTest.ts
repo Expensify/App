@@ -77,7 +77,14 @@ describe('libs/NextStepUtils', () => {
 
         describe('it generates and optimistic nextStep once a report has been created', () => {
             test('Correct next steps message', () => {
-                const emptyReport = buildOptimisticEmptyReport('fake-empty-report-id-2', currentUserAccountID, {reportID: 'fake-parent-report-id-3'}, policy, '2025-03-31 13:23:11');
+                const emptyReport = buildOptimisticEmptyReport(
+                    'fake-empty-report-id-2',
+                    currentUserAccountID,
+                    {reportID: 'fake-parent-report-id-3'},
+                    'fake-parent-report-action-id-4',
+                    policy,
+                    '2025-03-31 13:23:11',
+                );
 
                 optimisticNextStep.message = [
                     {

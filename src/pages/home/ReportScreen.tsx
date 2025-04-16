@@ -80,6 +80,7 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -320,6 +321,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             Navigation.dismissModal();
             return;
         }
+        if (backTo) {
+            Navigation.goBack(backTo as Route, {shouldPopToTop: true});
+            return;
+        }
         Navigation.goBack(undefined, {shouldPopToTop: true});
     }, [isInNarrowPaneModal, backTo]);
 
@@ -434,10 +439,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (moneyRequestReportActionID && transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -511,7 +516,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
-        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+        // This function is only triggered when a user is invited to a room after opening the link.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
+        // See https://github.com/Expensify/App/issues/57769 for more details
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
         }
         fetchReport();
