@@ -1,10 +1,11 @@
 ---
-title: billing-and-subscriptions.md
+title: Billing and Subscriptions
 description: Learn how Expensify billing works, including subscription types, pricing, savings opportunities, and billing ownership.
-keywords: billing, subscription, pricing, collect plan, control plan, annual subscription, pay-per-use, Expensify Card, billing owner, billing history
+keywords: [New Expensify, billing, subscription, pricing, collect plan, control plan]
 ---
-<div id="expensify-classic" markdown="1">
 
+<div id="new-expensify" markdown="1">
+  
 This article explains how billing works in Expensify, including how charges are calculated, how to save money, and how to manage your billing ownership.
 
 # How Expensify Billing Works
@@ -30,27 +31,25 @@ You can find your billing receipts under:
 
 # Save Money on Expensify
 
-## Best Discount: Annual + Expensify Card
+💸 **Highest Discount: Annual + Expensify Card**: Pair an **annual subscription** with the **Expensify Card** to get the lowest pricing. 
 
-Pair an **annual subscription** with the **Expensify Card** to get the lowest pricing.  
 If at least **50%** of your total settled US spend in a month is on the Expensify Card, you'll qualify for the **best price**:
-
 - **Collect Plan:** $5 per active member/month  
 - **Control Plan:** $9 per active member/month
 
-### Additional Cash Back
+**Additional Cash Back:**
 - **1% cash back** on all Expensify Card purchases  
 - **2% cash back** if total US spend on the card is $250,000+ per month
 
-Cash back is first applied to your Expensify bill. Any remaining balance is deposited into your bank account.
+Cashback is first applied to your Expensify bill. Any remaining balance is deposited into your bank account.
 
 👉 Use our [savings calculator](https://use.expensify.com/resource-center/tools/savings-calculator) to see how much you could save.
 
 ---
 
-## Annual Subscription vs. Pay-per-use
+# Subscription Types
 
-### Annual Subscription
+## Annual
 
 Get **50% off** with an annual commitment:
 
@@ -59,13 +58,13 @@ Get **50% off** with an annual commitment:
 | Collect     | $10                                    |
 | Control     | $18                                    |
 
-If you go over your subscription size, extra members are charged at the **pay-per-use rate** for that month.
+If your subscription size exceeds the limit, extra members are charged at the **pay-per-use rate** for that month.
 
 You can increase your subscription size anytime (which extends your annual term). You can **only decrease** it when your current term ends.
 
-### Pay-per-use (aka Pay-as-you-go)
+## Pay-per-use
 
-This plan charges full rates and is billed monthly:
+This pay-as-go plan charges the full rate and is billed monthly:
 
 | Plan        | Pay-per-use Rate (per active member/month)         |
 |-------------|-----------------------------------------------------|
@@ -75,7 +74,7 @@ This plan charges full rates and is billed monthly:
 
 ---
 
-# How to Transfer Billing Ownership
+# Transfer Billing Ownership
 
 To change who owns billing for a workspace:
 
