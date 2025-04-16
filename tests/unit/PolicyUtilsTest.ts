@@ -772,7 +772,6 @@ describe('PolicyUtils', () => {
     describe('isUserInvitedToWorkspace', () => {
         beforeEach(() => {
             wrapOnyxWithWaitForBatchedUpdates(Onyx);
-            // Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
         });
         afterEach(async () => {
             await Onyx.clear();
