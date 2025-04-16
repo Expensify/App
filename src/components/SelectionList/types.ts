@@ -12,6 +12,7 @@ import type {
     TextStyle,
     ViewStyle,
 } from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType} from '@components/Search/types';
@@ -19,6 +20,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
+import type {Policy} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -365,6 +367,9 @@ type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
 
 type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     queryJSONHash?: number;
+
+    /** The policies which the user has access to */
+    policies?: OnyxCollection<Policy>;
 };
 
 type ValidListItem =
