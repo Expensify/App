@@ -300,11 +300,10 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
+function updateSettlementAccount(domainName: string, workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
-    const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -356,7 +355,12 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data, isEditing, currentStep: step, errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+        data,
+        isEditing,
+        currentStep: step,
+        errors: null,
+    });
 }
 
 function clearIssueNewCardFlow(policyID: string | undefined) {
@@ -884,6 +888,20 @@ function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined)
     ]);
 }
 
+function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
+    Onyx.update([
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
+            value: feed,
+        },
+    ]);
+}
+
 function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
     const parameters = {
         feedCountry,
@@ -914,6 +932,7 @@ export {
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
+    updateSelectedExpensifyCardFeed,
     deactivateCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,

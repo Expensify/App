@@ -162,7 +162,7 @@ function ToggleSettingOptionRow({
             onClose={onCloseError}
         >
             <View style={styles.pRelative}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, shouldPlaceSubtitleBelowSwitch && styles.h10]}>
                     <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                         {!!icon && (
                             <Icon

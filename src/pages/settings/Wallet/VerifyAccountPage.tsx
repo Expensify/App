@@ -4,6 +4,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,7 +26,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const isUserValidated = useAccountValidation();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(true);
 
     const navigateForwardTo = route.params?.forwardTo;
@@ -86,7 +87,7 @@ function VerifyAccountPage({route}: VerifyAccountPageProps) {
 
     return (
         <ValidateCodeActionModal
-            sendValidateCode={() => requestValidateCodeAction()}
+            sendValidateCode={requestValidateCodeAction}
             handleSubmitForm={handleSubmitForm}
             validateError={validateLoginError}
             validateCodeActionErrorField="validateLogin"
