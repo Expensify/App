@@ -1,3 +1,4 @@
+/* eslint-disable jsdoc/require-jsdoc */
 type BillingItem = {
     description: string;
 

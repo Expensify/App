@@ -5,8 +5,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 function usePayAndDowngrade(setIsDeleteModalOpen: (value: boolean) => void) {
-    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
-    const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
+    const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE, {canBeMissing: true});
+    const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING, {canBeMissing: true});
     const isDeletingPaidWorkspaceRef = useRef(false);
 
     const setIsDeletingPaidWorkspace = (value: boolean) => {
