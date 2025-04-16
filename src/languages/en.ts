@@ -4803,6 +4803,15 @@ const translations = {
                 gotIt: 'Got it, thanks',
             },
         },
+        payAndDowngrade: {
+            title: 'Pay & downgrade',
+            headline: 'Your final payment',
+            description1: 'Your final bill for this subscription will be',
+            description2: ({date}: DateParams) => `See your breakdown below for ${date}:`,
+            subscription:
+                'This will end your subscription with Expensify, delete your remaining workspace and all members will lose access moving forward. If you want to remove just yourself, have another admin take over billing, and at that point, you can remove yourself from this workspace.',
+            genericFailureMessage: 'An error occurred while paying your bill. Please try again.',
+        },
         restrictedAction: {
             restricted: 'Restricted',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Actions on the ${workspaceName} workspace are currently restricted`,

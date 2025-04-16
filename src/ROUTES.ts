@@ -1330,6 +1330,10 @@ const ROUTES = {
         getRoute: (policyID?: string, backTo?: string) =>
             getUrlWithBackToParam(policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : (`settings/workspaces/downgrade` as const), backTo),
     },
+    WORKSPACE_PAY_AND_DOWNGRADE: {
+        route: 'settings/workspaces/pay-and-downgrade/',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/workspaces/pay-and-downgrade` as const, backTo),
+    },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,

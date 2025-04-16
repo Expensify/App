@@ -4872,6 +4872,15 @@ const translations = {
                 gotIt: 'Entendido, gracias.',
             },
         },
+        payAndDowngrade: {
+            title: 'Pagar y bajar de categoría',
+            headline: 'Tu pago final',
+            description1: 'Tu factura final por esta suscripción será',
+            description2: ({date}: DateParams) => `Consulta el desglose a continuación para ${date}:`,
+            subscription:
+                'Esto finalizará tu suscripción a Expensify, eliminará tu espacio de trabajo restante y todos los miembros perderán acceso de ahora en adelante. Si solo deseas eliminarte a ti mismo, haz que otro administrador se encargue de la facturación, y en ese momento podrás salir de este espacio de trabajo.',
+            genericFailureMessage: 'Ocurrió un error al pagar tu factura. Por favor, inténtalo de nuevo.',
+        },
         restrictedAction: {
             restricted: 'Restringido',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Las acciones en el espacio de trabajo ${workspaceName} están actualmente restringidas`,
