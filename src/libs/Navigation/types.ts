@@ -135,6 +135,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
         /** cardID of selected card */

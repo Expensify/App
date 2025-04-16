@@ -247,7 +247,7 @@ function ExpensifyCardPage({
                                         titleStyle={styles.walletCardMenuItem}
                                         icon={Expensicons.Flag}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                     />
                                 )}
                             </>
@@ -292,7 +292,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                         />
                                     )}
                                 </>
