@@ -11,6 +11,10 @@ export default {
         margin: 0,
     },
 
+    m1: {
+        margin: 6,
+    },
+
     m2: {
         margin: 8,
     },
@@ -169,6 +173,10 @@ export default {
 
     ml2: {
         marginLeft: 8,
+    },
+
+    mln2: {
+        marginLeft: -12,
     },
 
     ml3: {
@@ -749,6 +757,10 @@ export default {
 
     minHeight5: {
         minHeight: 20,
+    },
+
+    minHeight22: {
+        minHeight: 88,
     },
 
     minHeight65: {

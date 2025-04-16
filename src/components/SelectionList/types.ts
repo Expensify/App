@@ -16,6 +16,7 @@ import type {AnimatedStyle} from 'react-native-reanimated';
 import type {SearchRouterItem} from '@components/Search/SearchAutocompleteList';
 import type {SearchColumnType} from '@components/Search/types';
 import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
+import type UnreportedExpenseListItem from '@pages/UnreportedExpenseListItem';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
@@ -23,6 +24,7 @@ import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
+import type Transaction from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type ChatListItem from './ChatListItem';
@@ -147,7 +149,7 @@ type ListItem = {
     icons?: Icon[];
 
     /** Errors that this user may contain */
-    errors?: Errors;
+    errors?: Errors | ReceiptErrors;
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
@@ -347,6 +349,8 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
+type TransactionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
+
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
 type RadioListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
@@ -377,7 +381,8 @@ type ValidListItem =
     | typeof ChatListItem
     | typeof SearchQueryListItem
     | typeof SearchRouterItem
-    | typeof TravelDomainListItem;
+    | typeof TravelDomainListItem
+    | typeof UnreportedExpenseListItem;
 
 type Section<TItem extends ListItem> = {
     /** Title of the section */
@@ -748,6 +753,7 @@ export type {
     TableListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
+    TransactionListItem,
     UserListItemProps,
     ValidListItem,
     ReportActionListItemType,

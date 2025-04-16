@@ -838,6 +838,10 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.hoverComponentBG,
         },
 
+        hoveredComponentBG2: {
+            backgroundColor: 'black',
+        },
+
         activeComponentBG: {
             backgroundColor: theme.activeComponentBG,
         },
@@ -5643,6 +5647,13 @@ const styles = (theme: ThemeColors) =>
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,
+        },
+
+        expenseWidgetSelectCircle: {
+            borderTopLeftRadius: 0,
+            borderTopRightRadius: variables.componentBorderRadiusNormal,
+            borderBottomLeftRadius: 0,
+            borderBottomRightRadius: variables.componentBorderRadiusNormal,
         },
 
         navigationBarBG: {
