@@ -5,7 +5,7 @@ keywords: [Expensify Classic, add expense, add expense to a report, SmartScan, p
 ---
 <div id="expensify-classic" markdown="1">
 
-Add, track, and manage all types of expenses in Expensify—from SmartScanned receipts to mileage, per diem, and group costs. This guide walks through all your options.
+Add, track, and manage all types of expenses in Expensify—from SmartScanned receipts to mileage, per diems, and group costs. This guide walks through all your options.
 
 ---
 
