@@ -29,7 +29,7 @@ function MergeResultPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT>>();
     const {result, login} = params;
 
