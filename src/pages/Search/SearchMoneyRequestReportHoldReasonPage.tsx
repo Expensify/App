@@ -17,7 +17,7 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
     const {translate} = useLocalize();
 
     const {backTo, reportID} = route.params;
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         const firstTransactionID = selectedTransactionsID.at(0);
