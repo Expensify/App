@@ -2,19 +2,22 @@ import React from 'react';
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import type {FlatList} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
+import { View } from 'react-native';
 import type {DraggableListProps} from './types';
 
-function DraggableList<T>({...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
+function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<FlatList<T>>) {
     const styles = useThemeStyles();
     return (
-        <DraggableFlatList
-            ref={ref}
-            containerStyle={styles.flex1}
-            contentContainerStyle={styles.flexGrow1}
-            ListFooterComponentStyle={styles.flex1}
-            // eslint-disable-next-line react/jsx-props-no-spreading
-            {...viewProps}
-        />
+        <View style={styles.flex1}>
+            <DraggableFlatList
+                ref={ref}
+                containerStyle={ListFooterComponent ? undefined : styles.flex1}
+                contentContainerStyle={ListFooterComponent ? undefined : styles.flexGrow1}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...viewProps}
+            />
+            {React.isValidElement(ListFooterComponent) && <View style={styles.flexGrow1}>{ListFooterComponent}</View>}
+        </View>
     );
 }
 
