@@ -563,41 +563,75 @@ button {
             }
         }
 
-        .video-player {
-            border-radius: 16px;
-            display: block;
-            width: 100%;
-            height: 100%;
-            aspect-ratio: 16 / 9;
-            background-size: cover;
-            background-repeat: no-repeat;
-        }
-
         .video-container {
             position: relative;
             margin-bottom: 20px;
         }
 
-        .play-button-wrapper {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            z-index: 10;
-            cursor: pointer;
-            line-height: 0;
-        }
+        .video-js {
+            width: 100%;
+            border-radius: 16px;
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-size: cover;
+            aspect-ratio: 16 / 9;
+            background-repeat: no-repeat;
 
-        .play-button {
-            display: inline-block;
-            width: 72px;
-            height: 72px;
-            background: url('/assets/images/play-button.svg') no-repeat center center;
-            background-size: contain;
-        }
+            .vjs-tech {
+                border-radius: 16px;
+            }
 
-        .media-controls.inline.ios:not(.audio) {
-            background-color: transparent;
+            .vjs-progress-control {
+                .vjs-play-progress::before {
+                    background-color: var(--color-button-success-background);
+                }
+            }
+
+            .vjs-button {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                opacity: 1 !important;
+                visibility: visible !important;
+            }
+
+            .vjs-big-play-button {
+                background-image: url('/assets/images/play-button.svg');
+                background-repeat: no-repeat;
+                background-size: 72px;
+                height: 72px;
+                background-position: center;
+                border: none !important;
+                box-shadow: none !important;
+                background-color: transparent !important;
+
+                .vjs-icon-placeholder {
+                    display: none;
+                }
+            }
+
+            .vjs-play-progress {
+                background-color: var(--color-button-success-background);
+            }
+
+            .vjs-control-bar {
+                border-bottom-left-radius: 16px;
+                border-bottom-right-radius: 16px;
+                background-color: var(--color-text);
+                color: var(--color-appBG);
+
+                .vjs-control:focus {
+                    text-shadow: none;
+                }
+
+                .vjs-play-control {
+                    .vjs-icon-placeholder:before {
+                        border: none;
+                        top: 7px;
+                        left: 15px;
+                    }
+                }
+            }
         }
     }
 }
