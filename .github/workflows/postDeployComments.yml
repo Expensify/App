@@ -100,7 +100,8 @@ jobs:
         id: getPullRequestList
         uses: ./.github/actions/javascript/getDeployPullRequestList
         with:
-          TAG: ${{ inputs.version }}
+          # Staging tags use the `-staging` suffix, production tags use the version only
+          TAG: ${{ inputs.version }}${{ inputs.env == 'staging' && '-staging' || '' }}
           GITHUB_TOKEN: ${{ github.token }}
           IS_PRODUCTION_DEPLOY: ${{ inputs.env == 'production' }}
 
