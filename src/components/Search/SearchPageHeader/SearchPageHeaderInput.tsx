@@ -19,6 +19,7 @@ import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryLis
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -85,7 +86,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
 
     // The actual input text that the user sees
-    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
+    const [textInputValue, , setTextInputValue] = useDebouncedState(isDefaultQuery ? '' : queryText, 500);
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
@@ -118,7 +119,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     useEffect(() => {
         setTextInputValue(isDefaultQuery ? '' : queryText);
         setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
-    }, [isDefaultQuery, queryText]);
+    }, [isDefaultQuery, queryText, setTextInputValue]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
@@ -182,7 +183,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID, setTextInputValue],
     );
 
     const onListItemPress = useCallback(
