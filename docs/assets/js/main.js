@@ -350,26 +350,6 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-window.addEventListener('DOMContentLoaded', function () {
-    const containers = document.querySelectorAll('.video-container');
-
-    containers.forEach((container) => {
-        const video = container.querySelector('.video-player');
-        const playWrapper = container.querySelector('.play-button-wrapper');
-
-        const playButton = playWrapper.querySelector('.play-button');
-
-        playButton.addEventListener('click', () => {
-            playWrapper.style.display = 'none';
-            video.play();
-        });
-
-        video.addEventListener('play', () => {
-            playWrapper.style.display = 'none';
-        });
-    });
-});
-
 if (window.location.hash) {
     const lowerCaseHash = window.location.hash.toLowerCase();
     const element = document.getElementById(lowerCaseHash.slice(1));
