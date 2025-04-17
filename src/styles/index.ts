@@ -4838,7 +4838,6 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestAttachReceiptThumbnail: {
             backgroundColor: theme.hoverComponentBG,
-            width: '100%',
             borderWidth: 0,
         },
 
