@@ -24,4 +24,4 @@ function hasCreditBankAccount(): boolean {
 }
 
 export default {hasCreditBankAccount};
-export { hasCreditBankAccount};
+export {hasCreditBankAccount};

@@ -15,4 +15,4 @@ function forceClearInput(animatedInputRef: AnimatedRef<Component>) {
     dispatchCommand(animatedInputRef, 'clear');
 }
 
-export { ACCESSIBILITY_ROLE_FORM, forceClearInput};
+export {ACCESSIBILITY_ROLE_FORM, forceClearInput};

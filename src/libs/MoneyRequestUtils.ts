@@ -79,13 +79,4 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
         .join('');
 }
 
-export {
-    addLeadingZero,
-    replaceAllDigits,
-    stripCommaFromAmount,
-    stripDecimalsFromAmount,
-    stripSpacesFromAmount,
-    replaceCommasWithPeriod,
-    validateAmount,
-    validatePercentage,
-};
+export {addLeadingZero, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount, validatePercentage};

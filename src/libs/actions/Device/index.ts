@@ -62,4 +62,4 @@ function getDeviceInfoWithID(): Promise<string> {
         );
     });
 }
-export { setDeviceID, getDeviceInfoWithID};
+export {setDeviceID, getDeviceInfoWithID};
