@@ -570,7 +570,7 @@ button {
 
         .video-js {
             width: 100%;
-            border-radius: 16px;
+            border-radius: 8px;
             background-size: cover;
             background-repeat: no-repeat;
             background-size: cover;
@@ -578,12 +578,12 @@ button {
             background-repeat: no-repeat;
 
             .vjs-tech {
-                border-radius: 16px;
+                border-radius: 8px;
             }
 
             .vjs-progress-control {
                 .vjs-play-progress::before {
-                    background-color: var(--color-button-success-background);
+                    background-color: var(--color-button-text);
                 }
             }
 
@@ -600,6 +600,7 @@ button {
                 background-repeat: no-repeat;
                 background-size: 72px;
                 height: 72px;
+                width: 72px;
                 background-position: center;
                 border: none !important;
                 box-shadow: none !important;
@@ -611,14 +612,16 @@ button {
             }
 
             .vjs-play-progress {
-                background-color: var(--color-button-success-background);
+                background-color: var(--color-button-text);
             }
 
             .vjs-control-bar {
-                border-bottom-left-radius: 16px;
-                border-bottom-right-radius: 16px;
-                background-color: var(--color-text);
-                color: var(--color-appBG);
+                border-radius: 8px;
+                background-color: rgba(6, 27, 9, 0.8);
+                color: var(--color-button-text);
+                width: calc(100% - 16px);
+                bottom: 8px;
+                left: 8px;
 
                 .vjs-control:focus {
                     text-shadow: none;
