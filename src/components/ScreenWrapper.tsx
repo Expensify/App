@@ -365,12 +365,12 @@ function ScreenWrapper(
      * If `isOfflineIndicatorTranslucent` is set to true, a translucent background color is applied.
      */
     const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
-        const showOfflineIndicatorBackground = !extraContent && (isSoftKeyNavigation || isOffline);
+        const showOfflineIndicatorBackground = !extraContent && isOffline;
         if (!showOfflineIndicatorBackground) {
             return undefined;
         }
         return isOfflineIndicatorTranslucent ? styles.translucentNavigationBarBG : styles.appBG;
-    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.translucentNavigationBarBG]);
+    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, styles.appBG, styles.translucentNavigationBarBG]);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
     const hasMobileOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
