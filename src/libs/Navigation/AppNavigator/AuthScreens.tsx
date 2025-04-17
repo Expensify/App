@@ -437,34 +437,27 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
         };
     };
 
+    const getSplitNavigatorOptions =
+        (animationSet: Set<unknown>) =>
+        ({route}: {route: RouteProp<AuthScreensParamList>}) => {
+            // We don't need to do anything special for the wide screen.
+            if (!shouldUseNarrowLayout) {
+                return rootNavigatorScreenOptions.splitNavigator;
+            }
+            // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
+            const animationEnabled = animationSet.has(route.key);
+
+            return {
+                ...rootNavigatorScreenOptions.splitNavigator,
+                animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
+            };
+        };
+
     // Animation is enabled when navigating to the report screen
-    const getReportsSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        // We don't need to do anything special for the wide screen.
-        if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
-        }
+    const getReportsSplitNavigatorOptions = getSplitNavigatorOptions(reportsSplitsWithEnteringAnimation);
 
-        // On the narrow screen, we want to animate this navigator if pushed ReportsSplitNavigator includes ReportScreen
-        const animationEnabled = reportsSplitsWithEnteringAnimation.has(route.key);
-
-        return {
-            ...rootNavigatorScreenOptions.splitNavigator,
-            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-        };
-    };
-
-    const getSettingsSplitNavigatorOptions = ({route}: {route: RouteProp<AuthScreensParamList>}) => {
-        if (!shouldUseNarrowLayout) {
-            return rootNavigatorScreenOptions.splitNavigator;
-        }
-
-        const animationEnabled = settingsSplitWithEnteringAnimation.has(route.key);
-
-        return {
-            ...rootNavigatorScreenOptions.splitNavigator,
-            animation: animationEnabled ? Animations.SLIDE_FROM_RIGHT : Animations.NONE,
-        };
-    };
+    // Animation is enabled when navigating to the settings screen
+    const getSettingsSplitNavigatorOptions = getSplitNavigatorOptions(settingsSplitWithEnteringAnimation);
 
     const clearStatus = () => {
         User.clearCustomStatus();
