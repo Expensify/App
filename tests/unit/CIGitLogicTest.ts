@@ -89,6 +89,8 @@ function initGitServer() {
     process.chdir(GIT_REMOTE);
     exec('git init -b main');
     setupGitAsHuman();
+    // git -c is necessary to allow submodules to use a local file path, which is only relevant for the sake of this test.
+    // Trying to do a `git config protocol.file.allow always` for the local scope of a repo will not work.
     exec(`git -c protocol.file.allow=always submodule add ${SUBMOD_REMOTE} SubMod`);
     exec('npm init -y');
     exec('npm version --no-git-tag-version 1.0.0-0');
@@ -123,8 +125,8 @@ function checkoutRepo(branch: 'main' | 'staging' | 'production' = 'main') {
     exec(`git remote add origin ${GIT_REMOTE}`);
     exec(`git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/${branch}:refs/remotes/origin/${branch}`);
     exec(`git checkout --progress --force -B ${branch} refs/remotes/origin/${branch}`);
-    // exec('git submodule sync');
-    // exec('git submodule update --init --force --depth=1');
+    exec('git -c protocol.file.allow=always submodule sync');
+    exec('git -c protocol.file.allow=always submodule update --init --force --depth=1');
     Log.success('Checked out repo at $DUMMY_DIR!');
 }
 
