@@ -79,6 +79,7 @@ function AccountValidatePage() {
             mergeWithValidateCode: data?.mergeWithValidateCode,
             getValidateCodeForAccountMerge: data?.getValidateCodeForAccountMerge,
         }),
+        canBeMissing: true,
     });
 
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE>>();

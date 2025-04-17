@@ -24,7 +24,7 @@ function ValidateCodeActionForm({
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
 
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
 
     const isUnmounted = useRef(false);
 
