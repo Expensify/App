@@ -362,8 +362,8 @@ function ScreenWrapper(
      * This style applies the background color of the mobile offline indicator.
      * When there is not bottom content, and the device either has soft keys or is offline,
      * the background style is applied.
-     * By default, the background color of the mobile offline indicator is translucent.
-     * If `isOfflineIndicatorTranslucent` is set to true, an opaque background color is applied.
+     * By default, the background color of the mobile offline indicator is opaque.
+     * If `isOfflineIndicatorTranslucent` is set to true, a translucent background color is applied.
      */
     const mobileOfflineIndicatorBackgroundStyle = useMemo(() => {
         const showOfflineIndicatorBackground = !extraContent && (isSoftKeyNavigation || isOffline);
