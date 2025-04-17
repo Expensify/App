@@ -210,7 +210,7 @@ function ScreenWrapper(
     // We enable all of these flags by default, if we are using edge-to-edge mode.
     const shouldMobileOfflineIndicatorStickToBottom = shouldMobileOfflineIndicatorStickToBottomProp ?? isUsingEdgeToEdgeMode;
     const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
-    const isOfflineIndicatorTranslucent = isOfflineIndicatorTranslucentProp ?? isUsingEdgeToEdgeMode;
+    const isOfflineIndicatorTranslucent = isOfflineIndicatorTranslucentProp ?? false;
 
     // We disable legacy bottom safe area padding handling, if we are using edge-to-edge mode.
     const includeSafeAreaPaddingBottom = isUsingEdgeToEdgeMode ? false : includeSafeAreaPaddingBottomProp;
