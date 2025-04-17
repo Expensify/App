@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
-import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
+import type {FlatList, ListRenderItemInfo, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import Animated from 'react-native-reanimated';
 import type {FlatListPropsWithLayout} from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
@@ -46,7 +46,7 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
     SearchTableHeader?: React.JSX.Element;
 
     /** Callback to fire when a row is pressed */
-    onSelectRow: (item: SearchListItem) => void;
+    onSelectRow: (item: SearchListItem, isOpenedAsReport?: boolean) => void;
 
     /** Whether this is a multi-select list */
     canSelectMultiple: boolean;
@@ -62,6 +62,18 @@ type SearchListProps = Pick<FlatListPropsWithLayout<SearchListItem>, 'onScroll' 
 
     /** Whether to prevent default focusing of options and focus the textinput when selecting an option */
     shouldPreventDefaultFocusOnSelectRow?: boolean;
+
+    /** Whether to prevent long press of options */
+    shouldPreventLongPressRow?: boolean;
+
+    /** The hash of the queryJSON */
+    queryJSONHash: number;
+
+    /** Whether to group the list by reports */
+    shouldGroupByReports?: boolean;
+
+    /** Called when the viewability of rows changes, as defined by the viewabilityConfig prop. */
+    onViewableItemsChanged?: (info: {changed: ViewToken[]; viewableItems: ViewToken[]}) => void;
 };
 
 function SearchList(
@@ -80,11 +92,16 @@ function SearchList(
         containerStyle,
         ListFooterComponent,
         shouldPreventDefaultFocusOnSelectRow,
+        shouldPreventLongPressRow,
+        queryJSONHash,
+        shouldGroupByReports,
+        onViewableItemsChanged,
     }: SearchListProps,
     ref: ForwardedRef<SearchListHandle>,
 ) {
     const styles = useThemeStyles();
-    const selectedItemsLength = data.reduce((acc, item) => {
+    const flattenedTransactions = shouldGroupByReports ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
+    const selectedItemsLength = flattenedTransactions.reduce((acc, item) => {
         return item.isSelected ? acc + 1 : acc;
     }, 0);
     const {translate} = useLocalize();
@@ -143,13 +160,13 @@ function SearchList(
     const handleLongPressRow = useCallback(
         (item: SearchListItem) => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (!isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
                 return;
             }
             setLongPressedItem(item);
             setIsModalVisible(true);
         },
-        [isFocused, isSmallScreenWidth],
+        [isFocused, isSmallScreenWidth, shouldPreventLongPressRow],
     );
 
     const turnOnSelectionMode = useCallback(() => {
@@ -192,7 +209,7 @@ function SearchList(
 
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: -1,
-        maxIndex: data.length - 1,
+        maxIndex: flattenedTransactions.length - 1,
         isActive: isFocused,
         onFocusedIndexChange: (index: number) => {
             scrollToIndex(index);
@@ -268,13 +285,20 @@ function SearchList(
 
             return (
                 <ListItem
-                    showTooltip={false}
+                    showTooltip
                     isFocused={isItemFocused}
                     onSelectRow={onSelectRow}
                     onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
-                            return;
+                        if (isMobileChrome() && event.nativeEvent) {
+                            if (!event.nativeEvent.sourceCapabilities) {
+                                return;
+                            }
+                            // Ignore the focus if it's caused by a touch event on mobile chrome.
+                            // For example, a long press will trigger a focus event on mobile chrome
+                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                return;
+                            }
                         }
                         setFocusedIndex(index);
                     }}
@@ -286,19 +310,21 @@ function SearchList(
                         ...item,
                     }}
                     shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+                    queryJSONHash={queryJSONHash}
                 />
             );
         },
-        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
+        [ListItem, canSelectMultiple, focusedIndex, handleLongPressRow, itemsToHighlight, onCheckboxPress, onSelectRow, queryJSONHash, setFocusedIndex, shouldPreventDefaultFocusOnSelectRow],
     );
 
     return (
         <View style={[styles.flex1, !isKeyboardShown && safeAreaPaddingBottomStyle, containerStyle]}>
             {canSelectMultiple && (
-                <View style={[styles.searchListHeaderContainerStyle]}>
+                <View style={[styles.searchListHeaderContainerStyle, styles.listTableHeader]}>
                     <Checkbox
                         accessibilityLabel={translate('workspace.people.selectAll')}
-                        isChecked={selectedItemsLength === data.length}
+                        isChecked={selectedItemsLength === flattenedTransactions.length}
+                        isIndeterminate={selectedItemsLength > 0 && selectedItemsLength !== flattenedTransactions.length}
                         onPress={() => {
                             onAllCheckboxPress();
                         }}
@@ -309,7 +335,7 @@ function SearchList(
                             onPress={onAllCheckboxPress}
                             accessibilityLabel={translate('workspace.people.selectAll')}
                             role="button"
-                            accessibilityState={{checked: selectedItemsLength === data.length}}
+                            accessibilityState={{checked: selectedItemsLength === flattenedTransactions.length}}
                             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                         >
                             <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
@@ -330,6 +356,7 @@ function SearchList(
                 onEndReachedThreshold={onEndReachedThreshold}
                 ListFooterComponent={ListFooterComponent}
                 removeClippedSubviews
+                onViewableItemsChanged={onViewableItemsChanged}
             />
             <Modal
                 isVisible={isModalVisible}

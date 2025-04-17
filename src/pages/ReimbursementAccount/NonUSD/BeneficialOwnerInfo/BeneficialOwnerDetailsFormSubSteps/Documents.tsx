@@ -87,6 +87,14 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
         shouldSaveDraft: isEditing,
     });
 
+    const testForShouldHideFixErrorsAlert =
+        [
+            isDocumentNeededStatus.isProofOfOwnershipNeeded,
+            isDocumentNeededStatus.isCopyOfIDNeeded,
+            isDocumentNeededStatus.isProofOfAddressNeeded,
+            isDocumentNeededStatus.isCodiceFiscaleNeeded,
+        ].filter(Boolean).length <= 1;
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -95,6 +103,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
             onSubmit={handleSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             submitButtonStyles={[styles.mb0]}
+            shouldHideFixErrorsAlert={testForShouldHideFixErrorsAlert}
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('ownershipInfoStep.uploadDocuments')}</Text>
             <Text style={[styles.textSupporting, styles.mb5]}>{translate('ownershipInfoStep.pleaseUpload')}</Text>
@@ -122,7 +131,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfBeneficialOwnerDescription')}</Text>
                     {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
-                        <View style={[styles.sectionDividerLine, styles.mh0]} />
+                        <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
                     )}
                 </View>
             )}
@@ -149,7 +158,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={copyOfIDInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
 
@@ -175,7 +184,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={addressProofInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
 

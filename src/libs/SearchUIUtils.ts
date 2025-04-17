@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -36,7 +36,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice} from './PolicyUtils';
-import {isAddCommentAction, isDeletedAction} from './ReportActionsUtils';
+import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getSearchReportName,
     hasInvoiceReports,
@@ -46,10 +46,12 @@ import {
     isClosedReport,
     isInvoiceReport,
     isMoneyRequestReport,
+    isOpenExpenseReport,
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
+import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
 const columnNamesToSortingProperty = {
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
@@ -225,9 +227,7 @@ function shouldShowYear(data: TransactionListItemType[] | ReportListItemType[] |
     for (const key in data) {
         if (isTransactionEntry(key)) {
             const item = data[key];
-            const date = getTransactionCreatedDate(item);
-
-            if (DateUtils.doesDateBelongToAPastYear(date)) {
+            if (shouldShowTransactionYear(item)) {
                 return true;
             }
         } else if (isReportActionEntry(key)) {
@@ -252,13 +252,6 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
-    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW || reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
-        return translateLocal('iou.payerOwesAmount', {
-            payer: payerName,
-            amount: formattedAmount,
-        });
-    }
-
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         return translateLocal('iou.payerPaidAmount', {
             payer: payerName,
@@ -266,7 +259,10 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
         });
     }
 
-    return reportItem.reportName;
+    return translateLocal('iou.payerOwesAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 }
 
 /**
@@ -283,8 +279,10 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
         .filter(isTransactionEntry)
         .map((key) => {
             const transactionItem = data[key];
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const shouldShowBlankTo = isOpenExpenseReport(report);
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -294,7 +292,7 @@ function getTransactionsSections(data: OnyxTypes.SearchResults['data'], metadata
                 from,
                 to,
                 formattedFrom,
-                formattedTo,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
                 date,
@@ -394,6 +392,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
+    const reportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+    if (reportRNVP?.exportFailedTime) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
@@ -425,16 +428,23 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+                const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
+                const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
+
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
-                if (isDeletedAction(reportAction)) {
+                if (
+                    isDeletedAction(reportAction) ||
+                    isResolvedActionableWhisper(reportAction) ||
+                    reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
+                    isCreatedAction(reportAction) ||
+                    isWhisperActionTargetedToOthers(reportAction) ||
+                    (isMoneyRequestAction(reportAction) && !!report?.isWaitingOnBankAccount && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney)
+                ) {
                     // eslint-disable-next-line no-continue
                     continue;
                 }
-                if (!isAddCommentAction(reportAction)) {
-                    // eslint-disable-next-line no-continue
-                    continue;
-                }
+
                 reportActionItems.push({
                     ...reportAction,
                     from,
@@ -483,9 +493,11 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         } else if (isTransactionEntry(key)) {
             const transactionItem = {...data[key]};
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`;
+            const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.reportID}`];
+            const shouldShowBlankTo = isOpenExpenseReport(report);
 
             const from = data.personalDetailsList?.[transactionItem.accountID];
-            const to = transactionItem.managerID ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
+            const to = transactionItem.managerID && !shouldShowBlankTo ? data.personalDetailsList?.[transactionItem.managerID] : emptyPersonalDetails;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date} = getTransactionItemCommonFormattedProperties(transactionItem, from, to);
 
@@ -495,7 +507,7 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
                 from,
                 to,
                 formattedFrom,
-                formattedTo,
+                formattedTo: shouldShowBlankTo ? '' : formattedTo,
                 formattedTotal,
                 formattedMerchant,
                 date,
@@ -514,7 +526,8 @@ function getReportSections(data: OnyxTypes.SearchResults['data'], metadata: Onyx
         }
     }
 
-    return Object.values(reportIDToTransactions);
+    // Filter out reports with no transactions to prevent the wrong number of the selected options
+    return Object.values(reportIDToTransactions).filter((report) => report.transactions.length);
 }
 
 /**
@@ -772,14 +785,14 @@ function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | nul
     return typeMenuItems;
 }
 
-function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, hash: number): SavedSearchMenuItem {
+function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
     return {
         key,
         title,
         hash: key,
         query: item.query,
         shouldShowRightComponent: true,
-        focused: Number(key) === hash,
+        focused: isFocused,
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,
@@ -791,6 +804,17 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
  */
 function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: SearchDataTypes) {
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
+}
+
+function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const {status} = queryJSON ?? {};
+    const isDataLoaded =
+        searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && Array.isArray(status)
+            ? searchResults?.search?.status === status.join(',')
+            : searchResults?.search?.status === status;
+
+    return isDataLoaded;
 }
 
 export {
@@ -812,5 +836,6 @@ export {
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
     compareValues,
+    isSearchDataLoaded,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

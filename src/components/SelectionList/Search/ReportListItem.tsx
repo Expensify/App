@@ -127,7 +127,7 @@ function ReportListItem<TItem extends ListItem>({
                 isDisabled={isDisabled}
                 canSelectMultiple={canSelectMultiple}
                 onCheckboxPress={() => onCheckboxPress?.(transactionItem as unknown as TItem)}
-                onSelectRow={onSelectRow}
+                onSelectRow={(_item) => onSelectRow(_item, true)}
                 onFocus={onFocus}
                 onLongPressRow={onLongPressRow}
                 shouldSyncFocus={shouldSyncFocus}
@@ -176,6 +176,7 @@ function ReportListItem<TItem extends ListItem>({
                                 <Checkbox
                                     onPress={() => onCheckboxPress?.(item)}
                                     isChecked={item.isSelected}
+                                    isIndeterminate={reportItem?.transactions?.some((transaction) => transaction.isSelected) && !item.isSelected}
                                     containerStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
                                     disabled={!!isDisabled || item.isDisabledCheckbox}
                                     accessibilityLabel={item.text ?? ''}

@@ -29,6 +29,7 @@ type RequestMoneyParams = {
     createdReportActionIDForThread: string | undefined;
     reimbursable?: boolean;
     description?: string;
+    attendees?: string;
 };
 
 export default RequestMoneyParams;

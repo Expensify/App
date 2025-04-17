@@ -35,19 +35,30 @@ function PreRenderer({TDefaultRenderer, onPressIn, onPressOut, onLongPress, ...d
     const {translate} = useLocalize();
     const isLast = defaultRendererProps.renderIndex === defaultRendererProps.renderLength - 1;
 
+    const isChildOfTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const isInsideTaskTitle = HTMLEngineUtils.isChildOfTaskTitle(defaultRendererProps.tnode);
     const fontSize = StyleUtils.getCodeFontSize(false, isInsideTaskTitle);
+
+    if (isChildOfTaskTitle) {
+        return (
+            <TDefaultRenderer
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...defaultRendererProps}
+                style={styles.taskTitleMenuItem}
+            />
+        );
+    }
 
     return (
         <View style={isLast ? styles.mt2 : styles.mv2}>
             <ShowContextMenuContext.Consumer>
-                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled}) => (
+                {({anchor, report, reportNameValuePairs, action, checkIfContextMenuActive, isDisabled, shouldDisplayContextMenu}) => (
                     <PressableWithoutFeedback
                         onPress={onPressIn ?? (() => {})}
                         onPressIn={onPressIn}
                         onPressOut={onPressOut}
                         onLongPress={(event) => {
-                            if (isDisabled) {
+                            if (isDisabled || !shouldDisplayContextMenu) {
                                 return;
                             }
                             showContextMenuForReport(event, anchor, report?.reportID, action, checkIfContextMenuActive, isArchivedNonExpenseReport(report, reportNameValuePairs));
