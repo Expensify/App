@@ -57,22 +57,18 @@ async function run(): Promise<IssuesCreateResponse | void> {
         // Find the list of PRs merged between the current checklist and the previous checklist
         const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
+        // Julesss: Create a different function for Mobile-Expensify that retrieves from Github API. The above function uses git log but this makes sense for App specifically because the git context is needed for way more than just collecting issues.
+
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
-            const mobileExpensifyPRs = `
-🐴 *Mobile-Expensify Pull Requests:*
-- PR 1
-- PR 2
-- PR 3
-`;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
-                checklistBody = stagingDeployCashBodyAndAssignees.issueBody + mobileExpensifyPRs;
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody; // Jules: add mobile expensify PRs here
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
             }
         } else {
