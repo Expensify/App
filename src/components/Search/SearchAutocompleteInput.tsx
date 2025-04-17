@@ -106,23 +106,31 @@ function SearchAutocompleteInput(
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
-    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
+    const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {
+        canBeMissing: true,
+    });
     const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currencyCode) => !currencyList?.[currencyCode]?.retired);
     const currencySharedValue = useSharedValue(currencyAutocompleteList);
 
-    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
+        canBeMissing: true,
+    });
     const categoryAutocompleteList = useMemo(() => {
         return getAutocompleteCategories(allPolicyCategories, activeWorkspaceID);
     }, [activeWorkspaceID, allPolicyCategories]);
     const categorySharedValue = useSharedValue(categoryAutocompleteList);
 
-    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [allPoliciesTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {
+        canBeMissing: true,
+    });
     const tagAutocompleteList = useMemo(() => {
         return getAutocompleteTags(allPoliciesTags, activeWorkspaceID);
     }, [activeWorkspaceID, allPoliciesTags]);
     const tagSharedValue = useSharedValue(tagAutocompleteList);
 
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {
+        canBeMissing: true,
+    });
     const emailList = Object.keys(loginList ?? {});
     const emailListSharedValue = useSharedValue(emailList);
 
