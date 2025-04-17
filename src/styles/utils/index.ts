@@ -31,8 +31,8 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -1248,7 +1248,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
-    getSearchBottomTabHeaderStyles,
+    getSearchPageNarrowHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
