@@ -4264,6 +4264,24 @@ function updateMoneyRequestBillable(
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
 
+function updateMoneyRequestReimbursable(
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
+    value: boolean,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
+    const transactionChanges: TransactionChanges = {
+        reimbursable: value,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_REIMBURSABLE, params, onyxData);
+}
+
 /** Updates the merchant field of an expense */
 function updateMoneyRequestMerchant(
     transactionID: string,
@@ -10590,6 +10608,7 @@ export {
     unholdRequest,
     updateMoneyRequestAttendees,
     updateMoneyRequestAmountAndCurrency,
+    updateMoneyRequestReimbursable,
     updateMoneyRequestBillable,
     updateMoneyRequestCategory,
     updateMoneyRequestDate,
