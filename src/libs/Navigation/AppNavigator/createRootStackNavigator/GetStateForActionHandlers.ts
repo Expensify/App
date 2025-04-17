@@ -28,9 +28,9 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.CONCIERGE,
 ];
 
-const workspaceSplitsWithoutEnteringAnimation = new Set();
-const reportsSplitsWithEnteringAnimation = new Set();
-const settingsSplitWithEnteringAnimation = new Set();
+const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
+const reportsSplitsWithEnteringAnimation = new Set<string>();
+const settingsSplitWithEnteringAnimation = new Set<string>();
 
 let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
 Onyx.connect({
