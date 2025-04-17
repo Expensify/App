@@ -14,7 +14,11 @@ import sizing from '@styles/utils/sizing';
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
 import type {Transaction} from '@src/types/onyx';
-import {action, chatReport, iouReport, personalDetails, receiptErrors, transaction, violations} from './mockData/transactions';
+import {actionR14932} from '../../__mocks__/reportData/actions';
+import personalDetails from '../../__mocks__/reportData/personalDetails';
+import {chatReportR14932, iouReportR14932} from '../../__mocks__/reportData/reports';
+import {transactionR14932} from '../../__mocks__/reportData/transactions';
+import {receiptErrorsR14932, violationsR14932} from '../../__mocks__/reportData/violations';
 
 /**
  * We use the Component Story Format for writing stories. Follow the docs here:
@@ -23,25 +27,25 @@ import {action, chatReport, iouReport, personalDetails, receiptErrors, transacti
  */
 
 const mockTransactionsMedium = Array.from({length: 2}).map((item, index) => {
-    return {...transaction, transactionID: `${index}`};
+    return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
 const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
-    return {...transaction, transactionID: `${index}`};
+    return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
 const style = getMoneyRequestReportPreviewStyle(false);
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
-        action={action}
+        action={actionR14932}
         isWhisper={false}
         isHovered={false}
-        chatReport={chatReport}
+        chatReport={chatReportR14932}
         personalDetails={personalDetails}
-        iouReport={iouReport}
+        iouReport={iouReportR14932}
         transaction={item}
-        violations={item.errors ? violations : []}
+        violations={item.errors ? violationsR14932 : []}
         showContextMenu={() => undefined}
         offlineWithFeedbackOnClose={() => undefined}
         onPreviewPressed={() => {}}
@@ -114,12 +118,12 @@ export default {
         },
     },
     args: {
-        action,
-        chatReport,
+        action: actionR14932,
+        chatReport: chatReportR14932,
         policy: undefined,
-        iouReport,
+        iouReport: iouReportR14932,
         transactions: mockTransactionsMedium,
-        violations,
+        violations: violationsR14932,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
         renderItem: mockRenderItem,
@@ -162,7 +166,7 @@ DarkTheme.parameters = {
 };
 
 OneTransaction.args = {
-    transactions: [transaction],
+    transactions: [transactionR14932],
 };
 
 ManyTransactions.parameters = {
@@ -172,7 +176,7 @@ ManyTransactions.parameters = {
 HasErrors.args = {
     transactions: mockTransactionsMedium.map((t) => ({
         ...t,
-        errors: receiptErrors,
+        errors: receiptErrorsR14932,
     })),
 };
 
