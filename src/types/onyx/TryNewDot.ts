@@ -7,7 +7,7 @@ type TryNewDot = {
      */
     classicRedirect: {
         /**
-         * Indicates if transistion from OldDot to NewDot should happen in HybridApp.
+         * Indicates if transition from OldDot to NewDot should happen in HybridApp.
          */
         dismissed: boolean | string;
         /**

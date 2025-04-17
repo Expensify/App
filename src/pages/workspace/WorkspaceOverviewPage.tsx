@@ -155,7 +155,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
                 fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
-                size={CONST.AVATAR_SIZE.XLARGE}
+                size={CONST.AVATAR_SIZE.X_LARGE}
                 name={policyName}
                 avatarID={policy?.id}
                 type={CONST.ICON_TYPE_WORKSPACE}
@@ -235,7 +235,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             }}
                             source={policy?.avatarURL ?? ''}
                             avatarID={policy?.id}
-                            size={CONST.AVATAR_SIZE.XLARGE}
+                            size={CONST.AVATAR_SIZE.X_LARGE}
                             avatarStyle={styles.avatarXLarge}
                             enablePreview
                             DefaultAvatar={DefaultAvatar}

@@ -45,7 +45,7 @@ function OnboardingWelcomeVideo() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
 
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);

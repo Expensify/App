@@ -39,7 +39,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const isRootBreadcrumb = primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT;
     const fontScale = PixelRatio.getFontScale() > CONST.LOGO_MAX_SCALE ? CONST.LOGO_MAX_SCALE : PixelRatio.getFontScale();
     return (
-        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumsContainer, style]}>
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumbsContainer, style]}>
             {isRootBreadcrumb ? (
                 <View style={styles.breadcrumbLogo}>
                     <Header

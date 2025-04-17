@@ -11,7 +11,7 @@ import type {
 } from '@src/languages/params';
 
 /**
- *
+ * cspell:disable
  */
 type OldDotOriginalMessageActionName =
     | 'CHANGEFIELD'
@@ -36,6 +36,7 @@ type OldDotOriginalMessageActionName =
     | 'TAKECONTROL'
     | 'UNAPPROVED'
     | 'UNSHARE';
+// cspell:enable
 
 /**
  *

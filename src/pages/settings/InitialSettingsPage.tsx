@@ -90,7 +90,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
-    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
+    const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT);
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
 
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -262,7 +262,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
                               action() {
                                   resetExitSurveyForm(() => {
                                       if (shouldOpenBookACall) {
-                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVERY_BOOK_CALL.route);
+                                          Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_BOOK_CALL.route);
                                           return;
                                       }
                                       Navigation.navigate(ROUTES.SETTINGS_EXIT_SURVEY_CONFIRM.route);
