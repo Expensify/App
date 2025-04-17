@@ -26,7 +26,7 @@ function NewChatSelectorPage() {
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: false});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const chatPageInputRef = useRef<NewChatPageHandle>(null);
     const roomPageInputRef = useRef<AnimatedTextInputRef>(null);
@@ -79,6 +79,7 @@ function NewChatSelectorPage() {
                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                 onActiveTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
                 disableSwipe={!!formState?.isLoading && shouldUseNarrowLayout}
+                onPageSelected={handleOnPageSelected}
             >
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
                     {() => (

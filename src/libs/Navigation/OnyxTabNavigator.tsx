@@ -4,6 +4,7 @@ import type {EventMapCore, NavigationState, ScreenListeners} from '@react-naviga
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {NativeProps} from 'react-native-pager-view/lib/typescript/specs/PagerViewNativeComponent';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +48,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Disable swipe between tabs */
     disableSwipe?: boolean;
+
+    /** Callback to handle the PagerView onPageSelected method */
+    onPageSelected?: NativeProps['onPageSelected'];
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
