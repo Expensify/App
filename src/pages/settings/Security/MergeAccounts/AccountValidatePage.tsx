@@ -123,20 +123,8 @@ function AccountValidatePage() {
         return unsubscribe;
     }, [navigation]);
 
-    const validateCodeError = useMemo(() => {
-        const authenticationErrorKey = getAuthenticationErrorKey(latestError);
-
-        // If there's a matching error page OR no specific auth error key, return early.
-        if (errorPage) {
-            return;
-        }
-
-        if (!authenticationErrorKey) {
-            return;
-        }
-
-        return {authError: translate(authenticationErrorKey)};
-    }, [errorPage, latestError, translate]);
+    const authenticationErrorKey = getAuthenticationErrorKey(latestError);
+    const validateCodeError = !errorPage && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : null;
 
     return (
         <ScreenWrapper
