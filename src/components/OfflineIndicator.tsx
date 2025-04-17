@@ -42,7 +42,7 @@ function OfflineIndicator({style, containerStyles: containerStylesProp, addBotto
     }
 
     return (
-        <View style={[containerStyles, isTranslucent && styles.navigationBarBG, styles.flexRow, styles.alignItemsCenter, style]}>
+        <View style={[containerStyles, isTranslucent && styles.translucentNavigationBarBG, styles.flexRow, styles.alignItemsCenter, style]}>
             <Icon
                 fill={theme.icon}
                 src={Expensicons.OfflineCloud}
