@@ -4,7 +4,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
-import {isSafari} from '@libs/Browser';
+import {isSafari} from './libs/Browser';
 import alert from './components/Alert';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
