@@ -11461,8 +11461,8 @@ const EmptyObject_1 = __nccwpck_require__(8227);
 const repoFullName = core.getInput('REPO_FULL_NAME', { required: true });
 const [owner, repo] = repoFullName.split('/');
 const DEFAULT_PAYLOAD = {
-    owner,
-    repo,
+    owner: CONST_1.default.GITHUB_OWNER,
+    repo: CONST_1.default.APP_REPO,
 };
 const pullRequestNumber = (0, ActionUtils_1.getJSONInput)('PULL_REQUEST_NUMBER', { required: false }, null);
 const user = core.getInput('USER', { required: true });
