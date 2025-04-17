@@ -47,8 +47,8 @@ export default createOnyxDerivedValueConfig({
                     reportName: generateReportName(report),
                     reportErrors,
                     reportActionsErrors,
-                    hasAnyViolations,
                     hasViolationsToDisplayInLHN,
+                    hasAnyViolations,
                     oneTransactionThreadReportID,
                 };
 
