@@ -219,7 +219,7 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         navigateAfterOnboarding(
                             isSmallScreenWidth,
                             canUseDefaultRooms,
-                            onboardingPolicyID,
+                            policyID,
                             activeWorkspaceID,
                             adminsChatReportID,
                             // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
