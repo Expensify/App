@@ -112,6 +112,7 @@ function initGitServer() {
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
 }
 
+// TODO: this always checks out main, but in some cases (such as cherry picking to staging), we start by checking out staging
 function checkoutRepo() {
     if (fs.existsSync(DUMMY_DIR)) {
         Log.warn(`Found existing directory at ${DUMMY_DIR}, deleting it to simulate a fresh checkout...`);
@@ -123,6 +124,8 @@ function checkoutRepo() {
     exec(`git remote add origin ${GIT_REMOTE}`);
     exec('git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main');
     exec('git checkout --progress --force -B main refs/remotes/origin/main');
+    exec('git submodule sync');
+    exec('git submodule update --init --force --depth=1');
     Log.success('Checked out repo at $DUMMY_DIR!');
 }
 
