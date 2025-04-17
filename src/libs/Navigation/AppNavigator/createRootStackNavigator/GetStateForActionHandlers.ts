@@ -1,6 +1,6 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
-import {StackActions} from '@react-navigation/native';
-import type {ParamListBase, Router} from '@react-navigation/routers';
+import { StackActions} from '@react-navigation/native';
+import type {ParamListBase, PartialState, Router} from '@react-navigation/routers';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
@@ -148,6 +148,33 @@ function handleSwitchPolicyIDAction(
     // We don't have other navigators that should handle switch policy action.
     return null;
 }
+type AnimationCondition = (screen:unknown) => boolean;
+
+function handlePushSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+    animationSet: Set<unknown>,
+    animationCondition: AnimationCondition,
+    errorMessage: string,
+): StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>> | null{
+    const newState = stackRouter.getStateForAction(state, action, configOptions);
+    if (!newState) {
+        Log.hmmm(errorMessage);
+        return null;
+    }
+
+    const lastFullScreenRoute = newState.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params 
+                                ? action.payload?.params?.screen 
+                                : undefined;
+    if (animationCondition(actionPayloadScreen) && lastFullScreenRoute?.key) {
+        animationSet.add(lastFullScreenRoute.key);
+    }
+
+    return newState;
+}
 
 /**
  * If a new ReportSplitNavigator is opened, it is necessary to check whether workspace is currently selected in the application.
@@ -186,22 +213,15 @@ function handlePushReportSplitAction(
         },
     };
 
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, modifiedAction, configOptions);
-
-    if (!stateWithReportsSplitNavigator) {
-        Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const lastFullScreenRoute = stateWithReportsSplitNavigator.routes.at(-1);
-    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
-
-    // ReportScreen should always be opened with an animation
-    if (actionPayloadScreen === SCREENS.REPORT && lastFullScreenRoute?.key) {
-        reportsSplitsWithEnteringAnimation.add(lastFullScreenRoute.key);
-    }
-
-    return stateWithReportsSplitNavigator;
+    return handlePushSplitAction(
+        state,
+        modifiedAction,
+        configOptions,
+        stackRouter,
+        reportsSplitsWithEnteringAnimation,
+        (screen) => screen === SCREENS.REPORT, // ReportScreen should always be opened with an animation
+        '[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.',
+    )
 }
 
 function handlePushSettingsSplitAction(
@@ -210,22 +230,15 @@ function handlePushSettingsSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
-
-    if (!stateWithSettingsSplitNavigator) {
-        Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
-        return null;
-    }
-
-    const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
-    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
-
-    // Transitioning to all central screens in settings should be animated
-    if (actionPayloadScreen !== SCREENS.SETTINGS.ROOT && lastFullScreenRoute?.key) {
-        settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
-    }
-
-    return stateWithSettingsSplitNavigator;
+    return handlePushSplitAction(
+        state,
+        action,
+        configOptions,
+        stackRouter,
+        settingsSplitWithEnteringAnimation,
+        (screen) => screen !== SCREENS.SETTINGS.ROOT, // Transitioning to all central screens in settings should be animated
+        '[handlePushSettingsAction] SettingsSplitNavigator has not been found in the navigation state.',
+    )
 }
 
 /**
