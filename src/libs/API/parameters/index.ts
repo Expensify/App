@@ -20,6 +20,7 @@ export type {default as SyncPolicyToQuickbooksOnlineParams} from './SyncPolicyTo
 export type {default as SyncPolicyToXeroParams} from './SyncPolicyToXeroParams';
 export type {default as SyncPolicyToNetSuiteParams} from './SyncPolicyToNetSuiteParams';
 export type {default as UpdateNetSuiteAccountingMethodParams} from './UpdateNetSuiteAccountingMethodParams';
+export type {default as UpdateQuickbooksOnlineAccountingMethodParams} from './UpdateQuickbooksOnlineAccountingMethodParams';
 export type {default as SyncPolicyToQuickbooksDesktopParams} from './SyncPolicyToQuickbooksDesktopParams';
 export type {default as DeleteContactMethodParams} from './DeleteContactMethodParams';
 export type {default as DeletePaymentBankAccountParams} from './DeletePaymentBankAccountParams';
@@ -366,6 +367,8 @@ export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
+export type {default as AddWorkEmailParams} from './AddWorkEmailParams';
+export type {default as MergeIntoAccountAndLogInParams} from './MergeIntoAccountAndLogInParams';
 export type {default as GetValidateCodeForAccountMergeParams} from './GetValidateCodeForAccountMerge';
 export type {default as MergeWithValidateCodeParams} from './MergeWithValidateCode';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';
@@ -387,3 +390,4 @@ export type {default as SetPolicyProhibitedExpensesParams} from './SetPolicyProh
 export type {default as GetEmphemeralTokenParams} from './GetEmphemeralTokenParams';
 export type {default as CreateAppleDigitalWalletParams} from './CreateAppleDigitalWalletParams';
 export type {default as CompleteConciergeCallParams} from './CompleteConciergeCallParams';
+export type {default as FinishCorpayBankAccountOnboardingParams} from './FinishCorpayBankAccountOnboardingParams';

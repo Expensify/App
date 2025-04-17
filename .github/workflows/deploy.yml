@@ -45,12 +45,11 @@ jobs:
         id: getAppVersion
         run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Get tag name
+      - name: Get tag
         id: getTagName
         run: echo "TAG=${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
