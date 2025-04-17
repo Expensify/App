@@ -43,9 +43,9 @@ function WorkspaceNewRoomPage() {
     const {isOffline} = useNetwork();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {initWithStoredValues: false, canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {initWithStoredValues: false, canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {top} = useSafeAreaInsets();
