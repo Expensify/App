@@ -5,9 +5,9 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {generateCustomUnitID, importPerDiemRates} from '@libs/actions/Policy/PerDiem';
 import {sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
@@ -56,6 +56,7 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const policy = usePolicy(policyID);
     const perDiemCustomUnit = getPerDiemCustomUnit(policy);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
+    const {setIsClosing} = useCloseImportPage();
 
     const getColumnRoles = (): ColumnRole[] => {
         const roles = [];
@@ -138,8 +139,8 @@ function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     }
 
     const closeImportPageAndModal = () => {
+        setIsClosing(true);
         setIsImportingPerDiemRates(false);
-        closeImportPage();
         Navigation.goBack(ROUTES.WORKSPACE_PER_DIEM.getRoute(policyID));
     };
 
