@@ -79,6 +79,8 @@ function initGitServer() {
     exec('git commit -m "Initial commit"');
     exec('git switch -c staging');
     exec('git switch -c production');
+    // Tag the production branch with 1.0.0.0
+    exec(`git tag ${getVersion()}`);
 
     Log.info('Initializing git server...');
     if (fs.existsSync(GIT_REMOTE)) {
@@ -103,14 +105,27 @@ function initGitServer() {
     // Tag the production branch with 1.0.0.0
     exec(`git tag ${getVersion()}`);
 
-    // Bump version to 2.0.0.0
+    // Bump version to 2.0.0.0 (both repos)
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.MAJOR, true);
+
+    process.chdir(SUBMOD_REMOTE);
+    exec('git switch main');
     exec('git branch -D staging production');
     exec('git switch -c staging');
     exec('git switch -c production');
     exec(`git tag ${getVersion()}`);
-    exec(`git switch staging`);
+    exec(`git switch main`);
     exec('git config --local receive.denyCurrentBranch ignore');
+
+    // Bump version to 2.0.0.0 (parent)
+    process.chdir(GIT_REMOTE);
+    exec('git branch -D staging production');
+    exec('git switch -c staging');
+    exec('git switch -c production');
+    exec(`git tag ${getVersion()}`);
+    exec(`git switch main`);
+    exec('git config --local receive.denyCurrentBranch ignore');
+
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
 }
 
@@ -138,9 +153,20 @@ function bumpVersion(level: SemverLevel, isRemote = false) {
     setupGitAsOSBotify();
     exec('git switch main');
     const nextVersion = VersionUpdater.incrementVersion(getVersion(), level);
+
+    exec(`npm --no-git-tag-version version ${nextVersion}`);
+
+    process.chdir(`${isRemote ? GIT_REMOTE : DUMMY_DIR}/SubMod`);
+    exec('git checkout main');
     exec(`npm --no-git-tag-version version ${nextVersion}`);
     exec('git add package.json');
     exec(`git commit -m "Update version to ${nextVersion}"`);
+    exec('git push origin main');
+    process.chdir(isRemote ? GIT_REMOTE : DUMMY_DIR);
+    exec('git add package.json');
+    exec(`git commit -m "Update version to ${nextVersion}"`);
+    exec('git add SubMod');
+    exec(`git commit -m "Update Mobile-Expensify submodule version to ${nextVersion}"`);
     if (!isRemote) {
         exec('git push origin main');
     }
@@ -214,7 +240,8 @@ function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => v
     Log.info(`Cherry-picking PR ${num} to staging...`);
     const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
-    const versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
+    // TODO: use git log and find the version bump with the correct git log command from the workflow
+    const versionBumpCommit = execSync('git rev-parse HEAD~1', {encoding: 'utf-8'}).trim();
 
     checkoutRepo('staging');
     setupGitAsOSBotify();
