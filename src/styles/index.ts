@@ -39,7 +39,6 @@ import sizing from './utils/sizing';
 import spacing from './utils/spacing';
 import textDecorationLine from './utils/textDecorationLine';
 import textUnderline from './utils/textUnderline';
-import translateZ0 from './utils/translateZ0';
 import userSelect from './utils/userSelect';
 import visibility from './utils/visibility';
 import whiteSpace from './utils/whiteSpace';
@@ -232,7 +231,6 @@ const styles = (theme: ThemeColors) =>
         ...overflow,
         ...positioning,
         ...wordBreak,
-        ...translateZ0,
         ...whiteSpace,
         ...writingDirection,
         ...cursor,
@@ -4671,10 +4669,6 @@ const styles = (theme: ThemeColors) =>
             margin: 4,
         },
 
-        receiptPreviewAspectRatio: {
-            aspectRatio: 16 / 9,
-        },
-
         reportActionItemImages: {
             flexDirection: 'row',
             borderRadius: 12,
@@ -4841,8 +4835,6 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             borderWidth: 0,
         },
-
-        receiptEmptyStateFullHeight: {height: '100%', borderRadius: 12},
 
         moneyRequestAttachReceiptThumbnailIcon: {
             position: 'absolute',

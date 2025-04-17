@@ -23,13 +23,10 @@ type ReceiptEmptyStateProps = {
 
     /** Whether the receipt is in the money request view */
     isInMoneyRequestView?: boolean;
-
-    /** Whether the receipt empty state should extend to the full height of the container. */
-    shouldUseFullHeight?: boolean;
 };
 
 // Returns an SVG icon indicating that the user should attach a receipt
-function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false, shouldUseFullHeight = false}: ReceiptEmptyStateProps) {
+function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumbnail = false, isInMoneyRequestView = false}: ReceiptEmptyStateProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -50,7 +47,6 @@ function ReceiptEmptyState({hasError = false, onPress, disabled = false, isThumb
                 isThumbnail ? styles.moneyRequestAttachReceiptThumbnail : styles.moneyRequestAttachReceipt,
                 isInMoneyRequestView && styles.expenseViewImage,
                 hasError && styles.borderColorDanger,
-                shouldUseFullHeight && styles.receiptEmptyStateFullHeight,
             ]}
         >
             <View>

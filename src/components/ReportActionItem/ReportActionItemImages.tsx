@@ -31,9 +31,6 @@ type ReportActionItemImagesProps = {
 
     /** Callback to be called on onPress */
     onPress?: () => void;
-
-    /** Whether we should use aspect ratio to decide the height of receipt previews. */
-    shouldUseAspectRatio?: boolean;
 };
 
 /**
@@ -45,7 +42,7 @@ type ReportActionItemImagesProps = {
  * additional number when subtracted from size.
  */
 
-function ReportActionItemImages({images, size, total, isHovered = false, onPress, shouldUseAspectRatio = false}: ReportActionItemImagesProps) {
+function ReportActionItemImages({images, size, total, isHovered = false, onPress}: ReportActionItemImagesProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -57,15 +54,17 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
     const MAX_REMAINING = 9;
 
     // The height varies depending on the number of images we are displaying.
-    const layoutStyle = [];
-    if (shouldUseAspectRatio) {
-        layoutStyle.push(styles.receiptPreviewAspectRatio);
-    } else if (numberOfShownImages === 1) {
-        layoutStyle.push(StyleUtils.getMaximumHeight(variables.reportActionImagesSingleImageHeight), StyleUtils.getMinimumHeight(variables.reportActionImagesSingleImageHeight));
+    let maxHeightStyle = {};
+    let minHeightStyle = {};
+    if (numberOfShownImages === 1) {
+        maxHeightStyle = StyleUtils.getMaximumHeight(variables.reportActionImagesSingleImageHeight);
+        minHeightStyle = StyleUtils.getMinimumHeight(variables.reportActionImagesSingleImageHeight);
     } else if (numberOfShownImages === 2) {
-        layoutStyle.push(StyleUtils.getMaximumHeight(variables.reportActionImagesDoubleImageHeight), StyleUtils.getMinimumHeight(variables.reportActionImagesDoubleImageHeight));
+        maxHeightStyle = StyleUtils.getMaximumHeight(variables.reportActionImagesDoubleImageHeight);
+        minHeightStyle = StyleUtils.getMinimumHeight(variables.reportActionImagesDoubleImageHeight);
     } else if (numberOfShownImages > 2) {
-        layoutStyle.push(StyleUtils.getMaximumHeight(variables.reportActionImagesMultipleImageHeight), StyleUtils.getMinimumHeight(variables.reportActionImagesMultipleImageHeight));
+        maxHeightStyle = StyleUtils.getMaximumHeight(variables.reportActionImagesMultipleImageHeight);
+        minHeightStyle = StyleUtils.getMinimumHeight(variables.reportActionImagesMultipleImageHeight);
     }
 
     const hoverStyle = isHovered ? styles.reportPreviewBoxHoverBorder : undefined;
@@ -74,7 +73,7 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
 
     return (
         <View style={styles.reportActionItemImagesContainer}>
-            <View style={[styles.reportActionItemImages, hoverStyle, ...layoutStyle]}>
+            <View style={[styles.reportActionItemImages, hoverStyle, minHeightStyle, maxHeightStyle]}>
                 {shownImages.map(({thumbnail, isThumbnail, image, isEmptyReceipt, transaction, isLocalFile, fileExtension, filename}, index) => {
                     // Show a border to separate multiple images. Shown to the right for each except the last.
                     const shouldShowBorder = shownImages.length > 1 && index < shownImages.length - 1;
@@ -97,7 +96,6 @@ function ReportActionItemImages({images, size, total, isHovered = false, onPress
                                     isSingleImage={numberOfShownImages === 1}
                                     shouldMapHaveBorderRadius={false}
                                     onPress={onPress}
-                                    shouldUseFullHeight={shouldUseAspectRatio}
                                 />
                             </View>
                         </ImageBehaviorContextProvider>
