@@ -210,14 +210,14 @@ function handlePushSettingsSplitAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
-    if (!stateWithReportsSplitNavigator) {
+    if (!stateWithSettingsSplitNavigator) {
         Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const lastFullScreenRoute = stateWithReportsSplitNavigator.routes.at(-1);
+    const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
     const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
 
     // Profile screen should always be opened with an animation
@@ -225,7 +225,7 @@ function handlePushSettingsSplitAction(
         settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
-    return stateWithReportsSplitNavigator;
+    return stateWithSettingsSplitNavigator;
 }
 
 /**
@@ -283,21 +283,21 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
-    if (!stateWithReportsSplitNavigator) {
+    if (!stateWithSettingsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const lastReportsSplitNavigator = stateWithReportsSplitNavigator.routes.at(-1);
+    const lastReportsSplitNavigator = stateWithSettingsSplitNavigator.routes.at(-1);
 
     // ReportScreen should always be opened with an animation when replacing the navigator
     if (lastReportsSplitNavigator?.key) {
         reportsSplitsWithEnteringAnimation.add(lastReportsSplitNavigator.key);
     }
 
-    return stateWithReportsSplitNavigator;
+    return stateWithSettingsSplitNavigator;
 }
 
 /**
