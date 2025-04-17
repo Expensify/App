@@ -121,9 +121,9 @@ function Expensify() {
             return;
         }
 
-        // Set a timeout to initialize the client after a short delay.
-        // This is necessary because on Apple devices (web), Onyx events can be delayed,
-        // causing issues with client initialization if done immediately.
+        // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
+        // Events are flushed only when the tab becomes active again causing issues with client initialization.
+        // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
         const isAppleDevice = /iPhone|iPad/.test(navigator.userAgent);
         const isWeb = Platform.OS === 'web';
         setTimeout(ActiveClientManager.init, isAppleDevice && isWeb ? 400 : 0);
