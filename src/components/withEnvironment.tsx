@@ -1,7 +1,7 @@
 import type {ReactElement, ReactNode} from 'react';
 import React, {createContext, useEffect, useMemo, useState} from 'react';
 import type {ValueOf} from 'type-fest';
-import * as Environment from '@libs/Environment/Environment';
+import {getEnvironment, getEnvironmentURL} from '@libs/Environment/Environment';
 import CONST from '@src/CONST';
 
 type EnvironmentProviderProps = {
@@ -29,8 +29,8 @@ function EnvironmentProvider({children}: EnvironmentProviderProps): ReactElement
     const [environmentURL, setEnvironmentURL] = useState(CONST.NEW_EXPENSIFY_URL);
 
     useEffect(() => {
-        Environment.getEnvironment().then(setEnvironment);
-        Environment.getEnvironmentURL().then(setEnvironmentURL);
+        getEnvironment().then(setEnvironment);
+        getEnvironmentURL().then(setEnvironmentURL);
     }, []);
 
     const contextValue = useMemo(

@@ -87,7 +87,7 @@ function FormWrapper({
     const formRef = useRef<RNScrollView>(null);
     const formContentRef = useRef<View>(null);
 
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
 
     const errorMessage = useMemo(() => (formState ? getLatestErrorMessage(formState) : undefined), [formState]);
 
