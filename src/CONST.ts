@@ -5416,11 +5416,9 @@ const CONST = {
                     type: 'connectCorporateCard',
                     title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
                     description: () => 'Link your corporate card so transactions flow automatically.',
-
                     autoCompleted: false,
                     mediaAttributes: {},
                 },
-
                 {
                     type: 'inviteTeam',
                     autoCompleted: false,
