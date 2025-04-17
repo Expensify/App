@@ -245,7 +245,7 @@ function AttachmentModal({
     );
 
     /**
-     * If our attachment is a PDF, return the unswipeablge Modal type.
+     * If our attachment is a PDF, return the unswipeable Modal type.
      */
     const getModalType = useCallback(
         (sourceURL: string, fileObject: FileObject) =>

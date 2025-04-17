@@ -37,7 +37,7 @@ type BookTravelButtonProps = {
 };
 
 const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
-    // Remove the previous provision session infromation if any is cached.
+    // Remove the previous provision session information if any is cached.
     cleanupTravelProvisioningSession();
     if (isUserValidated) {
         Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));

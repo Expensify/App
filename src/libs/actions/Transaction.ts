@@ -716,7 +716,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             value: {
                 parentReportID: reportID,
                 parentReportActionID: optimisticMoneyRequestReportActionID,
-                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORTID ? newReport.policyID : CONST.POLICY.ID_FAKE,
+                policyID: reportID !== CONST.REPORT.UNREPORTED_REPORT_ID ? newReport.policyID : CONST.POLICY.ID_FAKE,
             },
         });
 
@@ -792,7 +792,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
         // 6. Add MOVEDTRANSACTION or UNREPORTEDTRANSACTION report actions
         const movedAction =
-            reportID === CONST.REPORT.UNREPORTED_REPORTID
+            reportID === CONST.REPORT.UNREPORTED_REPORT_ID
                 ? buildOptimisticUnreportedTransactionAction(transactionThreadReportID, transaction.reportID)
                 : buildOptimisticMovedTransactionAction(transactionThreadReportID, reportID);
 

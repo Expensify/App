@@ -25,10 +25,10 @@ type CarouselButtonsProps = {
     /** Callback to go one page forward */
     onForward: () => void;
 
-    /** Callback for autohiding carousel button arrows */
+    /** Callback for auto hiding carousel button arrows */
     autoHideArrow?: () => void;
 
-    /** Callback for cancelling autohiding of carousel button arrows */
+    /** Callback for cancelling auto hiding of carousel button arrows */
     cancelAutoHideArrow?: () => void;
 };
 

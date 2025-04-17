@@ -97,7 +97,7 @@ type ConfirmContentProps = {
     /** Styles for the image */
     imageStyles?: StyleProp<ViewStyle>;
 
-    /** Whether the modal is visibile */
+    /** Whether the modal is visible */
     isVisible: boolean;
 
     /** Whether the confirm button is loading */

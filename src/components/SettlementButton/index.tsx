@@ -104,7 +104,7 @@ function SettlementButton({
     }, [isLoadingLastPaymentMethod]);
 
     const isInvoiceReport = (!isEmptyObject(iouReport) && isInvoiceReportUtil(iouReport)) || false;
-    const shouldShowPaywithExpensifyOption = !shouldHidePaymentOptions;
+    const shouldShowPayWithExpensifyOption = !shouldHidePaymentOptions;
     const shouldShowPayElsewhereOption = !shouldHidePaymentOptions && !isInvoiceReport;
     const paymentButtonOptions = useMemo(() => {
         const buttonOptions = [];
@@ -147,7 +147,7 @@ function SettlementButton({
         if (canUseWallet) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.EXPENSIFY]);
         }
-        if (isExpenseReport && shouldShowPaywithExpensifyOption) {
+        if (isExpenseReport && shouldShowPayWithExpensifyOption) {
             buttonOptions.push(paymentMethods[CONST.IOU.PAYMENT_TYPE.VBBA]);
         }
         if (shouldShowPayElsewhereOption) {
@@ -232,7 +232,7 @@ function SettlementButton({
         currency,
         shouldHidePaymentOptions,
         shouldShowApproveButton,
-        shouldShowPaywithExpensifyOption,
+        shouldShowPayWithExpensifyOption,
         shouldShowPayElsewhereOption,
         chatReport,
         onPress,

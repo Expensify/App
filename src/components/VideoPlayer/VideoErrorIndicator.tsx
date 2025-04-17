@@ -28,7 +28,7 @@ function VideoErrorIndicator({isPreview = false}: VideoErrorIndicatorProps) {
             />
             {!isPreview && (
                 <View>
-                    <Text style={[styles.notFoundTextHeader, styles.ph11]}>{translate('common.errorOccuredWhileTryingToPlayVideo')}</Text>
+                    <Text style={[styles.notFoundTextHeader, styles.ph11]}>{translate('common.errorOccurredWhileTryingToPlayVideo')}</Text>
                 </View>
             )}
         </View>

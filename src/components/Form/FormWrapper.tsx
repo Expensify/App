@@ -128,7 +128,7 @@ function FormWrapper({
 
     // If either of `addBottomSafeAreaPadding` or `shouldSubmitButtonStickToBottom` is explicitly set,
     // we expect that the user wants to use the new edge-to-edge mode.
-    // In this case, we want to get and apply the padding unconditionnally.
+    // In this case, we want to get and apply the padding unconditionally.
     const isUsingEdgeToEdgeMode = addBottomSafeAreaPadding !== undefined || shouldSubmitButtonStickToBottomProp !== undefined;
     const shouldSubmitButtonStickToBottom = shouldSubmitButtonStickToBottomProp ?? false;
     const {paddingBottom} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);

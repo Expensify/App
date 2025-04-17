@@ -268,7 +268,7 @@ describe('ProductTrainingContextProvider', () => {
             await waitForBatchedUpdatesWithAct();
 
             // TODO: To be replaced by expense reports search tooltip
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCIERGE_LHN_GBR;
             const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
             // Then narrow layout tooltip should not show
             expect(result.current.shouldShowProductTrainingTooltip).toBe(false);

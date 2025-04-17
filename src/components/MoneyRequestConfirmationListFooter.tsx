@@ -18,7 +18,7 @@ import {getDestinationForDisplay, getSubratesFields, getSubratesForDisplay, getT
 import {canSendInvoice, getPerDiemCustomUnit, isMultiLevelTags as isMultiLevelTagsPolicyUtils, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import type {ThumbnailAndImageURI} from '@libs/ReceiptUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, isReportOutsanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
+import {buildOptimisticExpenseReport, getDefaultWorkspaceAvatar, getOutstandingReports, isReportOutstanding, populateOptimisticReportFormula} from '@libs/ReportUtils';
 import {hasEnabledTags} from '@libs/TagsOptionsListUtils';
 import {
     getTagForDisplay,
@@ -285,13 +285,13 @@ function MoneyRequestConfirmationListFooter({
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
     const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
-    const shouldUseTransactionReport = !!transactionReport && isReportOutsanding(transactionReport, selectedParticipants?.at(0)?.policyID);
+    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, selectedParticipants?.at(0)?.policyID);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
     } else {
-        const firstOutstangingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
-        reportName = firstOutstangingReport?.reportName;
+        const firstOutstandingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
+        reportName = firstOutstandingReport?.reportName;
     }
 
     if (!reportName) {

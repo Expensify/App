@@ -45,13 +45,13 @@ function OnboardingWelcomeVideo() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isModalDisabled, setIsModalDisabled] = useState(true);
 
-    const [tryNewDot, tryNewDotdMetadata] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT, {
+    const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
     const [dismissedProductTraining, dismissedProductTrainingMetadata] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(tryNewDotdMetadata, dismissedProductTrainingMetadata)) {
+        if (isLoadingOnyxValue(tryNewDotMetadata, dismissedProductTrainingMetadata)) {
             return;
         }
         const {hasBeenAddedToNudgeMigration} = tryNewDot ?? {};
@@ -62,7 +62,7 @@ function OnboardingWelcomeVideo() {
         setIsModalDisabled(false);
         const defaultCannedQuery = buildCannedSearchQuery();
         Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
-    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotdMetadata, dismissedProductTrainingMetadata, tryNewDot]);
+    }, [dismissedProductTraining?.migratedUserWelcomeModal, setIsModalDisabled, tryNewDotMetadata, dismissedProductTrainingMetadata, tryNewDot]);
 
     /**
      * Extracts values from the non-scraped attribute WEB_PROP_ATTR at build time
