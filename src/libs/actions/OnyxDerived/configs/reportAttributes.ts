@@ -1,4 +1,13 @@
-import {generateReportName} from '@libs/ReportUtils';
+import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
+import {
+    generateReportName,
+    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    getAllReportErrors,
+    hasReportViolations,
+    isReportOwner,
+    isSettled,
+    shouldDisplayViolationsRBRInLHN,
+} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributes} from '@src/types/onyx';
@@ -10,8 +19,8 @@ import type {ReportAttributes} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.PERSONAL_DETAILS_LIST, ONYXKEYS.NVP_PREFERRED_LOCALE],
-    compute: ([reports, personalDetails, preferredLocale], {currentValue, sourceValues}) => {
+    dependencies: [ONYXKEYS.COLLECTION.REPORT, ONYXKEYS.PERSONAL_DETAILS_LIST, ONYXKEYS.NVP_PREFERRED_LOCALE, ONYXKEYS.COLLECTION.REPORT_ACTIONS, ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS],
+    compute: ([reports, personalDetails, preferredLocale, reportActions, transactionViolations], {currentValue, sourceValues}) => {
         if (!reports || !personalDetails || !preferredLocale) {
             return {};
         }
@@ -24,8 +33,23 @@ export default createOnyxDerivedValueConfig({
                     return acc;
                 }
 
+                const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
+                const isReportSettled = isSettled(report);
+                const isCurrentUserReportOwner = isReportOwner(report);
+                const doesReportHasViolations = hasReportViolations(report.reportID);
+                const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
+                const hasAnyViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
+                const reportErrors = getAllReportErrors(report, {});
+                const reportActionsErrors = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsList);
+                const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActionsList);
+
                 acc[report.reportID] = {
                     reportName: generateReportName(report),
+                    reportErrors,
+                    reportActionsErrors,
+                    hasAnyViolations,
+                    hasViolationsToDisplayInLHN,
+                    oneTransactionThreadReportID,
                 };
 
                 return acc;
