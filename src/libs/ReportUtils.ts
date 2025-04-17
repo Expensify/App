@@ -1056,7 +1056,9 @@ Onyx.connect({
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 Onyx.connect({
     key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
-    callback: (value) => (onboardingCompanySize = value),
+    callback: (value) => {
+        onboardingCompanySize = value;
+    },
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -9523,6 +9525,7 @@ function prepareOnboardingOnyxData(
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
+    companySize?: OnboardingCompanySize,
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -9571,7 +9574,7 @@ function prepareOnboardingOnyxData(
 
     const onboardingTaskParams = {
         integrationName,
-        onboardingCompanySize,
+        onboardingCompanySize: companySize ?? onboardingCompanySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
