@@ -46,9 +46,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         reports: [],
         personalDetails: [],
     });
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
@@ -72,8 +71,9 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
 
             return newOptions;
         });
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [reports, reportNameValuePairs, preferredLocale]);
+
+        // eslint-disable-next-line react-compiler/react-compiler
+    }, [reports, personalDetails, preferredLocale]);
 
     /**
      * This effect is used to update the options list when personal details change.
@@ -182,14 +182,15 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized) {
+        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
 
     return {
         initializeOptions,
@@ -201,4 +202,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsListContext, useOptionsList, OptionsListContext};
+export {useOptionsList, OptionsListContext};

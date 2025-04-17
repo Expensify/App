@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import {exec} from 'child_process';
 import {app, BrowserWindow, clipboard, dialog, ipcMain, Menu, shell} from 'electron';
 import type {BaseWindow, BrowserView, MenuItem, MenuItemConstructorOptions, WebContents, WebviewTag} from 'electron';
@@ -128,6 +127,7 @@ process.argv.forEach((arg) => {
 let hasUpdate = false;
 let downloadedVersion: string;
 let isSilentUpdating = false;
+let isUpdateInProgress = false;
 
 // Note that we have to subscribe to this separately and cannot use translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
@@ -144,10 +144,26 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
-const verifyAndInstallLatestVersion = (): void => {
+const verifyAndInstallLatestVersion = (browserWindow: BrowserWindow): void => {
+    if (!browserWindow || browserWindow.isDestroyed()) {
+        return;
+    }
+
+    // Prevent multiple simultaneous updates
+    if (isUpdateInProgress) {
+        return;
+    }
+
+    isUpdateInProgress = true;
+
     autoUpdater
         .checkForUpdates()
         .then((result) => {
+            if (!browserWindow || browserWindow.isDestroyed()) {
+                isUpdateInProgress = false;
+                return;
+            }
+
             if (result?.updateInfo.version === downloadedVersion) {
                 return quitAndInstallWithUpdate();
             }
@@ -158,16 +174,27 @@ const verifyAndInstallLatestVersion = (): void => {
         })
         .catch((error) => {
             log.error('Error during update check or download:', error);
+        })
+        .finally(() => {
+            isUpdateInProgress = false;
         });
 };
 
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
+    // Prevent multiple simultaneous updates
+    if (isUpdateInProgress) {
+        return;
+    }
+
     if (menuItem) {
         // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
+
+    isUpdateInProgress = true;
+
     autoUpdater
         .checkForUpdates()
         .catch((error: unknown) => {
@@ -210,6 +237,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
         })
         .finally(() => {
             isSilentUpdating = false;
+            isUpdateInProgress = false;
             if (!menuItem) {
                 return;
             }
@@ -245,12 +273,12 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                verifyAndInstallLatestVersion();
+                verifyAndInstallLatestVersion(browserWindow);
             }
         });
 
         ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
-            verifyAndInstallLatestVersion();
+            verifyAndInstallLatestVersion(browserWindow);
         });
         autoUpdater.checkForUpdates();
     },
@@ -282,7 +310,6 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
@@ -398,7 +425,7 @@ const mainWindow = (): Promise<void> => {
                             {
                                 id: 'update',
                                 label: translate(preferredLocale, `desktopApplicationMenu.update`),
-                                click: verifyAndInstallLatestVersion,
+                                click: () => verifyAndInstallLatestVersion(browserWindow),
                                 visible: false,
                             },
                             {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
@@ -633,6 +660,12 @@ const mainWindow = (): Promise<void> => {
                     if (__DEV__) {
                         app.removeAsDefaultProtocolClient(appProtocol);
                     }
+
+                    // Clean up update listeners and reset flags
+                    autoUpdater.removeAllListeners();
+                    isUpdateInProgress = false;
+                    isSilentUpdating = false;
+
                     quitting = true;
                 });
                 app.on('activate', () => {
