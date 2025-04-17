@@ -258,6 +258,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                             <SearchInputSelectionWrapper
                                 value={textInputValue}
                                 substitutionMap={autocompleteSubstitutions}
+                                selection={selection}
                                 onSearchQueryChange={onSearchQueryChange}
                                 isFullWidth
                                 onSubmit={() => {
@@ -291,7 +292,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                                 autocompleteQueryValue={autocompleteQueryValue}
                                 searchQueryItem={searchQueryItem}
                                 onListItemPress={onListItemPress}
-                                setTextQuery={setTextInputValue}
+                                setTextQuery={setTextAndUpdateSelection}
                                 updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
                                 ref={listRef}
                             />
