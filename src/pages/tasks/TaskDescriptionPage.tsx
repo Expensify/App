@@ -73,7 +73,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     const isOpen = isOpenTaskReport(report);
-    const [isReportArchived] = useReportIsArchived(report?.reportID);
+    const isReportArchived = useReportIsArchived(report?.reportID);
     const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, undefined, isReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
 

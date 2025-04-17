@@ -3,10 +3,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import useOnyx from './useOnyx';
 
-function useReportIsArchived(reportID?: string): [boolean] {
+function useReportIsArchived(reportID?: string): boolean {
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID ?? CONST.DEFAULT_NUMBER_ID}`);
     const isReportArchived = isArchivedReport(reportNameValuePairs);
-    return [isReportArchived];
+    return isReportArchived;
 }
 
 export default useReportIsArchived;

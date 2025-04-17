@@ -111,7 +111,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [isReportArchived] = useReportIsArchived(viewTourTaskReport?.parentReportID);
+    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
     const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, undefined, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
