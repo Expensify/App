@@ -1,4 +1,4 @@
-import Onyx from 'react-native-onyx';
+import Onyx, { OnyxUpdate } from 'react-native-onyx';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
@@ -64,6 +64,7 @@ function flushOnyxUpdatesQueue() {
     return flushQueue();
 }
 
+let queueFlushedDataToStore: OnyxUpdate[] = [];
 /**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
@@ -108,6 +109,10 @@ function process(): Promise<void> {
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
+            if (requestToProcess.queueFlushedData) {
+                queueFlushedDataToStore.push(...requestToProcess.queueFlushedData);
+            }
+        
             sequentialQueueRequestThrottle.clear();
             return process();
         })
@@ -142,7 +147,7 @@ function process(): Promise<void> {
  * Resetting can cause unresolved READ requests to hang if tied to the old promise,
  * so some cases (e.g., unpausing) require skipping the reset to maintain proper behavior.
  */
-function flush(shouldResetPromise = true, request?: OnyxRequest) {
+function flush(shouldResetPromise = true) {
     // When the queue is paused, return early. This will keep an requests in the queue and they will get flushed again when the queue is unpaused
     if (isQueuePaused) {
         Log.info('[SequentialQueue] Unable to flush. Queue is paused.');
@@ -194,10 +199,14 @@ function flush(shouldResetPromise = true, request?: OnyxRequest) {
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
                 if (getAllPersistedRequests().length === 0) {
                     flushOnyxUpdatesQueue()?.then(() => {
-                        if (!request?.queueFlushedData) {
+                        if (queueFlushedDataToStore.length === 0) {
                             return;
                         }
-                        Onyx.update(request?.queueFlushedData);
+                        Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedDataToStore});
+                        Onyx.update(queueFlushedDataToStore).then(() => {
+                            Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {queueFlushedDataToStore});
+                        });
+                        queueFlushedDataToStore.length = 0;
                     });
                 }
             });
@@ -278,11 +287,11 @@ function push(newRequest: OnyxRequest) {
 
     // If the queue is running this request will run once it has finished processing the current batch
     if (isSequentialQueueRunning) {
-        isReadyPromise.then(() => flush(true, newRequest));
+        isReadyPromise.then(() => flush(true));
         return;
     }
 
-    flush(true, newRequest);
+    flush(true);
 }
 
 function getCurrentRequest(): Promise<void> {
