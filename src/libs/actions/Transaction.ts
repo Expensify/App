@@ -85,34 +85,6 @@ Onyx.connect({
     callback: (val) => (allTransactionViolations = val ?? []),
 });
 
-function createInitialWaypoints(transactionID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints: {
-                waypoint0: {},
-                waypoint1: {},
-            },
-        },
-    });
-}
-
-/**
- * Add a stop to the transaction
- */
-function addStop(transactionID: string) {
-    const transaction = allTransactions?.[transactionID] ?? {};
-    const existingWaypoints = transaction?.comment?.waypoints ?? {};
-    const newLastIndex = Object.keys(existingWaypoints).length;
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        comment: {
-            waypoints: {
-                [`waypoint${newLastIndex}`]: {},
-            },
-        },
-    });
-}
-
 function saveWaypoint(transactionID: string, index: string, waypoint: RecentWaypoint | null, isDraft = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
         comment: {
@@ -855,8 +827,6 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 }
 
 export {
-    addStop,
-    createInitialWaypoints,
     saveWaypoint,
     removeWaypoint,
     getRoute,

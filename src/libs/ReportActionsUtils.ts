@@ -2229,9 +2229,10 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translateLocal('newRoomPage.renamedRoomAction', {
+        actorName,
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });

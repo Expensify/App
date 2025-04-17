@@ -1,10 +1,8 @@
 import type {Component} from 'react';
 import type {AnimatedRef} from 'react-native-reanimated';
 import {dispatchCommand} from 'react-native-reanimated';
-import type {AccessibilityRoleForm, NewPasswordAutocompleteType, PasswordAutocompleteType} from './types';
+import type AccessibilityRoleForm from './types';
 
-const PASSWORD_AUTOCOMPLETE_TYPE: PasswordAutocompleteType = 'password';
-const NEW_PASSWORD_AUTOCOMPLETE_TYPE: NewPasswordAutocompleteType = 'password-new';
 const ACCESSIBILITY_ROLE_FORM: AccessibilityRoleForm = 'none';
 
 /**
@@ -17,4 +15,4 @@ function forceClearInput(animatedInputRef: AnimatedRef<Component>) {
     dispatchCommand(animatedInputRef, 'clear');
 }
 
-export {PASSWORD_AUTOCOMPLETE_TYPE, ACCESSIBILITY_ROLE_FORM, NEW_PASSWORD_AUTOCOMPLETE_TYPE, forceClearInput};
+export {ACCESSIBILITY_ROLE_FORM, forceClearInput};
