@@ -21,6 +21,16 @@ type OpenReportParams = {
      * If this flag is set to true, api will return oldest first starting from the beginning of report.
      */
     useTableReportView?: boolean;
+    /**
+     * The ID of the unreported transaction to create a thread for.
+     * Used when displaying unreported expenses that have no transaction thread associated with them.
+     */
+    transactionID?: string;
+    /**
+     * The ID of the report action to create for an unreported transaction thread.
+     * Used when we need to create a money request report action on the selfDM for an unreported expense.
+     */
+    moneyRequestPreviewReportActionID?: string;
 };
 
 export default OpenReportParams;
