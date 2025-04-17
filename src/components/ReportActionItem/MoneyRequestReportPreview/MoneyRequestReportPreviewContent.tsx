@@ -82,7 +82,7 @@ const checkIfReportNameOverflows = <T extends LayoutChangeEvent>({nativeEvent}: 
     'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h70 : false;
 
 // Do not remove this empty view, it is a workaround for the icon padding at the end of the preview text
-const FixIconPadding = <View style={{height: variables.iconSizeNormal}}/>;
+const FixIconPadding = <View style={{height: variables.iconSizeNormal}} />;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
