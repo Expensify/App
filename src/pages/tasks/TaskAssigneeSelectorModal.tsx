@@ -17,6 +17,7 @@ import withNavigationTransitionEnd from '@components/withNavigationTransitionEnd
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {searchInServer} from '@libs/actions/Report';
 import {canModifyTask, editTaskAssignee, setAssigneeValue} from '@libs/actions/Task';
@@ -200,7 +201,8 @@ function TaskAssigneeSelectorModal() {
     const handleBackButtonPress = useCallback(() => Navigation.goBack(!route.params?.reportID ? ROUTES.NEW_TASK.getRoute(backTo) : backTo), [route.params, backTo]);
 
     const isOpen = isOpenTaskReport(report);
-    const canModifyTaskValue = canModifyTask(report, currentUserPersonalDetails.accountID);
+    const [isReportArchived] = useReportIsArchived(report?.parentReportID);
+    const canModifyTaskValue = canModifyTask(report, currentUserPersonalDetails.accountID, undefined, isReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canModifyTaskValue || !isOpen);
 
     useEffect(() => {
