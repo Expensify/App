@@ -32,7 +32,7 @@ jobs:
 
       - name: Verify repository
         run: |
-          if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ] && [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]; then
+          if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ] && [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify-Test-Fork" ]; then
             echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
@@ -142,7 +142,7 @@ jobs:
         id: cherryPick
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify-Test-Fork" ]]; then
             cd Mobile-Expensify
           fi
 
@@ -157,7 +157,7 @@ jobs:
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
           fi
 
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify-Test-Fork" ]]; then
             cd ..
           fi
 
@@ -167,7 +167,7 @@ jobs:
             git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
             git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
-            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
+            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify-Test-Fork" ]]; then
               # Push Mobile-Expensify changes first
               cd Mobile-Expensify
               git push origin staging
