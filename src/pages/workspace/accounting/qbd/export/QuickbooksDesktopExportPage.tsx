@@ -8,7 +8,7 @@ import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
-import replaceCompanyCardsRoute from '@navigation/helpers/replaceCompanyCardsRoute';
+import goBackFromExportConnection from '@navigation/helpers/goBackFromExportConnection';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -28,14 +28,13 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const errorFields = qbdConfig?.errorFields;
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_EXPORT>>();
     const backTo = route?.params?.backTo;
-    const feature = CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards;
 
     const shouldShowVendorMenuItems = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL,
         [qbdConfig?.export?.nonReimbursable],
     );
 
-    const shouldShowCheckMenuItems = useMemo(
+    const shouldGoBackToSpecificRoute = useMemo(
         () => qbdConfig?.export?.nonReimbursable === CONST.QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK,
         [qbdConfig?.export?.nonReimbursable],
     );
@@ -43,13 +42,8 @@ function QuickbooksDesktopExportPage({policy}: WithPolicyConnectionsProps) {
     const activeRoute = Navigation.getActiveRoute();
 
     const goBack = useCallback(() => {
-        if (!(shouldShowCheckMenuItems && backTo?.includes(feature.alias))) {
-            return Navigation.goBack();
-        }
-        // If user changed nonReimbursable to check - we should move user directly to card detail page instead of moving back to select accounts screen
-        const companyCardDetailsPage = replaceCompanyCardsRoute(backTo);
-        return Navigation.goBack(companyCardDetailsPage);
-    }, [backTo, feature.alias, shouldShowCheckMenuItems]);
+        return goBackFromExportConnection(shouldGoBackToSpecificRoute, backTo);
+    }, [backTo, shouldGoBackToSpecificRoute]);
 
     const menuItems = [
         {
