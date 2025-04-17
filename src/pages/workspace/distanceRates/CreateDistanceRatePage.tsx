@@ -65,7 +65,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={CreateDistanceRatePage.displayName}
                 shouldEnableMaxHeight
@@ -82,6 +82,7 @@ function CreateDistanceRatePage({route}: CreateDistanceRatePageProps) {
                         shouldHideFixErrorsAlert
                         submitFlexEnabled={false}
                         submitButtonStyles={[styles.mh5, styles.mt0]}
+                        addBottomSafeAreaPadding
                     >
                         <InputWrapperWithRef
                             InputComponent={AmountForm}
