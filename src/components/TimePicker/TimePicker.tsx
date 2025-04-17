@@ -126,7 +126,7 @@ function TimePicker(
     ref: ForwardedRef<TimePickerRef>,
 ) {
     const {numberFormat, translate} = useLocalize();
-    const {shouldUseNarrowLayout, isExtraSmallScreenHeight} = useResponsiveLayout();
+    const {isExtraSmallScreenHeight} = useResponsiveLayout();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
@@ -765,7 +765,7 @@ function TimePicker(
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb6]}
+                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
@@ -861,18 +861,18 @@ function TimePicker(
                         </>
                     )}
                 </View>
-                {!shouldUseNarrowLayout && renderedAmPmButtons}
+                {!canUseTouchScreen && renderedAmPmButtons}
             </View>
-            {shouldUseNarrowLayout && renderedAmPmButtons}
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
                     message={errorMessage}
-                    style={[styles.ph5, styles.formHelperMessage]}
+                    style={[styles.ph5, styles.formHelperMessage, canUseTouchScreen && styles.mb5]}
                 />
             ) : (
-                <View style={[styles.formHelperMessage]} />
+                <View style={[styles.formHelperMessage, canUseTouchScreen && styles.mb5]} />
             )}
+            {canUseTouchScreen && renderedAmPmButtons}
             <View
                 style={[styles.numberPadWrapper, styles.pb4]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}

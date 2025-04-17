@@ -4874,6 +4874,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'center',
+            marginBottom: 8,
         },
         selectionListRadioSeparator: {
             height: StyleSheet.hairlineWidth,
@@ -4928,8 +4929,8 @@ const styles = (theme: ThemeColors) =>
         },
         formHelperMessage: {
             height: 32,
-            marginBottom: 8,
-            marginTop: 20,
+            marginTop: 0,
+            marginBottom: 0,
         },
         timePickerInputExtraSmall: {
             fontSize: 50,
