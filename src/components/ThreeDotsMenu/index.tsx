@@ -62,7 +62,7 @@ function ThreeDotsMenu({
         setPopupMenuVisible(false);
     };
 
-    useImperativeHandle(threeDotsMenuRef, () => ({
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
         isPopupMenuVisible,
         hidePopoverMenu,
     }));
