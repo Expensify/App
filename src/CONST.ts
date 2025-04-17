@@ -5160,6 +5160,7 @@ const CONST = {
             VIDEO_URL: `${CLOUDFRONT_URL}/videos/guided-setup-track-business-v2.mp4`,
             LEARN_MORE_LINK: `${USE_EXPENSIFY_URL}/track-expenses`,
         },
+        TEST_DRIVE_COVER_ASPECT_RATIO: 500 / 300,
     },
 
     /**
@@ -5615,6 +5616,9 @@ const CONST = {
             DEBUG: 'DEBUG',
         },
     },
+
+    // We need to store this server side error in order to not show the blocking screen when the error is for invalid code
+    MERGE_ACCOUNT_INVALID_CODE_ERROR: '401 Not authorized - Invalid validateCode',
     REIMBURSEMENT_ACCOUNT: {
         DEFAULT_DATA: {
             achData: {
