@@ -44,6 +44,7 @@ import * as ReportActionContextMenu from './pages/home/report/ContextMenu/Report
 import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
+import { isSafari } from '@libs/Browser';
 
 Onyx.registerLogger(({level, message}) => {
     if (level === 'alert') {
@@ -124,9 +125,7 @@ function Expensify() {
         // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
         // Events are flushed only when the tab becomes active again causing issues with client initialization.
         // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
-        const isAppleDevice = /iPhone|iPad/.test(navigator.userAgent);
-        const isWeb = Platform.OS === 'web';
-        setTimeout(ActiveClientManager.init, isAppleDevice && isWeb ? 400 : 0);
+        setTimeout(ActiveClientManager.init, isSafari() ? 400 : 0);
     };
 
     const setNavigationReady = useCallback(() => {
