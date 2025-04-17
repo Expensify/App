@@ -138,6 +138,7 @@ export default {
     emptyListIconHeight: 144,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
+    twoFAIconHeight: 140,
     modalTopMediumIconHeight: 203,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
