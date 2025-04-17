@@ -870,8 +870,8 @@ function getCurrentSearchQueryJSON() {
         return;
     }
 
-    const {q} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
-    const queryJSON = buildSearchQueryJSON(q);
+    const {q: searchParams} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    const queryJSON = buildSearchQueryJSON(searchParams);
     if (!queryJSON) {
         return;
     }
