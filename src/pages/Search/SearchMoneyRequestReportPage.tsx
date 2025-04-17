@@ -88,7 +88,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <ActionListContext.Provider value={actionListValue}>
-                <ReactionListContext.Provider value={reactionListRef}>
+                <ReactionListWrapper>
                     <ScreenWrapper
                         testID={SearchMoneyRequestReportPage.displayName}
                         shouldEnableMaxHeight
@@ -113,7 +113,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             />
                         </FullPageNotFoundView>
                     </ScreenWrapper>
-                </ReactionListContext.Provider>
+                </ReactionListWrapper>
             </ActionListContext.Provider>
         );
     }
