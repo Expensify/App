@@ -1,5 +1,5 @@
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -125,7 +125,7 @@ function AccountValidatePage() {
     }, [navigation]);
 
     const authenticationErrorKey = getAuthenticationErrorKey(latestError);
-    const validateCodeError = !errorPage && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : null;
+    const validateCodeError = !errorPage && authenticationErrorKey ? {authError: translate(authenticationErrorKey)} : undefined;
 
     return (
         <ScreenWrapper
