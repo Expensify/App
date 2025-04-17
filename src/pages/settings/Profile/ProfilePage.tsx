@@ -26,7 +26,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import {getFullSizeAvatar, getLoginListBrickRoadIndicator, isDefaultAvatar} from '@libs/UserUtils';
 import {clearAvatarErrors, deleteAvatar, updateAvatar} from '@userActions/PersonalDetails';
@@ -48,7 +48,7 @@ function ProfilePage() {
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
     const [privatePersonalDetails] = useOnyx(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
+    const route = useRoute<PlatformStackRouteProp<SettingsSplitNavigatorParamList, typeof SCREENS.SETTINGS.PROFILE.ROOT>>();
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
     const getPronouns = (): string => {
