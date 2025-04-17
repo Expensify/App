@@ -4,6 +4,7 @@ import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
@@ -12,6 +13,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidDate, isValidPastDate} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 const COMPANY_INCORPORATION_DATE_KEY = INPUT_IDS.BUSINESS_INFO_STEP.INCORPORATION_DATE;
 const STEP_FIELDS = [COMPANY_INCORPORATION_DATE_KEY];
@@ -20,7 +22,8 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
     const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
 
     const validate = useCallback(
@@ -46,6 +49,10 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
         shouldSaveDraft: isEditing,
     });
 
+    if (isLoadingReimbursementAccount) {
+        return <FullScreenLoadingIndicator />;
+    }
+
     return (
         <FormProvider
             formID={ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM}
@@ -66,6 +73,7 @@ function IncorporationDateBusiness({onNext, isEditing}: SubStepProps) {
                 defaultValue={defaultCompanyIncorporationDate}
                 shouldSaveDraft={!isEditing}
                 maxDate={new Date()}
+                autoFocus
             />
         </FormProvider>
     );

@@ -28,6 +28,8 @@ function MoneyRequestReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    shouldDisplayContextMenu = true,
+    isInvoice = false,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -65,7 +67,7 @@ function MoneyRequestReportPreview({
             isHovered={isHovered}
             iouReportID={iouReportID}
             onPreviewPressed={() => {}}
-            wrapperStyles={reportPreviewStyles.transactionPreviewStyle}
+            wrapperStyle={reportPreviewStyles.transactionPreviewStyle}
             containerStyles={[styles.h100, containerStyles]}
             transactionID={item.transactionID}
         />
@@ -98,6 +100,8 @@ function MoneyRequestReportPreview({
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
             reportPreviewStyles={reportPreviewStyles}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
+            isInvoice={isInvoice}
         />
     );
 }

@@ -103,6 +103,7 @@ function Lottie({source, webStyle, shouldLoadAfterInteractions, ...props}: Props
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             source={animationFile}
+            key={`${hasNavigatedAway}`}
             ref={(ref) => {
                 if (typeof forwardedRef === 'function') {
                     forwardedRef(ref);

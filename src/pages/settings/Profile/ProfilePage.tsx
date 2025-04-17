@@ -152,7 +152,7 @@ function ProfilePage() {
         >
             <HeaderWithBackButton
                 title={translate('common.profile')}
-                onBackButtonPress={() => Navigation.goBack(route.params?.backTo)}
+                onBackButtonPress={() => Navigation.goBack(route.params?.backTo, {shouldPopToTop: true})}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 icon={Illustrations.Profile}
