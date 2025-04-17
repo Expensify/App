@@ -290,7 +290,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
     navatticURL: string;
-    walletLink: string;
+    corporateCardLink: string;
 }>;
 
 type OnboardingTask = {
@@ -5374,7 +5374,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: ({walletLink}) => `Here is a task list I’d recommend for a company of your size with ${walletLink} submitters:`,
+            message: ({corporateCardLink}) => `Here is a task list I’d recommend for a company of your size with ${corporateCardLink} submitters:`,
             tasks: [
                 createWorkspaceTask,
                 selfGuidedTourTask,
@@ -5414,7 +5414,7 @@ const CONST = {
                 },
                 {
                     type: 'connectCorporateCard',
-                    title: ({walletLink}) => `Connect [your corporate card](${walletLink})`,
+                    title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
                     description: () => 'Link your corporate card so transactions flow automatically.',
 
                     autoCompleted: false,
