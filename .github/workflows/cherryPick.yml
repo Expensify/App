@@ -108,7 +108,7 @@ jobs:
           fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
-      - name: Get merge commit for E/App pull request to CP
+      - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
         uses: ./.github/actions/javascript/getPullRequestDetails
         with:

@@ -11,7 +11,7 @@ inputs:
     description: The creator of the pull request
     required: true
   REPO_FULL_NAME:
-    description: The full repository name in the format owner/repo
+    description: The full repository name in the 'owner/repo' format
     required: true
 outputs:
   MERGE_COMMIT_SHA:
