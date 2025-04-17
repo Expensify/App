@@ -63,6 +63,9 @@ type ReportActionItemImageProps = {
 
     /** Callback to be called on pressing the image */
     onPress?: () => void;
+
+    /** Whether the receipt empty state should extend to the full height of the container. */
+    shouldUseFullHeight?: boolean;
 };
 
 /**
@@ -86,6 +89,7 @@ function ReportActionItemImage({
     shouldMapHaveBorderRadius,
     isFromReviewDuplicates = false,
     onPress,
+    shouldUseFullHeight,
 }: ReportActionItemImageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -163,7 +167,12 @@ function ReportActionItemImage({
         );
     }
 
-    return <ReceiptImage {...propsObj} />;
+    return (
+        <ReceiptImage
+            {...propsObj}
+            shouldUseFullHeight={shouldUseFullHeight}
+        />
+    );
 }
 
 ReportActionItemImage.displayName = 'ReportActionItemImage';
