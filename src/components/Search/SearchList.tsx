@@ -290,8 +290,15 @@ function SearchList(
                     onSelectRow={onSelectRow}
                     onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
-                            return;
+                        if (isMobileChrome() && event.nativeEvent) {
+                            if (!event.nativeEvent.sourceCapabilities) {
+                                return;
+                            }
+                            // Ignore the focus if it's caused by a touch event on mobile chrome.
+                            // For example, a long press will trigger a focus event on mobile chrome
+                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                return;
+                            }
                         }
                         setFocusedIndex(index);
                     }}

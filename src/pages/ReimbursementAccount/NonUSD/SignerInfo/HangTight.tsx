@@ -16,7 +16,7 @@ function HangTight({tempSubmit}: {tempSubmit: () => void}) {
     const {paddingBottom: safeAreaInsetPaddingBottom} = useSafeAreaPaddings();
 
     const handleSendReminder = () => {
-        // TODO remove that
+        // TODO this should send a message to the email provided in the previous step
         tempSubmit();
     };
 

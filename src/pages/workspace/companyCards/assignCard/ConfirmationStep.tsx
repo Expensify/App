@@ -47,7 +47,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
         if (!assignCard?.isAssigned) {
             return;
         }
-        Navigation.navigate(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
+        Navigation.goBack(backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID));
         InteractionManager.runAfterInteractions(() => clearAssignCardStepAndData());
     }, [assignCard, backTo, policyID]);
 
