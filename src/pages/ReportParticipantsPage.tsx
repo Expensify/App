@@ -116,14 +116,6 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     const [selectedMembers, setSelectedMembers] = usePersistSelection(personalDetailsParticipants, filterParticipants);
 
-    const selectedMembersAccountIDs = useMemo(
-        () =>
-            Object.keys(selectedMembers)
-                .filter((key) => selectedMembers[key])
-                .map(Number),
-        [selectedMembers],
-    );
-
     const pendingChatMembers = reportMetadata?.pendingChatMembers;
     const reportParticipants = report?.participants;
 
@@ -153,7 +145,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     }, [isFocused, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedMembers({}),
+        onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
             if (!report) {
                 return;
@@ -177,7 +169,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             const pendingChatMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembersAccountIDs.includes(accountID) && canSelectMultiple; // Removed <number> type assertion
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple; // Removed <number> type assertion
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {
@@ -216,23 +208,18 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     /**
      * Add user from the selectedMembers list
      */
-    const addUser = useCallback((accountID: number) => setSelectedMembers((prevSelected) => ({...prevSelected, [accountID]: true})), [setSelectedMembers]);
+    const addUser = useCallback((accountID: number) => setSelectedMembers((prevSelected) => [...prevSelected, accountID]), [setSelectedMembers]);
 
     /**
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const someSelected = enabledAccounts.some((member) => selectedMembersAccountIDs.includes(member.accountID));
+        const someSelected = enabledAccounts.some((member) => selectedMembers.includes(member.accountID));
         if (someSelected) {
-            setSelectedMembers({});
+            setSelectedMembers([]);
         } else {
-            const everyAccountId = enabledAccounts
-                .map((member) => member.accountID)
-                .reduce<Record<number, boolean>>((acc, accountID) => {
-                    acc[accountID] = true;
-                    return acc;
-                }, {});
+            const everyAccountId = enabledAccounts.map((member) => member.accountID);
             setSelectedMembers(everyAccountId);
         }
     };
@@ -242,7 +229,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      */
     const removeUser = useCallback(
         (accountID: number) => {
-            setSelectedMembers((prevSelected) => ({...prevSelected, [accountID]: false}));
+            setSelectedMembers((prevSelected) => prevSelected.filter((id) => id !== accountID));
         },
         [setSelectedMembers],
     );
@@ -260,10 +247,10 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      */
     const removeUsers = () => {
         // Remove the admin from the list
-        const accountIDsToRemove = selectedMembersAccountIDs.filter((id) => id !== currentUserAccountID);
+        const accountIDsToRemove = selectedMembers.filter((id) => id !== currentUserAccountID);
         removeFromGroupChat(report.reportID, accountIDsToRemove);
         setSearchValue('');
-        setSelectedMembers({});
+        setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             clearUserSearchPhrase();
@@ -272,11 +259,11 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
     const changeUserRole = useCallback(
         (role: ValueOf<typeof CONST.REPORT.ROLE>) => {
-            const accountIDsToUpdate = selectedMembersAccountIDs.filter((id) => report.participants?.[id].role !== role);
+            const accountIDsToUpdate = selectedMembers.filter((id) => report.participants?.[id].role !== role);
             updateGroupChatMemberRoles(report.reportID, accountIDsToUpdate, role);
-            setSelectedMembers({});
+            setSelectedMembers([]);
         },
-        [report, selectedMembersAccountIDs, setSelectedMembers],
+        [report, selectedMembers, setSelectedMembers],
     );
 
     /**
@@ -289,13 +276,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (selectedMembersAccountIDs.includes(user.accountID)) {
+            if (selectedMembers.includes(user.accountID)) {
                 removeUser(user.accountID);
             } else {
                 addUser(user.accountID);
             }
         },
-        [selectedMembersAccountIDs, addUser, removeUser, currentUserAccountID],
+        [selectedMembers, addUser, removeUser, currentUserAccountID],
     );
 
     const customListHeader = useMemo(() => {
@@ -322,14 +309,14 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle', {count: selectedMembersAccountIDs.length}),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
         ];
 
-        const isAtleastOneAdminSelected = selectedMembersAccountIDs.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
+        const isAtleastOneAdminSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.ADMIN);
 
         if (isAtleastOneAdminSelected) {
             options.push({
@@ -340,7 +327,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             });
         }
 
-        const isAtleastOneMemberSelected = selectedMembersAccountIDs.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
+        const isAtleastOneMemberSelected = selectedMembers.some((accountId) => report.participants?.[accountId]?.role === CONST.REPORT.ROLE.MEMBER);
 
         if (isAtleastOneMemberSelected) {
             options.push({
@@ -352,7 +339,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         }
 
         return options;
-    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembersAccountIDs, report.participants]);
+    }, [changeUserRole, translate, setRemoveMembersConfirmModalVisible, selectedMembers, report.participants]);
 
     const headerButtons = useMemo(() => {
         if (!isGroupChat) {
@@ -361,17 +348,17 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
 
         return (
             <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedMembersAccountIDs.length > 0) ? (
+                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                     <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {count: selectedMembersAccountIDs.length})}
+                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         isSplitButton={false}
                         options={bulkActionsButtonOptions}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                        isDisabled={!selectedMembersAccountIDs.length}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
@@ -385,7 +372,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembersAccountIDs, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, isGroupChat, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the member details page */
     const openMemberDetails = useCallback(
@@ -424,7 +411,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                     title={selectionModeHeader ? translate('common.selectMultiple') : headerTitle}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedMembers({});
+                            setSelectedMembers([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -439,13 +426,13 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
                     danger
-                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembersAccountIDs.length})}
+                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('workspace.people.removeMembersPrompt', {
-                        count: selectedMembersAccountIDs.length,
-                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembersAccountIDs, currentUserAccountID}).at(0)?.displayName ?? ''),
+                        count: selectedMembers.length,
+                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}

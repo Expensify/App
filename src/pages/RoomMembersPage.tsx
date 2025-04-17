@@ -97,14 +97,6 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
 
     const [selectedMembers, setSelectedMembers] = usePersistSelection(personalDetailsParticipants, shouldIncludeMember);
 
-    const selectedMembersAccountIDs = useMemo(
-        () =>
-            Object.keys(selectedMembers)
-                .filter((accountID) => selectedMembers[accountID])
-                .map(Number),
-        [selectedMembers],
-    );
-
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();
 
@@ -148,10 +140,10 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
      */
     const removeUsers = () => {
         if (report) {
-            removeFromRoom(report.reportID, selectedMembersAccountIDs);
+            removeFromRoom(report.reportID, selectedMembers);
         }
         setSearchValue('');
-        setSelectedMembers({});
+        setSelectedMembers([]);
         setRemoveMembersConfirmModalVisible(false);
         InteractionManager.runAfterInteractions(() => {
             clearUserSearchPhrase();
@@ -163,7 +155,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
      */
     const addUser = useCallback(
         (accountID: number) => {
-            setSelectedMembers((prevSelected) => ({...prevSelected, [accountID]: true}));
+            setSelectedMembers((prevSelected) => [...prevSelected, accountID]);
         },
         [setSelectedMembers],
     );
@@ -173,7 +165,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
      */
     const removeUser = useCallback(
         (accountID: number) => {
-            setSelectedMembers((prevSelected) => ({...prevSelected, [accountID]: false}));
+            setSelectedMembers((prevSelected) => prevSelected.filter((id) => id !== accountID));
         },
         [setSelectedMembers],
     );
@@ -186,13 +178,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             }
 
             // Add or remove the user if the checkbox is enabled
-            if (selectedMembersAccountIDs.includes(accountID)) {
+            if (selectedMembers.includes(accountID)) {
                 removeUser(accountID);
             } else {
                 addUser(accountID);
             }
         },
-        [selectedMembersAccountIDs, addUser, removeUser],
+        [selectedMembers, addUser, removeUser],
     );
 
     /** Add or remove all users passed from the selectedMembers list */
@@ -202,19 +194,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             if (!member.accountID) {
                 return false;
             }
-            return selectedMembersAccountIDs.includes(member.accountID);
+            return selectedMembers.includes(member.accountID);
         });
 
         if (someSelected) {
-            setSelectedMembers({});
+            setSelectedMembers([]);
         } else {
-            const everyAccountId = enabledAccounts
-                .map((member) => member.accountID)
-                .filter((accountID): accountID is number => !!accountID)
-                .reduce<Record<number, boolean>>((acc, accountID) => {
-                    acc[accountID] = true;
-                    return acc;
-                }, {});
+            const everyAccountId = enabledAccounts.map((member) => member.accountID).filter((accountID): accountID is number => !!accountID);
             setSelectedMembers(everyAccountId);
         }
     };
@@ -257,7 +243,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     }, [isFocusedScreen, setSearchValue, shouldShowTextInput, userSearchPhrase]);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedMembers({}),
+        onClearSelection: () => setSelectedMembers([]),
         onNavigationCallBack: () => {
             setSearchValue('');
             Navigation.goBack(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID, backTo));
@@ -286,7 +272,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
             result.push({
                 keyForList: String(accountID),
                 accountID,
-                isSelected: selectedMembersAccountIDs.includes(accountID),
+                isSelected: selectedMembers.includes(accountID),
                 isDisabled,
                 isDisabledCheckbox,
                 text: formatPhoneNumber(getDisplayNameOrDefault(details)),
@@ -316,7 +302,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         report.ownerAccountID,
         reportMetadata?.pendingChatMembers,
         searchValue,
-        selectedMembersAccountIDs,
+        selectedMembers,
         session?.accountID,
     ]);
 
@@ -339,29 +325,29 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle', {count: selectedMembersAccountIDs.length}),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedMembers.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: RemoveMembers,
                 onSelected: () => setRemoveMembersConfirmModalVisible(true),
             },
         ];
         return options;
-    }, [translate, selectedMembersAccountIDs.length]);
+    }, [translate, selectedMembers.length]);
 
     const headerButtons = useMemo(() => {
         return (
             <View style={styles.w100}>
-                {(isSmallScreenWidth ? canSelectMultiple : selectedMembersAccountIDs.length > 0) ? (
+                {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                     <ButtonWithDropdownMenu<RoomMemberBulkActionType>
                         shouldAlwaysShowDropdownMenu
                         pressOnEnter
-                        customText={translate('workspace.common.selected', {count: selectedMembersAccountIDs.length})}
+                        customText={translate('workspace.common.selected', {count: selectedMembers.length})}
                         buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
                         onPress={() => null}
                         options={bulkActionsButtonOptions}
                         isSplitButton={false}
                         style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                        isDisabled={!selectedMembersAccountIDs.length}
+                        isDisabled={!selectedMembers.length}
                     />
                 ) : (
                     <Button
@@ -375,7 +361,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 )}
             </View>
         );
-    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembersAccountIDs, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
+    }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers, styles, translate, canSelectMultiple, shouldUseNarrowLayout]);
 
     /** Opens the room member details page */
     const openRoomMemberDetails = useCallback(
@@ -424,7 +410,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                     subtitle={StringUtils.lineBreaksToSpaces(getReportName(report))}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedMembers({});
+                            setSelectedMembers([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -436,13 +422,13 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 <ConfirmModal
                     danger
-                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembersAccountIDs.length})}
+                    title={translate('workspace.people.removeMembersTitle', {count: selectedMembers.length})}
                     isVisible={removeMembersConfirmModalVisible}
                     onConfirm={removeUsers}
                     onCancel={() => setRemoveMembersConfirmModalVisible(false)}
                     prompt={translate('roomMembersPage.removeMembersPrompt', {
-                        count: selectedMembersAccountIDs.length,
-                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembersAccountIDs, currentUserAccountID}).at(0)?.displayName ?? ''),
+                        count: selectedMembers.length,
+                        memberName: formatPhoneNumber(getPersonalDetailsByIDs({accountIDs: selectedMembers, currentUserAccountID}).at(0)?.displayName ?? ''),
                     })}
                     confirmText={translate('common.remove')}
                     cancelText={translate('common.cancel')}

@@ -102,11 +102,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), [setSelectedCategories]);
+    const cleanupSelectedOption = useCallback(() => setSelectedCategories([]), [setSelectedCategories]);
     useCleanupSelectedOptions(cleanupSelectedOption);
 
     useSearchBackPress({
-        onClearSelection: () => setSelectedCategories({}),
+        onClearSelection: () => setSelectedCategories([]),
         onNavigationCallBack: () => Navigation.goBack(backTo),
     });
 
@@ -129,7 +129,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             acc.push({
                 text: value.name,
                 keyForList: value.name,
-                isSelected: !!selectedCategories[value.name] && canSelectMultiple,
+                isSelected: !!selectedCategories.includes(value.name) && canSelectMultiple,
                 isDisabled,
                 pendingAction: value.pendingAction,
                 errors: value.errors ?? undefined,
@@ -152,11 +152,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const toggleCategory = useCallback(
         (category: PolicyOption) => {
             setSelectedCategories((prev) => {
-                if (prev[category.keyForList]) {
-                    const {[category.keyForList]: omittedCategory, ...newCategories} = prev;
+                if (prev.includes(category.keyForList)) {
+                    const newCategories = prev.filter((key) => key !== category.keyForList);
                     return newCategories;
                 }
-                return {...prev, [category.keyForList]: true};
+                return [...prev, category.keyForList];
             });
         },
         [setSelectedCategories],
@@ -164,8 +164,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const toggleAllCategories = () => {
         const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        const someSelected = availableCategories.some((category) => selectedCategories[category.keyForList]);
-        setSelectedCategories(someSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
+        const someSelected = availableCategories.some((category) => selectedCategories.includes(category.keyForList));
+        setSelectedCategories(someSelected ? [] : availableCategories.map((item) => item.keyForList));
     };
 
     const getCustomListHeader = () => {
@@ -202,11 +202,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         clearCategoryErrors(policyId, item.keyForList);
     };
 
-    const selectedCategoriesArray = Object.keys(selectedCategories).filter((key) => selectedCategories[key]);
-
     const handleDeleteCategories = () => {
-        setSelectedCategories({});
-        deleteWorkspaceCategories(policyId, selectedCategoriesArray);
+        setSelectedCategories([]);
+        deleteWorkspaceCategories(policyId, selectedCategories);
         setDeleteCategoriesConfirmModalVisible(false);
     };
 
@@ -214,19 +212,19 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
 
-        if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
+        if (isSmallScreenWidth ? canSelectMultiple : selectedCategories.length > 0) {
             if (!isThereAnyAccountingConnection) {
                 options.push({
                     icon: Expensicons.Trashcan,
-                    text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
+                    text: translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => setDeleteCategoriesConfirmModalVisible(true),
                 });
             }
 
-            const enabledCategories = selectedCategoriesArray.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
+            const enabledCategories = selectedCategories.filter((categoryName) => policyCategories?.[categoryName]?.enabled);
             if (enabledCategories.length > 0) {
-                const categoriesToDisable = selectedCategoriesArray
+                const categoriesToDisable = selectedCategories
                     .filter((categoryName) => policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -241,15 +239,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
-                        setSelectedCategories({});
+                        setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(policyId, categoriesToDisable);
                     },
                 });
             }
 
-            const disabledCategories = selectedCategoriesArray.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
+            const disabledCategories = selectedCategories.filter((categoryName) => !policyCategories?.[categoryName]?.enabled);
             if (disabledCategories.length > 0) {
-                const categoriesToEnable = selectedCategoriesArray
+                const categoriesToEnable = selectedCategories
                     .filter((categoryName) => !policyCategories?.[categoryName]?.enabled)
                     .reduce<Record<string, {name: string; enabled: boolean}>>((acc, categoryName) => {
                         acc[categoryName] = {
@@ -263,7 +261,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(disabledCategories.length === 1 ? 'workspace.categories.enableCategory' : 'workspace.categories.enableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.ENABLE,
                     onSelected: () => {
-                        setSelectedCategories({});
+                        setSelectedCategories([]);
                         setWorkspaceCategoryEnabled(policyId, categoriesToEnable);
                     },
                 });
@@ -275,11 +273,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldAlwaysShowDropdownMenu
                     pressOnEnter
                     buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedCategoriesArray.length})}
+                    customText={translate('workspace.common.selected', {count: selectedCategories.length})}
                     options={options}
                     isSplitButton={false}
                     style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
-                    isDisabled={!selectedCategoriesArray.length}
+                    isDisabled={!selectedCategories.length}
                     testID={`${WorkspaceCategoriesPage.displayName}-header-dropdown-menu-button`}
                 />
             );
@@ -313,7 +311,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             return;
         }
 
-        setSelectedCategories({});
+        setSelectedCategories([]);
     }, [setSelectedCategories, selectionMode?.isEnabled]);
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
@@ -399,7 +397,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     onBackButtonPress={() => {
                         if (selectionMode?.isEnabled) {
-                            setSelectedCategories({});
+                            setSelectedCategories([]);
                             turnOffMobileSelectionMode();
                             return;
                         }
@@ -422,8 +420,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     isVisible={deleteCategoriesConfirmModalVisible}
                     onConfirm={handleDeleteCategories}
                     onCancel={() => setDeleteCategoriesConfirmModalVisible(false)}
-                    title={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
-                    prompt={translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
+                    title={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories')}
+                    prompt={translate(selectedCategories.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt')}
                     confirmText={translate('common.delete')}
                     cancelText={translate('common.cancel')}
                     danger

@@ -5,17 +5,17 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import useMobileSelectionMode from './useMobileSelectionMode';
 import useResponsiveLayout from './useResponsiveLayout';
 
-type FilterOption<T> = Record<string | number, T>;
+type Option<TValue, TKey extends string | number> = Record<TKey, TValue>;
 
 function isPendingValues<T>(option?: T) {
     if (isEmptyObject(option) || !isObject(option)) {
-        return true;
+        return false;
     }
-    return 'pendingAction' in option && option?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    return !('pendingAction' in option) || option?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 }
 
-function usePersistSelection<T>(options: FilterOption<T> | undefined, filterFn: (option?: T) => boolean = isPendingValues) {
-    const [selectedOptions, setSelectedOptions] = useState<FilterOption<boolean>>({});
+function usePersistSelection<TValue, TKey extends string | number = string>(options: Option<TValue, TKey> | undefined, filterFn: (option?: TValue) => boolean = isPendingValues) {
+    const [selectedOptions, setSelectedOptions] = useState<TKey[]>([]);
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
     const {selectionMode} = useMobileSelectionMode();
@@ -23,24 +23,22 @@ function usePersistSelection<T>(options: FilterOption<T> | undefined, filterFn: 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
     useEffect(() => {
-        if (isEmptyObject(selectedOptions) || !canSelectMultiple) {
+        if (!canSelectMultiple) {
             return;
         }
 
         setSelectedOptions((prevOptions) => {
-            const newSelectedOptions: FilterOption<boolean> = {};
-            Object.keys(prevOptions ?? {}).forEach((key) => {
+            const newSelectedOptions: TKey[] = [];
+            prevOptions.forEach((key) => {
                 if (!filterFn?.(options?.[key])) {
                     return;
                 }
-                newSelectedOptions[key] = prevOptions[key];
+                newSelectedOptions.push(key);
             });
 
             return newSelectedOptions;
         });
-
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [options]);
+    }, [options, canSelectMultiple, filterFn]);
 
     return [selectedOptions, setSelectedOptions] as const;
 }
