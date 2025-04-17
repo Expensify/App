@@ -28,13 +28,16 @@ import {
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 
-function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy) {
+function canSubmit(report: Report, violations: OnyxCollection<TransactionViolation[]>, policy?: Policy, transactions?: Transaction[]) {
     const isExpense = isExpenseReport(report);
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpen = isOpenReport(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const hasAnyViolations =
-        hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
+        hasMissingSmartscanFields(report.reportID, transactions) ||
+        hasViolations(report.reportID, violations) ||
+        hasNoticeTypeViolations(report.reportID, violations, true) ||
+        hasWarningTypeViolations(report.reportID, violations, true);
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasAnyViolations;
 }
 
@@ -44,7 +47,10 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
     const hasAnyViolations =
-        hasViolations(report.reportID, violations) || hasNoticeTypeViolations(report.reportID, violations, true) || hasWarningTypeViolations(report.reportID, violations, true);
+        hasMissingSmartscanFields(report.reportID, transactions) ||
+        hasViolations(report.reportID, violations) ||
+        hasNoticeTypeViolations(report.reportID, violations, true) ||
+        hasWarningTypeViolations(report.reportID, violations, true);
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasAnyViolations && reportTransactions.length > 0;
 }
@@ -141,7 +147,7 @@ function getReportPreviewAction(
     if (!report) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
-    if (canSubmit(report, violations, policy)) {
+    if (canSubmit(report, violations, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, violations, policy, transactions)) {
