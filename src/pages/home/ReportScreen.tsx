@@ -353,8 +353,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(linkedAction?.childReportID, reportID, linkedAction)) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
+        navigation.setParams({reportActionID: ''});
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation]);
 
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         headerView = (
@@ -439,10 +439,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (moneyRequestReportActionID && transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -516,7 +516,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
-        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+        // This function is only triggered when a user is invited to a room after opening the link.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
+        // See https://github.com/Expensify/App/issues/57769 for more details
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
         }
         fetchReport();

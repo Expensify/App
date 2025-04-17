@@ -57,13 +57,13 @@ const SUPPORTED_FOREIGN_CURRENCIES: string[] = [CONST.CURRENCY.EUR, CONST.CURREN
 
 function ReimbursementAccountPage({route, policy, isLoadingPolicy}: ReimbursementAccountPageProps) {
     const session = useSession();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
-    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT);
-    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN);
-    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: true});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: true});
+    const [plaidCurrentEvent = ''] = useOnyx(ONYXKEYS.PLAID_CURRENT_EVENT, {canBeMissing: true});
+    const [onfidoToken = ''] = useOnyx(ONYXKEYS.ONFIDO_TOKEN, {canBeMissing: true});
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const policyName = policy?.name ?? '';
@@ -77,7 +77,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     const policyCurrency = policy?.outputCurrency ?? '';
     const nonUSDCountryDraftValue = reimbursementAccountDraft?.country ?? '';
     const {isDevelopment} = useEnvironment();
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled, canBeMissing: true});
 
     // TODO once nonUSD flow is complete update the flags below to reflect all supported currencies, this will be updated in - https://github.com/Expensify/App/issues/50912
     // TODO remove isDevelopment and isDebugModeEnabled flags once nonUSD flow is complete, this will be updated in - https://github.com/Expensify/App/issues/50912
@@ -180,10 +180,9 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             return;
         }
 
-        // TODO double check condition for non USD accounts - will be done in https://github.com/Expensify/App/issues/50912
-        setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? !!achData?.corpay?.consentToPrivacyNotice : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
+        setShouldShowConnectedVerifiedBankAccount(hasForeignCurrency ? achData?.state === CONST.BANK_ACCOUNT.STATE.OPEN : achData?.currentStep === CONST.BANK_ACCOUNT.STEP.ENABLE);
         setShouldShowContinueSetupButton(shouldShowContinueSetupButtonValue);
-    }, [achData?.corpay?.consentToPrivacyNotice, achData?.currentStep, shouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy]);
+    }, [achData?.currentStep, shouldShowContinueSetupButtonValue, hasForeignCurrency, isPreviousPolicy, achData?.state]);
 
     useEffect(
         () => {
@@ -272,6 +271,10 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
 
         if (achData?.corpay?.signerFullName && achData?.corpay?.authorizedToBindClientToAgreement === undefined) {
             setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.AGREEMENTS);
+        }
+
+        if (achData?.state === CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+            setNonUSDBankAccountStep(CONST.NON_USD_BANK_ACCOUNT.STEP.FINISH);
         }
     };
 

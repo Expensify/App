@@ -1,7 +1,22 @@
-import type {OnyxValue} from 'react-native-onyx';
+import type {OnyxCollection, OnyxValue} from 'react-native-onyx';
 import type {NonEmptyTuple, ValueOf} from 'type-fest';
-import type {OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
+import type {OnyxCollectionKey, OnyxCollectionValuesMapping, OnyxDerivedValuesMapping, OnyxKey} from '@src/ONYXKEYS';
 import type ONYXKEYS from '@src/ONYXKEYS';
+
+type OnyxCollectionSourceValue<K extends OnyxKey> = K extends OnyxCollectionKey
+    ? K extends keyof OnyxCollectionValuesMapping
+        ? OnyxCollection<OnyxCollectionValuesMapping[K]>
+        : never
+    : never;
+
+type DerivedSourceValues<Deps extends readonly OnyxKey[]> = Partial<{
+    [K in Deps[number]]: OnyxCollectionSourceValue<K>;
+}>;
+
+type DerivedValueContext<Key extends OnyxKey, Deps extends NonEmptyTuple<Exclude<OnyxKey, Key>>> = {
+    currentValue?: OnyxValue<Key>;
+    sourceValues?: DerivedSourceValues<Deps>;
+};
 
 /**
  * A derived value configuration describes:
@@ -17,9 +32,8 @@ type OnyxDerivedValueConfig<Key extends ValueOf<typeof ONYXKEYS.DERIVED>, Deps e
         args: {
             [Index in keyof Deps]: OnyxValue<Deps[Index]>;
         },
-        currentValue: OnyxValue<Key>,
+        context: DerivedValueContext<Key, Deps>,
     ) => OnyxDerivedValuesMapping[Key];
 };
 
-// eslint-disable-next-line import/prefer-default-export
-export type {OnyxDerivedValueConfig};
+export type {OnyxDerivedValueConfig, DerivedValueContext};

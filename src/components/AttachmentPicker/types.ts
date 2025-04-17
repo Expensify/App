@@ -8,6 +8,8 @@ type PickerOptions = {
     onPicked: (files: FileObject[]) => void;
     /** A callback that will be called without a selected attachment. */
     onCanceled?: () => void;
+    /** A callback that will be called when the modal was closed regardless of the picked/cancelled  */
+    onClosed?: () => void;
 };
 
 /**

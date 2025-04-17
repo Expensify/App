@@ -11518,7 +11518,6 @@ async function run() {
         }, ({ data }, done) => {
             // For production deploys, look only at other production deploys.
             // staging deploys can be compared with other staging deploys or production deploys.
-            // The reason is that the final staging release in each deploy cycle will BECOME a production release
             const filteredData = isProductionDeploy ? data.filter((release) => !release.prerelease) : data;
             // Release was in the last page, meaning the previous release is the first item in this page
             if (foundCurrentRelease) {
@@ -12025,7 +12024,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const version = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = (issue.body?.match(versionRegex)?.[0] ?? '').replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12038,6 +12037,7 @@ class GithubUtils {
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
                 version,
+                tag: `${version}-staging`,
             };
         }
         catch (exception) {
