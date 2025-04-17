@@ -4,7 +4,9 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {ChatBubble} from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
+import MenuItem from '@components/MenuItem';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
@@ -49,13 +51,12 @@ function Finish() {
                     titleStyles={[styles.mb3, styles.textHeadline]}
                 >
                     <Text style={[styles.mb6, styles.mt3, styles.textLabelSupportingEmptyValue]}>{translate('finishStep.thanksFor')}</Text>
-                    <Button
-                        text={translate('finishStep.iHaveA')}
+                    <MenuItem
+                        icon={ChatBubble}
+                        title={translate('finishStep.iHaveA')}
                         onPress={handleNavigateToConciergeChat}
-                        icon={Expensicons.ChatBubble}
-                        success
-                        large
-                        innerStyles={[styles.h13]}
+                        outerWrapperStyle={shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8}
+                        shouldShowRightIcon
                     />
                 </Section>
                 <Section
