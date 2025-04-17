@@ -11,7 +11,7 @@ import React_RCTAppDelegate
 import ReactAppDependencyProvider
 import ExpoModulesCore
 import Firebase
-
+import Expo
  
 @main
 class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
@@ -29,7 +29,7 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     
     _ = super.application(application, didFinishLaunchingWithOptions: launchOptions)
     
-    if let rootView = self.window.rootViewController?.view as? RCTRootView {
+    if let rootView = self.window?.rootViewController?.view as? RCTRootView {
         RCTBootSplash.initWithStoryboard("BootSplash", rootView: rootView) // <- initialization using the storyboard file name
     }
     
