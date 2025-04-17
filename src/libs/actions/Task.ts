@@ -1220,11 +1220,6 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
  * Check if you're allowed to modify the task - only the author can modify the task
  */
 function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number, isParentReportArchived = false): boolean {
-    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
-    if (ownerAccountID !== sessionAccountID) {
-        return false;
-    }
-
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -1233,11 +1228,8 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    if (sessionAccountID === ownerAccountID) {
-        return true;
-    }
-
-    return false;
+    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    return sessionAccountID === ownerAccountID;
 }
 
 /**
