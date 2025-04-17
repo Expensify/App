@@ -32,8 +32,8 @@ jobs:
 
       - name: Verify repository
         run: |
-          if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ]; then
-            echo "::error::❌ Cherry picks are only supported for the Expensify/App repository. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
+          if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ] && [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]; then
+            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
 
