@@ -904,7 +904,7 @@ const translations = {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
-        approve: 'Aprobar',
+        approve: ({formattedAmount}: {formattedAmount?: string}) => `Aprobar ${formattedAmount}`.trim(),
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',

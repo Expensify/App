@@ -127,7 +127,7 @@ function SettlementButton({
             },
         };
         const approveButtonOption = {
-            text: translate('iou.approve'),
+            text: translate('iou.approve', {formattedAmount}),
             icon: Expensicons.ThumbsUp,
             value: CONST.IOU.REPORT_ACTION_TYPE.APPROVE,
             disabled: !!shouldDisableApproveButton,
