@@ -718,6 +718,9 @@ function peg$parse(input, options) {
                               s1 = peg$parsereimbursable();
                               if (s1 === peg$FAILED) {
                                 s1 = peg$parsebillable();
+                                if (s1 === peg$FAILED) {
+                                  s1 = peg$parsepolicyID();
+                                }
                               }
                             }
                           }

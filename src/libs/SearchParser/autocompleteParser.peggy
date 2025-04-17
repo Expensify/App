@@ -72,6 +72,7 @@ autocompleteKey "key"
       / groupBy
       / reimbursable
       / billable
+      / policyID
     )
 
 filterKey
