@@ -10,9 +10,6 @@ inputs:
   USER:
     description: The creator of the pull request
     required: true
-  REPO_FULL_NAME:
-    description: The full repository name in the 'owner/repo' format
-    required: true
 outputs:
   MERGE_COMMIT_SHA:
     description: 'The merge_commit_sha of the given pull request'

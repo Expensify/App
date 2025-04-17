@@ -11458,8 +11458,6 @@ const ActionUtils_1 = __nccwpck_require__(6981);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const EmptyObject_1 = __nccwpck_require__(8227);
-const repoFullName = core.getInput('REPO_FULL_NAME', { required: true });
-const [owner, repo] = repoFullName.split('/');
 const DEFAULT_PAYLOAD = {
     owner: CONST_1.default.GITHUB_OWNER,
     repo: CONST_1.default.APP_REPO,
@@ -11488,8 +11486,7 @@ function outputMergeActor(PR) {
  * Output forked repo URL if PR includes changes from a fork.
  */
 function outputForkedRepoUrl(PR) {
-    const repoUrl = `https://github.com/${repoFullName}`;
-    if (PR.head?.repo?.html_url === repoUrl) {
+    if (PR.head?.repo?.html_url === CONST_1.default.APP_REPO_URL) {
         core.setOutput('FORKED_REPO_URL', '');
     }
     else {

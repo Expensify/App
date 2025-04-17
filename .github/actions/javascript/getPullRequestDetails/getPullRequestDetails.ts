@@ -6,9 +6,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type PullRequest = Awaited<ReturnType<typeof GithubUtils.octokit.pulls.get>>['data'];
 
-const repoFullName = core.getInput('REPO_FULL_NAME', {required: true});
-const [owner, repo] = repoFullName.split('/');
-
 const DEFAULT_PAYLOAD = {
     owner: CONST.GITHUB_OWNER,
     repo: CONST.APP_REPO,
@@ -41,8 +38,7 @@ function outputMergeActor(PR: PullRequest) {
  * Output forked repo URL if PR includes changes from a fork.
  */
 function outputForkedRepoUrl(PR: PullRequest) {
-    const repoUrl = `https://github.com/${repoFullName}`;
-    if (PR.head?.repo?.html_url === repoUrl) {
+    if (PR.head?.repo?.html_url === CONST.APP_REPO_URL) {
         core.setOutput('FORKED_REPO_URL', '');
     } else {
         core.setOutput('FORKED_REPO_URL', `${PR.head?.repo?.html_url}.git`);
