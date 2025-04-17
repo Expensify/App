@@ -2,19 +2,28 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
+import DecisionModal from '@components/DecisionModal';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -26,6 +35,7 @@ import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
@@ -74,6 +84,10 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
@@ -84,6 +98,9 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext();
+    const {selectionMode} = useMobileSelectionMode();
+
+    const selectedTransactionsOptions = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     useFocusEffect(
         useCallback(() => {
@@ -174,6 +191,49 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     />
                 </View>
             )}
+            {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+                <>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        options={selectedTransactionsOptions}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        wrapperStyle={[styles.w100, styles.ph5]}
+                    />
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pt6, styles.ph8, styles.mbn3]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={selectedTransactionsID.length === transactions.length}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
+                            onPress={() => {
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                        />
+
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={() => {
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            role="button"
+                            accessibilityState={{checked: selectedTransactionsID.length === transactions.length}}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                </>
+            )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && styles.pt4]}>
                 {sortedTransactions.map((transaction) => {
                     return (
@@ -195,6 +255,13 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
                             key={transaction.transactionID}
+                            onLongPress={() => {
+                                if (!displayNarrowVersion) {
+                                    return;
+                                }
+                                setSelectedTransactionID(transaction.transactionID);
+                                setIsModalVisible(true);
+                            }}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
@@ -241,6 +308,33 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     </Text>
                 </View>
             </View>
+            <Modal
+                isVisible={isModalVisible}
+                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                onClose={() => setIsModalVisible(false)}
+                shouldPreventScrollOnFocus
+            >
+                <MenuItem
+                    title={isTransactionSelected(selectedTransactionID) ? translate('common.deselect') : translate('common.select')}
+                    icon={Expensicons.Checkmark}
+                    onPress={() => {
+                        if (!selectionMode?.isEnabled) {
+                            turnOnMobileSelectionMode();
+                        }
+                        toggleTransaction(selectedTransactionID);
+                        setIsModalVisible(false);
+                    }}
+                />
+            </Modal>
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
         </>
     ) : (
         <SearchMoneyRequestReportEmptyState />
