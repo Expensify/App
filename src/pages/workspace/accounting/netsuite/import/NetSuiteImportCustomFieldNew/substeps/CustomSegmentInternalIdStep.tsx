@@ -60,6 +60,7 @@ function CustomSegmentInternalIdStep({customSegmentType, onNext, isEditing, netS
             submitFlexEnabled
             shouldUseScrollView
             shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <View style={styles.ph5}>
                 <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>
