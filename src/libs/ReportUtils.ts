@@ -1123,6 +1123,7 @@ function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Re
 
 /**
  * Returns the report
+ * @deprecated Get the data straight from Onyx
  */
 function getReportNameValuePairs(reportID?: string, reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair): OnyxEntry<ReportNameValuePairs> {
     return reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
