@@ -225,7 +225,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
 
-
+      - name: Add assignees to conflict PRs
         if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
         run: |
           gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
