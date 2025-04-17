@@ -18,7 +18,7 @@ Users have access to these core tools without a paid Expensify plan:
 - **Export expense reports** as spreadsheet or CSV files
 - **Manually enter and edit expenses** in the mobile or web app
 
-**Note:** Features such as [automatic reimbursement](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account), the [Expensify Corporate Card](https://use.expensify.com/company-credit-card), direct connections to [accounting integrations(https://help.expensify.com/new-expensify/hubs/connections/), and [team collaboration](https://help.expensify.com/new-expensify/hubs/chat/) tools require a paid Workspace.
+**Note:** Features such as [automatic reimbursement](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account), the [Expensify Corporate Card](https://use.expensify.com/company-credit-card), direct connections to [accounting integrations](https://help.expensify.com/new-expensify/hubs/connections/), and [team collaboration](https://help.expensify.com/new-expensify/hubs/chat/) tools require a paid Workspace.
 
 ---
 
