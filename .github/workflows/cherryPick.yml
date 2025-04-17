@@ -237,9 +237,9 @@ jobs:
         continue-on-error: true
 
       - name: Label original PR with CP Staging
-        run: gh pr edit ${{  github.event.inputs.PULL_REQUEST_URL }} --add-label 'CP Staging'
+        run: gh pr edit ${{ github.event.inputs.PULL_REQUEST_URL }} --add-label 'CP Staging'
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: "Announces a CP failure in the #announce Slack room"
         # v3
