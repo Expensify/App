@@ -48,7 +48,7 @@ const useFocusEffect = isJestEnv ? realReactNavigation.useFocusEffect : (callbac
 const UNSTABLE_usePreventRemove = isJestEnv ? jest.fn() : () => {};
 
 export {
-    // Overriden modules
+    // Overridden modules
     useIsFocused,
     useTheme,
     useNavigation,

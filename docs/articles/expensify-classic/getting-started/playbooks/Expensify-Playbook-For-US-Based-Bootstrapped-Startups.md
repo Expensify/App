@@ -69,7 +69,7 @@ After linking your business bank account, you’re eligible for the Expensify Ca
 
 To enable the Expensify Card:
 
-1. Click your **avata*r*.
+1. Click your **avatar*r*.
 2. Select **Workspaces**.
 3. Click your workspace.
 4. Select **Cards**.

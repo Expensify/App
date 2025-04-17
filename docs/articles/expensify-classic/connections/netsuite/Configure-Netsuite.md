@@ -60,7 +60,7 @@ This dictates when reimbursable expenses will export, according to your preferre
 
 ## Export Settings for Reimbursable Expenses 
 
-**Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the payables account designated in NetSuite. 
+**Expense Reports:** Expensify transactions will export reimbursable expenses as expense reports by default, which will be posted to the accounts payable designated in NetSuite. 
 
 **Vendor Bills:** Expensify transactions export as vendor bills in NetSuite and are mapped to the subsidiary associated with the corresponding workspace. Each report is posted as payable to the vendor associated with the employee who submitted it. You can also set an approval level in NetSuite for vendor bills.
 
@@ -496,7 +496,7 @@ If you have confirmed that your categories are set as Expense Categories in NetS
 ## What's the difference between a Custom Segment, Custom Record, and Custom List?
 
 - **Custom Record**: This is an entirely customizable record type used to store detailed, structured information not covered by standard NetSuite records (e.g., customers, vendors, and transactions). Unlike Segments, Custom Records are designed to manage standalone data, like tracking projects, assets, or other entities.
-- **Custom Segment**: A custom classification field similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financials. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
+- **Custom Segment**: A custom classification field similar to standard NetSuite segments like Department, Class, or Location. Typically used when you need to categorize transactions, records, or GL entries for reporting purposes or to separate financial. (NetSuite automatically creates a Custom Record behind the scenes to power the segment.)
 - **Custom List**: A static dropdown of predefined values used for simple selections, like **Preferred Contact Method.** Custom Lists are lightweight and don't support complex relationships or GL impacts.
 
 </div>
