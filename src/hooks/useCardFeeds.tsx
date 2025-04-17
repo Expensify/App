@@ -5,6 +5,20 @@ import type {CardFeeds, CompanyCardFeed} from '@src/types/onyx';
 import useOnyx from './useOnyx';
 import useWorkspaceAccountID from './useWorkspaceAccountID';
 
+/**
+ * This is a custom hook that combines workspace and domain card feeds for a given policy.
+ *
+ * This hook:
+ * - Gets all available feeds (ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER) from Onyx.
+ * - Extracts and compiles card feeds data including only feeds where the `preferredPolicy` matches the `policyID`.
+ * - Merges a workspace feed with relevant domain feeds.
+ *
+ * @param policyID - The workspace policyID to filter and construct card feeds for.
+ * @returns -
+ *   A tuple containing:
+ *     1. Card feeds specific to the given policyID (or `undefined` if unavailable).
+ *     2. The result metadata from the Onyx collection fetch.
+ */
 const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
