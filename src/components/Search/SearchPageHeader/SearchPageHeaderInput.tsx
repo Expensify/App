@@ -36,6 +36,7 @@ import {
     buildUserReadableQueryString,
     buildUserReadableQueryStringWithPolicyID,
     getQueryWithUpdatedValues,
+    getQueryWithUpdatedValuesWithoutPolicy,
     isDefaultExpensesQuery,
     isDefaultExpensesQueryWithPolicyIDCheck,
     sanitizeSearchValue,
@@ -121,9 +122,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
-        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+        const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies, canUseLeftHandBar);
         setAutocompleteSubstitutions(substitutionsMap);
-    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates]);
+    }, [cardFeedNamesWithType, allCards, originalInputQuery, personalDetails, reports, taxRates, policies, canUseLeftHandBar]);
 
     useEffect(() => {
         if (searchRouterListVisible) {
@@ -167,7 +168,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
+            const updatedQuery = canUseLeftHandBar ? getQueryWithUpdatedValuesWithoutPolicy(queryWithSubstitutions) : getQueryWithUpdatedValues(queryWithSubstitutions, queryJSON.policyID);
 
             if (!updatedQuery) {
                 return;
@@ -182,7 +183,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID, canUseLeftHandBar],
     );
 
     const onListItemPress = useCallback(

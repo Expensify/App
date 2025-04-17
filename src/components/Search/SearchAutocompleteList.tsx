@@ -13,6 +13,7 @@ import UserListItem from '@components/SelectionList/UserListItem';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useFastSearchFromOptions from '@hooks/useFastSearchFromOptions';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -23,7 +24,7 @@ import memoize from '@libs/memoize';
 import {combineOrderingOfReportsAndPersonalDetails, getSearchOptions, getValidPersonalDetailOptions} from '@libs/OptionsListUtils';
 import type {Options, SearchOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {getAllTaxRates, getCleanedTagName} from '@libs/PolicyUtils';
+import {getAllTaxRates, getCleanedTagName, shouldShowPolicy} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     getAutocompleteCategories,
@@ -150,6 +151,7 @@ function SearchAutocompleteList(
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const taxRates = getAllTaxRates();
+    const {canUseLeftHandBar} = usePermissions();
 
     const {options, areOptionsInitialized} = useOptionsList();
     const searchOptions = useMemo(() => {
@@ -218,6 +220,13 @@ function SearchAutocompleteList(
     const recentCategoriesAutocompleteList = useMemo(() => {
         return getAutocompleteRecentCategories(allRecentCategories, activeWorkspaceID);
     }, [activeWorkspaceID, allRecentCategories]);
+
+    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+
+    const workspaceList = Object.values(policies)
+        .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
+        .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''}));
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired);
@@ -403,6 +412,21 @@ function SearchAutocompleteList(
                     text: value,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+                const filteredPolicies = workspaceList
+                    .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(workspace.name.toLowerCase()))
+                    .sort()
+                    .slice(0, 10);
+
+                return canUseLeftHandBar
+                    ? filteredPolicies.map((workspace) => ({
+                          filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID,
+                          text: workspace.name,
+                          autocompleteID: workspace.id,
+                          mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                      }))
+                    : [];
+            }
             default: {
                 return [];
             }
@@ -419,14 +443,16 @@ function SearchAutocompleteList(
         getParticipantsAutocompleteList,
         searchOptions.recentReports,
         typeAutocompleteList,
+        groupByAutocompleteList,
         statusAutocompleteList,
         expenseTypes,
         feedAutoCompleteList,
         workspaceCardFeeds,
         cardAutocompleteList,
         allCards,
-        groupByAutocompleteList,
         booleanTypes,
+        workspaceList,
+        canUseLeftHandBar,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
