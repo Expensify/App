@@ -189,7 +189,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
     }
 
     if (isWorkspaceSplitNavigator) {
-        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
+        const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
         return getRoutesWithIndex([settingsSplitRoute, ...state.routes]);
     }
 
@@ -204,7 +204,7 @@ function getAdaptedState(state: PartialState<NavigationState<RootNavigatorParamL
             if (matchingRootRoute) {
                 const routes = [matchingRootRoute, ...state.routes];
                 if (matchingRootRoute.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.SETTINGS.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
+                    const settingsSplitRoute = getInitialSplitNavigatorState({name: SCREENS.WORKSPACE_HUB.ROOT}, {name: SCREENS.WORKSPACE_HUB.WORKSPACES});
                     routes.unshift(settingsSplitRoute);
                 }
                 return getRoutesWithIndex(routes);
