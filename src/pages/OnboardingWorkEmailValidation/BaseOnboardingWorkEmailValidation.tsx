@@ -50,13 +50,14 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
         }
-
+        // Once we verify that shouldValidate is false, we need to force replace the screen
+        // so that we don't navigate back on back button press
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues, isVsb, isFocused]);
 
     const sendValidateCode = useCallback(() => {
@@ -126,11 +127,13 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                         handleSkipButtonPress={() => {
                             setOnboardingErrorMessage('');
                             setOnboardingMergeAccountStepValue(true);
+                            // Once we skip the private email step, we need to force replace the screen
+                            // so that we don't navigate back on back button press
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
                                 return;
                             }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
                         }}
                         isLoading={isValidateCodeFormSubmitting}
                         validateError={onboardingErrorMessage ? {invalidCodeError: onboardingErrorMessage} : undefined}
