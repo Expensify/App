@@ -202,7 +202,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         initialValue: [],
     });
 
-    const {removeTransaction} = useMoneyRequestReportContext(report.parentReportID);
+    const {removeTransaction} = useMoneyRequestReportContext();
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
