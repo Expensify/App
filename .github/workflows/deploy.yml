@@ -623,7 +623,7 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
+          # Release asset name should follow the template: fileNameOnRunner#fileNameInRelease
           files="
             ./android-build-artifact/Expensify-release.aab#android.aab
             ./android-apk-artifact/Expensify.apk#android.apk
@@ -638,6 +638,7 @@ jobs:
           "
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
+          # Note: Not all of these files are present for production releases, because we don't build the native apps for prod deploys. That's expected.
           echo -e "$files" | xargs -I {} --max-procs=4 bash -c '
             if gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber {}; then
               echo "✅ Successfully uploaded {}"
