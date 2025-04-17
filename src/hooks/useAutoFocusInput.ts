@@ -14,7 +14,7 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
-export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false, isDisabled = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
 
@@ -24,7 +24,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+        if (isDisabled || !isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
@@ -38,7 +38,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
+    }, [isMultiline, isDisabled, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
 
     useFocusEffect(
         useCallback(() => {

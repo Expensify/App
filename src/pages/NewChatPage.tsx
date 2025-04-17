@@ -1,6 +1,6 @@
 import isEmpty from 'lodash/isEmpty';
 import reject from 'lodash/reject';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
@@ -134,7 +134,12 @@ function useOptions() {
     };
 }
 
-function NewChatPage() {
+type NewChatPageHandle = {
+    selectionList: SelectionListHandle | null;
+};
+
+// @ts-expect-error - props not used
+function NewChatPage(props, ref: React.Ref<NewChatPageHandle>) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -144,6 +149,10 @@ function NewChatPage() {
     const {top} = useSafeAreaInsets();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
+
+    useImperativeHandle(ref, () => ({
+        selectionList: selectionListRef.current,
+    }));
 
     const {headerMessage, searchTerm, debouncedSearchTerm, setSearchTerm, selectedOptions, setSelectedOptions, recentReports, personalDetails, userToInvite, areOptionsInitialized} =
         useOptions();
@@ -367,4 +376,5 @@ function NewChatPage() {
 
 NewChatPage.displayName = 'NewChatPage';
 
-export default NewChatPage;
+export default forwardRef(NewChatPage);
+export type {NewChatPageHandle};

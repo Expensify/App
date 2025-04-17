@@ -1,8 +1,10 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {NativeProps} from 'react-native-pager-view/lib/typescript/specs/PagerViewNativeComponent';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
@@ -13,6 +15,7 @@ import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Nav
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import NewChatPage from './NewChatPage';
+import type {NewChatPageHandle} from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 
 function NewChatSelectorPage() {
@@ -25,6 +28,8 @@ function NewChatSelectorPage() {
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
     const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const chatPageInputRef = useRef<NewChatPageHandle>(null);
+    const roomPageInputRef = useRef<AnimatedTextInputRef>(null);
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
@@ -38,6 +43,16 @@ function NewChatSelectorPage() {
     useEffect(() => {
         setNewRoomFormLoading(false);
     }, []);
+
+    const handleOnPageSelected: NativeProps['onPageSelected'] = (event) => {
+        const {position} = event.nativeEvent;
+        // Chat tab (0) / Room tab (1) according to OnyxTabNavigator (see below)
+        if (position === 0) {
+            chatPageInputRef.current?.selectionList?.focusTextInput();
+        } else if (position === 1) {
+            roomPageInputRef.current?.focus();
+        }
+    };
 
     return (
         <ScreenWrapper
@@ -68,14 +83,14 @@ function NewChatSelectorPage() {
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
                     {() => (
                         <TabScreenWithFocusTrapWrapper>
-                            <NewChatPage />
+                            <NewChatPage ref={chatPageInputRef} />
                         </TabScreenWithFocusTrapWrapper>
                     )}
                 </TopTab.Screen>
                 <TopTab.Screen name={CONST.TAB.NEW_ROOM}>
                     {() => (
                         <TabScreenWithFocusTrapWrapper>
-                            <WorkspaceNewRoomPage />
+                            <WorkspaceNewRoomPage ref={roomPageInputRef} />
                         </TabScreenWithFocusTrapWrapper>
                     )}
                 </TopTab.Screen>

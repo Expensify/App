@@ -33,6 +33,7 @@ import useScrollEnabled from '@hooks/useScrollEnabled';
 import useSingleExecution from '@hooks/useSingleExecution';
 import {focusedItemRef} from '@hooks/useSyncFocus/useSyncFocusImplementation';
 import useThemeStyles from '@hooks/useThemeStyles';
+import getPlatform from '@libs/getPlatform';
 import getSectionsWithIndexOffset from '@libs/getSectionsWithIndexOffset';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
 import Log from '@libs/Log';
@@ -44,8 +45,8 @@ import BaseSelectionListItemRenderer from './BaseSelectionListItemRenderer';
 import FocusAwareCellRendererComponent from './FocusAwareCellRendererComponent';
 import type {ButtonOrCheckBoxRoles, FlattenedSectionsReturn, ListItem, SectionListDataType, SectionWithIndexOffset, SelectionListHandle, SelectionListProps} from './types';
 
+const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
 const getDefaultItemHeight = () => variables.optionRowHeight;
-
 function BaseSelectionList<TItem extends ListItem>(
     {
         sections,
@@ -104,7 +105,8 @@ function BaseSelectionList<TItem extends ListItem>(
         shouldHideListOnInitialRender = true,
         textInputIconLeft,
         sectionTitleStyles,
-        textInputAutoFocus = true,
+        // We're skipping the outdated autofocus on iOS native because we're using the new `onPageSelected` focus method in `NewChatSelectorPage`, otherwise keeping it to align the behavior on all platforms
+        textInputAutoFocus = !isIOSNative,
         shouldShowTextInputAfterHeader = false,
         shouldShowHeaderMessageAfterHeader = false,
         includeSafeAreaPaddingBottom = true,
