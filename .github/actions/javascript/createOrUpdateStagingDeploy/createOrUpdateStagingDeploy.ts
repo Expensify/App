@@ -61,12 +61,18 @@ async function run(): Promise<IssuesCreateResponse | void> {
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
+            const mobileExpensifyPRs = `
+🐴 *Mobile-Expensify Pull Requests:*
+- PR 1
+- PR 2
+- PR 3
+`;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
                 newVersion,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
-                checklistBody = stagingDeployCashBodyAndAssignees.issueBody;
+                checklistBody = stagingDeployCashBodyAndAssignees.issueBody + mobileExpensifyPRs;
                 checklistAssignees = stagingDeployCashBodyAndAssignees.issueAssignees.filter(Boolean) as string[];
             }
         } else {
