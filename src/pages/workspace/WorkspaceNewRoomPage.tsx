@@ -42,11 +42,11 @@ function WorkspaceNewRoomPage() {
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {initWithStoredValues: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {canBeMissing: true, initWithStoredValues: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
