@@ -1,8 +1,8 @@
 import React from 'react';
-import { NestableDraggableFlatList, NestableScrollContainer } from 'react-native-draggable-flatlist';
+import {View} from 'react-native';
+import {NestableDraggableFlatList, NestableScrollContainer} from 'react-native-draggable-flatlist';
 import type {ScrollView} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
-import { View } from 'react-native';
 import type {DraggableListProps} from './types';
 
 function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<ScrollView>) {
@@ -10,7 +10,8 @@ function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProp
     return (
         <NestableScrollContainer
             ref={ref}
-            contentContainerStyle={styles.flexGrow1}>
+            contentContainerStyle={styles.flexGrow1}
+        >
             <NestableDraggableFlatList
                 contentContainerStyle={styles.flex1}
                 // eslint-disable-next-line react/jsx-props-no-spreading
@@ -18,7 +19,6 @@ function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProp
             />
             {React.isValidElement(ListFooterComponent) && <View style={styles.flexGrow1}>{ListFooterComponent}</View>}
         </NestableScrollContainer>
-
     );
 }
 
