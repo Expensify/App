@@ -147,13 +147,6 @@ const getEmojiUnicode = memoize(
 );
 
 /**
- * Function to remove Skin Tone and utf16 surrogates from Emoji
- */
-function trimEmojiUnicode(emojiCode: string): string {
-    return emojiCode.replace(/(fe0f|1f3fb|1f3fc|1f3fd|1f3fe|1f3ff)$/, '').trim();
-}
-
-/**
  * Validates first character is emoji in text string
  */
 function isFirstLetterEmoji(message: string): boolean {
@@ -687,7 +680,6 @@ export {
     containsOnlyEmojis,
     replaceEmojis,
     suggestEmojis,
-    trimEmojiUnicode,
     getEmojiCodeWithSkinColor,
     getPreferredSkinToneIndex,
     getPreferredEmojiCode,
