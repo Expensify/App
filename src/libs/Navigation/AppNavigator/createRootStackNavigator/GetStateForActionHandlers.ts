@@ -213,7 +213,7 @@ function handlePushSettingsSplitAction(
     const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
     if (!stateWithSettingsSplitNavigator) {
-        Log.hmmm('[handlePushReportAction] ReportsSplitNavigator has not been found in the navigation state.');
+        Log.hmmm('[handlePushSettingsAction] SettingsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 

@@ -438,14 +438,14 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     };
 
     const getSplitNavigatorOptions =
-        (animationSet: Set<string>) =>
+        (routesWithEnteringAnimation: Set<string>) =>
         ({route}: {route: RouteProp<AuthScreensParamList>}) => {
             // We don't need to do anything special for the wide screen.
             if (!shouldUseNarrowLayout) {
                 return rootNavigatorScreenOptions.splitNavigator;
             }
             // On the narrow screen, we want to animate this navigator if pushed SplitNavigator includes desired screen
-            const animationEnabled = animationSet.has(route.key);
+            const animationEnabled = routesWithEnteringAnimation.has(route.key);
 
             return {
                 ...rootNavigatorScreenOptions.splitNavigator,
@@ -456,7 +456,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
     // Animation is enabled when navigating to the report screen
     const getReportsSplitNavigatorOptions = getSplitNavigatorOptions(reportsSplitsWithEnteringAnimation);
 
-    // Animation is enabled when navigating to any screen different than settings root
+    // Animation is enabled when navigating to any screen different than SCREENS.SETTINGS.ROOT
     const getSettingsSplitNavigatorOptions = getSplitNavigatorOptions(settingsSplitWithEnteringAnimation);
 
     const clearStatus = () => {
