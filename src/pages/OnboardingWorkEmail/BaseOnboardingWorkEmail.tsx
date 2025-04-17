@@ -214,7 +214,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={workEmail ?? ''}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                         spellCheck={false}
                     />
                 </View>
