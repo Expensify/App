@@ -112,8 +112,7 @@ function initGitServer() {
     Log.success(`Initialized git server in ${GIT_REMOTE}`);
 }
 
-// TODO: this always checks out main, but in some cases (such as cherry picking to staging), we start by checking out staging
-function checkoutRepo() {
+function checkoutRepo(branch: 'main' | 'staging' | 'production' = 'main') {
     if (fs.existsSync(DUMMY_DIR)) {
         Log.warn(`Found existing directory at ${DUMMY_DIR}, deleting it to simulate a fresh checkout...`);
         fs.rmSync(DUMMY_DIR, {recursive: true});
@@ -122,15 +121,18 @@ function checkoutRepo() {
     process.chdir(DUMMY_DIR);
     exec('git init');
     exec(`git remote add origin ${GIT_REMOTE}`);
-    exec('git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/main:refs/remotes/origin/main');
-    exec('git checkout --progress --force -B main refs/remotes/origin/main');
-    exec('git submodule sync');
-    exec('git submodule update --init --force --depth=1');
+    exec(`git fetch --no-tags --prune --progress --no-recurse-submodules --depth=1 origin +refs/heads/${branch}:refs/remotes/origin/${branch}`);
+    exec(`git checkout --progress --force -B ${branch} refs/remotes/origin/${branch}`);
+    // exec('git submodule sync');
+    // exec('git submodule update --init --force --depth=1');
     Log.success('Checked out repo at $DUMMY_DIR!');
 }
 
 function bumpVersion(level: SemverLevel, isRemote = false) {
     Log.info('Bumping version...');
+    if (!isRemote) {
+        checkoutRepo();
+    }
     setupGitAsOSBotify();
     exec('git switch main');
     const nextVersion = VersionUpdater.incrementVersion(getVersion(), level);
@@ -211,7 +213,8 @@ function cherryPickPRToStaging(num: number, resolveVersionBumpConflicts: () => v
     const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     const versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    checkoutRepo();
+
+    checkoutRepo('staging');
     setupGitAsOSBotify();
 
     mockGetInput.mockReturnValue(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
@@ -252,7 +255,8 @@ function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () =
     const prMergeCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
     let versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
-    checkoutRepo();
+
+    checkoutRepo('production');
     setupGitAsOSBotify();
 
     mockGetInput.mockReturnValue(VersionUpdater.SEMANTIC_VERSION_LEVELS.MINOR);
@@ -284,7 +288,6 @@ function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () =
     Log.info(`Merged PR #${num + 1} into production`);
     tagProduction();
 
-    checkoutRepo();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     versionBumpCommit = execSync('git rev-parse HEAD', {encoding: 'utf-8'}).trim();
     exec(`git fetch origin staging --depth=1`);
@@ -299,7 +302,7 @@ function cherryPickPRToProduction(num: number, resolveVersionBumpConflicts: () =
 
 function tagStaging() {
     Log.info('Tagging new version from the staging branch...');
-    checkoutRepo();
+    checkoutRepo('staging');
     setupGitAsOSBotify();
     try {
         execSync('git rev-parse --verify staging', {stdio: 'ignore'});
@@ -315,7 +318,7 @@ function tagStaging() {
 function tagProduction() {
     Log.info('Tagging new version from the production branch...');
     Log.info(`Version is: ${getVersion()}`);
-    checkoutRepo();
+    checkoutRepo('production');
     setupGitAsOSBotify();
     try {
         execSync('git rev-parse --verify production', {stdio: 'ignore'});
@@ -330,7 +333,6 @@ function tagProduction() {
 
 function deployStaging() {
     Log.info('Deploying staging...');
-    checkoutRepo();
     bumpVersion(VersionUpdater.SEMANTIC_VERSION_LEVELS.BUILD);
     updateStagingFromMain();
     tagStaging();
@@ -516,6 +518,7 @@ Appended content
         expect(fs.existsSync('anotherFile.txt')).toBe(false);
 
         Log.info('Repeating previously reverted append + prepend on main in PR #10');
+        checkoutRepo();
         setupGitAsHuman();
         exec('git switch main');
         exec('git switch -c pr-11');
