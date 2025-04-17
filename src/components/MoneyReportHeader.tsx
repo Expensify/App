@@ -124,9 +124,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID || CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
@@ -505,7 +505,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
             return;
         }
         setSelectedTransactionsID([]);
-    }, [transactionThreadReportID, setSelectedTransactionsID]);
+        // We don't need to run the effect on change of setSelectedTransactionsID since it can cause the infinite loop.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactionThreadReportID]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
