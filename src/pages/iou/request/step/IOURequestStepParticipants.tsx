@@ -243,6 +243,10 @@ function IOURequestStepParticipants({
         }
     }, [isFocused, action, transactionID]);
 
+    const isWorkspacesOnly = useMemo(() => {
+        return !!(transaction?.amount && transaction?.amount < 0);
+    }, [transaction?.amount]);
+
     return (
         <StepScreenWrapper
             headerTitle={headerTitle}
@@ -264,6 +268,7 @@ function IOURequestStepParticipants({
                 onFinish={goToNextStep}
                 iouType={iouType}
                 action={action}
+                isWorkspacesOnly={isWorkspacesOnly}
             />
         </StepScreenWrapper>
     );

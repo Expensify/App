@@ -92,6 +92,8 @@ function IOURequestStepAmount({
     const {currency: originalCurrency} = getTransactionDetails(isEditing && !isEmptyObject(draftTransaction) ? draftTransaction : transaction) ?? {currency: CONST.CURRENCY.USD};
     const currency = isValidCurrencyCode(selectedCurrency) ? selectedCurrency : originalCurrency;
 
+    const isWorkspace = doesReportBelongToWorkspace(report, getPolicyEmployeeAccountIDs(policyID), policyID);
+
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace request, as
     // the user will have to add a merchant.
     const shouldSkipConfirmation: boolean = useMemo(() => {
@@ -309,9 +311,6 @@ function IOURequestStepAmount({
             return;
         }
 
-        const policyMemberAccountIDs = getPolicyEmployeeAccountIDs(policyID);
-        const isWorkspace = doesReportBelongToWorkspace(report, policyMemberAccountIDs, policyID);
-
         updateMoneyRequestAmountAndCurrency({
             transactionID,
             transactionThreadReportID: reportID,
@@ -347,7 +346,7 @@ function IOURequestStepAmount({
                 onCurrencyButtonPress={navigateToCurrencySelectionPage}
                 onSubmitButtonPress={saveAmountAndCurrency}
                 selectedTab={iouRequestType}
-                allowFlippingAmount
+                allowFlippingAmount={!isSplitBill && isWorkspace}
             />
         </StepScreenWrapper>
     );
