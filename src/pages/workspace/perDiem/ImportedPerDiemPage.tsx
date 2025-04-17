@@ -48,7 +48,7 @@ function generatePerDiemUnits(perDiemDestination: string[], perDiemSubRate: stri
 type ImportedPerDiemPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.PER_DIEM_IMPORTED>;
 function ImportedPerDiemPage({route}: ImportedPerDiemPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImportingPerDiemRates, setIsImportingPerDiemRates] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);

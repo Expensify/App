@@ -23,7 +23,7 @@ type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamL
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImporting, setIsImporting] = useState(false);
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const {setIsClosing} = useCloseImportPage();
