@@ -16,6 +16,7 @@ import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -110,7 +111,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const [isReportArchived] = useReportIsArchived(viewTourTaskReport?.parentReportID);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, undefined, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
