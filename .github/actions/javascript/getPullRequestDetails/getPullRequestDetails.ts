@@ -10,8 +10,8 @@ const repoFullName = core.getInput('REPO_FULL_NAME', {required: true});
 const [owner, repo] = repoFullName.split('/');
 
 const DEFAULT_PAYLOAD = {
-    owner,
-    repo,
+    owner: CONST.GITHUB_OWNER,
+    repo: CONST.APP_REPO,
 };
 
 const pullRequestNumber = getJSONInput('PULL_REQUEST_NUMBER', {required: false}, null);
