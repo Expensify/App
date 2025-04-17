@@ -182,8 +182,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             resetPolicyIDInNavigationState();
             updateLastAccessedWorkspaceSwitcher(undefined);
         }
-        goBackFromInvalidPolicy();
-    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+        if (!shouldUseNarrowLayout) {
+            goBackFromInvalidPolicy();
+        }
+    }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID, shouldUseNarrowLayout]);
 
     const onDeleteWorkspace = useCallback(() => {
         if (shouldCalculateBillNewDot()) {
