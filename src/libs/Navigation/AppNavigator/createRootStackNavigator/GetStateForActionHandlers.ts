@@ -220,8 +220,8 @@ function handlePushSettingsSplitAction(
     const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
     const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
 
-    // Profile screen should always be opened with an animation
-    if (actionPayloadScreen === SCREENS.SETTINGS.PROFILE.ROOT && lastFullScreenRoute?.key) {
+    // Transitioning to all central screens in settings should be animated
+    if (actionPayloadScreen !== SCREENS.SETTINGS.ROOT && lastFullScreenRoute?.key) {
         settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
     }
 
