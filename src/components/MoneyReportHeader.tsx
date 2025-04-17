@@ -205,37 +205,56 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
         const isReportReimbursed = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
-            options.push({
-                text: translate('iou.hold'),
-                icon: Expensicons.Stopwatch,
-                value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
-                onSelected: () => {
-                    if (!moneyRequestReport?.reportID) {
-                        return;
-                    }
-                    Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
-                },
-            });
-        }
+        if (!isReportReimbursed){
 
-        if (allTransactionOnHold && selectedTransactions.length === 1) {
-            options.push({
-                text: translate('iou.unhold'),
-                icon: Expensicons.Stopwatch,
-                value: 'UNHOLD',
-                onSelected: () => {
-                    selectedTransactionsID.forEach((transactionID) => {
-                        const action = getIOUActionForTransactionID(reportActions, transactionID);
-                        if (!action?.childReportID) {
+            let canHoldTransactions = true;
+            let canUnholdTransactions = true;
+
+            selectedTransactions.forEach((selectedTransaction) => {
+                if (!selectedTransaction?.transactionID){
+                    return true;
+                }
+                const iouReportAction = getIOUActionForTransactionID(reportActions, selectedTransaction.transactionID);
+                const {canHoldRequest, canUnholdRequest} = canHoldUnholdReportAction(iouReportAction);
+
+                canHoldTransactions = canHoldTransactions && canHoldRequest;
+                canUnholdTransactions = canUnholdTransactions && canUnholdRequest;
+
+                return !(canHoldTransactions || canUnholdTransactions)
+            });
+
+            if (canHoldTransactions) {
+                options.push({
+                    text: translate('iou.hold'),
+                    icon: Expensicons.Stopwatch,
+                    value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
+                    onSelected: () => {
+                        if (!moneyRequestReport?.reportID) {
                             return;
                         }
-                        unholdRequest(transactionID, action?.childReportID);
-                    });
-                    // it's needed in order to recalculate options
-                    setSelectedTransactionsID([...selectedTransactionsID]);
-                },
-            });
+                        Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.getRoute({reportID: moneyRequestReport.reportID}));
+                    },
+                });
+            }
+
+            if (canUnholdTransactions) {
+                options.push({
+                    text: translate('iou.unhold'),
+                    icon: Expensicons.Stopwatch,
+                    value: 'UNHOLD',
+                    onSelected: () => {
+                        selectedTransactionsID.forEach((transactionID) => {
+                            const action = getIOUActionForTransactionID(reportActions, transactionID);
+                            if (!action?.childReportID) {
+                                return;
+                            }
+                            unholdRequest(transactionID, action?.childReportID);
+                        });
+                        // it's needed in order to recalculate options
+                        setSelectedTransactionsID([...selectedTransactionsID]);
+                    },
+                });
+            }
         }
 
         options.push({
