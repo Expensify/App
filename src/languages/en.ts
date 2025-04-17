@@ -2228,12 +2228,6 @@ const translations = {
         toGetStarted: 'Add a bank account to reimburse expenses, issue Expensify Cards, collect invoice payments, and pay bills all from one place.',
         plaidBodyCopy: 'Give your employees an easier way to pay - and get paid back - for company expenses.',
         checkHelpLine: 'Your routing number and account number can be found on a check for the account.',
-        validateAccountError: {
-            phrase1: 'Hold up! We need you to validate your account first. To do so, ',
-            phrase2: 'sign back in with a magic code ',
-            phrase3: 'or ',
-            phrase4: 'verify your account here',
-        },
         hasPhoneLoginError: {
             phrase1: 'To connect a bank account, please',
             link: 'add an email as your primary login',
