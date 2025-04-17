@@ -1,0 +1,15 @@
+diff --git a/node_modules/@react-native-community/cli-config-android/build/config/findAndroidDir.js b/node_modules/@react-native-community/cli-config-android/build/config/findAndroidDir.js
+index 075b10a..e35538f 100644
+--- a/node_modules/@react-native-community/cli-config-android/build/config/findAndroidDir.js
++++ b/node_modules/@react-native-community/cli-config-android/build/config/findAndroidDir.js
+@@ -28,8 +28,8 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
+  */
+ 
+ function findAndroidDir(root) {
+-  if (_fs().default.existsSync(_path().default.join(root, 'android'))) {
+-    return 'android';
++  if (_fs().default.existsSync(_path().default.join(root, 'Android'))) {
++    return 'Android';
+   }
+   return null;
+ }
