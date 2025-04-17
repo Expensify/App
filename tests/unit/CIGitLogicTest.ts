@@ -89,7 +89,7 @@ function initGitServer() {
     process.chdir(GIT_REMOTE);
     exec('git init -b main');
     setupGitAsHuman();
-    exec(`git submodule add ${SUBMOD_REMOTE} SubMod`);
+    exec(`git -c protocol.file.allow=always submodule add ${SUBMOD_REMOTE} SubMod`);
     exec('npm init -y');
     exec('npm version --no-git-tag-version 1.0.0-0');
     fs.appendFileSync('.gitignore', 'node_modules/\n');
