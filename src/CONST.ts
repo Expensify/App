@@ -1096,6 +1096,12 @@ const CONST = {
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
         COMPLETED: 'completed',
     },
+    STORYLANE: {
+        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/nrkhnm80nbix?embed=inline',
+        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/wg7a9qqg6qkf?embed=inline',
+        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/nrkhnm80nbix?embed=inline',
+        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/wg7a9qqg6qkf?embed=inline',
+    },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
         PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
@@ -1495,6 +1501,7 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            FULLSCREEN: 'fullscreen',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',

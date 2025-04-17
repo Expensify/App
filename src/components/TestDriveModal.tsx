@@ -4,6 +4,7 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import FeatureTrainingModal from './FeatureTrainingModal';
 
 function TestDriveModal() {
@@ -14,7 +15,11 @@ function TestDriveModal() {
         Navigation.dismissModal();
     };
 
-    const navigateTestDriveDemo = () => {};
+    const navigateTestDriveDemo = () => {
+        setTimeout(() => {
+            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+        }, 1000);
+    };
 
     return (
         <FeatureTrainingModal

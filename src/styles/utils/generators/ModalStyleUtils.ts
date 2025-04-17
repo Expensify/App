@@ -64,6 +64,12 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         let shouldAddTopSafeAreaPadding = false;
 
         switch (type) {
+            case CONST.MODAL.MODAL_TYPE.FULLSCREEN:
+                modalContainerStyle = {};
+                swipeDirection = 'down';
+                animationIn = 'slideInUp';
+                animationOut = 'slideOutDown';
+                break;
             case CONST.MODAL.MODAL_TYPE.CONFIRM:
                 // A confirm modal is one that has a visible backdrop
                 // and can be dismissed by clicking outside of the modal.
