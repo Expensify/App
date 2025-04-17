@@ -15,12 +15,14 @@ import Section from '@components/Section';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePayAndDowngrade from '@hooks/usePayAndDowngrade';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearInviteDraft} from '@libs/actions/Policy/Member';
 import {
+    calculateBillNewDot,
     clearAvatarErrors,
     clearPolicyErrorField,
     deleteWorkspace,
@@ -39,6 +41,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getUserFriendlyWorkspaceType, isPolicyAdmin as isPolicyAdminPolicyUtils, isPolicyOwner} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
+import {shouldCalculateBillNewDot} from '@libs/SubscriptionUtils';
 import {getFullSizeAvatar} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -164,6 +167,8 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
+    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(setIsDeleteModalOpen);
+
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
             return;
@@ -179,6 +184,16 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             updateLastAccessedWorkspaceSwitcher(undefined);
         }
     }, [policy?.id, policyName, activeWorkspaceID, setActiveWorkspaceID]);
+
+    const onDeleteWorkspace = useCallback(() => {
+        if (shouldCalculateBillNewDot()) {
+            setIsDeletingPaidWorkspace(true);
+            calculateBillNewDot();
+            return;
+        }
+
+        setIsDeleteModalOpen(true);
+    }, [setIsDeletingPaidWorkspace]);
 
     return (
         <WorkspacePageWithSections
@@ -376,8 +391,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         accessibilityLabel={translate('common.delete')}
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
-                                        onPress={() => setIsDeleteModalOpen(true)}
+                                        onPress={onDeleteWorkspace}
                                         icon={Trashcan}
+                                        isLoading={isLoadingBill}
+                                        iconStyles={isLoadingBill ? styles.opacity0 : undefined}
                                     />
                                 )}
                             </View>

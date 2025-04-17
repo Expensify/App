@@ -4006,6 +4006,11 @@ const styles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        twoFAIllustration: {
+            width: 'auto',
+            height: 140,
+        },
+
         cardSectionTitle: {
             fontSize: variables.fontSizeLarge,
             lineHeight: variables.lineHeightXLarge,
@@ -5394,7 +5399,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         twoFARequiredContainer: {
-            maxWidth: 350,
+            maxWidth: 520,
             margin: 'auto',
         },
 
@@ -5654,6 +5659,20 @@ const styles = (theme: ThemeColors) =>
             bottom: 0,
             left: 0,
             right: 0,
+        },
+
+        testDriveModalContainer: {
+            // On small/medium screens, we need to remove the top padding
+            paddingTop: 0,
+            // On medium screens, we need to prevent the modal from becoming too big
+            maxWidth: 500,
+        },
+
+        featureTrainingModalImage: {
+            width: '100%',
+            height: '100%',
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
     } satisfies Styles);
 
