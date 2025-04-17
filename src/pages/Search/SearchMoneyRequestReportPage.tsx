@@ -87,30 +87,34 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     if (shouldUseNarrowLayout) {
         return (
-            <ScreenWrapper
-                testID={SearchMoneyRequestReportPage.displayName}
-                shouldEnableMaxHeight
-                offlineIndicatorStyle={styles.mtAuto}
-                headerGapStyles={styles.searchHeaderGap}
-            >
-                <FullPageNotFoundView
-                    shouldShow={shouldShowNotFoundPage}
-                    subtitleKey="notFound.noAccess"
-                    subtitleStyle={[styles.textSupporting]}
-                    shouldDisplaySearchRouter
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={Navigation.goBack}
-                    linkKey="notFound.noAccess"
-                >
-                    <MoneyRequestReportView
-                        report={report}
-                        reportMetadata={reportMetadata}
-                        policy={policy}
-                        shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
-                        backToRoute={route.params.backTo}
-                    />
-                </FullPageNotFoundView>
-            </ScreenWrapper>
+            <ActionListContext.Provider value={actionListValue}>
+                <ReactionListContext.Provider value={reactionListRef}>
+                    <ScreenWrapper
+                        testID={SearchMoneyRequestReportPage.displayName}
+                        shouldEnableMaxHeight
+                        offlineIndicatorStyle={styles.mtAuto}
+                        headerGapStyles={styles.searchHeaderGap}
+                    >
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey="notFound.noAccess"
+                            subtitleStyle={[styles.textSupporting]}
+                            shouldDisplaySearchRouter
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            onBackButtonPress={Navigation.goBack}
+                            linkKey="notFound.noAccess"
+                        >
+                            <MoneyRequestReportView
+                                report={report}
+                                reportMetadata={reportMetadata}
+                                policy={policy}
+                                shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                backToRoute={route.params.backTo}
+                            />
+                        </FullPageNotFoundView>
+                    </ScreenWrapper>
+                </ReactionListContext.Provider>
+            </ActionListContext.Provider>
         );
     }
 
@@ -130,6 +134,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                 <TopBar
                                     breadcrumbLabel={translate('common.reports')}
                                     shouldDisplaySearch={false}
+                                    shouldShowLoadingBar={false}
                                 />
                                 <SearchTypeMenu queryJSON={undefined} />
                             </View>
