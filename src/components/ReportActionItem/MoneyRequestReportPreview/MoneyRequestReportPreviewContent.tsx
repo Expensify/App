@@ -460,7 +460,7 @@ function MoneyRequestReportPreviewContent({
                             showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
                         }}
                         shouldUseHapticsOnLongPress
-                        style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
+                        style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.borderedContentCardLarge]}
                         role={getButtonRole(true)}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}

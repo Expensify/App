@@ -46,7 +46,7 @@ Expenses may be automatically added to a report if your Workspace has this setti
 **On Desktop:**
 1. Click **Reports**.
    - If a report was auto-created for your most recent expense, no action is needed.
-2. Click **New Report**, then select **Expense Report**.
+2. Click **Create Report**, then select **Expense Report**.
 3. Click **Add Expenses** and select expenses to add.
 
 **Optional edits:**

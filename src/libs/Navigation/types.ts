@@ -237,6 +237,9 @@ type SettingsNavigatorParamList = {
         policyID?: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
+        policyID?: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
         backTo?: Routes;
@@ -1755,6 +1758,12 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.WORK_EMAIL]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
@@ -1767,6 +1776,10 @@ type ExplanationModalNavigatorParamList = {
 
 type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
+};
+
+type TestDriveModalNavigatorParamList = {
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
 };
 
 type SharedScreensParamList = {
@@ -1850,6 +1863,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
     [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+    [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
@@ -2045,6 +2059,7 @@ export type {
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
+    TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     SettingsTabScreenName,
 };
