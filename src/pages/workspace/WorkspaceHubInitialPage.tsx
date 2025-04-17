@@ -22,7 +22,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 import useIsSidebarRouteActive from '@libs/Navigation/helpers/useIsSidebarRouteActive';
 import type {WORKSPACE_HUB_TO_RHP} from '@libs/Navigation/linkingConfig/RELATIONS';
 import Navigation from '@libs/Navigation/Navigation';
@@ -67,10 +66,7 @@ type MenuData = {
     onEducationTooltipPress?: () => void;
 };
 
-type Menu = {sectionStyle: StyleProp<ViewStyle>; sectionTranslationKey: TranslationPaths; items: MenuData[]};
-
 function WorkspaceHubInitialPage() {
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
 
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -131,7 +127,7 @@ function WorkspaceHubInitialPage() {
      * Retuns a list of menu items data for workspace section
      * @returns object with translationKey, style and items for the workspace section
      */
-    const workspaceMenuItemsData: Menu = useMemo(() => {
+    const workspaceMenuItemsData: MenuData[] = useMemo(() => {
         const items: MenuData[] = [
             {
                 translationKey: 'common.workspaces',
@@ -167,11 +163,7 @@ function WorkspaceHubInitialPage() {
             });
         }
 
-        return {
-            sectionStyle: styles.workspaceSettingsSectionContainer,
-            sectionTranslationKey: 'common.workspaces',
-            items,
-        };
+        return items;
     }, [
         allConnectionSyncProgresses,
         freeTrialText,
@@ -181,7 +173,6 @@ function WorkspaceHubInitialPage() {
         renderWorkspaceSettingsTooltip,
         shouldShowWorkspaceSettingsTooltip,
         styles.badgeSuccess,
-        styles.workspaceSettingsSectionContainer,
         subscriptionPlan,
     ]);
 
@@ -191,12 +182,11 @@ function WorkspaceHubInitialPage() {
      * @returns the menu items for passed data
      */
     const getMenuItemsSection = useCallback(
-        (menuItemsData: Menu) => {
+        (items: MenuData[]) => {
             /**
              * @param isPaymentItem whether the item being rendered is the payments menu item
              * @returns the user's wallet balance
              */
-            const getWalletBalance = (isPaymentItem: boolean): string | undefined => (isPaymentItem ? convertToDisplayString(userWallet?.currentBalance) : undefined);
 
             const openPopover = (link: string | (() => Promise<string>) | undefined, event: GestureResponderEvent | MouseEvent) => {
                 if (typeof link === 'function') {
@@ -219,10 +209,9 @@ function WorkspaceHubInitialPage() {
             };
 
             return (
-                <View style={[menuItemsData.sectionStyle, styles.pb4, styles.mh3]}>
-                    {menuItemsData.items.map((item) => {
+                <View style={styles.p3}>
+                    {items.map((item) => {
                         const keyTitle = item.translationKey ? translate(item.translationKey) : item.title;
-                        const isPaymentItem = item.translationKey === 'common.wallet';
                         const isFocused = focusedRouteName ? focusedRouteName === item.screenName : false;
 
                         return (
@@ -237,7 +226,7 @@ function WorkspaceHubInitialPage() {
                                     item.action();
                                 })}
                                 iconStyles={item.iconStyles}
-                                badgeText={item.badgeText ?? getWalletBalance(isPaymentItem)}
+                                badgeText={item.badgeText}
                                 badgeStyle={item.badgeStyle}
                                 fallbackIcon={item.fallbackIcon}
                                 brickRoadIndicator={item.brickRoadIndicator}
@@ -261,7 +250,7 @@ function WorkspaceHubInitialPage() {
                 </View>
             );
         },
-        [styles.pb4, styles.mh3, styles.sectionMenuItem, translate, userWallet?.currentBalance, focusedRouteName, isExecuting, singleExecution],
+        [styles.p3, styles.sectionMenuItem, translate, focusedRouteName, isExecuting, singleExecution],
     );
 
     const workspaceMenuItems = useMemo(() => getMenuItemsSection(workspaceMenuItemsData), [workspaceMenuItemsData, getMenuItemsSection]);
