@@ -502,6 +502,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                                     titleStyle={styles.textHeadlineH2}
                                                     interactive={false}
                                                     wrapperStyle={styles.sectionMenuItemTopDescription}
+                                                    copyValue={convertToDisplayString(userWallet?.currentBalance ?? 0)}
                                                 />
                                             </OfflineWithFeedback>
                                         )}
@@ -651,6 +652,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                                         setShouldShowDefaultDeleteMenu(false);
                                     }}
                                     wrapperStyle={[styles.pv3, styles.ph5, !shouldUseNarrowLayout ? styles.sidebarPopover : {}]}
+                                    numberOfLinesTitle={0}
                                 />
                             )}
                             <MenuItem
