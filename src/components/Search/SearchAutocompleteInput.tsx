@@ -1,6 +1,7 @@
 /* eslint-disable rulesdir/no-acc-spread-in-reduce */
+import lodashDebounce from 'lodash/debounce';
 import type {ForwardedRef, ReactNode, RefObject} from 'react';
-import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo} from 'react';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, TextInputProps, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -134,6 +135,18 @@ function SearchAutocompleteInput(
         return focusedSharedValue.get() ? wrapperFocusedStyle : wrapperStyle ?? {};
     });
 
+    const [localValue, setLocalValue] = useState(value);
+
+    const debouncedOnSearchQueryChange = useMemo(() => lodashDebounce(onSearchQueryChange, CONST.TIMING.USE_DEBOUNCED_STATE_DELAY), [onSearchQueryChange]);
+
+    const handleChangeText = useCallback(
+        (text: string) => {
+            setLocalValue(text);
+            debouncedOnSearchQueryChange(text);
+        },
+        [debouncedOnSearchQueryChange],
+    );
+
     useEffect(() => {
         runOnLiveMarkdownRuntime(() => {
             'worklet';
@@ -193,8 +206,8 @@ function SearchAutocompleteInput(
                 >
                     <TextInput
                         testID="search-autocomplete-text-input"
-                        value={value}
-                        onChangeText={onSearchQueryChange}
+                        value={localValue}
+                        onChangeText={handleChangeText}
                         autoFocus={autoFocus}
                         shouldDelayFocus={shouldDelayFocus}
                         caretHidden={caretHidden}
@@ -210,8 +223,8 @@ function SearchAutocompleteInput(
                         maxLength={CONST.SEARCH_QUERY_LIMIT}
                         onSubmitEditing={onSubmit}
                         shouldUseDisabledStyles={false}
-                        textInputContainerStyles={[styles.borderNone, styles.pb0]}
-                        inputStyle={[inputWidth, styles.pl3, {lineHeight: undefined}]}
+                        textInputContainerStyles={[styles.borderNone, styles.pb0, styles.pl3]}
+                        inputStyle={[inputWidth, {lineHeight: undefined}]}
                         placeholderTextColor={theme.textSupporting}
                         onFocus={() => {
                             onFocus?.();
@@ -223,7 +236,7 @@ function SearchAutocompleteInput(
                             focusedSharedValue.set(false);
                             onBlur?.();
                         }}
-                        isLoading={!!isSearchingForReports}
+                        isLoading={isSearchingForReports}
                         ref={ref}
                         type="markdown"
                         multiline={false}

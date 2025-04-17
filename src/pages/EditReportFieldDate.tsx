@@ -51,6 +51,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
             validate={validate}
             submitButtonText={translate('common.save')}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <View style={styles.mb4}>
                 <InputWrapper
@@ -64,6 +65,7 @@ function EditReportFieldDatePage({fieldName, isRequired, onSubmit, fieldValue, f
                     maxDate={CONST.CALENDAR_PICKER.MAX_DATE}
                     minDate={CONST.CALENDAR_PICKER.MIN_DATE}
                     ref={inputRef}
+                    autoFocus
                 />
             </View>
         </FormProvider>

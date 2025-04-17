@@ -191,9 +191,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => selectedMembers.includes(member.accountID));
-
-        if (everyoneSelected) {
+        const someSelected = enabledAccounts.some((member) => selectedMembers.includes(member.accountID));
+        if (someSelected) {
             setSelectedMembers([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
@@ -266,11 +265,11 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         const header = (
             <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
                 <View>
-                    <Text style={[styles.searchInputStyle, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
+                    <Text style={[styles.textMicroSupporting, canSelectMultiple ? styles.ml3 : styles.ml0]}>{translate('common.member')}</Text>
                 </View>
                 {isGroupChat && (
                     <View style={[StyleUtils.getMinimumWidth(60)]}>
-                        <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
+                        <Text style={[styles.textMicroSupporting, styles.textAlignCenter]}>{translate('common.role')}</Text>
                     </View>
                 )}
             </View>

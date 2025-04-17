@@ -97,7 +97,10 @@ type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEv
 
 type ExtendedTargetedEvent = TargetedEvent & {
     /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
-    sourceCapabilities?: unknown;
+    sourceCapabilities?: {
+        /** A boolean value that indicates whether the device dispatches touch events. */
+        firesTouchEvents: boolean;
+    };
 };
 
 type ListItem = {
@@ -308,9 +311,6 @@ type ListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     /** Whether to show RBR */
     shouldDisplayRBR?: boolean;
 
-    /** Whether we highlight all the selected items */
-    shouldHighlightSelectedItem?: boolean;
-
     /** Styles applied for the title */
     titleStyles?: StyleProp<TextStyle>;
 
@@ -332,6 +332,8 @@ type BaseListItemProps<TItem extends ListItem> = CommonListItemProps<TItem> & {
     hoverStyle?: StyleProp<ViewStyle>;
     /** Errors that this user may contain */
     shouldDisplayRBR?: boolean;
+    /** Test ID of the component. Used to locate this view in end-to-end tests. */
+    testID?: string;
 };
 
 type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
@@ -356,9 +358,14 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
-type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Callback to fire when the item is pressed */
+    onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
+};
 
-type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem>;
+type ChatListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    queryJSONHash?: number;
+};
 
 type ValidListItem =
     | typeof RadioListItem
@@ -646,9 +653,6 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Additional styles to apply to scrollable content */
     contentContainerStyle?: StyleProp<ViewStyle>;
 
-    /** Whether we highlight all the selected items */
-    shouldHighlightSelectedItem?: boolean;
-
     /** Determines if the focused item should remain at the top of the viewable area when navigating with arrow keys */
     shouldKeepFocusedItemAtTopOfViewableArea?: boolean;
 
@@ -675,6 +679,15 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
 
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
+    /** Number of items to render in the loader */
+    fixedNumItemsForLoader?: number;
+
+    /** Skeleton loader speed */
+    loaderSpeed?: number;
+
+    /** Error text to display */
+    errorText?: string;
 } & TRightHandSideComponent<TItem>;
 
 type SelectionListHandle = {
@@ -699,6 +712,7 @@ type FlattenedSectionsReturn<TItem extends ListItem> = {
     disabledArrowKeyOptionsIndexes: number[];
     itemLayouts: ItemLayout[];
     allSelected: boolean;
+    someSelected: boolean;
 };
 
 type ButtonOrCheckBoxRoles = 'button' | 'checkbox';

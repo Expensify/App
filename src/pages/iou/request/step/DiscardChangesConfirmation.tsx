@@ -44,6 +44,7 @@ function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfir
                 }
             }}
             onCancel={() => setIsVisible(false)}
+            shouldHandleNavigationBack
         />
     );
 }

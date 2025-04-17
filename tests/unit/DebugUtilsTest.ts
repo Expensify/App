@@ -1072,6 +1072,7 @@ describe('DebugUtils', () => {
                     amount: -100,
                     currency: CONST.CURRENCY.USD,
                     reportID: '2',
+                    merchant: 'test merchant',
                 },
                 [ONYXKEYS.SESSION]: {
                     accountID: 12345,
@@ -1576,6 +1577,7 @@ describe('DebugUtils', () => {
                         {
                             type: CONST.VIOLATION_TYPES.VIOLATION,
                             name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                            showInReview: true,
                         },
                     ],
                 });
