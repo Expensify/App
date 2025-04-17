@@ -19,6 +19,7 @@ import {
     canBeExported,
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
+    canHoldUnholdReportAction,
     getArchiveReason,
     getBankAccountRoute,
     getMoneyRequestSpendBreakdown,
@@ -40,7 +41,6 @@ import {
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
-    canHoldUnholdReportAction,
     checkIfShouldShowMarkAsCashButton,
     getTransaction,
     hasDuplicateTransactions,
