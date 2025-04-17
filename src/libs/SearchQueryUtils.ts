@@ -792,7 +792,6 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * A copy of `isDefaultExpensesQuery` handling the policy ID, used if you have access to the leftHandBar beta.
  * When this beta is no longer needed, this method will be renamed to `isDefaultExpensesQuery` and will replace the old method.
- *
  */
 function isDefaultExpensesQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;

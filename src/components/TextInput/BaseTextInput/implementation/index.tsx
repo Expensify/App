@@ -106,6 +106,7 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [width, setWidth] = useState<number | null>(null);
     const [prefixCharacterPadding, setPrefixCharacterPadding] = useState(8);
+    const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
 
     const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
@@ -269,7 +270,7 @@ function BaseTextInput(
     const isMultiline = multiline || autoGrowHeight;
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
-    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(prefixCharacterPadding + styles.pr1.paddingRight);
+    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
@@ -335,6 +336,7 @@ function BaseTextInput(
                                     <Text
                                         onLayout={(event) => {
                                             setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
+                                            setIsPrefixCharacterPaddingCalculated(true);
                                         }}
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
@@ -470,7 +472,7 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {!!contentWidth && (
+            {!!contentWidth && isPrefixCharacterPaddingCalculated && (
                 <View
                     style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
                     onLayout={(e) => {
