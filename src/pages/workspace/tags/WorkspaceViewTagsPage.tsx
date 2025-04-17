@@ -151,8 +151,10 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const toggleAllTags = () => {
-        const isAllSelected = tagList.every((tag) => !!selectedTags[tag.value]);
-        setSelectedTags(isAllSelected ? {} : Object.fromEntries(tagList.map((item) => [item.value, true])));
+        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const anySelected = availableTags.some((tag) => !!selectedTags[tag.value]);
+
+        setSelectedTags(anySelected ? {} : Object.fromEntries(availableTags.map((t) => [t.value, true])));
     };
 
     const getCustomListHeader = () => {
@@ -282,7 +284,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
                 testID={WorkspaceViewTagsPage.displayName}
             >
@@ -358,6 +360,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         customListHeader={getCustomListHeader()}
                         shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                        addBottomSafeAreaPadding
                         onDismissError={(item) => {
                             clearPolicyTagErrors(policyID, item.value, route.params.orderWeight);
                         }}
