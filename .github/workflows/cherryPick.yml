@@ -115,6 +115,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           USER: ${{ github.actor }}
           PULL_REQUEST_NUMBER: ${{ steps.getPRInfo.outputs.PR_NUMBER }}
+          REPO_FULL_NAME: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}
 
       - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
         working-directory: Mobile-Expensify
