@@ -56,6 +56,7 @@ import variables from '@styles/variables';
 import {
     approveMoneyRequest,
     canApproveIOU,
+    canHoldUnholdReportAction,
     canIOUBePaid as canIOUBePaidAction,
     canSubmitReport,
     deleteMoneyRequest,
@@ -200,9 +201,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
         const options = [];
         const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
-
-        const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
-        const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
         const isReportReimbursed = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
         if (!isReportReimbursed){
