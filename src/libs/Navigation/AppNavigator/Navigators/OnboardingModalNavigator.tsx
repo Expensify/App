@@ -17,6 +17,8 @@ import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
+import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
+import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +80,14 @@ function OnboardingModalNavigator() {
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                                component={OnboardingWorkEmail}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                                component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
