@@ -83,11 +83,28 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
             },
         },
 
+        [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: {
+            screens: {
+                [SCREENS.TEST_DRIVE_MODAL.ROOT]: {
+                    path: ROUTES.TEST_DRIVE_MODAL_ROOT,
+                    exact: true,
+                },
+            },
+        },
+
         [NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR]: {
             // Don't set the initialRouteName, because when the user continues from the last visited onboarding page,
             // the onboarding purpose page will be briefly visible.
             path: ROUTES.ONBOARDING_ROOT.route,
             screens: {
+                [SCREENS.ONBOARDING.WORK_EMAIL]: {
+                    path: ROUTES.ONBOARDING_WORK_EMAIL.route,
+                    exact: true,
+                },
+                [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
+                    path: ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.route,
+                    exact: true,
+                },
                 [SCREENS.ONBOARDING.PURPOSE]: {
                     path: ROUTES.ONBOARDING_PURPOSE.route,
                     exact: true,
@@ -681,6 +698,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.WORKSPACE.DOWNGRADE]: {
                             path: ROUTES.WORKSPACE_DOWNGRADE.route,
+                        },
+                        [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
+                            path: ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.route,
                         },
                         [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORIES_SETTINGS.route,

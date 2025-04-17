@@ -2,7 +2,6 @@
 title: Manage Travel Member Roles
 description: Modify member roles within Expensify Travel
 ---
-<div id="new-expensify" markdown="1">
 
 Admins can assign roles to different travel members to determine who they can book travel for (whether for themselves and/or for others) and whether they can adjust administrative settings.
   
@@ -21,5 +20,3 @@ To assign a role to a travel member,
     - View analytics and metrics 
     - Use the Safety feature
 6. Click **Save**. 
-
-</div>
