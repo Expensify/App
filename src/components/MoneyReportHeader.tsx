@@ -40,6 +40,7 @@ import {
 } from '@libs/ReportUtils';
 import {
     allHavePendingRTERViolation,
+    canHoldUnholdReportAction,
     checkIfShouldShowMarkAsCashButton,
     getTransaction,
     hasDuplicateTransactions,
@@ -56,7 +57,6 @@ import variables from '@styles/variables';
 import {
     approveMoneyRequest,
     canApproveIOU,
-    canHoldUnholdReportAction,
     canIOUBePaid as canIOUBePaidAction,
     canSubmitReport,
     deleteMoneyRequest,
