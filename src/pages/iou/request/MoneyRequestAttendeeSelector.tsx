@@ -6,7 +6,7 @@ import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import EmptySelectionListContent from '@components/EmptySelectionListContent';
 import FormHelpMessage from '@components/FormHelpMessage';
-import {usePersonalDetails, useSession} from '@components/OnyxProvider';
+import {usePersonalDetails} from '@components/OnyxProvider';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/InviteMemberListItem';
@@ -65,8 +65,6 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
     const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
     const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: true});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
-    const session = useSession();
-    const isCurrentUserAttendee = attendees.some((attendee) => attendee.email === session?.email);
     const [recentAttendees] = useOnyx(ONYXKEYS.NVP_RECENT_ATTENDEES, {canBeMissing: true});
     const policy = usePolicy(activePolicyID);
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false, canBeMissing: true});
@@ -96,24 +94,8 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             optionList.recentReports = orderedOptions.recentReports;
             optionList.personalDetails = orderedOptions.personalDetails;
         }
-        if (optionList.currentUserOption && !isCurrentUserAttendee) {
-            optionList.recentReports = [optionList.currentUserOption, ...optionList.personalDetails];
-        }
         return optionList;
-    }, [
-        areOptionsInitialized,
-        didScreenTransitionEnd,
-        options.reports,
-        options.personalDetails,
-        betas,
-        attendees,
-        recentAttendees,
-        iouType,
-        action,
-        isPaidGroupPolicy,
-        isCurrentUserAttendee,
-        searchTerm,
-    ]);
+    }, [areOptionsInitialized, didScreenTransitionEnd, options.reports, options.personalDetails, betas, attendees, recentAttendees, iouType, action, isPaidGroupPolicy, searchTerm]);
 
     const chatOptions = useMemo(() => {
         if (!areOptionsInitialized) {

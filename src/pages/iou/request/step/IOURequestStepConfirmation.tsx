@@ -517,6 +517,7 @@ function IOURequestStepConfirmation({
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
                     customUnitRateID,
+                    attendees: transaction.comment?.attendees,
                 },
             });
         },

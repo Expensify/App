@@ -472,6 +472,7 @@ type CreateDistanceRequestInformation = {
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
     splitShares: SplitShares;
     iouRequestType?: IOURequestType;
+    attendees?: Attendee[];
 };
 
 type CreateSplitsAndOnyxDataParams = {
@@ -500,6 +501,7 @@ type TrackExpenseTransactionParams = {
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
     linkedTrackedExpenseReportID?: string;
     customUnitRateID?: string;
+    attendees?: Attendee[];
 };
 
 type CreateTrackExpenseParams = {
@@ -554,6 +556,7 @@ type GetTrackExpenseInformationTransactionParams = {
     taxAmount?: number;
     billable?: boolean;
     linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    attendees?: Attendee[];
 };
 
 type GetTrackExpenseInformationParticipantParams = {
@@ -3261,7 +3264,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment = '', currency, created, category, tag, customUnit, billable} = transactionParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable, attendees} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
     const merchant = computePerDiemExpenseMerchant(customUnit, policy);
@@ -3340,6 +3343,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             customUnit,
             billable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            attendees,
         },
     });
     // This is to differentiate between a normal expense and a per diem expense
@@ -3466,7 +3470,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
     const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction, attendees} = transactionParams;
 
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -3570,6 +3574,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
             reimbursable: false,
             filename,
+            attendees,
         },
     });
 
@@ -5234,6 +5239,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         linkedTrackedExpenseReportAction,
         linkedTrackedExpenseReportID,
         customUnitRateID,
+        attendees,
     } = transactionData;
 
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -5314,6 +5320,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 taxAmount,
                 billable,
                 linkedTrackedExpenseReportAction,
+                attendees,
             },
             policyParams: {
                 policy,
@@ -5353,7 +5360,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
-                attendees: transaction?.comment?.attendees,
+                attendees,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -5399,7 +5406,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
                 waypoints: sanitizedWaypoints,
                 customUnitRateID: mileageRate,
-                attendees: transaction?.comment?.attendees,
+                attendees,
             };
             const policyParams: TrackedExpensePolicyParams = {
                 policyID: chatReport?.policyID,
@@ -5546,6 +5553,7 @@ function createSplitsAndOnyxData({
         iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
         taxCode = '',
         taxAmount = 0,
+        attendees,
     },
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
@@ -5575,6 +5583,7 @@ function createSplitsAndOnyxData({
             taxAmount,
             billable,
             pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            attendees,
         },
     });
 
@@ -6826,6 +6835,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
                 taxCode,
                 taxAmount,
+                attendees,
             },
         });
         onyxData = splitOnyxData;
@@ -6891,6 +6901,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxCode,
                 taxAmount,
                 billable,
+                attendees,
             },
         });
 

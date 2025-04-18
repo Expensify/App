@@ -2,6 +2,7 @@
 
 /* eslint-disable no-continue */
 import {Str} from 'expensify-common';
+import keyBy from 'lodash/keyBy';
 import lodashOrderBy from 'lodash/orderBy';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -42,7 +43,7 @@ import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import Performance from './Performance';
 import Permissions from './Permissions';
-import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
+import {getDisplayNameOrDefault, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
 import {
@@ -216,7 +217,7 @@ type GetOptionsConfig = {
     excludeLogins?: Record<string, boolean>;
     includeRecentReports?: boolean;
     includeSelectedOptions?: boolean;
-    recentAttendees?: Attendee[];
+    recentAttendees?: Option[];
     excludeHiddenThreads?: boolean;
     excludeHiddenChatRoom?: boolean;
     canShowManagerMcTest?: boolean;
@@ -1802,6 +1803,19 @@ function getAttendeeOptions(
     includeInvoiceRooms = false,
     action: IOUAction | undefined = undefined,
 ) {
+    const personalDetailList = keyBy(
+        personalDetails.map(({item}) => item),
+        'accountID',
+    );
+    const filteredRecentAttendees = recentAttendees
+        .filter((attendee) => !attendees.find(({email, displayName}) => (attendee.email ? email === attendee.email : displayName === attendee.displayName)))
+        .map((attendee) => ({
+            ...attendee,
+            login: attendee.email ?? attendee.displayName,
+            ...getPersonalDetailByEmail(attendee.email),
+        }))
+        .map((attendee) => getParticipantsOption(attendee, personalDetailList as never));
+
     return getValidOptions(
         {reports, personalDetails},
         {
@@ -1815,7 +1829,7 @@ function getAttendeeOptions(
             includeSelfDM: false,
             includeInvoiceRooms,
             action,
-            recentAttendees,
+            recentAttendees: filteredRecentAttendees,
         },
     );
 }
