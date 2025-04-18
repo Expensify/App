@@ -577,6 +577,48 @@ describe('ReportUtils', () => {
                 expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
             });
         });
+
+        describe('Derived values', () => {
+            const report: Report = {
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                currency: 'CLP',
+                ownerAccountID: 1,
+                isPinned: false,
+                isOwnPolicyExpenseChat: true,
+                isWaitingOnBankAccount: false,
+                policyID: '1',
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            beforeAll(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                    report_1: report,
+                });
+            });
+
+            test('should return report name from a derived value', () => {
+                expect(getReportName(report)).toEqual("Ragnar Lothbrok's expenses");
+            });
+
+            test('should generate report name if report is not merged in the Onyx', () => {
+                const expenseChatReport: Report = {
+                    reportID: '2',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'CLP',
+                    ownerAccountID: 1,
+                    isPinned: false,
+                    isOwnPolicyExpenseChat: true,
+                    isWaitingOnBankAccount: false,
+                    policyID: '1',
+                };
+
+                expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
+            });
+        });
     });
 
     describe('requiresAttentionFromCurrentUser', () => {

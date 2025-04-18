@@ -42,6 +42,12 @@ const expenseOptions: Array<{status: ExpenseSearchStatus; type: SearchDataTypes;
     },
     {
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        status: CONST.SEARCH.STATUS.EXPENSE.UNREPORTED,
+        icon: Expensicons.DocumentSlash,
+        text: 'common.unreported',
+    },
+    {
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
         status: CONST.SEARCH.STATUS.EXPENSE.DRAFTS,
         icon: Expensicons.Pencil,
         text: 'common.drafts',

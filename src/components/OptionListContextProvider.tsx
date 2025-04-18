@@ -46,8 +46,8 @@ function OptionsListContextProvider({children}: OptionsListProviderProps) {
         reports: [],
         personalDetails: [],
     });
-    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [preferredLocale] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
 
     const personalDetails = usePersonalDetails();
     const prevPersonalDetails = usePrevious(personalDetails);
@@ -182,14 +182,15 @@ const useOptionsListContext = () => useContext(OptionsListContext);
 const useOptionsList = (options?: {shouldInitialize: boolean}) => {
     const {shouldInitialize = true} = options ?? {};
     const {initializeOptions, options: optionsList, areOptionsInitialized, resetOptions} = useOptionsListContext();
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     useEffect(() => {
-        if (!shouldInitialize || areOptionsInitialized) {
+        if (!shouldInitialize || areOptionsInitialized || isLoadingApp) {
             return;
         }
 
         initializeOptions();
-    }, [shouldInitialize, initializeOptions, areOptionsInitialized]);
+    }, [shouldInitialize, initializeOptions, areOptionsInitialized, isLoadingApp]);
 
     return {
         initializeOptions,
@@ -201,4 +202,4 @@ const useOptionsList = (options?: {shouldInitialize: boolean}) => {
 
 export default OptionsListContextProvider;
 
-export {useOptionsListContext, useOptionsList, OptionsListContext};
+export {useOptionsList, OptionsListContext};

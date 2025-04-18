@@ -83,6 +83,9 @@ type WorkspacePageWithSectionsProps = WithPolicyAndFullscreenLoadingProps &
         /** Whether the page is loading, example any other API call in progres */
         isLoading?: boolean;
 
+        /** Whether to use the headline header */
+        shouldUseHeadlineHeader?: boolean;
+
         /**
          * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
          */
@@ -121,6 +124,7 @@ function WorkspacePageWithSections({
     shouldShowThreeDotsButton,
     threeDotsMenuItems,
     threeDotsAnchorPosition,
+    shouldUseHeadlineHeader = true,
     addBottomSafeAreaPadding = false,
 }: WorkspacePageWithSectionsProps) {
     const styles = useThemeStyles();
@@ -206,7 +210,7 @@ function WorkspacePageWithSections({
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
                     threeDotsMenuItems={threeDotsMenuItems}
                     threeDotsAnchorPosition={threeDotsAnchorPosition}
-                    shouldUseHeadlineHeader
+                    shouldUseHeadlineHeader={shouldUseHeadlineHeader}
                 >
                     {headerContent}
                 </HeaderWithBackButton>
