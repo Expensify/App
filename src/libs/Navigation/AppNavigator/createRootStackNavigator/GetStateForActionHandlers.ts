@@ -283,21 +283,21 @@ function handleReplaceReportsSplitNavigatorAction(
     configOptions: RouterConfigOptions,
     stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
 ) {
-    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+    const stateWithReportsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
 
-    if (!stateWithSettingsSplitNavigator) {
+    if (!stateWithReportsSplitNavigator) {
         Log.hmmm('[handleReplaceReportsSplitNavigatorAction] ReportsSplitNavigator has not been found in the navigation state.');
         return null;
     }
 
-    const lastReportsSplitNavigator = stateWithSettingsSplitNavigator.routes.at(-1);
+    const lastReportsSplitNavigator = stateWithReportsSplitNavigator.routes.at(-1);
 
     // ReportScreen should always be opened with an animation when replacing the navigator
     if (lastReportsSplitNavigator?.key) {
         reportsSplitsWithEnteringAnimation.add(lastReportsSplitNavigator.key);
     }
 
-    return stateWithSettingsSplitNavigator;
+    return stateWithReportsSplitNavigator;
 }
 
 /**
