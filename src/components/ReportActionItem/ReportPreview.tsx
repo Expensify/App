@@ -60,7 +60,6 @@ import {
     hasUpdatedTotal,
     hasViolations,
     hasWarningTypeViolations,
-    isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -86,7 +85,7 @@ import {
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -250,9 +249,6 @@ function ReportPreview({
     }
 
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
-    const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
-    const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
@@ -515,7 +511,6 @@ function ReportPreview({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => submitReport(iouReport)}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (

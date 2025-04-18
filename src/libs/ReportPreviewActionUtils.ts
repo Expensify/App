@@ -4,7 +4,15 @@ import CONST from '@src/CONST';
 import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverMember} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
-import {arePaymentsEnabled, getConnectedIntegration, getCorrectedAutoReportingFrequency, hasAccountingConnections, hasIntegrationAutoSync, isPrefferedExporter} from './PolicyUtils';
+import {
+    arePaymentsEnabled,
+    getConnectedIntegration,
+    getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
+    hasAccountingConnections,
+    hasIntegrationAutoSync,
+    isPrefferedExporter,
+} from './PolicyUtils';
 import {
     getMoneyRequestSpendBreakdown,
     getParentReport,
@@ -40,6 +48,13 @@ function canSubmit(report: Report, violations: OnyxCollection<TransactionViolati
         hasNoticeTypeViolations(report.reportID, violations, true) ||
         hasWarningTypeViolations(report.reportID, violations, true);
     const isAnyReceiptBeingScanned = transactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
     return isExpense && isSubmitter && isOpen && isManualSubmitEnabled && !hasAnyViolations && !isAnyReceiptBeingScanned;
 }
 
@@ -54,6 +69,14 @@ function canApprove(report: Report, violations: OnyxCollection<TransactionViolat
         hasNoticeTypeViolations(report.reportID, violations, true) ||
         hasWarningTypeViolations(report.reportID, violations, true);
     const reportTransactions = transactions ?? getReportTransactions(report?.reportID);
+
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
+
     return isExpense && isApprover && isProcessing && isApprovalEnabled && !hasAnyViolations && reportTransactions.length > 0;
 }
 

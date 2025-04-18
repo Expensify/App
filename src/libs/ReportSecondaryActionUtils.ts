@@ -9,6 +9,7 @@ import {
     getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     hasNoPolicyOtherThanPersonalType,
@@ -50,6 +51,12 @@ function isSubmitAction(report: Report, policy?: Policy): boolean {
     const isOpenReport = isOpenReportUtils(report);
 
     if (!isOpenReport) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 

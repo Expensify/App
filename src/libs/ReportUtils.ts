@@ -9154,13 +9154,6 @@ function isAllowedToApproveExpenseReport(report: OnyxEntry<Report>, approverAcco
     return !(policy?.preventSelfApproval && isOwner);
 }
 
-function isAllowedToSubmitDraftExpenseReport(report: OnyxEntry<Report>): boolean {
-    const policy = getPolicy(report?.policyID);
-    const submitToAccountID = getSubmitToAccountID(policy, report);
-
-    return isAllowedToApproveExpenseReport(report, submitToAccountID);
-}
-
 /**
  * What missing payment method does this report action indicate, if any?
  */
@@ -10573,7 +10566,6 @@ export {
     isAdminsOnlyPostingRoom,
     isAllowedToApproveExpenseReport,
     isAllowedToComment,
-    isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,

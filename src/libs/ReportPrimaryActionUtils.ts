@@ -8,6 +8,7 @@ import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPrefferedExporter,
@@ -46,6 +47,13 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
     return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
