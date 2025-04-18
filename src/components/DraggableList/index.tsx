@@ -5,7 +5,7 @@ import type {OnDragEndResponder} from 'react-beautiful-dnd';
 import type {ScrollView as RNScrollView} from 'react-native';
 import ScrollView from '@components/ScrollView';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {DraggableListProps} from './types';
+import type DraggableListProps from './types';
 import useDraggableInPortal from './useDraggableInPortal';
 
 type ReorderParams<T> = {

@@ -115,5 +115,3 @@ function ScrollOffsetContextProvider({children}: ScrollOffsetContextProviderProp
 export default ScrollOffsetContextProvider;
 
 export {ScrollOffsetContext};
-
-export type {ScrollOffsetContextProviderProps, ScrollOffsetContextValue};

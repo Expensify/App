@@ -41,5 +41,3 @@ export default function useDraggableInPortal({shouldUsePortal}: DraggableInPorta
             return result;
         };
 }
-
-export type {DraggableInPortal};

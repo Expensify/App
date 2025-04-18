@@ -105,4 +105,4 @@ export default function <TProps extends WithPolicyProps, TRef>(
 }
 
 export {policyDefaultProps};
-export type {PolicyRoute, PolicyRouteName, WithPolicyOnyxProps, WithPolicyProps};
+export type {WithPolicyOnyxProps, WithPolicyProps};

@@ -343,5 +343,3 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default memo(LHNOptionsList);
-
-export type {LHNOptionsListProps};

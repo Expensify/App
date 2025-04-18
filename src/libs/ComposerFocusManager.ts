@@ -222,8 +222,6 @@ function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
 
-export type {InputElement};
-
 export default {
     getId,
     saveFocusedInput,

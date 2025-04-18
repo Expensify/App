@@ -29,4 +29,4 @@ type DraggableListProps<T> = {
     ListFooterComponent?: React.ReactElement;
 } & DraggableListData<T>;
 
-export type {DraggableListProps, RenderItemParams, DraggableListData};
+export default DraggableListProps;

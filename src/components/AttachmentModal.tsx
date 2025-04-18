@@ -703,4 +703,4 @@ AttachmentModal.displayName = 'AttachmentModal';
 
 export default memo(AttachmentModal);
 
-export type {Attachment, FileObject, ImagePickerResponse};
+export type {FileObject, ImagePickerResponse};

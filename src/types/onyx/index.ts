@@ -35,7 +35,6 @@ import type Fund from './Fund';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
-import type IOU from './IOU';
 import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
@@ -66,8 +65,6 @@ import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
-import type PreferredTheme from './PreferredTheme';
-import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
@@ -149,7 +146,6 @@ export type {
     FundID,
     FundList,
     IntroSelected,
-    IOU,
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
@@ -181,8 +177,6 @@ export type {
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
-    PreferredTheme,
-    PriorityMode,
     PrivatePersonalDetails,
     QuickAction,
     RecentWaypoint,

@@ -79,4 +79,3 @@ function PercentageForm({value: amount, errorText, onInputChange, label, ...rest
 PercentageForm.displayName = 'PercentageForm';
 
 export default forwardRef(PercentageForm);
-export type {PercentageFormProps};

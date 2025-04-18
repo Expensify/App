@@ -27,10 +27,7 @@ type PlatformStackNavigationOptions = CommonStackNavigationOptions & GeneralPlat
 type PlatformSpecificNavigationOptions = StackNavigationOptions | NativeStackNavigationOptions;
 
 export type {
-    WebOnlyNavigationOptions,
-    NativeOnlyNavigationOptions,
     CommonStackNavigationOptions,
-    GeneralPlatformStackNavigationOptions,
     PlatformStackNavigationOptions,
     PlatformSpecificNavigationOptions,
 };

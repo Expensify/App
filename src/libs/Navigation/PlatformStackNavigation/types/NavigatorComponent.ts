@@ -61,12 +61,6 @@ type CreatePlatformStackNavigatorComponentOptions<RouterOptions extends Platform
 export type {
     CustomCodeProps,
     CustomStateHookProps,
-    CustomStateHook,
     CustomEffectsHookProps,
-    CustomEffectsHook,
-    ExtraContentProps,
-    ExtraContent,
-    NavigationContentWrapperProps,
-    NavigationContentWrapper,
     CreatePlatformStackNavigatorComponentOptions,
 };

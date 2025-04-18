@@ -195,6 +195,5 @@ export type {
     FormInputErrors,
     InputRefs,
     InputComponentBaseProps,
-    ValueTypeMap,
     FormRef,
 };
