@@ -10,6 +10,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -69,6 +70,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
+    const [inputValue, setInputValue] = useState('');
 
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
@@ -128,15 +130,23 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled],
     );
 
+    const filteredTagList = useMemo(() => {
+        if (!inputValue.trim()) {
+            return tagList;
+        }
+        const lowerQuery = inputValue.trim().toLowerCase();
+        return tagList.filter((item) => !!item.text?.toLowerCase().includes(lowerQuery) || !!item.value?.toLowerCase().includes(lowerQuery));
+    }, [tagList, inputValue]);
+
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
 
     const tagListKeyedByName = useMemo(
         () =>
-            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+            filteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
                 acc[tag.value] = tag;
                 return acc;
             }, {}),
-        [tagList],
+        [filteredTagList],
     );
 
     if (!currentPolicyTag) {
@@ -151,7 +161,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     };
 
     const toggleAllTags = () => {
-        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const anySelected = availableTags.some((tag) => !!selectedTags[tag.value]);
 
         setSelectedTags(anySelected ? {} : Object.fromEntries(availableTags.map((t) => [t.value, true])));
@@ -346,12 +356,20 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         color={theme.spinner}
                     />
                 )}
-                {tagList.length > 0 && !isLoading && (
+                {tagList.length > 15 && (
+                    <SearchBar
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        label={translate('workspace.tags.findTag')}
+                        shouldShowEmptyState={filteredTagList.length === 0 && !isLoading}
+                    />
+                )}
+                {filteredTagList.length > 0 && !isLoading && (
                     <SelectionListWithModal
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: tagList, isDisabled: false}]}
+                        sections={[{data: filteredTagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         onSelectAll={toggleAllTags}

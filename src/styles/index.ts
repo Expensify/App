@@ -5659,6 +5659,12 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
         },
+
+        getSearchBarStyle: (shouldUseNarrowLayout: boolean) => ({
+            maxWidth: shouldUseNarrowLayout ? '100%' : 300,
+            marginHorizontal: 20,
+            marginBottom: 20,
+        }),
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;

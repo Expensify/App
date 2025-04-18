@@ -11,6 +11,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -97,6 +98,8 @@ function ReportFieldsListValuesPage({
         return [reportFieldValues, reportFieldDisabledValues];
     }, [formDraft?.disabledListValues, formDraft?.listValues, policy?.fieldList, reportFieldID]);
 
+    const [inputValue, setInputValue] = useState('');
+
     const updateReportFieldListValueEnabled = useCallback(
         (value: boolean, valueIndex: number) => {
             if (reportFieldID) {
@@ -137,6 +140,21 @@ function ReportFieldsListValuesPage({
         return [{data, isDisabled: false}];
     }, [canSelectMultiple, disabledListValues, listValues, selectedValues, translate, updateReportFieldListValueEnabled]);
 
+    const filteredListValuesSections = useMemo(() => {
+        if (!inputValue.trim()) {
+            return listValuesSections;
+        }
+        const lowerQuery = inputValue.trim().toLowerCase();
+        return [
+            {
+                data: listValuesSections.at(0)?.data.filter((reportField) => reportField.text?.toLowerCase().includes(lowerQuery)) ?? [],
+                isDisabled: listValuesSections?.at(0)?.isDisabled,
+            },
+        ];
+    }, [listValuesSections, inputValue]);
+
+    const filteredListValuesArray = (filteredListValuesSections.at(0)?.data ?? []).map((item) => item.value);
+
     const shouldShowEmptyState = Object.values(listValues ?? {}).length <= 0;
     const selectedValuesArray = Object.keys(selectedValues).filter((key) => selectedValues[key]);
 
@@ -148,7 +166,7 @@ function ReportFieldsListValuesPage({
     };
 
     const toggleAllValues = () => {
-        setSelectedValues(selectedValuesArray.length > 0 ? {} : Object.fromEntries(listValues.map((value) => [value, true])));
+        setSelectedValues(selectedValuesArray.length > 0 ? {} : Object.fromEntries(filteredListValuesArray.map((value) => [value, true])));
     };
 
     const handleDeleteValues = () => {
@@ -325,6 +343,14 @@ function ReportFieldsListValuesPage({
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
+                {(listValuesSections.at(0)?.data?.length ?? 0) > 1 && (
+                    <SearchBar
+                        label={translate('workspace.reportFields.findReportField')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={!shouldShowEmptyState && filteredListValuesSections.at(0)?.data.length === 0}
+                    />
+                )}
                 {shouldShowEmptyState && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
@@ -344,7 +370,7 @@ function ReportFieldsListValuesPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && toggleValue(item)}
-                        sections={listValuesSections}
+                        sections={filteredListValuesSections}
                         onCheckboxPress={toggleValue}
                         onSelectRow={openListValuePage}
                         onSelectAll={toggleAllValues}

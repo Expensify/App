@@ -15,6 +15,7 @@ import LottieAnimations from '@components/LottieAnimations';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
@@ -94,6 +95,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isQuickSettingsFlow = !!backTo;
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
+
+    const [inputValue, setInputValue] = useState('');
 
     useEffect(() => {
         fetchTags();
@@ -206,13 +209,21 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }));
     }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled]);
 
-    const tagListKeyedByName = useMemo(
+    const filteredTagList = useMemo<TagListItem[]>(() => {
+        if (!inputValue.trim()) {
+            return tagList;
+        }
+        const lowerQuery = inputValue.trim().toLowerCase();
+        return tagList.filter((item) => !!item.text?.toLowerCase().includes(lowerQuery) || !!item.value?.toLowerCase().includes(lowerQuery));
+    }, [tagList, inputValue]);
+
+    const filteredTagListKeyedByName = useMemo(
         () =>
-            tagList.reduce<Record<string, TagListItem>>((acc, tag) => {
+            filteredTagList.reduce<Record<string, TagListItem>>((acc, tag) => {
                 acc[tag.value] = tag;
                 return acc;
             }, {}),
-        [tagList],
+        [filteredTagList],
     );
 
     const toggleTag = (tag: TagListItem) => {
@@ -223,7 +234,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const toggleAllTags = () => {
-        const availableTags = tagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableTags = filteredTagList.filter((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         setSelectedTags(Object.keys(selectedTags).length > 0 ? {} : Object.fromEntries(availableTags.map((item) => [item.value, true])));
     };
 
@@ -310,7 +321,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         let disabledTagCount = 0;
         const tagsToEnable: Record<string, {name: string; enabled: boolean}> = {};
         for (const tagName of selectedTagsArray) {
-            if (tagListKeyedByName[tagName]?.enabled) {
+            if (filteredTagListKeyedByName[tagName]?.enabled) {
                 enabledTagCount++;
                 tagsToDisable[tagName] = {
                     name: tagName,
@@ -478,6 +489,14 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     danger
                 />
                 {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
+                {tagList.length > 15 && (
+                    <SearchBar
+                        label={translate('workspace.tags.findTag')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={hasVisibleTags && !isLoading && !filteredTagList.length}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -504,7 +523,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!isMultiLevelTags}
                         onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: tagList, isDisabled: false}]}
+                        sections={[{data: filteredTagList, isDisabled: false}]}
                         onCheckboxPress={toggleTag}
                         onSelectRow={navigateToTagSettings}
                         shouldSingleExecuteRowSelect={!canSelectMultiple}

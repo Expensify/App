@@ -14,6 +14,7 @@ import {Pencil} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import ListItemRightCaretWithLabel from '@components/SelectionList/ListItemRightCaretWithLabel';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
@@ -90,6 +91,8 @@ function WorkspaceReportFieldsPage({
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
 
+    const [inputValue, setInputValue] = useState('');
+
     const canSelectMultiple = !hasReportAccountingConnections && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
 
     const fetchReportFields = useCallback(() => {
@@ -134,7 +137,20 @@ function WorkspaceReportFieldsPage({
         ];
     }, [filteredPolicyFieldList, policy, selectedReportFields, canSelectMultiple, translate]);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(reportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
+    const filteredReportFieldsSections = useMemo(() => {
+        if (!inputValue.trim()) {
+            return reportFieldsSections;
+        }
+        const lowerQuery = inputValue.trim().toLowerCase();
+        return [
+            {
+                data: reportFieldsSections.at(0)?.data.filter((reportField) => reportField.text.toLowerCase().includes(lowerQuery)) ?? [],
+                isDisabled: reportFieldsSections?.at(0)?.isDisabled,
+            },
+        ];
+    }, [reportFieldsSections, inputValue]);
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredReportFieldsSections.at(0)?.data ?? ([] as ListItem[]));
 
     const updateSelectedReportFields = (item: ReportFieldForList) => {
         const fieldKey = getReportFieldKey(item.fieldID);
@@ -273,6 +289,15 @@ function WorkspaceReportFieldsPage({
                     danger
                 />
                 {(!shouldUseNarrowLayout || !hasVisibleReportField || isLoading) && getHeaderText()}
+                {!shouldShowEmptyState && !isLoading && shouldUseNarrowLayout && getHeaderText()}
+                {(reportFieldsSections.at(0)?.data?.length ?? 0) > 15 && (
+                    <SearchBar
+                        label={translate('workspace.reportFields.findReportField')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={!shouldShowEmptyState && filteredReportFieldsSections.at(0)?.data.length === 0}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -280,7 +305,7 @@ function WorkspaceReportFieldsPage({
                         color={theme.spinner}
                     />
                 )}
-                {shouldShowEmptyState && (
+                {shouldShowEmptyState && filteredReportFieldsSections.at(0)?.data.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             title={translate('workspace.reportFields.emptyReportFields.title')}
@@ -299,7 +324,7 @@ function WorkspaceReportFieldsPage({
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress={!hasReportAccountingConnections}
                         onTurnOnSelectionMode={(item) => item && updateSelectedReportFields(item)}
-                        sections={reportFieldsSections}
+                        sections={filteredReportFieldsSections}
                         onCheckboxPress={updateSelectedReportFields}
                         onSelectRow={navigateToReportFieldsSettings}
                         onSelectAll={toggleAllReportFields}

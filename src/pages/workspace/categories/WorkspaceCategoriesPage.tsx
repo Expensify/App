@@ -14,6 +14,7 @@ import * as Illustrations from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -21,7 +22,6 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import TableListItemSkeleton from '@components/Skeletons/TableRowSkeleton';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
-import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
@@ -87,7 +87,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
-    const [searchQuery, setSearchQuery] = useState('');
     const [inputValue, setInputValue] = useState('');
     const {canUseLeftHandBar} = usePermissions();
 
@@ -107,22 +106,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const cleanupSelectedOption = useCallback(() => setSelectedCategories({}), []);
     useCleanupSelectedOptions(cleanupSelectedOption);
-
-    const getSearchBar = () => {
-        return (
-            <View style={[{width: '300px', marginLeft: '20px'}]}>
-                <TextInput
-                    accessibilityLabel="Find category"
-                    placeholder="Find category"
-                    onChangeText={setInputValue}
-                    value={inputValue}
-                    icon={Expensicons.MagnifyingGlass}
-                    onSubmitEditing={() => setSearchQuery(inputValue)}
-                    shouldShowClearButton
-                />
-            </View>
-        );
-    };
 
     useEffect(() => {
         if (isEmptyObject(selectedCategories) || !canSelectMultiple) {
@@ -353,12 +336,12 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [setSelectedCategories, selectionMode?.isEnabled]);
 
     const filteredCategoryList = useMemo(() => {
-        if (!searchQuery.trim()) {
+        if (!inputValue.trim()) {
             return categoryList;
         }
-        const lowerQuery = searchQuery.trim().toLowerCase();
+        const lowerQuery = inputValue.trim().toLowerCase();
         return categoryList.filter((cat) => cat.text?.toLowerCase().includes(lowerQuery));
-    }, [searchQuery, categoryList]);
+    }, [inputValue, categoryList]);
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
     const getHeaderText = () => (
@@ -472,8 +455,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     danger
                 />
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                {categoryList.length > 15 && getSearchBar()}
-                {(!shouldUseNarrowLayout || !hasVisibleCategories || isLoading) && getHeaderText()}
+                {hasVisibleCategories && !isLoading && getHeaderText()}
+                {categoryList.length > 15 && (
+                    <SearchBar
+                        label={translate('workspace.categories.findCategory')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={hasVisibleCategories && !isLoading && filteredCategoryList.length === 0}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -481,15 +471,14 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         color={theme.spinner}
                     />
                 )}
-
-                {((!hasVisibleCategories && !isLoading) || filteredCategoryList.length === 0) && (
+                {!hasVisibleCategories && !isLoading && inputValue.length === 0 && (
                     <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
                         <EmptyStateComponent
                             SkeletonComponent={TableListItemSkeleton}
                             headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                             headerMedia={LottieAnimations.GenericEmptyState}
-                            title={filteredCategoryList.length === 0 ? translate('search.searchResults.emptyResults.title') : translate('workspace.categories.emptyCategories.title')}
-                            subtitle={filteredCategoryList.length === 0 ? 'Try adjusting your search criteria' : translate('workspace.categories.emptyCategories.subtitle')}
+                            title={translate('workspace.categories.emptyCategories.title')}
+                            subtitle={translate('workspace.categories.emptyCategories.subtitle')}
                             headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
                             lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                             headerContentStyles={styles.emptyStateFolderWebStyles}
@@ -510,7 +499,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         onDismissError={dismissError}
                         customListHeader={getCustomListHeader()}
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
                         addBottomSafeAreaPadding
                     />

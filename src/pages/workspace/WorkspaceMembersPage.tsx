@@ -15,6 +15,7 @@ import DecisionModal from '@components/DecisionModal';
 import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
 import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -99,6 +100,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
     const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
+    const [inputValue, setInputValue] = useState('');
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -464,6 +466,14 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
 
     const data = useMemo(() => getUsers(), [getUsers]);
 
+    const filteredData = useMemo(() => {
+        if (!inputValue.trim()) {
+            return data;
+        }
+        const lowerQuery = inputValue.trim().toLowerCase();
+        return data.filter((item) => !!item.text?.toLowerCase().includes(lowerQuery) || !!item.alternateText?.toLowerCase().includes(lowerQuery));
+    }, [data, inputValue]);
+
     useEffect(() => {
         if (!isFocused) {
             return;
@@ -688,6 +698,15 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             {() => (
                 <>
                     {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : getHeaderContent()}
+                    {data.length > 15 && (
+                        <SearchBar
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            label={translate('workspace.people.findMember')}
+                            shouldShowEmptyState={!filteredData.length}
+                        />
+                    )}
                     <ConfirmModal
                         isVisible={isOfflineModalVisible}
                         onConfirm={() => setIsOfflineModalVisible(false)}
@@ -724,33 +743,33 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                         isVisible={isDownloadFailureModalVisible}
                         onClose={() => setIsDownloadFailureModalVisible(false)}
                     />
-                    <View style={[styles.w100, styles.flex1]}>
-                        <SelectionListWithModal
-                            ref={selectionListRef}
-                            canSelectMultiple={canSelectMultiple}
-                            sections={[{data, isDisabled: false}]}
-                            ListItem={TableListItem}
-                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
-                            onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
-                            shouldUseUserSkeletonView
-                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                            headerMessage={getHeaderMessage()}
-                            headerContent={!shouldUseNarrowLayout && getHeaderContent()}
-                            onSelectRow={openMemberDetails}
-                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
-                            onCheckboxPress={(item) => toggleUser(item.accountID)}
-                            onSelectAll={() => toggleAllUsers(data)}
-                            onDismissError={dismissError}
-                            showLoadingPlaceholder={isLoading}
-                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                            textInputRef={textInputRef}
-                            customListHeader={getCustomListHeader()}
-                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
-                            showScrollIndicator={false}
-                            addBottomSafeAreaPadding
-                        />
-                    </View>
+                    {!!filteredData.length && (
+                        <View style={[styles.w100, styles.flex1]}>
+                            <SelectionListWithModal
+                                ref={selectionListRef}
+                                canSelectMultiple={canSelectMultiple}
+                                sections={[{data: filteredData, isDisabled: false}]}
+                                ListItem={TableListItem}
+                                turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                                onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
+                                shouldUseUserSkeletonView
+                                disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                                headerMessage={getHeaderMessage()}
+                                onSelectRow={openMemberDetails}
+                                shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                                onCheckboxPress={(item) => toggleUser(item.accountID)}
+                                onSelectAll={() => toggleAllUsers(filteredData)}
+                                onDismissError={dismissError}
+                                showLoadingPlaceholder={isLoading}
+                                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                                textInputRef={textInputRef}
+                                customListHeader={getCustomListHeader()}
+                                listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                                showScrollIndicator={false}
+                                addBottomSafeAreaPadding
+                            />
+                        </View>
+                    )}
                 </>
             )}
         </WorkspacePageWithSections>
