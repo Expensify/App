@@ -107,6 +107,10 @@ function canPay(report: Report, violations: OnyxCollection<TransactionViolation[
         return true;
     }
 
+    if (!isProcessing) {
+        return false;
+    }
+
     const isIOU = isIOUReport(report);
 
     if (isIOU && isReportPayer && !isReimbursed) {
