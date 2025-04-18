@@ -59,7 +59,7 @@ case "$BUILD" in
         npx rnef run:ios --simulator "iPad Pro (11-inch) (4th generation)" --configuration $IOS_MODE --scheme "$SCHEME"
         ;;
     --android)
-        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only --verbose
+        npx rnef run:android --variant $ANDROID_MODE --app-id $APP_ID --active-arch-only
         ;;
     *)
         print_error_and_exit
