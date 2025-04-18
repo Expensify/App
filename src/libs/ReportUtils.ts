@@ -10757,6 +10757,9 @@ export {
     getReportLastVisibleActionCreated,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
