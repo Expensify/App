@@ -3,8 +3,8 @@ import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
-import useSubStep from '@hooks/useSubStep';
 import usePrevious from '@hooks/usePrevious';
+import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
@@ -53,11 +53,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        if (previousIsLoading !== true || 
-            reimbursementAccount?.isLoading !== false || 
-            corpayFields?.isLoading !== false || 
-            reimbursementAccount?.errors
-        ) {
+        if (previousIsLoading !== true || reimbursementAccount?.isLoading !== false || corpayFields?.isLoading !== false || reimbursementAccount?.errors) {
             return;
         }
 
