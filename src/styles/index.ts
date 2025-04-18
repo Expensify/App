@@ -1848,9 +1848,9 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAccountingStep: boolean) =>
             ({
-                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
+                width: shouldUseNarrowLayout ? (isAccountingStep ? variables.onboardingAccountingModalWidth : variables.onboardingModalWidth) : '100%',
                 height: shouldUseNarrowLayout ? 732 : '100%',
                 maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,

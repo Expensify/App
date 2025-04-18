@@ -1,3 +1,4 @@
+import {useNavigationState} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
@@ -40,6 +41,9 @@ function OnboardingModalNavigator() {
     const outerViewRef = React.useRef<View>(null);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID, canBeMissing: true});
 
+    const currentRoute = useNavigationState((state) => state.routes[state.index]);
+    const lastRouteName = currentRoute?.state?.routes?.[currentRoute?.state?.routes?.length - 1]?.name;
+
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
@@ -67,7 +71,7 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
+                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth, lastRouteName === SCREENS.ONBOARDING.ACCOUNTING)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
                             <Stack.Screen

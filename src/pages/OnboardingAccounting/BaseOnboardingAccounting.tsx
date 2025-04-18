@@ -18,6 +18,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
@@ -113,6 +114,26 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         accountingIcon = Expensicons.IntacctSquare;
                         break;
                     }
+                    case CONST.POLICY.CONNECTIONS.NAME.SAP: {
+                        text = translate('workspace.accounting.sap');
+                        accountingIcon = Expensicons.IntacctSquare;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.ORACLE: {
+                        text = translate('workspace.accounting.oracle');
+                        accountingIcon = Expensicons.IntacctSquare;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.MS_DYNAMICS: {
+                        text = translate('workspace.accounting.msDynamics');
+                        accountingIcon = Expensicons.IntacctSquare;
+                        break;
+                    }
+                    case CONST.POLICY.CONNECTIONS.NAME.OTHER: {
+                        text = translate('workspace.accounting.other');
+                        accountingIcon = Expensicons.IntacctSquare;
+                        break;
+                    }
                     default: {
                         return;
                     }
@@ -172,6 +193,19 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         return;
                     }
 
+                    const shouldStayInNewDot = [
+                        CONST.POLICY.CONNECTIONS.NAME.QBO,
+                        CONST.POLICY.CONNECTIONS.NAME.QBD,
+                        CONST.POLICY.CONNECTIONS.NAME.XERO,
+                        CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+                        CONST.POLICY.CONNECTIONS.NAME.OTHER,
+                        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+                    ].includes(userReportedIntegration);
+
+                    if (!shouldStayInNewDot) {
+                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+                        return;
+                    }
                     completeOnboarding({
                         engagementChoice: onboardingPurposeSelected,
                         onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],

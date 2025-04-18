@@ -2938,6 +2938,10 @@ const CONST = {
                 XERO: 'xero',
                 NETSUITE: 'netsuite',
                 SAGE_INTACCT: 'intacct',
+                SAP: 'sap',
+                ORACLE: 'oracle',
+                MS_DYNAMICS: 'msDynamics',
+                OTHER: 'other',
             },
             ROUTE: {
                 QBO: 'quickbooks-online',

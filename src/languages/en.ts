@@ -4296,6 +4296,10 @@ const translations = {
             xero: 'Xero',
             netsuite: 'NetSuite',
             intacct: 'Sage Intacct',
+            sap: 'SAP',
+            oracle: 'Oracle',
+            msDynamics: 'Microsoft Dynamics',
+            other: 'Other',
             talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
             talkYourAccountManager: 'Chat with your account manager.',
             talkToConcierge: 'Chat with Concierge.',
@@ -4310,6 +4314,14 @@ const translations = {
                         return 'NetSuite';
                     case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
                         return 'Sage Intacct';
+                    case CONST.POLICY.CONNECTIONS.NAME.SAP:
+                        return 'SAP';
+                    case CONST.POLICY.CONNECTIONS.NAME.ORACLE:
+                        return 'Oracle';
+                    case CONST.POLICY.CONNECTIONS.NAME.MS_DYNAMICS:
+                        return 'Microsoft Dynamics';
+                    case CONST.POLICY.CONNECTIONS.NAME.OTHER:
+                        return 'Other';
                     default: {
                         return '';
                     }
