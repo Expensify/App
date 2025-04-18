@@ -22,8 +22,8 @@ type TopBarProps = {
     activeWorkspaceID?: string;
     shouldDisplaySearch?: boolean;
     shouldDisplayHelpButton?: boolean;
-    cancelSearch?: () => void;
     shouldShowLoadingBar?: boolean;
+    cancelSearch?: () => void;
 };
 
 function TopBar({breadcrumbLabel, activeWorkspaceID, shouldDisplaySearch = true, shouldDisplayHelpButton = true, cancelSearch, shouldShowLoadingBar = false}: TopBarProps) {

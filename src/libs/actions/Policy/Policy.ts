@@ -1782,6 +1782,7 @@ function createDraftInitialWorkspace(policyOwnerEmail = '', policyName = '', pol
                 areWorkflowsEnabled: shouldEnableWorkflowsByDefault,
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
+                requiresCategory: true,
             },
         },
     ];
@@ -1890,6 +1891,7 @@ function buildPolicyData(
                 avatarURL: file?.uri,
                 originalFileName: file?.name,
                 ...optimisticMccGroupData.optimisticData,
+                requiresCategory: true,
             },
         },
         {
@@ -2223,6 +2225,7 @@ function createDraftWorkspace(policyOwnerEmail = '', makeMeAdmin = false, policy
                 },
                 defaultBillable: false,
                 disabledFields: {defaultBillable: true},
+                requiresCategory: true,
             },
         },
         {
@@ -2552,6 +2555,7 @@ function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceF
         },
         defaultBillable: false,
         disabledFields: {defaultBillable: true},
+        requiresCategory: true,
     };
 
     const optimisticData: OnyxUpdate[] = [
@@ -5076,6 +5080,78 @@ function getAssignedSupportData(policyID: string) {
     API.read(READ_COMMANDS.GET_ASSIGNED_SUPPORT_DATA, parameters);
 }
 
+/**
+ * Call the API to calculate the bill for the new dot
+ */
+function calculateBillNewDot() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE,
+            value: true,
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE,
+            value: false,
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE,
+            value: false,
+        },
+    ];
+    API.read(READ_COMMANDS.CALCULATE_BILL_NEW_DOT, null, {
+        optimisticData,
+        successData,
+        failureData,
+    });
+}
+
+/**
+ * Call the API to pay and downgrade
+ */
+function payAndDowngrade() {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BILLING_RECEIPT_DETAILS,
+            value: {
+                errors: null,
+                isLoading: true,
+            },
+        },
+    ];
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BILLING_RECEIPT_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.BILLING_RECEIPT_DETAILS,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+    API.write(WRITE_COMMANDS.PAY_AND_DOWNGRADE, null, {optimisticData, successData, failureData});
+}
+
+function clearBillingReceiptDetailsErrors() {
+    Onyx.merge(ONYXKEYS.BILLING_RECEIPT_DETAILS, {errors: null});
+}
+
 export {
     leaveWorkspace,
     addBillingCardAndRequestPolicyOwnerChange,
@@ -5176,6 +5252,9 @@ export {
     updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
+    calculateBillNewDot,
+    payAndDowngrade,
+    clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
 };

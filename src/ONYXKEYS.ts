@@ -503,6 +503,19 @@ const ONYXKEYS = {
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
 
+    /** Set when we are loading bill when downgrade */
+    IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
+
+    /**
+     * Determines whether billing is required when the user downgrades their plan.
+     * If true, the "Pay & Downgrade" RHP will be displayed to guide the user
+     * through the payment process before downgrading.
+     */
+    SHOULD_BILL_WHEN_DOWNGRADING: 'shouldBillWhenDowngrading',
+
+    /** Billing receipt details */
+    BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -786,6 +799,8 @@ const ONYXKEYS = {
         RULES_CUSTOM_FORM_DRAFT: 'rulesCustomFormDraft',
         DEBUG_DETAILS_FORM: 'debugDetailsForm',
         DEBUG_DETAILS_FORM_DRAFT: 'debugDetailsFormDraft',
+        ONBOARDING_WORK_EMAIL_FORM: 'onboardingWorkEmailForm',
+        ONBOARDING_WORK_EMAIL_FORM_DRAFT: 'onboardingWorkEmailFormDraft',
         MERGE_ACCOUNT_DETAILS_FORM: 'mergeAccountDetailsForm',
         MERGE_ACCOUNT_DETAILS_FORM_DRAFT: 'mergeAccountDetailsFormDraft',
         WORKSPACE_PER_DIEM_FORM: 'workspacePerDiemForm',
@@ -890,6 +905,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.RULES_CUSTOM_FORM]: FormTypes.RulesCustomForm;
     [ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM]: FormTypes.SearchSavedSearchRenameForm;
     [ONYXKEYS.FORMS.DEBUG_DETAILS_FORM]: FormTypes.DebugReportForm | FormTypes.DebugReportActionForm | FormTypes.DebugTransactionForm | FormTypes.DebugTransactionViolationForm;
+    [ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM]: FormTypes.OnboardingWorkEmailForm;
     [ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM]: FormTypes.MergeAccountDetailsForm;
     [ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM]: FormTypes.InternationalBankAccountForm;
     [ONYXKEYS.FORMS.WORKSPACE_PER_DIEM_FORM]: FormTypes.WorkspacePerDiemForm;
@@ -1124,6 +1140,9 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CORPAY_ONBOARDING_FIELDS]: OnyxTypes.CorpayOnboardingFields;
     [ONYXKEYS.LAST_FULL_RECONNECT_TIME]: string;
     [ONYXKEYS.TRAVEL_PROVISIONING]: OnyxTypes.TravelProvisioning;
+    [ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE]: boolean | undefined;
+    [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
+    [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
 };
 
