@@ -34,7 +34,13 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function isSubmitAction(report: Report, policy?: Policy): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    if (!transactionAreComplete) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || report?.total === 0) {
@@ -392,7 +398,7 @@ function getSecondaryReportActions(
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isSubmitAction(report, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 
