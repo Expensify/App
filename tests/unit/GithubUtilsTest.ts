@@ -214,6 +214,7 @@ describe('GithubUtils', () => {
                 ['https://api.github.com/repos/Expensify/Expensify/pull/156369', 156369],
                 [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/pull/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/pull/346', 346],
+                ['https://api.github.com/repos/Expensify/Mobile-Expensify/pull/5000', 5000],
             ])('getPullRequestNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getPullRequestNumberFromURL(input)).toBe(expected);
             });
@@ -223,6 +224,7 @@ describe('GithubUtils', () => {
             test.each([
                 ['https://www.google.com/'],
                 ['https://github.com/Expensify/Expensify/issues/156481'],
+                ['https://github.com/Expensify/Mobile-Expensify/issues/12345'],
                 ['https://docs.google.com/document/d/1mMFh-m1seOES48r3zNqcvfuTvr3qOAsY6n5rP4ejdXE/edit?ts=602420d2#'],
             ])('getPullRequestNumberFromURL("%s")', (input) => {
                 expect(() => {
@@ -241,6 +243,7 @@ describe('GithubUtils', () => {
                 ['https://api.github.com/repos/Expensify/Expensify/issues/156369', 156369],
                 [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/issues/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/issues/346', 346],
+                ['https://api.github.com/repos/Expensify/Mobile-Expenify/issues/123', 123],
             ])('getIssueNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getIssueNumberFromURL(input)).toBe(expected);
             });
