@@ -607,7 +607,10 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear(KEYS_TO_PRESERVE).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}));
+        return Onyx
+                .clear(KEYS_TO_PRESERVE)
+                .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}))
+                .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
     };
 
     return clearOnyxForNewAccount()
