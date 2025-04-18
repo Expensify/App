@@ -33,6 +33,8 @@ jobs:
 
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@333f590005be752c28f07e36fa7151be3b2e18da
+        env:
+          IS_HYBRID_APP: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
         with:
           variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
