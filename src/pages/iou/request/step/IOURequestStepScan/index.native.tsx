@@ -453,8 +453,9 @@ function IOURequestStepScan({
             } else {
                 if (isTestTransaction) {
                     const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-                    setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
-                    navigateToConfirmationPage(true);
+                    setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]).then(() => {
+                        navigateToConfirmationPage(true);
+                    });
                     return;
                 }
                 navigateToParticipantPage();
