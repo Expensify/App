@@ -1,6 +1,7 @@
 'use strict';
 exports.__esModule = true;
 exports.toCollectionDataSet = void 0;
+
 var toCollectionDataSet = function (collectionKey, collection, idSelector) {
     var collectionDataSet = collection.reduce(function (result, collectionValue) {
         if (collectionValue) {
@@ -11,4 +12,5 @@ var toCollectionDataSet = function (collectionKey, collection, idSelector) {
     }, {});
     return collectionDataSet;
 };
+
 exports.toCollectionDataSet = toCollectionDataSet;

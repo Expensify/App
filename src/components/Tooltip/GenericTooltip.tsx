@@ -107,7 +107,6 @@ function GenericTooltip({
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
 
-
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
         isTooltipSenseInitiator.set(false);
@@ -126,11 +125,7 @@ function GenericTooltip({
 
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
         // eslint-disable-next-line react-compiler/react-compiler
-        return (
-            <View ref={ref}>
-                {children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}
-            </View>
-        );
+        return <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}</View>;
     }
 
     return (
@@ -160,9 +155,7 @@ function GenericTooltip({
                     onTooltipPress={onTooltipPress}
                 />
             )}
-            <View ref={ref}>
-                {children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}
-            </View>
+            <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}</View>
         </>
     );
 }
