@@ -485,7 +485,7 @@ function WorkspacesListPage() {
     );
 
     const onBackButtonPress = () => {
-        Navigation.goBack(route.params?.backTo ?? ROUTES.SETTINGS);
+        Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACE_HUB_INITIAL);
         return true;
     };
 
