@@ -69,7 +69,6 @@ import LeftModalNavigator from './Navigators/LeftModalNavigator';
 import MigratedUserWelcomeModalNavigator from './Navigators/MigratedUserWelcomeModalNavigator';
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import RightModalNavigator from './Navigators/RightModalNavigator';
-import TestDriveModalNavigator from './Navigators/TestDriveModalNavigator';
 import WelcomeVideoModalNavigator from './Navigators/WelcomeVideoModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
@@ -245,7 +244,7 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
 
     // On HybridApp we need to prevent flickering during transition to OldDot
     const shouldRenderOnboardingExclusivelyOnHybridApp = useMemo(() => {
-        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_EMPLOYEES.route) && isOnboardingCompleted === true;
+        return CONFIG.IS_HYBRID_APP && Navigation.getActiveRoute().includes(ROUTES.ONBOARDING_ACCOUNTING.route) && isOnboardingCompleted === true;
     }, [isOnboardingCompleted]);
 
     useEffect(() => {
@@ -630,11 +629,6 @@ function AuthScreens({session, lastOpenedPublicRoomID, initialLastUpdateIDApplie
                     name={NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR}
                     options={rootNavigatorScreenOptions.basicModalNavigator}
                     component={MigratedUserWelcomeModalNavigator}
-                />
-                <RootStack.Screen
-                    name={NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR}
-                    options={rootNavigatorScreenOptions.basicModalNavigator}
-                    component={TestDriveModalNavigator}
                 />
                 <RootStack.Screen
                     name={NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR}
