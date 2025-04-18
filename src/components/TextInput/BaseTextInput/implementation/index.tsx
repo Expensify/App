@@ -49,7 +49,6 @@ function BaseTextInput(
         containerStyles,
         inputStyle,
         forceActiveLabel = false,
-        autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
         autoGrowHeight = false,
@@ -58,7 +57,6 @@ function BaseTextInput(
         maxLength = undefined,
         hint = '',
         onInputChange = () => {},
-        shouldDelayFocus = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -120,14 +118,10 @@ function BaseTextInput(
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!autoFocus || !input.current) {
+        if (!inputProps.autoFocus || !input.current) {
             return;
         }
 
-        if (shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input?.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(focusTimeout);
-        }
         input.current.focus();
         // We only want this to run on mount
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
