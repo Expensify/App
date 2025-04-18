@@ -285,20 +285,21 @@ function MoneyRequestConfirmationListFooter({
      * Also we need to check if transaction report exists in outstanding reports in order to show a correct report name.
      */
     const transactionReport = !!transaction?.reportID && Object.values(allReports ?? {}).find((report) => report?.reportID === transaction.reportID);
-    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, selectedParticipants?.at(0)?.policyID);
+    const policyID = selectedParticipants?.at(0)?.policyID;
+    const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
+    const firstOutstandingReport = getOutstandingReports(policyID, allReports ?? {}).at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;
     } else {
-        const firstOutstangingReport = getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
-        reportName = firstOutstangingReport?.reportName;
+        reportName = firstOutstandingReport?.reportName;
     }
 
     if (!reportName) {
         const optimisticReport = buildOptimisticExpenseReport(reportID, policy?.id, policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID, Number(formattedAmount), currency);
         reportName = populateOptimisticReportFormula(policy?.fieldList?.text_title?.defaultValue ?? '', optimisticReport, policy);
     }
-    const shouldReportBeEditable = !!getOutstandingReports(selectedParticipants?.at(0)?.policyID, allReports ?? {}).at(0);
+    const shouldReportBeEditable = !!firstOutstandingReport;
 
     const isTypeSend = iouType === CONST.IOU.TYPE.PAY;
     const taxRates = policy?.taxRates ?? null;
