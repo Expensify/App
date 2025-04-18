@@ -909,7 +909,7 @@ const translations = {
         amount: 'Amount',
         taxAmount: 'Tax amount',
         taxRate: 'Tax rate',
-        approve: ({formattedAmount}: {formattedAmount?: string}) => `Approve ${formattedAmount}`.trim(),
+        approve: ({formattedAmount}: {formattedAmount?: string}) => (formattedAmount ? `Approve ${formattedAmount}` : "Approve"),
         approved: 'Approved',
         cash: 'Cash',
         card: 'Card',
