@@ -131,7 +131,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfBeneficialOwnerDescription')}</Text>
                     {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
-                        <View style={[styles.sectionDividerLine, styles.mh0]} />
+                        <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />
                     )}
                 </View>
             )}
@@ -158,7 +158,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={copyOfIDInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.copyOfIDDescription')}</Text>
-                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {(isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
 
@@ -184,7 +184,7 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         inputID={addressProofInputID}
                     />
                     <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfAddressDescription')}</Text>
-                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mh0]} />}
+                    {isDocumentNeededStatus.isCodiceFiscaleNeeded && <View style={[styles.sectionDividerLine, styles.mt6, styles.mb6]} />}
                 </View>
             )}
 

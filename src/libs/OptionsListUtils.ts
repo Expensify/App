@@ -1578,13 +1578,6 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
     return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
 }
 
-/**
- * Helper method to check if participant email is Manager McTest
- */
-function isSelectedManagerMcTest(email: string | null | undefined): boolean {
-    return email === CONST.EMAIL.MANAGER_MCTEST;
-}
-
 function getValidPersonalDetailOptions(
     options: OptionList['personalDetails'],
     {
@@ -1653,7 +1646,7 @@ function getValidOptions(
         ...config
     }: GetOptionsConfig = {},
 ): Options {
-    const userHasReportWithManagerMcTest = canShowManagerMcTest && Object.values(options.reports).some((report) => isManagerMcTestReport(report));
+    const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
     // If user has a workspace that he isn't owner, it means he was invited to it.
     const isUserInvitedToWorkspace = Object.values(policies ?? {}).some(
         (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
@@ -1665,7 +1658,10 @@ function getValidOptions(
         ...excludeLogins,
         // Exclude Manager McTest if selection is made from Create or Submit flow
         [CONST.EMAIL.MANAGER_MCTEST]:
-            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) || !Permissions.canUseManagerMcTest(config.betas) || isUserInvitedToWorkspace,
+            !canShowManagerMcTest ||
+            (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
+            !Permissions.canUseManagerMcTest(config.betas) ||
+            isUserInvitedToWorkspace,
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -2378,7 +2374,6 @@ export {
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
-    isSelectedManagerMcTest,
     shouldShowLastActorDisplayName,
     isDeletingLastEnabledCategory,
 };

@@ -430,7 +430,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CATEGORIES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceCategoriesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -512,6 +512,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
                 )}
 

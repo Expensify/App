@@ -469,7 +469,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={WorkspaceTagsPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -550,6 +550,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
                         listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                         showScrollIndicator={false}
+                        addBottomSafeAreaPadding
                     />
                 )}
 

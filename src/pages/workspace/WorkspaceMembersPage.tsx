@@ -670,6 +670,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
             shouldShowLoading={false}
+            shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
             shouldShowThreeDotsButton={isPolicyAdmin}
             threeDotsMenuItems={threeDotsMenuItems}
@@ -747,6 +748,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
                             listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                             listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
                             showScrollIndicator={false}
+                            addBottomSafeAreaPadding
                         />
                     </View>
                 </>

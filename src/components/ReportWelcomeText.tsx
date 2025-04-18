@@ -61,6 +61,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
     const displayNamesWithTooltips = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(participantAccountIDs, personalDetails), isMultipleParticipant);
     const welcomeMessage = SidebarUtils.getWelcomeMessage(report, policy);
     const moneyRequestOptions = temporary_getMoneyRequestOptions(report, policy, participantAccountIDs);
+    const policyName = getPolicyName({report});
 
     const filteredOptions = moneyRequestOptions.filter(
         (item): item is Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND | typeof CONST.IOU.TYPE.CREATE | typeof CONST.IOU.TYPE.INVOICE> =>
@@ -108,8 +109,12 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
             return reportName;
         }
 
+        if (isPolicyExpenseChat) {
+            return translate('reportActionsView.welcomeToRoom', {roomName: policyName});
+        }
+
         return translate('reportActionsView.sayHello');
-    }, [isChatRoom, isInvoiceRoom, isSelfDM, isSystemChat, translate, reportName]);
+    }, [isChatRoom, isInvoiceRoom, isPolicyExpenseChat, isSelfDM, isSystemChat, translate, policyName, reportName]);
 
     return (
         <>
