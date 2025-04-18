@@ -20,6 +20,7 @@ import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQuery
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {
+    buildUserReadableQueryString,
+    buildUserReadableQueryStringWithPolicyID,
+    getQueryWithUpdatedValues,
+    isDefaultExpensesQuery,
+    isDefaultExpensesQueryWithPolicyIDCheck,
+    sanitizeSearchValue,
+} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -54,12 +62,14 @@ type SearchPageHeaderInputProps = {
 
 function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
+    const {canUseLeftHandBar} = usePermissions();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const taxRates = useMemo(() => getAllTaxRates(), []);
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -68,9 +78,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
+    const isDefaultQuery = canUseLeftHandBar ? isDefaultExpensesQueryWithPolicyIDCheck(queryJSON) : isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+    const queryText = canUseLeftHandBar
+        ? buildUserReadableQueryStringWithPolicyID(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies)
+        : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);

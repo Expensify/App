@@ -8,6 +8,7 @@ import {getAmountOwed, getOverdueGracePeriodDate, getSubscriptionStatus, PAYMENT
 import CONST from '@src/CONST';
 import type {AccountData} from '@src/types/onyx/Fund';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 type BillingStatusResult = {
@@ -69,7 +70,7 @@ function getBillingStatus({translate, accountData, purchase}: GetBillingStatusPr
                         : {},
                 ),
                 isError: true,
-                isRetryAvailable: true,
+                isRetryAvailable: !isEmptyObject(accountData) ? true : undefined,
             };
 
         case PAYMENT_STATUS.OWNER_OF_POLICY_UNDER_INVOICING:

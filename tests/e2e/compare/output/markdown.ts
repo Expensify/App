@@ -184,7 +184,7 @@ const writeToMarkdown = (outputDir: string, data: Data, skippedTests: string[]) 
 
     return Promise.all(
         markdownFiles.map((file, index) => {
-            const filePath = `${outputDir}/output-${index + 1}.md`;
+            const filePath = `${outputDir}/output${index + 1}.md`;
             return writeToFile(filePath, file).catch((error) => {
                 console.error(error);
                 throw error;

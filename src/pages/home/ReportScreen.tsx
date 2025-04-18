@@ -5,7 +5,6 @@ import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 're
 import type {FlatList, ViewStyle} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {useOnyx} from 'react-native-onyx';
 import Banner from '@components/Banner';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
@@ -23,6 +22,7 @@ import useDeepCompareRef from '@hooks/useDeepCompareRef';
 import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
@@ -32,7 +32,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -80,8 +80,9 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
@@ -102,6 +103,8 @@ const defaultReportMetadata = {
     hasLoadingNewerReportActionsError: false,
     isOptimisticReport: false,
 };
+
+const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
 
 /**
  * Check is the report is deleted.
@@ -296,6 +299,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const backTo = route?.params?.backTo as string;
 
     useEffect(() => {
         if (!prevIsFocused || isFocused) {
@@ -313,12 +317,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }, [report]);
 
     const onBackButtonPress = useCallback(() => {
-        if (isInNarrowPaneModal) {
+        if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
             return;
         }
+        if (backTo) {
+            Navigation.goBack(backTo as Route, {shouldPopToTop: true});
+            return;
+        }
         Navigation.goBack(undefined, {shouldPopToTop: true});
-    }, [isInNarrowPaneModal]);
+    }, [isInNarrowPaneModal, backTo]);
 
     let headerView = (
         <HeaderView
@@ -345,8 +353,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(linkedAction?.childReportID, reportID, linkedAction)) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
+        navigation.setParams({reportActionID: ''});
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation]);
 
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         headerView = (
@@ -431,10 +439,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (moneyRequestReportActionID && transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -508,7 +516,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
-        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+        // This function is only triggered when a user is invited to a room after opening the link.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
+        // See https://github.com/Expensify/App/issues/57769 for more details
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
         }
         fetchReport();
@@ -551,15 +562,24 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
             isClosedTopLevelPolicyRoom ||
             (prevDeletedParentAction && !deletedParentAction)
         ) {
+            const currentRoute = navigationRef.getCurrentRoute();
+            const isReportDetailOpenInRHP =
+                isTopMostReportId &&
+                reportDetailScreens.find((r) => r === currentRoute?.name) &&
+                !!currentRoute?.params &&
+                'reportID' in currentRoute.params &&
+                reportIDFromRoute === currentRoute.params.reportID;
             // Early return if the report we're passing isn't in a focused state. We only want to navigate to Concierge if the user leaves the room from another device or gets removed from the room while the report is in a focused state.
             // Prevent auto navigation for report in RHP
-            if (!isFocused || isInNarrowPaneModal) {
+            if ((!isFocused && !isReportDetailOpenInRHP) || isInNarrowPaneModal) {
                 return;
             }
             Navigation.dismissModal();
             if (Navigation.getTopmostReportId() === prevOnyxReportID) {
                 Navigation.setShouldPopAllStateOnUP(true);
-                Navigation.goBack(undefined, {shouldPopToTop: true});
+                Navigation.isNavigationReady().then(() => {
+                    Navigation.goBack(undefined, {shouldPopToTop: true});
+                });
             }
             if (prevReport?.parentReportID) {
                 // Prevent navigation to the IOU/Expense Report if it is pending deletion.
@@ -570,7 +590,11 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                 return;
             }
 
-            navigateToConciergeChat();
+            Navigation.isNavigationReady().then(() => {
+                InteractionManager.runAfterInteractions(() => {
+                    navigateToConciergeChat();
+                });
+            });
             return;
         }
 

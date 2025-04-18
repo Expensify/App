@@ -15,7 +15,10 @@ type PackageJson = {
 async function run(): Promise<IssuesCreateResponse | void> {
     // Note: require('package.json').version does not work because ncc will resolve that to a plain string at compile time
     const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8')) as PackageJson;
-    const newVersionTag = packageJson.version;
+    // The checklist will use the package.json version, e.g. '1.2.3-4'
+    const newVersion = packageJson.version;
+    // The staging tag will use the package.json version with a '-staging' suffix, e.g. '1.2.3-4-staging'
+    const newStagingTag = `${packageJson.version}-staging`;
 
     try {
         // Start by fetching the list of recent StagingDeployCash issues, along with the list of open deploy blockers
@@ -52,14 +55,14 @@ async function run(): Promise<IssuesCreateResponse | void> {
         const currentChecklistData: StagingDeployCashData | undefined = shouldCreateNewDeployChecklist ? undefined : GithubUtils.getStagingDeployCashData(mostRecentChecklist);
 
         // Find the list of PRs merged between the current checklist and the previous checklist
-        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag ?? '', newVersionTag);
+        const mergedPRs = await GitUtils.getPullRequestsMergedBetween(previousChecklistData.tag, newStagingTag);
 
         // Next, we generate the checklist body
         let checklistBody = '';
         let checklistAssignees: string[] = [];
         if (shouldCreateNewDeployChecklist) {
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
+                newVersion,
                 mergedPRs.map((value) => GithubUtils.getPullRequestURLFromNumber(value)),
             );
             if (stagingDeployCashBodyAndAssignees) {
@@ -106,9 +109,9 @@ async function run(): Promise<IssuesCreateResponse | void> {
                 });
             });
 
-            const didVersionChange = newVersionTag !== currentChecklistData?.tag;
+            const didVersionChange = newVersion !== currentChecklistData?.version;
             const stagingDeployCashBodyAndAssignees = await GithubUtils.generateStagingDeployCashBodyAndAssignees(
-                newVersionTag,
+                newVersion,
                 PRList.map((pr) => pr.url),
                 PRList.filter((pr) => pr.isVerified).map((pr) => pr.url),
                 deployBlockers.map((blocker) => blocker.url),

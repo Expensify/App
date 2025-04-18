@@ -25,9 +25,10 @@ function usePreferredCurrency(): PreferredCurrency {
         return paymentCardCurrency;
     }
 
-    const currentUserLocalCurrency = (personalDetails?.[session?.accountID ?? '-1']?.localCurrencyCode ?? CONST.PAYMENT_CARD_CURRENCY.USD) as PreferredCurrency;
+    const currentUserLocalCurrency = (personalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.PAYMENT_CARD_CURRENCY.USD) as PreferredCurrency;
 
     return Object.values(CONST.PAYMENT_CARD_CURRENCY).includes(currentUserLocalCurrency) ? currentUserLocalCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
 }
 
 export default usePreferredCurrency;
+export type {PreferredCurrency};

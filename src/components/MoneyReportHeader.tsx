@@ -31,6 +31,7 @@ import {
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isInvoiceReport,
+    isProcessingReport,
     isReportApproved,
     isReportOwner,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
@@ -191,7 +192,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const selectedTransactionsOptions = useMemo(() => {
         if (!selectedTransactionsID.length) {
@@ -202,8 +203,9 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         const anyTransactionOnHold = selectedTransactions.some(isOnHoldTransactionUtils);
         const allTransactionOnHold = selectedTransactions.every(isOnHoldTransactionUtils);
+        const isReportReimbursed = moneyRequestReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && moneyRequestReport?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
-        if (!anyTransactionOnHold && selectedTransactions.length === 1) {
+        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
@@ -439,7 +441,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         }
 
         if (hasDuplicates) {
-            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction')};
+            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.duplicateTransaction', {isSubmitted: isProcessingReport(moneyRequestReport)})};
         }
 
         if (!!transaction?.transactionID && shouldShowBrokenConnectionViolation) {
