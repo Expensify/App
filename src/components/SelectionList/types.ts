@@ -572,7 +572,7 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether focus event should be delayed */
     shouldDelayFocus?: boolean;
 
-    /** Is the window width narrow, like on a mobile device? */
+    /** Whether the layout is narrow */
     isSmallScreenWidth?: boolean;
 
     /** Callback to fire when the text input changes */
