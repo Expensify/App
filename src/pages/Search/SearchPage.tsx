@@ -7,8 +7,8 @@ import DecisionModal from '@components/DecisionModal';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -22,6 +22,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -39,6 +40,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
 import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -62,6 +64,7 @@ function SearchPage({route}: SearchPageProps) {
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD);
+    const {canUseLeftHandBar} = usePermissions();
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -334,6 +337,9 @@ function SearchPage({route}: SearchPageProps) {
     const isSearchNameModified = name === q;
     const searchName = isSearchNameModified ? undefined : name;
 
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+
     // Handles video player cleanup:
     // 1. On mount: Resets player if navigating from report screen
     // 2. On unmount: Stops video when leaving this screen
@@ -406,7 +412,7 @@ function SearchPage({route}: SearchPageProps) {
         <ScreenWrapper
             testID={Search.displayName}
             shouldEnableMaxHeight
-            headerGapStyles={styles.searchHeaderGap}
+            headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
@@ -415,12 +421,13 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {!!queryJSON && (
-                    <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
+                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
+                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             {queryJSON ? (
                                 <View style={styles.flex1}>
                                     <HeaderGap />
                                     <TopBar
+                                        shouldShowLoadingBar={shouldShowLoadingState}
                                         activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
@@ -437,7 +444,7 @@ function SearchPage({route}: SearchPageProps) {
                                     }}
                                 />
                             )}
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>
                         <ScreenWrapper
                             testID={Search.displayName}

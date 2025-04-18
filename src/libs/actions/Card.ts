@@ -334,11 +334,10 @@ function updateSettlementFrequency(workspaceAccountID: number, settlementFrequen
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
 }
 
-function updateSettlementAccount(workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
+function updateSettlementAccount(domainName: string, workspaceAccountID: number, policyID: string, settlementBankAccountID?: number, currentSettlementBankAccountID?: number) {
     if (!settlementBankAccountID) {
         return;
     }
-    const domainName = PolicyUtils.getDomainNameForPolicy(policyID);
 
     const optimisticData: OnyxUpdate[] = [
         {
@@ -390,7 +389,12 @@ function getCardDefaultName(userName?: string) {
 }
 
 function setIssueNewCardStepAndData({data, isEditing, step, policyID}: IssueNewCardFlowData) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {data, isEditing, currentStep: step, errors: null});
+    Onyx.merge(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {
+        data,
+        isEditing,
+        currentStep: step,
+        errors: null,
+    });
 }
 
 function clearIssueNewCardFlow(policyID: string | undefined) {
@@ -754,7 +758,7 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
     });
 }
 
-function issueExpensifyCard(policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
+function issueExpensifyCard(domainAccountID: number, policyID: string | undefined, feedCountry: string, validateCode: string, data?: IssueNewCardData) {
     if (!data) {
         return;
     }
@@ -796,12 +800,12 @@ function issueExpensifyCard(policyID: string | undefined, feedCountry: string, v
     ];
 
     const parameters = {
-        policyID,
         assigneeEmail,
         limit,
         limitType,
         cardTitle,
         validateCode,
+        domainAccountID,
     };
 
     if (cardType === CONST.EXPENSIFY_CARD.CARD_TYPE.PHYSICAL) {
@@ -817,12 +821,10 @@ function issueExpensifyCard(policyID: string | undefined, feedCountry: string, v
         return;
     }
 
-    const domainAccountID = PolicyUtils.getWorkspaceAccountID(policyID);
-
     // eslint-disable-next-line rulesdir/no-multiple-api-calls
     API.write(
         WRITE_COMMANDS.CREATE_ADMIN_ISSUED_VIRTUAL_CARD,
-        {...parameters, domainAccountID},
+        {...parameters},
         {
             optimisticData,
             successData,
@@ -918,6 +920,20 @@ function updateSelectedFeed(feed: CompanyCardFeed, policyID: string | undefined)
     ]);
 }
 
+function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefined) {
+    if (!policyID) {
+        return;
+    }
+
+    Onyx.update([
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED}${policyID}`,
+            value: feed,
+        },
+    ]);
+}
+
 function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
     const parameters = {
         feedCountry,
@@ -948,6 +964,7 @@ export {
     toggleContinuousReconciliation,
     updateExpensifyCardLimitType,
     updateSelectedFeed,
+    updateSelectedExpensifyCardFeed,
     deactivateCard,
     getCardDefaultName,
     queueExpensifyCardForBilling,

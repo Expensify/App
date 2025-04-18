@@ -41,6 +41,7 @@ import {
     canEditMoneyRequest,
     getTransactionDetails,
     getWorkspaceIcon,
+    hasReceiptError,
     isPaidGroupPolicy,
     isPaidGroupPolicyExpenseReport,
     isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
@@ -177,7 +178,8 @@ function MoneyRequestPreviewContent({
     const shouldShowTag = !!tag && isPolicyExpenseChat;
     const shouldShowCategory = !!category && isPolicyExpenseChat;
     const shouldShowCategoryOrTag = shouldShowTag || shouldShowCategory;
-    const shouldShowRBR = hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold);
+    const shouldShowRBR =
+        hasNoticeTypeViolations || hasWarningTypeViolations || hasViolations || hasFieldErrors || (!isFullySettled && !isFullyApproved && isOnHold) || hasReceiptError(transaction);
     const showCashOrCard = isCardTransaction ? translate('iou.card') : translate('iou.cash');
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;

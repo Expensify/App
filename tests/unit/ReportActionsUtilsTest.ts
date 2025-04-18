@@ -941,4 +941,22 @@ describe('ReportActionsUtils', () => {
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
         });
     });
+
+    describe('getRenamedAction', () => {
+        it('should return the correct translated message for a renamed action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    lastModified: '2022-11-09 22:27:01.825',
+                    oldName: 'Old name',
+                    newName: 'New name',
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            expect(ReportActionsUtils.getRenamedAction(reportAction, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
+        });
+    });
 });

@@ -15,9 +15,10 @@ import {useSearchRouterContext} from './SearchRouterContext';
 
 type SearchButtonProps = {
     style?: StyleProp<ViewStyle>;
+    shouldUseAutoHitSlop?: boolean;
 };
 
-function SearchButton({style}: SearchButtonProps) {
+function SearchButton({style, shouldUseAutoHitSlop = false}: SearchButtonProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -31,6 +32,7 @@ function SearchButton({style}: SearchButtonProps) {
                 testID="searchButton"
                 accessibilityLabel={translate('common.search')}
                 style={[styles.flexRow, styles.touchableButtonImage, style]}
+                shouldUseAutoHitSlop={shouldUseAutoHitSlop}
                 // eslint-disable-next-line react-compiler/react-compiler
                 onPress={callFunctionIfActionIsAllowed(() => {
                     pressableRef?.current?.blur();

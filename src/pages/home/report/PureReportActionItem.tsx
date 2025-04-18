@@ -30,6 +30,7 @@ import MoneyRequestReportPreview from '@components/ReportActionItem/MoneyRequest
 import ReportPreview from '@components/ReportActionItem/ReportPreview';
 import TaskAction from '@components/ReportActionItem/TaskAction';
 import TaskPreview from '@components/ReportActionItem/TaskPreview';
+import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
 import TripRoomPreview from '@components/ReportActionItem/TripRoomPreview';
 import {useSearchContext} from '@components/Search/SearchContext';
 import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
@@ -100,11 +101,15 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isResolvedConciergeCategoryOptions,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
     isTripPreview,
     isUnapprovedAction,
     isWhisperActionTargetedToOthers,
+    useNewTableReportViewActionRenderConditionals,
 } from '@libs/ReportActionsUtils';
 import {
     canWriteInReport,
@@ -118,10 +123,12 @@ import {
     getIOUForwardedMessage,
     getIOUSubmittedMessage,
     getIOUUnapprovedMessage,
+    getMovedTransactionMessage,
     getPolicyChangeMessage,
     getRejectedReportMessage,
     getReportAutomaticallyApprovedMessage,
     getReportAutomaticallySubmittedMessage,
+    getUnreportedTransactionMessage,
     getUpgradeWorkspaceMessage,
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
@@ -334,18 +341,6 @@ type PureReportActionItemProps = {
 const emptyHTML = <RenderHTML html="" />;
 const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
 
-const useNewTableReportViewActionRenderConditionals = ({childMoneyRequestCount, childVisibleActionCount, pendingAction, actionName}: OnyxTypes.ReportAction) => {
-    const previousChildMoneyRequestCount = usePrevious(childMoneyRequestCount);
-
-    return !(
-        actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
-        pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE &&
-        childMoneyRequestCount === 0 &&
-        (childVisibleActionCount ?? 0) > 0 &&
-        (previousChildMoneyRequestCount ?? 0) > 0
-    );
-};
-
 /**
  * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
  * Since the search result has a separate Onyx key under the 'snapshot_' prefix, we should not connect this component with Onyx.
@@ -425,6 +420,8 @@ function PureReportActionItem({
         () => (isReportActionLinked ? StyleUtils.getBackgroundColorStyle(theme.messageHighlightBG) : {}),
         [StyleUtils, isReportActionLinked, theme.messageHighlightBG],
     );
+
+    const reportPreviewStyles = StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, undefined, true);
 
     const isDeletedParentAction = isDeletedParentActionUtils(action);
 
@@ -651,12 +648,14 @@ function PureReportActionItem({
             if (!options) {
                 return [];
             }
+            const isResolved = isResolvedConciergeCategoryOptions(action);
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     addComment(originalReportID, option);
                 },
+                isDisabled: isResolved,
             }));
         }
 
@@ -797,9 +796,26 @@ function PureReportActionItem({
                 />
             );
 
-            // Table Report View does not display these components as separate messages
-            if (canUseTableReportView) {
-                children = emptyHTML;
+            // Table Report View does not display these components as separate messages, except for self-DM
+            if (canUseTableReportView && report?.type === CONST.REPORT.TYPE.CHAT) {
+                if (report.chatType === CONST.REPORT.CHAT_TYPE.SELF_DM && !isDeletedAction(action)) {
+                    children = (
+                        <View style={[styles.mt1, styles.w100]}>
+                            <TransactionPreview
+                                iouReportID={getIOUReportIDFromReportActionPreview(action)}
+                                chatReportID={reportID}
+                                reportID={reportID}
+                                action={action}
+                                isBillSplit={isSplitBillActionReportActionsUtils(action)}
+                                wrapperStyle={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
+                                onPreviewPressed={() => {}}
+                                isTrackExpense={isTrackExpenseActionReportActionsUtils(action)}
+                            />
+                        </View>
+                    );
+                } else {
+                    children = emptyHTML;
+                }
             }
         } else if (isTripPreview(action)) {
             children = (
@@ -815,27 +831,27 @@ function PureReportActionItem({
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && isClosedExpenseReportWithNoExpenses) {
             children = <RenderHTML html={`<deleted-action>${translate('parentReportAction.deletedReport')}</deleted-action>`} />;
-        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView) {
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && canUseTableReportView && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
             children = (
                 <MoneyRequestReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     policyID={report?.policyID}
                     chatReportID={reportID}
                     action={action}
                     contextMenuAnchor={popoverAnchorRef.current}
                     isHovered={hovered}
                     isWhisper={isWhisper}
+                    isInvoice={action.childType === CONST.REPORT.CHAT_TYPE.INVOICE}
                     checkIfContextMenuActive={toggleContextMenuFromActiveReportAction}
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
+                    shouldDisplayContextMenu={shouldDisplayContextMenu}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
             children = (
                 <ReportPreview
-                    // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
-                    iouReportID={getIOUReportIDFromReportActionPreview(action) as string}
+                    iouReportID={getIOUReportIDFromReportActionPreview(action)}
                     chatReportID={reportID}
                     policyID={report?.policyID}
                     containerStyles={displayAsGroup ? [] : [styles.mt2]}
@@ -966,6 +982,18 @@ function PureReportActionItem({
             children = <ReportActionItemBasicMessage message={getPolicyChangeMessage(action)} />;
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={getDeletedTransactionMessage(action)} />;
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getMovedTransactionMessage(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
+        } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION) {
+            children = (
+                <ReportActionItemBasicMessage message="">
+                    <RenderHTML html={`<comment><muted-text>${getUnreportedTransactionMessage(action)}</muted-text></comment>`} />
+                </ReportActionItemBasicMessage>
+            );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION) {
             children = <ReportActionItemBasicMessage message={translate('systemMessage.mergedWithCashTransaction')} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.DISMISSED_VIOLATION)) {
