@@ -57,7 +57,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [modalVisible, setModalVisible] = useState(false);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
@@ -101,15 +101,16 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         );
     }, [styles, translate]);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const onboardingPurpose = introSelected?.choice;
     const {environment} = useEnvironment();
     const navatticURL = getNavatticURL(environment, onboardingPurpose);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
+        canBeMissing: true,
     });
     const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
     const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, undefined, isReportArchived);

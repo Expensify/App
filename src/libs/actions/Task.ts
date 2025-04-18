@@ -1241,6 +1241,9 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     const parentReport = getParentReport(taskReport);
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
     if (ReportUtils.isArchivedNonExpenseReport(parentReport, reportNameValuePairs)) {
         return false;
