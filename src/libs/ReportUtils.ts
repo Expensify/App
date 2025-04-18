@@ -4615,7 +4615,7 @@ function getReportNameInternal({
         isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
         isMarkAsClosedAction(parentReportAction)
     ) {
-        const {harvesting} = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction) ?? {} : {};
+        const harvesting = !isMarkAsClosedAction(parentReportAction) ? getOriginalMessage(parentReportAction)?.harvesting ?? false : false;
         if (harvesting) {
             return Parser.htmlToText(getReportAutomaticallySubmittedMessage(parentReportAction));
         }

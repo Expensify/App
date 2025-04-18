@@ -557,7 +557,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED) ||
                     isMarkAsClosedAction(reportAction)
                 ) {
-                    const {harvesting} = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction) ?? {} : {};
+                    const harvesting = !isMarkAsClosedAction(reportAction) ? getOriginalMessage(reportAction)?.harvesting ?? false : false;
                     if (harvesting) {
                         setClipboardMessage(getReportAutomaticallySubmittedMessage(reportAction));
                     } else {
