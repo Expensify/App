@@ -19,7 +19,6 @@ import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryLis
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
 import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
-import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -69,19 +68,11 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        canBeMissing: true,
-    });
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        canBeMissing: true,
-    });
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const taxRates = useMemo(() => getAllTaxRates(), []);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {
-        canBeMissing: true,
-    });
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {
-        canBeMissing: true,
-    });
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardFeedNamesWithType = useMemo(() => {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
@@ -94,7 +85,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
 
     // The actual input text that the user sees
-    const [textInputValue, , setTextInputValue] = useDebouncedState(isDefaultQuery ? '' : queryText, 500);
+    const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
     // The input text that was last used for autocomplete; needed for the SearchAutocompleteList when browsing list via arrow keys
     const [autocompleteQueryValue, setAutocompleteQueryValue] = useState(isDefaultQuery ? '' : queryText);
     const [selection, setSelection] = useState({start: textInputValue.length, end: textInputValue.length});
@@ -127,7 +118,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     useEffect(() => {
         setTextInputValue(isDefaultQuery ? '' : queryText);
         setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
-    }, [isDefaultQuery, queryText, setTextInputValue]);
+    }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
         const substitutionsMap = buildSubstitutionsMap(originalInputQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
@@ -191,7 +182,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                 setAutocompleteQueryValue('');
             }
         },
-        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID, setTextInputValue],
+        [autocompleteSubstitutions, hideSearchRouterList, originalInputQuery, queryJSON.policyID],
     );
 
     const onListItemPress = useCallback(
