@@ -211,9 +211,6 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving the signer info data via the API */
     isSavingCorpayOnboardingDirectorInformation?: boolean;
 
-    /** Where the request is successful */
-    isSuccess?: boolean;
-
     /** A date that indicates the user has been throttled */
     throttledDate?: string;
 

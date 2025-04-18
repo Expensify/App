@@ -4,6 +4,7 @@ import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
 import useSubStep from '@hooks/useSubStep';
+import usePrevious from '@hooks/usePrevious';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInitialSubStepForBankInfoStep from '@pages/ReimbursementAccount/NonUSD/utils/getInitialSubStepForBankInfoStep';
@@ -43,6 +44,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
+    const previousIsLoading = usePrevious(corpayFields?.isLoading);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
@@ -51,18 +53,17 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
+        if (previousIsLoading !== true || 
+            reimbursementAccount?.isLoading !== false || 
+            corpayFields?.isLoading !== false || 
+            reimbursementAccount?.errors
+        ) {
             return;
         }
 
-        if (reimbursementAccount?.isSuccess) {
-            onSubmit();
-            clearReimbursementAccountBankCreation();
-        }
-
-        return () => clearReimbursementAccountBankCreation();
-    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+        onSubmit();
+        clearReimbursementAccountBankCreation();
+    }, [corpayFields?.isLoading, onSubmit, previousIsLoading, reimbursementAccount?.errors, reimbursementAccount?.isLoading]);
 
     useEffect(() => {
         getCorpayBankAccountFields(country, currency);
