@@ -66,23 +66,10 @@ jobs:
 
       - name: Fetch history of relevant refs
         run: |
-          # # Temporary hack during transition when -staging suffix is being added to tags
-          # if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-          #   git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          # else
-          #   git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          # fi
-
-          # cd Mobile-Expensify
-          # # Temporary hack during transition when -staging suffix is being added to tags
-          # if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-          #   git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          # else
-          #   git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          # fi
-
-          # Temporary hack to fetch the latest staging branch
+          echo "Fetching main and staging for the main repository..."
           git fetch origin main staging
+          echo "Fetching main and staging for submodules..."
+          cd Mobile-Expensify && git fetch origin main staging
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit
