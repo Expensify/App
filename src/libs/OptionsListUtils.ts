@@ -21,6 +21,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -1078,7 +1079,7 @@ function isDeletingLastEnabledCategory(PolicyCategories: PolicyCategories | unde
     if (!PolicyCategories) {
         return false;
     }
-
+    // Since we will only have one enabled category
     const enabledCategoryName = Object.keys(PolicyCategories).find((categoryName) => PolicyCategories[categoryName].enabled);
 
     const isDeletingLastEnabledCategory = selectedCategoryArray.some((categoryName) => {
@@ -1086,6 +1087,20 @@ function isDeletingLastEnabledCategory(PolicyCategories: PolicyCategories | unde
     });
 
     return isDeletingLastEnabledCategory;
+}
+
+function isDeletingLastEnabledTag(PolicyTags: PolicyTags | undefined, selectedTagArray: string[]): boolean {
+    if (!PolicyTags) {
+        return false;
+    }
+    // Since we will only have one enabled tag
+    const enabledTagName = Object.values(PolicyTags).find((tag) => tag.enabled)?.name;
+
+    const isDeletingLastEnabledTag = selectedTagArray.some((tagName) => {
+        return tagName === enabledTagName;
+    });
+
+    return isDeletingLastEnabledTag;
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
@@ -2367,6 +2382,7 @@ export {
     getManagerMcTestParticipant,
     shouldShowLastActorDisplayName,
     isDeletingLastEnabledCategory,
+    isDeletingLastEnabledTag,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

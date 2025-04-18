@@ -254,11 +254,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             return;
                         }
 
-                        // if (policy?.requiresCategory && selectedCategoriesArray.length === categoryList.length) {
-                        //     setIsCanon(true);
-                        //     return;
-                        // }
-
                         setDeleteCategoriesConfirmModalVisible(true);
                     },
                 });

@@ -42,6 +42,7 @@ import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFro
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -79,7 +80,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isCannotDisableLastTagModalVisible, setIsCannotDisableLastTagModalVisible] = useState(false);
     const [isCannotMakeLastTagOptionalModalVisible, setIsCannotMakeLastTagOptionalModalVisible] = useState(false);
-    const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
+    const [isCannotDeleteLastEnabledTagModalVisible, setIsCannotDeleteLastEnabledTagModalVisible] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
@@ -98,6 +99,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
     const countOfRequiredTagLists = getCountOfRequiredTagLists(policyTags);
+    const shouldPreventDisable = policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1;
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
@@ -214,13 +216,13 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                     accessibilityLabel={translate('workspace.tags.enableTag')}
                     onToggle={(newValue: boolean) => {
-                        if (policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && !newValue) {
+                        if (shouldPreventDisable && !newValue) {
                             setIsCannotDisableLastTagModalVisible(true);
                             return;
                         }
                         updateWorkspaceTagEnabled(newValue, tag.name);
                     }}
-                    showLockIcon={getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1 && policy?.requiresTag && tag.enabled}
+                    showLockIcon={shouldPreventDisable && tag.enabled}
                 />
             ),
         }));
@@ -322,8 +324,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
-                    if (selectedTagsArray.length === Object.values(policyTagLists.at(0)?.tags ?? {}).length && policy?.requiresTag) {
-                        setIsCannotDeleteLastTagModalVisible(true);
+                    if (shouldPreventDisable && isDeletingLastEnabledTag(policyTagLists.at(0)?.tags, selectedTagsArray)) {
+                        setIsCannotDeleteLastEnabledTagModalVisible(true);
                         return;
                     }
 
@@ -564,11 +566,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     shouldShowCancelButton={false}
                 />
                 <ConfirmModal
-                    isVisible={isCannotDeleteLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDeleteAllTags.description')}
+                    isVisible={isCannotDeleteLastEnabledTagModalVisible}
+                    onConfirm={() => setIsCannotDeleteLastEnabledTagModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteLastEnabledTagModalVisible(false)}
+                    title={translate('workspace.tags.cannotDeleteLastEnabledTag.title')}
+                    prompt={translate('workspace.tags.cannotDeleteLastEnabledTag.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />

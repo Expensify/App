@@ -199,7 +199,7 @@ function CategorySettingsPage({
                                 <Switch
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
-                                    onToggle={updateWorkspaceRequiresCategory}
+                                    onToggle={updateWorkspaceCategoryEnabled}
                                     showLockIcon={policyCategory?.enabled && shouldPreventDisable}
                                 />
                             </View>

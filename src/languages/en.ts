@@ -3915,10 +3915,6 @@ const translations = {
                 title: 'Cannot disable all categories',
                 description: `You can't disable all categories when categories are requied on the workspace.`,
             },
-            cannotDeleteAllCategories: {
-                title: 'Cannot delete all categories',
-                description: `You can't delete all categories when categories are requied on the workspace.`,
-            },
             cannotDeleteLastEnabledCategory: {
                 title: 'Cannot delete last enabled category',
                 description: `You can't delete last enabled category when categories are required on the workspace.`,
@@ -4170,9 +4166,9 @@ const translations = {
                 title: 'Cannot disable all tags',
                 description: `You can't disable all tags when tags are requied on the workspace.`,
             },
-            cannotDeleteAllTags: {
-                title: 'Cannot delete all tags',
-                description: `You can't delete all tags when tags are requied on the workspace.`,
+            cannotDeleteLastEnabledTag: {
+                title: 'Cannot delete last enabled tag',
+                description: `You can't delete last enabled tag when tags are required on the workspace.`,
             },
             cannotMakeAllTagsOptional: {
                 title: 'Cannot make all tags optional',

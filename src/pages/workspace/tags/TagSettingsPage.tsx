@@ -49,7 +49,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
     const [isDeleteTagModalOpen, setIsDeleteTagModalOpen] = React.useState(false);
     const [isCannotDisableLastTagModalVisible, setIsCannotDisableLastTagModalVisible] = useState(false);
-    const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
+    const [isCannotDeleteLastEnabledTagModalVisible, setIsCannotDeleteLastEnabledTagModalVisible] = useState(false);
     const isQuickSettingsFlow = !!backTo;
     const tagApprover = getTagApproverRule(policyID, route.params?.tagName)?.approver ?? '';
     const approver = getPersonalDetailByEmail(tagApprover);
@@ -162,11 +162,11 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                     shouldShowCancelButton={false}
                 />
                 <ConfirmModal
-                    isVisible={isCannotDeleteLastTagModalVisible}
-                    onConfirm={() => setIsCannotDeleteLastTagModalVisible(false)}
-                    onCancel={() => setIsCannotDeleteLastTagModalVisible(false)}
-                    title={translate('workspace.tags.cannotDeleteAllTags.title')}
-                    prompt={translate('workspace.tags.cannotDeleteAllTags.description')}
+                    isVisible={isCannotDeleteLastEnabledTagModalVisible}
+                    onConfirm={() => setIsCannotDeleteLastEnabledTagModalVisible(false)}
+                    onCancel={() => setIsCannotDeleteLastEnabledTagModalVisible(false)}
+                    title={translate('workspace.tags.cannotDeleteLastEnabledTag.title')}
+                    prompt={translate('workspace.tags.cannotDeleteLastEnabledTag.description')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
                 />
@@ -240,8 +240,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
-                                if (shouldPreventDisable) {
-                                    setIsCannotDeleteLastTagModalVisible(true);
+                                if (shouldPreventDisable && currentPolicyTag?.enabled) {
+                                    setIsCannotDeleteLastEnabledTagModalVisible(true);
                                     return;
                                 }
                                 setIsDeleteTagModalOpen(true);

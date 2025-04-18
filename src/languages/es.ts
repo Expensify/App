@@ -3959,9 +3959,9 @@ const translations = {
                 title: 'No se pueden deshabilitar todas las categorías',
                 description: `No puedes deshabilitar todas las categorías cuando se requieren en el espacio de trabajo.`,
             },
-            cannotDeleteAllCategories: {
-                title: 'No se pueden eliminar todas las categorías',
-                description: 'No puedes eliminar todas las categorías cuando son requeridas en el espacio de trabajo.',
+            cannotDeleteLastEnabledCategory: {
+                title: 'No se puede eliminar la última categoría habilitada',
+                description: 'No puedes eliminar la última categoría habilitada cuando se requieren categorías en el espacio de trabajo.',
             },
         },
         moreFeatures: {
@@ -4213,9 +4213,9 @@ const translations = {
                 title: 'No se pueden desactivar todas las etiquetas',
                 description: `No puedes desactivar todas las etiquetas cuando se requieren en el espacio de trabajo.`,
             },
-            cannotDeleteAllTags: {
-                title: 'No se pueden eliminar todas las etiquetas',
-                description: 'No puedes eliminar todas las etiquetas cuando son requeridas en el espacio de trabajo.',
+            cannotDeleteLastEnabledTag: {
+                title: 'No se puede eliminar la última etiqueta habilitada',
+                description: 'No puedes eliminar la última etiqueta habilitada cuando se requieren etiquetas en el espacio de trabajo.',
             },
             cannotMakeAllTagsOptional: {
                 title: 'No se pueden hacer todas las etiquetas opcionales',
