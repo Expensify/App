@@ -46,7 +46,6 @@ type EnrichedPolicyReportField = {
 } & PolicyReportField;
 
 function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEntry<Report>, styles: ThemeStyles, pendingAction?: PendingAction) {
-    const ERROR = 'error';
     return (
         <OfflineWithFeedback
             // Need to return undefined when we have pendingAction to avoid the duplicate pending action
@@ -70,7 +69,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
                 shouldStackHorizontally={false}
                 onSecondaryInteraction={() => {}}
                 titleWithTooltips={[]}
-                brickRoadIndicator={reportField.violation ? ERROR : undefined}
+                brickRoadIndicator={reportField.violation ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 errorText={reportField.violationTranslation}
             />
         </OfflineWithFeedback>
