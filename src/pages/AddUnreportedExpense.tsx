@@ -42,7 +42,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const sections: Array<SectionListDataType<Transaction & ListItem>> = [
         {
             shouldShow: true,
-            data: transactions,
+            data: transactions.filter((t): t is Transaction & ListItem => t !== undefined),
         },
     ];
     const reportID = route.params.reportID;

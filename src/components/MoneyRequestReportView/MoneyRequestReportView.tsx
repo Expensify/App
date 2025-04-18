@@ -1,7 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import Button from '@components/Button';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -11,7 +12,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {removeFailedReport} from '@libs/actions/Report';
+import {openUnreportedExpense, removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import navigationRef from '@libs/Navigation/navigationRef';
@@ -112,7 +113,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
     });
-    const shouldUseSingleTransactionView = transactions.length === 1;
+
+    const shouldUseSingleTransactionView = useMemo(() => {
+        return transactions.length === 1;
+    }, [transactions]);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -205,6 +209,12 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         hasNewerActions={hasNewerActions}
                     />
                 )}
+                <Button
+                    success
+                    onPress={() => openUnreportedExpense(reportID)}
+                >
+                    OPEN
+                </Button>
                 {shouldDisplayReportFooter ? (
                     <ReportFooter
                         report={report}

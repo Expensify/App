@@ -5308,4 +5308,5 @@ export {
     dismissChangePolicyModal,
     changeReportPolicy,
     removeFailedReport,
+    openUnreportedExpense,
 };
