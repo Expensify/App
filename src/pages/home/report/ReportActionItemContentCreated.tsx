@@ -139,7 +139,10 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
                 <View>
-                    <TaskView report={report} />
+                    <TaskView
+                        report={report}
+                        action={action}
+                    />
                     {renderThreadDivider}
                 </View>
             </View>

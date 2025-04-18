@@ -101,6 +101,7 @@ import {
     isReimbursementDeQueuedOrCanceledAction,
     isReimbursementQueuedAction,
     isRenamedAction,
+    isResolvedConciergeCategoryOptions,
     isSplitBillAction as isSplitBillActionReportActionsUtils,
     isTagModificationAction,
     isTaskAction,
@@ -651,12 +652,14 @@ function PureReportActionItem({
             if (!options) {
                 return [];
             }
+            const isResolved = isResolvedConciergeCategoryOptions(action);
             return options.map((option, i) => ({
                 text: `${i + 1} - ${option}`,
                 key: `${action.reportActionID}-conciergeCategoryOptions-${option}`,
                 onPress: () => {
                     addComment(originalReportID, option);
                 },
+                isDisabled: isResolved,
             }));
         }
 

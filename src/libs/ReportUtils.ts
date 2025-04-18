@@ -146,6 +146,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getRenamedAction,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
@@ -176,6 +177,7 @@ import {
     isPendingRemove,
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
+    isRenamedAction,
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
@@ -2239,8 +2241,14 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            // If we get here without a reimburser only show the pay button if we are the manager.
+            if (!policy?.achAccount?.reimburser) {
+                return isManager;
+            }
+
+            // If we are the reimburser and the report is approved or we are the manager then we can pay it.
             const isReimburser = session?.email === policy?.achAccount?.reimburser;
-            return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
+            return isReimburser && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin && (isApproved || isManager);
@@ -3325,7 +3333,11 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions) {
+    const policy = getPolicy(optionOrReport.policyID);
+    if (
+        (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
+        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)
+    ) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
@@ -4690,6 +4702,10 @@ function getReportNameInternal({
 
         if (!isEmptyObject(parentReportAction) && isOldDotReportAction(parentReportAction)) {
             return getMessageOfOldDotReportAction(parentReportAction);
+        }
+
+        if (isRenamedAction(parentReportAction)) {
+            return getRenamedAction(parentReportAction);
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
