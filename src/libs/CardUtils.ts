@@ -65,14 +65,6 @@ function isExpensifyCard(cardID?: number) {
 
 /**
  * @param cardID
- * @returns boolean if the cardID is in the cardList from ONYX. Includes Expensify Cards.
- */
-function isCorporateCard(cardID: number) {
-    return !!allCards[cardID];
-}
-
-/**
- * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(cardID?: number, cards: CardList = allCards) {
@@ -90,10 +82,6 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
 
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
-}
-
-function isCardIssued(card: Card) {
-    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
 
 function isCardHiddenFromSearch(card: Card) {
@@ -226,24 +214,6 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
         return '';
     }
     return match[1];
-}
-
-/**
- * Finds physical card in a list of cards
- *
- * @returns a physical card object (or undefined if none is found)
- */
-function findPhysicalCard(cards: Card[]) {
-    return cards.find((card) => !card?.nameValuePairs?.isVirtual);
-}
-
-/**
- * Checks if any of the cards in the list have detected fraud
- *
- * @param cardList - collection of assigned cards
- */
-function hasDetectedFraud(cardList: Record<string, Card>): boolean {
-    return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
 }
 
 function getMCardNumberString(cardNumber: string): string {
@@ -610,7 +580,6 @@ function getFundIdFromSettingsKey(key: string) {
 
 export {
     isExpensifyCard,
-    isCorporateCard,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -618,8 +587,6 @@ export {
     maskCard,
     maskCardNumber,
     getCardDescription,
-    findPhysicalCard,
-    hasDetectedFraud,
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
@@ -641,7 +608,6 @@ export {
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,
-    isCardIssued,
     isCardHiddenFromSearch,
     getFeedType,
     flatAllCardsList,
