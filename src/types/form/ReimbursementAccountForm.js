@@ -1,0 +1,144 @@
+"use strict";
+exports.__esModule = true;
+var INPUT_IDS = {
+    BANK_INFO_STEP: {
+        ROUTING_NUMBER: 'routingNumber',
+        ACCOUNT_NUMBER: 'accountNumber',
+        PLAID_MASK: 'mask',
+        IS_SAVINGS: 'isSavings',
+        BANK_NAME: 'bankName',
+        PLAID_ACCOUNT_ID: 'plaidAccountID',
+        PLAID_ACCESS_TOKEN: 'plaidAccessToken',
+        SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID'
+    },
+    PERSONAL_INFO_STEP: {
+        FIRST_NAME: 'firstName',
+        LAST_NAME: 'lastName',
+        DOB: 'dob',
+        SSN_LAST_4: 'ssnLast4',
+        STREET: 'requestorAddressStreet',
+        CITY: 'requestorAddressCity',
+        STATE: 'requestorAddressState',
+        ZIP_CODE: 'requestorAddressZipCode',
+        IS_ONFIDO_SETUP_COMPLETE: 'isOnfidoSetupComplete'
+    },
+    BUSINESS_INFO_STEP: {
+        COMPANY_NAME: 'companyName',
+        COMPANY_TAX_ID: 'companyTaxID',
+        COMPANY_WEBSITE: 'website',
+        COMPANY_PHONE: 'companyPhone',
+        STREET: 'addressStreet',
+        CITY: 'addressCity',
+        STATE: 'addressState',
+        ZIP_CODE: 'addressZipCode',
+        INCORPORATION_TYPE: 'incorporationType',
+        INCORPORATION_DATE: 'incorporationDate',
+        INCORPORATION_STATE: 'incorporationState',
+        INCORPORATION_CODE: 'industryCode',
+        HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis'
+    },
+    COMPLETE_VERIFICATION: {
+        IS_AUTHORIZED_TO_USE_BANK_ACCOUNT: 'isAuthorizedToUseBankAccount',
+        CERTIFY_TRUE_INFORMATION: 'certifyTrueInformation',
+        ACCEPT_TERMS_AND_CONDITIONS: 'acceptTermsAndConditions'
+    },
+    BENEFICIAL_OWNER_INFO_STEP: {
+        OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
+        HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
+        BENEFICIAL_OWNERS: 'beneficialOwners'
+    },
+    SIGNER_INFO_STEP: {
+        SIGNER_FULL_NAME: 'signerFullName',
+        SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
+        SIGNER_JOB_TITLE: 'signerJobTitle',
+        SIGNER_EMAIL: 'signerEmail',
+        SIGNER_CITY: 'signer_city',
+        SIGNER_STREET: 'signer_street',
+        SIGNER_STATE: 'signer_state',
+        SIGNER_ZIP_CODE: 'signer_zipCode',
+        SIGNER_COUNTRY: 'signer_nationality',
+        SIGNER_COPY_OF_ID: 'signerCopyOfID',
+        SIGNER_ADDRESS_PROOF: 'signerAddressProof',
+        SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
+        PROOF_OF_DIRECTORS: 'proofOfDirectors',
+        DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
+        SECOND_SIGNER_EMAIL: 'secondSignerEmail'
+    },
+    AMOUNT1: 'amount1',
+    AMOUNT2: 'amount2',
+    AMOUNT3: 'amount3',
+    /** Some pairs are send under certain key and saved under different key by BE.
+     * This is forced on BE side which is asking us to send it under certain keys
+     * but then saves it and returns under different keys */
+    ADDITIONAL_DATA: {
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_NAME: 'accountHolderName',
+        ADDRESS_NAME: 'addressName',
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_ADDRESS_1: 'accountHolderAddress1',
+        ADDRESS_STREET: 'addressStreet',
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_CITY: 'accountHolderCity',
+        ADDRESS_CITY: 'addressCity',
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_REGION: 'accountHolderRegion',
+        ADDRESS_STATE: 'addressState',
+        /** This pair is send under 1ST key but saved under 2nd key */
+        ACCOUNT_HOLDER_POSTAL: 'accountHolderPostal',
+        ADDRESS_ZIP_CODE: 'addressZipCode',
+        /** 2nd key from pair with ROUTING_NUMBER (shares it with SWIFT/BIC code) */
+        ROUTING_CODE: 'routingCode',
+        COUNTRY: 'country',
+        CORPAY: {
+            ACCOUNT_HOLDER_COUNTRY: 'accountHolderCountry',
+            /** 2nd key from pair with ROUTING_NUMBER  (shares it with routing code) */
+            SWIFT_BIC_CODE: 'swiftBicCode',
+            BANK_NAME: 'bankName',
+            BANK_CITY: 'bankCity',
+            BANK_REGION: 'bankRegion',
+            BANK_POSTAL: 'bankPostal',
+            BANK_ADDRESS_LINE_1: 'bankAddressLine1',
+            BANK_COUNTRY: 'bankCountry',
+            BANK_CURRENCY: 'bankCurrency',
+            COMPANY_NAME: 'companyName',
+            COMPANY_STREET: 'companyStreetAddress',
+            COMPANY_CITY: 'companyCity',
+            COMPANY_STATE: 'companyState',
+            COMPANY_POSTAL_CODE: 'companyPostalCode',
+            COMPANY_COUNTRY_CODE: 'companyCountryCode',
+            BUSINESS_CONTACT_NUMBER: 'businessContactNumber',
+            BUSINESS_CONFIRMATION_EMAIL: 'businessConfirmationEmail',
+            FORMATION_INCORPORATION_COUNTRY_CODE: 'formationIncorporationCountryCode',
+            FORMATION_INCORPORATION_STATE: 'formationIncorporationState',
+            BUSINESS_REGISTRATION_INCORPORATION_NUMBER: 'businessRegistrationIncorporationNumber',
+            COUNTRY_CODE: 'countryCode',
+            TAX_ID_EIN_NUMBER: 'taxIDEINNumber',
+            BUSINESS_CATEGORY: 'natureOfBusiness',
+            APPLICANT_TYPE_ID: 'applicantTypeId',
+            PURPOSE_OF_TRANSACTION_ID: 'purposeOfTransactionID',
+            PREFERRED_METHOD: 'preferredMethod',
+            CURRENCY_NEEDED: 'currencyNeeded',
+            TRADE_VOLUME: 'tradeVolume',
+            ANNUAL_VOLUME: 'annualVolume',
+            OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
+            ANY_INDIVIDUAL_OWN_25_PERCENT_OR_MORE: 'anyIndividualOwn25PercentOrMore',
+            BENEFICIAL_OWNERS: 'beneficialOwners',
+            FUND_DESTINATION_COUNTRIES: 'fundDestinationCountries',
+            FUND_SOURCE_COUNTRIES: 'fundSourceCountries',
+            PROVIDE_TRUTHFUL_INFORMATION: 'provideTruthfulInformation',
+            AGREE_TO_TERMS_AND_CONDITIONS: 'agreeToTermsAndConditions',
+            CONSENT_TO_PRIVACY_NOTICE: 'consentToPrivacyNotice',
+            AUTHORIZED_TO_BIND_CLIENT_TO_AGREEMENT: 'authorizedToBindClientToAgreement',
+            COMPANY_DIRECTORS_FULL_NAME: 'companyDirectorsFullName',
+            COMPANY_DIRECTORS_JOB_TITLE: 'companyDirectorsJobTitle',
+            COMPANY_DIRECTORS_OCCUPATION: 'companyDirectorsOccupation',
+            SIGNER_FULL_NAME: 'signerFullName',
+            SIGNER_DATE_OF_BIRTH: 'signerDateOfBirth',
+            SIGNER_JOB_TITLE: 'signerJobTitle',
+            SIGNER_EMAIL: 'signerEmail',
+            SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail'
+        }
+    }
+};
+exports["default"] = INPUT_IDS;
