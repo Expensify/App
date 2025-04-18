@@ -602,12 +602,7 @@ jobs:
 
       - name: 🚀 Create prerelease 🚀
         run: |
-          gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' }} \
-            --repo ${{ github.repository }} \
-            --title ${{ needs.prep.outputs.TAG }} \
-            --generate-notes \
-            --verify-tag \
-            --target ${{ github.ref }}
+          gh release create ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --verify-tag --target staging
           RETRIES=0
           MAX_RETRIES=10
           until [[ $(gh release view ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
