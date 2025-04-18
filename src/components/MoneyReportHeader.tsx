@@ -535,6 +535,18 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                 onPress={markAsCash}
             />
         ),
+        [CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES]: (
+            <Button
+                success
+                text={translate('iou.reviewDuplicates')}
+                onPress={() => {
+                    if (!transactionThreadReportID) {
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.TRANSACTION_DUPLICATE_REVIEW_PAGE.getRoute(transactionThreadReportID, Navigation.getReportRHPActiveRoute()));
+                }}
+            />
+        ),
     };
 
     const secondaryActions = useMemo(() => {

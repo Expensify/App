@@ -194,6 +194,10 @@ function isRemoveHoldAction(report: Report, reportTransactions: Transaction[]) {
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
     const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
     if (!hasDuplicates) {
@@ -245,6 +249,10 @@ function getReportPrimaryAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    if (isReviewDuplicatesAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+    }
+
     if (isRemoveHoldAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }
