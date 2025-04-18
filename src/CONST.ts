@@ -5091,6 +5091,11 @@ const CONST = {
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
+    IMAGE_TEST_ID: 'Image',
+    IMAGE_SVG_TEST_ID: 'ImageSVG',
+    VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
+    LOTTIE_VIEW_TEST_ID: 'LottieView',
+
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
     HORIZONTAL_SPACER: {
