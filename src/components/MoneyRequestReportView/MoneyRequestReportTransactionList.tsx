@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
@@ -16,6 +17,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
@@ -23,6 +25,7 @@ import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransact
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
@@ -80,7 +83,18 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
-    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext(report.reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext();
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+                    return;
+                }
+                setSelectedTransactionsID([]);
+            };
+        }, [setSelectedTransactionsID]),
+    );
 
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
@@ -180,6 +194,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
+                            key={transaction.transactionID}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}

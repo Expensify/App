@@ -19,49 +19,37 @@ This guide is based on best practices from processing expenses for thousands of 
 ## Step 1: Create an Expensify Account
 If you don’t have an account yet, sign up at [new.expensify.com](https://new.expensify.com) using your business email.
 
-## Step 2: Create a Free Plan Workspace
-Expensify offers three plans (Free, Collect, and Control). For your needs, the **Free Plan** is the best fit because:
+## Step 2: Create a Workspace
+Expensify offers three plans (Individual, Collect and Control). We outline the features of both plans in our [pricing article](https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing), but for your needs, we recommend the Collect workspace for the following situations:
 
-- You need to capture receipts but don’t require approval workflows or reimbursements yet.
-- You work in a small, highly collaborative team, and the built-in chat feature helps you stay organized.
-- When your business generates enough revenue, you may want to reimburse yourself for past expenses.
+- You are looking to capture receipts, but you don’t need an advanced approval workflow. Instead you can have a single approver for all expenses. 
+- You are a small, highly collaborative group and project-oriented Chat functionality can help you stay organized.
+- When your business produces enough cash that you can pay yourself, you might want to reimburse yourself for the expenses you’ve captured.
 
-To create your Free Plan Workspace:
-
-1. Go to [new.expensify.com](https://new.expensify.com).
-2. Click **New Workspace**.
-3. Select your avatar in the top left corner.
-4. Click your workspace name and rename it.
-5. Add an avatar image, preferably of yourself.
-
-The Free Plan also includes 24/7 support via Concierge. You can start a direct message anytime at [new.expensify.com/concierge](https://new.expensify.com/concierge).
+Expensify provides you with direct access to lightning-fast 24/7 support via Concierge. Within *[new.expensify.com](https://new.expensify.com/concierge)*, you can start a direct message (DM) with Concierge to discuss which plan might be better for your business. 
 
 ## Step 3: Invite Your Team
-If you have co-founders or team members who need to capture receipts, invite them to your workspace.
+As a bootstrapped startup, you communicate with your team all day. Similarly, if you are a co-founder, you will have multiple people who will need to capture receipts for your project.
 
-1. Click your **avatar**.
-2. Select **Workspaces**.
-3. Click your workspace.
-4. Select **Members**.
-5. Click **Invite** and enter their email addresses.
+1. Click your profile photo or icon in the bottom left menu
+2. Click on your workspace
+3. From the workspace view, click **Members** on the left
+4. Click **Invite member**
+5. Use the search field to find the individual by name, email, or phone number. Note: You can select multiple people
+6. Click **Next**
+7. (Optional) Enter a custom message into the Message field
+8. Click **Invite**
 
 Inviting your team grants them unlimited receipt capture via SmartScan and access to Expensify’s free chat tool for seamless collaboration.
 
 ## Step 4: Link Your Business Bank Account (Optional)
-If you already have a business bank account, you may be better suited for our Seed Stage playbook. If you’re in the US, linking your business bank account unlocks features like bill payments and the Expensify Card.
 
-To link your bank account:
+If you are located in the US, you can unlock many great features by linking your US-based business bank account such as using the [Expensify Visa® Commercial Card](https://help.expensify.com/articles/new-expensify/expensify-card/Set-up-the-Expensify-Card) to streamline expense management and receive additional discounts and company perks. 
 
-1. Click your **avatar**.
-2. Select **Workspaces**.
-3. Click your workspace name.
-4. Scroll down and select **Bank account**.
-5. Choose your bank and enter your login credentials.
+To setup a business bank account, follow the steps in this [help article](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account). 
 
-Once linked, you can start using the Expensify Card—not just for yourself, but for co-founders as well.
-
-## Step 5: Get the Expensify Card
-After linking your business bank account, you’re eligible for the Expensify Card, included with your Free Plan. The card offers:
+## Step 5: Get the Expensify Visa® Commercial Card
+After linking your business bank account, you’re eligible for the Expensify Card. The card offers:
 
 - **1% cash back** on all US purchases (2% if spending exceeds $250K/month).
 - **Unlimited virtual cards** with fixed or monthly limits for specific company purchases (e.g., marketing, advertising, travel).
@@ -86,8 +74,8 @@ Expensify provides you with a *_yourdomain.com@expensify.com_* email address. Ha
 
 To view and pay bills:
 
-1. Click your **avatar**.
-2. Select **Workspaces**.
+1. Click your profile photo or icon in the bottom left menu
+2. Select *Workspaces*.
 3. Click your workspace.
 4. Select **Bills**.
 
