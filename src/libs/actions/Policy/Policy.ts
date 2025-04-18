@@ -3,7 +3,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
@@ -266,6 +266,13 @@ function updateLastAccessedWorkspaceSwitcher(policyID: OnyxEntry<string>) {
  */
 function isCurrencySupportedForDirectReimbursement(currency: string) {
     return currency === CONST.CURRENCY.USD;
+}
+
+/**
+ * Checks if the currency is supported for global reimbursement
+ */
+function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
+    return canUseGlobalReimbursementsOnND ? CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency) : currency === CONST.CURRENCY.USD;
 }
 
 /**
@@ -795,10 +802,6 @@ function setWorkspaceReimbursement(policyID: string, reimbursementChoice: ValueO
     const params: SetWorkspaceReimbursementParams = {policyID, reimbursementChoice};
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REIMBURSEMENT, params, {optimisticData, failureData, successData});
-}
-
-function clearWorkspaceReimbursementErrors(policyID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errorFields: {reimbursementChoice: null}});
 }
 
 function leaveWorkspace(policyID?: string) {
@@ -1535,23 +1538,6 @@ function setWorkspaceErrors(policyID: string, errors: Errors) {
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors: null});
     Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {errors});
-}
-
-function clearCustomUnitErrors(policyID: string, customUnitID: string, customUnitRateID: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
-        customUnits: {
-            [customUnitID]: {
-                errors: null,
-                pendingAction: null,
-                rates: {
-                    [customUnitRateID]: {
-                        errors: null,
-                        pendingAction: null,
-                    },
-                },
-            },
-        },
-    });
 }
 
 function hideWorkspaceAlertMessage(policyID: string) {
@@ -5150,7 +5136,6 @@ export {
     addBillingCardAndRequestPolicyOwnerChange,
     hasActiveChatEnabledPolicies,
     setWorkspaceErrors,
-    clearCustomUnitErrors,
     hideWorkspaceAlertMessage,
     deleteWorkspace,
     updateAddress,
@@ -5200,12 +5185,12 @@ export {
     clearNetSuitePendingField,
     clearNetSuiteAutoSyncErrorField,
     removeNetSuiteCustomFieldByIndex,
-    clearWorkspaceReimbursementErrors,
     setWorkspaceCurrencyDefault,
     setForeignCurrencyDefault,
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForGlobalReimbursement,
     getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
