@@ -45,8 +45,14 @@ function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}:
     const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
     const removeListener = useRef<() => void>();
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {
+        selector: (account) => !!account?.delegatedAccess?.delegate,
+        canBeMissing: true,
+    });
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.accountID,
+        canBeMissing: true,
+    });
     const isActingAsDelegateRef = useRef(isActingAsDelegate);
     const delegatorEmailRef = useRef(getSearchParamFromUrl(getCurrentUrl(), 'delegatorEmail'));
 
