@@ -10,5 +10,5 @@ export default {
         ios: platformIOS(),
         android: platformAndroid(),
     },
-    root: process.env.PROJECT_ROOT_PATH ?? './',
+    root: process.env.IS_HYBRID === 'true' ? './Mobile-Expensify' : './',
 };
