@@ -11,3 +11,5 @@ jobs:
   CLA:
     uses: Expensify/GitHub-Actions/.github/workflows/cla.yml@main
     secrets: inherit
+    env:
+      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}

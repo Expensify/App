@@ -1,5 +1,6 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
-import type {LayoutRectangle} from 'react-native';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+import type {LayoutRectangle, View as RNView} from 'react-native';
 import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -43,6 +44,7 @@ function GenericTooltip({
     const {windowWidth} = useWindowDimensions();
 
     // Is tooltip already rendered on the page's body? happens once.
+    const ref = useRef<RNView>(null);
     const [isRendered, setIsRendered] = useState(false);
 
     // Is the tooltip currently visible?
@@ -72,6 +74,7 @@ function GenericTooltip({
         }
         Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
     }, [text, renderTooltipContent]);
+
     /**
      * Display the tooltip in an animation.
      */
@@ -95,16 +98,6 @@ function GenericTooltip({
         }
 
         TooltipSense.activate();
-
-        // Measure position relative to screen
-        if (ref.current) {
-            ref.current.measureInWindow((x, y, width, height) => {
-                setXOffset(x);
-                setYOffset(y);
-                setWrapperWidth(width);
-                setWrapperHeight(height);
-            });
-        }
     }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
 
     useEffect(() => {
@@ -114,33 +107,11 @@ function GenericTooltip({
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
 
-    /**
-     * Update the tooltip's target bounding rectangle
-     */
-    const updateTargetBounds = (bounds: LayoutRectangle) => {
-        if (bounds.width === 0) {
-            setIsRendered(false);
-        }
-        setWrapperWidth(bounds.width);
-        setWrapperHeight(bounds.height);
-        setXOffset(bounds.x);
-        setYOffset(bounds.y);
-    };
 
-    /**
-     * Hide the tooltip in an animation.
-     */
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
-
-        if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
-            // eslint-disable-next-line react-compiler/react-compiler
-            animation.set(0);
-        } else {
-            // Hide the first tooltip which initiated the TooltipSense with animation
-            isTooltipSenseInitiator.set(false);
-            animation.set(0);
-        }
+        isTooltipSenseInitiator.set(false);
+        animation.set(0);
         TooltipSense.deactivate();
         setIsVisible(false);
     }, [animation, isTooltipSenseInitiator]);
@@ -155,7 +126,11 @@ function GenericTooltip({
 
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
         // eslint-disable-next-line react-compiler/react-compiler
-        return children({isVisible, showTooltip, hideTooltip, updateTargetBounds});
+        return (
+            <View ref={ref}>
+                {children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}
+            </View>
+        );
     }
 
     return (
@@ -185,8 +160,9 @@ function GenericTooltip({
                     onTooltipPress={onTooltipPress}
                 />
             )}
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
-            {children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}
+            <View ref={ref}>
+                {children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}
+            </View>
         </>
     );
 }
