@@ -19,6 +19,5 @@ exports[`markdown formatter should format significant changes properly 1`] = `
 
 ### Meaningless Changes To Duration
 _There are no entries_
-
 "
 `;

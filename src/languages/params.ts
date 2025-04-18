@@ -110,6 +110,10 @@ type ReportArchiveReasonsInvoiceReceiverPolicyDeletedParams = {
     policyName: string;
 };
 
+type DuplicateTransactionParams = {
+    isSubmitted: boolean;
+};
+
 type RequestCountParams = {
     scanningReceipts: number;
     pendingReceipts: number;
@@ -303,7 +307,7 @@ type UpdatedPolicyCurrencyParams = {oldCurrency: string; newCurrency: string};
 
 type UpdatedPolicyCategoryParams = {categoryName: string; oldValue?: boolean};
 
-type UpdatedPolicyTagParams = {tagListName: string; tagName: string; enabled?: boolean};
+type UpdatedPolicyTagParams = {tagListName: string; tagName?: string; enabled?: boolean; count?: string};
 
 type UpdatedPolicyTagNameParams = {oldName: string; newName: string; tagListName: string};
 
@@ -448,6 +452,8 @@ type BadgeFreeTrialParams = {numOfDays: number};
 
 type BillingBannerSubtitleWithDateParams = {date: string};
 
+type BillingBannerOwnerAmountOwedOverdueParams = {date?: string; purchaseAmountOwed?: string};
+
 type BillingBannerDisputePendingParams = {amountOwed: number; cardEnding: string};
 
 type BillingBannerCardAuthenticationRequiredParams = {cardEnding: string};
@@ -472,11 +478,15 @@ type CardInfoParams = {name: string; expiration: string; currency: string};
 
 type YourPlanPriceParams = {lower: string; upper: string};
 
+type YourPlanPriceValueParams = {price: string};
+
 type SubscriptionSizeParams = {size: number};
 
 type SubscriptionCommitmentParams = {size: number; date: string};
 
 type SubscriptionSettingsSaveUpToParams = {amountWithCurrency: string};
+
+type SubscriptionSettingsSummaryParams = {subscriptionType: string; subscriptionSize: string; autoRenew: string; autoIncrease: string};
 
 type SubscriptionSettingsRenewsOnParams = {date: string};
 
@@ -659,6 +669,10 @@ type PolicyExpenseChatNameParams = {
     displayName: string;
 };
 
+type ReviewParams = {
+    amount: string;
+};
+
 export type {
     AuthenticationErrorParams,
     ImportMembersSuccessfullDescriptionParams,
@@ -702,6 +716,7 @@ export type {
     SubscriptionSettingsRenewsOnParams,
     BadgeFreeTrialParams,
     BillingBannerSubtitleWithDateParams,
+    BillingBannerOwnerAmountOwedOverdueParams,
     BillingBannerDisputePendingParams,
     BillingBannerCardAuthenticationRequiredParams,
     BillingBannerInsufficientFundsParams,
@@ -771,6 +786,7 @@ export type {
     ParentNavigationSummaryParams,
     PaySomeoneParams,
     PayerOwesAmountParams,
+    DuplicateTransactionParams,
     PayerOwesParams,
     RoleNamesParams,
     PayerPaidAmountParams,
@@ -894,5 +910,8 @@ export type {
     SubmitsToParams,
     SettlementDateParams,
     PolicyExpenseChatNameParams,
+    YourPlanPriceValueParams,
     NeedCategoryForExportToIntegrationParams,
+    SubscriptionSettingsSummaryParams,
+    ReviewParams,
 };

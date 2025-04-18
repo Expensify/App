@@ -34,7 +34,8 @@ import {
     getQueryWithoutAutocompletedPart,
     parseForAutocomplete,
 } from '@libs/SearchAutocompleteUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, sanitizeSearchValue, shouldHighlight} from '@libs/SearchQueryUtils';
+import StringUtils from '@libs/StringUtils';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -72,6 +73,9 @@ type SearchAutocompleteListProps = {
 
     /** Whether to subscribe to KeyboardShortcut arrow keys events */
     shouldSubscribeToArrowKeyEvents?: boolean;
+
+    /** Callback to highlight (e.g. scroll to) the first matched item in the list. */
+    onHighlightFirstItem?: () => void;
 };
 
 const defaultListOptions = {
@@ -131,6 +135,7 @@ function SearchAutocompleteList(
         setTextQuery,
         updateAutocompleteSubstitutions,
         shouldSubscribeToArrowKeyEvents,
+        onHighlightFirstItem,
     }: SearchAutocompleteListProps,
     ref: ForwardedRef<SelectionListHandle>,
 ) {
@@ -160,14 +165,15 @@ function SearchAutocompleteList(
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardAutocompleteList = Object.values(allCards);
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
-    }, [translate, workspaceCardFeeds, userCardList]);
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
     const feedAutoCompleteList = useMemo(() => Object.entries(cardFeedNamesWithType).map(([cardFeedKey, cardFeedName]) => ({cardFeedKey, cardFeedName})), [cardFeedNamesWithType]);
 
     const getParticipantsAutocompleteList = useMemo(
@@ -196,13 +202,6 @@ function SearchAutocompleteList(
                             accountID: details.accountID.toString(),
                         };
                     });
-                const currentUser = currentUserRef.current;
-                if (currentUser && currentUser.accountID) {
-                    autocompleteOptions.push({
-                        name: currentUser.displayName ?? Str.removeSMSDomain(currentUser.login ?? ''),
-                        accountID: currentUser.accountID.toString(),
-                    });
-                }
 
                 return autocompleteOptions;
             }),
@@ -380,7 +379,11 @@ function SearchAutocompleteList(
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID: {
                 const filteredCards = cardAutocompleteList
                     .filter((card) => isCard(card) && !isCardHiddenFromSearch(card))
-                    .filter((card) => card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()))
+                    .filter(
+                        (card) =>
+                            (card.bank.toLowerCase().includes(autocompleteValue.toLowerCase()) || card.lastFourPAN?.includes(autocompleteValue)) &&
+                            !alreadyAutocompletedKeys.includes(getCardDescription(card.cardID).toLowerCase()),
+                    )
                     .sort()
                     .slice(0, 10);
 
@@ -389,6 +392,15 @@ function SearchAutocompleteList(
                     text: getCardDescription(card.cardID, allCards),
                     autocompleteID: card.cardID.toString(),
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
+                }));
+            }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+                const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
+
+                return filteredValues.map((value) => ({
+                    filterKey: autocompleteKey,
+                    text: value,
                 }));
             }
             default: {
@@ -414,6 +426,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         allCards,
         groupByAutocompleteList,
+        booleanTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -479,7 +492,12 @@ function SearchAutocompleteList(
         sections.push({title: translate('search.recentSearches'), data: recentSearchesData});
     }
 
-    const styledRecentReports = recentReportsOptions.map((item) => ({...item, pressableStyle: styles.br2, wrapperStyle: [styles.pr3, styles.pl3]}));
+    const styledRecentReports = recentReportsOptions.map((item) => ({
+        ...item,
+        pressableStyle: styles.br2,
+        text: StringUtils.lineBreaksToSpaces(item.text),
+        wrapperStyle: [styles.pr3, styles.pl3],
+    }));
     sections.push({title: autocompleteQueryValue.trim() === '' ? translate('search.recentChats') : undefined, data: styledRecentReports});
 
     if (autocompleteSuggestions.length > 0) {
@@ -511,8 +529,22 @@ function SearchAutocompleteList(
         [autocompleteQueryValue, setTextQuery, updateAutocompleteSubstitutions],
     );
 
+    const sectionItemText = sections?.at(1)?.data?.[0]?.text ?? '';
+    const normalizedReferenceText = useMemo(() => sectionItemText.toLowerCase(), [sectionItemText]);
+
+    useEffect(() => {
+        const targetText = autocompleteQueryValue;
+
+        if (shouldHighlight(normalizedReferenceText, targetText)) {
+            onHighlightFirstItem?.();
+        }
+    }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
+
     return (
         <SelectionList<OptionData | SearchQueryItem>
+            showLoadingPlaceholder={!areOptionsInitialized}
+            fixedNumItemsForLoader={4}
+            loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
             sections={sections}
             onSelectRow={onListItemPress}
             ListItem={SearchRouterItem}
@@ -532,6 +564,7 @@ function SearchAutocompleteList(
             initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
             shouldScrollToFocusedIndex={!isInitialRender}
             shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
         />
     );
 }

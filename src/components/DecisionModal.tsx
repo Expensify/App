@@ -66,7 +66,7 @@ function DecisionModal({title, prompt = '', firstOptionText, secondOptionText, o
                     />
                 )}
                 <Button
-                    style={[styles.mt5, styles.noSelect]}
+                    style={[firstOptionText ? styles.mt3 : styles.mt5, styles.noSelect]}
                     onPress={onSecondOptionSubmit}
                     text={secondOptionText}
                     large

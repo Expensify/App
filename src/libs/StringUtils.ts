@@ -106,4 +106,11 @@ function removeDoubleQuotes(text = '') {
     return text.replace(/"/g, '');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes};
+/**
+ * Remove pre tag from the html
+ */
+function removePreCodeBlock(text = '') {
+    return text.replace(/<pre[^>]*>|<\/pre>/g, '');
+}
+
+export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes, removePreCodeBlock};

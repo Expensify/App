@@ -40,20 +40,19 @@ function SearchRouterModal() {
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
-            shouldApplySidePaneOffset={!shouldUseNarrowLayout}
+            shouldApplySidePanelOffset={!shouldUseNarrowLayout}
         >
             <KeyboardAvoidingView
                 behavior="padding"
                 style={[styles.flex1, {maxHeight: windowHeight}]}
             >
-                {isSearchRouterDisplayed && (
-                    <FocusTrapForModal active={isSearchRouterDisplayed}>
-                        <SearchRouter
-                            onRouterClose={closeSearchRouter}
-                            shouldHideInputCaret={shouldHideInputCaret}
-                        />
-                    </FocusTrapForModal>
-                )}
+                <FocusTrapForModal active={isSearchRouterDisplayed}>
+                    <SearchRouter
+                        onRouterClose={closeSearchRouter}
+                        shouldHideInputCaret={shouldHideInputCaret}
+                        isSearchRouterDisplayed={isSearchRouterDisplayed}
+                    />
+                </FocusTrapForModal>
             </KeyboardAvoidingView>
         </Modal>
     );

@@ -150,12 +150,6 @@ const webViewStyles = (theme: ThemeColors) =>
         // styles from the renderer, just pass the "style" prop to the underlying
         // component.
         tagStyles: {
-            em: {
-                // We set fontFamily and fontStyle directly in order to avoid overriding fontWeight.
-                fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontFamily,
-                fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
-            },
-
             del: {
                 textDecorationLine: 'line-through',
                 textDecorationStyle: 'solid',
@@ -173,17 +167,6 @@ const webViewStyles = (theme: ThemeColors) =>
 
             li: {
                 flexShrink: 1,
-            },
-
-            blockquote: {
-                borderLeftColor: theme.border,
-                borderLeftWidth: 4,
-                paddingLeft: 12,
-                marginTop: 4,
-                marginBottom: 4,
-
-                // Overwrite default HTML margin for blockquotes
-                marginLeft: 0,
             },
 
             pre: {
@@ -223,8 +206,6 @@ const webViewStyles = (theme: ThemeColors) =>
                 marginBottom: 0,
             },
             h1: {
-                fontSize: undefined,
-                fontWeight: undefined,
                 marginBottom: 8,
             },
         },
@@ -267,8 +248,18 @@ const styles = (theme: ThemeColors) =>
             borderColor: theme.border,
             justifyContent: 'center',
             overflow: 'hidden',
-            boxShadow: variables.popoverMenuShadow,
+            boxShadow: theme.shadow,
             paddingVertical: CONST.AUTO_COMPLETE_SUGGESTER.SUGGESTER_INNER_PADDING,
+        },
+        blockquote: {
+            borderLeftColor: theme.border,
+            borderLeftWidth: 4,
+            paddingLeft: 12,
+            marginTop: 4,
+            marginBottom: 4,
+
+            // Overwrite default HTML margin for blockquotes
+            marginLeft: 0,
         },
 
         h1: {
@@ -281,6 +272,11 @@ const styles = (theme: ThemeColors) =>
         strong: {
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontFamily,
             fontWeight: FontUtils.fontFamily.platform.EXP_NEUE_BOLD.fontWeight,
+        },
+
+        em: {
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontFamily,
+            fontStyle: FontUtils.fontFamily.platform.EXP_NEUE_ITALIC.fontStyle,
         },
 
         autoCompleteSuggestionContainer: {
@@ -437,6 +433,12 @@ const styles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSmall,
         },
 
+        textSupportingNormal: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeNormal,
+            lineHeight: variables.fontSizeNormalHeight,
+        },
+
         textExtraSmallSupporting: {
             color: theme.textSupporting,
             ...FontUtils.fontFamily.platform.EXP_NEUE,
@@ -589,7 +591,8 @@ const styles = (theme: ThemeColors) =>
             // We have to use position fixed to make sure web on safari displays the bottom tab bar correctly.
             // On natives we can use absolute positioning.
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
-            display: shouldDisplayTopLevelBottomTabBar ? 'flex' : 'none',
+            opacity: shouldDisplayTopLevelBottomTabBar ? 1 : 0,
+            pointerEvents: shouldDisplayTopLevelBottomTabBar ? 'auto' : 'none',
             width: shouldUseNarrowLayout ? '100%' : variables.sideBarWidth,
             paddingBottom: bottomSafeAreaOffset,
             bottom: 0,
@@ -792,7 +795,7 @@ const styles = (theme: ThemeColors) =>
         },
 
         buttonSuccessText: {
-            color: theme.textLight,
+            color: theme.buttonSuccessText,
         },
 
         buttonDangerText: {
@@ -1185,17 +1188,22 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             justifyContent: 'space-between',
             alignItems: 'center',
-            paddingHorizontal: 15,
-            paddingRight: 5,
             ...userSelect.userSelectNone,
         },
 
         calendarDayRoot: {
             flex: 1,
-            height: 45,
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
             justifyContent: 'center',
             alignItems: 'center',
             ...userSelect.userSelectNone,
+        },
+
+        calendarBodyContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT * CONST.MAX_CALENDAR_PICKER_ROWS,
+        },
+        calendarWeekContainer: {
+            height: CONST.CALENDAR_PICKER_DAY_HEIGHT,
         },
 
         calendarDayContainer: {
@@ -1236,6 +1244,12 @@ const styles = (theme: ThemeColors) =>
             overflow: 'hidden',
             borderBottomWidth: 2,
             borderColor: theme.border,
+        },
+
+        outlinedButton: {
+            backgroundColor: 'transparent',
+            borderColor: theme.border,
+            borderWidth: 1,
         },
 
         optionRowAmountInput: {
@@ -1307,7 +1321,6 @@ const styles = (theme: ThemeColors) =>
         textInputIconContainer: {
             paddingHorizontal: 11,
             justifyContent: 'center',
-            margin: 1,
         },
 
         textInputLeftIconContainer: {
@@ -1748,6 +1761,12 @@ const styles = (theme: ThemeColors) =>
             textDecorationLine: 'none',
         },
 
+        topBarLabel: {
+            color: theme.text,
+            fontSize: variables.fontSizeXLarge,
+            ...headlineFont,
+        },
+
         breadcrumsContainer: {
             minHeight: 24,
         },
@@ -1855,11 +1874,6 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
-        createMenuPositionRightSidepane: {
-            right: 18,
-            bottom: 75,
-        },
-
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -1905,7 +1919,7 @@ const styles = (theme: ThemeColors) =>
 
         popoverInnerContainer: {
             paddingTop: 0, // adjusting this because the mobile modal adds additional padding that we don't need for our layout
-            maxHeight: '95%',
+            backgroundColor: theme.modalBackground,
         },
 
         menuItemTextContainer: {
@@ -2390,10 +2404,6 @@ const styles = (theme: ThemeColors) =>
             alignSelf: 'flex-end',
         },
 
-        customMarginButtonWithMenuItem: {
-            marginRight: variables.bankButtonMargin,
-        },
-
         composerSizeButton: {
             alignSelf: 'center',
             height: 32,
@@ -2657,9 +2667,9 @@ const styles = (theme: ThemeColors) =>
             paddingRight: 12,
         },
 
-        headerBarDesktopHeight: {
-            height: variables.contentHeaderDesktopHeight,
-        },
+        headerBarDesktopHeight: (canUseLeftHandBar: boolean | undefined) => ({
+            height: canUseLeftHandBar ? variables.contentHeaderHeight : variables.contentHeaderDesktopHeight,
+        }),
 
         imageViewContainer: {
             width: '100%',
@@ -2717,6 +2727,12 @@ const styles = (theme: ThemeColors) =>
         blockingViewContainer: {
             paddingBottom: variables.contentHeaderHeight,
             maxWidth: 400,
+            alignSelf: 'center',
+        },
+
+        blockingErrorViewContainer: {
+            paddingBottom: variables.contentHeaderHeight,
+            maxWidth: 475,
             alignSelf: 'center',
         },
 
@@ -3015,6 +3031,12 @@ const styles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
+        borderedContentCardLarge: {
+            borderWidth: 1,
+            borderColor: theme.border,
+            borderRadius: variables.componentBorderRadiusLarge,
+        },
+
         sectionMenuItem: {
             borderRadius: 8,
             paddingHorizontal: 16,
@@ -3149,6 +3171,10 @@ const styles = (theme: ThemeColors) =>
 
         flipUpsideDown: {
             transform: `rotate(180deg)`,
+        },
+
+        mirror: {
+            transform: `scaleX(-1)`,
         },
 
         navigationScreenCardStyle: {
@@ -3474,13 +3500,6 @@ const styles = (theme: ThemeColors) =>
             ...spacing.ml4,
         },
 
-        blockquote: {
-            borderLeftColor: theme.border,
-            borderLeftWidth: 4,
-            paddingLeft: 12,
-            marginVertical: 4,
-        },
-
         noSelect: {
             boxShadow: 'none',
             // After https://github.com/facebook/react-native/pull/46284 RN accepts only 3 options and undefined
@@ -3731,12 +3750,6 @@ const styles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        searchInputStyle: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            lineHeight: variables.fontSizeNormalHeight,
-        },
-
         searchRouterTextInputContainer: {
             borderRadius: variables.componentBorderRadiusSmall,
             borderWidth: 1,
@@ -3768,10 +3781,20 @@ const styles = (theme: ThemeColors) =>
             paddingTop: variables.searchListContentMarginTop,
         },
 
+        searchListHeaderContainerStyle: {
+            width: '100%',
+            flexDirection: 'row',
+            alignItems: 'center',
+            ...userSelect.userSelectNone,
+            paddingBottom: 12,
+            backgroundColor: theme.appBG,
+            justifyContent: 'flex-start',
+        },
+
         narrowSearchHeaderStyle: {
+            flex: 1,
             paddingTop: 12,
             backgroundColor: theme.appBG,
-            flex: 1,
         },
 
         narrowSearchRouterInactiveStyle: {
@@ -3934,14 +3957,6 @@ const styles = (theme: ThemeColors) =>
         cardSectionTitle: {
             fontSize: variables.fontSizeLarge,
             lineHeight: variables.lineHeightXLarge,
-        },
-
-        cardMenuItem: {
-            paddingLeft: 8,
-            paddingRight: 0,
-            borderRadius: variables.buttonBorderRadius,
-            height: variables.componentSizeLarge,
-            alignItems: 'center',
         },
 
         emptyCardSectionTitle: {
@@ -4300,18 +4315,20 @@ const styles = (theme: ThemeColors) =>
             ...writingDirection.ltr,
             ...headlineFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskTitleMenuItemItalic: {
             ...writingDirection.ltr,
             ...headlineItalicFont,
             fontSize: variables.fontSizeXLarge,
-            lineHeight: variables.lineHeightSizeh2,
+            lineHeight: variables.lineHeighTaskTitle,
             maxWidth: '100%',
             ...wordBreak.breakWord,
+            textUnderlineOffset: -1,
         },
 
         taskDescriptionMenuItem: {
@@ -4557,6 +4574,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 16,
             margin: 20,
             overflow: 'hidden',
+            borderWidth: 1,
+            borderColor: theme.border,
         },
 
         reportPreviewBox: {
@@ -4729,10 +4748,14 @@ const styles = (theme: ThemeColors) =>
             ...spacing.mh5,
             ...spacing.mv3,
             overflow: 'hidden',
-            borderWidth: 2,
-            borderColor: theme.cardBG,
+            borderWidth: 1,
+            borderColor: theme.border,
             borderRadius: variables.componentBorderRadiusLarge,
             height: 180,
+            maxWidth: '100%',
+        },
+
+        expenseViewImage: {
             maxWidth: 360,
         },
 
@@ -4867,6 +4890,11 @@ const styles = (theme: ThemeColors) =>
             paddingHorizontal: 12,
             paddingVertical: 12,
             borderRadius: 8,
+        },
+
+        listTableHeader: {
+            paddingVertical: 12,
+            paddingHorizontal: 32,
         },
 
         cardItemSecondaryIconStyle: {
@@ -5167,7 +5195,6 @@ const styles = (theme: ThemeColors) =>
             width: '100%',
             height: '100%',
             borderRadius: variables.componentBorderRadiusNormal,
-            backgroundColor: theme.highlightBG,
         },
 
         videoPlayerControlsContainer: {
@@ -5339,6 +5366,13 @@ const styles = (theme: ThemeColors) =>
             height: 190,
         },
 
+        emptyStateMoneyRequestReport: {
+            maxHeight: 85,
+            minHeight: 85,
+            ...flex.alignItemsCenter,
+            ...flex.justifyContentCenter,
+        },
+
         pendingStateCardIllustration: {
             width: 233,
             height: 162,
@@ -5507,9 +5541,9 @@ const styles = (theme: ThemeColors) =>
             marginHorizontal: 8,
             alignSelf: 'center',
         },
-        // We have to use 10000 here as sidePane has to be displayed on top of modals which have z-index of 9999
-        sidePaneContainer: {zIndex: 10000},
-        sidePaneOverlay: (isOverlayVisible: boolean) => ({
+        // We have to use 10000 here as sidePanel has to be displayed on top of modals which have z-index of 9999
+        sidePanelContainer: {zIndex: 10000},
+        sidePanelOverlay: (isOverlayVisible: boolean) => ({
             ...positioning.pFixed,
             top: 0,
             bottom: 0,
@@ -5518,7 +5552,7 @@ const styles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
             opacity: isOverlayVisible ? 0 : variables.overlayOpacity,
         }),
-        sidePaneContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
+        sidePanelContent: (shouldUseNarrowLayout: boolean, isExtraLargeScreenWidth: boolean): ViewStyle => ({
             position: Platform.OS === 'web' ? 'fixed' : 'absolute',
             top: 0,
             bottom: 0,
@@ -5529,6 +5563,21 @@ const styles = (theme: ThemeColors) =>
             borderLeftWidth: isExtraLargeScreenWidth ? 1 : 0,
             borderLeftColor: theme.border,
         }),
+        reportPreviewCarouselDots: {
+            borderRadius: 50,
+            width: 8,
+            height: 8,
+            alignItems: 'center',
+            justifyContent: 'center',
+        },
+        reportPreviewArrowButton: {
+            borderRadius: 50,
+            width: 28,
+            height: 28,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: 4,
+        },
 
         expenseWidgetRadius: {
             borderRadius: variables.componentBorderRadiusNormal,

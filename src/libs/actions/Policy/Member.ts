@@ -1268,6 +1268,7 @@ export {
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
+    buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,
 };
 

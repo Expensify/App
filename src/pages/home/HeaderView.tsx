@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useState} from 'react';
+import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -8,7 +8,7 @@ import CaretWrapper from '@components/CaretWrapper';
 import ConfirmModal from '@components/ConfirmModal';
 import DisplayNames from '@components/DisplayNames';
 import Icon from '@components/Icon';
-import {BackArrow, CalendarSolid, Close, DotIndicator, FallbackAvatar, Phone} from '@components/Icon/Expensicons';
+import {BackArrow, CalendarSolid, DotIndicator, FallbackAvatar} from '@components/Icon/Expensicons';
 import LoadingBar from '@components/LoadingBar';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -16,7 +16,7 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
@@ -28,8 +28,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {initializeOpenAIRealtime, stopConnection} from '@libs/actions/OpenAI';
-import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -75,6 +73,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -116,15 +115,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
-    const [talkToAISales] = useOnyx(ONYXKEYS.TALK_TO_AI_SALES);
 
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
-    const {canUseTalkToAISales} = usePermissions();
-    const shouldShowTalkToSales = canUseTalkToAISales && isAdminRoom(report);
+    const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
+    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -147,13 +145,6 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report?.reportID);
-    const policyID = report?.policyID;
-    useEffect(() => {
-        if (!policyID) {
-            return;
-        }
-        getAssignedSupportData(policyID);
-    }, [policyID]);
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -228,34 +219,14 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
-    const talkToSalesIcon = () => {
-        if (talkToAISales?.isLoading) {
-            return undefined;
-        }
-        if (talkToAISales?.isTalkingToAISales) {
-            return Close;
-        }
-        return Phone;
-    };
-
     const talkToSalesButton = (
-        <Button
-            text={talkToAISales?.isTalkingToAISales ? translate('aiSales.hangUp') : translate('aiSales.talkWithSales')}
-            onPress={() => {
-                if (talkToAISales?.isTalkingToAISales) {
-                    stopConnection();
-                    return;
-                }
-
-                initializeOpenAIRealtime(Number(report?.reportID) ?? CONST.DEFAULT_NUMBER_ID);
-            }}
-            style={shouldUseNarrowLayout && [styles.flex1]}
-            icon={talkToSalesIcon()}
-            isLoading={talkToAISales?.isLoading}
+        <TalkToSalesButton
+            reportID={report?.reportID}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
         />
     );
 
-    const getGuideBookButtonStyles = () => {
+    const getActionButtonStyles = () => {
         if (isChatUsedForOnboarding && !shouldShowDiscount) {
             return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
         }
@@ -268,7 +239,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
@@ -376,7 +347,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
-                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && talkToSalesButton}
+                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && !shouldUseNarrowLayout && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -409,8 +380,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
+                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && shouldUseNarrowLayout && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && !isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && (
-                        <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>
+                        <View style={getActionButtonStyles()}>{guideBookingButton}</View>
                     )}
                     {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial

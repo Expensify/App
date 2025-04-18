@@ -54,6 +54,9 @@ type WaypointCollection = Record<string, RecentWaypoint | Waypoint>;
 
 /** Model of transaction comment */
 type Comment = {
+    /** Selected attendees */
+    attendees?: Attendee[];
+
     /** Content of the transaction comment */
     comment?: string;
 
@@ -176,6 +179,9 @@ type Receipt = {
 
     /** Collection of reservations */
     reservationList?: Reservation[];
+
+    /** Receipt is manager_mctest@expensify.com testing receipt */
+    isTestReceipt?: true;
 };
 
 /** Model of route */
@@ -391,9 +397,6 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** The original transaction amount */
         amount: number;
 
-        /** Selected attendees */
-        attendees?: Attendee[];
-
         /** Selected accountant */
         accountant?: Accountant;
 
@@ -562,6 +565,9 @@ type AdditionalTransactionChanges = {
 
     /** Collection of modified waypoints */
     waypoints?: WaypointCollection;
+
+    /** Collection of modified attendees */
+    attendees?: Attendee[];
 
     /** The ID of the distance rate */
     customUnitRateID?: string;

@@ -12710,10 +12710,8 @@ async function run() {
     const isProd = ActionUtils.getJSONInput('IS_PRODUCTION_DEPLOY', { required: true });
     const version = core.getInput('DEPLOY_VERSION', { required: true });
     const androidResult = getDeployTableMessage(core.getInput('ANDROID', { required: true }));
-    const androidHybridResult = getDeployTableMessage(core.getInput('ANDROID_HYBRID', { required: true }));
     const desktopResult = getDeployTableMessage(core.getInput('DESKTOP', { required: true }));
     const iOSResult = getDeployTableMessage(core.getInput('IOS', { required: true }));
-    const iOSHybridResult = getDeployTableMessage(core.getInput('IOS_HYBRID', { required: true }));
     const webResult = getDeployTableMessage(core.getInput('WEB', { required: true }));
     const date = core.getInput('DATE');
     const note = core.getInput('NOTE');
@@ -12724,9 +12722,9 @@ async function run() {
             message += `on ${date}`;
         }
         message += `🚀`;
-        message += `\n\nplatform | result\n---|---\n🤖 android 🤖|${androidResult}\n🖥 desktop 🖥|${desktopResult}`;
-        message += `\n🍎 iOS 🍎|${iOSResult}\n🕸 web 🕸|${webResult}`;
-        message += `\n🤖🔄 android HybridApp 🤖🔄|${androidHybridResult}\n🍎🔄 iOS HybridApp 🍎🔄|${iOSHybridResult}`;
+        message += `\n\nplatform | result\n---|---\n🖥 desktop 🖥|${desktopResult}`;
+        message += `\n🕸 web 🕸|${webResult}`;
+        message += `\n🤖 android 🤖|${androidResult}\n🍎 iOS 🍎|${iOSResult}`;
         if (deployVerb === 'Cherry-picked' && !/no ?qa/gi.test(prTitle ?? '')) {
             // eslint-disable-next-line max-len
             message +=
@@ -13080,7 +13078,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -13092,7 +13090,7 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                tag,
+                version,
             };
         }
         catch (exception) {

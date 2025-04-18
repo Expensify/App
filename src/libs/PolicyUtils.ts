@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -74,6 +75,12 @@ Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (value) => (isLoadingReportData = value ?? false),
+});
+
+let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => (preferredLocale = val ?? null),
 });
 
 /**
@@ -252,6 +259,10 @@ function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePoli
             (shouldShowPendingDeletePolicy || policy?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!getPolicyRole(policy, currentUserLogin))
     );
+}
+
+function isPolicyMember(currentUserLogin: string | undefined, policyID: string | undefined): boolean {
+    return !!currentUserLogin && !!policyID && !!allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.employeeList?.[currentUserLogin];
 }
 
 function isExpensifyTeam(email: string | undefined): boolean {
@@ -632,6 +643,11 @@ function getManagerAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseRe
  */
 function getSubmitToAccountID(policy: OnyxEntry<Policy> | SearchPolicy, expenseReport: OnyxEntry<Report>): number {
     const ruleApprovers = getRuleApprovers(policy, expenseReport);
+    const employeeAccountID = expenseReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const employeeLogin = getLoginsByAccountIDs([employeeAccountID]).at(0) ?? '';
+    if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && policy?.preventSelfApproval) {
+        ruleApprovers.shift();
+    }
     if (ruleApprovers.length > 0 && !isSubmitAndClose(policy)) {
         return getAccountIDsByLogins([ruleApprovers.at(0) ?? '']).at(0) ?? -1;
     }
@@ -1021,19 +1037,17 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
         syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
 
+    const connectionSyncTimeStamp = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, connectionSyncProgress?.timestamp).toISOString();
+
     if (
         connectionSyncProgress &&
         connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
-        connectionSyncProgress.timestamp > syncSuccessfulDate
+        connectionSyncTimeStamp > DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, syncSuccessfulDate).toISOString()
     ) {
-        syncSuccessfulDate = connectionSyncProgress.timestamp;
+        syncSuccessfulDate = connectionSyncTimeStamp;
     }
     return syncSuccessfulDate;
-}
-
-function getNSQSCompanyID(policy: Policy) {
-    return policy.connections?.netsuiteQuickStart?.config?.credentials?.companyID;
 }
 
 function getCurrentSageIntacctEntityName(policy: Policy | undefined, defaultNameIfNoEntity: string): string | undefined {
@@ -1384,7 +1398,6 @@ function isPrefferedExporter(policy: Policy) {
     const exporters = [
         policy.connections?.intacct?.config?.export?.exporter,
         policy.connections?.netsuite?.options?.config?.exporter,
-        policy.connections?.netsuiteQuickStart?.config?.exporter,
         policy.connections?.quickbooksDesktop?.config?.export?.exporter,
         policy.connections?.quickbooksOnline?.config?.export?.exporter,
         policy.connections?.xero?.config?.export?.exporter,
@@ -1397,7 +1410,6 @@ function isAutoSyncEnabled(policy: Policy) {
     const values = [
         policy.connections?.intacct?.config?.autoSync?.enabled,
         policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.netsuiteQuickStart?.config?.autoSync?.enabled,
         policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
         policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
         policy.connections?.xero?.config?.autoSync?.enabled,
@@ -1456,6 +1468,7 @@ export {
     isPolicyEmployee,
     isPolicyFeatureEnabled,
     isPolicyOwner,
+    isPolicyMember,
     arePaymentsEnabled,
     isSubmitAndClose,
     isTaxTrackingEnabled,
@@ -1491,7 +1504,6 @@ export {
     getNetSuiteReceivableAccountOptions,
     getNetSuiteInvoiceItemOptions,
     getNetSuiteTaxAccountOptions,
-    getNSQSCompanyID,
     getSageIntacctVendors,
     getSageIntacctNonReimbursableActiveDefaultVendor,
     getSageIntacctCreditCards,

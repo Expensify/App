@@ -10,7 +10,7 @@ import Text from '@components/Text';
 import type {IndicatorStatus} from '@hooks/useIndicatorStatus';
 import useIndicatorStatus from '@hooks/useIndicatorStatus';
 import useLocalize from '@hooks/useLocalize';
-import {useReportIDs} from '@hooks/useReportIDs';
+import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -106,7 +106,7 @@ function DebugTabView({selectedTab, chatTabBrickRoad, activeWorkspaceID}: DebugT
     const {translate} = useLocalize();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {status, indicatorColor, policyIDWithErrors} = useIndicatorStatus();
-    const {orderedReportIDs} = useReportIDs();
+    const {orderedReportIDs} = useSidebarOrderedReportIDs();
     const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
 
     const message = useMemo((): TranslationPaths | undefined => {

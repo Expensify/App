@@ -11684,29 +11684,6 @@ exports["default"] = CONST;
 
 "use strict";
 
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
-    __setModuleDefault(result, mod);
-    return result;
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -11714,7 +11691,7 @@ Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
-const VersionUpdater = __importStar(__nccwpck_require__(8982));
+const versionUpdater_1 = __nccwpck_require__(8982);
 /**
  * Check if a tag exists locally or in the remote.
  */
@@ -11762,15 +11739,20 @@ function tagExists(tag) {
  * @param level the Semver level to step backward by
  */
 function getPreviousExistingTag(tag, level) {
-    let previousVersion = VersionUpdater.getPreviousVersion(tag, level);
+    let previousVersion = (0, versionUpdater_1.getPreviousVersion)(tag.replace('-staging', ''), level);
     let tagExistsForPreviousVersion = false;
     while (!tagExistsForPreviousVersion) {
         if (tagExists(previousVersion)) {
             tagExistsForPreviousVersion = true;
             break;
         }
+        if (tagExists(`${previousVersion}-staging`)) {
+            tagExistsForPreviousVersion = true;
+            previousVersion = `${previousVersion}-staging`;
+            break;
+        }
         console.log(`Tag for previous version ${previousVersion} does not exist. Checking for an older version...`);
-        previousVersion = VersionUpdater.getPreviousVersion(previousVersion, level);
+        previousVersion = (0, versionUpdater_1.getPreviousVersion)(previousVersion, level);
     }
     return previousVersion;
 }
@@ -11816,8 +11798,8 @@ function fetchTag(tag, shallowExcludeTag = '') {
  * Get merge logs between two tags (inclusive) as a JavaScript object.
  */
 function getCommitHistoryAsJSON(fromTag, toTag) {
-    // Fetch tags, excluding commits reachable from the previous patch version (i.e: previous checklist), so that we don't have to fetch the full history
-    const previousPatchVersion = getPreviousExistingTag(fromTag, VersionUpdater.SEMANTIC_VERSION_LEVELS.PATCH);
+    // Fetch tags, excluding commits reachable from the previous patch version (or minor for prod) (i.e: previous checklist), so that we don't have to fetch the full history
+    const previousPatchVersion = getPreviousExistingTag(fromTag.replace('-staging', ''), fromTag.endsWith('-staging') ? versionUpdater_1.SEMANTIC_VERSION_LEVELS.PATCH : versionUpdater_1.SEMANTIC_VERSION_LEVELS.MINOR);
     fetchTag(fromTag, previousPatchVersion);
     fetchTag(toTag, previousPatchVersion);
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
@@ -11862,7 +11844,7 @@ function getValidMergedPRs(commits) {
         if (author === CONST_1.default.OS_BOTIFY) {
             return;
         }
-        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-staging)/);
+        const match = commit.subject.match(/Merge pull request #(\d+) from (?!Expensify\/.*-cherry-pick-(staging|production))/);
         if (!Array.isArray(match) || match.length < 2) {
             return;
         }
@@ -12043,7 +12025,7 @@ class GithubUtils {
     static getStagingDeployCashData(issue) {
         try {
             const versionRegex = new RegExp('([0-9]+)\\.([0-9]+)\\.([0-9]+)(?:-([0-9]+))?', 'g');
-            const tag = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
+            const version = issue.body?.match(versionRegex)?.[0].replace(/`/g, '');
             return {
                 title: issue.title,
                 url: issue.url,
@@ -12055,7 +12037,7 @@ class GithubUtils {
                 isTimingDashboardChecked: issue.body ? /-\s\[x]\sI checked the \[App Timing Dashboard]/.test(issue.body) : false,
                 isFirebaseChecked: issue.body ? /-\s\[x]\sI checked \[Firebase Crashlytics]/.test(issue.body) : false,
                 isGHStatusChecked: issue.body ? /-\s\[x]\sI checked \[GitHub Status]/.test(issue.body) : false,
-                tag,
+                version,
             };
         }
         catch (exception) {

@@ -227,6 +227,38 @@ const tests = [
             ],
         },
     },
+    {
+        query: 'from:""Big Dog","Little Dog"" to:""Mad" Dog"',
+        expected: {
+            autocomplete: {
+                key: 'to',
+                value: '"Mad" Dog',
+                start: 33,
+                length: 11,
+            },
+            ranges: [
+                {key: 'from', value: '"Big Dog', start: 5, length: 10},
+                {key: 'from', value: 'Little Dog"', start: 16, length: 13},
+                {key: 'to', value: '"Mad" Dog', start: 33, length: 11},
+            ],
+        },
+    },
+    {
+        query: 'from:““Rag” Dog”,"Bag ”Dog“" to:"""Unruly"" “““Glad””” """Dog"""',
+        expected: {
+            autocomplete: {
+                key: 'to',
+                value: '""Unruly"" “““Glad””” """Dog""',
+                start: 32,
+                length: 32,
+            },
+            ranges: [
+                {key: 'from', value: '“Rag” Dog', start: 5, length: 11},
+                {key: 'from', value: 'Bag ”Dog“', start: 17, length: 11},
+                {key: 'to', value: '""Unruly"" “““Glad””” """Dog""', start: 32, length: 32},
+            ],
+        },
+    },
 ];
 
 describe('autocomplete parser', () => {

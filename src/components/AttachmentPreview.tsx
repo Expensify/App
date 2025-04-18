@@ -7,7 +7,7 @@ import variables from '@styles/variables';
 import {checkIsFileImage} from './Attachments/AttachmentView';
 import DefaultAttachmentView from './Attachments/AttachmentView/DefaultAttachmentView';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import {Play} from './Icon/Expensicons';
 import ImageView from './ImageView';
 import PDFThumbnail from './PDFThumbnail';
 import {PressableWithFeedback} from './Pressable';
@@ -56,11 +56,10 @@ function AttachmentPreview({source, aspectRatio = 1, onPress, onLoadError}: Atta
                 <View style={[styles.h100, styles.w100, styles.pAbsolute, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <View style={styles.videoThumbnailPlayButton}>
                         <Icon
-                            src={Expensicons.Play}
+                            src={Play}
                             fill="white"
                             width={variables.iconSizeXLarge}
                             height={variables.iconSizeXLarge}
-                            additionalStyles={styles.ml1}
                         />
                     </View>
                 </View>

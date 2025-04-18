@@ -187,9 +187,10 @@ function maskCard(lastFour = ''): string {
  *
  * @param cardName - card name with XXXX in the middle.
  * @param feed - card feed.
+ * @param showOriginalName - show original card name instead of masked.
  * @returns - The masked card string.
  */
-function maskCardNumber(cardName: string | undefined, feed: string | undefined): string {
+function maskCardNumber(cardName?: string, feed?: string, showOriginalName?: boolean): string {
     if (!cardName || cardName === '') {
         return '';
     }
@@ -198,7 +199,10 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     const isAmexBank = [CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some((value) => value === feed);
 
     if (hasSpace) {
-        return cardName;
+        if (showOriginalName) {
+            return cardName;
+        }
+        return cardName.replace(/ - \d{4}$/, '');
     }
 
     if (isAmexBank && maskedString.length === 15) {
@@ -206,6 +210,22 @@ function maskCardNumber(cardName: string | undefined, feed: string | undefined):
     }
 
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
+}
+
+/**
+ * Returns last 4 number from company card name
+ *
+ * @param cardName - card name with dash in the middle and 4 numbers in the end.
+ * @returns - Last 4 numbers
+ */
+function lastFourNumbersFromCardName(cardName: string | undefined): string {
+    const name = cardName ?? '';
+    const hasSpace = /\s/.test(name);
+    const match = name.match(/(\d{4})$/);
+    if (!cardName || cardName === '' || !hasSpace || !match) {
+        return '';
+    }
+    return match[1];
 }
 
 /**
@@ -430,16 +450,31 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
+    // Get cards assigned across all workspaces
+    const allWorkspaceAssignedCards = new Set<string>();
+    Object.values(workspaceCardFeeds ?? {}).forEach((workspaceCards) => {
+        if (!workspaceCards) {
+            return;
+        }
+        const {cardList, ...workspaceCardItems} = workspaceCards;
+        Object.values(workspaceCardItems).forEach((card) => {
+            if (!card.cardName) {
+                return;
+            }
+            allWorkspaceAssignedCards.add(card.cardName);
+        });
+    });
+
     if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber));
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber)));
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
@@ -601,6 +636,7 @@ export {
     flatAllCardsList,
     checkIfFeedConnectionIsBroken,
     isSmartLimitEnabled,
+    lastFourNumbersFromCardName,
     hasIssuedExpensifyCard,
     hasCardListObject,
     isExpensifyCardFullySetUp,

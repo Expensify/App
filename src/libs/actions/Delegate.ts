@@ -75,8 +75,12 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-function connect(email: string) {
-    if (!delegatedAccess?.delegators) {
+/**
+ * Connects the user as a delegate to another account.
+ * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
+ */
+function connect(email: string, isFromOldDot = false) {
+    if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
@@ -135,14 +139,14 @@ function connect(email: string) {
 
     // We need to access the authToken directly from the response to update the session
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
         .then((response) => {
             if (!response?.restrictedToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while connecting as a delegate');
                 Onyx.update(failureData);
                 return;
             }
-            if (!activePolicyID) {
+            if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
                 Log.alert('[Delegate] Unable to access activePolicyID');
                 Onyx.update(failureData);
                 return;
@@ -158,9 +162,9 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp().then(() => {
-                        if (!CONFIG.IS_HYBRID_APP) {
-                            return;
+                    return openApp().then(() => {
+                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                            return true;
                         }
                         HybridAppModule.switchAccount({
                             newDotCurrentAccountEmail: email,
@@ -168,12 +172,14 @@ function connect(email: string) {
                             policyID,
                             accountID: String(previousAccountID),
                         });
+                        return true;
                     });
                 });
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
             Onyx.update(failureData);
+            return false;
         });
 }
 

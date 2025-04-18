@@ -1,34 +1,76 @@
 ---
-title: Subscription Management
-description: How to manage your subscription
+title: Manage Expensify Subscription
+description: Learn how to manage your subscription, update billing details, cancel early, or delete a workspace in New Expensify.
+keywords: [New Expensify, subscription, billing, payment card, cancel subscription, delete workspace, remove workspace, subscription settings]
 ---
-Under the subscriptions section of your account, you can manage your payment card details, view your current plan, add a billing card, and adjust your subscription size and renewal date.
+<div id="new-expensify" markdown="1">
+
+Easily manage your subscription in New Expensify—update payment details, adjust your plan, request early cancellation, or delete a workspace if needed.
+
+---
+
+# Manage Subscription
+
 To view or manage your subscription in New Expensify:
-* **Open the App**: Launch New Expensify on your device.
-* **Go to Account Settings**: Click your profile icon in the bottom-left corner.
-* **Find Workspaces**: Navigate to the Workspaces section.
-* **Open Subscriptions**: Click Subscription under Workspaces to view your subscription.
 
-## Add a Payment Card
+- **Open the app** on your device.
+- **Click your profile icon** in the bottom-left corner.
+- **Go to Workspaces.**
+- **Click Subscription** under the appropriate workspace to view your current plan and settings.
 
-Look for the option to **Add Payment Card**. Enter your payment card details securely to ensure uninterrupted service.
-![A screenshot of adding payment card]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default.png){:width="100%"}
-## Subscription Overview
+---
 
-This is where you can view your current subscription plan and see details like the number of seats, billing information, and the next renewal date.
+## Add Payment Card
 
-**Subscription Settings**:
-   - **Auto-renew**: See when your subscription will automatically renew (e.g., **Renews on Nov 1, 2024**).
-- **Auto-increase annual seats**: Here you can see how much you could save by automatically increasing seats to accommodate team members who exceed the current subscription size.
+Click **Add Payment Card** and enter your card details to ensure uninterrupted billing.
 
-**Note**: This will extend your annual subscription end date.
-![A screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details.png){:width="100%"}
-## Early Cancellation Requests
+![Screenshot of Add Payment Card option]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default.png){:width="100%"}
 
-If you need to cancel your subscription early, you can find the **Request Early Cancellation** option in the same Subscriptions section. 
+---
 
-**Note**: Not all customers are eligible to cancel their subscription early.
-![A screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing.png){:width="100%"}
+## Manage Subscription Plan
+
+In the Subscription section, you can view and update your plan details, including:
+
+- **Current plan:** View your subscription type and number of seats.
+- **Billing info:** See your payment method and next renewal date.
+- **Auto-renew:** Check when your subscription will automatically renew (e.g., **Renews on Nov 1, 2024**).
+- **Auto-increase annual seats:** See how much you could save by automatically increasing seats if your team grows.
+
+**Note:** Enabling auto-increase will extend your annual subscription end date.
+
+![Screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details.png){:width="100%"}
+
+---
+
+## Request Early Cancellation
+
+To request an early cancellation:
+
+1. Go to the **Subscription** section.
+2. Click **Request Early Cancellation**.
+
+**Note:** Early cancellations aren’t available to all customers.
+
+![Screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing.png){:width="100%"}
+
+---
+
+## Delete a Workspace
+
+To permanently delete a workspace:
+
+1. Go to **Settings > Workspaces**.
+2. Click the three dots next to the workspace name.
+3. Select **Delete workspace** from the dropdown.
+4. Confirm the deletion when prompted.
+
+**Note:** Deleting a workspace is permanent and cannot be undone.
+
+---
+
 ## Pricing Information
 
-For more details on pricing plans, visit Billing Page [coming soon!]
+Visit our [Billing page](https://help.expensify.com/new-expensify/hubs/billing-and-subscriptions/) for full pricing details.
+
+</div>

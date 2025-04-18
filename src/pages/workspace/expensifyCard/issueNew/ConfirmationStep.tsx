@@ -87,10 +87,12 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
             handleBackButtonPress={handleBackButtonPress}
             startStepIndex={5}
             stepNames={CONST.EXPENSIFY_CARD.STEP_NAMES}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScrollView
                 style={styles.pt0}
                 contentContainerStyle={styles.flexGrow1}
+                addBottomSafeAreaPadding
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mt3]}>{translate('workspace.card.issueNewCard.letsDoubleCheck')}</Text>
                 <Text style={[styles.textSupporting, styles.ph5, styles.mv3]}>{translate('workspace.card.issueNewCard.willBeReady')}</Text>

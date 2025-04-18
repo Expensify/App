@@ -1,4 +1,6 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {isBefore} from 'date-fns';
+import debounce from 'lodash/debounce';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -40,6 +42,7 @@ import * as ReportUtils from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import playSoundExcludingMobile from '@libs/Sound/playSoundExcludingMobile';
 import Visibility from '@libs/Visibility';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -1041,9 +1044,19 @@ function subscribeToUserEvents() {
         applyOnyxUpdatesReliably(updates);
     });
 
+    // Debounce the playSoundForMessageType function to avoid playing sounds too often, for example when a user comeback after offline and alot of messages come in
+    // See https://github.com/Expensify/App/issues/57961 for more details
+    const debouncedPlaySoundForMessageType = debounce(
+        (pushJSONMessage: OnyxServerUpdate[]) => {
+            playSoundForMessageType(pushJSONMessage);
+        },
+        CONST.TIMING.PLAY_SOUND_MESSAGE_DEBOUNCE_TIME,
+        {trailing: true},
+    );
+
     // Handles Onyx updates coming from Pusher through the mega multipleEvents.
     PusherUtils.subscribeToMultiEvent(Pusher.TYPE.MULTIPLE_EVENT_TYPE.ONYX_API_UPDATE, (pushJSON: OnyxServerUpdate[]) => {
-        playSoundForMessageType(pushJSON);
+        debouncedPlaySoundForMessageType(pushJSON);
 
         return SequentialQueue.getCurrentRequest().then(() => {
             // If we don't have the currentUserAccountID (user is logged out) or this is not the
@@ -1131,6 +1144,9 @@ function clearFocusModeNotification() {
 }
 
 function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
+    if (CONFIG.IS_HYBRID_APP) {
+        HybridAppModule.shouldUseStaging(shouldUseStagingServer);
+    }
     Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 

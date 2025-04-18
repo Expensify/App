@@ -7,7 +7,7 @@ import BottomTabBar from '@components/Navigation/BottomTabBar';
 import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
 import DebugTabView from '@components/Navigation/DebugTabView';
 import OnyxProvider from '@components/OnyxProvider';
-import {ReportIDsContextProvider} from '@hooks/useReportIDs';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -37,7 +37,7 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
                                 <BottomTabBar selectedTab={BOTTOM_TABS.HOME} />
                             </NavigationContainer>
@@ -63,7 +63,7 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
                                 <BottomTabBar selectedTab={BOTTOM_TABS.HOME} />
                             </NavigationContainer>
@@ -96,7 +96,7 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
                                 <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />
                             </NavigationContainer>{' '}
@@ -121,7 +121,7 @@ describe('BottomTabBar', () => {
                     });
 
                     render(
-                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, ReportIDsContextProvider]}>
+                        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, SidebarOrderedReportIDsContextProvider]}>
                             <NavigationContainer>
                                 <BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />
                             </NavigationContainer>{' '}

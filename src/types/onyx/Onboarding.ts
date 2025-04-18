@@ -14,6 +14,9 @@ type Onboarding = {
 
     /** A Boolean that tells whether the user has seen navattic tour  */
     selfTourViewed?: boolean;
+
+    /** A Boolean that tells whether the onboarding flow is loading */
+    isLoading?: boolean;
 };
 
 export default Onboarding;

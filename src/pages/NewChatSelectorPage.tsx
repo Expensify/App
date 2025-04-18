@@ -1,13 +1,17 @@
 import {useNavigation} from '@react-navigation/native';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setNewRoomFormLoading} from '@libs/actions/Report';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import NewChatPage from './NewChatPage';
 import WorkspaceNewRoomPage from './workspace/WorkspaceNewRoomPage';
 
@@ -19,6 +23,8 @@ function NewChatSelectorPage() {
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
     const [tabBarContainerElement, setTabBarContainerElement] = useState<HTMLElement | null>(null);
     const [activeTabContainerElement, setActiveTabContainerElement] = useState<HTMLElement | null>(null);
+    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM);
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     // Theoretically, the focus trap container element can be null (due to component unmount/remount), so we filter out the null elements
     const containerElements = useMemo(() => {
@@ -27,6 +33,10 @@ function NewChatSelectorPage() {
 
     const onTabFocusTrapContainerElementChanged = useCallback((activeTabElement?: HTMLElement | null) => {
         setActiveTabContainerElement(activeTabElement ?? null);
+    }, []);
+
+    useEffect(() => {
+        setNewRoomFormLoading(false);
     }, []);
 
     return (
@@ -53,6 +63,7 @@ function NewChatSelectorPage() {
                 tabBar={TabSelector}
                 onTabBarFocusTrapContainerElementChanged={setTabBarContainerElement}
                 onActiveTabFocusTrapContainerElementChanged={onTabFocusTrapContainerElementChanged}
+                disableSwipe={!!formState?.isLoading && shouldUseNarrowLayout}
             >
                 <TopTab.Screen name={CONST.TAB.NEW_CHAT}>
                     {() => (

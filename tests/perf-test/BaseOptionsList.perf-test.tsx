@@ -7,6 +7,8 @@ import type {OptionData} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import wrapInAct from '../utils/wrapInActHelper';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 type BaseOptionsListWrapperProps = {
     /** Whether this is a multi-select list */
     canSelectMultipleOptions?: boolean;

@@ -123,7 +123,7 @@ function getTransactionPreviewTextAndTranslationPaths({
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
-    action: OnyxTypes.ReportAction;
+    action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
     transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
@@ -256,7 +256,7 @@ function createTransactionPreviewConditionals({
 }: {
     iouReport: OnyxInputValue<OnyxTypes.Report> | undefined;
     transaction: OnyxEntry<OnyxTypes.Transaction> | undefined;
-    action: OnyxTypes.ReportAction;
+    action: OnyxEntry<OnyxTypes.ReportAction>;
     violations: OnyxTypes.TransactionViolations;
     transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
@@ -284,7 +284,7 @@ function createTransactionPreviewConditionals({
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
-    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
 

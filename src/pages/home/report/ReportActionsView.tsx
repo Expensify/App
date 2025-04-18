@@ -81,9 +81,11 @@ function ReportActionsView({
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
     });
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
 
@@ -135,7 +137,6 @@ function ReportActionsView({
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = getReportPreviewAction(report.chatReportID, report.reportID);
         const moneyRequestActions = allReportActions.filter((action) => {
             const originalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
             return (
@@ -170,7 +171,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, report, transactionThreadReport]);
+    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -204,6 +205,11 @@ function ReportActionsView({
     const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
+
+    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
+    const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
+    const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
+    const isMissingReportActions = visibleReportActions.length === 0;
 
     useEffect(() => {
         // update ref with current state
@@ -270,11 +276,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if (isLoadingInitialReportActions && visibleReportActions.length === 0 && !isOffline) {
+    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
         return <ReportActionsSkeletonView />;
     }
 
-    if (visibleReportActions.length === 0) {
+    if (isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 

@@ -154,6 +154,22 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                             path: ROUTES.SETTINGS_CLOSE,
                             exact: true,
                         },
+                        [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
+                            path: ROUTES.SETTINGS_MERGE_ACCOUNTS.route,
+                            exact: true,
+                        },
+                        [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
+                            path: ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
+                        },
+                        [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
+                            path: ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.route,
+                            parse: {
+                                login: (login: string) => decodeURIComponent(login),
+                            },
+                        },
                         [SCREENS.SETTINGS.WALLET.VERIFY_ACCOUNT]: {
                             path: ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.route,
                             exact: true,
@@ -300,6 +316,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         },
                         [SCREENS.SETTINGS.PROFILE.STATUS_CLEAR_AFTER_TIME]: {
                             path: ROUTES.SETTINGS_STATUS_CLEAR_AFTER_TIME,
+                        },
+                        [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: {
+                            path: ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS,
                         },
                         [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
                             path: ROUTES.SETTINGS_SUBSCRIPTION_SIZE.route,
@@ -510,45 +529,14 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_ACCOUNTING_METHOD]: {
                             path: ROUTES.POLICY_ACCOUNTING_NETSUITE_ACCOUNTING_METHOD.route,
                         },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_SETUP]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_SETUP.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_IMPORT_PROJECTS_DISPLAYED_AS]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT_PROJECTS_DISPLAYED_AS.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PREFERRED_EXPORTER]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PREFERRED_EXPORTER.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_DATE]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_DATE.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_EXPORT_PAYMENT_ACCOUNT]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT_PAYMENT_ACCOUNT.route,
-                        },
-                        [SCREENS.WORKSPACE.ACCOUNTING.NSQS_ADVANCED]: {
-                            path: ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.route,
-                        },
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PREREQUISITES]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.ENTER_SAGE_INTACCT_CREDENTIALS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTER_CREDENTIALS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_EXISTING_CONNECTIONS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ENTITY]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ENTITY.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_MAPPINGS_TYPE.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT_TAX]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX.route},
+                        [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT_TAX_MAPPING]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_IMPORT_TAX_MAPPING.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_TOGGLE_MAPPING]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_TOGGLE_MAPPINGS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_USER_DIMENSIONS]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_USER_DIMENSIONS.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADD_USER_DIMENSION]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_ADD_USER_DIMENSION.route},
@@ -568,7 +556,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_PAYMENT_ACCOUNT]: {path: ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PAYMENT_ACCOUNT.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {path: ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.route},
                         [SCREENS.WORKSPACE.ACCOUNTING.RECONCILIATION_ACCOUNT_SETTINGS]: {path: ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.route},
-                        [SCREENS.WORKSPACE.ACCOUNTING.MULTI_CONNECTION_SELECTOR]: {path: ROUTES.WORKSPACE_ACCOUNTING_MULTI_CONNECTION_SELECTOR.route},
                         [SCREENS.WORKSPACE.DESCRIPTION]: {
                             path: ROUTES.WORKSPACE_OVERVIEW_DESCRIPTION.route,
                         },
@@ -1423,6 +1410,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                 [SCREENS.RIGHT_MODAL.SEARCH_REPORT]: {
                     screens: {
                         [SCREENS.SEARCH.REPORT_RHP]: ROUTES.SEARCH_REPORT.route,
+                        [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: ROUTES.SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS.route,
                         [SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP]: ROUTES.TRANSACTION_HOLD_REASON_RHP,
                     },
                 },
@@ -1449,6 +1437,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.SEARCH.ADVANCED_FILTERS_FROM_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_FROM,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_TO_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_TO,
                         [SCREENS.SEARCH.ADVANCED_FILTERS_IN_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_IN,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_BILLABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_BILLABLE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_REIMBURSABLE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_REIMBURSABLE,
+                        [SCREENS.SEARCH.ADVANCED_FILTERS_WORKSPACE_RHP]: ROUTES.SEARCH_ADVANCED_FILTERS_WORKSPACE,
                     },
                 },
                 [SCREENS.RIGHT_MODAL.SEARCH_SAVED_SEARCH]: {
@@ -1564,7 +1555,19 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     path: ROUTES.HOME,
                     exact: true,
                 },
-                [SCREENS.REPORT]: ROUTES.REPORT_WITH_ID.route,
+                [SCREENS.REPORT]: {
+                    path: ROUTES.REPORT_WITH_ID.route,
+                    // If params are defined, but reportID is explicitly undefined, we will get the url /r/undefined.
+                    // We want to avoid that situation, so we will return an empty string instead.
+                    parse: {
+                        // eslint-disable-next-line
+                        reportID: (reportID: string | undefined) => reportID ?? '',
+                    },
+                    stringify: {
+                        // eslint-disable-next-line
+                        reportID: (reportID: string | undefined) => reportID ?? '',
+                    },
+                },
             },
         },
 
@@ -1576,7 +1579,7 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                     exact: true,
                 },
                 [SCREENS.SETTINGS.PROFILE.ROOT]: {
-                    path: ROUTES.SETTINGS_PROFILE,
+                    path: ROUTES.SETTINGS_PROFILE.route,
                     exact: true,
                 },
                 [SCREENS.SETTINGS.SECURITY]: {

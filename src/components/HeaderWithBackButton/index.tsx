@@ -8,10 +8,11 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import PinButton from '@components/PinButton';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpComponents/HelpButton';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
 import Tooltip from '@components/Tooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,6 +56,10 @@ function HeaderWithBackButton({
         vertical: 0,
         horizontal: 0,
     },
+    threeDotsAnchorAlignment = {
+        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+    },
     threeDotsMenuItems = [],
     threeDotsMenuIcon,
     threeDotsMenuIconFill,
@@ -74,6 +79,7 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
+    const {canUseLeftHandBar} = usePermissions();
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -139,7 +145,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarDesktopHeight,
+                shouldUseHeadlineHeader && styles.headerBarDesktopHeight(canUseLeftHandBar),
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsey, hence using !== undefined explicitly
@@ -242,6 +248,7 @@ function HeaderWithBackButton({
                             onIconPress={onThreeDotsButtonPress}
                             anchorPosition={threeDotsAnchorPosition}
                             shouldOverlay={shouldOverlayDots}
+                            anchorAlignment={threeDotsAnchorAlignment}
                             shouldSetModalVisibility={shouldSetModalVisibility}
                         />
                     )}

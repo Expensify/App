@@ -85,7 +85,7 @@ If you can’t access the website or app:
 
 ## What if I haven’t received my card after multiple weeks?
 
-Reach out to support for a tracking number.
+As the assigned cardholder, please reach out to Concierge to request the tracking number.
 
 If the card is marked as delivered but not received:
 - Confirm your address.

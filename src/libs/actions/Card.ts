@@ -693,6 +693,13 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
             value: {
                 isLoading: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`,
+            value: {
+                isLoading: true,
                 isSuccess: false,
             },
         },
@@ -702,6 +709,13 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`,
             value: {
                 isLoading: false,
                 isSuccess: true,
@@ -716,6 +730,13 @@ function configureExpensifyCardsForPolicy(policyID: string, bankAccountID?: numb
             value: {
                 isLoading: false,
                 errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`,
+            value: {
+                isLoading: false,
                 isSuccess: false,
             },
         },

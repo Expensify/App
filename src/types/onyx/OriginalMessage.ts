@@ -1,6 +1,7 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import type {Attendee} from './IOU';
 import type {OldDotOriginalMessageMap} from './OldDotAction';
 import type {AllConnectionName} from './Policy';
 import type ReportActionName from './ReportActionName';
@@ -387,6 +388,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag list name */
     tagListName?: string;
 
+    /** Count of elements updated */
+    count?: string;
+
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
 
@@ -492,11 +496,11 @@ type OriginalMessageModifiedExpense = {
     /** The ID of moved report */
     movedToReportID?: string;
 
-    /** The old stringify list of attendees */
-    oldAttendees?: string;
+    /** The old list of attendees */
+    oldAttendees?: Attendee[];
 
-    /** The stringify list of attendees */
-    attendees?: string;
+    /** The list of attendees */
+    newAttendees?: Attendee[];
 };
 
 /** Model of the `deleted transaction` report action */
@@ -509,6 +513,12 @@ type OriginalMessageDeletedTransaction = {
 
     /** The currency of the transaction */
     currency?: string;
+};
+
+/** Model of `concierge category options` report action */
+type OriginalMessageConciergeCategoryOptions = {
+    /** The options we present to the user when confidence in the predicted category is low */
+    options: string[];
 };
 
 /** Model of `reimbursement queued` report action */
@@ -762,7 +772,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: never;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACCOUNT_CHANGED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED]: OriginalMessageReimbursementDequeued;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED]: never;
@@ -772,6 +782,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.DEMOTED_FROM_WORKSPACE]: OriginalMessageDemotedFromWorkspace;
     [CONST.REPORT.ACTIONS.TYPE.RENAMED]: OriginalMessageRenamed;
     [CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW]: OriginalMessageReportPreview;
+    [CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES]: never;
     [CONST.REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT]: never;
     [CONST.REPORT.ACTIONS.TYPE.SHARE]: never;
     [CONST.REPORT.ACTIONS.TYPE.STRIPE_PAID]: never;
@@ -801,6 +812,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {

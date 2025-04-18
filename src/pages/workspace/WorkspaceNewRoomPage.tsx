@@ -1,6 +1,6 @@
 import {useIsFocused} from '@react-navigation/core';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
@@ -31,7 +31,7 @@ import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
 import variables from '@styles/variables';
-import {addPolicyReport, clearNewRoomFormError} from '@userActions/Report';
+import {addPolicyReport, clearNewRoomFormError, setNewRoomFormLoading} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -92,6 +92,7 @@ function WorkspaceNewRoomPage() {
      * @param values - form input values passed by the Form component
      */
     const submit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NEW_ROOM_FORM>) => {
+        setNewRoomFormLoading();
         const participants = [session?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         const parsedDescription = getParsedComment(values.reportDescription ?? '', {policyID});
         const policyReport = buildOptimisticChatReport({
@@ -106,8 +107,12 @@ function WorkspaceNewRoomPage() {
             description: parsedDescription,
         });
 
-        setNewRoomReportID(policyReport.reportID);
-        addPolicyReport(policyReport);
+        InteractionManager.runAfterInteractions(() => {
+            requestAnimationFrame(() => {
+                setNewRoomReportID(policyReport.reportID);
+                addPolicyReport(policyReport);
+            });
+        });
     };
 
     useEffect(() => {
@@ -218,6 +223,7 @@ function WorkspaceNewRoomPage() {
                 title={translate('workspace.emptyWorkspace.notFound')}
                 subtitle={translate('workspace.emptyWorkspace.description')}
                 shouldShowLink={false}
+                addBottomSafeAreaPadding
             />
             <Button
                 success
@@ -238,7 +244,7 @@ function WorkspaceNewRoomPage() {
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
             shouldShowOfflineIndicator={false}
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
@@ -254,6 +260,7 @@ function WorkspaceNewRoomPage() {
                     behavior="padding"
                     // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
                     // This is because when wrapping whole screen the screen was freezing when changing Tabs.
+                    shouldOffsetBottomSafeAreaPadding
                     keyboardVerticalOffset={variables.contentHeaderHeight + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding + top}
                 >
                     <FormProvider
@@ -263,6 +270,7 @@ function WorkspaceNewRoomPage() {
                         validate={validate}
                         onSubmit={submit}
                         enabledWhenOffline
+                        addBottomSafeAreaPadding
                     >
                         <View style={styles.mb5}>
                             <InputWrapper

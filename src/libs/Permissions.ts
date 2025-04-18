@@ -42,14 +42,6 @@ function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
 }
 
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
-}
-
-function canUseNSQS(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NSQS) || canUseAllBetas(betas);
-}
-
 function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
@@ -66,6 +58,14 @@ function canUseProhibitedExpenses(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.RECEIPT_LINE_ITEMS) || canUseAllBetas(betas);
 }
 
+function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
+}
+
+function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -75,10 +75,10 @@ export default {
     canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
-    canUseInternationalBankAccount,
-    canUseNSQS,
     canUseCustomRules,
     canUseTableReportView,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
+    canUseLeftHandBar,
+    canUseInAppProvisioning,
 };
