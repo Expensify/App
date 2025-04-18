@@ -97,6 +97,12 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
             return;
         }
 
+        const adminDomains = getAdminsPrivateEmailDomains(policy);
+        if (adminDomains.length === 0) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            return;
+        }
+
         if (groupPaidPolicies.length < 1) {
             Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
             return;
@@ -127,25 +133,21 @@ function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: B
                 });
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
-        } else {
-            // Determine the domain to associate with the workspace during provisioning in Spotnana.
-            // - If all admins share the same private domain, the workspace is tied to it automatically.
-            // - If admins have multiple private domains, the user must select one.
-            // - Public domains are not allowed; an error page is shown in that case.
-            const adminDomains = getAdminsPrivateEmailDomains(policy);
-            if (adminDomains.length === 0) {
-                Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
-            } else if (adminDomains.length === 1) {
-                const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
-                if (isEmptyObject(policy?.address)) {
-                    // Spotnana requires an address anytime an entity is created for a policy
-                    Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
-                } else {
-                    navigateToAcceptTerms(domain, !!isUserValidated);
-                }
+        }
+        // Determine the domain to associate with the workspace during provisioning in Spotnana.
+        // - If all admins share the same private domain, the workspace is tied to it automatically.
+        // - If admins have multiple private domains, the user must select one.
+        // - Public domains are not allowed; an error page is shown in that case.
+        else if (adminDomains.length === 1) {
+            const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+            if (isEmptyObject(policy?.address)) {
+                // Spotnana requires an address anytime an entity is created for a policy
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
             } else {
-                Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+                navigateToAcceptTerms(domain, !!isUserValidated);
             }
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
         }
     }, [
         isBlockedFromSpotnanaTravel,
