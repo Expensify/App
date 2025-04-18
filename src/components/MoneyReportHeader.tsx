@@ -194,7 +194,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
 
-    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext(moneyRequestReport?.reportID);
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     const selectedTransactionsOptions = useMemo(() => {
         if (!selectedTransactionsID.length) {

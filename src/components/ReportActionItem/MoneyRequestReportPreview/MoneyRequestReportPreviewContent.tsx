@@ -29,6 +29,7 @@ import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import Performance from '@libs/Performance';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
@@ -57,12 +58,14 @@ import {
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
 import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending} from '@libs/TransactionUtils';
+import navigationRef from '@navigation/navigationRef';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -113,6 +116,8 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+    const isSearchFullscreen = rootState?.routes.at(-1)?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
     const [doesReportNameOverflow, setDoesReportNameOverflow] = useState(false);
 
@@ -525,7 +530,12 @@ function MoneyRequestReportPreviewContent({
                             showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
                         }}
                         shouldUseHapticsOnLongPress
-                        style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.borderedContentCardLarge]}
+                        style={[
+                            styles.flexRow,
+                            styles.justifyContentBetween,
+                            StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                            isSearchFullscreen ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                        ]}
                         role={getButtonRole(true)}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}

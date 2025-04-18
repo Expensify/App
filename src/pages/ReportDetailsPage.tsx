@@ -179,7 +179,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
 
-    const {removeTransaction} = useMoneyRequestReportContext(report.parentReportID);
+    const {removeTransaction} = useMoneyRequestReportContext();
 
     const [isLastMemberLeavingGroupModalVisible, setIsLastMemberLeavingGroupModalVisible] = useState(false);
     const [isDeleteModalVisible, setIsDeleteModalVisible] = useState(false);
