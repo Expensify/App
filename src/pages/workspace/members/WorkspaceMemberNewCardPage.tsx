@@ -59,7 +59,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const [cardFeeds] = useCardFeeds(policyID);
     const [selectedFeed, setSelectedFeed] = useState('');
     const [shouldShowError, setShouldShowError] = useState(false);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
 
     const accountID = Number(route.params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
@@ -67,7 +67,7 @@ function WorkspaceMemberNewCardPage({route, personalDetails}: WorkspaceMemberNew
     const companyFeeds = getCompanyFeeds(cardFeeds, false, true);
     const isFeedExpired = isSelectedFeedExpired((selectedFeed as CompanyCardFeed) ? cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed] : undefined);
 
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterInactiveCards});
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${selectedFeed}`, {selector: filterInactiveCards, canBeMissing: true});
     const filteredCardList = getFilteredCardList(list, cardFeeds?.settings?.oAuthAccountDetails?.[selectedFeed as CompanyCardFeed]);
 
     const shouldShowExpensifyCard = isExpensifyCardFullySetUp(policy, cardSettings);

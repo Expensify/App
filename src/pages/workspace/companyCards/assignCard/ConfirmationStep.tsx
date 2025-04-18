@@ -35,7 +35,7 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
     const feed = assignCard?.data?.bankName as CompanyCardFeed | undefined;
     const [cardFeeds] = useCardFeeds(policyID);
 

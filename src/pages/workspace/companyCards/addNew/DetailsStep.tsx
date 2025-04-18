@@ -36,8 +36,8 @@ function DetailsStep({policyID}: DetailsStepProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
-    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`);
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD, {canBeMissing: false});
+    const [lastSelectedFeed] = useOnyx(`${ONYXKEYS.COLLECTION.LAST_SELECTED_FEED}${policyID}`, {canBeMissing: true});
 
     const [cardFeeds] = useCardFeeds(policyID);
 

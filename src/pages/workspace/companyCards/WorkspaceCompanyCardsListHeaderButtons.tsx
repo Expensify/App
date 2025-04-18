@@ -53,7 +53,7 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const workspaceAccountID = useWorkspaceAccountID(policyID);
     const [cardFeeds] = useCardFeeds(policyID);
-    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
+    const [allFeedsCards] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: false});
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
     const formattedFeedName = getCustomOrFormattedFeedName(selectedFeed, cardFeeds?.settings?.companyCardNicknames);
     const isCommercialFeed = isCustomFeed(selectedFeed);

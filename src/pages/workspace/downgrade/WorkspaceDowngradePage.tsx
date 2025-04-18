@@ -28,7 +28,7 @@ type WorkspaceDowngradePageProps = PlatformStackScreenProps<SettingsNavigatorPar
 function WorkspaceDowngradePage({route}: WorkspaceDowngradePageProps) {
     const styles = useThemeStyles();
     const policyID = route.params?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
     const companyFeeds = getCompanyFeeds(cardFeeds);
     const {translate} = useLocalize();

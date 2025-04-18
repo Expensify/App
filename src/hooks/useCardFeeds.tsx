@@ -21,7 +21,7 @@ import useWorkspaceAccountID from './useWorkspaceAccountID';
  */
 const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, ResultMetadata<OnyxCollection<CardFeeds>>] => {
     const workspaceAccountID = useWorkspaceAccountID(policyID);
-    const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
+    const [allFeeds, allFeedsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER, {canBeMissing: true});
 
     const workspaceFeeds = useMemo(() => {
         if (!policyID || !allFeeds) {

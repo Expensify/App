@@ -42,9 +42,9 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
     const illustrations = useThemeIllustrations();
     const {environmentURL} = useEnvironment();
     const [searchText, setSearchText] = useState('');
-    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD);
-    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [assignCard] = useOnyx(ONYXKEYS.ASSIGN_CARD, {canBeMissing: false});
+    const [list] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${feed}`, {selector: filterInactiveCards, canBeMissing: false});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
     const [cardFeeds] = useCardFeeds(policyID);
 
     const isEditing = assignCard?.isEditing;
