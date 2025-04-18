@@ -84,10 +84,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: true});
     const {selectionMode} = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -226,7 +226,18 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy?.requiresTag, countOfRequiredTagLists]);
+    }, [
+        isMultiLevelTags,
+        policyTagLists,
+        selectedTags,
+        canSelectMultiple,
+        translate,
+        updateWorkspaceRequiresTag,
+        updateWorkspaceTagEnabled,
+        policy?.requiresTag,
+        countOfRequiredTagLists,
+        shouldPreventDisable,
+    ]);
 
     const tagListKeyedByName = useMemo(
         () =>

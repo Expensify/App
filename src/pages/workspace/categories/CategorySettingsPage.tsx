@@ -46,7 +46,7 @@ function CategorySettingsPage({
     },
     navigation,
 }: CategorySettingsPageProps) {
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [deleteCategoryConfirmModalVisible, setDeleteCategoryConfirmModalVisible] = useState(false);

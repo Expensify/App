@@ -1082,11 +1082,11 @@ function isDeletingLastEnabledCategory(PolicyCategories: PolicyCategories | unde
     // Since we will only have one enabled category
     const enabledCategoryName = Object.keys(PolicyCategories).find((categoryName) => PolicyCategories[categoryName].enabled);
 
-    const isDeletingLastEnabledCategory = selectedCategoryArray.some((categoryName) => {
+    const isUserDeletingLastEnabledCategory = selectedCategoryArray.some((categoryName) => {
         return categoryName === enabledCategoryName;
     });
 
-    return isDeletingLastEnabledCategory;
+    return isUserDeletingLastEnabledCategory;
 }
 
 function isDeletingLastEnabledTag(PolicyTags: PolicyTags | undefined, selectedTagArray: string[]): boolean {
@@ -1096,11 +1096,11 @@ function isDeletingLastEnabledTag(PolicyTags: PolicyTags | undefined, selectedTa
     // Since we will only have one enabled tag
     const enabledTagName = Object.values(PolicyTags).find((tag) => tag.enabled)?.name;
 
-    const isDeletingLastEnabledTag = selectedTagArray.some((tagName) => {
+    const isUserDeletingLastEnabledTag = selectedTagArray.some((tagName) => {
         return tagName === enabledTagName;
     });
 
-    return isDeletingLastEnabledTag;
+    return isUserDeletingLastEnabledTag;
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
