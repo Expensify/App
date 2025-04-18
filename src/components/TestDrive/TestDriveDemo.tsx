@@ -6,6 +6,7 @@ import Modal from '@components/Modal';
 import SafeAreaConsumer from '@components/SafeAreaConsumer';
 import useEnvironment from '@hooks/useEnvironment';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {completeTestDriveTask} from '@libs/actions/Task';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTestDriveURL} from '@libs/TourUtils';
@@ -16,6 +17,7 @@ function TestDriveDemo() {
     const {environment} = useEnvironment();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [isVisible, setIsVisible] = useState(false);
+    const styles = useThemeStyles();
 
     useEffect(() => {
         InteractionManager.runAfterInteractions(() => {
@@ -38,16 +40,14 @@ function TestDriveDemo() {
                     isVisible={isVisible}
                     onClose={closeModal}
                     type={CONST.MODAL.MODAL_TYPE.FULLSCREEN}
-                    style={{backgroundColor: 'white'}}
-                    innerContainerStyle={{flex: 1, marginTop: paddingTop, marginBottom: paddingBottom}}
+                    style={styles.backgroundWhite}
+                    innerContainerStyle={{...styles.flex1, marginTop: paddingTop, marginBottom: paddingBottom}}
                 >
                     <TestDriveBanner onPress={closeModal} />
                     <FullPageOfflineBlockingView>
                         <EmbeddedDemo
                             url={getTestDriveURL(environment, shouldUseNarrowLayout)}
-                            iframeTitle="Test Drive"
-                            // eslint-disable-next-line @typescript-eslint/naming-convention
-                            // iframeProps={{'data-navattic-demo-id': 'clzt21qk0000109l46k8tbtce'}}
+                            iframeTitle={CONST.TEST_DRIVE.EMBEDDED_DEMO_IFRAME_TITLE}
                         />
                     </FullPageOfflineBlockingView>
                 </Modal>

@@ -113,6 +113,14 @@ const signupQualifiers = {
     SMB: 'smb',
 } as const;
 
+const selfGuidedTourTask: OnboardingTask = {
+    type: 'viewTour',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
+    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+};
+
 const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
 const testDriveTask: OnboardingTask = {
     type: 'viewTour',
@@ -165,7 +173,7 @@ const setupCategoriesTask: OnboardingTask = {
 const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
     message: 'Getting paid back is as easy as sending a message. Let’s go over the basics.',
     tasks: [
-        testDriveTask,
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -189,7 +197,7 @@ const onboardingEmployerOrSubmitMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = {
     ...onboardingEmployerOrSubmitMessage,
     tasks: [
-        testDriveTask,
+        selfGuidedTourTask,
         {
             type: 'submitExpense',
             autoCompleted: false,
@@ -214,7 +222,7 @@ const combinedTrackSubmitOnboardingEmployerOrSubmitMessage: OnboardingMessage = 
 const onboardingPersonalSpendMessage: OnboardingMessage = {
     message: 'Here’s how to track your spend in a few clicks.',
     tasks: [
-        testDriveTask,
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -238,7 +246,7 @@ const onboardingPersonalSpendMessage: OnboardingMessage = {
 const combinedTrackSubmitOnboardingPersonalSpendMessage: OnboardingMessage = {
     ...onboardingPersonalSpendMessage,
     tasks: [
-        testDriveTask,
+        selfGuidedTourTask,
         {
             type: 'trackExpense',
             autoCompleted: false,
@@ -1097,10 +1105,10 @@ const CONST = {
         COMPLETED: 'completed',
     },
     STORYLANE: {
-        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/nrkhnm80nbix?embed=inline',
-        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/wg7a9qqg6qkf?embed=inline',
-        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/nrkhnm80nbix?embed=inline',
-        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/wg7a9qqg6qkf?embed=inline',
+        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
     },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
@@ -5519,7 +5527,7 @@ const CONST = {
         [onboardingChoices.CHAT_SPLIT]: {
             message: 'Splitting bills with friends is as easy as sending a message. Here’s how.',
             tasks: [
-                testDriveTask,
+                selfGuidedTourTask,
                 {
                     type: 'startChat',
                     autoCompleted: false,
@@ -7001,6 +7009,8 @@ const CONST = {
 
     TEST_DRIVE: {
         ONBOARDING_TASK_NAME: getTestDriveTaskName(),
+        EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
+        EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
     },
 } as const;
 

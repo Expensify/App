@@ -7,6 +7,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type TestDriveBannerProps = {
+    /** Callback to finish the test drive */
     onPress: () => void;
 };
 
@@ -16,7 +17,7 @@ function TestDriveBanner({onPress}: TestDriveBannerProps) {
     const {translate} = useLocalize();
 
     return (
-        <View style={[styles.highlightBG, styles.gap2, styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, {height: 40}]}>
+        <View style={[styles.highlightBG, styles.gap2, styles.alignItemsCenter, styles.flexRow, styles.justifyContentCenter, styles.h10]}>
             <Text>
                 {shouldUseNarrowLayout
                     ? translate('testDrive.banner.currentlyTestDrivingExpensify')
