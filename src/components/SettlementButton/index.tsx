@@ -92,7 +92,6 @@ function SettlementButton({
             }
             return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed;
         },
-        canBeMissing: true,
     });
 
     const isLoadingLastPaymentMethod = isLoadingOnyxValue(lastPaymentMethodResult);
