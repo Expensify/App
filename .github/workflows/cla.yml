@@ -17,7 +17,7 @@ jobs:
           remote-organization-name: Expensify
           remote-repository-name: CLA
           lock-pullrequest-aftermerge: false
-          allowlist: snyk-bot,OSBotify,os-botify[bot],imgbot[bot],saifelance
+          allowlist: snyk-bot,OSBotify,os-botify[bot],imgbot[bot],**saifelance**
           use-dco-flag: false
           suggest-recheck: true
         env:
