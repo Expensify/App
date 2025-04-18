@@ -163,8 +163,16 @@ function canReview(report: Report, violations: OnyxCollection<TransactionViolati
     const isSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReimbursed = isSettled(report);
     const isApprover = isApproverMember(policy, getCurrentUserAccountID());
-    const areWorkflowsEnabled = policy ? policy.areWorkflowsEnabled : false;
-    return hasAnyViolations && (isSubmitter || isApprover) && areWorkflowsEnabled && !isReimbursed;
+
+    if (!hasAnyViolations || !(isSubmitter || isApprover) || isReimbursed) {
+        return false;
+    }
+
+    if (policy) {
+        return !!policy.areWorkflowsEnabled;
+    }
+
+    return true;
 }
 
 function getReportPreviewAction(
