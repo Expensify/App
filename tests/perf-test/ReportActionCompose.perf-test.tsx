@@ -21,6 +21,7 @@ jest.mock('@gorhom/portal');
 jest.mock('react-native-reanimated', () => ({
     ...jest.requireActual<typeof Animated>('react-native-reanimated/mock'),
     useAnimatedRef: jest.fn(),
+    LayoutAnimationConfig: jest.fn(),
 }));
 
 jest.mock('../../src/libs/Navigation/Navigation', () => ({
@@ -56,7 +57,6 @@ jest.mock('@src/libs/actions/EmojiPickerAction', () => {
         isActive: () => true,
     };
 });
-jest.mock('@components/ConfirmedRoute.tsx');
 
 beforeAll(() =>
     Onyx.init({
