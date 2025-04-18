@@ -3,7 +3,7 @@ import escapeRegExp from 'lodash/escapeRegExp';
 import lodashUnion from 'lodash/union';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
 import type {ReportExportType} from '@components/ButtonWithDropdownMenu/types';
 import * as API from '@libs/API';
 import type {
@@ -266,6 +266,13 @@ function updateLastAccessedWorkspaceSwitcher(policyID: OnyxEntry<string>) {
  */
 function isCurrencySupportedForDirectReimbursement(currency: string) {
     return currency === CONST.CURRENCY.USD;
+}
+
+/**
+ * Checks if the currency is supported for global reimbursement
+ */
+function isCurrencySupportedForGlobalReimbursement(currency: TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>, canUseGlobalReimbursementsOnND: boolean) {
+    return canUseGlobalReimbursementsOnND ? CONST.DIRECT_REIMBURSEMENT_CURRENCIES.includes(currency) : currency === CONST.CURRENCY.USD;
 }
 
 /**
@@ -5238,6 +5245,7 @@ export {
     setPolicyCustomTaxName,
     clearPolicyErrorField,
     isCurrencySupportedForDirectReimbursement,
+    isCurrencySupportedForGlobalReimbursement,
     getInvoicePrimaryWorkspace,
     createDraftWorkspace,
     savePreferredExportMethod,
