@@ -108,17 +108,18 @@ function GenericTooltip({
 
     // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
-        // we need to show the tooltip again
-        if (isRendered && wrapperRef.current) {
-            wrapperRef.current.measureInWindow((x, y, width, height) => {
-                setXOffset(x);
-                setYOffset(y);
-                setWrapperWidth(width);
-                setWrapperHeight(height);
-            });
+        if (!isRendered || !wrapperRef.current) {
+            return;
         }
+    
+        wrapperRef.current.measureInWindow((x, y, width, height) => {
+            setXOffset(x);
+            setYOffset(y);
+            setWrapperWidth(width);
+            setWrapperHeight(height);
+        });
     }, [isRendered]);
+    
 
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
