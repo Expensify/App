@@ -17,7 +17,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {HybridAppRoute, Route} from '@src/ROUTES';
 import ROUTES, {HYBRID_APP_ROUTES} from '@src/ROUTES';
 import SCREENS, {PROTECTED_SCREENS} from '@src/SCREENS';
-import type {Report} from '@src/types/onyx';
+import type {Account, Report} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import getInitialSplitNavigatorState from './AppNavigator/createSplitNavigator/getInitialSplitNavigatorState';
 import originalCloseRHPFlow from './helpers/closeRHPFlow';
@@ -46,6 +46,18 @@ Onyx.connect({
     },
 });
 
+let account: OnyxEntry<Account>;
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (value) => {
+        account = value;
+    },
+});
+
+function shouldShowRequire2FAPage() {
+    return !!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth;
+}
+
 let resolveNavigationIsReadyPromise: () => void;
 const navigationIsReadyPromise = new Promise<void>((resolve) => {
     resolveNavigationIsReadyPromise = resolve;
@@ -63,9 +75,16 @@ function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
 }
 
 /**
- * Checks if the navigationRef is ready to perform a method.
+ * Checks if the navigationRef is ready to perform a method, and blocks navigation if the user is required to enable 2FA.
+ * If a navigation method is called while 2FA is required, and the target route is not the 2FA page, navigation is blocked.
  */
 function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
+    // Block navigation if 2FA is required and the target is not the 2FA page
+    const targetRoute = params.route || params.backToRoute;
+    if (shouldShowRequire2FAPage() && targetRoute !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
+        Log.info(`[Navigation] Blocked navigation due to active 2FA requirement:`, targetRoute);
+        return false;
+    }
     if (navigationRef.isReady()) {
         return true;
     }
@@ -307,7 +326,7 @@ function goUp(backToRoute: Route, options?: GoBackOptions) {
  * @param options - Optional configuration that affects navigation logic
  */
 function goBack(backToRoute?: Route, options?: GoBackOptions) {
-    if (!canNavigate('goBack')) {
+    if (!canNavigate('goBack', {backToRoute})) {
         return;
     }
 
