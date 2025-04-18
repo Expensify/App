@@ -1,6 +1,6 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {LayoutRectangle, View as RNView} from 'react-native';
+import type {View as RNView} from 'react-native';
 import {cancelAnimation, useSharedValue, withDelay, withTiming} from 'react-native-reanimated';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -43,8 +43,8 @@ function GenericTooltip({
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
 
-    // Is tooltip already rendered on the page's body? happens once.
-    const ref = useRef<RNView>(null);
+    const wrapperRef = useRef<RNView>(null);
+
     const [isRendered, setIsRendered] = useState(false);
 
     // Is the tooltip currently visible?
@@ -59,7 +59,6 @@ function GenericTooltip({
     // The width and height of the wrapper view
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
-
     // Transparent overlay should disappear once user taps it
     const [shouldUseOverlay, setShouldUseOverlay] = useState(shouldUseOverlayProp);
 
@@ -75,16 +74,13 @@ function GenericTooltip({
         }
         Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
     }, [text, renderTooltipContent]);
-
-    /**
+     /**
      * Display the tooltip in an animation.
      */
     const showTooltip = useCallback(() => {
         setIsRendered(true);
         setIsVisible(true);
-
         cancelAnimation(animation);
-
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive() && !shouldForceAnimate) {
             animation.set(1);
@@ -99,34 +95,39 @@ function GenericTooltip({
                 ),
             );
         }
-        TooltipSense.activate();
 
-        // Measure position relative to screen
-        if (ref.current) {
-            ref.current.measureInWindow((x, y, width, height) => {
-                setXOffset(x);
-                setYOffset(y);
-                setWrapperWidth(width);
-                setWrapperHeight(height);
-            });
-        }
+        TooltipSense.activate();
     }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
 
-    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
-        // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
-        // we need to show the tooltip again
         if (isVisible && isAnimationCanceled.get() && text && prevText !== text) {
             isAnimationCanceled.set(false);
             showTooltip();
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        // if the tooltip text changed before the initial animation was finished, then the tooltip won't be shown
+        // we need to show the tooltip again
+        if (isRendered && wrapperRef.current) {
+            wrapperRef.current.measureInWindow((x, y, width, height) => {
+                setXOffset(x);
+                setYOffset(y);
+                setWrapperWidth(width);
+                setWrapperHeight(height);
+            });
+        }
+    }, [isRendered]);
 
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
-        isTooltipSenseInitiator.set(false);
-        animation.set(0);
+        if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
+            animation.set(0);
+        } else {
+            isTooltipSenseInitiator.set(false);
+            animation.set(0);
+        }
         TooltipSense.deactivate();
         setIsVisible(false);
     }, [animation, isTooltipSenseInitiator]);
@@ -139,14 +140,8 @@ function GenericTooltip({
         hideTooltip();
     }, [shouldUseOverlay, hideTooltip]);
 
-    // Skip the tooltip and return the children if the text is empty, we don't have a render function.
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
-        // eslint-disable-next-line react-compiler/react-compiler
-        return (
-            <View ref={ref}>
-                {children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}
-            </View>
-        );
+        return children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}});
     }
 
     return (
@@ -154,7 +149,6 @@ function GenericTooltip({
             {shouldRender && isRendered && (
                 <BaseGenericTooltip
                     isEducationTooltip={isEducationTooltip}
-                    // eslint-disable-next-line react-compiler/react-compiler
                     animation={animation}
                     windowWidth={windowWidth}
                     xOffset={xOffset}
@@ -167,8 +161,6 @@ function GenericTooltip({
                     maxWidth={maxWidth}
                     numberOfLines={numberOfLines}
                     renderTooltipContent={renderTooltipContent}
-                    // We pass a key, so whenever the content changes this component will completely remount with a fresh state.
-                    // This prevents flickering/moving while remaining performant.
                     key={[text, ...renderTooltipContentKey, preferredLocale].join('-')}
                     shouldForceRenderingBelow={shouldForceRenderingBelow}
                     wrapperStyle={wrapperStyle}
@@ -179,8 +171,14 @@ function GenericTooltip({
                     onTooltipPress={onTooltipPress}
                 />
             )}
-            <View ref={ref}>
-                {children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}
+
+            <View ref={wrapperRef}>
+                {children({
+                    isVisible,
+                    showTooltip,
+                    hideTooltip,
+                    updateTargetBounds: () => {},
+                })}
             </View>
         </>
     );
