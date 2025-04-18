@@ -128,7 +128,7 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
     const {canUseTableReportView, canUseLeftHandBar} = usePermissions();
 
     /**
