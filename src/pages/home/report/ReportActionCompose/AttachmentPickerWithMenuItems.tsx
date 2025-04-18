@@ -129,7 +129,7 @@ function AttachmentPickerWithMenuItems({
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
-    const {canUseTableReportView} = usePermissions();
+    const {canUseTableReportView, canUseLeftHandBar} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -401,7 +401,11 @@ function AttachmentPickerWithMenuItems({
                                     });
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
+                            anchorPosition={
+                                canUseLeftHandBar
+                                    ? styles.createMenuPositionReportActionComposeWhenLhbIsVisible(shouldUseNarrowLayout, windowHeight, windowWidth)
+                                    : styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)
+                            }
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay
