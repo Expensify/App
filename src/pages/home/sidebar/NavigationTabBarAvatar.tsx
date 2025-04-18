@@ -68,7 +68,7 @@ function NavigationTabBarAvatar({onPress, isSelected = false, style}: Navigation
         >
             {children}
             <Text style={[styles.textSmall, styles.textAlignCenter, isSelected ? styles.textBold : styles.textSupporting, styles.mt0Half, styles.navigationTabBarLabel]}>
-                {translate('common.settings')}
+                {translate('common.account')}
             </Text>
         </PressableWithFeedback>
     );

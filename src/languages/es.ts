@@ -326,6 +326,7 @@ const translations = {
         back: 'Volver',
         saveAndContinue: 'Guardar y continuar',
         settings: 'Configuración',
+        account: 'Cuenta',
         termsOfService: 'Términos de Servicio',
         members: 'Miembros',
         invite: 'Invitar',

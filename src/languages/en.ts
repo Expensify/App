@@ -335,6 +335,7 @@ const translations = {
         back: 'Back',
         saveAndContinue: 'Save & continue',
         settings: 'Settings',
+        account: 'Account',
         termsOfService: 'Terms of Service',
         members: 'Members',
         invite: 'Invite',
