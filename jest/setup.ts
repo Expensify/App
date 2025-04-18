@@ -108,25 +108,6 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
     switchAccount: jest.fn(),
 }));
 
-// This makes FlatList render synchronously for easier testing.
-jest.mock(
-    '@react-native/virtualized-lists/Interaction/Batchinator',
-    () =>
-        class SyncBachinator {
-            #callback: () => void;
-
-            constructor(callback: () => void) {
-                this.#callback = callback;
-            }
-
-            schedule() {
-                this.#callback();
-            }
-
-            dispose() {}
-        },
-);
-
 jest.mock(
     '@components/InvertedFlatList/BaseInvertedFlatList/RenderTaskQueue',
     () =>
