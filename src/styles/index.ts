@@ -4838,7 +4838,6 @@ const styles = (theme: ThemeColors) =>
 
         moneyRequestAttachReceiptThumbnail: {
             backgroundColor: theme.hoverComponentBG,
-            width: '100%',
             borderWidth: 0,
         },
 
@@ -5659,20 +5658,6 @@ const styles = (theme: ThemeColors) =>
             bottom: 0,
             left: 0,
             right: 0,
-        },
-
-        testDriveModalContainer: {
-            // On small/medium screens, we need to remove the top padding
-            paddingTop: 0,
-            // On medium screens, we need to prevent the modal from becoming too big
-            maxWidth: 500,
-        },
-
-        featureTrainingModalImage: {
-            width: '100%',
-            height: '100%',
-            borderTopLeftRadius: variables.componentBorderRadiusLarge,
-            borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
     } satisfies Styles);
 
