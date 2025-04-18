@@ -7,7 +7,7 @@ index c2aa986..ce59c1b 100644
  
  var findNodeHandle = component => {
 -  throw new Error('findNodeHandle is not supported on web. ' + 'Use the ref property on the component instead.');
-+  return component;
++  console.warn('findNodeHandle is not supported on web. ' + 'Use the ref property on the component instead.');
  };
  export default findNodeHandle;
 diff --git a/node_modules/react-native-web/src/exports/findNodeHandle/index.js b/node_modules/react-native-web/src/exports/findNodeHandle/index.js
@@ -22,7 +22,7 @@ index df43377..13e9da5 100644
 -    'findNodeHandle is not supported on web. ' +
 -      'Use the ref property on the component instead.'
 -  );
-+  return component;
++  console.warn('findNodeHandle is not supported on web. ' + 'Use the ref property on the component instead.');
  };
  
  export default findNodeHandle;
