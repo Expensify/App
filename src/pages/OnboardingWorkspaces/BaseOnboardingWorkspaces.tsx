@@ -1,3 +1,4 @@
+import {useFocusEffect} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -105,13 +106,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
 
     const wrapperPadding = onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5;
 
-    useEffect(() => {
-        if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
-            return;
-        }
+    useFocusEffect(
+        useCallback(() => {
+            if (!isValidated || joinablePoliciesLength > 0 || joinablePoliciesLoading) {
+                return;
+            }
 
-        getAccessiblePolicies();
-    }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]);
+            getAccessiblePolicies();
+        }, [isValidated, joinablePoliciesLength, joinablePoliciesLoading]),
+    );
 
     const handleBackButtonPress = useCallback(() => {
         Navigation.goBack();
