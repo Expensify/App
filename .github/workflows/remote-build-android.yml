@@ -14,12 +14,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - project_root: ./
-            variant: 'developmentDebug'
+            - variant: 'developmentDebug'
 
-          - project_root: Mobile-Expensify/
-            is_hybrid_build: true
-            variant: 'Debug'
+            - variant: 'Debug'
+              is_hybrid_build: true
     steps:
       - name: Checkout
         # v4
@@ -35,8 +33,6 @@ jobs:
 
       - name: RNEF Remote Build - Android
         uses: callstackincubator/android@333f590005be752c28f07e36fa7151be3b2e18da
-        env:
-          PROJECT_ROOT_PATH: ${{ matrix.project_root }}
         with:
           variant: ${{ matrix.variant }}
           github-token: ${{ github.token }}
