@@ -5,7 +5,6 @@ import type {GestureResponderEvent, Role, Text, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Animated, {Easing, interpolateColor, useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 import Svg, {Path} from 'react-native-svg';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -57,15 +56,13 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
         // On Home screen, We need to wait for the sidebar to load before showing the tooltip because there is the Concierge tooltip which is higher priority
         isTooltipAllowed && (!isHomeRouteActive || isSidebarLoaded),
     );
-    const {canUseLeftHandBar} = usePermissions();
+    const isLhbVisible = !shouldUseNarrowLayout;
 
-    const shouldDisplaySmallFAB = canUseLeftHandBar && !shouldUseNarrowLayout;
-    const fabSize = shouldDisplaySmallFAB ? variables.iconSizeSmall : variables.iconSizeNormal;
+    const fabSize = isLhbVisible ? variables.iconSizeSmall : variables.iconSizeNormal;
 
     const sharedValue = useSharedValue(isActive ? 1 : 0);
     const buttonRef = ref;
 
-    const isLhbVisible = canUseLeftHandBar && !shouldUseNarrowLayout;
     const tooltipHorizontalAnchorAlignment = isLhbVisible ? CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT : CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT;
     const tooltipShiftHorizontal = isLhbVisible ? variables.lhbFabTooltipShiftHorizontal : variables.fabTooltipShiftHorizontal;
 
@@ -122,13 +119,13 @@ function FloatingActionButton({onPress, isActive, accessibilityLabel, role, isTo
                 shouldUseHapticsOnLongPress={false}
                 testID="floating-action-button"
             >
-                <Animated.View style={[styles.floatingActionButton, {borderRadius}, shouldDisplaySmallFAB && styles.floatingActionButtonSmall, animatedStyle]}>
+                <Animated.View style={[styles.floatingActionButton, {borderRadius}, isLhbVisible && styles.floatingActionButtonSmall, animatedStyle]}>
                     <Svg
                         width={fabSize}
                         height={fabSize}
                     >
                         <AnimatedPath
-                            d={shouldDisplaySmallFAB ? SMALL_FAB_PATH : FAB_PATH}
+                            d={isLhbVisible ? SMALL_FAB_PATH : FAB_PATH}
                             fill={textLight}
                         />
                     </Svg>

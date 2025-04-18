@@ -79,7 +79,6 @@ function HeaderWithBackButton({
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
     const {translate} = useLocalize();
-    const {canUseLeftHandBar} = usePermissions();
 
     const middleContent = useMemo(() => {
         if (progressBarPercentage) {
@@ -145,7 +144,7 @@ function HeaderWithBackButton({
             dataSet={{dragArea: false}}
             style={[
                 styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarDesktopHeight(canUseLeftHandBar),
+                shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
                 // progressBarPercentage can be 0 which would
                 // be falsy, hence using !== undefined explicitly

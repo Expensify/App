@@ -3,7 +3,6 @@ import React, {useContext, useEffect, useRef, useState} from 'react';
 import {InteractionManager, View} from 'react-native';
 import {FullScreenBlockingViewContext} from '@components/FullScreenBlockingViewContextProvider';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
-import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -33,7 +32,6 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
     const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>(undefined);
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
-    const {canUseLeftHandBar} = usePermissions();
     const StyleUtils = useStyleUtils();
 
     // That means it's visible and it's not covered by the overlay.
@@ -43,8 +41,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
 
     const shouldDisplayBottomBar = shouldUseNarrowLayout ? isScreenWithNavigationTabFocused : isNavigationTabVisibleDirectly;
     const isReadyToDisplayBottomBar = isAfterClosingTransition && shouldDisplayBottomBar && !isBlockingViewVisible;
-    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
-    const sidebarWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth : variables.sideBarWidth;
+    const shouldDisplayLHB = !shouldUseNarrowLayout;
 
     useEffect(() => {
         if (!shouldDisplayBottomBar) {
@@ -63,7 +60,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     return (
         <View
             style={[
-                styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom, sidebarWidth),
+                styles.topLevelNavigationTabBar(isReadyToDisplayBottomBar, shouldUseNarrowLayout, paddingBottom),
                 shouldDisplayLHB ? StyleUtils.positioning.l0 : StyleUtils.positioning.b0,
             ]}
         >

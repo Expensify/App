@@ -55,7 +55,6 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
-    const {canUseLeftHandBar} = usePermissions();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
     const {isOffline} = useNetwork();
 
@@ -101,17 +100,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
 
     const handleOnBackButtonPress = () => Navigation.goBack(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
 
-    let isCannedQuery = false;
-
-    if (queryJSON) {
-        if (canUseLeftHandBar) {
-            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
-        } else {
-            isCannedQuery = isCannedSearchQuery(queryJSON);
-        }
-    }
-
-    const shouldDisplayCancelSearch = shouldUseNarrowLayout && (!isCannedQuery || searchRouterListVisible);
+    const shouldDisplayCancelSearch = shouldUseNarrowLayout && ((!!queryJSON && !isCannedSearchQueryWithPolicyIDCheck(queryJSON)) || searchRouterListVisible);
     const cancelSearchCallback = useCallback(() => {
         if (searchRouterListVisible) {
             setSearchRouterListVisible(false);
