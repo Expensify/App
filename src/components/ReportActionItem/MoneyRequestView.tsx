@@ -738,22 +738,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
-                {shouldShowViewTripDetails && (
-                    <MenuItem
-                        title={translate('travel.viewTripDetails')}
-                        icon={Expensicons.Suitcase}
-                        onPress={() => {
-                            if (!transaction?.transactionID || !report?.reportID) {
-                                return;
-                            }
-                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
-                            if (reservations > 1) {
-                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, getReportRHPActiveRoute()));
-                            }
-                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, 0, getReportRHPActiveRoute()));
-                        }}
-                    />
-                )}
                 {shouldShowAttendees && (
                     <OfflineWithFeedback pendingAction={getPendingFieldAction('attendees')}>
                         <MenuItemWithTopDescription
@@ -818,6 +802,22 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             shouldRenderAsHTML
                         />
                     </OfflineWithFeedback>
+                )}
+                {shouldShowViewTripDetails && (
+                    <MenuItem
+                        title={translate('travel.viewTripDetails')}
+                        icon={Expensicons.Suitcase}
+                        onPress={() => {
+                            if (!transaction?.transactionID || !report?.reportID) {
+                                return;
+                            }
+                            const reservations = transaction?.receipt?.reservationList?.length ?? 0;
+                            if (reservations > 1) {
+                                Navigation.navigate(ROUTES.TRAVEL_TRIP_SUMMARY.getRoute(report.reportID, transaction.transactionID, getReportRHPActiveRoute()));
+                            }
+                            Navigation.navigate(ROUTES.TRAVEL_TRIP_DETAILS.getRoute(report.reportID, transaction.transactionID, 0, getReportRHPActiveRoute()));
+                        }}
+                    />
                 )}
             </>
             <ConfirmModal
