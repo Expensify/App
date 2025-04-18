@@ -22,7 +22,7 @@ function SearchFiltersTitlePage() {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
     const title = searchAdvancedFiltersForm?.[FILTER_KEYS.TITLE];
 
     const updateTitleFilter = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>) => {
