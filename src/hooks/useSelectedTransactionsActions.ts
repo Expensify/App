@@ -54,8 +54,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
                         }
                         unholdRequest(transactionID, action?.childReportID);
                     });
-                    // it's needed in order to recalculate options
-                    setSelectedTransactionsID([...selectedTransactionsID]);
+                    setSelectedTransactionsID([]);
                 },
             });
         }
@@ -71,6 +70,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
                 exportReportToCSV({reportID: report.reportID, transactionIDList: selectedTransactionsID}, () => {
                     onExportFailed?.();
                 });
+                setSelectedTransactionsID([]);
             },
         });
 

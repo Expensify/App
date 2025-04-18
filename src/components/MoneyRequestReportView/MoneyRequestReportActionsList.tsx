@@ -5,13 +5,21 @@ import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import {DeviceEventEmitter, InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
+import Checkbox from '@components/Checkbox';
+import DecisionModal from '@components/DecisionModal';
 import FlatList from '@components/FlatList';
 import {AUTOSCROLL_TO_TOP_THRESHOLD} from '@components/InvertedFlatList/BaseInvertedFlatList';
+import {PressableWithFeedback} from '@components/Pressable';
+import Text from '@components/Text';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetworkWithOfflineStatus from '@hooks/useNetworkWithOfflineStatus';
 import usePrevious from '@hooks/usePrevious';
 import useReportScrollManager from '@hooks/useReportScrollManager';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {parseFSAttributes} from '@libs/Fullstory';
@@ -38,6 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
@@ -96,6 +105,16 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
+
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
+
+    const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
+
+    const {selectionMode} = useMobileSelectionMode();
+    const selectedTransactionsOptions = useSelectedTransactionsActions({report, reportActions, session, onExportFailed: () => setIsDownloadErrorModalVisible(true)});
 
     // We are reversing actions because in this View we are starting at the top and don't use Inverted list
     const visibleReportActions = useMemo(() => {
@@ -402,32 +421,86 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                 {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
                     <SearchMoneyRequestReportEmptyState />
                 ) : (
-                    <FlatList
-                        initialNumToRender={INITIAL_NUM_TO_RENDER}
-                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                        testID="money-request-report-actions-list"
-                        style={styles.overscrollBehaviorContain}
-                        data={visibleReportActions}
-                        renderItem={renderItem}
-                        keyExtractor={(item) => item.reportActionID}
-                        onEndReached={onEndReached}
-                        onEndReachedThreshold={0.75}
-                        onStartReached={onStartReached}
-                        onStartReachedThreshold={0.75}
-                        ListHeaderComponent={
-                            <MoneyRequestReportTransactionList
-                                report={report}
-                                transactions={transactions}
-                                reportActions={reportActions}
-                                hasComments={reportHasComments}
-                            />
-                        }
-                        keyboardShouldPersistTaps="handled"
-                        onScroll={trackVerticalScrolling}
-                        ref={reportScrollManager.ref}
-                    />
+                    <>
+                        {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+                            <>
+                                <ButtonWithDropdownMenu
+                                    onPress={() => null}
+                                    options={selectedTransactionsOptions}
+                                    customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                                    isSplitButton={false}
+                                    shouldAlwaysShowDropdownMenu
+                                    wrapperStyle={[styles.w100, styles.ph5]}
+                                />
+                                <View style={[styles.searchListHeaderContainerStyle, styles.pt6, styles.ph8, styles.pb3]}>
+                                    <Checkbox
+                                        accessibilityLabel={translate('workspace.people.selectAll')}
+                                        isChecked={selectedTransactionsID.length === transactions.length}
+                                        isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
+                                        onPress={() => {
+                                            if (selectedTransactionsID.length === transactions.length) {
+                                                setSelectedTransactionsID([]);
+                                            } else {
+                                                setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                            }
+                                        }}
+                                    />
+
+                                    <PressableWithFeedback
+                                        style={[styles.userSelectNone, styles.alignItemsCenter]}
+                                        onPress={() => {
+                                            if (selectedTransactionsID.length === transactions.length) {
+                                                setSelectedTransactionsID([]);
+                                            } else {
+                                                setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                            }
+                                        }}
+                                        accessibilityLabel={translate('workspace.people.selectAll')}
+                                        role="button"
+                                        accessibilityState={{checked: selectedTransactionsID.length === transactions.length}}
+                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                                    >
+                                        <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                                    </PressableWithFeedback>
+                                </View>
+                            </>
+                        )}
+                        <FlatList
+                            initialNumToRender={INITIAL_NUM_TO_RENDER}
+                            accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                            testID="money-request-report-actions-list"
+                            style={styles.overscrollBehaviorContain}
+                            data={visibleReportActions}
+                            renderItem={renderItem}
+                            keyExtractor={(item) => item.reportActionID}
+                            onEndReached={onEndReached}
+                            onEndReachedThreshold={0.75}
+                            onStartReached={onStartReached}
+                            onStartReachedThreshold={0.75}
+                            ListHeaderComponent={
+                                <MoneyRequestReportTransactionList
+                                    report={report}
+                                    transactions={transactions}
+                                    reportActions={reportActions}
+                                    hasComments={reportHasComments}
+                                />
+                            }
+                            keyboardShouldPersistTaps="handled"
+                            onScroll={trackVerticalScrolling}
+                            ref={reportScrollManager.ref}
+                        />
+                    </>
                 )}
             </View>
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={shouldUseNarrowLayout}
+                onSecondOptionSubmit={() => setIsDownloadErrorModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadErrorModalVisible}
+                onClose={() => setIsDownloadErrorModalVisible(false)}
+            />
         </View>
     );
 }
