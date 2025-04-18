@@ -11,7 +11,6 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -51,7 +50,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.settings')}
-                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
