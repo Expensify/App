@@ -394,6 +394,8 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 description:
                     isSyncInProgress && connectionSyncProgress?.stageInProgress
                         ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
+                        : shouldHideConfigurationOptions
+                        ? translate('workspace.accounting.notSync')
                         : translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative}),
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
