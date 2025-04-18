@@ -2165,7 +2165,7 @@ const translations = {
         iouReportNotFound: 'Los detalles del pago que estás buscando no se pudieron encontrar.',
         notHere: 'Hmm… no está aquí',
         pageNotFound: 'Ups, no deberías estar aquí',
-        noAccess: 'Ese chat no existe o no tienes acceso a él. Intenta usar la búsqueda para encontrar un chat.',
+        noAccess: 'noAccess: "Es posible que este chat o gasto se haya eliminado o que no tengas acceso a él.\n\nPara cualquier consulta, contacta con concierge@expensify.com",',
         goBackHome: 'Volver a la página principal',
     },
     errorPage: {
