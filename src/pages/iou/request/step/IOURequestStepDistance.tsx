@@ -136,7 +136,7 @@ function IOURequestStepDistance({
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const transactionWasSaved = useRef(false);
     const isCreatingNewRequest = !(backTo || isEditing);
-    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: false});
+    const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS, {canBeMissing: true});
     const iouRequestType = getRequestType(transaction);
     const customUnitRateID = getRateID(transaction);
 
