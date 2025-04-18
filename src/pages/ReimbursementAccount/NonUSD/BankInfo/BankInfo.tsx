@@ -62,7 +62,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         }
 
         onSubmit();
-        clearReimbursementAccountBankCreation();
+        return () => clearReimbursementAccountBankCreation();
     }, [corpayFields?.isLoading, onSubmit, previousIsLoading, reimbursementAccount?.errors, reimbursementAccount?.isLoading]);
 
     useEffect(() => {
