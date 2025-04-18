@@ -35,7 +35,7 @@ function promptToOpenInDesktopApp(currentUserAccountID?: number, initialUrl = ''
     } else {
         // Match any magic link (/v/<account id>/<6 digit code>)
         const isMagicLink = CONST.REGEX.ROUTES.VALIDATE_LOGIN.test(window.location.pathname);
-        const shouldAuthenticateWithCurrentAccount = isMagicLink && !!currentUserAccountID && window.location.pathname.includes(currentUserAccountID.toString());
+        const shouldAuthenticateWithCurrentAccount = !isMagicLink || (isMagicLink && !!currentUserAccountID && window.location.pathname.includes(currentUserAccountID.toString()));
 
         beginDeepLinkRedirect(shouldAuthenticateWithCurrentAccount, isMagicLink, getInternalNewExpensifyPath(initialUrl));
     }
