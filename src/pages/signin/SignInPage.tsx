@@ -8,6 +8,7 @@ import CustomStatusBarAndBackground from '@components/CustomStatusBarAndBackgrou
 import ScreenWrapper from '@components/ScreenWrapper';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesProvider';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
@@ -68,6 +69,7 @@ type GetRenderOptionsParams = {
     hasInitiatedSAMLLogin: boolean;
     shouldShowAnotherLoginPageOpenedMessage: boolean;
     credentials: OnyxEntry<Credentials>;
+    isAccountValidated?: boolean;
 };
 
 /**
@@ -89,6 +91,7 @@ function getRenderOptions({
     hasInitiatedSAMLLogin,
     shouldShowAnotherLoginPageOpenedMessage,
     credentials,
+    isAccountValidated,
 }: GetRenderOptionsParams): RenderOption {
     const hasAccount = !isEmptyObject(account);
     const isSAMLEnabled = !!account?.isSAMLEnabled;
@@ -108,11 +111,11 @@ function getRenderOptions({
     }
 
     // Show the Welcome form if a user is signing up for a new account in a domain that is not controlled
-    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !account?.validated && !account?.accountExists && !account?.domainControlled;
+    const shouldShouldSignUpWelcomeForm = !!credentials?.login && !isAccountValidated && !account?.accountExists && !account?.domainControlled;
     const shouldShowLoginForm = !shouldShowAnotherLoginPageOpenedMessage && !hasLogin && !hasValidateCode;
     const shouldShowEmailDeliveryFailurePage = hasLogin && hasEmailDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin;
     const shouldShowSMSDeliveryFailurePage = !!(hasLogin && hasSMSDeliveryFailure && !shouldShowChooseSSOOrMagicCode && !shouldInitiateSAMLLogin && account?.accountExists);
-    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !account?.validated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
+    const isUnvalidatedSecondaryLogin = hasLogin && !isPrimaryLogin && !isAccountValidated && !hasEmailDeliveryFailure && !hasSMSDeliveryFailure;
     const shouldShowValidateCodeForm =
         !shouldShouldSignUpWelcomeForm &&
         hasAccount &&
@@ -151,6 +154,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
     const validateCodeFormRef = useRef<BaseValidateCodeFormRef>(null);
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const isAccountValidated = useAccountValidation();
     const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
     /**
       This variable is only added to make sure the component is re-rendered
@@ -222,6 +226,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
         hasInitiatedSAMLLogin,
         shouldShowAnotherLoginPageOpenedMessage,
         credentials,
+        isAccountValidated,
     });
 
     if (shouldInitiateSAMLLogin) {
@@ -320,7 +325,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
                     isVisible={shouldShowLoginForm}
                     login={login}
                     onLoginChanged={setLogin}
-                    blurOnSubmit={account?.validated === false}
+                    blurOnSubmit={isAccountValidated === false}
                     // eslint-disable-next-line react-compiler/react-compiler
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
                 />

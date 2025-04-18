@@ -59,7 +59,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
     return (
         <ScreenWrapper
             testID={CountrySelectionPage.displayName}
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('common.country')}
@@ -82,6 +82,7 @@ function CountrySelectionPage({route}: CountrySelectionPageProps) {
                 onChangeText={setSearchValue}
                 initiallyFocusedOptionKey={currentCountry}
                 shouldUseDynamicMaxToRenderPerBatch
+                addBottomSafeAreaPadding
             />
         </ScreenWrapper>
     );

@@ -65,14 +65,6 @@ function isExpensifyCard(cardID?: number) {
 
 /**
  * @param cardID
- * @returns boolean if the cardID is in the cardList from ONYX. Includes Expensify Cards.
- */
-function isCorporateCard(cardID: number) {
-    return !!allCards[cardID];
-}
-
-/**
- * @param cardID
  * @returns string in format %<bank> - <lastFourPAN || Not Activated>%.
  */
 function getCardDescription(cardID?: number, cards: CardList = allCards) {
@@ -90,10 +82,6 @@ function getCardDescription(cardID?: number, cards: CardList = allCards) {
 
 function isCard(item: Card | Record<string, string>): item is Card {
     return typeof item === 'object' && 'cardID' in item && !!item.cardID && 'bank' in item && !!item.bank;
-}
-
-function isCardIssued(card: Card) {
-    return !!card?.nameValuePairs?.isVirtual || card?.state !== CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
 }
 
 function isCardHiddenFromSearch(card: Card) {
@@ -226,24 +214,6 @@ function lastFourNumbersFromCardName(cardName: string | undefined): string {
         return '';
     }
     return match[1];
-}
-
-/**
- * Finds physical card in a list of cards
- *
- * @returns a physical card object (or undefined if none is found)
- */
-function findPhysicalCard(cards: Card[]) {
-    return cards.find((card) => !card?.nameValuePairs?.isVirtual);
-}
-
-/**
- * Checks if any of the cards in the list have detected fraud
- *
- * @param cardList - collection of assigned cards
- */
-function hasDetectedFraud(cardList: Record<string, Card>): boolean {
-    return Object.values(cardList).some((card) => card.fraud !== CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE);
 }
 
 function getMCardNumberString(cardNumber: string): string {
@@ -450,16 +420,31 @@ function isSelectedFeedExpired(directFeed: DirectCardFeedData | undefined): bool
 }
 
 /** Returns list of cards which can be assigned */
-function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined) {
+function getFilteredCardList(list: WorkspaceCardsList | undefined, directFeed: DirectCardFeedData | undefined, workspaceCardFeeds: OnyxCollection<WorkspaceCardsList> = allWorkspaceCards) {
     const {cardList: customFeedCardsToAssign, ...cards} = list ?? {};
     const assignedCards = Object.values(cards).map((card) => card.cardName);
 
+    // Get cards assigned across all workspaces
+    const allWorkspaceAssignedCards = new Set<string>();
+    Object.values(workspaceCardFeeds ?? {}).forEach((workspaceCards) => {
+        if (!workspaceCards) {
+            return;
+        }
+        const {cardList, ...workspaceCardItems} = workspaceCards;
+        Object.values(workspaceCardItems).forEach((card) => {
+            if (!card.cardName) {
+                return;
+            }
+            allWorkspaceAssignedCards.add(card.cardName);
+        });
+    });
+
     if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber));
+        const unassignedDirectFeedCards = directFeed.accountList.filter((cardNumber) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber));
         return Object.fromEntries(unassignedDirectFeedCards.map((cardNumber) => [cardNumber, cardNumber]));
     }
 
-    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber)));
+    return Object.fromEntries(Object.entries(customFeedCardsToAssign ?? {}).filter(([cardNumber]) => !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber)));
 }
 
 function hasOnlyOneCardToAssign(list: FilteredCardList) {
@@ -582,9 +567,19 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
     return !!(policy?.areExpensifyCardsEnabled && cardSettings?.paymentBankAccountID);
 }
 
+function getFundIdFromSettingsKey(key: string) {
+    const prefix = ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
+    if (!key?.startsWith(prefix)) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    const fundIDStr = key.substring(prefix.length);
+
+    const fundID = Number(fundIDStr);
+    return Number.isNaN(fundID) ? CONST.DEFAULT_NUMBER_ID : fundID;
+}
+
 export {
     isExpensifyCard,
-    isCorporateCard,
     getDomainCards,
     formatCardExpiration,
     getMonthFromExpirationDateString,
@@ -592,8 +587,6 @@ export {
     maskCard,
     maskCardNumber,
     getCardDescription,
-    findPhysicalCard,
-    hasDetectedFraud,
     getMCardNumberString,
     getTranslationKeyForLimitType,
     getEligibleBankAccountsForCard,
@@ -615,7 +608,6 @@ export {
     mergeCardListWithWorkspaceFeeds,
     isCard,
     getAllCardsForWorkspace,
-    isCardIssued,
     isCardHiddenFromSearch,
     getFeedType,
     flatAllCardsList,
@@ -626,4 +618,5 @@ export {
     hasCardListObject,
     isExpensifyCardFullySetUp,
     filterInactiveCards,
+    getFundIdFromSettingsKey,
 };

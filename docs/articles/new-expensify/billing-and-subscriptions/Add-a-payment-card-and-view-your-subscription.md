@@ -24,7 +24,7 @@ To view or manage your subscription in New Expensify:
 
 Click **Add Payment Card** and enter your card details to ensure uninterrupted billing.
 
-![Screenshot of Add Payment Card option]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default.png){:width="100%"}
+![Screenshot of Add Payment Card option]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Default-Update.png){:width="100%"}
 
 ---
 
@@ -39,7 +39,7 @@ In the Subscription section, you can view and update your plan details, includin
 
 **Note:** Enabling auto-increase will extend your annual subscription end date.
 
-![Screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details.png){:width="100%"}
+![Screenshot of subscription details]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Details-Update.png){:width="100%"}
 
 ---
 
@@ -52,7 +52,7 @@ To request an early cancellation:
 
 **Note:** Early cancellations aren’t available to all customers.
 
-![Screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing.png){:width="100%"}
+![Screenshot of cancellation button]({{site.url}}/assets/images/ExpensifyHelp-Subscription-Billing-Update-2.png){:width="100%"}
 
 ---
 
