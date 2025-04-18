@@ -7,8 +7,8 @@ import Avatar from '@components/Avatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import Button from '@components/Button';
 import ConfirmModal from '@components/ConfirmModal';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import {FallbackWorkspaceAvatar, ImageCropSquareMask, QrCode, Trashcan, UserPlus} from '@components/Icon/Expensicons';
+import {Building} from '@components/Icon/Illustrations';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Section from '@components/Section';
@@ -64,7 +64,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const backTo = route.params.backTo;
     const [currencyList = {}] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: true});
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: true});
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.accountID,
+        canBeMissing: true,
+    });
 
     // When we create a new workspace, the policy prop will be empty on the first render. Therefore, we have to use policyDraft until policy has been set in Onyx.
     const policy = policyDraft?.id ? policyDraft : policyProp;
@@ -76,7 +79,10 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     // We need this to update translation for deleting a workspace when it has third party card feeds or expensify card assigned.
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`, {canBeMissing: true});
-    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {selector: filterInactiveCards, canBeMissing: true});
+    const [cardsList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
+        selector: filterInactiveCards,
+        canBeMissing: true,
+    });
     const hasCardFeedOrExpensifyCard =
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         !isEmptyObject(cardFeeds) || !isEmptyObject(cardsList) || ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.workspaceAccountID);
@@ -125,6 +131,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     }, [policy?.id]);
     const policyName = policy?.name ?? '';
     const policyDescription = policy?.description ?? translate('workspace.common.defaultDescription');
+    const policyCurrency = policy?.outputCurrency ?? '';
     const readOnly = !isPolicyAdminPolicyUtils(policy);
     const isOwner = isPolicyOwner(policy, currentUserAccountID);
     const imageStyle: StyleProp<ImageStyle> = shouldUseNarrowLayout ? [styles.mhv12, styles.mhn5, styles.mbn5] : [styles.mhv8, styles.mhn8, styles.mbn5];
@@ -154,7 +161,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 imageStyles={[styles.avatarXLarge, styles.alignSelfCenter]}
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
                 source={policy?.avatarURL || getDefaultWorkspaceAvatar(policyName)}
-                fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                fallbackIcon={FallbackWorkspaceAvatar}
                 size={CONST.AVATAR_SIZE.XLARGE}
                 name={policyName}
                 avatarID={policy?.id}
@@ -166,7 +173,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
 
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
-    const {setIsDeletingPaidWorkspace, isLoadingBill} = usePayAndDowngrade(setIsDeleteModalOpen);
+    const {setIsDeletingPaidWorkspace, isLoadingBill}: {setIsDeletingPaidWorkspace: (value: boolean) => void; isLoadingBill: boolean | undefined} = usePayAndDowngrade(setIsDeleteModalOpen);
 
     const confirmDeleteAndHideModal = useCallback(() => {
         if (!policy?.id || !policyName) {
@@ -203,7 +210,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldUseScrollView
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
-            icon={Illustrations.Building}
+            icon={Building}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={() => {
                 if (backTo) {
@@ -240,7 +247,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             enablePreview
                             DefaultAvatar={DefaultAvatar}
                             type={CONST.ICON_TYPE_WORKSPACE}
-                            fallbackIcon={Expensicons.FallbackWorkspaceAvatar}
+                            fallbackIcon={FallbackWorkspaceAvatar}
                             style={[
                                 policy?.errorFields?.avatarURL ?? shouldUseNarrowLayout ? styles.mb1 : styles.mb3,
                                 shouldUseNarrowLayout ? styles.mtn17 : styles.mtn20,
@@ -261,7 +268,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                 }
                                 deleteWorkspaceAvatar(policy.id);
                             }}
-                            editorMaskImage={Expensicons.ImageCropSquareMask}
+                            editorMaskImage={ImageCropSquareMask}
                             pendingAction={policy?.pendingFields?.avatarURL}
                             errors={policy?.errorFields?.avatarURL}
                             onErrorClose={() => {
@@ -330,7 +337,9 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     interactive={hasVBA ? false : !readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}
                                     onPress={onPressCurrency}
-                                    hintText={hasVBA ? translate('workspace.editor.currencyInputDisabledText') : translate('workspace.editor.currencyInputHelpText')}
+                                    hintText={
+                                        hasVBA ? translate('workspace.editor.currencyInputDisabledText', {currency: policyCurrency}) : translate('workspace.editor.currencyInputHelpText')
+                                    }
                                 />
                             </View>
                         </OfflineWithFeedback>
@@ -373,7 +382,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                             clearInviteDraft(route.params.policyID);
                                             Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
                                         }}
-                                        icon={Expensicons.UserPlus}
+                                        icon={UserPlus}
                                         style={[styles.mr2]}
                                     />
                                 )}
@@ -381,7 +390,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     accessibilityLabel={translate('common.share')}
                                     text={translate('common.share')}
                                     onPress={onPressShare}
-                                    icon={Expensicons.QrCode}
+                                    icon={QrCode}
                                 />
                                 {isOwner && (
                                     <Button
@@ -389,7 +398,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                         text={translate('common.delete')}
                                         style={[styles.ml2]}
                                         onPress={onDeleteWorkspace}
-                                        icon={Expensicons.Trashcan}
+                                        icon={Trashcan}
                                         isLoading={isLoadingBill}
                                         iconStyles={isLoadingBill ? styles.opacity0 : undefined}
                                     />
