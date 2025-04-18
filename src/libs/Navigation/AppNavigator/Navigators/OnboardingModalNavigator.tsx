@@ -44,7 +44,7 @@ function OnboardingModalNavigator() {
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        canBeMissing: true,
+        canBeMissing: false,
     });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
