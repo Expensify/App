@@ -277,6 +277,9 @@ describe('GithubUtils', () => {
                 ['https://api.github.com/repos/Expensify/Expensify/pull/156369', 156369],
                 [`https://api.github.com/repos/${process.env.GITHUB_REPOSITORY}/pull/1644`, 1644],
                 ['https://api.github.com/repos/Expensify/expensify-common/pull/346', 346],
+                ['https://api.github.com/repos/Expensify/Mobile-Expensify/pull/5000', 5000],
+                ['https://github.com/Expensify/Mobile-Expensify/issues/12345', 12345],
+                ['https://api.github.com/repos/Expensify/Mobile-Expenify/issues/123', 123],
             ])('getIssueOrPullRequestNumberFromURL("%s")', (input, expected) => {
                 expect(GithubUtils.getIssueOrPullRequestNumberFromURL(input)).toBe(expected);
             });
