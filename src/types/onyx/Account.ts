@@ -183,6 +183,9 @@ type Account = {
         /** Whether the user validation code was sent */
         validateCodeSent?: boolean;
 
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
         /** Errors while requesting the validation code */
         errors: OnyxCommon.Errors;
     };

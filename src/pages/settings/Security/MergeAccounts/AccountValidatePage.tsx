@@ -157,12 +157,12 @@ function AccountValidatePage() {
                     mergeWithValidateCodeAction(email, code);
                 }}
                 sendValidateCode={() => {
-                    requestValidationCodeForAccountMerge(email);
+                    requestValidationCodeForAccountMerge(email, true);
                 }}
                 shouldSkipInitialValidation
                 clearError={() => clearMergeWithValidateCode()}
                 validateError={validateCodeError}
-                hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeSent}
+                hasMagicCodeBeenSent={getValidateCodeForAccountMerge?.validateCodeResent}
                 submitButtonText={translate('mergeAccountsPage.mergeAccount')}
                 forwardedRef={validateCodeFormRef}
                 isLoading={mergeWithValidateCode?.isLoading}
