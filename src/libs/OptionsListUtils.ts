@@ -1074,28 +1074,19 @@ function getEnabledCategoriesCount(PolicyCategories: PolicyCategories | undefine
     return Object.values(PolicyCategories).filter((PolicyCategory) => PolicyCategory.enabled).length;
 }
 
-function isDeletingLastEnabledCategory(
-    PolicyCategories: PolicyCategories | undefined,
-    selectedCategoryArray: string[]
-): boolean {
+function isDeletingLastEnabledCategory(PolicyCategories: PolicyCategories | undefined, selectedCategoryArray: string[]): boolean {
     if (!PolicyCategories) {
         return false;
     }
 
-    const enabledCategoryName = Object.keys(PolicyCategories).find(
-        (categoryName) => PolicyCategories[categoryName].enabled
-    );
+    const enabledCategoryName = Object.keys(PolicyCategories).find((categoryName) => PolicyCategories[categoryName].enabled);
 
-    const isDeletingLastEnabledCategory = selectedCategoryArray.some(
-        (categoryName) => {
-            console.log('categoryName', categoryName, 'enabledCategoryName', enabledCategoryName);
-            return categoryName === enabledCategoryName;
-        }
-    );
+    const isDeletingLastEnabledCategory = selectedCategoryArray.some((categoryName) => {
+        return categoryName === enabledCategoryName;
+    });
 
     return isDeletingLastEnabledCategory;
 }
-
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(searchTerm)));

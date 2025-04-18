@@ -249,7 +249,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
-                        if(shouldPreventDisable && isDeletingLastEnabledCategory(policyCategories, selectedCategoriesArray )) {
+                        if (shouldPreventDisable && isDeletingLastEnabledCategory(policyCategories, selectedCategoriesArray)) {
                             setIsCannotDeleteLastEnabledCategoryModalVisible(true);
                             return;
                         }

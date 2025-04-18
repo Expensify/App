@@ -3921,7 +3921,7 @@ const translations = {
             },
             cannotDeleteLastEnabledCategory: {
                 title: 'Cannot delete last enabled category',
-                description: `You can't delete last enabled category when categories are required on the workspace.`
+                description: `You can't delete last enabled category when categories are required on the workspace.`,
             },
         },
         moreFeatures: {
