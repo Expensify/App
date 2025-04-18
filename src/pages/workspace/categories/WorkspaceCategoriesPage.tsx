@@ -79,8 +79,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const backTo = route.params?.backTo;
     const policy = usePolicy(policyId);
     const {selectionMode} = useMobileSelectionMode();
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyId}`, {canBeMissing: false});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -496,6 +496,8 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     prompt={translate('common.thisFeatureRequiresInternet')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
+                    onCancel={() => setIsOfflineModalVisible(false)}
+                    shouldHandleNavigationBack
                 />
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}

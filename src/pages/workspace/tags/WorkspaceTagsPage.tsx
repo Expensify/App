@@ -78,10 +78,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const policy = usePolicy(policyID);
-    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, {canBeMissing: false});
     const {selectionMode} = useMobileSelectionMode();
     const {environmentURL} = useEnvironment();
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
@@ -527,6 +527,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     prompt={translate('common.thisFeatureRequiresInternet')}
                     confirmText={translate('common.buttonConfirm')}
                     shouldShowCancelButton={false}
+                    onCancel={() => setIsOfflineModalVisible(false)}
+                    shouldHandleNavigationBack
                 />
                 <DecisionModal
                     title={translate('common.downloadFailedTitle')}
