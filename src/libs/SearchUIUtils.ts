@@ -3,7 +3,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {MenuItemWithLink} from '@components/MenuItemList';
-import type {SearchColumnType, SearchStatus, SortOrder} from '@components/Search/types';
+import type {SearchColumnType, SearchQueryJSON, SearchStatus, SortOrder} from '@components/Search/types';
 import ChatListItem from '@components/SelectionList/ChatListItem';
 import ReportListItem from '@components/SelectionList/Search/ReportListItem';
 import TransactionListItem from '@components/SelectionList/Search/TransactionListItem';
@@ -36,7 +36,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {canSendInvoice} from './PolicyUtils';
-import {isCreatedAction, isDeletedAction, isResolvedActionableWhisper} from './ReportActionsUtils';
+import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getSearchReportName,
     hasInvoiceReports,
@@ -252,13 +252,6 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
-    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW || reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
-        return translateLocal('iou.payerOwesAmount', {
-            payer: payerName,
-            amount: formattedAmount,
-        });
-    }
-
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         return translateLocal('iou.payerPaidAmount', {
             payer: payerName,
@@ -266,7 +259,10 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
         });
     }
 
-    return reportItem.reportName;
+    return translateLocal('iou.payerOwesAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 }
 
 /**
@@ -396,6 +392,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
     }
 
+    const reportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+    if (reportRNVP?.exportFailedTime) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
+    }
+
     return CONST.SEARCH.ACTION_TYPES.VIEW;
 }
 
@@ -427,13 +428,18 @@ function getReportActionsSections(data: OnyxTypes.SearchResults['data']): Report
                 const from = data.personalDetailsList?.[reportAction.accountID];
                 const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.reportID}`] ?? {};
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] ?? {};
+                const originalMessage = isMoneyRequestAction(reportAction) ? getOriginalMessage<typeof CONST.REPORT.ACTIONS.TYPE.IOU>(reportAction) : undefined;
+                const isSendingMoney = isMoneyRequestAction(reportAction) && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && originalMessage?.IOUDetails;
+
                 const invoiceReceiverPolicy: SearchPolicy | undefined =
                     report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS ? data[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
                 if (
                     isDeletedAction(reportAction) ||
                     isResolvedActionableWhisper(reportAction) ||
                     reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CLOSED ||
-                    isCreatedAction(reportAction)
+                    isCreatedAction(reportAction) ||
+                    isWhisperActionTargetedToOthers(reportAction) ||
+                    (isMoneyRequestAction(reportAction) && !!report?.isWaitingOnBankAccount && originalMessage?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY && !isSendingMoney)
                 ) {
                     // eslint-disable-next-line no-continue
                     continue;
@@ -800,6 +806,17 @@ function shouldShowEmptyState(isDataLoaded: boolean, dataLength: number, type: S
     return !isDataLoaded || dataLength === 0 || !Object.values(CONST.SEARCH.DATA_TYPES).includes(type);
 }
 
+function isSearchDataLoaded(currentSearchResults: SearchResults | undefined, lastNonEmptySearchResults: SearchResults | undefined, queryJSON: SearchQueryJSON | undefined) {
+    const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const {status} = queryJSON ?? {};
+    const isDataLoaded =
+        searchResults?.data !== undefined && searchResults?.search?.type === queryJSON?.type && Array.isArray(status)
+            ? searchResults?.search?.status === status.join(',')
+            : searchResults?.search?.status === status;
+
+    return isDataLoaded;
+}
+
 export {
     getListItem,
     getSections,
@@ -819,5 +836,6 @@ export {
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
     compareValues,
+    isSearchDataLoaded,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};

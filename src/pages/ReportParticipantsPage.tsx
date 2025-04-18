@@ -191,9 +191,8 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => selectedMembers.includes(member.accountID));
-
-        if (everyoneSelected) {
+        const someSelected = enabledAccounts.some((member) => selectedMembers.includes(member.accountID));
+        if (someSelected) {
             setSelectedMembers([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
