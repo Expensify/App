@@ -107,6 +107,24 @@ function GenericTooltip({
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
 
+<<<<<<< HEAD
+=======
+    // eslint-disable-next-line rulesdir/prefer-early-return
+    useEffect(() => {
+        if (!isRendered || !wrapperRef.current) {
+            return;
+        }
+    
+        wrapperRef.current.measureInWindow((x, y, width, height) => {
+            setXOffset(x);
+            setYOffset(y);
+            setWrapperWidth(width);
+            setWrapperHeight(height);
+        });
+    }, [isRendered]);
+    
+
+>>>>>>> ea1df530a11 (fix(GenericTooltip): refactor useEffect to use early return for ESLint compliance)
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
         isTooltipSenseInitiator.set(false);
