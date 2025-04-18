@@ -46,7 +46,6 @@ function BaseTextInput(
         containerStyles,
         inputStyle,
         forceActiveLabel = false,
-        autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
         autoGrowExtraSpace = 0,
@@ -56,7 +55,6 @@ function BaseTextInput(
         maxLength = undefined,
         hint = '',
         onInputChange = () => {},
-        shouldDelayFocus = false,
         multiline = false,
         autoCorrect = true,
         prefixCharacter = '',
@@ -112,18 +110,6 @@ function BaseTextInput(
     const isLabelActive = useRef(initialActiveLabel);
 
     useHtmlPaste(input, undefined, isMarkdownEnabled);
-
-    // AutoFocus with delay is executed manually, otherwise it's handled by the TextInput's autoFocus native prop
-    useEffect(() => {
-        if (!autoFocus || !shouldDelayFocus || !input.current) {
-            return;
-        }
-
-        const focusTimeout = setTimeout(() => input.current?.focus(), CONST.ANIMATED_TRANSITION);
-        return () => clearTimeout(focusTimeout);
-        // We only want this to run on mount
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
 
     const animateLabel = useCallback(
         (translateY: number, scale: number) => {
@@ -354,7 +340,6 @@ function BaseTextInput(
                                 }}
                                 // eslint-disable-next-line
                                 {...inputProps}
-                                autoFocus={autoFocus && !shouldDelayFocus}
                                 autoCorrect={inputProps.secureTextEntry ? false : autoCorrect}
                                 placeholder={placeholderValue}
                                 placeholderTextColor={placeholderTextColor ?? theme.placeholderText}

@@ -227,6 +227,8 @@ import type {
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkEmailMergingBlockedParams,
+    WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -523,6 +525,7 @@ const translations = {
         minuteAbbreviation: 'm',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
+        workEmail: 'correo electrónico de trabajo',
         destination: 'Destino',
         subrate: 'Subtasa',
         perDiem: 'Per diem',
@@ -1531,7 +1534,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
         twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilita la autenticación de dos factores',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Tu conexión de contabilidad con Xero requiere autenticación de dos factores. Por favor, habilítala para continuar.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'Tu conexión de contabilidad con Xero requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
@@ -2023,6 +2027,29 @@ const translations = {
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
         },
+        workEmail: {
+            title: 'Cuál es tu correo electrónico de trabajo',
+            subtitle: 'Expensify funciona mejor cuando conectas tu correo electrónico de trabajo.',
+            explanationModal: {
+                descriptionOne: 'Reenvía a receipts@expensify.com para escanear',
+                descriptionTwo: 'Únete a tus compañeros de trabajo que ya están usando Expensify',
+                descriptionThree: 'Disfruta de una experiencia más personalizada',
+            },
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
+        },
+        workEmailValidation: {
+            title: 'Verifica tu correo electrónico de trabajo',
+            magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Por favor, introduce el código mágico enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
+        },
+        workEmailValidationError: {
+            publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
+            offline: 'No pudimos añadir tu correo electrónico laboral porque parece que estás sin conexión.',
+        },
+        mergeBlockScreen: {
+            title: 'No se pudo añadir el correo electrónico de trabajo',
+            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
+                `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
+        },
     },
     featureTraining: {
         doNotShowAgain: 'No muestres esto otra vez',
@@ -2222,12 +2249,6 @@ const translations = {
         toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir Tarjetas Expensify, y cobrar y pagar facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError: {
-            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
-            phrase2: 'vuelve a iniciar sesión con un código mágico',
-            phrase3: 'o',
-            phrase4: 'verifica aquí tu cuenta',
-        },
         hasPhoneLoginError: {
             phrase1: 'Para añadir una cuenta bancaria verificada,',
             link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
@@ -2733,11 +2754,14 @@ const translations = {
         regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
         iAmAuthorized: 'Estoy autorizado para usar la cuenta bancaria para gastos del negocio.',
         iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
-        termsAndConditions: 'términos y condiciones.',
+        termsAndConditions: 'términos y condiciones',
         accept: 'Agregar y aceptar cuenta bancaria',
+        iConsentToThe: 'Doy mi consentimiento para el',
+        privacyNotice: 'aviso de privacidad',
         error: {
             authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
             certify: 'Por favor certifique que la información es verdadera y exacta',
+            consent: 'Por favor, acepte el aviso de privacidad',
         },
     },
     finishStep: {
@@ -4869,6 +4893,15 @@ const translations = {
                 gotIt: 'Entendido, gracias.',
             },
         },
+        payAndDowngrade: {
+            title: 'Pagar y bajar de categoría',
+            headline: 'Tu pago final',
+            description1: 'Tu factura final por esta suscripción será',
+            description2: ({date}: DateParams) => `Consulta el desglose a continuación para ${date}:`,
+            subscription:
+                'Esto finalizará tu suscripción a Expensify, eliminará tu espacio de trabajo restante y todos los miembros perderán acceso de ahora en adelante. Si solo deseas eliminarte a ti mismo, haz que otro administrador se encargue de la facturación, y en ese momento podrás salir de este espacio de trabajo.',
+            genericFailureMessage: 'Ocurrió un error al pagar tu factura. Por favor, inténtalo de nuevo.',
+        },
         restrictedAction: {
             restricted: 'Restringido',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Las acciones en el espacio de trabajo ${workspaceName} están actualmente restringidas`,
@@ -5028,7 +5061,7 @@ const translations = {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
+        renamedRoomAction: ({oldName, newName, actorName}: RenamedRoomActionParams) => `${actorName ? `${actorName} ` : ''}renamed this room to "${newName}" (previously "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
