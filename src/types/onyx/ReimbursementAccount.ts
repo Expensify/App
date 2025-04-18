@@ -214,6 +214,9 @@ type ReimbursementAccount = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Whether we are saving agreements accepted by user via the API (non USD flow Step 6) */
     isFinishingCorpayBankAccountOnboarding?: boolean;
 
+    /** Where the request is successful */
+    isSuccess?: boolean;
+
     /** A date that indicates the user has been throttled */
     throttledDate?: string;
 
