@@ -48,10 +48,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.settings')}
-                    onBackButtonPress={() => Navigation.goBack()}
-                />
+                <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
