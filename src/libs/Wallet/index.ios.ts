@@ -1,4 +1,4 @@
-import {addCardToAppleWallet, checkWalletAvailability, getCardStatus} from '@expensify/react-native-wallet';
+import {addCardToAppleWallet, checkWalletAvailability, getCardStatusBySuffix} from '@expensify/react-native-wallet';
 import type {IOSCardData} from '@expensify/react-native-wallet/lib/typescript/src/NativeWallet';
 import {Alert} from 'react-native';
 import {issuerEncryptPayloadCallback} from '@libs/actions/Wallet';
@@ -35,7 +35,7 @@ function isCardInWallet(card: Card): Promise<boolean> {
     }
 
     if (card.lastFourPAN) {
-        return getCardStatus(card.lastFourPAN)
+        return getCardStatusBySuffix(card.lastFourPAN)
             .then((status) => {
                 Log.info(`Card status: ${status}`);
                 return status === 'active';
