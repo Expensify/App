@@ -129,7 +129,18 @@ jobs:
             ./iOS/SmartScanExtension/Info.plist \
             ./iOS/NotificationServiceExtension/Info.plist
           git commit -m "Update version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          git push origin main
+          if ! git push origin main; then
+            echo "Race condition! Mobile-Expensify main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
+            git fetch origin main --depth=1
+            if ! git rebase origin/main; then
+              echo "::error:: Rebase failed while retrying Mobile-Expensify push"
+              exit 1
+            fi
+            if ! git push origin main; then
+              echo "::error:: Mobile-Expensify change failed to push after rebase"
+              exit 1
+            fi
+          fi
 
       - name: Commit new E/App version
         run: |
@@ -146,7 +157,18 @@ jobs:
         run: |
           git add Mobile-Expensify
           git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          git push origin main
+          if ! git push origin main; then
+            echo "Race condition! E/App main was updated while this workflow was running, so push failed. Fetching remote, rebasing, and retrying push once."
+            git fetch origin main --depth=1
+            if ! git rebase origin/main; then
+              echo "::error:: Rebase failed while retrying Mobile-Expensify push"
+              exit 1
+            fi
+            if ! git push origin main; then
+              echo "::error:: Mobile-Expensify change failed to push after rebase"
+              exit 1
+            fi
+          fi
 
       - name: Announce failed workflow in Slack
         if: ${{ failure() }}
