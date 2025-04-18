@@ -1558,13 +1558,6 @@ function isManagerMcTestReport(report: SearchOption<Report>): boolean {
     return report.participantsList?.some((participant) => participant.accountID === CONST.ACCOUNT_ID.MANAGER_MCTEST) ?? false;
 }
 
-/**
- * Helper method to check if participant email is Manager McTest
- */
-function isSelectedManagerMcTest(email: string | null | undefined): boolean {
-    return email === CONST.EMAIL.MANAGER_MCTEST;
-}
-
 function getValidPersonalDetailOptions(
     options: OptionList['personalDetails'],
     {
@@ -2361,7 +2354,6 @@ export {
     filterReports,
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
-    isSelectedManagerMcTest,
     shouldShowLastActorDisplayName,
 };
 

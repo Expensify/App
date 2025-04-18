@@ -2,10 +2,9 @@ import React from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import CaretWrapper from '@components/CaretWrapper';
+import FeedSelector from '@components/FeedSelector';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import {PressableWithFeedback} from '@components/Pressable';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
@@ -26,7 +25,6 @@ import {
     isCustomFeed,
 } from '@libs/CardUtils';
 import Navigation from '@navigation/Navigation';
-import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {CompanyCardFeed} from '@src/types/onyx';
@@ -67,33 +65,14 @@ function WorkspaceCompanyCardsListHeaderButtons({policyID, selectedFeed, shouldS
     return (
         <View>
             <View style={[styles.w100, styles.ph5, !shouldChangeLayout ? [styles.pv2, styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween] : styles.pb2]}>
-                <PressableWithFeedback
-                    onPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
-                    style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, shouldChangeLayout && styles.mb3]}
-                    accessibilityLabel={formattedFeedName ?? ''}
-                >
-                    <Icon
-                        src={getCardFeedIcon(selectedFeed, illustrations)}
-                        height={variables.cardIconHeight}
-                        width={variables.cardIconWidth}
-                        additionalStyles={styles.cardIcon}
-                    />
-                    <View style={styles.flex1}>
-                        <View style={[styles.flexRow, styles.gap1]}>
-                            <CaretWrapper style={styles.flex1}>
-                                <Text style={[styles.textStrong, styles.flexShrink1]}>{formattedFeedName}</Text>
-                            </CaretWrapper>
-                            {checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed) && (
-                                <Icon
-                                    src={Expensicons.DotIndicator}
-                                    fill={theme.danger}
-                                />
-                            )}
-                        </View>
-                        <Text style={styles.textLabelSupporting}>{translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}</Text>
-                    </View>
-                </PressableWithFeedback>
-
+                <FeedSelector
+                    onFeedSelect={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID))}
+                    cardIcon={getCardFeedIcon(selectedFeed, illustrations)}
+                    shouldChangeLayout={shouldChangeLayout}
+                    feedName={formattedFeedName}
+                    supportingText={translate(isCommercialFeed ? 'workspace.companyCards.commercialFeed' : 'workspace.companyCards.directFeed')}
+                    shouldShowRBR={checkIfFeedConnectionIsBroken(flatAllCardsList(allFeedsCards, workspaceAccountID), selectedFeed)}
+                />
                 <View style={[styles.flexRow, styles.gap2]}>
                     {!!shouldShowAssignCardButton && (
                         <Button

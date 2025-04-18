@@ -124,6 +124,16 @@ type DeleteTransactionParams = {
     merchant: string;
 };
 
+type MovedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
+};
+
+type UnreportedTransactionParams = {
+    reportUrl: string;
+    reportName?: string;
+};
+
 type SettleExpensifyCardParams = {
     formattedAmount: string;
 };
@@ -216,7 +226,7 @@ type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
-type RenamedRoomActionParams = {oldName: string; newName: string};
+type RenamedRoomActionParams = {oldName: string; newName: string; actorName?: string};
 
 type RoomRenamedToParams = {newName: string};
 
@@ -611,6 +621,14 @@ type WorkspaceYouMayJoin = {
     email: string;
 };
 
+type WorkEmailResendCodeParams = {
+    workEmail: string | undefined;
+};
+
+type WorkEmailMergingBlockedParams = {
+    workEmail: string | undefined;
+};
+
 type WorkspaceMemberList = {
     employeeCount: number;
     policyOwner: string;
@@ -671,6 +689,10 @@ type PolicyExpenseChatNameParams = {
 
 type ReviewParams = {
     amount: string;
+};
+
+type CurrencyInputDisabledTextParams = {
+    currency: string;
 };
 
 export type {
@@ -802,6 +824,8 @@ export type {
     RequestAmountParams,
     RequestCountParams,
     DeleteTransactionParams,
+    MovedTransactionParams,
+    UnreportedTransactionParams,
     RequestedAmountMessageParams,
     ResolutionConstraintsParams,
     RoomNameReservedErrorParams,
@@ -900,6 +924,8 @@ export type {
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    WorkEmailResendCodeParams,
+    WorkEmailMergingBlockedParams,
     NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
@@ -914,4 +940,5 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CurrencyInputDisabledTextParams,
 };

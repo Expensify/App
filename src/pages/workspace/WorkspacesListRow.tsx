@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
@@ -70,6 +70,12 @@ type WorkspacesListRowProps = WithCurrentUserPersonalDetailsProps & {
 
     /** is policy defualt */
     isDefault?: boolean;
+
+    /** Whether the bill is loading */
+    isLoadingBill?: boolean;
+
+    /** Function to reset loading spinner icon index */
+    resetLoadingSpinnerIconIndex?: () => void;
 };
 
 type BrickRoadIndicatorIconProps = {
@@ -114,6 +120,8 @@ function WorkspacesListRow({
     isJoinRequestPending,
     policyID,
     isDefault,
+    isLoadingBill,
+    resetLoadingSpinnerIconIndex,
 }: WorkspacesListRowProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -121,6 +129,19 @@ function WorkspacesListRow({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
     const ownerDetails = ownerAccountID && getPersonalDetailsByIDs({accountIDs: [ownerAccountID], currentUserAccountID: currentUserPersonalDetails.accountID}).at(0);
+    const threeDotsMenuRef = useRef<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>(null);
+
+    useEffect(() => {
+        if (isLoadingBill) {
+            return;
+        }
+        resetLoadingSpinnerIconIndex?.();
+
+        if (!threeDotsMenuRef.current?.isPopupMenuVisible) {
+            return;
+        }
+        threeDotsMenuRef?.current?.hidePopoverMenu();
+    }, [isLoadingBill, resetLoadingSpinnerIconIndex]);
 
     const calculateAndSetThreeDotsMenuPosition = useCallback(() => {
         if (shouldUseNarrowLayout) {
@@ -187,6 +208,7 @@ function WorkspacesListRow({
                             shouldOverlay
                             disabled={shouldDisableThreeDotsMenu}
                             isNested
+                            threeDotsMenuRef={threeDotsMenuRef}
                         />
                     </View>
                 </View>

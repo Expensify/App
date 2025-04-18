@@ -7,7 +7,7 @@ import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
-import {canUserPerformWriteAction as canUserPerformWriteActionReportUtil} from '@libs/ReportUtils';
+import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import {openReport} from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,6 +40,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_TAX_AMOUNT
     | typeof SCREENS.MONEY_REQUEST.STEP_SCAN
     | typeof SCREENS.MONEY_REQUEST.STEP_SEND_FROM
+    | typeof SCREENS.MONEY_REQUEST.STEP_REPORT
     | typeof SCREENS.MONEY_REQUEST.STEP_COMPANY_INFO
     | typeof SCREENS.MONEY_REQUEST.STEP_ATTENDEES
     | typeof SCREENS.MONEY_REQUEST.STEP_ACCOUNTANT
@@ -67,8 +68,6 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             .includes(route.params?.iouType);
         const isEditing = 'action' in route.params && route.params?.action === CONST.IOU.ACTION.EDIT;
 
-        const canUserPerformWriteAction = canUserPerformWriteActionReportUtil(report ?? {reportID: ''});
-
         useEffect(() => {
             if (!!report?.reportID || !route.params.reportID || !!reportDraft || !isEditing) {
                 return;
@@ -81,7 +80,7 @@ export default function <TProps extends WithWritableReportOrNotFoundProps<MoneyR
             return <FullScreenLoadingIndicator />;
         }
 
-        if (iouTypeParamIsInvalid || !canUserPerformWriteAction) {
+        if (iouTypeParamIsInvalid || !canUserPerformWriteAction(report ?? {reportID: ''})) {
             return <FullPageNotFoundView shouldShow />;
         }
 
