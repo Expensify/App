@@ -145,7 +145,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentReportIDValue = useCurrentReportID();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
     const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
     const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
@@ -153,7 +153,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
     const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true});
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
@@ -262,8 +262,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: true});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: true});
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
