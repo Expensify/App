@@ -1,10 +1,10 @@
 import type {VideoReadyForDisplayEvent} from 'expo-av';
+import isEmpty from 'lodash/isEmpty';
 import React, {useMemo, useState} from 'react';
 import {View} from 'react-native';
 import Button from '@components/Button';
 import ImageSVG from '@components/ImageSVG';
 import Lottie from '@components/Lottie';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import VideoPlayer from '@components/VideoPlayer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -25,11 +25,11 @@ function EmptyStateComponent({
     subtitle,
     children,
     headerStyles,
+    cardStyles,
+    cardContentStyles,
     headerContentStyles,
     lottieWebViewStyles,
-    showsVerticalScrollIndicator,
     minModalHeight = 400,
-    addBottomSafeAreaPadding = false,
 }: EmptyStateComponentProps) {
     const styles = useThemeStyles();
     const [videoAspectRatio, setVideoAspectRatio] = useState(VIDEO_ASPECT_RATIO);
@@ -85,32 +85,25 @@ function EmptyStateComponent({
     }, [headerMedia, headerMediaType, headerContentStyles, videoAspectRatio, styles.emptyStateVideo, lottieWebViewStyles]);
 
     return (
-        <ScrollView
-            showsVerticalScrollIndicator={showsVerticalScrollIndicator}
-            contentContainerStyle={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}
-            style={styles.flex1}
-            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
-        >
-            <View style={[styles.skeletonBackground, styles.overflowHidden]}>
-                <SkeletonComponent
-                    gradientOpacityEnabled
-                    shouldAnimate={false}
-                />
-            </View>
+        <View style={[{minHeight: minModalHeight}, styles.flexGrow1, styles.flexShrink0, containerStyles]}>
+            {!!SkeletonComponent && (
+                <View style={[styles.skeletonBackground, styles.overflowHidden]}>
+                    <SkeletonComponent
+                        gradientOpacityEnabled
+                        shouldAnimate={false}
+                    />
+                </View>
+            )}
             <View style={styles.emptyStateForeground}>
-                <View style={styles.emptyStateContent}>
+                <View style={[styles.emptyStateContent, cardStyles]}>
                     <View style={[styles.emptyStateHeader(headerMediaType === CONST.EMPTY_STATE_MEDIA.ILLUSTRATION), headerStyles]}>{HeaderComponent}</View>
-                    <View style={shouldUseNarrowLayout ? styles.p5 : styles.p8}>
+                    <View style={[shouldUseNarrowLayout ? styles.p5 : styles.p8, cardContentStyles]}>
                         <Text style={[styles.textAlignCenter, styles.textHeadlineH1, styles.mb2, titleStyles]}>{title}</Text>
                         <Text style={[styles.textAlignCenter, styles.textSupporting, styles.textNormal]}>{subtitle}</Text>
                         {children}
-                        <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
-                            {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}, index) => (
-                                <View
-                                    // eslint-disable-next-line react/no-array-index-key
-                                    key={index}
-                                    style={styles.flex1}
-                                >
+                        {!isEmpty(buttons) && (
+                            <View style={[styles.gap2, styles.mt5, !shouldUseNarrowLayout ? styles.flexRow : undefined]}>
+                                {buttons?.map(({buttonText, buttonAction, success, icon, isDisabled}) => (
                                     <Button
                                         success={success}
                                         onPress={buttonAction}
@@ -118,14 +111,15 @@ function EmptyStateComponent({
                                         icon={icon}
                                         large
                                         isDisabled={isDisabled}
+                                        style={styles.flex1}
                                     />
-                                </View>
-                            ))}
-                        </View>
+                                ))}
+                            </View>
+                        )}
                     </View>
                 </View>
             </View>
-        </ScrollView>
+        </View>
     );
 }
 

@@ -18,8 +18,11 @@ import type {SearchQueryJSON, SearchQueryString} from '@components/Search/types'
 import {isSearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SearchQueryItem} from '@components/SelectionList/Search/SearchQueryListItem';
 import type {SelectionListHandle} from '@components/SelectionList/types';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport} from '@libs/actions/Report';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -29,7 +32,14 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {
+    buildUserReadableQueryString,
+    buildUserReadableQueryStringWithPolicyID,
+    getQueryWithUpdatedValues,
+    isDefaultExpensesQuery,
+    isDefaultExpensesQueryWithPolicyIDCheck,
+    sanitizeSearchValue,
+} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -52,21 +62,27 @@ type SearchPageHeaderInputProps = {
 
 function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent}: SearchPageHeaderInputProps) {
     const {translate} = useLocalize();
+    const {canUseLeftHandBar} = usePermissions();
     const [showPopupButton, setShowPopupButton] = useState(true);
     const styles = useThemeStyles();
+    const theme = useTheme();
     const {shouldUseNarrowLayout: displayNarrowHeader} = useResponsiveLayout();
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const taxRates = useMemo(() => getAllTaxRates(), []);
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const cardFeedNamesWithType = useMemo(() => {
-        return getCardFeedNamesWithType({workspaceCardFeeds, userCardList, translate});
-    }, [translate, workspaceCardFeeds, userCardList]);
+        return getCardFeedNamesWithType({workspaceCardFeeds, translate});
+    }, [translate, workspaceCardFeeds]);
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
-    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+    const isDefaultQuery = canUseLeftHandBar ? isDefaultExpensesQueryWithPolicyIDCheck(queryJSON) : isDefaultExpensesQuery(queryJSON);
+    const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
+    const queryText = canUseLeftHandBar
+        ? buildUserReadableQueryStringWithPolicyID(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies)
+        : buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -114,6 +130,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             return;
         }
         setShowPopupButton(true);
+        setShouldUseAnimation(true);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchRouterListVisible]);
@@ -257,7 +274,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
                         </Animated.View>
                         {showPopupButton && (
                             <Animated.View
-                                entering={FadeInRight}
+                                entering={shouldUseAnimation ? FadeInRight : undefined}
                                 exiting={isFocused && searchRouterListVisible ? FadeOutRight : undefined}
                                 style={[styles.pl3]}
                             >
@@ -291,60 +308,64 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         setIsAutocompleteListVisible(true);
     };
     // we need `- BORDER_WIDTH` to achieve the effect that the input will not "jump"
-    const popoverHorizontalPosition = 12 - BORDER_WIDTH;
+    const leftPopoverHorizontalPosition = 12 - BORDER_WIDTH;
+    const rightPopoverHorizontalPosition = 4 - BORDER_WIDTH;
     const autocompleteInputStyle = isAutocompleteListVisible
         ? [
               styles.border,
               styles.borderRadiusComponentLarge,
               styles.pAbsolute,
               styles.pt2,
-              {top: 8 - BORDER_WIDTH, left: popoverHorizontalPosition, right: popoverHorizontalPosition},
-              {boxShadow: variables.popoverMenuShadow},
+              {top: 8 - BORDER_WIDTH, left: leftPopoverHorizontalPosition, right: rightPopoverHorizontalPosition},
+              {boxShadow: theme.shadow},
           ]
         : [styles.pt4];
     const inputWrapperActiveStyle = isAutocompleteListVisible ? styles.ph2 : null;
 
     return (
-        <View
-            dataSet={{dragArea: false}}
-            style={[styles.searchResultsHeaderBar, isAutocompleteListVisible && styles.ph3]}
-        >
-            <View style={[styles.appBG, ...autocompleteInputStyle]}>
-                <SearchInputSelectionWrapper
-                    value={textInputValue}
-                    onSearchQueryChange={onSearchQueryChange}
-                    isFullWidth
-                    onSubmit={() => {
-                        const focusedOption = listRef.current?.getFocusedOption();
-                        if (focusedOption) {
-                            return;
-                        }
-                        submitSearch(textInputValue);
-                    }}
-                    autoFocus={false}
-                    onFocus={showAutocompleteList}
-                    onBlur={hideAutocompleteList}
-                    wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
-                    wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
-                    outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
-                    rightComponent={inputRightComponent}
-                    autocompleteListRef={listRef}
-                    ref={textInputRef}
-                    selection={selection}
-                    substitutionMap={autocompleteSubstitutions}
-                />
-                <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
-                    <SearchAutocompleteList
-                        autocompleteQueryValue={autocompleteQueryValue}
-                        searchQueryItem={searchQueryItem}
-                        onListItemPress={onListItemPress}
-                        setTextQuery={setTextAndUpdateSelection}
-                        updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
-                        ref={listRef}
-                        shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+        <View style={[styles.flexRow, styles.alignItemsCenter, styles.zIndex10, styles.mr3]}>
+            <View
+                dataSet={{dragArea: false}}
+                style={[styles.searchResultsHeaderBar, styles.flex1, isAutocompleteListVisible && styles.pr1, isAutocompleteListVisible && styles.pl3]}
+            >
+                <View style={[styles.appBG, ...autocompleteInputStyle]}>
+                    <SearchInputSelectionWrapper
+                        value={textInputValue}
+                        onSearchQueryChange={onSearchQueryChange}
+                        isFullWidth
+                        onSubmit={() => {
+                            const focusedOption = listRef.current?.getFocusedOption();
+                            if (focusedOption) {
+                                return;
+                            }
+                            submitSearch(textInputValue);
+                        }}
+                        autoFocus={false}
+                        onFocus={showAutocompleteList}
+                        onBlur={hideAutocompleteList}
+                        wrapperStyle={{...styles.searchAutocompleteInputResults, ...styles.br2}}
+                        wrapperFocusedStyle={styles.searchAutocompleteInputResultsFocused}
+                        outerWrapperStyle={[inputWrapperActiveStyle, styles.pb2]}
+                        rightComponent={inputRightComponent}
+                        autocompleteListRef={listRef}
+                        ref={textInputRef}
+                        selection={selection}
+                        substitutionMap={autocompleteSubstitutions}
                     />
+                    <View style={[styles.mh65vh, !isAutocompleteListVisible && styles.dNone]}>
+                        <SearchAutocompleteList
+                            autocompleteQueryValue={autocompleteQueryValue}
+                            searchQueryItem={searchQueryItem}
+                            onListItemPress={onListItemPress}
+                            setTextQuery={setTextAndUpdateSelection}
+                            updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                            ref={listRef}
+                            shouldSubscribeToArrowKeyEvents={isAutocompleteListVisible}
+                        />
+                    </View>
                 </View>
             </View>
+            <HelpButton style={[styles.mt1Half]} />
         </View>
     );
 }

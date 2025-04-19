@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import * as Policy from '@src/libs/actions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
+import type {Onboarding, Policy as PolicyType, Report, ReportAction, ReportActions, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/Report';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReport from '../utils/collections/reports';
@@ -83,10 +83,14 @@ describe('actions/Policy', () => {
             expect(policy?.type).toBe(CONST.POLICY.TYPE.TEAM);
             expect(policy?.role).toBe(CONST.POLICY.ROLE.ADMIN);
             expect(policy?.owner).toBe(ESH_EMAIL);
+            expect(policy?.areWorkflowsEnabled).toBe(true);
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+            expect(policy?.approver).toBe(ESH_EMAIL);
             expect(policy?.isPolicyExpenseChatEnabled).toBe(true);
             expect(policy?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
-            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
+            expect(policy?.employeeList).toEqual({[ESH_EMAIL]: {email: ESH_EMAIL, submitsTo: ESH_EMAIL, errors: {}, role: CONST.POLICY.ROLE.ADMIN}});
             expect(policy?.mccGroup).toBeDefined();
+            expect(policy?.requiresCategory).toBe(true);
 
             let allReports: OnyxCollection<Report> = await new Promise((resolve) => {
                 const connection = Onyx.connect({
@@ -220,6 +224,118 @@ describe('actions/Policy', () => {
             workspaceReportActions = adminReportActions.concat(expenseReportActions);
             workspaceReportActions.forEach((reportAction) => {
                 expect(reportAction.pendingAction).toBeFalsy();
+            });
+        });
+
+        it('creates a new workspace with BASIC approval mode if the introSelected is MANAGE_TEAM', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to MANAGE_TEAM
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy should have approval mode set to BASIC
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.BASIC);
+        });
+
+        it('creates a new workspace with OPTIONAL approval mode if the introSelected is TRACK_WORKSPACE', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to TRACK_WORKSPACE
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            const policy: OnyxEntry<PolicyType> | OnyxCollection<PolicyType> = await new Promise((resolve) => {
+                const connection = Onyx.connect({
+                    key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                    callback: (workspace) => {
+                        Onyx.disconnect(connection);
+                        resolve(workspace);
+                    },
+                });
+            });
+
+            // Then the policy should have approval mode set to OPTIONAL
+            expect(policy?.approvalMode).toBe(CONST.POLICY.APPROVAL_MODE.OPTIONAL);
+        });
+
+        it('create a new workspace fails will reset hasCompletedGuidedSetupFlow to the correct value', async () => {
+            (fetch as MockFetch)?.pause?.();
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true, chatReportID: '12345'});
+            await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
+            await waitForBatchedUpdates();
+
+            (fetch as MockFetch)?.fail?.();
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME);
+            await waitForBatchedUpdates();
+
+            (fetch as MockFetch)?.resume?.();
+            await waitForBatchedUpdates();
+
+            let onboarding: OnyxEntry<Onboarding>;
+            await TestHelper.getOnyxData({
+                key: ONYXKEYS.NVP_ONBOARDING,
+                waitForCollectionCallback: false,
+                callback: (val) => {
+                    onboarding = val;
+                },
+            });
+            expect(onboarding?.hasCompletedGuidedSetupFlow).toBeTruthy();
+        });
+
+        it('create a new workspace with delayed submission set to manually if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to MANAGE_TEAM
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the autoReportingFrequency should be set to manually
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    expect(policy?.harvesting?.enabled).toBe(false);
+                },
+            });
+        });
+
+        it('create a new workspace with delayed submission set to manually if the onboarding choice is not selected', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: undefined});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the autoReportingFrequency should be set to manually
+                    expect(policy?.autoReportingFrequency).toBe(CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE);
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                    expect(policy?.harvesting?.enabled).toBe(false);
+                },
             });
         });
 

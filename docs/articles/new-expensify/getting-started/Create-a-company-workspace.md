@@ -143,7 +143,7 @@ You can customize your workspace by enabling features such as:
 - [Expensify Cards](https://help.expensify.com/new-expensify/hubs/expensify-card/)
 - [Rules](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-rules)
 - [Distance rates](https://help.expensify.com/articles/new-expensify/workspaces/Set-distance-rates)
-- [Workflows - Payments](https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account)
+- [Workflows - Payments](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Business-Bank-Account)
 - [Workflows - Delayed submission](https://help.expensify.com/articles/new-expensify/workspaces/Set-up-workflows#select-workflows)
 - [Tags](https://help.expensify.com/articles/new-expensify/workspaces/Create-expense-tags)
 - [Taxes](https://help.expensify.com/articles/new-expensify/workspaces/Track-taxes)

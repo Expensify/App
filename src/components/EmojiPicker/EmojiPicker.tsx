@@ -12,9 +12,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import type {AnchorOrigin, EmojiPickerRef, EmojiPopoverAnchor, OnEmojiSelected, OnModalHideValue, OnWillShowPicker} from '@libs/actions/EmojiPickerAction';
-import * as Browser from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import calculateAnchorPosition from '@libs/calculateAnchorPosition';
-import * as Modal from '@userActions/Modal';
+import {close} from '@userActions/Modal';
 import CONST from '@src/CONST';
 import EmojiPickerMenu from './EmojiPickerMenu';
 
@@ -92,7 +92,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         // It's possible that the anchor is inside an active modal (e.g., add emoji reaction in report context menu).
         // So, we need to get the anchor position first before closing the active modal which will also destroy the anchor.
         calculateAnchorPosition(emojiPopoverAnchor?.current, anchorOriginValue).then((value) => {
-            Modal.close(() => {
+            close(() => {
                 onWillShow?.();
                 setIsEmojiPickerVisible(true);
                 setEmojiPopoverAnchorPosition({
@@ -190,19 +190,14 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
         };
     }, [isEmojiPickerVisible, shouldUseNarrowLayout, emojiPopoverAnchorOrigin, getEmojiPopoverAnchor]);
 
-    // There is no way to disable animations, and they are really laggy, because there are so many
-    // emojis. The best alternative is to set it to 1ms so it just "pops" in and out
     return (
         <PopoverWithMeasuredContent
-            shouldHandleNavigationBack={Browser.isMobileChrome()}
+            shouldHandleNavigationBack={isMobileChrome()}
             isVisible={isEmojiPickerVisible}
             onClose={hideEmojiPicker}
             onModalShow={focusEmojiSearchInput}
             onModalHide={onModalHide.current}
-            hideModalContentWhileAnimating
             shouldSetModalVisibility={false}
-            animationInTiming={1}
-            animationOutTiming={1}
             anchorPosition={{
                 vertical: emojiPopoverAnchorPosition.vertical,
                 horizontal: emojiPopoverAnchorPosition.horizontal,
@@ -221,6 +216,7 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
             shoudSwitchPositionIfOverflow
             shouldEnableNewFocusManagement
             restoreFocusType={CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE}
+            shouldUseNewModal
         >
             <FocusTrapForModal active={isEmojiPickerVisible}>
                 <View>

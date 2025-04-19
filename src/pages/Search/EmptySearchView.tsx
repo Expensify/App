@@ -9,6 +9,7 @@ import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
@@ -128,7 +129,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
-                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -168,7 +169,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -232,21 +233,25 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
+            <ScrollView
                 showsVerticalScrollIndicator={false}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={content.headerMedia}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
-                title={content.title}
-                titleStyles={content.titleStyles}
-                subtitle={content.subtitle}
-                buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
-                lottieWebViewStyles={content.lottieWebViewStyles}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
-                {content.children}
-            </EmptyStateComponent>
+                <EmptyStateComponent
+                    SkeletonComponent={SearchRowSkeleton}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMedia={content.headerMedia}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    title={content.title}
+                    titleStyles={content.titleStyles}
+                    subtitle={content.subtitle}
+                    buttons={content.buttons}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    lottieWebViewStyles={content.lottieWebViewStyles}
+                >
+                    {content.children}
+                </EmptyStateComponent>
+            </ScrollView>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

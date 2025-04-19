@@ -26,6 +26,7 @@ jest.mock('@react-navigation/native', () => ({
     useNavigation: () => undefined,
     useFocusEffect: () => undefined,
 }));
+jest.mock('@components/ConfirmedRoute.tsx');
 
 describe('Sidebar', () => {
     beforeAll(() =>
@@ -74,8 +75,7 @@ describe('Sidebar', () => {
                 // Then the component should be rendered with an empty list since it will get past the early return
                 .then(() => {
                     expect(screen.toJSON()).not.toBe(null);
-                    const navigatesToChatHintText = translateLocal('accessibilityHints.navigatesToChat');
-                    expect(screen.queryAllByAccessibilityHint(navigatesToChatHintText)).toHaveLength(0);
+                    expect(screen.queryAllByAccessibilityHint(TestHelper.getNavigateToChatHintRegex())).toHaveLength(0);
                 }));
 
         it('contains one report when a report is in Onyx', () => {

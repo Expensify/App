@@ -65,9 +65,6 @@ type SMSDeliveryFailureStatus = {
     /** The message associated with the SMS delivery failure */
     message: string;
 
-    /** Indicates whether the SMS delivery failure status has been reset by an API call */
-    isReset?: boolean;
-
     /** Whether a sign is loading */
     isLoading?: boolean;
 };
@@ -176,6 +173,30 @@ type Account = {
         email: string;
         /** The calendar link of the guide details */
         calendarLink: string;
+    };
+
+    /** Model of the getValidateCodeForAccountMerge API call */
+    getValidateCodeForAccountMerge?: {
+        /** Whether the validation code was sent */
+        isLoading?: boolean;
+
+        /** Whether the user validation code was sent */
+        validateCodeSent?: boolean;
+
+        /** Errors while requesting the validation code */
+        errors: OnyxCommon.Errors;
+    };
+
+    /** Model of the mergeWithValidateCode API call */
+    mergeWithValidateCode?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        isAccountMerged?: boolean;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
     };
 };
 

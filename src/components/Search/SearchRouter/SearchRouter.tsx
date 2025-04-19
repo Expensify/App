@@ -149,7 +149,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 {
                     data: [
                         {
-                            text: `${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`,
+                            text: StringUtils.lineBreaksToSpaces(`${translate('search.searchIn')} ${reportForContextualSearch.text ?? reportForContextualSearch.alternateText}`),
                             singleIcon: Expensicons.MagnifyingGlass,
                             searchQuery: reportQueryValue,
                             autocompleteID,
@@ -275,7 +275,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             } else {
                 onRouterClose();
                 if (item?.reportID) {
-                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item?.reportID));
+                    Navigation.navigateToReportWithPolicyCheck({reportID: item?.reportID});
                 } else if ('login' in item) {
                     navigateToAndOpenReport(item.login ? [item.login] : [], false);
                 }
@@ -313,6 +313,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 <HeaderWithBackButton
                     title={translate('common.search')}
                     onBackButtonPress={() => onRouterClose()}
+                    shouldDisplayHelpButton={false}
                 />
             )}
             {isRecentSearchesDataLoaded && (
@@ -349,6 +350,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         onListItemPress={onListItemPress}
                         setTextQuery={setTextAndUpdateSelection}
                         updateAutocompleteSubstitutions={updateAutocompleteSubstitutions}
+                        onHighlightFirstItem={() => listRef.current?.updateAndScrollToFocusedIndex(1)}
                         ref={listRef}
                     />
                 </>

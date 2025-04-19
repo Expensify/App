@@ -41,7 +41,7 @@ type ReportActionsListItemRendererProps = {
     /** Should we display the new marker on top of the comment? */
     shouldDisplayNewMarker: boolean;
 
-    /** Linked report action ID */
+    /** Report action ID that was referenced in the deeplink to report  */
     linkedReportActionID?: string;
 
     /** Whether we should display "Replies" divider */

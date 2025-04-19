@@ -47,9 +47,9 @@ function EditTagPage({route}: EditTagPageProps) {
                 errors.tagName = translate('workspace.tags.invalidTagNameError');
             } else if (tags?.[escapedTagName] && currentTagName !== tagName) {
                 errors.tagName = translate('workspace.tags.existingTagError');
-            } else if ([...tagName].length > CONST.TAG_NAME_LIMIT) {
+            } else if ([...tagName].length > CONST.API_TRANSACTION_TAG_MAX_LENGTH) {
                 // Uses the spread syntax to count the number of Unicode code points instead of the number of UTF-16 code units.
-                errors.tagName = translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.TAG_NAME_LIMIT});
+                errors.tagName = translate('common.error.characterLimitExceedCounter', {length: [...tagName].length, limit: CONST.API_TRANSACTION_TAG_MAX_LENGTH});
             }
 
             return errors;
@@ -81,7 +81,7 @@ function EditTagPage({route}: EditTagPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={EditTagPage.displayName}
                 shouldEnableMaxHeight
@@ -103,6 +103,8 @@ function EditTagPage({route}: EditTagPageProps) {
                     validate={validate}
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}

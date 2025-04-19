@@ -1,117 +1,173 @@
-import React from 'react';
+import {PortalHost} from '@gorhom/portal';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import type {FlatList} from 'react-native';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
+import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import HeaderGap from '@components/HeaderGap';
-import MoneyReportHeader from '@components/MoneyReportHeader';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
-import type {SearchQueryJSON} from '@components/Search/types';
+import useIsReportReadyToDisplay from '@hooks/useIsReportReadyToDisplay';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
-import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {isValidReportIDFromPath} from '@libs/ReportUtils';
+import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
+import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
+import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
-import type * as OnyxTypes from '@src/types/onyx';
 import SearchTypeMenu from './SearchTypeMenu';
 
-type SearchPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
+type SearchMoneyRequestPageProps = PlatformStackScreenProps<SearchFullscreenNavigatorParamList, typeof SCREENS.SEARCH.MONEY_REQUEST_REPORT>;
 
-// We will figure out later, when this view is actually being finalized, how to pass down an actual query
-const tempJSONQuery = buildSearchQueryJSON('') as unknown as SearchQueryJSON;
-
-type TemporaryMoneyRequestReportViewProps = {
-    /** The report */
-    report: OnyxEntry<OnyxTypes.Report>;
-
-    /** The policy tied to the expense report */
-    policy: OnyxEntry<OnyxTypes.Policy>;
+const defaultReportMetadata = {
+    isLoadingInitialReportActions: true,
+    isLoadingOlderReportActions: false,
+    hasLoadingOlderReportActionsError: false,
+    isLoadingNewerReportActions: false,
+    hasLoadingNewerReportActionsError: false,
+    isOptimisticReport: false,
 };
 
-/**
- * TODO
- * This is a completely temporary component, displayed to:
- *  - show other devs that SearchMoneyRequestReportPage works
- *  - unblock work for other devs for Report Creation (https://github.com/Expensify/App/issues/57654)
- *
- *  This component is not displayed to any users.
- *  It will be removed once we fully implement SearchMoneyRequestReportPage (https://github.com/Expensify/App/issues/57508)
- */
-function TemporaryMoneyRequestReportView({report, policy}: TemporaryMoneyRequestReportViewProps) {
-    const styles = useThemeStyles();
-    return (
-        <View style={styles.flex1}>
-            <HeaderGap />
-            <MoneyReportHeader
-                report={report}
-                policy={policy}
-                reportActions={[]}
-                transactionThreadReportID={undefined}
-                onBackButtonPress={() => {
-                    Navigation.goBack();
-                }}
-            />
-        </View>
-    );
-}
-
-function SearchMoneyRequestReportPage({route}: SearchPageProps) {
+function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
+    const {canUseLeftHandBar} = usePermissions();
 
-    const {reportID} = route.params;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {allowStaleData: true});
+    const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
+
+    const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
+    const flatListRef = useRef<FlatList>(null);
+    const reactionListRef = useRef<ReactionListRef>(null);
+    const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
+
+    const reportID = report?.reportID;
+
+    useEffect(() => {
+        openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
+    }, [reportIDFromRoute]);
+
+    // eslint-disable-next-line rulesdir/no-negated-variables
+    const shouldShowNotFoundPage = useMemo(
+        (): boolean => {
+            if (isLoadingApp !== false) {
+                return false;
+            }
+
+            // eslint-disable-next-line react-compiler/react-compiler
+            if (!reportID && !reportMetadata?.isLoadingInitialReportActions) {
+                // eslint-disable-next-line react-compiler/react-compiler
+                return true;
+            }
+
+            return !!reportID && !isValidReportIDFromPath(reportID);
+        },
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+        [reportID, reportMetadata?.isLoadingInitialReportActions],
+    );
 
     if (shouldUseNarrowLayout) {
         return (
-            <ScreenWrapper
-                testID={SearchMoneyRequestReportPage.displayName}
-                shouldEnableMaxHeight
-                offlineIndicatorStyle={styles.mtAuto}
-                headerGapStyles={styles.searchHeaderGap}
-            >
-                <TemporaryMoneyRequestReportView
-                    report={report}
-                    policy={policy}
-                />
-            </ScreenWrapper>
+            <ActionListContext.Provider value={actionListValue}>
+                <ReactionListContext.Provider value={reactionListRef}>
+                    <ScreenWrapper
+                        testID={SearchMoneyRequestReportPage.displayName}
+                        shouldEnableMaxHeight
+                        offlineIndicatorStyle={styles.mtAuto}
+                        headerGapStyles={styles.searchHeaderGap}
+                    >
+                        <FullPageNotFoundView
+                            shouldShow={shouldShowNotFoundPage}
+                            subtitleKey="notFound.noAccess"
+                            subtitleStyle={[styles.textSupporting]}
+                            shouldDisplaySearchRouter
+                            shouldShowBackButton={shouldUseNarrowLayout}
+                            onBackButtonPress={Navigation.goBack}
+                            linkKey="notFound.noAccess"
+                        >
+                            <MoneyRequestReportView
+                                report={report}
+                                reportMetadata={reportMetadata}
+                                policy={policy}
+                                shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                backToRoute={route.params.backTo}
+                            />
+                        </FullPageNotFoundView>
+                    </ScreenWrapper>
+                </ReactionListContext.Provider>
+            </ActionListContext.Provider>
         );
     }
 
     return (
-        <ScreenWrapper
-            testID={SearchMoneyRequestReportPage.displayName}
-            shouldEnableMaxHeight
-            offlineIndicatorStyle={styles.mtAuto}
-            headerGapStyles={styles.searchHeaderGap}
-        >
-            <View style={styles.searchSplitContainer}>
-                <View style={styles.searchSidebar}>
-                    <View style={styles.flex1}>
-                        <HeaderGap />
-                        <TopBar
-                            breadcrumbLabel={translate('common.reports')}
-                            shouldDisplaySearch={false}
-                        />
-                        <SearchTypeMenu queryJSON={tempJSONQuery} />
+        <ActionListContext.Provider value={actionListValue}>
+            <ReactionListContext.Provider value={reactionListRef}>
+                <ScreenWrapper
+                    testID={SearchMoneyRequestReportPage.displayName}
+                    shouldEnableMaxHeight
+                    offlineIndicatorStyle={styles.mtAuto}
+                    headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
+                >
+                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
+                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
+                            <View style={styles.flex1}>
+                                <HeaderGap />
+                                <TopBar
+                                    breadcrumbLabel={translate('common.reports')}
+                                    shouldDisplaySearch={false}
+                                    shouldShowLoadingBar={false}
+                                />
+                                <SearchTypeMenu queryJSON={undefined} />
+                            </View>
+                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
+                        </View>
+                        <View style={[styles.flexColumn, styles.flex1]}>
+                            <FullPageNotFoundView
+                                shouldShow={shouldShowNotFoundPage}
+                                subtitleKey="notFound.noAccess"
+                                subtitleStyle={[styles.textSupporting]}
+                                shouldDisplaySearchRouter
+                                shouldShowBackButton={shouldUseNarrowLayout}
+                                onBackButtonPress={Navigation.goBack}
+                                linkKey="notFound.noAccess"
+                            >
+                                <DragAndDropProvider isDisabled={isEditingDisabled}>
+                                    <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden]}>
+                                        <MoneyRequestReportView
+                                            report={report}
+                                            reportMetadata={reportMetadata}
+                                            policy={policy}
+                                            shouldDisplayReportFooter={isCurrentReportLoadedFromOnyx}
+                                            backToRoute={route.params.backTo}
+                                        />
+                                    </View>
+                                    <PortalHost name="suggestions" />
+                                </DragAndDropProvider>
+                            </FullPageNotFoundView>
+                        </View>
                     </View>
-                    <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
-                </View>
-                <TemporaryMoneyRequestReportView
-                    report={report}
-                    policy={policy}
-                />
-            </View>
-        </ScreenWrapper>
+                </ScreenWrapper>
+            </ReactionListContext.Provider>
+        </ActionListContext.Provider>
     );
 }
 

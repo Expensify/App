@@ -6,7 +6,7 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import BankAccount from '@libs/models/BankAccount';
-import {cancelResetFreePlanBankAccount, resetFreePlanBankAccount} from '@userActions/BankAccounts';
+import {cancelResetBankAccount, resetNonUSDBankAccount, resetUSDBankAccount} from '@userActions/BankAccounts';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 
@@ -17,28 +17,53 @@ type WorkspaceResetBankAccountModalProps = {
     /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
     setShouldShowConnectedVerifiedBankAccount?: (shouldShowConnectedVerifiedBankAccount: boolean) => void;
 
-    /** Method to set the state of shouldShowConnectedVerifiedBankAccount */
+    /** Method to set the state of setUSDBankAccountStep */
     setUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Method to set the state of setNonUSDBankAccountStep */
+    setNonUSDBankAccountStep?: (step: string | null) => void;
+
+    /** Whether the workspace currency is set to non USD currency */
+    isNonUSDWorkspace: boolean;
 };
 
-function WorkspaceResetBankAccountModal({reimbursementAccount, setShouldShowConnectedVerifiedBankAccount, setUSDBankAccountStep}: WorkspaceResetBankAccountModalProps) {
+function WorkspaceResetBankAccountModal({
+    reimbursementAccount,
+    setShouldShowConnectedVerifiedBankAccount,
+    setUSDBankAccountStep,
+    setNonUSDBankAccountStep,
+    isNonUSDWorkspace,
+}: WorkspaceResetBankAccountModalProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [session] = useOnyx(ONYXKEYS.SESSION);
+    const policyID = reimbursementAccount?.achData?.policyID;
     const achData = reimbursementAccount?.achData;
     const isInOpenState = achData?.state === BankAccount.STATE.OPEN;
     const bankAccountID = achData?.bankAccountID;
     const bankShortName = `${achData?.addressName ?? ''} ${(achData?.accountNumber ?? '').slice(-4)}`;
 
     const handleConfirm = () => {
-        resetFreePlanBankAccount(bankAccountID, session, achData?.policyID);
+        if (isNonUSDWorkspace) {
+            resetNonUSDBankAccount(policyID);
 
-        if (setShouldShowConnectedVerifiedBankAccount) {
-            setShouldShowConnectedVerifiedBankAccount(false);
-        }
+            if (setShouldShowConnectedVerifiedBankAccount) {
+                setShouldShowConnectedVerifiedBankAccount(false);
+            }
 
-        if (setUSDBankAccountStep) {
-            setUSDBankAccountStep(null);
+            if (setNonUSDBankAccountStep) {
+                setNonUSDBankAccountStep(null);
+            }
+        } else {
+            resetUSDBankAccount(bankAccountID, session, policyID);
+
+            if (setShouldShowConnectedVerifiedBankAccount) {
+                setShouldShowConnectedVerifiedBankAccount(false);
+            }
+
+            if (setUSDBankAccountStep) {
+                setUSDBankAccountStep(null);
+            }
         }
     };
 
@@ -59,7 +84,7 @@ function WorkspaceResetBankAccountModal({reimbursementAccount, setShouldShowConn
                 )
             }
             danger
-            onCancel={cancelResetFreePlanBankAccount}
+            onCancel={cancelResetBankAccount}
             onConfirm={handleConfirm}
             shouldShowCancelButton
             isVisible

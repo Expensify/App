@@ -21,14 +21,18 @@ import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
-function Confirmation({onNext}: SubStepProps) {
+type ConfirmationStepProps = {
+    /** ID of current policy */
+    policyID: string | undefined;
+} & SubStepProps;
+
+function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
 
-    const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
@@ -78,6 +82,7 @@ function Confirmation({onNext}: SubStepProps) {
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5, styles.pb0]}
             isSubmitDisabled={disableSubmit}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mb3]}>{translate('countryStep.confirmBusinessBank')}</Text>
             <MenuItemWithTopDescription
@@ -96,7 +101,7 @@ function Confirmation({onNext}: SubStepProps) {
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
+                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
                 onValueChange={(value) => setSelectedCountry(value as string)}
                 description={translate('common.country')}
                 modalHeaderTitle={translate('countryStep.selectCountry')}

@@ -13,6 +13,7 @@ import {
     buildTransactionThread,
     canDeleteReportAction,
     canEditWriteCapability,
+    findLastAccessedReport,
     getAllAncestorReportActions,
     getApprovalChain,
     getChatByParticipants,
@@ -28,6 +29,7 @@ import {
     getReportName,
     getWorkspaceIcon,
     getWorkspaceNameUpdatedMessage,
+    hasReceiptError,
     isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
     requiresAttentionFromCurrentUser,
@@ -39,7 +41,8 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Beta, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 import * as NumberUtils from '../../src/libs/NumberUtils';
 import {convertedInvoiceChat} from '../data/Invoice';
@@ -52,6 +55,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 // Be sure to include the mocked permissions library or else the beta tests won't work
 jest.mock('@libs/Permissions');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const testDate = DateUtils.getDBTime();
 const currentUserEmail = 'bjorn@vikings.net';
@@ -271,6 +275,62 @@ describe('ReportUtils', () => {
 
             // Then it should return the new avatar
             expect(getWorkspaceIcon(workspaceChat, workspace).source).toBe(newAvatarURL);
+        });
+    });
+
+    describe('hasReceiptError', () => {
+        it('should return true for transaction has receipt error', () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            const errors: Errors | ErrorFields = {
+                '1231231231313221': {
+                    error: CONST.IOU.RECEIPT_ERROR,
+                    source: 'blob:https://dev.new.expensify.com:8082/6c5b7110-42c2-4e6d-8566-657ff24caf21',
+                    filename: 'images.jpeg',
+                    action: 'replaceReceipt',
+                },
+            };
+
+            report.parentReportID = parentReport.reportID;
+            const currentReportId = '';
+            const transactionID = 1;
+
+            const transaction = {
+                ...createRandomTransaction(transactionID),
+                category: '',
+                tag: '',
+                created: testDate,
+                reportID: currentReportId,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+                errors,
+            };
+            expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(true);
+        });
+    });
+
+    describe('hasReceiptError', () => {
+        it('should return false for transaction has no receipt error', () => {
+            const parentReport = LHNTestUtils.getFakeReport();
+            const report = LHNTestUtils.getFakeReport();
+            report.parentReportID = parentReport.reportID;
+            const currentReportId = '';
+            const transactionID = 1;
+
+            const transaction = {
+                ...createRandomTransaction(transactionID),
+                category: '',
+                tag: '',
+                created: testDate,
+                reportID: currentReportId,
+                managedCard: true,
+                comment: {
+                    liabilityType: CONST.TRANSACTION.LIABILITY_TYPE.RESTRICT,
+                },
+            };
+            expect(hasReceiptError(transaction as OnyxInputOrEntry<Transaction>)).toBe(false);
         });
     });
 
@@ -515,6 +575,48 @@ describe('ReportUtils', () => {
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
                 expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+            });
+        });
+
+        describe('Derived values', () => {
+            const report: Report = {
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                currency: 'CLP',
+                ownerAccountID: 1,
+                isPinned: false,
+                isOwnPolicyExpenseChat: true,
+                isWaitingOnBankAccount: false,
+                policyID: '1',
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            beforeAll(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                    report_1: report,
+                });
+            });
+
+            test('should return report name from a derived value', () => {
+                expect(getReportName(report)).toEqual("Ragnar Lothbrok's expenses");
+            });
+
+            test('should generate report name if report is not merged in the Onyx', () => {
+                const expenseChatReport: Report = {
+                    reportID: '2',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'CLP',
+                    ownerAccountID: 1,
+                    isPinned: false,
+                    isOwnPolicyExpenseChat: true,
+                    isWaitingOnBankAccount: false,
+                    policyID: '1',
+                };
+
+                expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
         });
     });
@@ -1802,53 +1904,42 @@ describe('ReportUtils', () => {
     });
 
     describe('isAllowedToApproveExpenseReport', () => {
-        it('should return true if the rule feature is disabled even preventSelfApproval is true', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: false,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+        const expenseReport: Report = {
+            ...createRandomReport(6),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: currentUserAccountID,
+        };
 
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
-        });
-        it('should return false if preventSelfApproval is true and the manager is the owner of the expense report', () => {
+        it('should return true if preventSelfApproval is disabled and the approver is not the owner of the expense report', () => {
             const fakePolicy: Policy = {
                 ...createRandomPolicy(6),
-                areRulesEnabled: true,
-                preventSelfApproval: true,
-            };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
-
-            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
-        });
-        it('should return true if preventSelfApproval is false', () => {
-            const fakePolicy: Policy = {
-                ...createRandomPolicy(6),
-                areRulesEnabled: true,
                 preventSelfApproval: false,
             };
-            const expenseReport: Report = {
-                ...createRandomReport(6),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: currentUserAccountID,
-                ownerAccountID: currentUserAccountID,
-                policyID: fakePolicy.id,
-            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
 
+        it('should return true if preventSelfApproval is enabled and the approver is not the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, 0, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return true if preventSelfApproval is disabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: false,
+            };
             expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeTruthy();
+        });
+
+        it('should return false if preventSelfApproval is enabled and the approver is the owner of the expense report', () => {
+            const fakePolicy: Policy = {
+                ...createRandomPolicy(6),
+                preventSelfApproval: true,
+            };
+            expect(isAllowedToApproveExpenseReport(expenseReport, currentUserAccountID, fakePolicy)).toBeFalsy();
         });
     });
 
@@ -1944,6 +2035,106 @@ describe('ReportUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${policyExpenseChat.reportID}`, policyExpenseChat);
 
             expect(getPolicyExpenseChat(1, '1')?.reportID).toBe(policyExpenseChat.reportID);
+        });
+    });
+
+    describe('findLastAccessedReport', () => {
+        let archivedReport: Report;
+        let normalReport: Report;
+
+        beforeAll(async () => {
+            // Set up test reports - one archived, one normal
+            archivedReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1001',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                lastVisibleActionCreated: '2024-02-01 04:56:47.233',
+            };
+
+            normalReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1002',
+                lastReadTime: '2024-01-01 04:56:47.233', // Older last read time
+                lastVisibleActionCreated: '2024-01-01 04:56:47.233',
+            };
+
+            // Set up report name value pairs to mark one report as archived
+            const reportNameValuePairs = {
+                private_isArchived: DateUtils.getDBTime(),
+            };
+
+            // Add reports to Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedReport.reportID}`, archivedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${normalReport.reportID}`, normalReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedReport.reportID}`, reportNameValuePairs);
+
+            // Set up report metadata for lastVisitTime
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${archivedReport.reportID}`, {
+                lastVisitTime: '2024-02-01 04:56:47.233', // More recent visit
+            });
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${normalReport.reportID}`, {
+                lastVisitTime: '2024-01-01 04:56:47.233',
+            });
+
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should not return an archived report even if it was most recently accessed', () => {
+            const result = findLastAccessedReport(false);
+
+            // Even though the archived report has a more recent lastVisitTime,
+            // the function should filter it out and return the normal report
+            expect(result?.reportID).toBe(normalReport.reportID);
+            expect(result?.reportID).not.toBe(archivedReport.reportID);
+        });
+    });
+    describe('findLastAccessedReport should return owned report if no reports was accessed before', () => {
+        let ownedReport: Report;
+        let nonOwnedReport: Report;
+
+        beforeAll(async () => {
+            // Set up test reports - one archived, one normal
+            nonOwnedReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1001',
+                lastReadTime: '2024-02-01 04:56:47.233',
+                lastVisibleActionCreated: '2024-02-01 04:56:47.233',
+                ownerAccountID: 1,
+            };
+
+            ownedReport = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: '1002',
+                lastReadTime: '2024-01-01 04:56:47.233', // Older last read time
+                lastVisibleActionCreated: '2024-01-01 04:56:47.233',
+                ownerAccountID: currentUserAccountID,
+            };
+
+            // Add reports to Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${ownedReport.reportID}`, ownedReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${nonOwnedReport.reportID}`, nonOwnedReport);
+
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('findLastAccessedReport should return owned report if no reports was accessed before', () => {
+            const result = findLastAccessedReport(false);
+
+            // Even though the archived report has a more recent lastVisitTime,
+            // the function should filter it out and return the normal report
+            expect(result?.reportID).toBe(ownedReport.reportID);
+            expect(result?.reportID).not.toBe(nonOwnedReport.reportID);
         });
     });
 

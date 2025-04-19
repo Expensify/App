@@ -203,7 +203,7 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(membersLength: number): OnyxData {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
     const onyxData: OnyxData = {
         successData: [
             {
@@ -213,7 +213,7 @@ function updateImportSpreadsheetData(membersLength: number): OnyxData {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
                         title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {members: membersLength}),
+                        prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: addedMembersLength, updated: updatedMembersLength}),
                     },
                 },
             },
@@ -949,7 +949,22 @@ type PolicyMember = {
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    const onyxData = updateImportSpreadsheetData(members.length);
+    const policy = getPolicy(policyID);
+    const {added, updated} = members.reduce(
+        (acc, curr) => {
+            const employee = policy?.employeeList?.[curr.email];
+            if (employee) {
+                if (curr.role !== employee.role) {
+                    acc.updated++;
+                }
+            } else {
+                acc.added++;
+            }
+            return acc;
+        },
+        {added: 0, updated: 0},
+    );
+    const onyxData = updateImportSpreadsheetData(added, updated);
 
     const parameters = {
         policyID,
@@ -1233,6 +1248,7 @@ export {
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
+    buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,
 };
 

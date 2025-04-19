@@ -25,7 +25,6 @@ jest.mock('@react-navigation/native');
 jest.mock('../../src/libs/Notification/LocalNotification');
 jest.mock('../../src/components/Icon/Expensicons');
 jest.mock('../../src/components/ConfirmedRoute.tsx');
-jest.mock('@src/components/Navigation/TopLevelBottomTabBar/useIsBottomTabVisibleDirectly');
 
 TestHelper.setupApp();
 const fetchMock = TestHelper.setupGlobalFetchMock();
@@ -74,6 +73,7 @@ function triggerListLayout(reportID?: string) {
                 ...LIST_SIZE,
             },
         },
+        persist: () => {},
     });
 
     fireEvent(within(report).getByTestId('report-actions-list'), 'onContentSizeChange', LIST_CONTENT_SIZE.width, LIST_CONTENT_SIZE.height);
@@ -338,6 +338,9 @@ describe('Pagination', () => {
         await act(() => {
             (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
         });
+        // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
+        // we need to scroll too to trigger `onStartReached` which triggers other updates
+        scrollToOffset(0);
         // ReportScreen relies on the onLayout event to receive updates from onyx.
         triggerListLayout();
         await waitForBatchedUpdatesWithAct();

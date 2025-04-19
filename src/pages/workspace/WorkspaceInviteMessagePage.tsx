@@ -24,6 +24,7 @@ import {clearDraftValues} from '@libs/actions/FormActions';
 import {openExternalLink} from '@libs/actions/Link';
 import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
 import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
@@ -115,6 +116,12 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
             return;
         }
+
+        if (getIsNarrowLayout()) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID), {forceReplace: true});
+            return;
+        }
+
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.dismissModal();
             InteractionManager.runAfterInteractions(() => {
@@ -178,7 +185,7 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
             fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={WorkspaceInviteMessagePage.displayName}
                 shouldEnableMaxHeight
                 style={{marginTop: viewportOffsetTop}}
@@ -197,6 +204,8 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
                     onSubmit={sendInvitation}
                     submitButtonText={translate('common.invite')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}

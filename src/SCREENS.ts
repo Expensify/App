@@ -39,6 +39,7 @@ const SCREENS = {
     SEARCH: {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
+        MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
         REPORT_RHP: 'Search_Report_RHP',
         ADVANCED_FILTERS_RHP: 'Search_Advanced_Filters_RHP',
         ADVANCED_FILTERS_DATE_RHP: 'Search_Advanced_Filters_Date_RHP',
@@ -60,6 +61,9 @@ const SCREENS = {
         ADVANCED_FILTERS_TAG_RHP: 'Search_Advanced_Filters_Tag_RHP',
         ADVANCED_FILTERS_FROM_RHP: 'Search_Advanced_Filters_From_RHP',
         ADVANCED_FILTERS_TO_RHP: 'Search_Advanced_Filters_To_RHP',
+        ADVANCED_FILTERS_REIMBURSABLE_RHP: 'Search_Advanced_Filters_Reimbursable_RHP',
+        ADVANCED_FILTERS_BILLABLE_RHP: 'Search_Advanced_Filters_Billable_RHP',
+        ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
         TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
@@ -108,6 +112,7 @@ const SCREENS = {
             PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
+            PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
 
         WALLET: {
@@ -133,6 +138,7 @@ const SCREENS = {
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
             SIZE: 'Settings_Subscription_Size',
+            SETTINGS_DETAILS: 'Settings_Subscription_Details',
             ADD_PAYMENT_CARD: 'Settings_Subscription_Add_Payment_Card',
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
@@ -144,6 +150,11 @@ const SCREENS = {
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
             UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
+        },
+        MERGE_ACCOUNTS: {
+            ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
+            ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
+            MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
     },
     TWO_FACTOR_AUTH: {
@@ -249,6 +260,7 @@ const SCREENS = {
         STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
+        STEP_REPORT: 'Money_Request_Report',
     },
 
     TRANSACTION_DUPLICATE: {
@@ -374,6 +386,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
             QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
             QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',
+            QUICKBOOKS_ONLINE_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Online_Auto_Sync',
+            QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Online_Accounting_Method',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
@@ -445,17 +459,6 @@ const SCREENS = {
             NETSUITE_CUSTOM_FORM_ID: 'Policy_Accounting_NetSuite_Custom_Form_ID',
             NETSUITE_AUTO_SYNC: 'Policy_Accounting_NetSuite_Auto_Sync',
             NETSUITE_ACCOUNTING_METHOD: 'Policy_Accounting_NetSuite_Accounting_Method',
-            NSQS_SETUP: 'Policy_Accounting_NSQS_Setup',
-            NSQS_IMPORT: 'Policy_Accounting_NSQS_Import',
-            NSQS_IMPORT_CUSTOMERS: 'Policy_Accounting_NSQS_Import_Customers',
-            NSQS_IMPORT_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_NSQS_Import_Customers_Displayed_As',
-            NSQS_IMPORT_PROJECTS: 'Policy_Accounting_NSQS_Import_Projects',
-            NSQS_IMPORT_PROJECTS_DISPLAYED_AS: 'Policy_Accounting_NSQS_Import_Projects_Displayed_As',
-            NSQS_EXPORT: 'Policy_Accounting_NSQS_Export',
-            NSQS_EXPORT_PREFERRED_EXPORTER: 'Policy_Accounting_NSQS_Export_Preferred_Exporter',
-            NSQS_EXPORT_DATE: 'Policy_Accounting_NSQS_Export_Date',
-            NSQS_EXPORT_PAYMENT_ACCOUNT: 'Policy_Accounting_NSQS_Export_Payment_Account',
-            NSQS_ADVANCED: 'Policy_Accounting_NSQS_Advanced',
             SAGE_INTACCT_PREREQUISITES: 'Policy_Accounting_Sage_Intacct_Prerequisites',
             ENTER_SAGE_INTACCT_CREDENTIALS: 'Policy_Enter_Sage_Intacct_Credentials',
             EXISTING_SAGE_INTACCT_CONNECTIONS: 'Policy_Existing_Sage_Intacct_Connections',
@@ -463,6 +466,8 @@ const SCREENS = {
             SAGE_INTACCT_IMPORT: 'Policy_Accounting_Sage_Intacct_Import',
             SAGE_INTACCT_TOGGLE_MAPPING: 'Policy_Accounting_Sage_Intacct_Toggle_Mapping',
             SAGE_INTACCT_MAPPING_TYPE: 'Policy_Accounting_Sage_Intacct_Mapping_Type',
+            SAGE_INTACCT_IMPORT_TAX: 'Policy_Accounting_Sage_Intacct_Import_Tax',
+            SAGE_INTACCT_IMPORT_TAX_MAPPING: 'Policy_Accounting_Sage_Intacct_Import_Tax_Mapping',
             SAGE_INTACCT_USER_DIMENSIONS: 'Policy_Accounting_Sage_Intacct_User_Dimensions',
             SAGE_INTACCT_ADD_USER_DIMENSION: 'Policy_Accounting_Sage_Intacct_Add_User_Dimension',
             SAGE_INTACCT_EDIT_USER_DIMENSION: 'Policy_Accounting_Sage_Intacct_Edit_User_Dimension',
@@ -479,7 +484,6 @@ const SCREENS = {
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
             RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
-            MULTI_CONNECTION_SELECTOR: 'Policy_Accounting_Multi_Connection_Selector',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
@@ -503,6 +507,7 @@ const SCREENS = {
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
+        EXPENSIFY_CARD_SELECT_FEED: 'Workspace_ExpensifyCard_Select_Feed',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Workspace_ExpensifyCard_LimitType',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -588,6 +593,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
         DOWNGRADE: 'Workspace_Downgrade',
+        PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RULES: 'Policy_Rules',
         RULES_CUSTOM_NAME: 'Rules_Custom_Name',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -598,6 +604,7 @@ const SCREENS = {
         RULES_MAX_EXPENSE_AGE: 'Rules_Max_Expense_Age',
         RULES_BILLABLE_DEFAULT: 'Rules_Billable_Default',
         RULES_CUSTOM: 'Rules_Custom',
+        RULES_PROHIBITED_DEFAULT: 'Rules_Prohibited_Default',
         PER_DIEM: 'Per_Diem',
         PER_DIEM_IMPORT: 'Per_Diem_Import',
         PER_DIEM_IMPORTED: 'Per_Diem_Imported',
@@ -635,6 +642,8 @@ const SCREENS = {
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
         WORKSPACES: 'Onboarding_Workspaces',
+        WORK_EMAIL: 'Onboarding_Work_Email',
+        WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
     },
 
     WELCOME_VIDEO: {
@@ -647,6 +656,10 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         ROOT: 'MigratedUserWelcomeModal_Root',
+    },
+
+    TEST_DRIVE_MODAL: {
+        ROOT: 'TestDrive_Modal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
@@ -677,6 +690,11 @@ const SCREENS = {
     REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
     REFERRAL_DETAILS: 'Referral_Details',
     KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    SHARE: {
+        ROOT: 'Share_Root',
+        SHARE_DETAILS: 'Share_Details',
+        SUBMIT_DETAILS: 'Submit_Details',
+    },
     TRANSACTION_RECEIPT: 'TransactionReceipt',
     FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
     RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',

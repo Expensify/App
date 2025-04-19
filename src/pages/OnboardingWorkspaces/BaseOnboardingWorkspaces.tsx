@@ -15,13 +15,13 @@ import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {joinAccessiblePolicy} from '@libs/actions/Policy/Member';
+import {completeOnboarding} from '@libs/actions/Report';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as MemberAction from '@userActions/Policy/Member';
-import * as Report from '@userActions/Report';
-import * as Welcome from '@userActions/Welcome';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {isCurrentUserValidated} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -41,22 +41,22 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
 
     const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
 
-    const isValidated = UserUtils.isCurrentUserValidated(loginList);
+    const isValidated = isCurrentUserValidated(loginList);
 
     const {canUseDefaultRooms} = usePermissions();
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const handleJoinWorkspace = useCallback(
         (policyID: string) => {
-            MemberAction.joinAccessiblePolicy(policyID);
-            Report.completeOnboarding(
-                CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
-                CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
-                onboardingPersonalDetails?.firstName ?? '',
-                onboardingPersonalDetails?.lastName ?? '',
-            );
-            Welcome.setOnboardingAdminsChatReportID();
-            Welcome.setOnboardingPolicyID(policyID);
+            joinAccessiblePolicy(policyID);
+            completeOnboarding({
+                engagementChoice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+                onboardingMessage: CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.LOOKING_AROUND],
+                firstName: onboardingPersonalDetails?.firstName,
+                lastName: onboardingPersonalDetails?.lastName,
+            });
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID(policyID);
 
             navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID);
         },
@@ -83,7 +83,7 @@ function BaseOnboardingWorkspaces({shouldUseNativeStyles, route}: BaseOnboarding
                 icons: [
                     {
                         id: policyInfo.policyID,
-                        source: ReportUtils.getDefaultWorkspaceAvatar(policyInfo.policyName),
+                        source: getDefaultWorkspaceAvatar(policyInfo.policyName),
                         fallbackIcon: Expensicons.FallbackWorkspaceAvatar,
                         name: policyInfo.policyName,
                         type: CONST.ICON_TYPE_WORKSPACE,

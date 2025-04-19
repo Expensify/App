@@ -2,7 +2,7 @@ import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 type FixedFooterProps = {
@@ -15,31 +15,33 @@ type FixedFooterProps = {
     /** Whether to add bottom safe area padding to the content. */
     addBottomSafeAreaPadding?: boolean;
 
+    /** Whether to add bottom safe area padding to the content. */
+    addOfflineIndicatorBottomSafeAreaPadding?: boolean;
+
     /** Whether to stick the footer to the bottom of the screen. */
     shouldStickToBottom?: boolean;
 };
 
-function FixedFooter({style, children, addBottomSafeAreaPadding = false, shouldStickToBottom = false}: FixedFooterProps) {
+function FixedFooter({
+    style,
+    children,
+    addBottomSafeAreaPadding = false,
+    addOfflineIndicatorBottomSafeAreaPadding = addBottomSafeAreaPadding,
+    shouldStickToBottom = false,
+}: FixedFooterProps) {
     const styles = useThemeStyles();
-    const {paddingBottom} = useSafeAreaPaddings(true);
 
-    const footerStyle = useMemo<StyleProp<ViewStyle>>(() => {
-        const totalPaddingBottom = styles.pb5.paddingBottom + paddingBottom;
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding,
+        addOfflineIndicatorBottomSafeAreaPadding,
+        additionalPaddingBottom: styles.pb5.paddingBottom,
+        styleProperty: shouldStickToBottom ? 'bottom' : 'paddingBottom',
+    });
 
-        // If the footer should stick to the bottom, we use absolute positioning instead of flex.
-        // In this case, we need to use style.bottom instead of style.paddingBottom.
-        if (shouldStickToBottom) {
-            return {position: 'absolute', left: 0, right: 0, bottom: addBottomSafeAreaPadding ? totalPaddingBottom : styles.pb5.paddingBottom};
-        }
-
-        // If the footer should not stick to the bottom, we use flex and add the safe area padding in styles.paddingBottom.
-        if (addBottomSafeAreaPadding) {
-            return {paddingBottom: totalPaddingBottom};
-        }
-
-        // Otherwise, we just use the default bottom padding.
-        return styles.pb5;
-    }, [addBottomSafeAreaPadding, paddingBottom, shouldStickToBottom, styles.pb5]);
+    const footerStyle = useMemo<StyleProp<ViewStyle>>(
+        () => [shouldStickToBottom && styles.stickToBottom, bottomSafeAreaPaddingStyle],
+        [bottomSafeAreaPaddingStyle, shouldStickToBottom, styles.stickToBottom],
+    );
 
     if (!children) {
         return null;

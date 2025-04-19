@@ -21,15 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import FILTER_KEYS from '@src/types/form/SearchAdvancedFiltersForm';
 import type {LastPaymentMethod, LastPaymentMethodType, SearchResults} from '@src/types/onyx';
 import type {SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
-import {openReport} from './Report';
-
-let currentUserEmail: string;
-Onyx.connect({
-    key: ONYXKEYS.SESSION,
-    callback: (val) => {
-        currentUserEmail = val?.email ?? '';
-    },
-});
+import type Nullable from '@src/types/utils/Nullable';
 
 let lastPaymentMethod: OnyxEntry<LastPaymentMethod>;
 Onyx.connect({
@@ -128,6 +120,13 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+            value: {
+                errors: null,
+            },
+        },
     ];
 
     const finallyData: OnyxUpdate[] = [
@@ -152,6 +151,7 @@ function getOnyxLoadingData(hash: number, queryJSON?: SearchQueryJSON): {optimis
                     status: queryJSON?.status,
                     type: queryJSON?.type,
                 },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
             },
         },
     ];
@@ -262,9 +262,7 @@ function search({queryJSON, offset}: {queryJSON: SearchQueryJSON; offset?: numbe
  * It's possible that we return legacy transactions that don't have a transaction thread created yet.
  * In that case, when users select the search result row, we need to create the transaction thread on the fly and update the search result with the new transactionThreadReport
  */
-function createTransactionThread(hash: number, transactionID: string, reportID: string, moneyRequestReportActionID: string) {
-    openReport(reportID, '', [currentUserEmail], undefined, moneyRequestReportActionID);
-
+function updateSearchResultsWithTransactionThreadReportID(hash: number, transactionID: string, reportID: string) {
     const onyxUpdate: Record<string, Record<string, Partial<SearchTransaction>>> = {
         data: {
             [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
@@ -397,7 +395,7 @@ function exportSearchItemsToCSV({query, jsonQuery, reportIDList, transactionIDLi
 /**
  * Updates the form values for the advanced filters search form.
  */
-function updateAdvancedFilters(values: Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>) {
+function updateAdvancedFilters(values: Nullable<Partial<FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM>>>) {
     Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, values);
 }
 
@@ -422,7 +420,7 @@ function clearAdvancedFilters() {
 export {
     saveSearch,
     search,
-    createTransactionThread,
+    updateSearchResultsWithTransactionThreadReportID,
     deleteMoneyRequestOnSearch,
     holdMoneyRequestOnSearch,
     unholdMoneyRequestOnSearch,

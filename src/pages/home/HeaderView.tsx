@@ -1,5 +1,5 @@
 import {useRoute} from '@react-navigation/native';
-import React, {memo, useEffect, useMemo, useState} from 'react';
+import React, {memo, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -16,18 +16,20 @@ import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import SearchButton from '@components/Search/SearchRouter/SearchButton';
-import HelpButton from '@components/SidePane/HelpButton';
+import HelpButton from '@components/SidePanel/HelpComponents/HelpButton';
 import SubscriptAvatar from '@components/SubscriptAvatar';
 import TaskHeaderActionButton from '@components/TaskHeaderActionButton';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
+import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {openExternalLink} from '@libs/actions/Link';
-import {getAssignedSupportData} from '@libs/actions/Policy/Policy';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
@@ -44,6 +46,7 @@ import {
     getReportDescription,
     getReportName,
     hasReportNameError,
+    isAdminRoom,
     isArchivedReport,
     isChatRoom as isChatRoomReportUtils,
     isChatThread as isChatThreadReportUtils,
@@ -72,6 +75,7 @@ import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import TalkToSalesButton from './TalkToSalesButton';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -103,15 +107,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const route = useRoute();
     const [isDeleteTaskConfirmModalVisible, setIsDeleteTaskConfirmModalVisible] = React.useState(false);
     const invoiceReceiverPolicyID = report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? report.invoiceReceiver.policyID : undefined;
-    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`);
+    const [invoiceReceiverPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {canBeMissing: true});
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID) ?? getNonEmptyStringOnyxID(report?.reportID)}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {canBeMissing: true});
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const [isDismissedDiscountBanner, setIsDismissedDiscountBanner] = useState(false);
 
     const {translate} = useLocalize();
@@ -119,6 +123,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const styles = useThemeStyles();
     const isSelfDM = isSelfDMReportUtils(report);
     const isGroupChat = isGroupChatReportUtils(report) || isDeprecatedGroupDM(report);
+    const {canUseTalkToAISales, canUseLeftHandBar} = usePermissions();
+    const shouldShowTalkToSales = !!canUseTalkToAISales && isAdminRoom(report);
 
     const allParticipants = getParticipantsAccountIDsForDisplay(report, false, true);
     const shouldAddEllipsis = allParticipants?.length > CONST.DISPLAY_PARTICIPANTS_LIMIT;
@@ -141,13 +147,8 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
     const policyName = getPolicyName({report, returnEmptyIfNotFound: true});
     const policyDescription = getPolicyDescriptionText(policy);
     const isPersonalExpenseChat = isPolicyExpenseChat && isCurrentUserSubmitter(report?.reportID);
-    const policyID = report?.policyID;
-    useEffect(() => {
-        if (!policyID) {
-            return;
-        }
-        getAssignedSupportData(policyID);
-    }, [policyID]);
+    const hasTeam2025Pricing = useHasTeam2025Pricing();
+    const subscriptionPlan = useSubscriptionPlan();
 
     const shouldShowSubtitle = () => {
         if (!subtitle) {
@@ -190,9 +191,12 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     // If the onboarding report is directly loaded, shouldShowDiscountBanner can return wrong value as it is not
     // linked to the react lifecycle directly. Wait for trial dates to load, before calculating.
-    // eslint-disable-next-line react-compiler/react-compiler
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    const shouldShowDiscount = useMemo(() => shouldShowDiscountBanner() && !isArchivedReport(reportNameValuePairs), [firstDayFreeTrial, lastDayFreeTrial, reportNameValuePairs]);
+    const shouldShowDiscount = useMemo(
+        () => shouldShowDiscountBanner(hasTeam2025Pricing, subscriptionPlan) && !isArchivedReport(reportNameValuePairs),
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [firstDayFreeTrial, lastDayFreeTrial, hasTeam2025Pricing, reportNameValuePairs, subscriptionPlan],
+    );
 
     const shouldShowSubscript = shouldReportShowSubscript(report);
     const defaultSubscriptSize = isExpenseRequest(report) ? CONST.AVATAR_SIZE.SMALL_NORMAL : CONST.AVATAR_SIZE.DEFAULT;
@@ -205,7 +209,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
 
     const isReportInRHP = route.name === SCREENS.SEARCH.REPORT_RHP;
     const shouldDisplaySearchRouter = !isReportInRHP || isSmallScreenWidth;
-    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
+    const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, {canBeMissing: true});
     const isChatUsedForOnboarding = isChatUsedForOnboardingReportUtils(report, onboardingPurposeSelected);
     const shouldShowEarlyDiscountBanner = shouldShowDiscount && isChatUsedForOnboarding;
     const shouldShowGuideBookingButtonInEarlyDiscountBanner = shouldShowGuideBooking && shouldShowEarlyDiscountBanner && !isDismissedDiscountBanner;
@@ -222,8 +226,15 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         />
     );
 
-    const getGuideBookButtonStyles = () => {
-        if (isChatUsedForOnboarding && !shouldShowDiscount) {
+    const talkToSalesButton = (
+        <TalkToSalesButton
+            reportID={report?.reportID}
+            shouldUseNarrowLayout={shouldUseNarrowLayout}
+        />
+    );
+
+    const getActionButtonStyles = () => {
+        if (isChatUsedForOnboarding && shouldShowDiscount) {
             return [styles.pb3, styles.pl5, styles.w50, styles.pr1];
         }
         return [styles.pb3, styles.ph5];
@@ -235,7 +246,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 style={[styles.borderBottom]}
                 dataSet={{dragArea: true}}
             >
-                <View style={[styles.appContentHeader, !shouldUseNarrowLayout && styles.headerBarDesktopHeight]}>
+                <View style={[styles.appContentHeader, styles.pr3, !shouldUseNarrowLayout && styles.headerBarDesktopHeight(canUseLeftHandBar)]}>
                     {isLoading ? (
                         <ReportHeaderSkeletonView onBackButtonPress={onNavigationMenuButtonClicked} />
                     ) : (
@@ -343,6 +354,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     )}
                                 </PressableWithoutFeedback>
                                 <View style={[styles.reportOptions, styles.flexRow, styles.alignItemsCenter, styles.gap2]}>
+                                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && !shouldUseNarrowLayout && talkToSalesButton}
                                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && shouldShowGuideBooking && !shouldUseNarrowLayout && guideBookingButton}
                                     {!shouldUseNarrowLayout && !shouldShowDiscount && isChatUsedForOnboarding && (
                                         <FreeTrial
@@ -354,7 +366,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                                     {!isParentReportLoading && canJoin && !shouldUseNarrowLayout && joinButton}
                                 </View>
                                 <HelpButton style={styles.ml2} />
-                                {shouldDisplaySearchRouter && <SearchButton style={styles.ml2} />}
+                                {shouldDisplaySearchRouter && <SearchButton />}
                             </View>
                             <ConfirmModal
                                 isVisible={isDeleteTaskConfirmModalVisible}
@@ -375,8 +387,9 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
                 </View>
                 {!isParentReportLoading && !isLoading && canJoin && shouldUseNarrowLayout && <View style={[styles.ph5, styles.pb2]}>{joinButton}</View>}
                 <View style={isChatUsedForOnboarding && !shouldShowDiscount && shouldShowGuideBooking && [styles.dFlex, styles.flexRow]}>
+                    {!shouldShowEarlyDiscountBanner && shouldShowTalkToSales && shouldUseNarrowLayout && <View style={getActionButtonStyles()}>{talkToSalesButton}</View>}
                     {!shouldShowGuideBookingButtonInEarlyDiscountBanner && !isLoading && shouldShowGuideBooking && shouldUseNarrowLayout && (
-                        <View style={getGuideBookButtonStyles()}>{guideBookingButton}</View>
+                        <View style={getActionButtonStyles()}>{guideBookingButton}</View>
                     )}
                     {!isLoading && !shouldShowDiscount && isChatUsedForOnboarding && shouldUseNarrowLayout && (
                         <FreeTrial
@@ -398,6 +411,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             </View>
             {shouldShowEarlyDiscountBanner && (
                 <EarlyDiscountBanner
+                    TalkToSalesButton={shouldShowTalkToSales ? talkToSalesButton : undefined}
                     GuideBookingButton={shouldShowGuideBookingButtonInEarlyDiscountBanner ? guideBookingButton : undefined}
                     isSubscriptionPage={false}
                     onDismissedDiscountBanner={() => setIsDismissedDiscountBanner(true)}

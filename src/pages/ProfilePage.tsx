@@ -6,7 +6,6 @@ import {useOnyx} from 'react-native-onyx';
 import AutoUpdateTime from '@components/AutoUpdateTime';
 import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import CommunicationsLink from '@components/CommunicationsLink';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -19,13 +18,11 @@ import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBa
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
+import {getDisplayNameOrDefault, getPhoneNumber} from '@libs/PersonalDetailsUtils';
 import {
     findSelfDMReportID,
     getChatByParticipants,
@@ -52,22 +49,6 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import mapOnyxCollectionItems from '@src/utils/mapOnyxCollectionItems';
 
 type ProfilePageProps = PlatformStackScreenProps<ProfileNavigatorParamList, typeof SCREENS.PROFILE_ROOT>;
-
-/**
- * Gets the phone number to display for SMS logins
- */
-const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
-    const {login = '', displayName = ''} = details ?? {};
-    // If the user hasn't set a displayName, it is set to their phone number
-    const parsedPhoneNumber = parsePhoneNumber(displayName);
-
-    if (parsedPhoneNumber.possible) {
-        return parsedPhoneNumber?.number?.e164;
-    }
-
-    // If the user has set a displayName, get the phone number from the SMS login
-    return login ? Str.removeSMSDomain(login) : '';
-};
 
 /**
  * This function narrows down the data from Onyx to just the properties that we want to trigger a re-render of the component. This helps minimize re-rendering
@@ -149,7 +130,6 @@ function ProfilePage({route}: ProfilePageProps) {
 
     const isSMSLogin = Str.isSMSLogin(login);
     const phoneNumber = getPhoneNumber(details);
-    const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : login;
 
     const hasAvatar = !!details?.avatar;
     const isLoading = !!personalDetailsMetadata?.[accountID]?.isLoading || isEmptyObject(details);
@@ -233,51 +213,48 @@ function ProfilePage({route}: ProfilePageProps) {
                                 containerStyle={[styles.ph0, styles.mb8]}
                             />
                             {hasStatus && (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.mw100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('statusPage.status')}
-                                    </Text>
-                                    <Text>{statusContent}</Text>
+                                <View style={[styles.detailsPageSectionContainer, styles.w100]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={statusContent}
+                                        description={translate('statusPage.status')}
+                                        interactive={false}
+                                    />
                                 </View>
                             )}
 
                             {/* Don't display email if current user is anonymous */}
                             {!(isCurrentUser && isAnonymousUserSession()) && login ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer, styles.w100]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                    </Text>
-                                    <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                        <UserDetailsTooltip accountID={details?.accountID ?? CONST.DEFAULT_NUMBER_ID}>
-                                            <Text
-                                                numberOfLines={1}
-                                                style={styles.w100}
-                                            >
-                                                {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
-                                            </Text>
-                                        </UserDetailsTooltip>
-                                    </CommunicationsLink>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : login}
+                                        description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                        interactive={false}
+                                    />
                                 </View>
                             ) : null}
                             {pronouns ? (
-                                <View style={[styles.mb6, styles.detailsPageSectionContainer]}>
-                                    <Text
-                                        style={[styles.textLabelSupporting, styles.mb1]}
-                                        numberOfLines={1}
-                                    >
-                                        {translate('profilePage.preferredPronouns')}
-                                    </Text>
-                                    <Text numberOfLines={1}>{pronouns}</Text>
+                                <View style={[styles.w100, styles.detailsPageSectionContainer]}>
+                                    <MenuItemWithTopDescription
+                                        style={[styles.ph0]}
+                                        title={pronouns}
+                                        description={translate('profilePage.preferredPronouns')}
+                                        interactive={false}
+                                    />
                                 </View>
                             ) : null}
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
+                        {isCurrentUser && (
+                            <MenuItem
+                                shouldShowRightIcon
+                                title={translate('common.editYourProfile')}
+                                icon={Expensicons.Pencil}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
+                            />
+                        )}
                         {shouldShowNotificationPreference && (
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon

@@ -1,64 +1,82 @@
 ---
-title: Admin offboarding checklist
-description: What to alter when your main Expensify person leaves the business
+title: Admin Offboarding Checklist
+description: Steps to follow when the main workspace admin leaves the business.
+keywords: [Expensify Classic, admin offboarding, switch admins]
 ---
-Many Expensify customers have one person who handles all the main roles in Expensify Classic: the Billing Owner, Workspace Admin, Domain Admin, Technical Contact, and Bank Account Owner. That means that if this person leaves the company or needs to be offboarded from their current position, you’ll need to assign these roles to another employee.
+<div id="expensify-classic" markdown="1">
 
-{% include info.html %}
-Your current admin and the person who will be your new admin should complete the following checklist _before_ your admin leaves the company.
-{% include end-info.html %}
+Many Expensify customers have one person managing key roles in Expensify Classic: **Billing Owner, Workspace Admin, Domain Admin, Technical Contact,** and **Bank Account Owner**. If this person leaves the company or changes roles, their responsibilities must be reassigned to another employee.
 
-## Checklist for the current admin
-### 1. Assign a new admin 
-{% include info.html %} 
-The current admin must add the new admin to all company workspaces they own, even if they are not in use. When someone takes over ownership of all workspaces, they also take over ownership of the existing Annual Subscription. If the new admin does not take ownership of all company workspaces, the previous owner will continue to be charged for the other workspaces they still own, along with their existing annual subscription, which can result in multiple subscriptions.
-{% include end-info.html %}
+⚠️ **Important:** Before the current admin leaves, they and the new admin should complete the following checklist.
+
+---
+
+# Checklist for the Current Admin
+
+## Assign a New Admin
 
 1. [Add the new admin](https://help.expensify.com/articles/expensify-classic/workspaces/Invite-members-and-assign-roles) to the workspace.
 2. [Assign the Admin role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles) to the new admin.
-3. If your company uses company card feeds, Expensify Cards, domain groups, or SAML, invite the new admin to be a [Domain Admin](https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins). 
+3. If your company uses **company card feeds, Expensify Cards, domain groups,** or **SAML**, invite the new admin as a [Domain Admin](https://help.expensify.com/articles/expensify-classic/domains/Add-Domain-Members-and-Admins).
 
-### 2. Share access to company bank account
-If you are the only admin with access to the company bank account in Expensify, [share the bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-share-a-verified-bank-account) with the new admin or another workspace admin. 
+**The current admin must add the new admin to all company workspaces, including ones that are no longer active:**
+- The new admin must take ownership of **all company workspaces** to ensure a single **Annual Subscription** continues.
+- If the previous admin retains ownership of any workspace, they will continue being billed separately.
 
-## Checklist for the new admin
-### 1. Take over billing and add payment account
-The new admin must [take over ownership and billing](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account) for the workspace. 
+## Share Access to the Company Bank Account
 
-### 2. Reverify the company bank account
-1-2 business days after sharing, Expensify will administer 3 test transactions to your bank account. After these transactions (2 withdrawals and 1 deposit) have been processed in your account, visit your Expensify Inbox or Payments page, where you’ll see a prompt to input the transaction amounts.
+If you are the only admin with access to the company bank account in Expensify, [share the bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-share-a-verified-bank-account) with the new admin or another workspace admin.
 
-### 3. Unshare company bank accounts
-Once the previous admin has left the company, the new admin (or any admin with access to the bank account) should [unshare the company bank account](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-remove-access-to-a-verified-bank-account) with the previous admin.
+---
 
-### 4. Update settlement account assignments
-1. Hover over Settings, then click Domains.
-2. Click the desired domain name.
-3. On the Company Cards tab, click the dropdown under the Imported Cards section to select the desired Expensify Card.
-4. To the right of the dropdown, click the Settings tab.
-5. If the bank account set as the Expensify Card settlement account matches the company bank account, use the green chat icon to send a message to Concierge or your Account Manager. We will link the settlement account to the bank account once it has been reverified by the new settlement owner. 
+# Checklist for the New Admin
 
-{% include info.html %} 
-The settlement owner must also be a Domain Admin.
-{% include end-info.html %}
+## Take Over Billing & Add a Payment Account
+[Take over workspace ownership and billing](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-billing-owner-and-payment-account) to ensure a smooth financial transition.
 
-### 5. Update default reimburser assignment
-1. Hover over Settings, then click Workspaces.
-2. Click the desired workspace name.
-3. Click the Reimbursement tab.
-4. Ensure that the reverified bank account is set as the reimbursement account. 
-5. Ensure that the previous admin is not set as the Default Reimburser. If they are, select a new reimburser. 
+## Re-verify the Company Bank Account
+- **1-2 business days after the bank account is shared with the **, Expensify will send **three test transactions** (two withdrawals, one deposit) to your bank account.
+- Visit **Settings > Account > Payments** or check your **Expensify Inbox** to verify these transactions.
 
-### 6. Reconnect integrations & set technical contact
-1. If your workspace is connected to an [accounting integration](https://help.expensify.com/expensify-classic/hubs/connections/) that is tied to the previous admin’s account, reconnect it.
-2. [Assign a new Technical Contact] if the email listed is for the previous admin. 
+## Unshare the Company Bank Account
+Once the previous admin leaves, [remove their access](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/Business-Bank-Accounts-USD#how-to-remove-access-to-a-verified-bank-account) from the bank account.
 
-### 7. Remove the previous Admin
-1. Once all of the above steps have been completed, you can either downgrade the previous admin’s [role](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles) to Employee if they are still within the company, or if they have left the company:
-[Remove the previous admin](https://help.expensify.com/articles/expensify-classic/workspaces/Remove-Members) from the workspace. 
-2. Close the member’s company Expensify account.
-    a. Hover over Settings, then click Domains.
-    b. Click the desired domain name.
-    c. Click the Domain Members tab.
-    d. Select the checkbox to the left of the employee, then click Close Accounts. 
-    e. Click Close to confirm.
+## Update the Assignment on the Settlement Account (Expensify Cards Only)
+If the company uses the Expensify Card, make sure the new admin is listed as the owner of the settlement account:
+1. Go to **Settings > Domains**.
+2. Select the appropriate domain.
+3. Click the **Company Cards** tab.
+4. Under **Imported Cards**, select the correct Expensify Card.
+5. Click the **Settings** tab next to the dropdown.
+6. If the **Expensify Card settlement account** matches the company bank account, use the green chat icon to contact **Concierge** or your **Account Manager** for reassignment.
+
+⚠️ **Important:** The **settlement account owner** must also be a **Domain Admin**.
+
+## Update the Default Reimburser Assignment
+1. Go to **Settings > Workspaces**.
+2. Select the appropriate workspace.
+3. Click the **Reimbursement** tab.
+4. Ensure the correct bank account is set as the reimbursement account.
+5. If the previous admin is listed as the **Default Reimburser**, assign the new reimburser.
+
+## Reconnect Integrations & Set a New Technical Contact
+1. If the workspace is connected to an [accounting integration](https://help.expensify.com/expensify-classic/hubs/connections/) linked to the previous admin’s account, make sure to reestablish the connection to the new admin's account.
+2. If the previous admin is listed as the Technical Contact, [update that role](https://help.expensify.com/articles/expensify-classic/workspaces/Assign-Technical-Contact) to the new admin or someone else in your company. 
+
+## Remove the Previous Admin
+1. If the previous admin is staying with the company, **downgrade their role** to employee:
+   - [Change workspace roles](https://help.expensify.com/articles/expensify-classic/workspaces/Change-member-workspace-roles).
+2. If they have left the company, **close their account**:
+   - [Remove the previous admin](https://help.expensify.com/articles/expensify-classic/workspaces/Remove-Members) from the workspace.
+   - **Close their Expensify account**:
+     1. Go to **Settings > Domains**.
+     2. Select the correct domain.
+     3. Click the **Domain Members** tab.
+     4. Check the box next to their name and click **Close Accounts**.
+     5. Confirm by clicking **Close**.
+
+---
+
+By following this checklist, you can ensure a seamless transition when offboarding an admin from Expensify. Taking these steps proactively helps maintain financial oversight and prevents unnecessary billing issues. If you have any questions, feel free to contact Concierge Support! 
+
+</div>

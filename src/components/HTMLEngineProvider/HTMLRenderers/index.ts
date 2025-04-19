@@ -4,15 +4,13 @@ import CodeRenderer from './CodeRenderer';
 import DeletedActionRenderer from './DeletedActionRenderer';
 import EditedRenderer from './EditedRenderer';
 import EmojiRenderer from './EmojiRenderer';
-import EMRenderer from './EMRenderer';
-import HeadingRenderer from './HeadingRenderer';
 import ImageRenderer from './ImageRenderer';
 import MentionHereRenderer from './MentionHereRenderer';
 import MentionReportRenderer from './MentionReportRenderer';
 import MentionUserRenderer from './MentionUserRenderer';
 import NextStepEmailRenderer from './NextStepEmailRenderer';
 import PreRenderer from './PreRenderer';
-import StrongRenderer from './StrongRenderer';
+import ShortMentionRenderer from './ShortMentionRenderer';
 import TaskTitleRenderer from './TaskTitleRenderer';
 import VideoRenderer from './VideoRenderer';
 
@@ -25,9 +23,6 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     code: CodeRenderer,
     img: ImageRenderer,
     video: VideoRenderer,
-    h1: HeadingRenderer,
-    strong: StrongRenderer,
-    em: EMRenderer,
 
     // Custom tag renderers
     edited: EditedRenderer,
@@ -37,6 +32,7 @@ const HTMLEngineProviderComponentList: CustomTagRendererRecord = {
     'mention-user': MentionUserRenderer,
     'mention-report': MentionReportRenderer,
     'mention-here': MentionHereRenderer,
+    'mention-short': ShortMentionRenderer,
     emoji: EmojiRenderer,
     'next-step-email': NextStepEmailRenderer,
     'deleted-action': DeletedActionRenderer,

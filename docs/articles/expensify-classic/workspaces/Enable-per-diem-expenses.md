@@ -1,24 +1,34 @@
 ---
 title: Enable per diem expenses
 description: Allow employees to add per diem expenses
+keywords: [Expensify Classic, per diem]
 ---
 <div id="expensify-classic" markdown="1">
 
-In order for Workspace Members to submit per diem expenses, a Workspace Admin must first enable per diem expenses and set the per diem rates. 
+A Workspace Admin must first enable per diem expenses and set the per diem rates for Workspace Members to submit per diem expenses. 
 
-To enable and set per diem rates,
+---
 
-1. Hover over Settings, then click **Workspaces**. 
-2. Click the **Group** tab on the left. 
-3. Click the desired workspace name. 
-4. Click the **Per Diem** tab on the left. 
-5. Click the Per Diem toggle to enable it. 
-6. Create a .csv, .txt, .xls, or .xlsx spreadsheet containing four columns: Destination, Sub-rate, Amount, and Currency. You’ll want a different row for each location that an employee may travel to, which may include states and/or countries to help account for cost differences across various locations. Here are some example templates you can use:
-   - [Germany rates]({{site.url}}/assets/Files/Germany-per-diem.csv)
-   - [Sweden rates]({{site.url}}/assets/Files/Sweden-per-diem.csv)
-   - [Finland rates]({{site.url}}/assets/Files/Finland-per-diem.csv)
-   - [South Africa single rates]({{site.url}}/assets/Files/South-Africa-per-diem.csv)
-7. Click **Import from spreadsheet**. 
-8. Click **Upload** to select your spreadsheet.
+# Set Per Diem Rates
+
+To enable and set per diem rates:
+1. Go to `Settings > Workspaces > [Workspace Name] > Per Diem`.
+2. Click the **Per Diem** tab on the left.
+3. Click the Per Diem toggle to enable it.
+4. Create a `.csv`, `.txt`, `.xls`, or `.xlsx` spreadsheet containing four columns: **Destination, Sub-rate, Amount, and Currency**. Each row should represent a different location where an employee may travel, including states and/or countries to account for cost differences (see example templates below).
+5. Click **Import from spreadsheet**.
+6. Click **Upload** to select your spreadsheet.
+
+**Note:** These instructions apply to Expensify Classic. If using New Expensify, settings may differ.
+
+---
+
+# Per Diem Rate Templates
+
+Below are some example templates to reference:
+- [Germany rates]({{site.url}}/assets/Files/Germany-per-diem.csv)
+- [Sweden rates]({{site.url}}/assets/Files/Sweden-per-diem.csv)
+- [Finland rates]({{site.url}}/assets/Files/Finland-per-diem.csv)
+- [South Africa single rates]({{site.url}}/assets/Files/South-Africa-per-diem.csv)
 
 </div>

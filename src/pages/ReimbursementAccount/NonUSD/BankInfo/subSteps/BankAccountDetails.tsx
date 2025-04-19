@@ -12,6 +12,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
+import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReimbursementAccountForm} from '@src/types/form';
@@ -32,7 +33,10 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
         return acc;
     }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
 
-    const defaultValues = getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount);
+    const defaultValues = useMemo(
+        () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
+        [reimbursementAccount, reimbursementAccountDraft, subStepKeys],
+    );
 
     const fieldIds = bankAccountDetailsFields?.map((field) => field.id);
 
@@ -73,6 +77,10 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
 
     const inputs = useMemo(() => {
         return bankAccountDetailsFields?.map((field) => {
+            if (field.valueSet !== undefined) {
+                return getInputForValueSet(field, String(defaultValues[field.id as keyof typeof defaultValues]), isEditing, styles);
+            }
+
             return (
                 <View
                     style={styles.mb6}
@@ -90,7 +98,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
                 </View>
             );
         });
-    }, [bankAccountDetailsFields, styles.mb6, isEditing, defaultValues]);
+    }, [bankAccountDetailsFields, styles, isEditing, defaultValues]);
 
     return (
         <FormProvider
@@ -100,6 +108,7 @@ function BankAccountDetails({onNext, isEditing, corpayFields}: BankInfoSubStepPr
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
             isSubmitDisabled={!inputs}
+            shouldHideFixErrorsAlert={(bankAccountDetailsFields?.length ?? 0) <= 1}
         >
             <>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankInfoStep.whatAreYour')}</Text>

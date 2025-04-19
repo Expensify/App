@@ -1,24 +1,25 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle, ViewToken} from 'react-native';
 import {View} from 'react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent, StyleProp, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import FullPageErrorView from '@components/BlockingViews/FullPageErrorView';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import SearchTableHeader from '@components/SelectionList/SearchTableHeader';
 import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
-import SelectionListWithModal from '@components/SelectionListWithModal';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
+import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {createTransactionThread, search} from '@libs/actions/Search';
+import {search, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Log from '@libs/Log';
-import memoize from '@libs/memoize';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {generateReportID} from '@libs/ReportUtils';
@@ -29,6 +30,7 @@ import {
     getSortedSections,
     isReportActionListItemType,
     isReportListItemType,
+    isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTransactionListItemType,
     shouldShowEmptyState,
@@ -38,28 +40,22 @@ import {isOnHold} from '@libs/TransactionUtils';
 import Navigation from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
 import EmptySearchView from '@pages/Search/EmptySearchView';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
+import SearchList from './SearchList';
+import SearchScopeProvider from './SearchScopeProvider';
 import type {SearchColumnType, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
     onSearchListScroll?: (event: NativeSyntheticEvent<NativeScrollEvent>) => void;
     contentContainerStyle?: StyleProp<ViewStyle>;
-    isSearchScreenFocused?: boolean;
-    onContentSizeChange?: (w: number, h: number) => void;
     currentSearchResults?: SearchResults;
     lastNonEmptySearchResults?: SearchResults;
 };
-
-const transactionItemMobileHeight = 100;
-const reportItemTransactionHeight = 52;
-const listItemPadding = 12; // this is equivalent to 'mb3' on every transaction/report list item
-const searchHeaderHeight = 54;
 
 function mapTransactionItemToSelectedEntry(item: TransactionListItemType): [string, SelectedTransactionInfo] {
     return [
@@ -101,7 +97,7 @@ function mapToItemWithSelectionInfo(
               ...item,
               shouldAnimateInHighlight,
               transactions: item.transactions?.map((transaction) => mapToTransactionItemWithSelectionInfo(transaction, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight)),
-              isSelected: item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
+              isSelected: item.transactions.length > 0 && item.transactions?.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected && canSelectMultiple),
           };
 }
 
@@ -128,7 +124,7 @@ function prepareTransactionsList(item: TransactionListItemType, selectedTransact
     };
 }
 
-function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onSearchListScroll, isSearchScreenFocused, contentContainerStyle, onContentSizeChange}: SearchProps) {
+function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onSearchListScroll, contentContainerStyle}: SearchProps) {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const styles = useThemeStyles();
@@ -148,8 +144,10 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const previousReportActions = usePrevious(reportActions);
+    const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
+    const {canUseTableReportView} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? !!selectionMode?.isEnabled : true;
 
     useEffect(() => {
@@ -192,52 +190,19 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    const getItemHeight = useCallback(
-        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-            if (isTransactionListItemType(item) || isReportActionListItemType(item)) {
-                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
-            }
-
-            if (item.transactions.length === 0) {
-                return 0;
-            }
-
-            if (item.transactions.length === 1) {
-                return isLargeScreenWidth ? variables.optionRowHeight + listItemPadding : transactionItemMobileHeight + listItemPadding;
-            }
-
-            const baseReportItemHeight = isLargeScreenWidth ? 72 : 108;
-            return baseReportItemHeight + item.transactions.length * reportItemTransactionHeight + listItemPadding;
-        },
-        [isLargeScreenWidth],
-    );
-
-    const getItemHeightMemoized = memoize(getItemHeight, {
-        transformKey: ([item]) => {
-            // List items are displayed differently on "L"arge and "N"arrow screens so the height will differ
-            // in addition the same items might be displayed as part of different Search screens ("Expenses", "All", "Finished")
-            const screenSizeHash = isLargeScreenWidth ? 'L' : 'N';
-            return `${hash}-${item.keyForList}-${screenSizeHash}`;
-        },
-    });
-
     const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
         searchResults,
         transactions,
         previousTransactions,
         queryJSON,
-        // Set offset to 0 to retrieve the most recent chat messages.
-        offset: 0,
+        offset,
         reportActions,
         previousReportActions,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded =
-        searchResults?.data !== undefined && searchResults?.search?.type === type && Array.isArray(status)
-            ? searchResults?.search?.status === status.join(',')
-            : searchResults?.search?.status === status;
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
 
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -325,6 +290,71 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         [isFocused, clearSelectedTransactions],
     );
 
+    const openReport = useCallback(
+        (item: TransactionListItemType | ReportListItemType | ReportActionListItemType, isOpenedAsReport?: boolean) => {
+            const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
+            const isTransactionItem = isTransactionListItemType(item);
+
+            let reportID =
+                isTransactionItem && (!item.isFromOneTransactionReport || isFromSelfDM) && item.transactionThreadReportID !== CONST.REPORT.UNREPORTED_REPORTID
+                    ? item.transactionThreadReportID
+                    : item.reportID;
+
+            if (!reportID) {
+                return;
+            }
+
+            const backTo = Navigation.getActiveRoute();
+            const shouldHandleTransactionAsReport = isReportListItemType(item) || (isTransactionItem && isOpenedAsReport);
+
+            if (canUseTableReportView && shouldHandleTransactionAsReport) {
+                Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo}));
+                return;
+            }
+
+            // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
+            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORTID) {
+                reportID = generateReportID();
+                updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
+                Navigation.navigate(
+                    ROUTES.SEARCH_REPORT.getRoute({
+                        reportID,
+                        backTo,
+                        moneyRequestReportActionID: item.moneyRequestReportActionID,
+                        transactionID: item.transactionID,
+                    }),
+                );
+                return;
+            }
+
+            if (isReportActionListItemType(item)) {
+                const reportActionID = item.reportActionID;
+                Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
+                return;
+            }
+
+            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
+        },
+        [canUseTableReportView, hash],
+    );
+
+    const onViewableItemsChanged = useCallback(
+        ({viewableItems}: {viewableItems: ViewToken[]}) => {
+            const isFirstItemVisible = viewableItems.at(0)?.index === 1;
+            // If the user is still loading the search results, or if they are scrolling down, don't refresh the search results
+            if (shouldShowLoadingState || !isFirstItemVisible) {
+                return;
+            }
+
+            // This line makes sure the app refreshes the search results when the user scrolls to the top.
+            // The backend sends items in parts based on the offset, with a limit on the number of items sent (pagination).
+            // As a result, it skips some items, for example, if the offset is 100, it sends the next items without the first ones.
+            // Therefore, when the user scrolls to the top, we need to refresh the search results.
+            setOffset(0);
+        },
+        [shouldShowLoadingState],
+    );
+
     if (shouldShowLoadingState) {
         return (
             <SearchRowSkeleton
@@ -361,6 +391,21 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         return mapToItemWithSelectionInfo(item, selectedTransactions, canSelectMultiple, shouldAnimateInHighlight);
     });
 
+    const hasErrors = Object.keys(searchResults?.errors ?? {}).length > 0 && !isOffline;
+
+    if (hasErrors) {
+        return (
+            <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
+                <FullPageErrorView
+                    shouldShow
+                    subtitleStyle={styles.textSupporting}
+                    title={translate('errorPage.title', {isBreakline: !!shouldUseNarrowLayout})}
+                    subtitle={translate('errorPage.subtitle')}
+                />
+            </View>
+        );
+    }
+
     if (shouldShowEmptyState(isDataLoaded, data.length, searchResults.search.type)) {
         return (
             <View style={[shouldUseNarrowLayout ? styles.searchListContentContainerStyles : styles.mt3, styles.flex1]}>
@@ -385,7 +430,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             return;
         }
 
-        if (item.transactions.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
+        if (item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)) {
             const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
 
             item.transactions.forEach((transaction) => {
@@ -405,31 +450,6 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         );
     };
 
-    const openReport = (item: TransactionListItemType | ReportListItemType | ReportActionListItemType) => {
-        const isFromSelfDM = item.reportID === CONST.REPORT.UNREPORTED_REPORTID;
-        let reportID = isTransactionListItemType(item) && (!item.isFromOneTransactionReport || isFromSelfDM) ? item.transactionThreadReportID : item.reportID;
-
-        if (!reportID) {
-            return;
-        }
-
-        // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-        if (isTransactionListItemType(item) && reportID === '0' && item.moneyRequestReportActionID) {
-            reportID = generateReportID();
-            createTransactionThread(hash, item.transactionID, reportID, item.moneyRequestReportActionID);
-        }
-
-        const backTo = Navigation.getActiveRoute();
-
-        if (isReportActionListItemType(item)) {
-            const reportActionID = item.reportActionID;
-            Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, reportActionID, backTo}));
-            return;
-        }
-
-        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID, backTo}));
-    };
-
     const fetchMoreResults = () => {
         if (!searchResults?.search?.hasMoreResults || shouldShowLoadingState || shouldShowLoadingMoreItems) {
             return;
@@ -439,10 +459,9 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const toggleAllTransactions = () => {
         const areItemsOfReportType = shouldGroupByReports;
-        const flattenedItems = areItemsOfReportType ? (data as ReportListItemType[]).flatMap((item) => item.transactions) : data;
-        const isAllSelected = flattenedItems.length === Object.keys(selectedTransactions).length;
+        const totalSelected = Object.keys(selectedTransactions).length;
 
-        if (isAllSelected) {
+        if (totalSelected > 0) {
             clearSelectedTransactions();
             return;
         }
@@ -463,72 +482,50 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     const shouldShowYear = shouldShowYearUtil(searchResults?.data);
     const shouldShowSorting = !Array.isArray(status) && !shouldGroupByReports;
+
     return (
-        <SelectionListWithModal<ReportListItemType | TransactionListItemType | ReportActionListItemType>
-            ref={handleSelectionListScroll(sortedSelectedData)}
-            sections={[{data: sortedSelectedData, isDisabled: false}]}
-            turnOnSelectionModeOnLongPress={type !== CONST.SEARCH.DATA_TYPES.CHAT}
-            onTurnOnSelectionMode={(item) => item && toggleTransaction(item)}
-            onCheckboxPress={toggleTransaction}
-            onSelectAll={toggleAllTransactions}
-            customListHeader={
-                !isLargeScreenWidth ? null : (
-                    <SearchTableHeader
-                        data={searchResults?.data}
-                        metadata={searchResults?.search}
-                        onSortPress={onSortPress}
-                        sortOrder={sortOrder}
-                        sortBy={sortBy}
-                        shouldShowYear={shouldShowYear}
-                        shouldShowSorting={shouldShowSorting}
-                    />
-                )
-            }
-            isSelected={(item) =>
-                (status !== CONST.SEARCH.STATUS.EXPENSE.ALL || shouldGroupByReports) && isReportListItemType(item)
-                    ? item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected)
-                    : !!item.isSelected
-            }
-            onScroll={onSearchListScroll}
-            onContentSizeChange={onContentSizeChange}
-            canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
-            customListHeaderHeight={searchHeaderHeight}
-            // To enhance the smoothness of scrolling and minimize the risk of encountering blank spaces during scrolling,
-            // we have configured a larger windowSize and a longer delay between batch renders.
-            // The windowSize determines the number of items rendered before and after the currently visible items.
-            // A larger windowSize helps pre-render more items, reducing the likelihood of blank spaces appearing.
-            // The updateCellsBatchingPeriod sets the delay (in milliseconds) between rendering batches of cells.
-            // A longer delay allows the UI to handle rendering in smaller increments, which can improve performance and smoothness.
-            // For more information, refer to the React Native documentation:
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#windowsize
-            // https://reactnative.dev/docs/0.73/optimizing-flatlist-configuration#updatecellsbatchingperiod
-            windowSize={111}
-            updateCellsBatchingPeriod={200}
-            ListItem={ListItem}
-            onSelectRow={openReport}
-            getItemHeight={getItemHeightMemoized}
-            shouldSingleExecuteRowSelect
-            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-            shouldPreventDefault={false}
-            listHeaderWrapperStyle={[styles.ph8, styles.pt3]}
-            containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
-            showScrollIndicator={false}
-            onEndReachedThreshold={0.75}
-            onEndReached={fetchMoreResults}
-            listFooterContent={
-                shouldShowLoadingMoreItems ? (
-                    <SearchRowSkeleton
-                        shouldAnimate
-                        fixedNumItems={5}
-                    />
-                ) : undefined
-            }
-            contentContainerStyle={[contentContainerStyle, styles.pb3]}
-            scrollEventThrottle={1}
-            shouldKeepFocusedItemAtTopOfViewableArea={type === CONST.SEARCH.DATA_TYPES.CHAT}
-            isScreenFocused={isSearchScreenFocused}
-            initialNumToRender={shouldUseNarrowLayout ? 5 : undefined}
-        />
+        <SearchScopeProvider isOnSearch>
+            <SearchList
+                ref={handleSelectionListScroll(sortedSelectedData)}
+                data={sortedSelectedData}
+                ListItem={ListItem}
+                onSelectRow={openReport}
+                onCheckboxPress={toggleTransaction}
+                onAllCheckboxPress={toggleAllTransactions}
+                canSelectMultiple={type !== CONST.SEARCH.DATA_TYPES.CHAT && canSelectMultiple}
+                shouldPreventLongPressRow={isChat}
+                SearchTableHeader={
+                    !isLargeScreenWidth ? undefined : (
+                        <SearchTableHeader
+                            data={searchResults?.data}
+                            metadata={searchResults?.search}
+                            onSortPress={onSortPress}
+                            sortOrder={sortOrder}
+                            sortBy={sortBy}
+                            shouldShowYear={shouldShowYear}
+                            shouldShowSorting={shouldShowSorting}
+                        />
+                    )
+                }
+                contentContainerStyle={[contentContainerStyle, styles.pb3]}
+                containerStyle={[styles.pv0, type === CONST.SEARCH.DATA_TYPES.CHAT && !isSmallScreenWidth && styles.pt3]}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                shouldGroupByReports={shouldGroupByReports}
+                onScroll={onSearchListScroll}
+                onEndReachedThreshold={0.75}
+                onEndReached={fetchMoreResults}
+                ListFooterComponent={
+                    shouldShowLoadingMoreItems ? (
+                        <SearchRowSkeleton
+                            shouldAnimate
+                            fixedNumItems={5}
+                        />
+                    ) : undefined
+                }
+                queryJSONHash={hash}
+                onViewableItemsChanged={onViewableItemsChanged}
+            />
+        </SearchScopeProvider>
     );
 }
 

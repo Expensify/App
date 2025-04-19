@@ -43,18 +43,18 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`);
     const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
 
     const getVerificationState = () => {
         if (cardOnWaitlist) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.ON_WAITLIST;
         }
-        if (cardSettings?.isSuccess) {
+        if (cardBankAccountMetadata?.isSuccess) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.VERIFIED;
         }
 
-        if (cardSettings?.isLoading) {
+        if (cardBankAccountMetadata?.isLoading) {
             return CONST.EXPENSIFY_CARD.VERIFICATION_STATE.LOADING;
         }
 
@@ -186,7 +186,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
         >
             <ScreenWrapper
                 testID={WorkspaceExpensifyCardBankAccounts.displayName}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnablePickerAvoiding={false}
                 shouldShowOfflineIndicator={false}
             >
@@ -198,7 +198,7 @@ function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankA
                     />
                     {isInVerificationState && renderVerificationStateView()}
                     {!isInVerificationState && (
-                        <FullPageOfflineBlockingView>
+                        <FullPageOfflineBlockingView addBottomSafeAreaPadding>
                             <View style={styles.flex1}>
                                 <Text style={[styles.mh5, styles.mb3]}>{translate('workspace.expensifyCard.chooseExistingBank')}</Text>
                                 {renderBankOptions()}

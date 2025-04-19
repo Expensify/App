@@ -8,6 +8,7 @@ import {autoUpdater} from 'electron-updater';
 import {machineId} from 'node-machine-id';
 import checkForUpdates from '@libs/checkForUpdates';
 import {translate} from '@libs/Localize';
+import Log from '@libs/Log';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -126,6 +127,7 @@ process.argv.forEach((arg) => {
 let hasUpdate = false;
 let downloadedVersion: string;
 let isSilentUpdating = false;
+let isUpdateInProgress = false;
 
 // Note that we have to subscribe to this separately and cannot use translateLocal,
 // because the only way code can be shared between the main and renderer processes at runtime is via the context bridge
@@ -142,13 +144,56 @@ const quitAndInstallWithUpdate = () => {
     autoUpdater.quitAndInstall();
 };
 
+const verifyAndInstallLatestVersion = (browserWindow: BrowserWindow): void => {
+    if (!browserWindow || browserWindow.isDestroyed()) {
+        return;
+    }
+
+    // Prevent multiple simultaneous updates
+    if (isUpdateInProgress) {
+        return;
+    }
+
+    isUpdateInProgress = true;
+
+    autoUpdater
+        .checkForUpdates()
+        .then((result) => {
+            if (!browserWindow || browserWindow.isDestroyed()) {
+                isUpdateInProgress = false;
+                return;
+            }
+
+            if (result?.updateInfo.version === downloadedVersion) {
+                return quitAndInstallWithUpdate();
+            }
+
+            return autoUpdater.downloadUpdate().then(() => {
+                return quitAndInstallWithUpdate();
+            });
+        })
+        .catch((error) => {
+            log.error('Error during update check or download:', error);
+        })
+        .finally(() => {
+            isUpdateInProgress = false;
+        });
+};
+
 /** Menu Item callback to trigger an update check */
 const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow) => {
+    // Prevent multiple simultaneous updates
+    if (isUpdateInProgress) {
+        return;
+    }
+
     if (menuItem) {
         // Disable item until the check (and download) is complete
         // eslint-disable-next-line no-param-reassign -- menu item flags like enabled or visible can be dynamically toggled by mutating the object
         menuItem.enabled = false;
     }
+
+    isUpdateInProgress = true;
 
     autoUpdater
         .checkForUpdates()
@@ -192,6 +237,7 @@ const manuallyCheckForUpdates = (menuItem?: MenuItem, browserWindow?: BaseWindow
         })
         .finally(() => {
             isSilentUpdating = false;
+            isUpdateInProgress = false;
             if (!menuItem) {
                 return;
             }
@@ -227,11 +273,13 @@ const electronUpdater = (browserWindow: BrowserWindow): PlatformSpecificUpdater 
             if (browserWindow.isVisible() && !isSilentUpdating) {
                 browserWindow.webContents.send(ELECTRON_EVENTS.UPDATE_DOWNLOADED, info.version);
             } else {
-                quitAndInstallWithUpdate();
+                verifyAndInstallLatestVersion(browserWindow);
             }
         });
 
-        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, quitAndInstallWithUpdate);
+        ipcMain.on(ELECTRON_EVENTS.START_UPDATE, () => {
+            verifyAndInstallLatestVersion(browserWindow);
+        });
         autoUpdater.checkForUpdates();
     },
     update: () => {
@@ -262,7 +310,6 @@ const mainWindow = (): Promise<void> => {
 
     // Prod and staging set the icon in the electron-builder config, so only update it here for dev
     if (__DEV__) {
-        console.debug('CONFIG: ', CONFIG);
         app.dock.setIcon(`${__dirname}/../icon-dev.png`);
         app.setName('New Expensify Dev');
     }
@@ -375,7 +422,12 @@ const mainWindow = (): Promise<void> => {
                         label: translate(preferredLocale, `desktopApplicationMenu.mainMenu`),
                         submenu: [
                             {id: 'about', role: 'about'},
-                            {id: 'update', label: translate(preferredLocale, `desktopApplicationMenu.update`), click: quitAndInstallWithUpdate, visible: false},
+                            {
+                                id: 'update',
+                                label: translate(preferredLocale, `desktopApplicationMenu.update`),
+                                click: () => verifyAndInstallLatestVersion(browserWindow),
+                                visible: false,
+                            },
                             {id: 'checkForUpdates', label: translate(preferredLocale, `desktopApplicationMenu.checkForUpdates`), click: manuallyCheckForUpdates},
                             {
                                 id: 'viewShortcuts',
@@ -591,12 +643,29 @@ const mainWindow = (): Promise<void> => {
                     browserWindow.webContents.send(ELECTRON_EVENTS.BLUR);
                 });
 
+                // Handle renderer process crashes by relaunching the app
+                browserWindow.webContents.on('render-process-gone', (event, detailed) => {
+                    if (detailed.reason === 'crashed') {
+                        // relaunch app
+                        app.relaunch({args: process.argv.slice(1).concat(['--relaunch'])});
+                        app.exit(0);
+                    }
+                    Log.info('App crashed  render-process-gone');
+                    Log.info(JSON.stringify(detailed));
+                });
+
                 app.on('before-quit', () => {
                     // Adding __DEV__ check because we want links to be handled by dev app only while it's running
                     // https://github.com/Expensify/App/issues/15965#issuecomment-1483182952
                     if (__DEV__) {
                         app.removeAsDefaultProtocolClient(appProtocol);
                     }
+
+                    // Clean up update listeners and reset flags
+                    autoUpdater.removeAllListeners();
+                    isUpdateInProgress = false;
+                    isSilentUpdating = false;
+
                     quitting = true;
                 });
                 app.on('activate', () => {

@@ -1,6 +1,6 @@
 import noop from 'lodash/noop';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {NativeEventSubscription, ViewStyle} from 'react-native';
 import {BackHandler, DeviceEventEmitter, Dimensions, InteractionManager, KeyboardAvoidingView, Modal, View} from 'react-native';
 import {LayoutAnimationConfig} from 'react-native-reanimated';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -41,6 +41,7 @@ function BottomDockedModal({
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [deviceWidth, setDeviceWidth] = useState(() => Dimensions.get('window').width);
     const [deviceHeight, setDeviceHeight] = useState(() => Dimensions.get('window').height);
+    const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number>();
 
     const styles = useThemeStyles();
@@ -60,12 +61,12 @@ function BottomDockedModal({
     }, [deviceWidth, deviceWidthProp, deviceHeight, deviceHeightProp]);
 
     const onBackButtonPressHandler = useCallback(() => {
-        if (isVisible) {
+        if (isVisibleState) {
             onBackButtonPress();
             return true;
         }
         return false;
-    }, [isVisible, onBackButtonPress]);
+    }, [isVisibleState, onBackButtonPress]);
 
     const handleEscape = useCallback(
         (e: KeyboardEvent) => {
@@ -78,23 +79,25 @@ function BottomDockedModal({
     );
 
     useEffect(() => {
-        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
         if (getPlatform() === CONST.PLATFORM.WEB) {
             document.body.addEventListener('keyup', handleEscape, {capture: true});
         } else {
-            BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
+            backHandlerListener.current = BackHandler.addEventListener('hardwareBackPress', onBackButtonPressHandler);
         }
 
         return () => {
             if (getPlatform() === CONST.PLATFORM.WEB) {
                 document.body.removeEventListener('keyup', handleEscape, {capture: true});
             } else {
-                BackHandler.removeEventListener('hardwareBackPress', onBackButtonPressHandler);
+                backHandlerListener.current?.remove();
             }
-            deviceEventListener.remove();
         };
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [handleEscape, onBackButtonPressHandler]);
+
+    useEffect(() => {
+        const deviceEventListener = DeviceEventEmitter.addListener('didUpdateDimensions', handleDimensionsUpdate);
+        return () => deviceEventListener.remove();
+    }, [handleDimensionsUpdate]);
 
     useEffect(
         () => () => {
@@ -129,7 +132,7 @@ function BottomDockedModal({
             width: deviceWidthProp ?? deviceWidth,
             height: deviceHeightProp ?? deviceHeight,
             backgroundColor: backdropColor,
-            opacity: getPlatform() === CONST.PLATFORM.WEB ? backdropOpacity : 1,
+            ...(getPlatform() === CONST.PLATFORM.WEB ? {opacity: backdropOpacity} : {}),
         };
     }, [deviceHeightProp, deviceWidthProp, deviceWidth, deviceHeight, backdropColor, backdropOpacity]);
 
@@ -214,10 +217,9 @@ function BottomDockedModal({
                 {...props}
             >
                 {isVisibleState && hasBackdrop && backdropView}
-
                 {avoidKeyboard ? (
                     <KeyboardAvoidingView
-                        behavior={getPlatform() === CONST.PLATFORM.IOS ? 'padding' : undefined}
+                        behavior="padding"
                         pointerEvents="box-none"
                         style={[style, {margin: 0}]}
                     >
