@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
 exports.formatE164PhoneNumber =
     exports.handleSAMLLoginError =
@@ -10,20 +10,19 @@ exports.formatE164PhoneNumber =
     exports.appendCountryCode =
     exports.getPhoneNumberWithoutSpecialChars =
         void 0;
-const expensify_common_1 = require('expensify-common');
-const react_native_onyx_1 = require('react-native-onyx');
-const CONFIG_1 = require('@src/CONFIG');
-const CONST_1 = require('@src/CONST');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-const ROUTES_1 = require('@src/ROUTES');
-const Session_1 = require('./actions/Session');
-const Navigation_1 = require('./Navigation/Navigation');
-const PhoneNumber_1 = require('./PhoneNumber');
-
-let countryCodeByIP;
+var expensify_common_1 = require('expensify-common');
+var react_native_onyx_1 = require('react-native-onyx');
+var CONFIG_1 = require('@src/CONFIG');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var ROUTES_1 = require('@src/ROUTES');
+var Session_1 = require('./actions/Session');
+var Navigation_1 = require('./Navigation/Navigation');
+var PhoneNumber_1 = require('./PhoneNumber');
+var countryCodeByIP;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COUNTRY_CODE,
-    callback (val) {
+    callback: function (val) {
         return (countryCodeByIP = val !== null && val !== void 0 ? val : 1);
     },
 });
@@ -41,18 +40,18 @@ function appendCountryCode(phone) {
     if (phone.startsWith('+')) {
         return phone;
     }
-    const phoneWithCountryCode = `+${  countryCodeByIP  }${phone}`;
+    var phoneWithCountryCode = '+' + countryCodeByIP + phone;
     if (PhoneNumber_1.parsePhoneNumber(phoneWithCountryCode).possible) {
         return phoneWithCountryCode;
     }
-    return `+${  phone}`;
+    return '+' + phone;
 }
 exports.appendCountryCode = appendCountryCode;
 /**
  * Check email is public domain or not
  */
 function isEmailPublicDomain(email) {
-    const emailDomain = expensify_common_1.Str.extractEmailDomain(email).toLowerCase();
+    var emailDomain = expensify_common_1.Str.extractEmailDomain(email).toLowerCase();
     return expensify_common_1.PUBLIC_DOMAINS.includes(emailDomain);
 }
 exports.isEmailPublicDomain = isEmailPublicDomain;
@@ -61,10 +60,10 @@ exports.isEmailPublicDomain = isEmailPublicDomain;
  * @returns a valid phone number formatted
  */
 function validateNumber(values) {
-    let _a;
-    const parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(values);
+    var _a;
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(values);
     if (parsedPhoneNumber.possible && expensify_common_1.Str.isValidE164Phone(values.slice(0))) {
-        return `${  (_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.e164  }${CONST_1['default'].SMS.DOMAIN}`;
+        return '' + ((_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.e164) + CONST_1['default'].SMS.DOMAIN;
     }
     return '';
 }
@@ -93,7 +92,7 @@ exports.areEmailsFromSamePrivateDomain = areEmailsFromSamePrivateDomain;
 function postSAMLLogin(body) {
     return fetch(CONFIG_1['default'].EXPENSIFY.SAML_URL, {
         method: CONST_1['default'].NETWORK.METHOD.POST,
-        body,
+        body: body,
         credentials: 'omit',
     }).then(function (response) {
         if (!response.ok) {
@@ -112,9 +111,9 @@ function handleSAMLLoginError(errorMessage, shouldClearSignInData) {
 }
 exports.handleSAMLLoginError = handleSAMLLoginError;
 function formatE164PhoneNumber(phoneNumber) {
-    let _a;
-    const phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumberWithCountryCode);
+    var _a;
+    var phoneNumberWithCountryCode = appendCountryCode(phoneNumber);
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumberWithCountryCode);
     return (_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.e164;
 }
 exports.formatE164PhoneNumber = formatE164PhoneNumber;

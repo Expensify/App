@@ -1,24 +1,24 @@
-
+'use strict';
 exports.__esModule = true;
 exports.filterObject = exports.shallowCompare = void 0;
-const getDefinedKeys = function (obj) {
+var getDefinedKeys = function (obj) {
     return Object.entries(obj)
         .filter(function (_a) {
-            const value = _a[1];
+            var value = _a[1];
             return value !== undefined;
         })
         .map(function (_a) {
-            const key = _a[0];
+            var key = _a[0];
             return key;
         });
 };
-const shallowCompare = function (obj1, obj2) {
+var shallowCompare = function (obj1, obj2) {
     if (!obj1 && !obj2) {
         return true;
     }
     if (obj1 && obj2) {
-        const keys1 = getDefinedKeys(obj1);
-        const keys2 = getDefinedKeys(obj2);
+        var keys1 = getDefinedKeys(obj1);
+        var keys2 = getDefinedKeys(obj2);
         return (
             keys1.length === keys2.length &&
             keys1.every(function (key) {

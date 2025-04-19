@@ -1,4 +1,4 @@
-
+'use strict';
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,7 +7,7 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
                 }
                 return t;
             };
@@ -16,17 +16,16 @@ var __assign =
 exports.__esModule = true;
 exports.parseStringifiedMessages = exports.shouldAttachLog = exports.createLog = exports.sanitizeConsoleInput = void 0;
 /* eslint-disable @typescript-eslint/naming-convention */
-const isEmpty_1 = require('lodash/isEmpty');
-const react_native_onyx_1 = require('react-native-onyx');
-const Console_1 = require('@libs/actions/Console');
-const CONFIG_1 = require('@src/CONFIG');
-const CONST_1 = require('@src/CONST');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-
-let shouldStoreLogs = false;
+var isEmpty_1 = require('lodash/isEmpty');
+var react_native_onyx_1 = require('react-native-onyx');
+var Console_1 = require('@libs/actions/Console');
+var CONFIG_1 = require('@src/CONFIG');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var shouldStoreLogs = false;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].SHOULD_STORE_LOGS,
-    callback (val) {
+    callback: function (val) {
         if (!val) {
             return;
         }
@@ -35,9 +34,9 @@ react_native_onyx_1['default'].connect({
 });
 /* store the original console.log function so we can call it */
 // eslint-disable-next-line no-console
-const originalConsoleLog = console.log;
+var originalConsoleLog = console.log;
 /* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
-const logPatternsToIgnore = [`merge called for key: ${  ONYXKEYS_1['default'].LOGS}`];
+var logPatternsToIgnore = ['merge called for key: ' + ONYXKEYS_1['default'].LOGS];
 /**
  * Check if the log should be attached to the console
  * @param message the message to check
@@ -54,7 +53,7 @@ exports.shouldAttachLog = shouldAttachLog;
  * @param args the arguments to log
  */
 function logMessage(args) {
-    const message = args
+    var message = args
         .map(function (arg) {
             if (typeof arg === 'object') {
                 try {
@@ -66,7 +65,7 @@ function logMessage(args) {
             return String(arg);
         })
         .join(' ');
-    const newLog = {time: new Date(), level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message, extraData: ''};
+    var newLog = {time: new Date(), level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: message, extraData: ''};
     Console_1.addLog(newLog);
 }
 /**
@@ -76,8 +75,8 @@ function logMessage(args) {
  */
 // eslint-disable-next-line no-console
 console.log = function () {
-    const args = [];
-    for (let _i = 0; _i < arguments.length; _i++) {
+    var args = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
         args[_i] = arguments[_i];
     }
     if (shouldStoreLogs && CONFIG_1['default'].ENVIRONMENT !== CONST_1['default'].ENVIRONMENT.DEV) {
@@ -85,8 +84,8 @@ console.log = function () {
     }
     originalConsoleLog.apply(console, args);
 };
-const charsToSanitize = /[\u2018\u2019\u201C\u201D\u201E\u2026]/g;
-const charMap = {
+var charsToSanitize = /[\u2018\u2019\u201C\u201D\u201E\u2026]/g;
+var charMap = {
     '\u2018': "'",
     '\u2019': "'",
     '\u201C': '"',
@@ -111,22 +110,22 @@ exports.sanitizeConsoleInput = sanitizeConsoleInput;
  * @returns an array of logs created by eval call
  */
 function createLog(text) {
-    const time = new Date();
+    var time = new Date();
     try {
         // @ts-expect-error Any code inside `sanitizedInput` that gets evaluated by `eval()` will be executed in the context of the current this value.
         // eslint-disable-next-line no-eval, no-invalid-this
-        const result = eval.call(this, text);
+        var result = eval.call(this, text);
         if (result !== undefined) {
             return [
-                {time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: `> ${  text}`, extraData: ''},
-                {time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.RESULT, message: String(result), extraData: ''},
+                {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: '> ' + text, extraData: ''},
+                {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.RESULT, message: String(result), extraData: ''},
             ];
         }
-        return [{time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: `> ${  text}`, extraData: ''}];
+        return [{time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: '> ' + text, extraData: ''}];
     } catch (error) {
         return [
-            {time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.ERROR, message: `> ${  text}`, extraData: ''},
-            {time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.ERROR, message: `Error: ${  error.message}`, extraData: ''},
+            {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.ERROR, message: '> ' + text, extraData: ''},
+            {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.ERROR, message: 'Error: ' + error.message, extraData: ''},
         ];
     }
 }
@@ -142,8 +141,8 @@ function parseStringifiedMessages(logs) {
     }
     return logs.map(function (log) {
         try {
-            const parsedMessage = JSON.parse(log.message);
-            return {...log, message: parsedMessage};
+            var parsedMessage = JSON.parse(log.message);
+            return __assign(__assign({}, log), {message: parsedMessage});
         } catch (_a) {
             // If the message can't be parsed, just return the original log
             return log;

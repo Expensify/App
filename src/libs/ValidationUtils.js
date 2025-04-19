@@ -1,9 +1,9 @@
-
-const __spreadArrays =
+'use strict';
+var __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
         return r;
     };
 exports.__esModule = true;
@@ -58,27 +58,27 @@ exports.isValidRegistrationNumber =
     exports.meetsMaximumAgeRequirement =
     exports.meetsMinimumAgeRequirement =
         void 0;
-const date_fns_1 = require('date-fns');
-const expensify_common_1 = require('expensify-common');
-const isEmpty_1 = require('lodash/isEmpty');
-const isObject_1 = require('lodash/isObject');
-const CONST_1 = require('@src/CONST');
-const CardUtils_1 = require('./CardUtils');
-const DateUtils_1 = require('./DateUtils');
-const Localize_1 = require('./Localize');
-const LoginUtils_1 = require('./LoginUtils');
-const PhoneNumber_1 = require('./PhoneNumber');
-const StringUtils_1 = require('./StringUtils');
+var date_fns_1 = require('date-fns');
+var expensify_common_1 = require('expensify-common');
+var isEmpty_1 = require('lodash/isEmpty');
+var isObject_1 = require('lodash/isObject');
+var CONST_1 = require('@src/CONST');
+var CardUtils_1 = require('./CardUtils');
+var DateUtils_1 = require('./DateUtils');
+var Localize_1 = require('./Localize');
+var LoginUtils_1 = require('./LoginUtils');
+var PhoneNumber_1 = require('./PhoneNumber');
+var StringUtils_1 = require('./StringUtils');
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
  * numbers.
  */
 function validateCardNumber(value) {
-    let sum = 0;
-    let shouldDouble = false;
+    var sum = 0;
+    var shouldDouble = false;
     // Loop through the card number from right to left
-    for (let i = value.length - 1; i >= 0; i--) {
-        let intVal = parseInt(value[i], 10);
+    for (var i = value.length - 1; i >= 0; i--) {
+        var intVal = parseInt(value[i], 10);
         // Double every second digit from the right
         if (shouldDouble) {
             intVal *= 2;
@@ -111,9 +111,9 @@ function isValidDate(date) {
     if (!date) {
         return false;
     }
-    const pastDate = date_fns_1.subYears(new Date(), 1000);
-    const futureDate = date_fns_1.addYears(new Date(), 1000);
-    const testDate = new Date(date);
+    var pastDate = date_fns_1.subYears(new Date(), 1000);
+    var futureDate = date_fns_1.addYears(new Date(), 1000);
+    var testDate = new Date(date);
     return date_fns_1.isValid(testDate) && date_fns_1.isAfter(testDate, pastDate) && date_fns_1.isBefore(testDate, futureDate);
 }
 exports.isValidDate = isValidDate;
@@ -124,9 +124,9 @@ function isValidPastDate(date) {
     if (!date) {
         return false;
     }
-    const pastDate = date_fns_1.subYears(new Date(), 1000);
-    const currentDate = new Date();
-    const testDate = date_fns_1.startOfDay(new Date(date));
+    var pastDate = date_fns_1.subYears(new Date(), 1000);
+    var currentDate = new Date();
+    var testDate = date_fns_1.startOfDay(new Date(date));
     return date_fns_1.isValid(testDate) && date_fns_1.isAfter(testDate, pastDate) && date_fns_1.isBefore(testDate, currentDate);
 }
 exports.isValidPastDate = isValidPastDate;
@@ -156,7 +156,7 @@ exports.isRequiredFulfilled = isRequiredFulfilled;
  * @param requiredFields - required fields for particular form
  */
 function getFieldRequiredErrors(values, requiredFields) {
-    const errors = {};
+    var errors = {};
     requiredFields.forEach(function (fieldKey) {
         if (isRequiredFulfilled(values[fieldKey])) {
             return;
@@ -178,7 +178,7 @@ function isValidExpirationDate(string) {
         return false;
     }
     // Use the last of the month to check if the expiration date is in the future or not
-    const expirationDate = `${CardUtils_1.getYearFromExpirationDateString(string)  }-${  CardUtils_1.getMonthFromExpirationDateString(string)  }-01`;
+    var expirationDate = CardUtils_1.getYearFromExpirationDateString(string) + '-' + CardUtils_1.getMonthFromExpirationDateString(string) + '-01';
     return date_fns_1.isAfter(new Date(expirationDate), date_fns_1.endOfMonth(new Date()));
 }
 exports.isValidExpirationDate = isValidExpirationDate;
@@ -224,8 +224,8 @@ exports.isValidSSNFullNine = isValidSSNFullNine;
  * Validate that a date meets the minimum age requirement.
  */
 function meetsMinimumAgeRequirement(date) {
-    const testDate = new Date(date);
-    const minDate = date_fns_1.subYears(new Date(), CONST_1['default'].DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    var testDate = new Date(date);
+    var minDate = date_fns_1.subYears(new Date(), CONST_1['default'].DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     return date_fns_1.isValid(testDate) && (date_fns_1.isSameDay(testDate, minDate) || date_fns_1.isBefore(testDate, minDate));
 }
 exports.meetsMinimumAgeRequirement = meetsMinimumAgeRequirement;
@@ -233,8 +233,8 @@ exports.meetsMinimumAgeRequirement = meetsMinimumAgeRequirement;
  * Validate that a date meets the maximum age requirement.
  */
 function meetsMaximumAgeRequirement(date) {
-    const testDate = new Date(date);
-    const maxDate = date_fns_1.subYears(new Date(), CONST_1['default'].DATE_BIRTH.MAX_AGE);
+    var testDate = new Date(date);
+    var maxDate = date_fns_1.subYears(new Date(), CONST_1['default'].DATE_BIRTH.MAX_AGE);
     return date_fns_1.isValid(testDate) && (date_fns_1.isSameDay(testDate, maxDate) || date_fns_1.isAfter(testDate, maxDate));
 }
 exports.meetsMaximumAgeRequirement = meetsMaximumAgeRequirement;
@@ -242,13 +242,13 @@ exports.meetsMaximumAgeRequirement = meetsMaximumAgeRequirement;
  * Validate that given date is in a specified range of years before now.
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
-    const currentDate = date_fns_1.startOfDay(new Date());
-    const testDate = date_fns_1.parse(date, CONST_1['default'].DATE.FNS_FORMAT_STRING, currentDate);
+    var currentDate = date_fns_1.startOfDay(new Date());
+    var testDate = date_fns_1.parse(date, CONST_1['default'].DATE.FNS_FORMAT_STRING, currentDate);
     if (!date_fns_1.isValid(testDate)) {
         return Localize_1.translateLocal('common.error.dateInvalid');
     }
-    const maximalDate = date_fns_1.subYears(currentDate, minimumAge);
-    const minimalDate = date_fns_1.subYears(currentDate, maximumAge);
+    var maximalDate = date_fns_1.subYears(currentDate, minimumAge);
+    var minimalDate = date_fns_1.subYears(currentDate, maximumAge);
     if (date_fns_1.isWithinInterval(testDate, {start: minimalDate, end: maximalDate})) {
         return '';
     }
@@ -262,8 +262,8 @@ exports.getAgeRequirementError = getAgeRequirementError;
  * Validate that given date is not in the past.
  */
 function getDatePassedError(inputDate) {
-    const currentDate = new Date();
-    const parsedDate = new Date(`${inputDate  }T00:00:00`); // set time to 00:00:00 for accurate comparison
+    var currentDate = new Date();
+    var parsedDate = new Date(inputDate + 'T00:00:00'); // set time to 00:00:00 for accurate comparison
     // If input date is not valid, return an error
     if (!date_fns_1.isValid(parsedDate)) {
         return Localize_1.translateLocal('common.error.dateInvalid');
@@ -281,7 +281,7 @@ exports.getDatePassedError = getDatePassedError;
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url) {
-    return new RegExp(`^${  expensify_common_1.Url.URL_REGEX_WITH_REQUIRED_PROTOCOL  }$`, 'i').test(url);
+    return new RegExp('^' + expensify_common_1.Url.URL_REGEX_WITH_REQUIRED_PROTOCOL + '$', 'i').test(url);
 }
 exports.isValidWebsite = isValidWebsite;
 /** Checks if the domain is public */
@@ -292,8 +292,8 @@ function isPublicDomain(domain) {
 }
 exports.isPublicDomain = isPublicDomain;
 function validateIdentity(identity) {
-    const requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
-    const errors = {};
+    var requiredFields = ['firstName', 'lastName', 'street', 'city', 'zipCode', 'state', 'ssnLast4', 'dob'];
+    var errors = {};
     // Check that all required fields are filled
     requiredFields.forEach(function (fieldName) {
         if (isRequiredFulfilled(identity[fieldName])) {
@@ -323,14 +323,14 @@ function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
     if (phoneNumber === void 0) {
         phoneNumber = '';
     }
-    const phone = phoneNumber || '';
-    const regionCode = isCountryCodeOptional ? CONST_1['default'].COUNTRY.US : undefined;
+    var phone = phoneNumber || '';
+    var regionCode = isCountryCodeOptional ? CONST_1['default'].COUNTRY.US : undefined;
     // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
     // so we need to check if it is a valid phone.
     if (regionCode && !expensify_common_1.Str.isValidPhoneFormat(phone)) {
         return false;
     }
-    const parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phone, {regionCode});
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phone, {regionCode: regionCode});
     return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST_1['default'].COUNTRY.US;
 }
 exports.isValidUSPhone = isValidUSPhone;
@@ -338,7 +338,7 @@ function isValidPhoneNumber(phoneNumber) {
     if (!CONST_1['default'].ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST_1['default'].REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
         return false;
     }
-    const parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumber);
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumber);
     return parsedPhoneNumber.possible;
 }
 exports.isValidPhoneNumber = isValidPhoneNumber;
@@ -366,8 +366,8 @@ exports.isNumericWithSpecialChars = isNumericWithSpecialChars;
  * using ABA routingNumber checksum algorithm: http://www.brainjar.com/js/validation/
  */
 function isValidRoutingNumber(routingNumber) {
-    let n = 0;
-    for (let i = 0; i < routingNumber.length; i += 3) {
+    var n = 0;
+    for (var i = 0; i < routingNumber.length; i += 3) {
         n += parseInt(routingNumber.charAt(i), 10) * 3 + parseInt(routingNumber.charAt(i + 1), 10) * 7 + parseInt(routingNumber.charAt(i + 2), 10);
     }
     // If the resulting sum is an even multiple of ten (but not zero),
@@ -410,7 +410,7 @@ exports.isValidPersonName = isValidPersonName;
  * Checks if the provided string includes any of the provided reserved words
  */
 function doesContainReservedWord(value, reservedWords) {
-    const valueToCheck = value.trim().toLowerCase();
+    var valueToCheck = value.trim().toLowerCase();
     return reservedWords.some(function (reservedWord) {
         return valueToCheck.includes(reservedWord.toLowerCase());
     });
@@ -481,19 +481,19 @@ exports.isValidAccountRoute = isValidAccountRoute;
  * data - A date and time string in 'YYYY-MM-DD HH:mm:ss.sssZ' format
  * returns an object containing the error messages for the date and time
  */
-const validateDateTimeIsAtLeastOneMinuteInFuture = function (data) {
+var validateDateTimeIsAtLeastOneMinuteInFuture = function (data) {
     if (!data) {
         return {
             dateValidationErrorKey: '',
             timeValidationErrorKey: '',
         };
     }
-    const parsedInputData = date_fns_1.parseISO(data);
-    const dateValidationErrorKey = DateUtils_1['default'].getDayValidationErrorKey(parsedInputData);
-    const timeValidationErrorKey = DateUtils_1['default'].getTimeValidationErrorKey(parsedInputData);
+    var parsedInputData = date_fns_1.parseISO(data);
+    var dateValidationErrorKey = DateUtils_1['default'].getDayValidationErrorKey(parsedInputData);
+    var timeValidationErrorKey = DateUtils_1['default'].getTimeValidationErrorKey(parsedInputData);
     return {
-        dateValidationErrorKey,
-        timeValidationErrorKey,
+        dateValidationErrorKey: dateValidationErrorKey,
+        timeValidationErrorKey: timeValidationErrorKey,
     };
 };
 exports.validateDateTimeIsAtLeastOneMinuteInFuture = validateDateTimeIsAtLeastOneMinuteInFuture;
@@ -501,11 +501,11 @@ exports.validateDateTimeIsAtLeastOneMinuteInFuture = validateDateTimeIsAtLeastOn
  * This function is used to remove invisible characters from strings before validation and submission.
  */
 function prepareValues(values) {
-    const trimmedStringValues = {};
-    for (let _i = 0, _a = Object.entries(values); _i < _a.length; _i++) {
-        const _b = _a[_i];
-            const inputID = _b[0];
-            const inputValue = _b[1];
+    var trimmedStringValues = {};
+    for (var _i = 0, _a = Object.entries(values); _i < _a.length; _i++) {
+        var _b = _a[_i],
+            inputID = _b[0],
+            inputValue = _b[1];
         if (typeof inputValue === 'string') {
             trimmedStringValues[inputID] = StringUtils_1['default'].removeInvisibleCharacters(inputValue);
         } else {
@@ -519,7 +519,7 @@ exports.prepareValues = prepareValues;
  * Validates the given value if it is correct percentage value.
  */
 function isValidPercentage(value) {
-    const parsedValue = Number(value);
+    var parsedValue = Number(value);
     return !Number.isNaN(parsedValue) && parsedValue >= 0 && parsedValue <= 100;
 }
 exports.isValidPercentage = isValidPercentage;
@@ -527,14 +527,14 @@ exports.isValidPercentage = isValidPercentage;
  * Validates the given value if it is correct tax name.
  */
 function isExistingTaxName(taxName, taxRates) {
-    const trimmedTaxName = taxName.trim();
+    var trimmedTaxName = taxName.trim();
     return !!Object.values(taxRates).find(function (taxRate) {
         return taxRate.name === trimmedTaxName;
     });
 }
 exports.isExistingTaxName = isExistingTaxName;
 function isExistingTaxCode(taxCode, taxRates) {
-    const trimmedTaxCode = taxCode.trim();
+    var trimmedTaxCode = taxCode.trim();
     return !!Object.keys(taxRates).find(function (taxID) {
         return taxID === trimmedTaxCode;
     });
@@ -544,7 +544,7 @@ exports.isExistingTaxCode = isExistingTaxCode;
  * Validates the given value if it is correct subscription size.
  */
 function isValidSubscriptionSize(subscriptionSize) {
-    const parsedSubscriptionSize = Number(subscriptionSize);
+    var parsedSubscriptionSize = Number(subscriptionSize);
     return (
         !Number.isNaN(parsedSubscriptionSize) &&
         parsedSubscriptionSize > 0 &&
@@ -566,9 +566,9 @@ exports.isValidEmail = isValidEmail;
  * @param phoneNumber
  */
 function isValidPhoneInternational(phoneNumber) {
-    let _a; let _b;
-    const phoneNumberWithCountryCode = LoginUtils_1.appendCountryCode(phoneNumber);
-    const parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumberWithCountryCode);
+    var _a, _b;
+    var phoneNumberWithCountryCode = LoginUtils_1.appendCountryCode(phoneNumber);
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumberWithCountryCode);
     return (
         parsedPhoneNumber.possible &&
         expensify_common_1.Str.isValidE164Phone((_b = (_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.e164) !== null && _b !== void 0 ? _b : '')
@@ -590,17 +590,17 @@ exports.isValidZipCodeInternational = isValidZipCodeInternational;
  * @param ownerBeingModifiedID
  */
 function isValidOwnershipPercentage(value, totalOwnedPercentage, ownerBeingModifiedID) {
-    const parsedValue = Number(value);
-    const isValidNumber = !Number.isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 100;
-    let totalOwnedPercentageSum = 0;
-    const totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
+    var parsedValue = Number(value);
+    var isValidNumber = !Number.isNaN(parsedValue) && parsedValue >= 25 && parsedValue <= 100;
+    var totalOwnedPercentageSum = 0;
+    var totalOwnedPercentageKeys = Object.keys(totalOwnedPercentage);
     totalOwnedPercentageKeys.forEach(function (key) {
         if (key === ownerBeingModifiedID) {
             return;
         }
         totalOwnedPercentageSum += totalOwnedPercentage[key];
     });
-    const isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
+    var isTotalSumValid = totalOwnedPercentageSum + parsedValue <= 100;
     return isValidNumber && isTotalSumValid;
 }
 exports.isValidOwnershipPercentage = isValidOwnershipPercentage;
@@ -609,14 +609,14 @@ exports.isValidOwnershipPercentage = isValidOwnershipPercentage;
  * @param registrationNumber - number to validate.
  */
 function isValidABN(registrationNumber) {
-    const cleanedAbn = registrationNumber.replaceAll(/[ _]/g, '');
+    var cleanedAbn = registrationNumber.replaceAll(/[ _]/g, '');
     if (cleanedAbn.length !== 11) {
         return false;
     }
-    const weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
-    const checksum = __spreadArrays(cleanedAbn).reduce(function (total, char, index) {
-        let _a;
-        let digit = Number(char);
+    var weights = [10, 1, 3, 5, 7, 9, 11, 13, 15, 17, 19];
+    var checksum = __spreadArrays(cleanedAbn).reduce(function (total, char, index) {
+        var _a;
+        var digit = Number(char);
         if (index === 0) {
             digit--;
         } // First digit special rule
@@ -629,15 +629,15 @@ function isValidABN(registrationNumber) {
  * @param registrationNumber - number to validate.
  */
 function isValidACN(registrationNumber) {
-    const cleanedAcn = registrationNumber.replaceAll(/\s|-/g, '');
+    var cleanedAcn = registrationNumber.replaceAll(/\s|-/g, '');
     if (cleanedAcn.length !== 9 || Number.isNaN(Number(cleanedAcn))) {
         return false;
     }
-    const weights = [8, 7, 6, 5, 4, 3, 2, 1];
-    const tally = weights.reduce(function (total, weight, index) {
+    var weights = [8, 7, 6, 5, 4, 3, 2, 1];
+    var tally = weights.reduce(function (total, weight, index) {
         return total + Number(cleanedAcn[index]) * weight;
     }, 0);
-    const checkDigit = 10 - (tally % 10);
+    var checkDigit = 10 - (tally % 10);
     return checkDigit === Number(cleanedAcn[8]) || (checkDigit === 10 && Number(cleanedAcn[8]) === 0);
 }
 /**

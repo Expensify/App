@@ -1,7 +1,7 @@
-
+'use strict';
 exports.__esModule = true;
 exports.timezoneBackwardMap = void 0;
-const TIMEZONES = [
+var TIMEZONES = [
     'Africa/Abidjan',
     'Africa/Accra',
     'Africa/Addis_Ababa',
@@ -425,7 +425,7 @@ const TIMEZONES = [
  * The timezones supported in browser and on native devices differ, so we must map each timezone to its supported equivalent.
  * Data sourced from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
  */
-const timezoneBackwardMap = {
+var timezoneBackwardMap = {
     'Africa/Asmera': 'Africa/Nairobi',
     'Africa/Timbuktu': 'Africa/Abidjan',
     'America/Argentina/ComodRivadavia': 'America/Argentina/Catamarca',

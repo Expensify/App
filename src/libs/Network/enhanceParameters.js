@@ -1,4 +1,4 @@
-
+'use strict';
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,26 +7,26 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
                 }
                 return t;
             };
         return __assign.apply(this, arguments);
     };
 exports.__esModule = true;
-const react_native_onyx_1 = require('react-native-onyx');
-const Environment = require('@libs/Environment/Environment');
-const getPlatform_1 = require('@libs/getPlatform');
-const CONFIG_1 = require('@src/CONFIG');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-const package_json_1 = require('../../../package.json');
-const NetworkStore = require('./NetworkStore');
+var react_native_onyx_1 = require('react-native-onyx');
+var Environment = require('@libs/Environment/Environment');
+var getPlatform_1 = require('@libs/getPlatform');
+var CONFIG_1 = require('@src/CONFIG');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var package_json_1 = require('../../../package.json');
+var NetworkStore = require('./NetworkStore');
 // For all requests, we'll send the lastUpdateID that is applied to this client. This will
 // allow us to calculate previousUpdateID faster.
-let lastUpdateIDAppliedToClient = -1;
+var lastUpdateIDAppliedToClient = -1;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
-    callback (value) {
+    callback: function (value) {
         if (value) {
             lastUpdateIDAppliedToClient = value;
         } else {
@@ -35,11 +35,11 @@ react_native_onyx_1['default'].connect({
     },
 });
 // Check if the user is logged in as a delegate and send that if so
-let delegate = '';
+var delegate = '';
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].ACCOUNT,
-    callback (val) {
-        let _a; let _b;
+    callback: function (val) {
+        var _a, _b;
         delegate = (_b = (_a = val === null || val === void 0 ? void 0 : val.delegatedAccess) === null || _a === void 0 ? void 0 : _a.delegate) !== null && _b !== void 0 ? _b : '';
     },
 });
@@ -53,8 +53,8 @@ function isAuthTokenRequired(command) {
  * Adds default values to our request data
  */
 function enhanceParameters(command, parameters) {
-    let _a; let _b;
-    const finalParameters = { ...parameters};
+    var _a, _b;
+    var finalParameters = __assign({}, parameters);
     if (isAuthTokenRequired(command) && !parameters.authToken) {
         finalParameters.authToken = (_a = NetworkStore.getAuthToken()) !== null && _a !== void 0 ? _a : null;
     }

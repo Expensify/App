@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     COMMENT: 'comment',
     MONEY_REQUEST_COMMENT: 'moneyRequestComment',
 };

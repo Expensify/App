@@ -33,7 +33,7 @@ function SearchFiltersTagPage() {
         const items = [{name: translate('search.noTag'), value: CONST.SEARCH.EMPTY_VALUE as string}];
         if (!singlePolicyTagLists) {
             const uniqueTagNames = new Set<string>();
-            const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item);
+            const tagListsUnpacked = Object.values(allPolicyTagLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
             tagListsUnpacked
                 .map(getTagNamesFromTagsLists)
                 .flat()

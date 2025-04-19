@@ -1,3 +1,4 @@
+'use strict';
 exports.__esModule = true;
 exports.toCollectionDataSet = void 0;
 

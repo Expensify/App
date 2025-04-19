@@ -1,7 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const getIsSmallScreenWidth_1 = require('@libs/getIsSmallScreenWidth');
-
+var getIsSmallScreenWidth_1 = require('@libs/getIsSmallScreenWidth');
 function getIsNarrowLayout() {
     return getIsSmallScreenWidth_1['default']();
 }

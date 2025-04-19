@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
 exports.validatePercentage =
     exports.validateAmount =
@@ -11,7 +11,7 @@ exports.validatePercentage =
     exports.isDistanceRequest =
     exports.addLeadingZero =
         void 0;
-const CONST_1 = require('@src/CONST');
+var CONST_1 = require('@src/CONST');
 /**
  * Strip comma from the amount
  */
@@ -48,9 +48,9 @@ function addLeadingZero(amount, shouldAllowNegative) {
         shouldAllowNegative = false;
     }
     if (shouldAllowNegative && amount.startsWith('-.')) {
-        return `-0${  amount}`;
+        return '-0' + amount;
     }
-    return amount.startsWith('.') ? `0${  amount}` : amount;
+    return amount.startsWith('.') ? '0' + amount : amount;
 }
 exports.addLeadingZero = addLeadingZero;
 /**
@@ -63,11 +63,11 @@ function validateAmount(amount, decimals, amountMaxLength, shouldAllowNegative) 
     if (shouldAllowNegative === void 0) {
         shouldAllowNegative = false;
     }
-    const regexString =
+    var regexString =
         decimals === 0
-            ? `^${  shouldAllowNegative ? '-?' : ''  }\\d{1,${  amountMaxLength  }}$` // Don't allow decimal point if decimals === 0
-            : `^${  shouldAllowNegative ? '-?' : ''  }\\d{1,${  amountMaxLength  }}(\\.\\d{0,${  decimals  }})?$`; // Allow the decimal point and the desired number of digits after the point
-    const decimalNumberRegex = new RegExp(regexString, 'i');
+            ? '^' + (shouldAllowNegative ? '-?' : '') + '\\d{1,' + amountMaxLength + '}$' // Don't allow decimal point if decimals === 0
+            : '^' + (shouldAllowNegative ? '-?' : '') + '\\d{1,' + amountMaxLength + '}(\\.\\d{0,' + decimals + '})?$'; // Allow the decimal point and the desired number of digits after the point
+    var decimalNumberRegex = new RegExp(regexString, 'i');
     if (shouldAllowNegative) {
         return amount === '' || amount === '-' || decimalNumberRegex.test(amount);
     }
@@ -78,8 +78,8 @@ exports.validateAmount = validateAmount;
  * Check if percentage is between 0 and 100
  */
 function validatePercentage(amount) {
-    const regexString = '^(100|[0-9]{1,2})$';
-    const percentageRegex = new RegExp(regexString, 'i');
+    var regexString = '^(100|[0-9]{1,2})$';
+    var percentageRegex = new RegExp(regexString, 'i');
     return amount === '' || percentageRegex.test(amount);
 }
 exports.validatePercentage = validatePercentage;

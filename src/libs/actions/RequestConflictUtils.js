@@ -1,4 +1,4 @@
-
+'use strict';
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,7 +7,7 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
                 }
                 return t;
             };
@@ -22,12 +22,11 @@ exports.enablePolicyFeatureCommand =
     exports.resolveOpenReportDuplicationConflictAction =
     exports.resolveDuplicationConflictAction =
         void 0;
-const react_native_onyx_1 = require('react-native-onyx');
-const types_1 = require('@libs/API/types');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-
-const addNewMessage = new Set([types_1.WRITE_COMMANDS.ADD_COMMENT, types_1.WRITE_COMMANDS.ADD_ATTACHMENT, types_1.WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
-const commentsToBeDeleted = new Set([
+var react_native_onyx_1 = require('react-native-onyx');
+var types_1 = require('@libs/API/types');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var addNewMessage = new Set([types_1.WRITE_COMMANDS.ADD_COMMENT, types_1.WRITE_COMMANDS.ADD_ATTACHMENT, types_1.WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
+var commentsToBeDeleted = new Set([
     types_1.WRITE_COMMANDS.ADD_COMMENT,
     types_1.WRITE_COMMANDS.ADD_ATTACHMENT,
     types_1.WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT,
@@ -35,7 +34,7 @@ const commentsToBeDeleted = new Set([
     types_1.WRITE_COMMANDS.ADD_EMOJI_REACTION,
     types_1.WRITE_COMMANDS.REMOVE_EMOJI_REACTION,
 ]);
-const enablePolicyFeatureCommand = [
+var enablePolicyFeatureCommand = [
     types_1.WRITE_COMMANDS.ENABLE_POLICY_DISTANCE_RATES,
     types_1.WRITE_COMMANDS.ENABLE_POLICY_EXPENSIFY_CARDS,
     types_1.WRITE_COMMANDS.ENABLE_POLICY_COMPANY_CARDS,
@@ -51,7 +50,7 @@ const enablePolicyFeatureCommand = [
 exports.enablePolicyFeatureCommand = enablePolicyFeatureCommand;
 function createUpdateCommentMatcher(reportActionID) {
     return function (request) {
-        let _a;
+        var _a;
         return request.command === types_1.WRITE_COMMANDS.UPDATE_COMMENT && ((_a = request.data) === null || _a === void 0 ? void 0 : _a.reportActionID) === reportActionID;
     };
 }
@@ -64,7 +63,7 @@ exports.createUpdateCommentMatcher = createUpdateCommentMatcher;
  * - If a match is found, it suggests updating the existing entry, indicating a 'replace' action at the found index.
  */
 function resolveDuplicationConflictAction(persistedRequests, requestMatcher) {
-    const index = persistedRequests.findIndex(requestMatcher);
+    var index = persistedRequests.findIndex(requestMatcher);
     if (index === -1) {
         return {
             conflictAction: {
@@ -75,15 +74,15 @@ function resolveDuplicationConflictAction(persistedRequests, requestMatcher) {
     return {
         conflictAction: {
             type: 'replace',
-            index,
+            index: index,
         },
     };
 }
 exports.resolveDuplicationConflictAction = resolveDuplicationConflictAction;
 function resolveOpenReportDuplicationConflictAction(persistedRequests, parameters) {
-    let _a; let _b;
-    for (let index = 0; index < persistedRequests.length; index++) {
-        const request = persistedRequests.at(index);
+    var _a, _b;
+    for (var index = 0; index < persistedRequests.length; index++) {
+        var request = persistedRequests.at(index);
         if (
             request &&
             request.command === types_1.WRITE_COMMANDS.OPEN_REPORT &&
@@ -102,7 +101,7 @@ function resolveOpenReportDuplicationConflictAction(persistedRequests, parameter
             return {
                 conflictAction: {
                     type: 'replace',
-                    index,
+                    index: index,
                 },
             };
         }
@@ -116,19 +115,19 @@ function resolveOpenReportDuplicationConflictAction(persistedRequests, parameter
 }
 exports.resolveOpenReportDuplicationConflictAction = resolveOpenReportDuplicationConflictAction;
 function resolveCommentDeletionConflicts(persistedRequests, reportActionID, originalReportID) {
-    let _a;
-    const commentIndicesToDelete = [];
-    const commentCouldBeThread = {};
-    let addCommentFound = false;
+    var _a;
+    var commentIndicesToDelete = [];
+    var commentCouldBeThread = {};
+    var addCommentFound = false;
     persistedRequests.forEach(function (request, index) {
-        let _a; let _b;
+        var _a, _b;
         // If the request will open a Thread, we should not delete the comment and we should send all the requests
         if (
             request.command === types_1.WRITE_COMMANDS.OPEN_REPORT &&
             ((_a = request.data) === null || _a === void 0 ? void 0 : _a.parentReportActionID) === reportActionID &&
             reportActionID in commentCouldBeThread
         ) {
-            const indexToRemove = commentCouldBeThread[reportActionID];
+            var indexToRemove = commentCouldBeThread[reportActionID];
             commentIndicesToDelete.splice(indexToRemove, 1);
             // The new message performs some changes in Onyx, we want to keep those changes.
             addCommentFound = false;
@@ -154,10 +153,10 @@ function resolveCommentDeletionConflicts(persistedRequests, reportActionID, orig
     }
     if (addCommentFound) {
         // The new message performs some changes in Onyx, so we need to rollback those changes.
-        const rollbackData = [
+        var rollbackData = [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: `${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${originalReportID}`,
+                key: '' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + originalReportID,
                 value: ((_a = {}), (_a[reportActionID] = null), _a),
             },
         ];
@@ -173,18 +172,18 @@ function resolveCommentDeletionConflicts(persistedRequests, reportActionID, orig
 }
 exports.resolveCommentDeletionConflicts = resolveCommentDeletionConflicts;
 function resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex) {
-    const indicesToDelete = [];
+    var indicesToDelete = [];
     persistedRequests.forEach(function (request, index) {
-        let _a;
+        var _a;
         if (request.command !== types_1.WRITE_COMMANDS.UPDATE_COMMENT || ((_a = request.data) === null || _a === void 0 ? void 0 : _a.reportActionID) !== reportActionID) {
             return;
         }
         indicesToDelete.push(index);
     });
-    const currentAddComment = persistedRequests.at(addCommentIndex);
-    let nextAction = null;
+    var currentAddComment = persistedRequests.at(addCommentIndex);
+    var nextAction = null;
     if (currentAddComment) {
-        currentAddComment.data = {...currentAddComment.data, ...parameters};
+        currentAddComment.data = __assign(__assign({}, currentAddComment.data), parameters);
         nextAction = {
             type: 'replace',
             index: addCommentIndex,
@@ -201,14 +200,14 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameter
             type: 'delete',
             indices: indicesToDelete,
             pushNewRequest: false,
-            nextAction,
+            nextAction: nextAction,
         },
     };
 }
 exports.resolveEditCommentWithNewAddCommentRequest = resolveEditCommentWithNewAddCommentRequest;
 function resolveEnableFeatureConflicts(command, persistedRequests, parameters) {
-    const deleteRequestIndex = persistedRequests.findIndex(function (request) {
-        let _a; let _b;
+    var deleteRequestIndex = persistedRequests.findIndex(function (request) {
+        var _a, _b;
         return (
             request.command === command &&
             ((_a = request.data) === null || _a === void 0 ? void 0 : _a.policyID) === parameters.policyID &&

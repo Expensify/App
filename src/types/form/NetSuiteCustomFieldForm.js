@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     INTERNAL_ID: 'internalID',
     MAPPING: 'mapping',
     LIST_NAME: 'listName',

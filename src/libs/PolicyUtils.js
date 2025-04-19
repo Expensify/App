@@ -1,4 +1,4 @@
-
+'use strict';
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,17 +7,17 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
                 }
                 return t;
             };
         return __assign.apply(this, arguments);
     };
-const __spreadArrays =
+var __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
         return r;
     };
 exports.__esModule = true;
@@ -164,52 +164,51 @@ exports.areAllGroupPoliciesExpenseChatDisabled =
     exports.isControlPolicy =
     exports.getReimburserAccountID =
         void 0;
-const expensify_common_1 = require('expensify-common');
-const react_native_onyx_1 = require('react-native-onyx');
-const CONST_1 = require('@src/CONST');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-const ROUTES_1 = require('@src/ROUTES');
-const NetSuiteCustomFieldForm_1 = require('@src/types/form/NetSuiteCustomFieldForm');
-const EmptyObject_1 = require('@src/types/utils/EmptyObject');
-const connections_1 = require('./actions/connections');
-const QuickbooksOnline_1 = require('./actions/connections/QuickbooksOnline');
-const Report_1 = require('./actions/Report');
-const CategoryUtils_1 = require('./CategoryUtils');
-const DateUtils_1 = require('./DateUtils');
-const Localize_1 = require('./Localize');
-const Navigation_1 = require('./Navigation/Navigation');
-const NetworkStore_1 = require('./Network/NetworkStore');
-const PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
-const TransactionUtils_1 = require('./TransactionUtils');
-const ValidationUtils_1 = require('./ValidationUtils');
-
-let allPolicies;
-let activePolicyId;
-let isLoadingReportData = true;
+var expensify_common_1 = require('expensify-common');
+var react_native_onyx_1 = require('react-native-onyx');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var ROUTES_1 = require('@src/ROUTES');
+var NetSuiteCustomFieldForm_1 = require('@src/types/form/NetSuiteCustomFieldForm');
+var EmptyObject_1 = require('@src/types/utils/EmptyObject');
+var connections_1 = require('./actions/connections');
+var QuickbooksOnline_1 = require('./actions/connections/QuickbooksOnline');
+var Report_1 = require('./actions/Report');
+var CategoryUtils_1 = require('./CategoryUtils');
+var DateUtils_1 = require('./DateUtils');
+var Localize_1 = require('./Localize');
+var Navigation_1 = require('./Navigation/Navigation');
+var NetworkStore_1 = require('./Network/NetworkStore');
+var PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
+var TransactionUtils_1 = require('./TransactionUtils');
+var ValidationUtils_1 = require('./ValidationUtils');
+var allPolicies;
+var activePolicyId;
+var isLoadingReportData = true;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.POLICY,
     waitForCollectionCallback: true,
-    callback (value) {
+    callback: function (value) {
         return (allPolicies = value);
     },
 });
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NVP_ACTIVE_POLICY_ID,
-    callback (value) {
+    callback: function (value) {
         return (activePolicyId = value);
     },
 });
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
-    callback (value) {
+    callback: function (value) {
         return (isLoadingReportData = value !== null && value !== void 0 ? value : false);
     },
 });
-let preferredLocale = null;
+var preferredLocale = null;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NVP_PREFERRED_LOCALE,
-    callback (val) {
+    callback: function (val) {
         return (preferredLocale = val !== null && val !== void 0 ? val : null);
     },
 });
@@ -232,7 +231,7 @@ function getPerDiemCustomUnits(policies, email) {
             })
             // We filter out custom units that are undefine but ts cant' figure it out.
             .filter(function (_a) {
-                const customUnit = _a.customUnit;
+                var customUnit = _a.customUnit;
                 return !EmptyObject_1.isEmptyObject(customUnit) && !!customUnit.enabled;
             })
     );
@@ -241,7 +240,7 @@ exports.getPerDiemCustomUnits = getPerDiemCustomUnits;
 /**
  * Checks if the current user is an admin of the policy.
  */
-const isPolicyAdmin = function (policy, currentUserLogin) {
+var isPolicyAdmin = function (policy, currentUserLogin) {
     return getPolicyRole(policy, currentUserLogin) === CONST_1['default'].POLICY.ROLE.ADMIN;
 };
 exports.isPolicyAdmin = isPolicyAdmin;
@@ -249,11 +248,11 @@ exports.isPolicyAdmin = isPolicyAdmin;
  * Checks if we have any errors stored within the policy?.employeeList. Determines whether we should show a red brick road error or not.
  */
 function shouldShowEmployeeListError(policy) {
-    let _a;
+    var _a;
     return (
         isPolicyAdmin(policy) &&
         Object.values((_a = policy === null || policy === void 0 ? void 0 : policy.employeeList) !== null && _a !== void 0 ? _a : {}).some(function (employee) {
-            let _a;
+            var _a;
             return Object.keys((_a = employee === null || employee === void 0 ? void 0 : employee.errors) !== null && _a !== void 0 ? _a : {}).length > 0;
         })
     );
@@ -263,12 +262,12 @@ exports.shouldShowEmployeeListError = shouldShowEmployeeListError;
  *  Check if the policy has any tax rate errors.
  */
 function shouldShowTaxRateError(policy) {
-    let _a; let _b;
+    var _a, _b;
     return (
         isPolicyAdmin(policy) &&
         Object.values((_b = (_a = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _a === void 0 ? void 0 : _a.taxes) !== null && _b !== void 0 ? _b : {}).some(
             function (taxRate) {
-                let _a; let _b;
+                var _a, _b;
                 return (
                     Object.keys((_a = taxRate === null || taxRate === void 0 ? void 0 : taxRate.errors) !== null && _a !== void 0 ? _a : {}).length > 0 ||
                     Object.values((_b = taxRate === null || taxRate === void 0 ? void 0 : taxRate.errorFields) !== null && _b !== void 0 ? _b : {}).some(Boolean)
@@ -283,7 +282,7 @@ exports.shouldShowTaxRateError = shouldShowTaxRateError;
  */
 function hasPolicyCategoriesError(policyCategories) {
     return Object.keys(policyCategories !== null && policyCategories !== void 0 ? policyCategories : {}).some(function (categoryName) {
-        let _a; let _b;
+        var _a, _b;
         return (
             Object.keys(
                 (_b = (_a = policyCategories === null || policyCategories === void 0 ? void 0 : policyCategories[categoryName]) === null || _a === void 0 ? void 0 : _a.errors) !== null &&
@@ -299,7 +298,7 @@ exports.hasPolicyCategoriesError = hasPolicyCategoriesError;
  * Checks if the policy had a sync error.
  */
 function shouldShowSyncError(policy, isSyncInProgress) {
-    let _a;
+    var _a;
     return (
         isPolicyAdmin(policy) &&
         Object.keys((_a = policy === null || policy === void 0 ? void 0 : policy.connections) !== null && _a !== void 0 ? _a : {}).some(function (connection) {
@@ -312,7 +311,7 @@ exports.shouldShowSyncError = shouldShowSyncError;
  * Check if the policy has any error fields.
  */
 function shouldShowPolicyErrorFields(policy) {
-    let _a;
+    var _a;
     return (
         isPolicyAdmin(policy) &&
         Object.values((_a = policy === null || policy === void 0 ? void 0 : policy.errorFields) !== null && _a !== void 0 ? _a : {}).some(function (fieldErrors) {
@@ -325,7 +324,7 @@ exports.shouldShowPolicyErrorFields = shouldShowPolicyErrorFields;
  * Check if the policy has any errors, and if it doesn't, then check if it has any error fields.
  */
 function shouldShowPolicyError(policy) {
-    let _a;
+    var _a;
     return Object.keys((_a = policy === null || policy === void 0 ? void 0 : policy.errors) !== null && _a !== void 0 ? _a : {}).length > 0
         ? isPolicyAdmin(policy)
         : shouldShowPolicyErrorFields(policy);
@@ -335,7 +334,7 @@ exports.shouldShowPolicyError = shouldShowPolicyError;
  * Checks if we have any errors stored within the policy custom units.
  */
 function shouldShowCustomUnitsError(policy) {
-    let _a; let _b;
+    var _a, _b;
     return (
         isPolicyAdmin(policy) &&
         Object.keys((_b = (_a = policy === null || policy === void 0 ? void 0 : policy.customUnits) === null || _a === void 0 ? void 0 : _a.errors) !== null && _b !== void 0 ? _b : {})
@@ -344,7 +343,7 @@ function shouldShowCustomUnitsError(policy) {
 }
 exports.shouldShowCustomUnitsError = shouldShowCustomUnitsError;
 function getNumericValue(value, toLocaleDigit) {
-    const numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
+    var numValue = parseFloat(value.toString().replace(toLocaleDigit('.'), '.'));
     if (Number.isNaN(numValue)) {
         return NaN;
     }
@@ -356,7 +355,7 @@ exports.getNumericValue = getNumericValue;
  * Retrieves the distance custom unit object for the given policy
  */
 function getDistanceRateCustomUnit(policy) {
-    let _a;
+    var _a;
     return Object.values((_a = policy === null || policy === void 0 ? void 0 : policy.customUnits) !== null && _a !== void 0 ? _a : {}).find(function (unit) {
         return unit.name === CONST_1['default'].CUSTOM_UNITS.NAME_DISTANCE;
     });
@@ -366,7 +365,7 @@ exports.getDistanceRateCustomUnit = getDistanceRateCustomUnit;
  * Retrieves the per diem custom unit object for the given policy
  */
 function getPerDiemCustomUnit(policy) {
-    let _a;
+    var _a;
     return Object.values((_a = policy === null || policy === void 0 ? void 0 : policy.customUnits) !== null && _a !== void 0 ? _a : {}).find(function (unit) {
         return unit.name === CONST_1['default'].CUSTOM_UNITS.NAME_PER_DIEM_INTERNATIONAL;
     });
@@ -376,27 +375,27 @@ exports.getPerDiemCustomUnit = getPerDiemCustomUnit;
  * Retrieves custom unit rate object from the given customUnitRateID
  */
 function getDistanceRateCustomUnitRate(policy, customUnitRateID) {
-    const distanceUnit = getDistanceRateCustomUnit(policy);
+    var distanceUnit = getDistanceRateCustomUnit(policy);
     return distanceUnit === null || distanceUnit === void 0 ? void 0 : distanceUnit.rates[customUnitRateID];
 }
 exports.getDistanceRateCustomUnitRate = getDistanceRateCustomUnitRate;
 function getRateDisplayValue(value, toLocaleDigit, withDecimals) {
-    let _a;
-    const numValue = getNumericValue(value, toLocaleDigit);
+    var _a;
+    var numValue = getNumericValue(value, toLocaleDigit);
     if (Number.isNaN(numValue)) {
         return '';
     }
     if (withDecimals) {
-        const decimalPart = (_a = numValue.toString().split('.').at(1)) !== null && _a !== void 0 ? _a : '';
+        var decimalPart = (_a = numValue.toString().split('.').at(1)) !== null && _a !== void 0 ? _a : '';
         // Set the fraction digits to be between 2 and 4 (OD Behavior)
-        const fractionDigits = Math.min(Math.max(decimalPart.length, CONST_1['default'].MIN_TAX_RATE_DECIMAL_PLACES), CONST_1['default'].MAX_TAX_RATE_DECIMAL_PLACES);
+        var fractionDigits = Math.min(Math.max(decimalPart.length, CONST_1['default'].MIN_TAX_RATE_DECIMAL_PLACES), CONST_1['default'].MAX_TAX_RATE_DECIMAL_PLACES);
         return Number(numValue).toFixed(fractionDigits).toString().replace('.', toLocaleDigit('.'));
     }
     return numValue.toString().replace('.', toLocaleDigit('.')).substring(0, value.toString().length);
 }
 exports.getRateDisplayValue = getRateDisplayValue;
 function getUnitRateValue(toLocaleDigit, customUnitRate, withDecimals) {
-    let _a;
+    var _a;
     return getRateDisplayValue(
         ((_a = customUnitRate === null || customUnitRate === void 0 ? void 0 : customUnitRate.rate) !== null && _a !== void 0 ? _a : 0) /
             CONST_1['default'].POLICY.CUSTOM_UNIT_RATE_BASE_OFFSET,
@@ -422,7 +421,7 @@ function getPolicyBrickRoadIndicatorStatus(policy, isConnectionInProgress) {
 }
 exports.getPolicyBrickRoadIndicatorStatus = getPolicyBrickRoadIndicatorStatus;
 function getPolicyRole(policy, currentUserLogin) {
-    let _a; let _b;
+    var _a, _b;
     if (policy === null || policy === void 0 ? void 0 : policy.role) {
         return policy.role;
     }
@@ -434,9 +433,9 @@ function getPolicyRole(policy, currentUserLogin) {
         : _b.role;
 }
 function getPolicyNameByID(policyID) {
-    let _a; let _b;
+    var _a, _b;
     return (_b =
-        (_a = allPolicies === null || allPolicies === void 0 ? void 0 : allPolicies[`${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`]) === null || _a === void 0
+        (_a = allPolicies === null || allPolicies === void 0 ? void 0 : allPolicies['' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID]) === null || _a === void 0
             ? void 0
             : _a.name) !== null && _b !== void 0
         ? _b
@@ -451,7 +450,7 @@ exports.getPolicyNameByID = getPolicyNameByID;
  * updating the screen. Passing the offline status from the component.
  */
 function shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogin) {
-    let _a;
+    var _a;
     return (
         !!(policy === null || policy === void 0 ? void 0 : policy.isJoinRequestPending) ||
         (!!policy &&
@@ -464,12 +463,12 @@ function shouldShowPolicy(policy, shouldShowPendingDeletePolicy, currentUserLogi
 }
 exports.shouldShowPolicy = shouldShowPolicy;
 function isPolicyMember(currentUserLogin, policyID) {
-    let _a; let _b;
+    var _a, _b;
     return (
         !!currentUserLogin &&
         !!policyID &&
         !!((_b =
-            (_a = allPolicies === null || allPolicies === void 0 ? void 0 : allPolicies[`${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`]) === null || _a === void 0
+            (_a = allPolicies === null || allPolicies === void 0 ? void 0 : allPolicies['' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID]) === null || _a === void 0
                 ? void 0
                 : _a.employeeList) === null || _b === void 0
             ? void 0
@@ -478,30 +477,30 @@ function isPolicyMember(currentUserLogin, policyID) {
 }
 exports.isPolicyMember = isPolicyMember;
 function isExpensifyTeam(email) {
-    const emailDomain = expensify_common_1.Str.extractEmailDomain(email !== null && email !== void 0 ? email : '');
+    var emailDomain = expensify_common_1.Str.extractEmailDomain(email !== null && email !== void 0 ? email : '');
     return emailDomain === CONST_1['default'].EXPENSIFY_PARTNER_NAME || emailDomain === CONST_1['default'].EMAIL.GUIDES_DOMAIN;
 }
 exports.isExpensifyTeam = isExpensifyTeam;
 /**
  * Checks if the user with login is an admin of the policy.
  */
-const isUserPolicyAdmin = function (policy, login) {
-    let _a;
+var isUserPolicyAdmin = function (policy, login) {
+    var _a;
     return !!(policy && policy.employeeList && login && ((_a = policy.employeeList[login]) === null || _a === void 0 ? void 0 : _a.role) === CONST_1['default'].POLICY.ROLE.ADMIN);
 };
 exports.isUserPolicyAdmin = isUserPolicyAdmin;
 /**
  * Checks if the current user is of the role "user" on the policy.
  */
-const isPolicyUser = function (policy, currentUserLogin) {
+var isPolicyUser = function (policy, currentUserLogin) {
     return getPolicyRole(policy, currentUserLogin) === CONST_1['default'].POLICY.ROLE.USER;
 };
 exports.isPolicyUser = isPolicyUser;
 /**
  * Checks if the current user is an auditor of the policy
  */
-const isPolicyAuditor = function (policy, currentUserLogin) {
-    let _a; let _b; let _c;
+var isPolicyAuditor = function (policy, currentUserLogin) {
+    var _a, _b, _c;
     return (
         ((_a = policy === null || policy === void 0 ? void 0 : policy.role) !== null && _a !== void 0
             ? _a
@@ -512,7 +511,7 @@ const isPolicyAuditor = function (policy, currentUserLogin) {
     );
 };
 exports.isPolicyAuditor = isPolicyAuditor;
-const isPolicyEmployee = function (policyID, policies) {
+var isPolicyEmployee = function (policyID, policies) {
     if (!policyID) {
         return false;
     }
@@ -524,7 +523,7 @@ exports.isPolicyEmployee = isPolicyEmployee;
 /**
  * Checks if the current user is an owner (creator) of the policy.
  */
-const isPolicyOwner = function (policy, currentUserAccountID) {
+var isPolicyOwner = function (policy, currentUserAccountID) {
     return !!currentUserAccountID && (policy === null || policy === void 0 ? void 0 : policy.ownerAccountID) === currentUserAccountID;
 };
 exports.isPolicyOwner = isPolicyOwner;
@@ -540,10 +539,10 @@ function getMemberAccountIDsForWorkspace(employeeList, includeMemberWithErrors, 
     if (includeMemberWithPendingDelete === void 0) {
         includeMemberWithPendingDelete = true;
     }
-    const members = employeeList !== null && employeeList !== void 0 ? employeeList : {};
-    const memberEmailsToAccountIDs = {};
+    var members = employeeList !== null && employeeList !== void 0 ? employeeList : {};
+    var memberEmailsToAccountIDs = {};
     Object.keys(members).forEach(function (email) {
-        let _a; let _b;
+        var _a, _b;
         if (!includeMemberWithErrors) {
             var member = members === null || members === void 0 ? void 0 : members[email];
             if (
@@ -560,7 +559,7 @@ function getMemberAccountIDsForWorkspace(employeeList, includeMemberWithErrors, 
                 return;
             }
         }
-        const personalDetail = PersonalDetailsUtils_1.getPersonalDetailByEmail(email);
+        var personalDetail = PersonalDetailsUtils_1.getPersonalDetailByEmail(email);
         if (!(personalDetail === null || personalDetail === void 0 ? void 0 : personalDetail.login)) {
             return;
         }
@@ -573,11 +572,11 @@ exports.getMemberAccountIDsForWorkspace = getMemberAccountIDsForWorkspace;
  * Get login list that we should not show in the workspace invite options
  */
 function getIneligibleInvitees(employeeList) {
-    const policyEmployeeList = employeeList !== null && employeeList !== void 0 ? employeeList : {};
-    const memberEmailsToExclude = __spreadArrays(CONST_1['default'].EXPENSIFY_EMAILS);
+    var policyEmployeeList = employeeList !== null && employeeList !== void 0 ? employeeList : {};
+    var memberEmailsToExclude = __spreadArrays(CONST_1['default'].EXPENSIFY_EMAILS);
     Object.keys(policyEmployeeList).forEach(function (email) {
-        let _a;
-        const policyEmployee = policyEmployeeList === null || policyEmployeeList === void 0 ? void 0 : policyEmployeeList[email];
+        var _a;
+        var policyEmployee = policyEmployeeList === null || policyEmployeeList === void 0 ? void 0 : policyEmployeeList[email];
         // Policy members that are pending delete or have errors are not valid and we should show them in the invite options (don't exclude them).
         if (
             (policyEmployee === null || policyEmployee === void 0 ? void 0 : policyEmployee.pendingAction) === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
@@ -606,7 +605,7 @@ exports.getSortedTagKeys = getSortedTagKeys;
  * Gets a tag name of policy tags based on a tag's orderWeight.
  */
 function getTagListName(policyTagList, orderWeight) {
-    let _a; let _b;
+    var _a, _b;
     if (EmptyObject_1.isEmptyObject(policyTagList)) {
         return '';
     }
@@ -640,8 +639,8 @@ exports.getTagLists = getTagLists;
  * Gets a tag list of a policy by a tag index
  */
 function getTagList(policyTagList, tagIndex) {
-    let _a;
-    const tagLists = getTagLists(policyTagList);
+    var _a;
+    var tagLists = getTagLists(policyTagList);
     return (_a = tagLists.at(tagIndex)) !== null && _a !== void 0
         ? _a
         : {
@@ -653,12 +652,12 @@ function getTagList(policyTagList, tagIndex) {
 }
 exports.getTagList = getTagList;
 function getTagNamesFromTagsLists(policyTagLists) {
-    let _a;
-    const uniqueTagNames = new Set();
-    for (let _i = 0, _b = Object.values(policyTagLists !== null && policyTagLists !== void 0 ? policyTagLists : {}); _i < _b.length; _i++) {
-        const policyTagList = _b[_i];
-        for (let _c = 0, _d = Object.values((_a = policyTagList.tags) !== null && _a !== void 0 ? _a : {}); _c < _d.length; _c++) {
-            const tag = _d[_c];
+    var _a;
+    var uniqueTagNames = new Set();
+    for (var _i = 0, _b = Object.values(policyTagLists !== null && policyTagLists !== void 0 ? policyTagLists : {}); _i < _b.length; _i++) {
+        var policyTagList = _b[_i];
+        for (var _c = 0, _d = Object.values((_a = policyTagList.tags) !== null && _a !== void 0 ? _a : {}); _c < _d.length; _c++) {
+            var tag = _d[_c];
             uniqueTagNames.add(tag.name);
         }
     }
@@ -723,17 +722,17 @@ function isCollectPolicy(policy) {
 }
 exports.isCollectPolicy = isCollectPolicy;
 function isTaxTrackingEnabled(isPolicyExpenseChat, policy, isDistanceRequest, isPerDiemRequest) {
-    let _a; let _b; let _c; let _d; let _e;
+    var _a, _b, _c, _d, _e;
     if (isPerDiemRequest === void 0) {
         isPerDiemRequest = false;
     }
     if (isPerDiemRequest) {
         return false;
     }
-    const distanceUnit = getDistanceRateCustomUnit(policy);
-    const customUnitID = (_a = distanceUnit === null || distanceUnit === void 0 ? void 0 : distanceUnit.customUnitID) !== null && _a !== void 0 ? _a : CONST_1['default'].DEFAULT_NUMBER_ID;
-    const isPolicyTaxTrackingEnabled = isPolicyExpenseChat && ((_b = policy === null || policy === void 0 ? void 0 : policy.tax) === null || _b === void 0 ? void 0 : _b.trackingEnabled);
-    const isTaxEnabledForDistance =
+    var distanceUnit = getDistanceRateCustomUnit(policy);
+    var customUnitID = (_a = distanceUnit === null || distanceUnit === void 0 ? void 0 : distanceUnit.customUnitID) !== null && _a !== void 0 ? _a : CONST_1['default'].DEFAULT_NUMBER_ID;
+    var isPolicyTaxTrackingEnabled = isPolicyExpenseChat && ((_b = policy === null || policy === void 0 ? void 0 : policy.tax) === null || _b === void 0 ? void 0 : _b.trackingEnabled);
+    var isTaxEnabledForDistance =
         isPolicyTaxTrackingEnabled &&
         !!customUnitID &&
         ((_e =
@@ -766,7 +765,7 @@ exports.isInstantSubmitEnabled = isInstantSubmitEnabled;
  * Note that "daily" and "manual" only exist as options for the API, not in the database or Onyx.
  */
 function getCorrectedAutoReportingFrequency(policy) {
-    let _a;
+    var _a;
     if ((policy === null || policy === void 0 ? void 0 : policy.autoReportingFrequency) !== CONST_1['default'].POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE) {
         return policy === null || policy === void 0 ? void 0 : policy.autoReportingFrequency;
     }
@@ -797,7 +796,7 @@ function isControlOnAdvancedApprovalMode(policy) {
 }
 exports.isControlOnAdvancedApprovalMode = isControlOnAdvancedApprovalMode;
 function extractPolicyIDFromPath(path) {
-    let _a;
+    var _a;
     return (_a = path.match(CONST_1['default'].REGEX.POLICY_ID_FROM_PATH)) === null || _a === void 0 ? void 0 : _a[1];
 }
 exports.extractPolicyIDFromPath = extractPolicyIDFromPath;
@@ -813,9 +812,9 @@ function getPathWithoutPolicyID(path) {
 }
 exports.getPathWithoutPolicyID = getPathWithoutPolicyID;
 function getPolicyEmployeeListByIdWithoutCurrentUser(policies, currentPolicyID, currentUserAccountID) {
-    let _a;
-    const policy = (_a = policies === null || policies === void 0 ? void 0 : policies[`${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${currentPolicyID}`]) !== null && _a !== void 0 ? _a : null;
-    const policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy === null || policy === void 0 ? void 0 : policy.employeeList);
+    var _a;
+    var policy = (_a = policies === null || policies === void 0 ? void 0 : policies['' + ONYXKEYS_1['default'].COLLECTION.POLICY + currentPolicyID]) !== null && _a !== void 0 ? _a : null;
+    var policyMemberEmailsToAccountIDs = getMemberAccountIDsForWorkspace(policy === null || policy === void 0 ? void 0 : policy.employeeList);
     return Object.values(policyMemberEmailsToAccountIDs)
         .map(function (policyMemberAccountID) {
             return Number(policyMemberAccountID);
@@ -831,25 +830,25 @@ function goBackFromInvalidPolicy() {
 exports.goBackFromInvalidPolicy = goBackFromInvalidPolicy;
 /** Get a tax with given ID from policy */
 function getTaxByID(policy, taxID) {
-    let _a; let _b;
+    var _a, _b;
     return (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _a === void 0 ? void 0 : _a.taxes) === null || _b === void 0 ? void 0 : _b[taxID];
 }
 exports.getTaxByID = getTaxByID;
 /** Get a tax rate object built like Record<TaxRateName, RelatedTaxRateKeys>.
  * We want to allow user to choose over TaxRateName and there might be a situation when one TaxRateName has two possible keys in different policies */
 function getAllTaxRatesNamesAndKeys() {
-    let _a;
-    const allTaxRates = {};
+    var _a;
+    var allTaxRates = {};
     (_a = Object.values(allPolicies !== null && allPolicies !== void 0 ? allPolicies : {})) === null || _a === void 0
         ? void 0
         : _a.forEach(function (policy) {
-              let _a; let _b;
+              var _a, _b;
               if (!((_a = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _a === void 0 ? void 0 : _a.taxes)) {
                   return;
               }
               Object.entries((_b = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _b === void 0 ? void 0 : _b.taxes).forEach(function (_a) {
-                  const taxRateKey = _a[0];
-                      const taxRate = _a[1];
+                  var taxRateKey = _a[0],
+                      taxRate = _a[1];
                   if (!allTaxRates[taxRate.name]) {
                       allTaxRates[taxRate.name] = [taxRateKey];
                       return;
@@ -864,7 +863,7 @@ exports.getAllTaxRates = getAllTaxRatesNamesAndKeys;
  * Whether the tax rate can be deleted and disabled
  */
 function canEditTaxRate(policy, taxID) {
-    let _a; let _b;
+    var _a, _b;
     return (
         ((_a = policy.taxRates) === null || _a === void 0 ? void 0 : _a.defaultExternalID) !== taxID &&
         ((_b = policy.taxRates) === null || _b === void 0 ? void 0 : _b.foreignTaxDefault) !== taxID
@@ -872,7 +871,7 @@ function canEditTaxRate(policy, taxID) {
 }
 exports.canEditTaxRate = canEditTaxRate;
 function isPolicyFeatureEnabled(policy, featureName) {
-    let _a;
+    var _a;
     if (featureName === CONST_1['default'].POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!((_a = policy === null || policy === void 0 ? void 0 : policy.tax) === null || _a === void 0 ? void 0 : _a.trackingEnabled);
     }
@@ -885,7 +884,7 @@ function isPolicyFeatureEnabled(policy, featureName) {
 }
 exports.isPolicyFeatureEnabled = isPolicyFeatureEnabled;
 function getApprovalWorkflow(policy) {
-    let _a;
+    var _a;
     if ((policy === null || policy === void 0 ? void 0 : policy.type) === CONST_1['default'].POLICY.TYPE.PERSONAL) {
         return CONST_1['default'].POLICY.APPROVAL_MODE.OPTIONAL;
     }
@@ -893,7 +892,7 @@ function getApprovalWorkflow(policy) {
 }
 exports.getApprovalWorkflow = getApprovalWorkflow;
 function getDefaultApprover(policy) {
-    let _a; let _b;
+    var _a, _b;
     return (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.approver) !== null && _a !== void 0 ? _a : policy === null || policy === void 0 ? void 0 : policy.owner) !==
         null && _b !== void 0
         ? _b
@@ -901,24 +900,24 @@ function getDefaultApprover(policy) {
 }
 exports.getDefaultApprover = getDefaultApprover;
 function getRuleApprovers(policy, expenseReport) {
-    let _a; let _b; let _c; let _d;
-    const categoryAppovers = [];
-    const tagApprovers = [];
-    const allReportTransactions = TransactionUtils_1.getAllSortedTransactions(expenseReport === null || expenseReport === void 0 ? void 0 : expenseReport.reportID);
+    var _a, _b, _c, _d;
+    var categoryAppovers = [];
+    var tagApprovers = [];
+    var allReportTransactions = TransactionUtils_1.getAllSortedTransactions(expenseReport === null || expenseReport === void 0 ? void 0 : expenseReport.reportID);
     // Before submitting to their `submitsTo` (in a policy on Advanced Approvals), submit to category/tag approvers.
     // Category approvers are prioritized, then tag approvers.
-    for (let i = 0; i < allReportTransactions.length; i++) {
-        const transaction = allReportTransactions.at(i);
-        const tag = TransactionUtils_1.getTag(transaction);
-        const category = TransactionUtils_1.getCategory(transaction);
-        const categoryAppover =
+    for (var i = 0; i < allReportTransactions.length; i++) {
+        var transaction = allReportTransactions.at(i);
+        var tag = TransactionUtils_1.getTag(transaction);
+        var category = TransactionUtils_1.getCategory(transaction);
+        var categoryAppover =
             (_c = CategoryUtils_1.getCategoryApproverRule(
                 (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _a === void 0 ? void 0 : _a.approvalRules) !== null && _b !== void 0 ? _b : [],
                 category,
             )) === null || _c === void 0
                 ? void 0
                 : _c.approver;
-        const tagApprover = (_d = getTagApproverRule(policy, tag)) === null || _d === void 0 ? void 0 : _d.approver;
+        var tagApprover = (_d = getTagApproverRule(policy, tag)) === null || _d === void 0 ? void 0 : _d.approver;
         if (categoryAppover) {
             categoryAppovers.push(categoryAppover);
         }
@@ -930,16 +929,16 @@ function getRuleApprovers(policy, expenseReport) {
 }
 exports.getRuleApprovers = getRuleApprovers;
 function getManagerAccountID(policy, expenseReport) {
-    let _a; let _b; let _c; let _d; let _e; let _f;
-    const employeeAccountID =
+    var _a, _b, _c, _d, _e, _f;
+    var employeeAccountID =
         (_a = expenseReport === null || expenseReport === void 0 ? void 0 : expenseReport.ownerAccountID) !== null && _a !== void 0 ? _a : CONST_1['default'].DEFAULT_NUMBER_ID;
-    const employeeLogin = (_b = PersonalDetailsUtils_1.getLoginsByAccountIDs([employeeAccountID]).at(0)) !== null && _b !== void 0 ? _b : '';
-    const defaultApprover = getDefaultApprover(policy);
+    var employeeLogin = (_b = PersonalDetailsUtils_1.getLoginsByAccountIDs([employeeAccountID]).at(0)) !== null && _b !== void 0 ? _b : '';
+    var defaultApprover = getDefaultApprover(policy);
     // For policy using the optional or basic workflow, the manager is the policy default approver.
     if ([CONST_1['default'].POLICY.APPROVAL_MODE.OPTIONAL, CONST_1['default'].POLICY.APPROVAL_MODE.BASIC].includes(getApprovalWorkflow(policy))) {
         return (_c = PersonalDetailsUtils_1.getAccountIDsByLogins([defaultApprover]).at(0)) !== null && _c !== void 0 ? _c : -1;
     }
-    const employee = (_d = policy === null || policy === void 0 ? void 0 : policy.employeeList) === null || _d === void 0 ? void 0 : _d[employeeLogin];
+    var employee = (_d = policy === null || policy === void 0 ? void 0 : policy.employeeList) === null || _d === void 0 ? void 0 : _d[employeeLogin];
     if (!employee && !defaultApprover) {
         return -1;
     }
@@ -954,11 +953,11 @@ exports.getManagerAccountID = getManagerAccountID;
  * Returns the accountID to whom the given expenseReport submits reports to in the given Policy.
  */
 function getSubmitToAccountID(policy, expenseReport) {
-    let _a; let _b; let _c; let _d;
-    const ruleApprovers = getRuleApprovers(policy, expenseReport);
-    const employeeAccountID =
+    var _a, _b, _c, _d;
+    var ruleApprovers = getRuleApprovers(policy, expenseReport);
+    var employeeAccountID =
         (_a = expenseReport === null || expenseReport === void 0 ? void 0 : expenseReport.ownerAccountID) !== null && _a !== void 0 ? _a : CONST_1['default'].DEFAULT_NUMBER_ID;
-    const employeeLogin = (_b = PersonalDetailsUtils_1.getLoginsByAccountIDs([employeeAccountID]).at(0)) !== null && _b !== void 0 ? _b : '';
+    var employeeLogin = (_b = PersonalDetailsUtils_1.getLoginsByAccountIDs([employeeAccountID]).at(0)) !== null && _b !== void 0 ? _b : '';
     if (ruleApprovers.length > 0 && ruleApprovers.at(0) === employeeLogin && (policy === null || policy === void 0 ? void 0 : policy.preventSelfApproval)) {
         ruleApprovers.shift();
     }
@@ -969,8 +968,8 @@ function getSubmitToAccountID(policy, expenseReport) {
 }
 exports.getSubmitToAccountID = getSubmitToAccountID;
 function getManagerAccountEmail(policy, expenseReport) {
-    let _a;
-    const managerAccountID = getManagerAccountID(policy, expenseReport);
+    var _a;
+    var managerAccountID = getManagerAccountID(policy, expenseReport);
     return (_a = PersonalDetailsUtils_1.getLoginsByAccountIDs([managerAccountID]).at(0)) !== null && _a !== void 0 ? _a : '';
 }
 exports.getManagerAccountEmail = getManagerAccountEmail;
@@ -979,15 +978,15 @@ exports.getManagerAccountEmail = getManagerAccountEmail;
  * Used for advanced approval mode only.
  */
 function getForwardsToAccount(policy, employeeEmail, reportTotal) {
-    let _a; let _b;
+    var _a, _b;
     if (!isControlOnAdvancedApprovalMode(policy)) {
         return '';
     }
-    const employee = (_a = policy === null || policy === void 0 ? void 0 : policy.employeeList) === null || _a === void 0 ? void 0 : _a[employeeEmail];
+    var employee = (_a = policy === null || policy === void 0 ? void 0 : policy.employeeList) === null || _a === void 0 ? void 0 : _a[employeeEmail];
     if (!employee) {
         return '';
     }
-    const positiveReportTotal = Math.abs(reportTotal);
+    var positiveReportTotal = Math.abs(reportTotal);
     if (employee.approvalLimit && employee.overLimitForwardsTo && positiveReportTotal > employee.approvalLimit) {
         return employee.overLimitForwardsTo;
     }
@@ -998,8 +997,8 @@ exports.getForwardsToAccount = getForwardsToAccount;
  * Returns the accountID of the policy reimburser, if not available returns -1.
  */
 function getReimburserAccountID(policy) {
-    let _a; let _b; let _c;
-    const reimburserEmail =
+    var _a, _b, _c;
+    var reimburserEmail =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.achAccount) === null || _a === void 0 ? void 0 : _a.reimburser) !== null && _b !== void 0 ? _b : '';
     return reimburserEmail ? ((_c = PersonalDetailsUtils_1.getAccountIDsByLogins([reimburserEmail]).at(0)) !== null && _c !== void 0 ? _c : -1) : -1;
 }
@@ -1016,8 +1015,8 @@ function getAdminEmployees(policy) {
     }
     return Object.keys(policy.employeeList)
         .map(function (email) {
-            let _a;
-            return {...((_a = policy.employeeList) === null || _a === void 0 ? void 0 : _a[email]), email};
+            var _a;
+            return __assign(__assign({}, (_a = policy.employeeList) === null || _a === void 0 ? void 0 : _a[email]), {email: email});
         })
         .filter(function (employee) {
             return employee.pendingAction !== CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE && employee.role === CONST_1['default'].POLICY.ROLE.ADMIN;
@@ -1034,12 +1033,12 @@ function getPolicy(policyID, policies) {
     if (!policies || !policyID) {
         return undefined;
     }
-    return policies[`${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`];
+    return policies['' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID];
 }
 exports.getPolicy = getPolicy;
 /** Return active policies where current user is an admin */
 function getActiveAdminWorkspaces(policies, currentUserLogin) {
-    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    var activePolicies = getActivePolicies(policies, currentUserLogin);
     return activePolicies.filter(function (policy) {
         return shouldShowPolicy(policy, NetworkStore_1.isOffline(), currentUserLogin) && isPolicyAdmin(policy, currentUserLogin);
     });
@@ -1050,25 +1049,25 @@ exports.getActiveAdminWorkspaces = getActiveAdminWorkspaces;
  * Checks whether the current user has a policy with Xero accounting software integration
  */
 function hasPolicyWithXeroConnection(currentUserLogin) {
-    let _a;
+    var _a;
     return (_a = getActiveAdminWorkspaces(allPolicies, currentUserLogin)) === null || _a === void 0
         ? void 0
         : _a.some(function (policy) {
-              let _a;
+              var _a;
               return !!((_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a[CONST_1['default'].POLICY.CONNECTIONS.NAME.XERO]);
           });
 }
 exports.hasPolicyWithXeroConnection = hasPolicyWithXeroConnection;
 /** Whether the user can send invoice from the workspace */
 function canSendInvoiceFromWorkspace(policyID) {
-    let _a;
-    const policy = getPolicy(policyID);
+    var _a;
+    var policy = getPolicy(policyID);
     return (_a = policy === null || policy === void 0 ? void 0 : policy.areInvoicesEnabled) !== null && _a !== void 0 ? _a : false;
 }
 exports.canSendInvoiceFromWorkspace = canSendInvoiceFromWorkspace;
 /** Whether the user can submit per diem expense from the workspace */
 function canSubmitPerDiemExpenseFromWorkspace(policy) {
-    const perDiemCustomUnit = getPerDiemCustomUnit(policy);
+    var perDiemCustomUnit = getPerDiemCustomUnit(policy);
     return !EmptyObject_1.isEmptyObject(perDiemCustomUnit) && !!(perDiemCustomUnit === null || perDiemCustomUnit === void 0 ? void 0 : perDiemCustomUnit.enabled);
 }
 exports.canSubmitPerDiemExpenseFromWorkspace = canSubmitPerDiemExpenseFromWorkspace;
@@ -1085,7 +1084,7 @@ function hasDependentTags(policy, policyTagList) {
     }
     return Object.values(policyTagList !== null && policyTagList !== void 0 ? policyTagList : {}).some(function (tagList) {
         return Object.values(tagList.tags).some(function (tag) {
-            let _a;
+            var _a;
             return !!((_a = tag.rules) === null || _a === void 0 ? void 0 : _a.parentTagsFilter) || !!tag.parentTagsFilter;
         });
     });
@@ -1093,7 +1092,7 @@ function hasDependentTags(policy, policyTagList) {
 exports.hasDependentTags = hasDependentTags;
 /** Get the Xero organizations connected to the policy */
 function getXeroTenants(policy) {
-    let _a;
+    var _a;
     // Due to the way optional chain is being handled in this useMemo we are forced to use this approach to properly handle undefined values
     // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     if (!policy || !policy.connections || !policy.connections.xero || !policy.connections.xero.data) {
@@ -1111,7 +1110,7 @@ function findCurrentXeroOrganization(tenants, organizationID) {
 }
 exports.findCurrentXeroOrganization = findCurrentXeroOrganization;
 function getCurrentXeroOrganizationName(policy) {
-    let _a; let _b; let _c; let _d;
+    var _a, _b, _c, _d;
     return (_d = findCurrentXeroOrganization(
         getXeroTenants(policy),
         (_c =
@@ -1125,8 +1124,8 @@ function getCurrentXeroOrganizationName(policy) {
 }
 exports.getCurrentXeroOrganizationName = getCurrentXeroOrganizationName;
 function getXeroBankAccounts(policy, selectedBankAccountId) {
-    let _a; let _b; let _c; let _d;
-    const bankAccounts =
+    var _a, _b, _c, _d;
+    var bankAccounts =
         (_d =
             (_c =
                 (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.xero) === null || _b === void 0
@@ -1137,8 +1136,8 @@ function getXeroBankAccounts(policy, selectedBankAccountId) {
             ? _d
             : [];
     return (bankAccounts !== null && bankAccounts !== void 0 ? bankAccounts : []).map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1152,7 +1151,7 @@ function areSettingsInErrorFields(settings, errorFields) {
     if (settings === undefined || errorFields === undefined) {
         return false;
     }
-    const keys = Object.keys(errorFields);
+    var keys = Object.keys(errorFields);
     return settings.some(function (setting) {
         return keys.includes(setting);
     });
@@ -1162,7 +1161,7 @@ function settingsPendingAction(settings, pendingFields) {
     if (settings === undefined || pendingFields === undefined) {
         return null;
     }
-    const key = Object.keys(pendingFields).find(function (setting) {
+    var key = Object.keys(pendingFields).find(function (setting) {
         return settings.includes(setting);
     });
     if (!key) {
@@ -1172,9 +1171,9 @@ function settingsPendingAction(settings, pendingFields) {
 }
 exports.settingsPendingAction = settingsPendingAction;
 function findSelectedVendorWithDefaultSelect(vendors, selectedVendorId) {
-    let _a;
-    const selectedVendor = (vendors !== null && vendors !== void 0 ? vendors : []).find(function (_a) {
-        const id = _a.id;
+    var _a;
+    var selectedVendor = (vendors !== null && vendors !== void 0 ? vendors : []).find(function (_a) {
+        var id = _a.id;
         return id === selectedVendorId;
     });
     return (_a = selectedVendor !== null && selectedVendor !== void 0 ? selectedVendor : vendors === null || vendors === void 0 ? void 0 : vendors[0]) !== null && _a !== void 0
@@ -1183,9 +1182,9 @@ function findSelectedVendorWithDefaultSelect(vendors, selectedVendorId) {
 }
 exports.findSelectedVendorWithDefaultSelect = findSelectedVendorWithDefaultSelect;
 function findSelectedSageVendorWithDefaultSelect(vendors, selectedVendorID) {
-    let _a;
-    const selectedVendor = (vendors !== null && vendors !== void 0 ? vendors : []).find(function (_a) {
-        const id = _a.id;
+    var _a;
+    var selectedVendor = (vendors !== null && vendors !== void 0 ? vendors : []).find(function (_a) {
+        var id = _a.id;
         return id === selectedVendorID;
     });
     return (_a = selectedVendor !== null && selectedVendor !== void 0 ? selectedVendor : vendors === null || vendors === void 0 ? void 0 : vendors[0]) !== null && _a !== void 0
@@ -1194,9 +1193,9 @@ function findSelectedSageVendorWithDefaultSelect(vendors, selectedVendorID) {
 }
 exports.findSelectedSageVendorWithDefaultSelect = findSelectedSageVendorWithDefaultSelect;
 function findSelectedBankAccountWithDefaultSelect(accounts, selectedBankAccountId) {
-    let _a;
-    const selectedBankAccount = (accounts !== null && accounts !== void 0 ? accounts : []).find(function (_a) {
-        const id = _a.id;
+    var _a;
+    var selectedBankAccount = (accounts !== null && accounts !== void 0 ? accounts : []).find(function (_a) {
+        var id = _a.id;
         return id === selectedBankAccountId;
     });
     return (_a = selectedBankAccount !== null && selectedBankAccount !== void 0 ? selectedBankAccount : accounts === null || accounts === void 0 ? void 0 : accounts[0]) !== null &&
@@ -1206,9 +1205,9 @@ function findSelectedBankAccountWithDefaultSelect(accounts, selectedBankAccountI
 }
 exports.findSelectedBankAccountWithDefaultSelect = findSelectedBankAccountWithDefaultSelect;
 function findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId) {
-    let _a;
-    const selectedInvoiceItem = (invoiceItems !== null && invoiceItems !== void 0 ? invoiceItems : []).find(function (_a) {
-        const id = _a.id;
+    var _a;
+    var selectedInvoiceItem = (invoiceItems !== null && invoiceItems !== void 0 ? invoiceItems : []).find(function (_a) {
+        var id = _a.id;
         return id === selectedItemId;
     });
     return (_a = selectedInvoiceItem !== null && selectedInvoiceItem !== void 0 ? selectedInvoiceItem : invoiceItems === null || invoiceItems === void 0 ? void 0 : invoiceItems[0]) !==
@@ -1218,9 +1217,9 @@ function findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId) 
 }
 exports.findSelectedInvoiceItemWithDefaultSelect = findSelectedInvoiceItemWithDefaultSelect;
 function findSelectedTaxAccountWithDefaultSelect(taxAccounts, selectedAccountId) {
-    let _a;
-    const selectedTaxAccount = (taxAccounts !== null && taxAccounts !== void 0 ? taxAccounts : []).find(function (_a) {
-        const externalID = _a.externalID;
+    var _a;
+    var selectedTaxAccount = (taxAccounts !== null && taxAccounts !== void 0 ? taxAccounts : []).find(function (_a) {
+        var externalID = _a.externalID;
         return externalID === selectedAccountId;
     });
     return (_a = selectedTaxAccount !== null && selectedTaxAccount !== void 0 ? selectedTaxAccount : taxAccounts === null || taxAccounts === void 0 ? void 0 : taxAccounts[0]) !== null &&
@@ -1230,15 +1229,15 @@ function findSelectedTaxAccountWithDefaultSelect(taxAccounts, selectedAccountId)
 }
 exports.findSelectedTaxAccountWithDefaultSelect = findSelectedTaxAccountWithDefaultSelect;
 function getNetSuiteVendorOptions(policy, selectedVendorId) {
-    let _a; let _b;
-    const vendors =
+    var _a, _b;
+    var vendors =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.vendors;
-    const selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
+    var selectedVendor = findSelectedVendorWithDefaultSelect(vendors, selectedVendorId);
     return (vendors !== null && vendors !== void 0 ? vendors : []).map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1249,15 +1248,15 @@ function getNetSuiteVendorOptions(policy, selectedVendorId) {
 }
 exports.getNetSuiteVendorOptions = getNetSuiteVendorOptions;
 function getNetSuitePayableAccountOptions(policy, selectedBankAccountId) {
-    let _a; let _b;
-    const payableAccounts =
+    var _a, _b;
+    var payableAccounts =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.payableList;
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
+    var selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(payableAccounts, selectedBankAccountId);
     return (payableAccounts !== null && payableAccounts !== void 0 ? payableAccounts : []).map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1268,15 +1267,15 @@ function getNetSuitePayableAccountOptions(policy, selectedBankAccountId) {
 }
 exports.getNetSuitePayableAccountOptions = getNetSuitePayableAccountOptions;
 function getNetSuiteReceivableAccountOptions(policy, selectedBankAccountId) {
-    let _a; let _b;
-    const receivableAccounts =
+    var _a, _b;
+    var receivableAccounts =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.receivableList;
-    const selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
+    var selectedReceivableAccount = findSelectedBankAccountWithDefaultSelect(receivableAccounts, selectedBankAccountId);
     return (receivableAccounts !== null && receivableAccounts !== void 0 ? receivableAccounts : []).map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1287,15 +1286,15 @@ function getNetSuiteReceivableAccountOptions(policy, selectedBankAccountId) {
 }
 exports.getNetSuiteReceivableAccountOptions = getNetSuiteReceivableAccountOptions;
 function getNetSuiteInvoiceItemOptions(policy, selectedItemId) {
-    let _a; let _b;
-    const invoiceItems =
+    var _a, _b;
+    var invoiceItems =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.items;
-    const selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
+    var selectedInvoiceItem = findSelectedInvoiceItemWithDefaultSelect(invoiceItems, selectedItemId);
     return (invoiceItems !== null && invoiceItems !== void 0 ? invoiceItems : []).map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1306,19 +1305,19 @@ function getNetSuiteInvoiceItemOptions(policy, selectedItemId) {
 }
 exports.getNetSuiteInvoiceItemOptions = getNetSuiteInvoiceItemOptions;
 function getNetSuiteTaxAccountOptions(policy, subsidiaryCountry, selectedAccountId) {
-    let _a; let _b;
-    const taxAccounts =
+    var _a, _b;
+    var taxAccounts =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.taxAccountsList;
-    const accountOptions = (taxAccounts !== null && taxAccounts !== void 0 ? taxAccounts : []).filter(function (_a) {
-        const country = _a.country;
+    var accountOptions = (taxAccounts !== null && taxAccounts !== void 0 ? taxAccounts : []).filter(function (_a) {
+        var country = _a.country;
         return country === subsidiaryCountry;
     });
-    const selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
+    var selectedTaxAccount = findSelectedTaxAccountWithDefaultSelect(accountOptions, selectedAccountId);
     return accountOptions.map(function (_a) {
-        const externalID = _a.externalID;
-            const name = _a.name;
+        var externalID = _a.externalID,
+            name = _a.name;
         return {
             value: externalID,
             text: name,
@@ -1338,22 +1337,22 @@ function canUseProvincialTaxNetSuite(subsidiaryCountry) {
 exports.canUseProvincialTaxNetSuite = canUseProvincialTaxNetSuite;
 function getFilteredReimbursableAccountOptions(payableAccounts) {
     return (payableAccounts !== null && payableAccounts !== void 0 ? payableAccounts : []).filter(function (_a) {
-        const type = _a.type;
+        var type = _a.type;
         return type === CONST_1['default'].NETSUITE_ACCOUNT_TYPE.BANK || type === CONST_1['default'].NETSUITE_ACCOUNT_TYPE.CREDIT_CARD;
     });
 }
 exports.getFilteredReimbursableAccountOptions = getFilteredReimbursableAccountOptions;
 function getNetSuiteReimbursableAccountOptions(policy, selectedBankAccountId) {
-    let _a; let _b;
-    const payableAccounts =
+    var _a, _b;
+    var payableAccounts =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.payableList;
-    const accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    var accountOptions = getFilteredReimbursableAccountOptions(payableAccounts);
+    var selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
     return accountOptions.map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1365,22 +1364,22 @@ function getNetSuiteReimbursableAccountOptions(policy, selectedBankAccountId) {
 exports.getNetSuiteReimbursableAccountOptions = getNetSuiteReimbursableAccountOptions;
 function getFilteredCollectionAccountOptions(payableAccounts) {
     return (payableAccounts !== null && payableAccounts !== void 0 ? payableAccounts : []).filter(function (_a) {
-        const type = _a.type;
+        var type = _a.type;
         return type === CONST_1['default'].NETSUITE_ACCOUNT_TYPE.BANK;
     });
 }
 exports.getFilteredCollectionAccountOptions = getFilteredCollectionAccountOptions;
 function getNetSuiteCollectionAccountOptions(policy, selectedBankAccountId) {
-    let _a; let _b;
-    const payableAccounts =
+    var _a, _b;
+    var payableAccounts =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.payableList;
-    const accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    var accountOptions = getFilteredCollectionAccountOptions(payableAccounts);
+    var selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
     return accountOptions.map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1392,27 +1391,27 @@ function getNetSuiteCollectionAccountOptions(policy, selectedBankAccountId) {
 exports.getNetSuiteCollectionAccountOptions = getNetSuiteCollectionAccountOptions;
 function getFilteredApprovalAccountOptions(payableAccounts) {
     return (payableAccounts !== null && payableAccounts !== void 0 ? payableAccounts : []).filter(function (_a) {
-        const type = _a.type;
+        var type = _a.type;
         return type === CONST_1['default'].NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE;
     });
 }
 exports.getFilteredApprovalAccountOptions = getFilteredApprovalAccountOptions;
 function getNetSuiteApprovalAccountOptions(policy, selectedBankAccountId) {
-    let _a; let _b;
-    const payableAccounts =
+    var _a, _b;
+    var payableAccounts =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.netsuite) === null || _b === void 0
             ? void 0
             : _b.options.data.payableList;
-    const defaultApprovalAccount = {
+    var defaultApprovalAccount = {
         id: CONST_1['default'].NETSUITE_APPROVAL_ACCOUNT_DEFAULT,
         name: Localize_1.translateLocal('workspace.netsuite.advancedConfig.defaultApprovalAccount'),
         type: CONST_1['default'].NETSUITE_ACCOUNT_TYPE.ACCOUNTS_PAYABLE,
     };
-    const accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts !== null && payableAccounts !== void 0 ? payableAccounts : []));
-    const selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
+    var accountOptions = getFilteredApprovalAccountOptions([defaultApprovalAccount].concat(payableAccounts !== null && payableAccounts !== void 0 ? payableAccounts : []));
+    var selectedPayableAccount = findSelectedBankAccountWithDefaultSelect(accountOptions, selectedBankAccountId);
     return accountOptions.map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1423,8 +1422,8 @@ function getNetSuiteApprovalAccountOptions(policy, selectedBankAccountId) {
 }
 exports.getNetSuiteApprovalAccountOptions = getNetSuiteApprovalAccountOptions;
 function getCustomersOrJobsLabelNetSuite(policy, translate) {
-    let _a; let _b; let _c; let _d; let _e; let _f; let _g;
-    const importMapping =
+    var _a, _b, _c, _d, _e, _f, _g;
+    var importMapping =
         (_e =
             (_d =
                 (_c =
@@ -1440,19 +1439,19 @@ function getCustomersOrJobsLabelNetSuite(policy, translate) {
     if (!(importMapping === null || importMapping === void 0 ? void 0 : importMapping.customers) && !(importMapping === null || importMapping === void 0 ? void 0 : importMapping.jobs)) {
         return undefined;
     }
-    const importFields = [];
-    const importCustomer =
+    var importFields = [];
+    var importCustomer =
         (_f = importMapping === null || importMapping === void 0 ? void 0 : importMapping.customers) !== null && _f !== void 0
             ? _f
             : CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
-    const importJobs =
+    var importJobs =
         (_g = importMapping === null || importMapping === void 0 ? void 0 : importMapping.jobs) !== null && _g !== void 0
             ? _g
             : CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT;
     if (importCustomer === CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT && importJobs === CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
         return undefined;
     }
-    const importedValue =
+    var importedValue =
         (importMapping === null || importMapping === void 0 ? void 0 : importMapping.customers) !== CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT
             ? importCustomer
             : importJobs;
@@ -1462,16 +1461,16 @@ function getCustomersOrJobsLabelNetSuite(policy, translate) {
     if (importJobs !== CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT) {
         importFields.push(translate('workspace.netsuite.import.customersOrJobs.jobs'));
     }
-    const importedValueLabel = translate('workspace.netsuite.import.customersOrJobs.label', {
-        importFields,
-        importType: translate(`workspace.accounting.importTypes.${  importedValue}`).toLowerCase(),
+    var importedValueLabel = translate('workspace.netsuite.import.customersOrJobs.label', {
+        importFields: importFields,
+        importType: translate('workspace.accounting.importTypes.' + importedValue).toLowerCase(),
     });
     return importedValueLabel.charAt(0).toUpperCase() + importedValueLabel.slice(1);
 }
 exports.getCustomersOrJobsLabelNetSuite = getCustomersOrJobsLabelNetSuite;
 function getNetSuiteImportCustomFieldLabel(policy, importField, translate) {
-    let _a; let _b; let _c; let _d; let _e;
-    const fieldData =
+    var _a, _b, _c, _d, _e;
+    var fieldData =
         (_e =
             (_d =
                 (_c =
@@ -1487,19 +1486,19 @@ function getNetSuiteImportCustomFieldLabel(policy, importField, translate) {
     if (fieldData.length === 0) {
         return undefined;
     }
-    const mappingSet = new Set(
+    var mappingSet = new Set(
         fieldData.map(function (item) {
             return item.mapping;
         }),
     );
-    const importedTypes = Array.from(mappingSet)
+    var importedTypes = Array.from(mappingSet)
         .sort(function (a, b) {
             return b.localeCompare(a);
         })
         .map(function (mapping) {
-            return translate(`workspace.netsuite.import.importTypes.${  mapping !== '' ? mapping : 'TAG'  }.label`).toLowerCase();
+            return translate('workspace.netsuite.import.importTypes.' + (mapping !== '' ? mapping : 'TAG') + '.label').toLowerCase();
         });
-    return translate('workspace.netsuite.import.importCustomFields.label', {importedTypes});
+    return translate('workspace.netsuite.import.importCustomFields.label', {importedTypes: importedTypes});
 }
 exports.getNetSuiteImportCustomFieldLabel = getNetSuiteImportCustomFieldLabel;
 function isNetSuiteCustomSegmentRecord(customField) {
@@ -1511,7 +1510,7 @@ function getNameFromNetSuiteCustomField(customField) {
 }
 exports.getNameFromNetSuiteCustomField = getNameFromNetSuiteCustomField;
 function isNetSuiteCustomFieldPropertyEditable(customField, fieldName) {
-    const fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField)
+    var fieldsAllowedToEdit = isNetSuiteCustomSegmentRecord(customField)
         ? [
               NetSuiteCustomFieldForm_1['default'].SEGMENT_NAME,
               NetSuiteCustomFieldForm_1['default'].INTERNAL_ID,
@@ -1519,13 +1518,13 @@ function isNetSuiteCustomFieldPropertyEditable(customField, fieldName) {
               NetSuiteCustomFieldForm_1['default'].MAPPING,
           ]
         : [NetSuiteCustomFieldForm_1['default'].MAPPING];
-    const fieldKey = fieldName;
+    var fieldKey = fieldName;
     return fieldsAllowedToEdit.includes(fieldKey);
 }
 exports.isNetSuiteCustomFieldPropertyEditable = isNetSuiteCustomFieldPropertyEditable;
 function getIntegrationLastSuccessfulDate(connection, connectionSyncProgress) {
-    let _a; let _b; let _c; let _d;
-    let syncSuccessfulDate;
+    var _a, _b, _c, _d;
+    var syncSuccessfulDate;
     if (!connection) {
         return undefined;
     }
@@ -1534,7 +1533,7 @@ function getIntegrationLastSuccessfulDate(connection, connectionSyncProgress) {
     } else {
         syncSuccessfulDate = (_d = (_c = connection) === null || _c === void 0 ? void 0 : _c.lastSync) === null || _d === void 0 ? void 0 : _d.successfulDate;
     }
-    const connectionSyncTimeStamp = DateUtils_1['default']
+    var connectionSyncTimeStamp = DateUtils_1['default']
         .getLocalDateFromDatetime(
             preferredLocale !== null && preferredLocale !== void 0 ? preferredLocale : CONST_1['default'].LOCALES.DEFAULT,
             connectionSyncProgress === null || connectionSyncProgress === void 0 ? void 0 : connectionSyncProgress.timestamp,
@@ -1555,8 +1554,8 @@ function getIntegrationLastSuccessfulDate(connection, connectionSyncProgress) {
 }
 exports.getIntegrationLastSuccessfulDate = getIntegrationLastSuccessfulDate;
 function getCurrentSageIntacctEntityName(policy, defaultNameIfNoEntity) {
-    let _a; let _b; let _c; let _d; let _e; let _f; let _g;
-    const currentEntityID =
+    var _a, _b, _c, _d, _e, _f, _g;
+    var currentEntityID =
         (_c =
             (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0
                 ? void 0
@@ -1566,7 +1565,7 @@ function getCurrentSageIntacctEntityName(policy, defaultNameIfNoEntity) {
     if (!currentEntityID) {
         return defaultNameIfNoEntity;
     }
-    const entities =
+    var entities =
         (_f =
             (_e = (_d = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _d === void 0 ? void 0 : _d.intacct) === null || _e === void 0 ? void 0 : _e.data) ===
             null || _f === void 0
@@ -1583,8 +1582,8 @@ function getCurrentSageIntacctEntityName(policy, defaultNameIfNoEntity) {
 }
 exports.getCurrentSageIntacctEntityName = getCurrentSageIntacctEntityName;
 function getSageIntacctBankAccounts(policy, selectedBankAccountId) {
-    let _a; let _b; let _c; let _d;
-    const bankAccounts =
+    var _a, _b, _c, _d;
+    var bankAccounts =
         (_d =
             (_c =
                 (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0
@@ -1595,8 +1594,8 @@ function getSageIntacctBankAccounts(policy, selectedBankAccountId) {
             ? _d
             : [];
     return (bankAccounts !== null && bankAccounts !== void 0 ? bankAccounts : []).map(function (_a) {
-        const id = _a.id;
-            const name = _a.name;
+        var id = _a.id,
+            name = _a.name;
         return {
             value: id,
             text: name,
@@ -1607,8 +1606,8 @@ function getSageIntacctBankAccounts(policy, selectedBankAccountId) {
 }
 exports.getSageIntacctBankAccounts = getSageIntacctBankAccounts;
 function getSageIntacctVendors(policy, selectedVendorId) {
-    let _a; let _b; let _c; let _d;
-    const vendors =
+    var _a, _b, _c, _d;
+    var vendors =
         (_d =
             (_c =
                 (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0
@@ -1619,8 +1618,8 @@ function getSageIntacctVendors(policy, selectedVendorId) {
             ? _d
             : [];
     return vendors.map(function (_a) {
-        const id = _a.id;
-            const value = _a.value;
+        var id = _a.id,
+            value = _a.value;
         return {
             value: id,
             text: value,
@@ -1631,23 +1630,23 @@ function getSageIntacctVendors(policy, selectedVendorId) {
 }
 exports.getSageIntacctVendors = getSageIntacctVendors;
 function getSageIntacctNonReimbursableActiveDefaultVendor(policy) {
-    let _a; let _b; let _c;
-    const _d =
+    var _a, _b, _c;
+    var _d =
             (_c =
                 (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0
                     ? void 0
                     : _b.config['export']) !== null && _c !== void 0
                 ? _c
-                : {};
-        const creditCardDefaultVendor = _d.nonReimbursableCreditCardChargeDefaultVendor;
-        const expenseReportDefaultVendor = _d.nonReimbursableVendor;
-        const nonReimbursable = _d.nonReimbursable;
+                : {},
+        creditCardDefaultVendor = _d.nonReimbursableCreditCardChargeDefaultVendor,
+        expenseReportDefaultVendor = _d.nonReimbursableVendor,
+        nonReimbursable = _d.nonReimbursable;
     return nonReimbursable === CONST_1['default'].SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE ? creditCardDefaultVendor : expenseReportDefaultVendor;
 }
 exports.getSageIntacctNonReimbursableActiveDefaultVendor = getSageIntacctNonReimbursableActiveDefaultVendor;
 function getSageIntacctCreditCards(policy, selectedAccount) {
-    let _a; let _b; let _c; let _d;
-    const creditCards =
+    var _a, _b, _c, _d;
+    var creditCards =
         (_d =
             (_c =
                 (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0
@@ -1658,7 +1657,7 @@ function getSageIntacctCreditCards(policy, selectedAccount) {
             ? _d
             : [];
     return creditCards.map(function (_a) {
-        const name = _a.name;
+        var name = _a.name;
         return {
             value: name,
             text: name,
@@ -1674,8 +1673,8 @@ exports.getSageIntacctCreditCards = getSageIntacctCreditCards;
  * @param workspace2 Details of the second workspace to be compared.
  * @param selectedWorkspaceID ID of the selected workspace which needs to be at the beginning.
  */
-const sortWorkspacesBySelected = function (workspace1, workspace2, selectedWorkspaceID) {
-    let _a; let _b; let _c; let _d;
+var sortWorkspacesBySelected = function (workspace1, workspace2, selectedWorkspaceID) {
+    var _a, _b, _c, _d;
     if (workspace1.policyID === selectedWorkspaceID) {
         return -1;
     }
@@ -1694,27 +1693,27 @@ exports.sortWorkspacesBySelected = sortWorkspacesBySelected;
 /**
  * Determines whether the report can be moved to the workspace.
  */
-const isWorkspaceEligibleForReportChange = function (newPolicy, report, oldPolicy, currentUserLogin) {
-    let _a; let _b;
-    const currentUserAccountID = Report_1.getCurrentUserAccountID();
-    const isCurrentUserMember =
+var isWorkspaceEligibleForReportChange = function (newPolicy, report, oldPolicy, currentUserLogin) {
+    var _a, _b;
+    var currentUserAccountID = Report_1.getCurrentUserAccountID();
+    var isCurrentUserMember =
         !!currentUserLogin && !!((_a = newPolicy === null || newPolicy === void 0 ? void 0 : newPolicy.employeeList) === null || _a === void 0 ? void 0 : _a[currentUserLogin]);
     if (!isCurrentUserMember) {
         return false;
     }
     // Submitters: workspaces where the submitter is a member of
-    const isCurrentUserSubmitter = (report === null || report === void 0 ? void 0 : report.ownerAccountID) === currentUserAccountID;
+    var isCurrentUserSubmitter = (report === null || report === void 0 ? void 0 : report.ownerAccountID) === currentUserAccountID;
     if (isCurrentUserSubmitter) {
         return true;
     }
     // Approvers: workspaces where both the approver AND submitter are members of
-    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
-    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
+    var reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
+    var isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
     if (isCurrentUserApprover) {
-        const reportSubmitterLogin = (report === null || report === void 0 ? void 0 : report.ownerAccountID)
+        var reportSubmitterLogin = (report === null || report === void 0 ? void 0 : report.ownerAccountID)
             ? PersonalDetailsUtils_1.getLoginByAccountID(report === null || report === void 0 ? void 0 : report.ownerAccountID)
             : undefined;
-        const isReportSubmitterMember =
+        var isReportSubmitterMember =
             !!reportSubmitterLogin && !!((_b = newPolicy === null || newPolicy === void 0 ? void 0 : newPolicy.employeeList) === null || _b === void 0 ? void 0 : _b[reportSubmitterLogin]);
         return isCurrentUserApprover && isReportSubmitterMember;
     }
@@ -1729,7 +1728,7 @@ exports.isWorkspaceEligibleForReportChange = isWorkspaceEligibleForReportChange;
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit) {
-    const cleanedCustomUnit = { ...customUnit};
+    var cleanedCustomUnit = __assign({}, customUnit);
     delete cleanedCustomUnit.pendingFields;
     delete cleanedCustomUnit.errorFields;
     return cleanedCustomUnit;
@@ -1751,13 +1750,13 @@ function getConnectedIntegration(policy, accountingIntegrations) {
     return (accountingIntegrations !== null && accountingIntegrations !== void 0 ? accountingIntegrations : Object.values(CONST_1['default'].POLICY.CONNECTIONS.NAME)).find(function (
         integration,
     ) {
-        let _a;
+        var _a;
         return !!((_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a[integration]);
     });
 }
 exports.getConnectedIntegration = getConnectedIntegration;
 function hasIntegrationAutoSync(policy, connectedIntegration) {
-    let _a; let _b; let _c; let _d; let _e;
+    var _a, _b, _c, _d, _e;
     return (_e =
         connectedIntegration &&
         ((_d =
@@ -1777,15 +1776,15 @@ function hasUnsupportedIntegration(policy, accountingIntegrations) {
     return !(accountingIntegrations !== null && accountingIntegrations !== void 0 ? accountingIntegrations : Object.values(CONST_1['default'].POLICY.CONNECTIONS.NAME)).some(function (
         integration,
     ) {
-        let _a;
+        var _a;
         return !!((_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a[integration]);
     });
 }
 exports.hasUnsupportedIntegration = hasUnsupportedIntegration;
 function getCurrentConnectionName(policy) {
-    const accountingIntegrations = Object.values(CONST_1['default'].POLICY.CONNECTIONS.NAME);
-    const connectionKey = accountingIntegrations.find(function (integration) {
-        let _a;
+    var accountingIntegrations = Object.values(CONST_1['default'].POLICY.CONNECTIONS.NAME);
+    var connectionKey = accountingIntegrations.find(function (integration) {
+        var _a;
         return !!((_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a[integration]);
     });
     return connectionKey ? CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionKey] : undefined;
@@ -1807,10 +1806,10 @@ function hasNoPolicyOtherThanPersonalType() {
 }
 exports.hasNoPolicyOtherThanPersonalType = hasNoPolicyOtherThanPersonalType;
 function getCurrentTaxID(policy, taxID) {
-    let _a; let _b;
+    var _a, _b;
     return Object.keys((_b = (_a = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _a === void 0 ? void 0 : _a.taxes) !== null && _b !== void 0 ? _b : {}).find(
         function (taxIDKey) {
-            let _a; let _b;
+            var _a, _b;
             return (
                 ((_b = (_a = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _a === void 0 ? void 0 : _a.taxes) === null || _b === void 0
                     ? void 0
@@ -1821,8 +1820,8 @@ function getCurrentTaxID(policy, taxID) {
 }
 exports.getCurrentTaxID = getCurrentTaxID;
 function getWorkspaceAccountID(policyID) {
-    let _a;
-    const policy = getPolicy(policyID);
+    var _a;
+    var policy = getPolicy(policyID);
     if (!policy) {
         return 0;
     }
@@ -1830,23 +1829,23 @@ function getWorkspaceAccountID(policyID) {
 }
 exports.getWorkspaceAccountID = getWorkspaceAccountID;
 function hasVBBA(policyID) {
-    let _a;
-    const policy = getPolicy(policyID);
+    var _a;
+    var policy = getPolicy(policyID);
     return !!((_a = policy === null || policy === void 0 ? void 0 : policy.achAccount) === null || _a === void 0 ? void 0 : _a.bankAccountID);
 }
 exports.hasVBBA = hasVBBA;
 function getTagApproverRule(policyOrID, tagName) {
-    let _a; let _b;
+    var _a, _b;
     if (!policyOrID) {
         return;
     }
-    const policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
-    const approvalRules = (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _a === void 0 ? void 0 : _a.approvalRules) !== null && _b !== void 0 ? _b : [];
-    const approverRule = approvalRules.find(function (rule) {
+    var policy = typeof policyOrID === 'string' ? getPolicy(policyOrID) : policyOrID;
+    var approvalRules = (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _a === void 0 ? void 0 : _a.approvalRules) !== null && _b !== void 0 ? _b : [];
+    var approverRule = approvalRules.find(function (rule) {
         return rule.applyWhen.find(function (_a) {
-            const condition = _a.condition;
-                const field = _a.field;
-                const value = _a.value;
+            var condition = _a.condition,
+                field = _a.field,
+                value = _a.value;
             return condition === CONST_1['default'].POLICY.RULE_CONDITIONS.MATCHES && field === CONST_1['default'].POLICY.FIELDS.TAG && value === tagName;
         });
     });
@@ -1857,11 +1856,11 @@ function getDomainNameForPolicy(policyID) {
     if (!policyID) {
         return '';
     }
-    return `${  CONST_1['default'].EXPENSIFY_POLICY_DOMAIN  }${policyID.toLowerCase()  }${CONST_1['default'].EXPENSIFY_POLICY_DOMAIN_EXTENSION}`;
+    return '' + CONST_1['default'].EXPENSIFY_POLICY_DOMAIN + policyID.toLowerCase() + CONST_1['default'].EXPENSIFY_POLICY_DOMAIN_EXTENSION;
 }
 exports.getDomainNameForPolicy = getDomainNameForPolicy;
 function getWorkflowApprovalsUnavailable(policy) {
-    let _a;
+    var _a;
     return (
         (policy === null || policy === void 0 ? void 0 : policy.approvalMode) === CONST_1['default'].POLICY.APPROVAL_MODE.OPTIONAL ||
         !!((_a = policy === null || policy === void 0 ? void 0 : policy.errorFields) === null || _a === void 0 ? void 0 : _a.approvalMode)
@@ -1900,7 +1899,7 @@ function areAllGroupPoliciesExpenseChatDisabled(policies) {
     if (policies === void 0) {
         policies = allPolicies;
     }
-    const groupPolicies = Object.values(policies !== null && policies !== void 0 ? policies : {}).filter(function (policy) {
+    var groupPolicies = Object.values(policies !== null && policies !== void 0 ? policies : {}).filter(function (policy) {
         return isPaidGroupPolicy(policy);
     });
     if (groupPolicies.length === 0) {
@@ -1925,7 +1924,7 @@ function getGroupPaidPoliciesWithExpenseChatEnabled(policies) {
 exports.getGroupPaidPoliciesWithExpenseChatEnabled = getGroupPaidPoliciesWithExpenseChatEnabled;
 // eslint-disable-next-line rulesdir/no-negated-variables
 function shouldDisplayPolicyNotFoundPage(policyID) {
-    const policy = getPolicy(policyID);
+    var policy = getPolicy(policyID);
     if (!policy) {
         return false;
     }
@@ -1933,7 +1932,7 @@ function shouldDisplayPolicyNotFoundPage(policyID) {
 }
 exports.shouldDisplayPolicyNotFoundPage = shouldDisplayPolicyNotFoundPage;
 function hasOtherControlWorkspaces(currentPolicyID) {
-    const otherControlWorkspaces = Object.values(allPolicies !== null && allPolicies !== void 0 ? allPolicies : {}).filter(function (policy) {
+    var otherControlWorkspaces = Object.values(allPolicies !== null && allPolicies !== void 0 ? allPolicies : {}).filter(function (policy) {
         return (policy === null || policy === void 0 ? void 0 : policy.id) !== currentPolicyID && isPolicyAdmin(policy) && isControlPolicy(policy);
     });
     return otherControlWorkspaces.length > 0;
@@ -1946,31 +1945,31 @@ exports.hasOtherControlWorkspaces = hasOtherControlWorkspaces;
 // to navigate them to the Workspaces page when no policyID is provided, instead of showing the Upgrade/Downgrade button.
 // If the user is not an admin for multiple policies, they are not allowed to perform this action, and the NotFoundPage is displayed.
 function canModifyPlan(policyID) {
-    const currentUserAccountID = Report_1.getCurrentUserAccountID();
-    const ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
+    var currentUserAccountID = Report_1.getCurrentUserAccountID();
+    var ownerPolicies = getOwnedPaidPolicies(allPolicies, currentUserAccountID);
     if (!policyID) {
         return ownerPolicies.length > 1;
     }
-    const policy = getPolicy(policyID);
+    var policy = getPolicy(policyID);
     return !!policy && isPolicyAdmin(policy);
 }
 exports.canModifyPlan = canModifyPlan;
 function getAdminsPrivateEmailDomains(policy) {
-    let _a;
+    var _a;
     if (!policy) {
         return [];
     }
-    const adminDomains = Object.entries((_a = policy.employeeList) !== null && _a !== void 0 ? _a : {}).reduce(function (domains, _a) {
-        const email = _a[0];
-            const employee = _a[1];
+    var adminDomains = Object.entries((_a = policy.employeeList) !== null && _a !== void 0 ? _a : {}).reduce(function (domains, _a) {
+        var email = _a[0],
+            employee = _a[1];
         if (employee.role !== CONST_1['default'].POLICY.ROLE.ADMIN) {
             return domains;
         }
         domains.push(expensify_common_1.Str.extractEmailDomain(email).toLowerCase());
         return domains;
     }, []);
-    const ownerDomains = policy.owner ? [expensify_common_1.Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
-    const privateDomains = __spreadArrays(new Set(adminDomains.concat(ownerDomains))).filter(function (domain) {
+    var ownerDomains = policy.owner ? [expensify_common_1.Str.extractEmailDomain(policy.owner).toLowerCase()] : [];
+    var privateDomains = __spreadArrays(new Set(adminDomains.concat(ownerDomains))).filter(function (domain) {
         return !ValidationUtils_1.isPublicDomain(domain);
     });
     // If the policy is not owned by Expensify there is no point in showing the domain for provisioning.
@@ -1990,11 +1989,11 @@ exports.getAdminsPrivateEmailDomains = getAdminsPrivateEmailDomains;
  * @param policy - The policy object.
  */
 function getMostFrequentEmailDomain(acceptedDomains, policy) {
-    let _a;
+    var _a;
     if (!policy) {
         return undefined;
     }
-    const domainOccurrences = {};
+    var domainOccurrences = {};
     Object.keys((_a = policy.employeeList) !== null && _a !== void 0 ? _a : {})
         .concat(policy.owner)
         .map(function (email) {
@@ -2006,14 +2005,14 @@ function getMostFrequentEmailDomain(acceptedDomains, policy) {
             }
             domainOccurrences[memberDomain] = (domainOccurrences[memberDomain] || 0) + 1;
         });
-    let mostFrequent = {domain: '', count: 0};
+    var mostFrequent = {domain: '', count: 0};
     Object.entries(domainOccurrences).forEach(function (_a) {
-        const domain = _a[0];
-            const count = _a[1];
+        var domain = _a[0],
+            count = _a[1];
         if (count <= mostFrequent.count) {
             return;
         }
-        mostFrequent = {domain, count};
+        mostFrequent = {domain: domain, count: count};
     });
     if (mostFrequent.count === 0) {
         return undefined;
@@ -2021,21 +2020,21 @@ function getMostFrequentEmailDomain(acceptedDomains, policy) {
     return mostFrequent.domain;
 }
 exports.getMostFrequentEmailDomain = getMostFrequentEmailDomain;
-const getDescriptionForPolicyDomainCard = function (domainName) {
-    let _a; let _b;
+var getDescriptionForPolicyDomainCard = function (domainName) {
+    var _a, _b;
     // A domain name containing a policyID indicates that this is a workspace feed
-    const policyID = (_a = domainName.match(CONST_1['default'].REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) === null || _a === void 0 ? void 0 : _a[1];
+    var policyID = (_a = domainName.match(CONST_1['default'].REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) === null || _a === void 0 ? void 0 : _a[1];
     if (policyID) {
-        const policy = getPolicy(policyID.toUpperCase());
+        var policy = getPolicy(policyID.toUpperCase());
         return (_b = policy === null || policy === void 0 ? void 0 : policy.name) !== null && _b !== void 0 ? _b : domainName;
     }
     return domainName;
 };
 exports.getDescriptionForPolicyDomainCard = getDescriptionForPolicyDomainCard;
 function isPrefferedExporter(policy) {
-    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m; let _o; let _p; let _q; let _r; let _s; let _t; let _u; let _v;
-    const user = Report_1.getCurrentUserEmail();
-    const exporters = [
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+    var user = Report_1.getCurrentUserEmail();
+    var exporters = [
         (_d =
             (_c = (_b = (_a = policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0 ? void 0 : _b.config) === null || _c === void 0
                 ? void 0
@@ -2073,8 +2072,8 @@ function isPrefferedExporter(policy) {
 }
 exports.isPrefferedExporter = isPrefferedExporter;
 function isAutoSyncEnabled(policy) {
-    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m; let _o; let _p; let _q; let _r; let _s; let _t; let _u; let _v;
-    const values = [
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v;
+    var values = [
         (_d =
             (_c = (_b = (_a = policy.connections) === null || _a === void 0 ? void 0 : _a.intacct) === null || _b === void 0 ? void 0 : _b.config) === null || _c === void 0
                 ? void 0

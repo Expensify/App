@@ -1,13 +1,13 @@
-
-const __rest =
+'use strict';
+var __rest =
     (this && this.__rest) ||
     function (s, e) {
-        const t = {};
-        for (var p in s) {if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) {t[p] = s[p];}}
+        var t = {};
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
         if (s != null && typeof Object.getOwnPropertySymbols === 'function')
-            {for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) {t[p[i]] = s[p[i]];}
-            }}
+            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
+            }
         return t;
     };
 exports.__esModule = true;
@@ -56,34 +56,33 @@ exports.getFundIdFromSettingsKey =
     exports.isCorporateCard =
     exports.isExpensifyCard =
         void 0;
-const date_fns_1 = require('date-fns');
-const groupBy_1 = require('lodash/groupBy');
-const react_native_onyx_1 = require('react-native-onyx');
-const expensify_card_svg_1 = require('@assets/images/expensify-card.svg');
-const Illustrations = require('@src/components/Icon/Illustrations');
-const CONST_1 = require('@src/CONST');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-const EmptyObject_1 = require('@src/types/utils/EmptyObject');
-const LocaleCompare_1 = require('./LocaleCompare');
-const Localize_1 = require('./Localize');
-const ObjectUtils_1 = require('./ObjectUtils');
-const PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
-
-let allCards = {};
+var date_fns_1 = require('date-fns');
+var groupBy_1 = require('lodash/groupBy');
+var react_native_onyx_1 = require('react-native-onyx');
+var expensify_card_svg_1 = require('@assets/images/expensify-card.svg');
+var Illustrations = require('@src/components/Icon/Illustrations');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var EmptyObject_1 = require('@src/types/utils/EmptyObject');
+var LocaleCompare_1 = require('./LocaleCompare');
+var Localize_1 = require('./Localize');
+var ObjectUtils_1 = require('./ObjectUtils');
+var PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
+var allCards = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].CARD_LIST,
-    callback (val) {
+    callback: function (val) {
         if (!val || Object.keys(val).length === 0) {
             return;
         }
         allCards = val;
     },
 });
-let allWorkspaceCards = {};
+var allWorkspaceCards = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.WORKSPACE_CARDS_LIST,
     waitForCollectionCallback: true,
-    callback (value) {
+    callback: function (value) {
         allWorkspaceCards = value;
     },
 });
@@ -102,7 +101,7 @@ function isExpensifyCard(cardID) {
     if (!cardID) {
         return false;
     }
-    const card = allCards[cardID];
+    var card = allCards[cardID];
     if (!card) {
         return false;
     }
@@ -128,13 +127,13 @@ function getCardDescription(cardID, cards) {
     if (!cardID) {
         return '';
     }
-    const card = cards[cardID];
+    var card = cards[cardID];
     if (!card) {
         return '';
     }
-    const cardDescriptor = card.state === CONST_1['default'].EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize_1.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
-    const humanReadableBankName = card.bank === CONST_1['default'].EXPENSIFY_CARD.BANK ? CONST_1['default'].EXPENSIFY_CARD.BANK : getBankName(card.bank);
-    return cardDescriptor ? `${humanReadableBankName  } - ${  cardDescriptor}` : `${  humanReadableBankName}`;
+    var cardDescriptor = card.state === CONST_1['default'].EXPENSIFY_CARD.STATE.NOT_ACTIVATED ? Localize_1.translateLocal('cardTransactions.notActivated') : card.lastFourPAN;
+    var humanReadableBankName = card.bank === CONST_1['default'].EXPENSIFY_CARD.BANK ? CONST_1['default'].EXPENSIFY_CARD.BANK : getBankName(card.bank);
+    return cardDescriptor ? humanReadableBankName + ' - ' + cardDescriptor : '' + humanReadableBankName;
 }
 exports.getCardDescription = getCardDescription;
 function isCard(item) {
@@ -142,7 +141,7 @@ function isCard(item) {
 }
 exports.isCard = isCard;
 function isCardIssued(card) {
-    let _a;
+    var _a;
     return (
         !!((_a = card === null || card === void 0 ? void 0 : card.nameValuePairs) === null || _a === void 0 ? void 0 : _a.isVirtual) ||
         (card === null || card === void 0 ? void 0 : card.state) !== CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED
@@ -150,7 +149,7 @@ function isCardIssued(card) {
 }
 exports.isCardIssued = isCardIssued;
 function isCardHiddenFromSearch(card) {
-    let _a; let _b;
+    var _a, _b;
     return (
         !((_a = card === null || card === void 0 ? void 0 : card.nameValuePairs) === null || _a === void 0 ? void 0 : _a.isVirtual) &&
         CONST_1['default'].EXPENSIFY_CARD.HIDDEN_FROM_SEARCH_STATES.includes((_b = card.state) !== null && _b !== void 0 ? _b : 0)
@@ -168,7 +167,7 @@ function mergeCardListWithWorkspaceFeeds(workspaceFeeds, cardList, shouldExclude
     if (shouldExcludeCardHiddenFromSearch === void 0) {
         shouldExcludeCardHiddenFromSearch = false;
     }
-    const feedCards = {};
+    var feedCards = {};
     Object.values(cardList).forEach(function (card) {
         if (!isCard(card) || (shouldExcludeCardHiddenFromSearch && isCardHiddenFromSearch(card))) {
             return;
@@ -190,9 +189,9 @@ exports.mergeCardListWithWorkspaceFeeds = mergeCardListWithWorkspaceFeeds;
  * @returns string with a year in YY or YYYY format
  */
 function getYearFromExpirationDateString(expirationDateString) {
-    const stringContainsNumbersOnly = /^\d+$/.test(expirationDateString);
-    const cardYear = stringContainsNumbersOnly ? expirationDateString.substring(2) : expirationDateString.substring(3);
-    return cardYear.length === 2 ? `20${  cardYear}` : cardYear;
+    var stringContainsNumbersOnly = /^\d+$/.test(expirationDateString);
+    var cardYear = stringContainsNumbersOnly ? expirationDateString.substring(2) : expirationDateString.substring(3);
+    return cardYear.length === 2 ? '20' + cardYear : cardYear;
 }
 exports.getYearFromExpirationDateString = getYearFromExpirationDateString;
 /**
@@ -200,13 +199,13 @@ exports.getYearFromExpirationDateString = getYearFromExpirationDateString;
  */
 function formatCardExpiration(expirationDateString) {
     // already matches MM/YYYY format
-    const dateFormat = /^\d{2}\/\d{4}$/;
+    var dateFormat = /^\d{2}\/\d{4}$/;
     if (dateFormat.test(expirationDateString)) {
         return expirationDateString;
     }
-    const expirationMonth = getMonthFromExpirationDateString(expirationDateString);
-    const expirationYear = getYearFromExpirationDateString(expirationDateString);
-    return `${expirationMonth  }/${  expirationYear}`;
+    var expirationMonth = getMonthFromExpirationDateString(expirationDateString);
+    var expirationYear = getYearFromExpirationDateString(expirationDateString);
+    return expirationMonth + '/' + expirationYear;
 }
 exports.formatCardExpiration = formatCardExpiration;
 /**
@@ -215,7 +214,7 @@ exports.formatCardExpiration = formatCardExpiration;
  */
 function getDomainCards(cardList) {
     // Check for domainName to filter out personal credit cards.
-    const activeCards = Object.values(cardList !== null && cardList !== void 0 ? cardList : {}).filter(function (card) {
+    var activeCards = Object.values(cardList !== null && cardList !== void 0 ? cardList : {}).filter(function (card) {
         return (
             !!(card === null || card === void 0 ? void 0 : card.domainName) &&
             CONST_1['default'].EXPENSIFY_CARD.ACTIVE_STATES.some(function (element) {
@@ -240,10 +239,10 @@ function maskCard(lastFour) {
     if (lastFour === void 0) {
         lastFour = '';
     }
-    const totalDigits = 16;
-    const maskedLength = totalDigits - lastFour.length;
+    var totalDigits = 16;
+    var maskedLength = totalDigits - lastFour.length;
     // Create a string with '•' repeated for the masked portion
-    const maskedString = '•'.repeat(maskedLength) + lastFour;
+    var maskedString = '•'.repeat(maskedLength) + lastFour;
     // Insert space for every four symbols
     return maskedString.replace(/(.{4})/g, '$1 ').trim();
 }
@@ -261,9 +260,9 @@ function maskCardNumber(cardName, feed, showOriginalName) {
     if (!cardName || cardName === '') {
         return '';
     }
-    const hasSpace = /\s/.test(cardName);
-    const maskedString = cardName.replace(/X/g, '•');
-    const isAmexBank = [CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some(function (value) {
+    var hasSpace = /\s/.test(cardName);
+    var maskedString = cardName.replace(/X/g, '•');
+    var isAmexBank = [CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX, CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT].some(function (value) {
         return value === feed;
     });
     if (hasSpace) {
@@ -285,9 +284,9 @@ exports.maskCardNumber = maskCardNumber;
  * @returns - Last 4 numbers
  */
 function lastFourNumbersFromCardName(cardName) {
-    const name = cardName !== null && cardName !== void 0 ? cardName : '';
-    const hasSpace = /\s/.test(name);
-    const match = name.match(/(\d{4})$/);
+    var name = cardName !== null && cardName !== void 0 ? cardName : '';
+    var hasSpace = /\s/.test(name);
+    var match = name.match(/(\d{4})$/);
     if (!cardName || cardName === '' || !hasSpace || !match) {
         return '';
     }
@@ -301,7 +300,7 @@ exports.lastFourNumbersFromCardName = lastFourNumbersFromCardName;
  */
 function findPhysicalCard(cards) {
     return cards.find(function (card) {
-        let _a;
+        var _a;
         return !((_a = card === null || card === void 0 ? void 0 : card.nameValuePairs) === null || _a === void 0 ? void 0 : _a.isVirtual);
     });
 }
@@ -339,7 +338,7 @@ function getEligibleBankAccountsForCard(bankAccountsList) {
         return [];
     }
     return Object.values(bankAccountsList).filter(function (bankAccount) {
-        let _a; let _b;
+        var _a, _b;
         return (
             ((_a = bankAccount === null || bankAccount === void 0 ? void 0 : bankAccount.accountData) === null || _a === void 0 ? void 0 : _a.type) ===
                 CONST_1['default'].BANK_ACCOUNT.TYPE.BUSINESS &&
@@ -349,22 +348,22 @@ function getEligibleBankAccountsForCard(bankAccountsList) {
 }
 exports.getEligibleBankAccountsForCard = getEligibleBankAccountsForCard;
 function sortCardsByCardholderName(cardsList, personalDetails) {
-    const _a = cardsList !== null && cardsList !== void 0 ? cardsList : {};
-        const cardList = _a.cardList;
-        const cards = __rest(_a, ['cardList']);
+    var _a = cardsList !== null && cardsList !== void 0 ? cardsList : {},
+        cardList = _a.cardList,
+        cards = __rest(_a, ['cardList']);
     return Object.values(cards).sort(function (cardA, cardB) {
-        let _a; let _b;
-        const userA = cardA.accountID ? ((_a = personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails[cardA.accountID]) !== null && _a !== void 0 ? _a : {}) : {};
-        const userB = cardB.accountID ? ((_b = personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails[cardB.accountID]) !== null && _b !== void 0 ? _b : {}) : {};
-        const aName = PersonalDetailsUtils_1.getDisplayNameOrDefault(userA);
-        const bName = PersonalDetailsUtils_1.getDisplayNameOrDefault(userB);
+        var _a, _b;
+        var userA = cardA.accountID ? ((_a = personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails[cardA.accountID]) !== null && _a !== void 0 ? _a : {}) : {};
+        var userB = cardB.accountID ? ((_b = personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails[cardB.accountID]) !== null && _b !== void 0 ? _b : {}) : {};
+        var aName = PersonalDetailsUtils_1.getDisplayNameOrDefault(userA);
+        var bName = PersonalDetailsUtils_1.getDisplayNameOrDefault(userB);
         return LocaleCompare_1['default'](aName, bName);
     });
 }
 exports.sortCardsByCardholderName = sortCardsByCardholderName;
 function getCardFeedIcon(cardFeed, illustrations) {
-    let _a;
-    const feedIcons =
+    var _a;
+    var feedIcons =
         ((_a = {}),
         (_a[CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.VISA] = Illustrations.VisaCompanyCardDetailLarge),
         (_a[CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX] = Illustrations.AmexCardCompanyCardDetailLarge),
@@ -387,7 +386,7 @@ function getCardFeedIcon(cardFeed, illustrations) {
         return feedIcons[cardFeed];
     }
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, cdfbmo
-    const feedKey = Object.keys(feedIcons).find(function (feed) {
+    var feedKey = Object.keys(feedIcons).find(function (feed) {
         return cardFeed.startsWith(feed);
     });
     if (feedKey) {
@@ -411,7 +410,7 @@ function isCustomFeed(feed) {
 }
 exports.isCustomFeed = isCustomFeed;
 function getCompanyFeeds(cardFeeds, shouldFilterOutRemovedFeeds, shouldFilterOutPendingFeeds) {
-    let _a; let _b;
+    var _a, _b;
     if (shouldFilterOutRemovedFeeds === void 0) {
         shouldFilterOutRemovedFeeds = false;
     }
@@ -422,8 +421,8 @@ function getCompanyFeeds(cardFeeds, shouldFilterOutRemovedFeeds, shouldFilterOut
         Object.entries(
             (_b = (_a = cardFeeds === null || cardFeeds === void 0 ? void 0 : cardFeeds.settings) === null || _a === void 0 ? void 0 : _a.companyCards) !== null && _b !== void 0 ? _b : {},
         ).filter(function (_a) {
-            const key = _a[0];
-                const value = _a[1];
+            var key = _a[0],
+                value = _a[1];
             if (shouldFilterOutRemovedFeeds && value.pendingAction === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return false;
             }
@@ -436,8 +435,8 @@ function getCompanyFeeds(cardFeeds, shouldFilterOutRemovedFeeds, shouldFilterOut
 }
 exports.getCompanyFeeds = getCompanyFeeds;
 function getBankName(feedType) {
-    let _a;
-    const feedNamesMapping =
+    var _a;
+    var feedNamesMapping =
         ((_a = {}),
         (_a[CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.VISA] = 'Visa'),
         (_a[CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD] = 'Mastercard'),
@@ -453,7 +452,7 @@ function getBankName(feedType) {
         (_a[CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.CSV] = CONST_1['default'].COMPANY_CARDS.CARD_TYPE.CSV),
         _a);
     // In existing OldDot setups other variations of feeds could exist, ex: vcf2, vcf3, oauth.americanexpressfdx.com 2003
-    const feedKey = Object.keys(feedNamesMapping).find(function (feed) {
+    var feedKey = Object.keys(feedNamesMapping).find(function (feed) {
         return feedType.startsWith(feed);
     });
     if (feedType.includes(CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.CSV)) {
@@ -465,9 +464,9 @@ function getBankName(feedType) {
     return feedNamesMapping[feedKey];
 }
 exports.getBankName = getBankName;
-const getBankCardDetailsImage = function (bank, illustrations) {
-    let _a;
-    const iconMap =
+var getBankCardDetailsImage = function (bank, illustrations) {
+    var _a;
+    var iconMap =
         ((_a = {}),
         (_a[CONST_1['default'].COMPANY_CARDS.BANKS.AMEX] = Illustrations.AmexCardCompanyCardDetail),
         (_a[CONST_1['default'].COMPANY_CARDS.BANKS.BANK_OF_AMERICA] = Illustrations.BankOfAmericaCompanyCardDetail),
@@ -486,17 +485,17 @@ function getCustomOrFormattedFeedName(feed, companyCardNicknames) {
     if (!feed) {
         return;
     }
-    const customFeedName = companyCardNicknames === null || companyCardNicknames === void 0 ? void 0 : companyCardNicknames[feed];
+    var customFeedName = companyCardNicknames === null || companyCardNicknames === void 0 ? void 0 : companyCardNicknames[feed];
     if (customFeedName && typeof customFeedName !== 'string') {
         return '';
     }
-    const formattedFeedName = Localize_1.translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
+    var formattedFeedName = Localize_1.translateLocal('workspace.companyCards.feedName', {feedName: getBankName(feed)});
     return customFeedName !== null && customFeedName !== void 0 ? customFeedName : formattedFeedName;
 }
 exports.getCustomOrFormattedFeedName = getCustomOrFormattedFeedName;
 // We will simplify the logic below once we have #50450 #50451 implemented
-const getCorrectStepForSelectedBank = function (selectedBank) {
-    const banksWithFeedType = [
+var getCorrectStepForSelectedBank = function (selectedBank) {
+    var banksWithFeedType = [
         CONST_1['default'].COMPANY_CARDS.BANKS.BANK_OF_AMERICA,
         CONST_1['default'].COMPANY_CARDS.BANKS.CAPITAL_ONE,
         CONST_1['default'].COMPANY_CARDS.BANKS.CHASE,
@@ -522,7 +521,7 @@ const getCorrectStepForSelectedBank = function (selectedBank) {
 };
 exports.getCorrectStepForSelectedBank = getCorrectStepForSelectedBank;
 function getSelectedFeed(lastSelectedFeed, cardFeeds) {
-    const defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0);
+    var defaultFeed = Object.keys(getCompanyFeeds(cardFeeds, true)).at(0);
     return lastSelectedFeed !== null && lastSelectedFeed !== void 0 ? lastSelectedFeed : defaultFeed;
 }
 exports.getSelectedFeed = getSelectedFeed;
@@ -538,20 +537,20 @@ function getFilteredCardList(list, directFeed, workspaceCardFeeds) {
     if (workspaceCardFeeds === void 0) {
         workspaceCardFeeds = allWorkspaceCards;
     }
-    const _a = list !== null && list !== void 0 ? list : {};
-        const customFeedCardsToAssign = _a.cardList;
-        const cards = __rest(_a, ['cardList']);
-    const assignedCards = Object.values(cards).map(function (card) {
+    var _a = list !== null && list !== void 0 ? list : {},
+        customFeedCardsToAssign = _a.cardList,
+        cards = __rest(_a, ['cardList']);
+    var assignedCards = Object.values(cards).map(function (card) {
         return card.cardName;
     });
     // Get cards assigned across all workspaces
-    const allWorkspaceAssignedCards = new Set();
+    var allWorkspaceAssignedCards = new Set();
     Object.values(workspaceCardFeeds !== null && workspaceCardFeeds !== void 0 ? workspaceCardFeeds : {}).forEach(function (workspaceCards) {
         if (!workspaceCards) {
             return;
         }
-        const cardList = workspaceCards.cardList;
-            const workspaceCardItems = __rest(workspaceCards, ['cardList']);
+        var cardList = workspaceCards.cardList,
+            workspaceCardItems = __rest(workspaceCards, ['cardList']);
         Object.values(workspaceCardItems).forEach(function (card) {
             if (!card.cardName) {
                 return;
@@ -560,7 +559,7 @@ function getFilteredCardList(list, directFeed, workspaceCardFeeds) {
         });
     });
     if (directFeed) {
-        const unassignedDirectFeedCards = directFeed.accountList.filter(function (cardNumber) {
+        var unassignedDirectFeedCards = directFeed.accountList.filter(function (cardNumber) {
             return !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber);
         });
         return Object.fromEntries(
@@ -571,7 +570,7 @@ function getFilteredCardList(list, directFeed, workspaceCardFeeds) {
     }
     return Object.fromEntries(
         Object.entries(customFeedCardsToAssign !== null && customFeedCardsToAssign !== void 0 ? customFeedCardsToAssign : {}).filter(function (_a) {
-            const cardNumber = _a[0];
+            var cardNumber = _a[0];
             return !assignedCards.includes(cardNumber) && !allWorkspaceAssignedCards.has(cardNumber);
         }),
     );
@@ -585,12 +584,12 @@ function getDefaultCardName(cardholder) {
     if (!cardholder) {
         return '';
     }
-    return `${cardholder  }'s card`;
+    return cardholder + "'s card";
 }
 exports.getDefaultCardName = getDefaultCardName;
 function checkIfNewFeedConnected(prevFeedsData, currentFeedsData) {
-    const prevFeeds = Object.keys(prevFeedsData);
-    const currentFeeds = Object.keys(currentFeedsData);
+    var prevFeeds = Object.keys(prevFeedsData);
+    var currentFeeds = Object.keys(currentFeedsData);
     return {
         isNewFeedConnected: currentFeeds.length > prevFeeds.length,
         newFeed: currentFeeds.find(function (feed) {
@@ -600,7 +599,7 @@ function checkIfNewFeedConnected(prevFeedsData, currentFeedsData) {
 }
 exports.checkIfNewFeedConnected = checkIfNewFeedConnected;
 function filterInactiveCards(cards) {
-    const closedStates = [CONST_1['default'].EXPENSIFY_CARD.STATE.CLOSED, CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
+    var closedStates = [CONST_1['default'].EXPENSIFY_CARD.STATE.CLOSED, CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_DEACTIVATED, CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_SUSPENDED];
     return ObjectUtils_1.filterObject(cards !== null && cards !== void 0 ? cards : {}, function (key, card) {
         return !closedStates.includes(card.state);
     });
@@ -610,15 +609,15 @@ function getAllCardsForWorkspace(workspaceAccountID, allCardList) {
     if (allCardList === void 0) {
         allCardList = allWorkspaceCards;
     }
-    const cards = {};
-    for (let _i = 0, _a = Object.entries(allCardList !== null && allCardList !== void 0 ? allCardList : {}); _i < _a.length; _i++) {
-        const _b = _a[_i];
-            const key = _b[0];
-            const values = _b[1];
+    var cards = {};
+    for (var _i = 0, _a = Object.entries(allCardList !== null && allCardList !== void 0 ? allCardList : {}); _i < _a.length; _i++) {
+        var _b = _a[_i],
+            key = _b[0],
+            values = _b[1];
         if (key.includes(workspaceAccountID.toString()) && values) {
-            const cardList = values.cardList;
-                const rest = __rest(values, ['cardList']);
-            const filteredCards = filterInactiveCards(rest);
+            var cardList = values.cardList,
+                rest = __rest(values, ['cardList']);
+            var filteredCards = filterInactiveCards(rest);
             Object.assign(cards, filteredCards);
         }
     }
@@ -627,25 +626,25 @@ function getAllCardsForWorkspace(workspaceAccountID, allCardList) {
 exports.getAllCardsForWorkspace = getAllCardsForWorkspace;
 function isSmartLimitEnabled(cards) {
     return Object.values(cards).some(function (card) {
-        let _a;
+        var _a;
         return ((_a = card.nameValuePairs) === null || _a === void 0 ? void 0 : _a.limitType) === CONST_1['default'].EXPENSIFY_CARD.LIMIT_TYPES.SMART;
     });
 }
 exports.isSmartLimitEnabled = isSmartLimitEnabled;
-const CUSTOM_FEEDS = [CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.VISA, CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX];
+var CUSTOM_FEEDS = [CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.VISA, CONST_1['default'].COMPANY_CARD.FEED_BANK_NAME.AMEX];
 function getFeedType(feedKey, cardFeeds) {
-    let _a; let _b;
+    var _a, _b;
     if (
         CUSTOM_FEEDS.some(function (feed) {
             return feed === feedKey;
         })
     ) {
-        const filteredFeeds = Object.keys(
+        var filteredFeeds = Object.keys(
             (_b = (_a = cardFeeds === null || cardFeeds === void 0 ? void 0 : cardFeeds.settings) === null || _a === void 0 ? void 0 : _a.companyCards) !== null && _b !== void 0 ? _b : {},
         ).filter(function (str) {
             return str.includes(feedKey);
         });
-        const feedNumbers = filteredFeeds
+        var feedNumbers = filteredFeeds
             .map(function (str) {
                 return parseInt(str.replace(feedKey, ''), 10);
             })
@@ -653,15 +652,15 @@ function getFeedType(feedKey, cardFeeds) {
         feedNumbers.sort(function (a, b) {
             return a - b;
         });
-        let firstAvailableNumber = 1;
-        for (let _i = 0, feedNumbers_1 = feedNumbers; _i < feedNumbers_1.length; _i++) {
-            const num = feedNumbers_1[_i];
+        var firstAvailableNumber = 1;
+        for (var _i = 0, feedNumbers_1 = feedNumbers; _i < feedNumbers_1.length; _i++) {
+            var num = feedNumbers_1[_i];
             if (num && num !== firstAvailableNumber) {
-                return `${  feedKey  }${firstAvailableNumber}`;
+                return '' + feedKey + firstAvailableNumber;
             }
             firstAvailableNumber++;
         }
-        return `${  feedKey  }${firstAvailableNumber}`;
+        return '' + feedKey + firstAvailableNumber;
     }
     return feedKey;
 }
@@ -677,15 +676,15 @@ function flatAllCardsList(allCardsList, workspaceAccountID) {
         return;
     }
     return Object.entries(allCardsList).reduce(function (acc, _a) {
-        const key = _a[0];
-            const cards = _a[1];
+        var key = _a[0],
+            cards = _a[1];
         if (!key.includes(workspaceAccountID.toString()) || key.includes(CONST_1['default'].EXPENSIFY_CARD.BANK)) {
             return acc;
         }
-        const _b = cards !== null && cards !== void 0 ? cards : {};
-            const cardList = _b.cardList;
-            const feedCards = __rest(_b, ['cardList']);
-        const filteredCards = filterInactiveCards(feedCards);
+        var _b = cards !== null && cards !== void 0 ? cards : {},
+            cardList = _b.cardList,
+            feedCards = __rest(_b, ['cardList']);
+        var filteredCards = filterInactiveCards(feedCards);
         Object.assign(acc, filteredCards);
         return acc;
     }, {});
@@ -713,16 +712,16 @@ function hasIssuedExpensifyCard(workspaceAccountID, allCardList) {
     if (allCardList === void 0) {
         allCardList = allWorkspaceCards;
     }
-    const cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
+    var cards = getAllCardsForWorkspace(workspaceAccountID, allCardList);
     return Object.values(cards).some(function (card) {
         return card.bank === CONST_1['default'].EXPENSIFY_CARD.BANK;
     });
 }
 exports.hasIssuedExpensifyCard = hasIssuedExpensifyCard;
 function hasCardListObject(workspaceAccountID, feedName) {
-    let _a;
-    const workspaceCards =
-        (_a = allWorkspaceCards === null || allWorkspaceCards === void 0 ? void 0 : allWorkspaceCards[`cards_${  workspaceAccountID  }_${  feedName}`]) !== null && _a !== void 0 ? _a : {};
+    var _a;
+    var workspaceCards =
+        (_a = allWorkspaceCards === null || allWorkspaceCards === void 0 ? void 0 : allWorkspaceCards['cards_' + workspaceAccountID + '_' + feedName]) !== null && _a !== void 0 ? _a : {};
     return !!workspaceCards.cardList;
 }
 exports.hasCardListObject = hasCardListObject;
@@ -736,12 +735,12 @@ function isExpensifyCardFullySetUp(policy, cardSettings) {
 }
 exports.isExpensifyCardFullySetUp = isExpensifyCardFullySetUp;
 function getFundIdFromSettingsKey(key) {
-    const prefix = ONYXKEYS_1['default'].COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
+    var prefix = ONYXKEYS_1['default'].COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS;
     if (!(key === null || key === void 0 ? void 0 : key.startsWith(prefix))) {
         return CONST_1['default'].DEFAULT_NUMBER_ID;
     }
-    const fundIDStr = key.substring(prefix.length);
-    const fundID = Number(fundIDStr);
+    var fundIDStr = key.substring(prefix.length);
+    var fundID = Number(fundIDStr);
     return Number.isNaN(fundID) ? CONST_1['default'].DEFAULT_NUMBER_ID : fundID;
 }
 exports.getFundIdFromSettingsKey = getFundIdFromSettingsKey;

@@ -1,16 +1,15 @@
-
+'use strict';
 exports.__esModule = true;
 exports.formatPhoneNumber = void 0;
-const expensify_common_1 = require('expensify-common');
-const react_native_onyx_1 = require('react-native-onyx');
-const CONST_1 = require('@src/CONST');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-const PhoneNumber_1 = require('./PhoneNumber');
-
-let countryCodeByIP;
+var expensify_common_1 = require('expensify-common');
+var react_native_onyx_1 = require('react-native-onyx');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var PhoneNumber_1 = require('./PhoneNumber');
+var countryCodeByIP;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COUNTRY_CODE,
-    callback (val) {
+    callback: function (val) {
         return (countryCodeByIP = val !== null && val !== void 0 ? val : 1);
     },
 });
@@ -19,7 +18,7 @@ react_native_onyx_1['default'].connect({
  * and an internationally converted phone number with the country code for numbers from other regions
  */
 function formatPhoneNumber(number) {
-    let _a;
+    var _a;
     if (!number) {
         return '';
     }
@@ -29,8 +28,8 @@ function formatPhoneNumber(number) {
     if (number.indexOf(CONST_1['default'].SMS.DOMAIN) === -1 && !CONST_1['default'].REGEX.DIGITS_AND_PLUS.test(number)) {
         return number;
     }
-    const numberWithoutSMSDomain = expensify_common_1.Str.removeSMSDomain(number);
-    const parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(numberWithoutSMSDomain);
+    var numberWithoutSMSDomain = expensify_common_1.Str.removeSMSDomain(number);
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(numberWithoutSMSDomain);
     // return the string untouched if it's not a phone number
     if (!parsedPhoneNumber.valid) {
         if ((_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.international) {
@@ -38,7 +37,7 @@ function formatPhoneNumber(number) {
         }
         return numberWithoutSMSDomain;
     }
-    const regionCode = parsedPhoneNumber.countryCode;
+    var regionCode = parsedPhoneNumber.countryCode;
     if (regionCode === countryCodeByIP) {
         return parsedPhoneNumber.number.national;
     }

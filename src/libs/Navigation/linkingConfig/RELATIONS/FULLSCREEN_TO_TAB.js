@@ -1,10 +1,9 @@
-
-let _a;
+'use strict';
+var _a;
 exports.__esModule = true;
-const NAVIGATION_TABS_1 = require('@components/Navigation/NavigationTabBar/NAVIGATION_TABS');
-const NAVIGATORS_1 = require('@src/NAVIGATORS');
-
-const FULLSCREEN_TO_TAB =
+var NAVIGATION_TABS_1 = require('@components/Navigation/NavigationTabBar/NAVIGATION_TABS');
+var NAVIGATORS_1 = require('@src/NAVIGATORS');
+var FULLSCREEN_TO_TAB =
     ((_a = {}),
     (_a[NAVIGATORS_1['default'].REPORTS_SPLIT_NAVIGATOR] = NAVIGATION_TABS_1['default'].HOME),
     (_a[NAVIGATORS_1['default'].SEARCH_FULLSCREEN_NAVIGATOR] = NAVIGATION_TABS_1['default'].SEARCH),

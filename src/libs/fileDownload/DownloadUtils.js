@@ -1,15 +1,14 @@
-
+'use strict';
 exports.__esModule = true;
-const ApiUtils = require('@libs/ApiUtils');
-const tryResolveUrlFromApiRoot_1 = require('@libs/tryResolveUrlFromApiRoot');
-const Link = require('@userActions/Link');
-const CONST_1 = require('@src/CONST');
-const FileUtils_1 = require('./FileUtils');
-
-const createDownloadLink = function (href, fileName) {
-    let _a;
+var ApiUtils = require('@libs/ApiUtils');
+var tryResolveUrlFromApiRoot_1 = require('@libs/tryResolveUrlFromApiRoot');
+var Link = require('@userActions/Link');
+var CONST_1 = require('@src/CONST');
+var FileUtils_1 = require('./FileUtils');
+var createDownloadLink = function (href, fileName) {
+    var _a;
     // creating anchor tag to initiate download
-    const link = document.createElement('a');
+    var link = document.createElement('a');
     // adding href to anchor
     link.href = href;
     link.style.display = 'none';
@@ -27,7 +26,7 @@ const createDownloadLink = function (href, fileName) {
  * The function downloads an attachment on web/desktop platforms.
  */
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-const fetchFileDownload = function (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed) {
+var fetchFileDownload = function (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed) {
     if (successMessage === void 0) {
         successMessage = '';
     }
@@ -40,12 +39,12 @@ const fetchFileDownload = function (url, fileName, successMessage, shouldOpenExt
     if (requestType === void 0) {
         requestType = 'get';
     }
-    const resolvedUrl = tryResolveUrlFromApiRoot_1['default'](url);
-    const isApiUrl = resolvedUrl.startsWith(ApiUtils.getApiRoot());
-    const isAttachmentUrl = CONST_1['default'].ATTACHMENT_LOCAL_URL_PREFIX.some(function (prefix) {
+    var resolvedUrl = tryResolveUrlFromApiRoot_1['default'](url);
+    var isApiUrl = resolvedUrl.startsWith(ApiUtils.getApiRoot());
+    var isAttachmentUrl = CONST_1['default'].ATTACHMENT_LOCAL_URL_PREFIX.some(function (prefix) {
         return resolvedUrl.startsWith(prefix);
     });
-    const isSageUrl = url === CONST_1['default'].EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT;
+    var isSageUrl = url === CONST_1['default'].EXPENSIFY_PACKAGE_FOR_SAGE_INTACCT;
     if (
         // We have two file download cases that we should allow: 1. downloading attachments 2. downloading Expensify package for Sage Intacct
         shouldOpenExternalLink ||
@@ -56,14 +55,14 @@ const fetchFileDownload = function (url, fileName, successMessage, shouldOpenExt
         Link.openExternalLink(url);
         return Promise.resolve();
     }
-    const fetchOptions = {
+    var fetchOptions = {
         method: requestType,
         body: formData,
         credentials: 'same-origin',
     };
     return fetch(url, fetchOptions)
         .then(function (response) {
-            const contentType = response.headers.get('content-type');
+            var contentType = response.headers.get('content-type');
             if (contentType === 'application/json' && (fileName === null || fileName === void 0 ? void 0 : fileName.includes('.csv'))) {
                 throw new Error();
             }
@@ -71,8 +70,8 @@ const fetchFileDownload = function (url, fileName, successMessage, shouldOpenExt
         })
         .then(function (blob) {
             // Create blob link to download
-            const href = URL.createObjectURL(new Blob([blob]));
-            const completeFileName = FileUtils_1.appendTimeToFileName(fileName !== null && fileName !== void 0 ? fileName : FileUtils_1.getFileName(url));
+            var href = URL.createObjectURL(new Blob([blob]));
+            var completeFileName = FileUtils_1.appendTimeToFileName(fileName !== null && fileName !== void 0 ? fileName : FileUtils_1.getFileName(url));
             createDownloadLink(href, completeFileName);
         })
         ['catch'](function () {

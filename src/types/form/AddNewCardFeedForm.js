@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     CARD_TITLE: 'cardTitle',
     PROCESSOR_ID: 'processorID',
     BANK_ID: 'bankID',

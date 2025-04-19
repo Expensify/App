@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
 exports.validateReceipt =
     exports.createFile =
@@ -22,17 +22,17 @@ exports.validateReceipt =
     exports.showSuccessAlert =
     exports.showGeneralErrorAlert =
         void 0;
-const expensify_common_1 = require('expensify-common');
-const react_native_1 = require('react-native');
-const react_native_image_size_1 = require('react-native-image-size');
-const DateUtils_1 = require('@libs/DateUtils');
-const getPlatform_1 = require('@libs/getPlatform');
-const Localize_1 = require('@libs/Localize');
-const Log_1 = require('@libs/Log');
-const saveLastRoute_1 = require('@libs/saveLastRoute');
-const CONST_1 = require('@src/CONST');
-const getImageManipulator_1 = require('./getImageManipulator');
-const getImageResolution_1 = require('./getImageResolution');
+var expensify_common_1 = require('expensify-common');
+var react_native_1 = require('react-native');
+var react_native_image_size_1 = require('react-native-image-size');
+var DateUtils_1 = require('@libs/DateUtils');
+var getPlatform_1 = require('@libs/getPlatform');
+var Localize_1 = require('@libs/Localize');
+var Log_1 = require('@libs/Log');
+var saveLastRoute_1 = require('@libs/saveLastRoute');
+var CONST_1 = require('@src/CONST');
+var getImageManipulator_1 = require('./getImageManipulator');
+var getImageResolution_1 = require('./getImageResolution');
 /**
  * Show alert on successful attachment download
  * @param successMessage
@@ -76,7 +76,7 @@ function showPermissionErrorAlert() {
         },
         {
             text: Localize_1.translateLocal('common.settings'),
-            onPress () {
+            onPress: function () {
                 react_native_1.Linking.openSettings();
             },
         },
@@ -97,7 +97,7 @@ function showCameraPermissionsAlert() {
             },
             {
                 text: Localize_1.translateLocal('common.settings'),
-                onPress () {
+                onPress: function () {
                     react_native_1.Linking.openSettings();
                     // In the case of ios, the App reloads when we update camera permission from settings
                     // we are saving last route so we can navigate to it after app reload
@@ -119,10 +119,10 @@ exports.showCameraPermissionsAlert = showCameraPermissionsAlert;
  *    with underscores.
  */
 function getFileName(url) {
-    let _a; let _b;
-    const fileName = (_b = (_a = url.split('/').pop()) === null || _a === void 0 ? void 0 : _a.split('?')[0].split('#')[0]) !== null && _b !== void 0 ? _b : '';
+    var _a, _b;
+    var fileName = (_b = (_a = url.split('/').pop()) === null || _a === void 0 ? void 0 : _a.split('?')[0].split('#')[0]) !== null && _b !== void 0 ? _b : '';
     if (!fileName) {
-        Log_1['default'].warn('[FileUtils] Could not get attachment name', {url});
+        Log_1['default'].warn('[FileUtils] Could not get attachment name', {url: url});
     }
     return decodeURIComponent(fileName).replace(CONST_1['default'].REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
 }
@@ -141,7 +141,7 @@ function getFileType(fileUrl) {
     if (!fileUrl) {
         return;
     }
-    const fileName = getFileName(fileUrl);
+    var fileName = getFileName(fileUrl);
     if (!fileName) {
         return;
     }
@@ -157,10 +157,10 @@ exports.getFileType = getFileType;
 /**
  * Returns the filename split into fileName and fileExtension
  */
-const splitExtensionFromFileName = function (fullFileName) {
-    const fileName = fullFileName.trim();
-    const splitFileName = fileName.split('.');
-    const fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
+var splitExtensionFromFileName = function (fullFileName) {
+    var fileName = fullFileName.trim();
+    var splitFileName = fileName.split('.');
+    var fileExtension = splitFileName.length > 1 ? splitFileName.pop() : '';
     return {fileName: splitFileName.join('.'), fileExtension: fileExtension !== null && fileExtension !== void 0 ? fileExtension : ''};
 };
 exports.splitExtensionFromFileName = splitExtensionFromFileName;
@@ -172,12 +172,12 @@ function cleanFileName(fileName) {
 }
 exports.cleanFileName = cleanFileName;
 function appendTimeToFileName(fileName) {
-    const file = splitExtensionFromFileName(fileName);
-    let newFileName = `${file.fileName  }-${  DateUtils_1['default'].getDBTime()}`;
+    var file = splitExtensionFromFileName(fileName);
+    var newFileName = file.fileName + '-' + DateUtils_1['default'].getDBTime();
     // Replace illegal characters before trying to download the attachment.
     newFileName = newFileName.replace(CONST_1['default'].REGEX.ILLEGAL_FILENAME_CHARACTERS, '_');
     if (file.fileExtension) {
-        newFileName += `.${  file.fileExtension}`;
+        newFileName += '.' + file.fileExtension;
     }
     return newFileName;
 }
@@ -187,7 +187,7 @@ exports.appendTimeToFileName = appendTimeToFileName;
  * @param path - the blob url of the locally uploaded file
  * @param fileName - name of the file to read
  */
-const readFileAsync = function (path, fileName, onSuccess, onFailure, fileType) {
+var readFileAsync = function (path, fileName, onSuccess, onFailure, fileType) {
     if (onFailure === void 0) {
         onFailure = function () {};
     }
@@ -212,7 +212,7 @@ const readFileAsync = function (path, fileName, onSuccess, onFailure, fileType) 
                     .then(function (blob) {
                         // On Android devices, fetching blob for a file with name containing spaces fails to retrieve the type of file.
                         // In this case, let us fallback on fileType provided by the caller of this function.
-                        const file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
+                        var file = new File([blob], cleanFileName(fileName), {type: blob.type || fileType});
                         file.source = path;
                         // For some reason, the File object on iOS does not have a uri property
                         // so images aren't uploaded correctly to the backend
@@ -248,33 +248,33 @@ exports.readFileAsync = readFileAsync;
  * console.log(imageFile.uri); // Blob URI
  */
 function base64ToFile(base64, filename) {
-    let _a; let _b; let _c;
+    var _a, _b, _c;
     // Decode the base64 string
-    const byteString = atob((_a = base64.split(',').at(1)) !== null && _a !== void 0 ? _a : '');
+    var byteString = atob((_a = base64.split(',').at(1)) !== null && _a !== void 0 ? _a : '');
     // Get the mime type from the base64 string
-    const mimeString = (_c = (_b = base64.split(',').at(0)) === null || _b === void 0 ? void 0 : _b.split(':').at(1)) === null || _c === void 0 ? void 0 : _c.split(';').at(0);
+    var mimeString = (_c = (_b = base64.split(',').at(0)) === null || _b === void 0 ? void 0 : _b.split(':').at(1)) === null || _c === void 0 ? void 0 : _c.split(';').at(0);
     // Convert byte string to Uint8Array
-    const arrayBuffer = new ArrayBuffer(byteString.length);
-    const uint8Array = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < byteString.length; i++) {
+    var arrayBuffer = new ArrayBuffer(byteString.length);
+    var uint8Array = new Uint8Array(arrayBuffer);
+    for (var i = 0; i < byteString.length; i++) {
         uint8Array[i] = byteString.charCodeAt(i);
     }
     // Create a blob from the Uint8Array
-    const blob = new Blob([uint8Array], {type: mimeString});
+    var blob = new Blob([uint8Array], {type: mimeString});
     // Create a File instance from the Blob
-    const file = new File([blob], filename, {type: mimeString, lastModified: Date.now()});
+    var file = new File([blob], filename, {type: mimeString, lastModified: Date.now()});
     // Add a uri property to the File instance for accessing the blob as a URI
     file.uri = URL.createObjectURL(blob);
     return file;
 }
 exports.base64ToFile = base64ToFile;
 function validateImageForCorruption(file) {
-    let _a;
+    var _a;
     if (!expensify_common_1.Str.isImage((_a = file.name) !== null && _a !== void 0 ? _a : '') || !file.uri) {
         return Promise.resolve();
     }
     return new Promise(function (resolve, reject) {
-        let _a;
+        var _a;
         react_native_image_size_1['default']
             .getSize((_a = file.uri) !== null && _a !== void 0 ? _a : '')
             .then(function (size) {
@@ -291,15 +291,15 @@ function validateImageForCorruption(file) {
 exports.validateImageForCorruption = validateImageForCorruption;
 /** Verify file format based on the magic bytes of the file - some formats might be identified by multiple signatures */
 function verifyFileFormat(_a) {
-    const fileUri = _a.fileUri;
-        const formatSignatures = _a.formatSignatures;
+    var fileUri = _a.fileUri,
+        formatSignatures = _a.formatSignatures;
     return fetch(fileUri)
         .then(function (file) {
             return file.arrayBuffer();
         })
         .then(function (arrayBuffer) {
-            const uintArray = new Uint8Array(arrayBuffer, 4, 12);
-            const hexString = Array.from(uintArray)
+            var uintArray = new Uint8Array(arrayBuffer, 4, 12);
+            var hexString = Array.from(uintArray)
                 .map(function (b) {
                     return b.toString(16).padStart(2, '0');
                 })
@@ -326,7 +326,7 @@ function isLocalFile(receiptUri) {
 }
 exports.isLocalFile = isLocalFile;
 function getFileResolution(targetFile) {
-    let _a; let _b;
+    var _a, _b;
     if (!targetFile) {
         return Promise.resolve(null);
     }
@@ -337,9 +337,9 @@ function getFileResolution(targetFile) {
     // Otherwise, attempt to get the image resolution
     return getImageResolution_1['default'](targetFile)
         .then(function (_a) {
-            const width = _a.width;
-                const height = _a.height;
-            return {width, height};
+            var width = _a.width,
+                height = _a.height;
+            return {width: width, height: height};
         })
         ['catch'](function (error) {
             Log_1['default'].hmmm('Failed to get image resolution:', error);
@@ -351,20 +351,20 @@ function isHighResolutionImage(resolution) {
     return resolution !== null && (resolution.width > CONST_1['default'].IMAGE_HIGH_RESOLUTION_THRESHOLD || resolution.height > CONST_1['default'].IMAGE_HIGH_RESOLUTION_THRESHOLD);
 }
 exports.isHighResolutionImage = isHighResolutionImage;
-const getImageDimensionsAfterResize = function (file) {
-    let _a;
+var getImageDimensionsAfterResize = function (file) {
+    var _a;
     return react_native_image_size_1['default'].getSize((_a = file.uri) !== null && _a !== void 0 ? _a : '').then(function (_a) {
-        const width = _a.width;
-            const height = _a.height;
-        const scaleFactor = CONST_1['default'].MAX_IMAGE_DIMENSION / (width < height ? height : width);
-        const newWidth = Math.max(1, width * scaleFactor);
-        const newHeight = Math.max(1, height * scaleFactor);
+        var width = _a.width,
+            height = _a.height;
+        var scaleFactor = CONST_1['default'].MAX_IMAGE_DIMENSION / (width < height ? height : width);
+        var newWidth = Math.max(1, width * scaleFactor);
+        var newHeight = Math.max(1, height * scaleFactor);
         return {width: newWidth, height: newHeight};
     });
 };
 exports.getImageDimensionsAfterResize = getImageDimensionsAfterResize;
-const resizeImageIfNeeded = function (file) {
-    let _a; let _b;
+var resizeImageIfNeeded = function (file) {
+    var _a, _b;
     if (
         !file ||
         !expensify_common_1.Str.isImage((_a = file.name) !== null && _a !== void 0 ? _a : '') ||
@@ -373,20 +373,20 @@ const resizeImageIfNeeded = function (file) {
         return Promise.resolve(file);
     }
     return getImageDimensionsAfterResize(file).then(function (_a) {
-        let _b; let _c;
-        const width = _a.width;
-            const height = _a.height;
+        var _b, _c;
+        var width = _a.width,
+            height = _a.height;
         return getImageManipulator_1['default']({
             fileUri: (_b = file.uri) !== null && _b !== void 0 ? _b : '',
-            width,
-            height,
+            width: width,
+            height: height,
             fileName: (_c = file.name) !== null && _c !== void 0 ? _c : '',
             type: file.type,
         });
     });
 };
 exports.resizeImageIfNeeded = resizeImageIfNeeded;
-const createFile = function (file) {
+var createFile = function (file) {
     if (getPlatform_1['default']() === CONST_1['default'].PLATFORM.ANDROID || getPlatform_1['default']() === CONST_1['default'].PLATFORM.IOS) {
         return {
             uri: file.uri,
@@ -400,11 +400,11 @@ const createFile = function (file) {
     });
 };
 exports.createFile = createFile;
-const validateReceipt = function (file, setUploadReceiptError) {
+var validateReceipt = function (file, setUploadReceiptError) {
     return validateImageForCorruption(file)
         .then(function () {
-            let _a; let _b; let _c; let _d;
-            const fileExtension = splitExtensionFromFileName((_a = file === null || file === void 0 ? void 0 : file.name) !== null && _a !== void 0 ? _a : '').fileExtension;
+            var _a, _b, _c, _d;
+            var fileExtension = splitExtensionFromFileName((_a = file === null || file === void 0 ? void 0 : file.name) !== null && _a !== void 0 ? _a : '').fileExtension;
             if (!CONST_1['default'].API_ATTACHMENT_VALIDATIONS.ALLOWED_RECEIPT_EXTENSIONS.includes(fileExtension.toLowerCase())) {
                 setUploadReceiptError(true, 'attachmentPicker.wrongFileType', 'attachmentPicker.notAllowedExtension');
                 return false;

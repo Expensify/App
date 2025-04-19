@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     COMMENT: 'comment',
 };
 exports['default'] = INPUT_IDS;

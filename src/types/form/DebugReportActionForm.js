@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     REPORT_ACTION_ID: 'reportActionID',
     SEQUENCE_NUMBER: 'sequenceNumber',
     ACTION_NAME: 'actionName',

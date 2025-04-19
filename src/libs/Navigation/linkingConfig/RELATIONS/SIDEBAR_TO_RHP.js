@@ -1,12 +1,12 @@
-
-let _a;
+'use strict';
+var _a;
 exports.__esModule = true;
-const SCREENS_1 = require('@src/SCREENS');
+var SCREENS_1 = require('@src/SCREENS');
 /**
  * This file is used to define the relationship between the sidebar and the right hand pane (RHP) screen.
  * This means that going back from RHP will take the user directly to the sidebar. On wide layout the default central screen will be used to fill the space.
  */
-const SIDEBAR_TO_RHP =
+var SIDEBAR_TO_RHP =
     ((_a = {}),
     (_a[SCREENS_1['default'].SETTINGS.ROOT] = [
         SCREENS_1['default'].SETTINGS.SHARE_CODE,

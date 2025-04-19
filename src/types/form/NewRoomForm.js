@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     ROOM_NAME: 'roomName',
     REPORT_DESCRIPTION: 'reportDescription',
     POLICY_ID: 'policyID',

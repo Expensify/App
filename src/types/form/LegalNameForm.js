@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     LEGAL_FIRST_NAME: 'legalFirstName',
     LEGAL_LAST_NAME: 'legalLastName',
 };

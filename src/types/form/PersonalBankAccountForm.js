@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     BANK_INFO_STEP: {
         ROUTING_NUMBER: 'routingNumber',
         ACCOUNT_NUMBER: 'accountNumber',

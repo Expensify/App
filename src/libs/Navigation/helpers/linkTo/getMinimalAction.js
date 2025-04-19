@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -8,10 +8,10 @@ exports.__esModule = true;
  * @returns minimalAction minimal action is the action that we should dispatch
  */
 function getMinimalAction(action, state) {
-    let _a; let _b; let _c; let _d; let _e; let _f;
-    let currentAction = action;
-    let currentState = state;
-    let currentTargetKey;
+    var _a, _b, _c, _d, _e, _f;
+    var currentAction = action;
+    var currentState = state;
+    var currentTargetKey;
     while (
         currentAction.payload &&
         'name' in currentAction.payload &&
@@ -22,7 +22,7 @@ function getMinimalAction(action, state) {
         }
         currentState = currentState === null || currentState === void 0 ? void 0 : currentState.routes[(_c = currentState.index) !== null && _c !== void 0 ? _c : -1].state;
         currentTargetKey = currentState === null || currentState === void 0 ? void 0 : currentState.key;
-        const payload = currentAction.payload;
+        var payload = currentAction.payload;
         // Creating new smaller action
         currentAction = {
             type: currentAction.type,

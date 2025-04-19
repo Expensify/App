@@ -1,20 +1,20 @@
-
-const __rest =
+'use strict';
+var __rest =
     (this && this.__rest) ||
     function (s, e) {
-        const t = {};
-        for (var p in s) {if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) {t[p] = s[p];}}
+        var t = {};
+        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
         if (s != null && typeof Object.getOwnPropertySymbols === 'function')
-            {for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) {t[p[i]] = s[p[i]];}
-            }}
+            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
+            }
         return t;
     };
-const __spreadArrays =
+var __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
         return r;
     };
 exports.__esModule = true;
@@ -158,75 +158,74 @@ exports.getReportActions =
     exports.shouldReportActionBeVisibleAsLastAction =
     exports.shouldReportActionBeVisible =
         void 0;
-const expensify_common_1 = require('expensify-common');
-const clone_1 = require('lodash/clone');
-const findLast_1 = require('lodash/findLast');
-const isEmpty_1 = require('lodash/isEmpty');
-const react_native_onyx_1 = require('react-native-onyx');
-const usePrevious_1 = require('@hooks/usePrevious');
-const CONST_1 = require('@src/CONST');
-const ONYXKEYS_1 = require('@src/ONYXKEYS');
-const ROUTES_1 = require('@src/ROUTES');
-const EmptyObject_1 = require('@src/types/utils/EmptyObject');
-const CurrencyUtils_1 = require('./CurrencyUtils');
-const DateUtils_1 = require('./DateUtils');
-const Environment_1 = require('./Environment/Environment');
-const getBase62ReportID_1 = require('./getBase62ReportID');
-const isReportMessageAttachment_1 = require('./isReportMessageAttachment');
-const LocaleDigitUtils_1 = require('./LocaleDigitUtils');
-const LocalePhoneNumber_1 = require('./LocalePhoneNumber');
-const Localize_1 = require('./Localize');
-const Log_1 = require('./Log');
-const Parser_1 = require('./Parser');
-const PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
-const PolicyUtils_1 = require('./PolicyUtils');
-const StringUtils_1 = require('./StringUtils');
-const TransactionUtils_1 = require('./TransactionUtils');
-const WorkspaceReportFieldUtils_1 = require('./WorkspaceReportFieldUtils');
-
-let allReportActions;
+var expensify_common_1 = require('expensify-common');
+var clone_1 = require('lodash/clone');
+var findLast_1 = require('lodash/findLast');
+var isEmpty_1 = require('lodash/isEmpty');
+var react_native_onyx_1 = require('react-native-onyx');
+var usePrevious_1 = require('@hooks/usePrevious');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var ROUTES_1 = require('@src/ROUTES');
+var EmptyObject_1 = require('@src/types/utils/EmptyObject');
+var CurrencyUtils_1 = require('./CurrencyUtils');
+var DateUtils_1 = require('./DateUtils');
+var Environment_1 = require('./Environment/Environment');
+var getBase62ReportID_1 = require('./getBase62ReportID');
+var isReportMessageAttachment_1 = require('./isReportMessageAttachment');
+var LocaleDigitUtils_1 = require('./LocaleDigitUtils');
+var LocalePhoneNumber_1 = require('./LocalePhoneNumber');
+var Localize_1 = require('./Localize');
+var Log_1 = require('./Log');
+var Parser_1 = require('./Parser');
+var PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
+var PolicyUtils_1 = require('./PolicyUtils');
+var StringUtils_1 = require('./StringUtils');
+var TransactionUtils_1 = require('./TransactionUtils');
+var WorkspaceReportFieldUtils_1 = require('./WorkspaceReportFieldUtils');
+var allReportActions;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS,
     waitForCollectionCallback: true,
-    callback (actions) {
+    callback: function (actions) {
         if (!actions) {
             return;
         }
         allReportActions = actions;
     },
 });
-let preferredLocale = CONST_1['default'].LOCALES.DEFAULT;
+var preferredLocale = CONST_1['default'].LOCALES.DEFAULT;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NVP_PREFERRED_LOCALE,
-    callback (value) {
+    callback: function (value) {
         if (!value) {
             return;
         }
         preferredLocale = value;
     },
 });
-let allReports;
+var allReports;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback (value) {
+    callback: function (value) {
         allReports = value;
     },
 });
-let isNetworkOffline = false;
+var isNetworkOffline = false;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NETWORK,
-    callback (val) {
-        let _a;
+    callback: function (val) {
+        var _a;
         return (isNetworkOffline = (_a = val === null || val === void 0 ? void 0 : val.isOffline) !== null && _a !== void 0 ? _a : false);
     },
 });
-let currentUserAccountID;
-let currentEmail = '';
+var currentUserAccountID;
+var currentEmail = '';
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].SESSION,
-    callback (value) {
-        let _a;
+    callback: function (value) {
+        var _a;
         // When signed out, value is undefined
         if (!value) {
             return;
@@ -235,50 +234,50 @@ react_native_onyx_1['default'].connect({
         currentEmail = (_a = value === null || value === void 0 ? void 0 : value.email) !== null && _a !== void 0 ? _a : '';
     },
 });
-let privatePersonalDetails;
+var privatePersonalDetails;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].PRIVATE_PERSONAL_DETAILS,
-    callback (personalDetails) {
+    callback: function (personalDetails) {
         privatePersonalDetails = personalDetails;
     },
 });
-let environmentURL;
+var environmentURL;
 Environment_1.getEnvironmentURL().then(function (url) {
     return (environmentURL = url);
 });
 /*
  * Url to the Xero non reimbursable expenses list
  */
-const XERO_NON_REIMBURSABLE_EXPENSES_URL = 'https://go.xero.com/Bank/BankAccounts.aspx';
+var XERO_NON_REIMBURSABLE_EXPENSES_URL = 'https://go.xero.com/Bank/BankAccounts.aspx';
 /*
  * Url to the NetSuite global search, which should be suffixed with the reportID.
  */
-const NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX =
+var NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX =
     'https://system.netsuite.com/app/common/search/ubersearchresults.nl?quicksearch=T&searchtype=Uber&frame=be&Uber_NAMEtype=KEYWORDSTARTSWITH&Uber_NAME=';
 /*
  * Url prefix to any Salesforce transaction or transaction list.
  */
-const SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
+var SALESFORCE_EXPENSES_URL_PREFIX = 'https://login.salesforce.com/';
 /*
  * Url to the QBO expenses list
  */
-const QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
-const POLICY_CHANGE_LOG_ARRAY = Object.values(CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
+var QBO_EXPENSES_URL = 'https://qbo.intuit.com/app/expenses';
+var POLICY_CHANGE_LOG_ARRAY = Object.values(CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG);
 function isCreatedAction(reportAction) {
     return (reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.CREATED;
 }
 exports.isCreatedAction = isCreatedAction;
 function isDeletedAction(reportAction) {
-    let _a; let _b; let _c;
+    var _a, _b, _c;
     if (isInviteOrRemovedAction(reportAction)) {
         return false;
     }
-    const message = (_a = reportAction === null || reportAction === void 0 ? void 0 : reportAction.message) !== null && _a !== void 0 ? _a : [];
+    var message = (_a = reportAction === null || reportAction === void 0 ? void 0 : reportAction.message) !== null && _a !== void 0 ? _a : [];
     if (!Array.isArray(message)) {
         return (message === null || message === void 0 ? void 0 : message.html) === '' || !!(message === null || message === void 0 ? void 0 : message.deleted);
     }
     // A legacy deleted comment has either an empty array or an object with html field with empty string as value
-    const isLegacyDeletedComment = message.length === 0 || ((_b = message.at(0)) === null || _b === void 0 ? void 0 : _b.html) === '';
+    var isLegacyDeletedComment = message.length === 0 || ((_b = message.at(0)) === null || _b === void 0 ? void 0 : _b.html) === '';
     return isLegacyDeletedComment || !!((_c = message.at(0)) === null || _c === void 0 ? void 0 : _c.deleted);
 }
 exports.isDeletedAction = isDeletedAction;
@@ -291,9 +290,9 @@ function getHtmlWithAttachmentID(html, reportActionID) {
     if (!reportActionID) {
         return html;
     }
-    let attachmentID = 0;
+    var attachmentID = 0;
     return html.replace(/<img |<video /g, function (m) {
-        return m.concat(`${CONST_1['default'].ATTACHMENT_ID_ATTRIBUTE  }="${  reportActionID  }_${  ++attachmentID  }" `);
+        return m.concat(CONST_1['default'].ATTACHMENT_ID_ATTRIBUTE + '="' + reportActionID + '_' + ++attachmentID + '" ');
     });
 }
 exports.getHtmlWithAttachmentID = getHtmlWithAttachmentID;
@@ -306,7 +305,7 @@ function getReportActionMessage(reportAction) {
 }
 exports.getReportActionMessage = getReportActionMessage;
 function isDeletedParentAction(reportAction) {
-    let _a; let _b; let _c;
+    var _a, _b, _c;
     return (
         ((_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.isDeletedParentAction) !== null && _b !== void 0 ? _b : false) &&
         ((_c = reportAction === null || reportAction === void 0 ? void 0 : reportAction.childVisibleActionCount) !== null && _c !== void 0 ? _c : 0) > 0
@@ -314,7 +313,7 @@ function isDeletedParentAction(reportAction) {
 }
 exports.isDeletedParentAction = isDeletedParentAction;
 function isReversedTransaction(reportAction) {
-    let _a; let _b; let _c; let _d;
+    var _a, _b, _c, _d;
     return (
         ((_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.isReversedTransaction) !== null && _b !== void 0 ? _b : false) &&
         ((_d = (_c = reportAction) === null || _c === void 0 ? void 0 : _c.childVisibleActionCount) !== null && _d !== void 0 ? _d : 0) > 0
@@ -322,7 +321,7 @@ function isReversedTransaction(reportAction) {
 }
 exports.isReversedTransaction = isReversedTransaction;
 function isPendingRemove(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     return (
         ((_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.moderationDecision) === null || _b === void 0 ? void 0 : _b.decision) ===
         CONST_1['default'].MODERATION.MODERATOR_DECISION_PENDING_REMOVE
@@ -374,7 +373,7 @@ function isAddCommentAction(reportAction) {
 }
 exports.isAddCommentAction = isAddCommentAction;
 function isCreatedTaskReportAction(reportAction) {
-    let _a;
+    var _a;
     return (
         isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.ADD_COMMENT) && !!((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.taskReportID)
     );
@@ -385,14 +384,14 @@ function isTripPreview(reportAction) {
 }
 exports.isTripPreview = isTripPreview;
 function isActionOfType(action) {
-    const actionNames = [];
-    for (let _i = 1; _i < arguments.length; _i++) {
+    var actionNames = [];
+    for (var _i = 1; _i < arguments.length; _i++) {
         actionNames[_i - 1] = arguments[_i];
     }
-    const actionName = action === null || action === void 0 ? void 0 : action.actionName;
+    var actionName = action === null || action === void 0 ? void 0 : action.actionName;
     // This is purely a performance optimization to limit the 'includes()' calls on Hermes
-    for (let _a = 0, actionNames_1 = actionNames; _a < actionNames_1.length; _a++) {
-        const i = actionNames_1[_a];
+    for (var _a = 0, actionNames_1 = actionNames; _a < actionNames_1.length; _a++) {
+        var i = actionNames_1[_a];
         if (i === actionName) {
             return true;
         }
@@ -401,7 +400,7 @@ function isActionOfType(action) {
 }
 exports.isActionOfType = isActionOfType;
 function getOriginalMessage(reportAction) {
-    let _a;
+    var _a;
     if (!Array.isArray(reportAction === null || reportAction === void 0 ? void 0 : reportAction.message)) {
         // eslint-disable-next-line deprecation/deprecation
         return (_a = reportAction === null || reportAction === void 0 ? void 0 : reportAction.message) !== null && _a !== void 0
@@ -423,12 +422,12 @@ exports.isExportIntegrationAction = isExportIntegrationAction;
  * In the interim, we must check to see if we have an object or array for the reportAction.message, if we have an array we will use the originalMessage as this means we have not yet migrated.
  */
 function getWhisperedTo(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     if (!reportAction) {
         return [];
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const message = getReportActionMessage(reportAction);
+    var originalMessage = getOriginalMessage(reportAction);
+    var message = getReportActionMessage(reportAction);
     if (!(originalMessage && typeof originalMessage === 'object' && 'whisperedTo' in originalMessage) && !(message && typeof message === 'object' && 'whisperedTo' in message)) {
         return [];
     }
@@ -520,11 +519,11 @@ exports.isInviteOrRemovedAction = isInviteOrRemovedAction;
  * Returns whether the comment is a thread parent message/the first message in a thread
  */
 function isThreadParentMessage(reportAction, reportID) {
-    const _a = reportAction !== null && reportAction !== void 0 ? reportAction : {};
-        const childType = _a.childType;
-        const _b = _a.childVisibleActionCount;
-        const childVisibleActionCount = _b === void 0 ? 0 : _b;
-        const childReportID = _a.childReportID;
+    var _a = reportAction !== null && reportAction !== void 0 ? reportAction : {},
+        childType = _a.childType,
+        _b = _a.childVisibleActionCount,
+        childVisibleActionCount = _b === void 0 ? 0 : _b,
+        childReportID = _a.childReportID;
     return childType === CONST_1['default'].REPORT.TYPE.CHAT && (childVisibleActionCount > 0 || String(childReportID) === reportID);
 }
 exports.isThreadParentMessage = isThreadParentMessage;
@@ -532,7 +531,7 @@ exports.isThreadParentMessage = isThreadParentMessage;
  * Determines if the given report action is sent money report action by checking for 'pay' type and presence of IOUDetails object.
  */
 function isSentMoneyReportAction(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     return (
         isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU) &&
         ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.type) === CONST_1['default'].IOU.REPORT_ACTION_TYPE.PAY &&
@@ -548,7 +547,7 @@ function isTransactionThread(parentReportAction) {
     if (EmptyObject_1.isEmptyObject(parentReportAction) || !isMoneyRequestAction(parentReportAction)) {
         return false;
     }
-    const originalMessage = getOriginalMessage(parentReportAction);
+    var originalMessage = getOriginalMessage(parentReportAction);
     return (
         (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.type) === CONST_1['default'].IOU.REPORT_ACTION_TYPE.CREATE ||
         (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.type) === CONST_1['default'].IOU.REPORT_ACTION_TYPE.TRACK ||
@@ -567,10 +566,10 @@ function getSortedReportActions(reportActions, shouldSortInDescendingOrder) {
         shouldSortInDescendingOrder = false;
     }
     if (!Array.isArray(reportActions)) {
-        throw new Error(`ReportActionsUtils.getSortedReportActions requires an array, received ${  typeof reportActions}`);
+        throw new Error('ReportActionsUtils.getSortedReportActions requires an array, received ' + typeof reportActions);
     }
-    const invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
-    const sortedActions =
+    var invertedMultiplier = shouldSortInDescendingOrder ? -1 : 1;
+    var sortedActions =
         reportActions === null || reportActions === void 0
             ? void 0
             : reportActions.filter(Boolean).sort(function (first, second) {
@@ -612,7 +611,7 @@ function getCombinedReportActions(reportActions, transactionThreadReportID, tran
     if (shouldFilterIOUAction === void 0) {
         shouldFilterIOUAction = true;
     }
-    const isSentMoneyReport = reportActions.some(function (action) {
+    var isSentMoneyReport = reportActions.some(function (action) {
         return isSentMoneyReportAction(action);
     });
     // We don't want to combine report actions of transaction thread in iou report of send money request because we display the transaction report of send money request as a normal thread
@@ -622,20 +621,20 @@ function getCombinedReportActions(reportActions, transactionThreadReportID, tran
     // Usually, we filter out the created action from the transaction thread report actions, since we already have the parent report's created action in `reportActions`
     // However, in the case of moving track expense, the transaction thread will be created first in a track expense, thus we should keep the CREATED of the transaction thread and filter out CREATED action of the IOU
     // This makes sense because in a combined report action list, whichever CREATED is first need to be retained.
-    const transactionThreadCreatedAction =
+    var transactionThreadCreatedAction =
         transactionThreadReportActions === null || transactionThreadReportActions === void 0
             ? void 0
             : transactionThreadReportActions.find(function (action) {
                   return action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.CREATED;
               });
-    const parentReportCreatedAction =
+    var parentReportCreatedAction =
         reportActions === null || reportActions === void 0
             ? void 0
             : reportActions.find(function (action) {
                   return action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.CREATED;
               });
-    let filteredTransactionThreadReportActions = transactionThreadReportActions;
-    let filteredParentReportActions = reportActions;
+    var filteredTransactionThreadReportActions = transactionThreadReportActions;
+    var filteredParentReportActions = reportActions;
     if (transactionThreadCreatedAction && parentReportCreatedAction && transactionThreadCreatedAction.created > parentReportCreatedAction.created) {
         filteredTransactionThreadReportActions =
             transactionThreadReportActions === null || transactionThreadReportActions === void 0
@@ -651,15 +650,15 @@ function getCombinedReportActions(reportActions, transactionThreadReportID, tran
                       return action.actionName !== CONST_1['default'].REPORT.ACTIONS.TYPE.CREATED;
                   });
     }
-    const report = allReports === null || allReports === void 0 ? void 0 : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${reportID}`];
-    const isSelfDM = (report === null || report === void 0 ? void 0 : report.chatType) === CONST_1['default'].REPORT.CHAT_TYPE.SELF_DM;
+    var report = allReports === null || allReports === void 0 ? void 0 : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + reportID];
+    var isSelfDM = (report === null || report === void 0 ? void 0 : report.chatType) === CONST_1['default'].REPORT.CHAT_TYPE.SELF_DM;
     // Filter out request and send money request actions because we don't want to show any preview actions for one transaction reports
-    const filteredReportActions = __spreadArrays(filteredParentReportActions, filteredTransactionThreadReportActions).filter(function (action) {
-        let _a; let _b;
+    var filteredReportActions = __spreadArrays(filteredParentReportActions, filteredTransactionThreadReportActions).filter(function (action) {
+        var _a, _b;
         if (!isMoneyRequestAction(action) || !shouldFilterIOUAction) {
             return true;
         }
-        const actionType = (_b = (_a = getOriginalMessage(action)) === null || _a === void 0 ? void 0 : _a.type) !== null && _b !== void 0 ? _b : '';
+        var actionType = (_b = (_a = getOriginalMessage(action)) === null || _a === void 0 ? void 0 : _a.type) !== null && _b !== void 0 ? _b : '';
         if (isSelfDM) {
             return actionType !== CONST_1['default'].IOU.REPORT_ACTION_TYPE.CREATE;
         }
@@ -672,21 +671,21 @@ exports.getCombinedReportActions = getCombinedReportActions;
  * Finds most recent IOU request action ID.
  */
 function getMostRecentIOURequestActionID(reportActions) {
-    let _a; let _b; let _c;
+    var _a, _b, _c;
     if (!Array.isArray(reportActions)) {
         return null;
     }
-    const iouRequestTypes = [CONST_1['default'].IOU.REPORT_ACTION_TYPE.CREATE, CONST_1['default'].IOU.REPORT_ACTION_TYPE.SPLIT, CONST_1['default'].IOU.REPORT_ACTION_TYPE.TRACK];
-    const iouRequestActions =
+    var iouRequestTypes = [CONST_1['default'].IOU.REPORT_ACTION_TYPE.CREATE, CONST_1['default'].IOU.REPORT_ACTION_TYPE.SPLIT, CONST_1['default'].IOU.REPORT_ACTION_TYPE.TRACK];
+    var iouRequestActions =
         (_a =
             reportActions === null || reportActions === void 0
                 ? void 0
                 : reportActions.filter(function (action) {
-                      let _a;
+                      var _a;
                       if (!isActionOfType(action, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU)) {
                           return false;
                       }
-                      const actionType = (_a = getOriginalMessage(action)) === null || _a === void 0 ? void 0 : _a.type;
+                      var actionType = (_a = getOriginalMessage(action)) === null || _a === void 0 ? void 0 : _a.type;
                       if (!actionType) {
                           return false;
                       }
@@ -697,7 +696,7 @@ function getMostRecentIOURequestActionID(reportActions) {
     if (iouRequestActions.length === 0) {
         return null;
     }
-    const sortedReportActions = getSortedReportActions(iouRequestActions);
+    var sortedReportActions = getSortedReportActions(iouRequestActions);
     return (_c = (_b = sortedReportActions.at(-1)) === null || _b === void 0 ? void 0 : _b.reportActionID) !== null && _c !== void 0 ? _c : null;
 }
 exports.getMostRecentIOURequestActionID = getMostRecentIOURequestActionID;
@@ -705,8 +704,8 @@ exports.getMostRecentIOURequestActionID = getMostRecentIOURequestActionID;
  * Returns array of links inside a given report action
  */
 function extractLinksFromMessageHtml(reportAction) {
-    const htmlContent = getReportActionHtml(reportAction);
-    const regex = CONST_1['default'].REGEX_LINK_IN_ANCHOR;
+    var htmlContent = getReportActionHtml(reportAction);
+    var regex = CONST_1['default'].REGEX_LINK_IN_ANCHOR;
     if (!htmlContent) {
         return [];
     }
@@ -721,8 +720,8 @@ exports.extractLinksFromMessageHtml = extractLinksFromMessageHtml;
  * @param actionIndex - index of the action
  */
 function findPreviousAction(reportActions, actionIndex) {
-    let _a;
-    for (let i = actionIndex + 1; i < reportActions.length; i++) {
+    var _a;
+    for (var i = actionIndex + 1; i < reportActions.length; i++) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
         if (isNetworkOffline || ((_a = reportActions.at(i)) === null || _a === void 0 ? void 0 : _a.pendingAction) !== CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -737,8 +736,8 @@ function findPreviousAction(reportActions, actionIndex) {
  * @param actionIndex - index of the action
  */
 function findNextAction(reportActions, actionIndex) {
-    let _a;
-    for (let i = actionIndex - 1; i > 0; i--) {
+    var _a;
+    for (var i = actionIndex - 1; i > 0; i--) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
         if (isNetworkOffline || ((_a = reportActions.at(i)) === null || _a === void 0 ? void 0 : _a.pendingAction) !== CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -754,8 +753,8 @@ function findNextAction(reportActions, actionIndex) {
  * @param actionIndex - index of the comment item in state to check
  */
 function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
-    const previousAction = findPreviousAction(reportActions, actionIndex);
-    const currentAction = reportActions.at(actionIndex);
+    var previousAction = findPreviousAction(reportActions, actionIndex);
+    var currentAction = reportActions.at(actionIndex);
     // It's OK for there to be no previous action, and in that case, false will be returned
     // so that the comment isn't grouped
     if (!currentAction || !previousAction) {
@@ -782,7 +781,7 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
         return false;
     }
     if (isSubmittedAction(currentAction)) {
-        const currentActionAdminAccountID = currentAction.adminAccountID;
+        var currentActionAdminAccountID = currentAction.adminAccountID;
         return typeof currentActionAdminAccountID === 'number'
             ? currentActionAdminAccountID === previousAction.actorAccountID
             : currentAction.actorAccountID === previousAction.actorAccountID;
@@ -797,8 +796,8 @@ function isConsecutiveActionMadeByPreviousActor(reportActions, actionIndex) {
 exports.isConsecutiveActionMadeByPreviousActor = isConsecutiveActionMadeByPreviousActor;
 // Todo combine with `isConsecutiveActionMadeByPreviousActor` so as to not duplicate logic (issue: https://github.com/Expensify/App/issues/58625)
 function hasNextActionMadeBySameActor(reportActions, actionIndex) {
-    const currentAction = reportActions.at(actionIndex);
-    const nextAction = findNextAction(reportActions, actionIndex);
+    var currentAction = reportActions.at(actionIndex);
+    var nextAction = findNextAction(reportActions, actionIndex);
     // Todo first should have avatar - verify that this works with long chats (issue: https://github.com/Expensify/App/issues/58625)
     if (actionIndex === 0) {
         return false;
@@ -829,7 +828,7 @@ function hasNextActionMadeBySameActor(reportActions, actionIndex) {
         return false;
     }
     if (isSubmittedAction(currentAction)) {
-        const currentActionAdminAccountID = currentAction.adminAccountID;
+        var currentActionAdminAccountID = currentAction.adminAccountID;
         return currentActionAdminAccountID === nextAction.actorAccountID || currentActionAdminAccountID === nextAction.adminAccountID;
     }
     if (isSubmittedAction(nextAction)) {
@@ -839,10 +838,10 @@ function hasNextActionMadeBySameActor(reportActions, actionIndex) {
 }
 exports.hasNextActionMadeBySameActor = hasNextActionMadeBySameActor;
 function isChronosAutomaticTimerAction(reportAction, isChronosReport) {
-    const isAutomaticStartTimerAction = function () {
+    var isAutomaticStartTimerAction = function () {
         return /start(?:ed|ing)?(?:\snow)?/i.test(getReportActionText(reportAction));
     };
-    const isAutomaticStopTimerAction = function () {
+    var isAutomaticStopTimerAction = function () {
         return /stop(?:ped|ping)?(?:\snow)?/i.test(getReportActionText(reportAction));
     };
     return isChronosReport && (isAutomaticStartTimerAction() || isAutomaticStopTimerAction());
@@ -852,8 +851,8 @@ function isChronosAutomaticTimerAction(reportAction, isChronosReport) {
  * then detect that and show each individually so that the user can easily see when they were sent.
  */
 function isConsecutiveChronosAutomaticTimerAction(reportActions, actionIndex, isChronosReport) {
-    const previousAction = findPreviousAction(reportActions, actionIndex);
-    const currentAction = reportActions === null || reportActions === void 0 ? void 0 : reportActions.at(actionIndex);
+    var previousAction = findPreviousAction(reportActions, actionIndex);
+    var currentAction = reportActions === null || reportActions === void 0 ? void 0 : reportActions.at(actionIndex);
     return isChronosAutomaticTimerAction(currentAction, isChronosReport) && isChronosAutomaticTimerAction(previousAction, isChronosReport);
 }
 exports.isConsecutiveChronosAutomaticTimerAction = isConsecutiveChronosAutomaticTimerAction;
@@ -871,7 +870,7 @@ function isReportActionDeprecated(reportAction, key) {
         Log_1['default'].info('Front-end filtered out reportAction keyed by sequenceNumber!', false, reportAction);
         return true;
     }
-    const deprecatedOldDotReportActions = [
+    var deprecatedOldDotReportActions = [
         CONST_1['default'].REPORT.ACTIONS.TYPE.DELETED_ACCOUNT,
         CONST_1['default'].REPORT.ACTIONS.TYPE.REIMBURSEMENT_REQUESTED,
         CONST_1['default'].REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
@@ -915,18 +914,18 @@ function isActionableWhisper(reportAction) {
     return isActionableMentionWhisper(reportAction) || isActionableTrackExpense(reportAction) || isActionableReportMentionWhisper(reportAction);
 }
 exports.isActionableWhisper = isActionableWhisper;
-const _a = CONST_1['default'].REPORT.ACTIONS.TYPE;
-    const policyChangelogTypes = _a.POLICY_CHANGE_LOG;
-    const roomChangeLogTypes = _a.ROOM_CHANGE_LOG;
-    const otherActionTypes = __rest(_a, ['POLICY_CHANGE_LOG', 'ROOM_CHANGE_LOG']);
-const supportedActionTypes = __spreadArrays(Object.values(otherActionTypes), Object.values(policyChangelogTypes), Object.values(roomChangeLogTypes));
+var _a = CONST_1['default'].REPORT.ACTIONS.TYPE,
+    policyChangelogTypes = _a.POLICY_CHANGE_LOG,
+    roomChangeLogTypes = _a.ROOM_CHANGE_LOG,
+    otherActionTypes = __rest(_a, ['POLICY_CHANGE_LOG', 'ROOM_CHANGE_LOG']);
+var supportedActionTypes = __spreadArrays(Object.values(otherActionTypes), Object.values(policyChangelogTypes), Object.values(roomChangeLogTypes));
 /**
  * Checks whether an action is actionable track expense and resolved.
  *
  */
 function isResolvedActionableWhisper(reportAction) {
-    const originalMessage = getOriginalMessage(reportAction);
-    const resolution =
+    var originalMessage = getOriginalMessage(reportAction);
+    var resolution =
         originalMessage && typeof originalMessage === 'object' && 'resolution' in originalMessage
             ? originalMessage === null || originalMessage === void 0
                 ? void 0
@@ -939,8 +938,8 @@ exports.isResolvedActionableWhisper = isResolvedActionableWhisper;
  * Checks whether an action is concierge category options and resolved.
  */
 function isResolvedConciergeCategoryOptions(reportAction) {
-    const originalMessage = getOriginalMessage(reportAction);
-    const selectedCategory =
+    var originalMessage = getOriginalMessage(reportAction);
+    var selectedCategory =
         originalMessage && typeof originalMessage === 'object' && 'selectedCategory' in originalMessage
             ? originalMessage === null || originalMessage === void 0
                 ? void 0
@@ -993,8 +992,8 @@ function shouldReportActionBeVisible(reportAction, key, canUserPerformWriteActio
         return false;
     }
     // All other actions are displayed except thread parents, deleted, or non-pending actions
-    const isDeleted = isDeletedAction(reportAction);
-    const isPending = !!reportAction.pendingAction;
+    var isDeleted = isDeletedAction(reportAction);
+    var isPending = !!reportAction.pendingAction;
     return !isDeleted || isPending || isDeletedParentAction(reportAction) || isReversedTransaction(reportAction);
 }
 exports.shouldReportActionBeVisible = shouldReportActionBeVisible;
@@ -1013,7 +1012,7 @@ exports.shouldHideNewMarker = shouldHideNewMarker;
  * it satisfies shouldReportActionBeVisible, it's not whisper action and not deleted.
  */
 function shouldReportActionBeVisibleAsLastAction(reportAction, canUserPerformWriteAction) {
-    let _a;
+    var _a;
     if (!reportAction) {
         return false;
     }
@@ -1034,16 +1033,16 @@ exports.shouldReportActionBeVisibleAsLastAction = shouldReportActionBeVisibleAsL
  * which includes a baseURL placeholder that's replaced in the client.
  */
 function replaceBaseURLInPolicyChangeLogAction(reportAction) {
-    let _a;
+    var _a;
     if (!(reportAction === null || reportAction === void 0 ? void 0 : reportAction.message) || !isPolicyChangeLogAction(reportAction)) {
         return reportAction;
     }
-    const updatedReportAction = clone_1['default'](reportAction);
+    var updatedReportAction = clone_1['default'](reportAction);
     if (!updatedReportAction.message) {
         return updatedReportAction;
     }
     if (Array.isArray(updatedReportAction.message)) {
-        const message = updatedReportAction.message.at(0);
+        var message = updatedReportAction.message.at(0);
         if (message) {
             message.html = (_a = getReportActionHtml(reportAction)) === null || _a === void 0 ? void 0 : _a.replace('%baseURL', environmentURL);
         }
@@ -1051,18 +1050,18 @@ function replaceBaseURLInPolicyChangeLogAction(reportAction) {
     return updatedReportAction;
 }
 function getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge, reportActionsParam) {
-    let _a; let _b;
+    var _a, _b;
     if (actionsToMerge === void 0) {
         actionsToMerge = {};
     }
     if (reportActionsParam === void 0) {
         reportActionsParam = allReportActions;
     }
-    let reportActions = [];
+    var reportActions = [];
     if (!isEmpty_1['default'](actionsToMerge)) {
         reportActions = Object.values(
             expensify_common_1.fastMerge(
-                (_a = reportActionsParam === null || reportActionsParam === void 0 ? void 0 : reportActionsParam[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${reportID}`]) !== null &&
+                (_a = reportActionsParam === null || reportActionsParam === void 0 ? void 0 : reportActionsParam['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + reportID]) !== null &&
                     _a !== void 0
                     ? _a
                     : {},
@@ -1072,16 +1071,16 @@ function getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerg
         );
     } else {
         reportActions = Object.values(
-            (_b = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${reportID}`]) !== null &&
+            (_b = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + reportID]) !== null &&
                 _b !== void 0
                 ? _b
                 : {},
         );
     }
-    const visibleReportActions = reportActions.filter(function (action) {
+    var visibleReportActions = reportActions.filter(function (action) {
         return shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction);
     });
-    const sortedReportActions = getSortedReportActions(visibleReportActions, true);
+    var sortedReportActions = getSortedReportActions(visibleReportActions, true);
     if (sortedReportActions.length === 0) {
         return undefined;
     }
@@ -1089,8 +1088,8 @@ function getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerg
 }
 exports.getLastVisibleAction = getLastVisibleAction;
 function formatLastMessageText(lastMessageText) {
-    let _a; let _b;
-    const trimmedMessage = String(lastMessageText).trim();
+    var _a, _b;
+    var trimmedMessage = String(lastMessageText).trim();
     // Add support for inline code containing only space characters
     // The message will appear as a blank space in the LHN
     if (
@@ -1105,15 +1104,15 @@ function formatLastMessageText(lastMessageText) {
 }
 exports.formatLastMessageText = formatLastMessageText;
 function getLastVisibleMessage(reportID, canUserPerformWriteAction, actionsToMerge, reportAction) {
-    let _a;
+    var _a;
     if (actionsToMerge === void 0) {
         actionsToMerge = {};
     }
     if (reportAction === void 0) {
         reportAction = undefined;
     }
-    const lastVisibleAction = reportAction !== null && reportAction !== void 0 ? reportAction : getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge);
-    const message = getReportActionMessage(lastVisibleAction);
+    var lastVisibleAction = reportAction !== null && reportAction !== void 0 ? reportAction : getLastVisibleAction(reportID, canUserPerformWriteAction, actionsToMerge);
+    var message = getReportActionMessage(lastVisibleAction);
     if (message && isReportMessageAttachment_1.isReportMessageAttachment(message)) {
         return {
             lastMessageText: CONST_1['default'].ATTACHMENT_MESSAGE_TEXT,
@@ -1125,7 +1124,7 @@ function getLastVisibleMessage(reportID, canUserPerformWriteAction, actionsToMer
             lastMessageText: '',
         };
     }
-    let messageText = (_a = getReportActionMessageText(lastVisibleAction)) !== null && _a !== void 0 ? _a : '';
+    var messageText = (_a = getReportActionMessageText(lastVisibleAction)) !== null && _a !== void 0 ? _a : '';
     if (messageText) {
         messageText = formatLastMessageText(messageText);
     }
@@ -1140,8 +1139,8 @@ exports.getLastVisibleMessage = getLastVisibleMessage;
 function filterOutDeprecatedReportActions(reportActions) {
     return Object.entries(reportActions !== null && reportActions !== void 0 ? reportActions : {})
         .filter(function (_a) {
-            const key = _a[0];
-                const reportAction = _a[1];
+            var key = _a[0],
+                reportAction = _a[1];
             return !isReportActionDeprecated(reportAction, key);
         })
         .map(function (entry) {
@@ -1158,7 +1157,7 @@ function getSortedReportActionsForDisplay(reportActions, canUserPerformWriteActi
     if (shouldIncludeInvisibleActions === void 0) {
         shouldIncludeInvisibleActions = false;
     }
-    let filteredReportActions = [];
+    var filteredReportActions = [];
     if (!reportActions) {
         return [];
     }
@@ -1167,16 +1166,16 @@ function getSortedReportActionsForDisplay(reportActions, canUserPerformWriteActi
     } else {
         filteredReportActions = Object.entries(reportActions)
             .filter(function (_a) {
-                const key = _a[0];
-                    const reportAction = _a[1];
+                var key = _a[0],
+                    reportAction = _a[1];
                 return shouldReportActionBeVisible(reportAction, key, canUserPerformWriteAction);
             })
             .map(function (_a) {
-                const reportAction = _a[1];
+                var reportAction = _a[1];
                 return reportAction;
             });
     }
-    const baseURLAdjustedReportActions = filteredReportActions.map(function (reportAction) {
+    var baseURLAdjustedReportActions = filteredReportActions.map(function (reportAction) {
         return replaceBaseURLInPolicyChangeLogAction(reportAction);
     });
     return getSortedReportActions(baseURLAdjustedReportActions, true);
@@ -1197,8 +1196,8 @@ function getLastClosedReportAction(reportActions) {
     ) {
         return undefined;
     }
-    const filteredReportActions = filterOutDeprecatedReportActions(reportActions);
-    const sortedReportActions = getSortedReportActions(filteredReportActions);
+    var filteredReportActions = filterOutDeprecatedReportActions(reportActions);
+    var sortedReportActions = getSortedReportActions(filteredReportActions);
     return findLast_1['default'](sortedReportActions, function (action) {
         return action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.CLOSED;
     });
@@ -1213,7 +1212,7 @@ exports.getLastClosedReportAction = getLastClosedReportAction;
  *    action is always the created action
  */
 function getFirstVisibleReportActionID(sortedReportActions, isOffline) {
-    let _a;
+    var _a;
     if (sortedReportActions === void 0) {
         sortedReportActions = [];
     }
@@ -1223,8 +1222,8 @@ function getFirstVisibleReportActionID(sortedReportActions, isOffline) {
     if (!Array.isArray(sortedReportActions)) {
         return '';
     }
-    const sortedFilterReportActions = sortedReportActions.filter(function (action) {
-        let _a;
+    var sortedFilterReportActions = sortedReportActions.filter(function (action) {
+        var _a;
         return !isDeletedAction(action) || ((_a = action === null || action === void 0 ? void 0 : action.childVisibleActionCount) !== null && _a !== void 0 ? _a : 0) > 0 || isOffline;
     });
     return sortedFilterReportActions.length > 1
@@ -1238,8 +1237,8 @@ exports.getFirstVisibleReportActionID = getFirstVisibleReportActionID;
  * @returns The latest report action in the `onyxData` or `null` if one couldn't be found
  */
 function getLatestReportActionFromOnyxData(onyxData) {
-    let _a; let _b;
-    const reportActionUpdate =
+    var _a, _b;
+    var reportActionUpdate =
         onyxData === null || onyxData === void 0
             ? void 0
             : onyxData.find(function (onyxUpdate) {
@@ -1248,8 +1247,8 @@ function getLatestReportActionFromOnyxData(onyxData) {
     if (!reportActionUpdate) {
         return null;
     }
-    const reportActions = Object.values((_a = reportActionUpdate.value) !== null && _a !== void 0 ? _a : {});
-    const sortedReportActions = getSortedReportActions(reportActions);
+    var reportActions = Object.values((_a = reportActionUpdate.value) !== null && _a !== void 0 ? _a : {});
+    var sortedReportActions = getSortedReportActions(reportActions);
     return (_b = sortedReportActions.at(-1)) !== null && _b !== void 0 ? _b : null;
 }
 exports.getLatestReportActionFromOnyxData = getLatestReportActionFromOnyxData;
@@ -1257,10 +1256,10 @@ exports.getLatestReportActionFromOnyxData = getLatestReportActionFromOnyxData;
  * Find the transaction associated with this reportAction, if one exists.
  */
 function getLinkedTransactionID(reportActionOrID, reportID) {
-    let _a; let _b;
-    const reportAction =
+    var _a, _b;
+    var reportAction =
         typeof reportActionOrID === 'string'
-            ? (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${reportID}`]) === null ||
+            ? (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + reportID]) === null ||
               _a === void 0
                 ? void 0
                 : _a[reportActionOrID]
@@ -1272,11 +1271,11 @@ function getLinkedTransactionID(reportActionOrID, reportID) {
 }
 exports.getLinkedTransactionID = getLinkedTransactionID;
 function getReportAction(reportID, reportActionID) {
-    let _a;
+    var _a;
     if (!reportID || !reportActionID) {
         return undefined;
     }
-    return (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${reportID}`]) === null ||
+    return (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + reportID]) === null ||
         _a === void 0
         ? void 0
         : _a[reportActionID];
@@ -1286,17 +1285,17 @@ exports.getReportAction = getReportAction;
  * @returns The report preview action or `null` if one couldn't be found
  */
 function getReportPreviewAction(chatReportID, iouReportID) {
-    let _a;
+    var _a;
     if (!chatReportID || !iouReportID) {
         return;
     }
     return Object.values(
-        (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${chatReportID}`]) !== null &&
+        (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + chatReportID]) !== null &&
             _a !== void 0
             ? _a
             : {},
     ).find(function (reportAction) {
-        let _a;
+        var _a;
         return (
             reportAction &&
             isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.REPORT_PREVIEW) &&
@@ -1309,7 +1308,7 @@ exports.getReportPreviewAction = getReportPreviewAction;
  * Get the iouReportID for a given report action.
  */
 function getIOUReportIDFromReportActionPreview(reportAction) {
-    let _a;
+    var _a;
     return isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.REPORT_PREVIEW)
         ? (_a = getOriginalMessage(reportAction)) === null || _a === void 0
             ? void 0
@@ -1321,7 +1320,7 @@ exports.getIOUReportIDFromReportActionPreview = getIOUReportIDFromReportActionPr
  * A helper method to identify if the message is deleted or not.
  */
 function isMessageDeleted(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     return (_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.isDeletedParentAction) !== null && _b !== void 0 ? _b : false;
 }
 exports.isMessageDeleted = isMessageDeleted;
@@ -1329,17 +1328,17 @@ exports.isMessageDeleted = isMessageDeleted;
  * Simple hook to check whether the PureReportActionItem should return item based on whether the ReportPreview was recently deleted and the PureReportActionItem has not yet unloaded
  */
 function useNewTableReportViewActionRenderConditionals(_a) {
-    const childMoneyRequestCount = _a.childMoneyRequestCount;
-        const childVisibleActionCount = _a.childVisibleActionCount;
-        const pendingAction = _a.pendingAction;
-        const actionName = _a.actionName;
-    const previousChildMoneyRequestCount = usePrevious_1['default'](childMoneyRequestCount);
-    const isActionAReportPreview = actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
-    const isActionInUpdateState = pendingAction === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-    const reportsCount = childMoneyRequestCount;
-    const previousReportsCount = previousChildMoneyRequestCount !== null && previousChildMoneyRequestCount !== void 0 ? previousChildMoneyRequestCount : 0;
-    const commentsCount = childVisibleActionCount !== null && childVisibleActionCount !== void 0 ? childVisibleActionCount : 0;
-    const isEmptyPreviewWithComments = reportsCount === 0 && commentsCount > 0 && previousReportsCount > 0;
+    var childMoneyRequestCount = _a.childMoneyRequestCount,
+        childVisibleActionCount = _a.childVisibleActionCount,
+        pendingAction = _a.pendingAction,
+        actionName = _a.actionName;
+    var previousChildMoneyRequestCount = usePrevious_1['default'](childMoneyRequestCount);
+    var isActionAReportPreview = actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
+    var isActionInUpdateState = pendingAction === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+    var reportsCount = childMoneyRequestCount;
+    var previousReportsCount = previousChildMoneyRequestCount !== null && previousChildMoneyRequestCount !== void 0 ? previousChildMoneyRequestCount : 0;
+    var commentsCount = childVisibleActionCount !== null && childVisibleActionCount !== void 0 ? childVisibleActionCount : 0;
+    var isEmptyPreviewWithComments = reportsCount === 0 && commentsCount > 0 && previousReportsCount > 0;
     // We only want to remove the item if the ReportPreview has comments but no reports, so we avoid having a PureReportActionItem with no ReportPreview but only comments
     return !(isActionAReportPreview && isActionInUpdateState && isEmptyPreviewWithComments);
 }
@@ -1348,12 +1347,12 @@ exports.useNewTableReportViewActionRenderConditionals = useNewTableReportViewAct
  * Returns the number of expenses associated with a report preview
  */
 function getNumberOfMoneyRequests(reportPreviewAction) {
-    let _a;
+    var _a;
     return (_a = reportPreviewAction === null || reportPreviewAction === void 0 ? void 0 : reportPreviewAction.childMoneyRequestCount) !== null && _a !== void 0 ? _a : 0;
 }
 exports.getNumberOfMoneyRequests = getNumberOfMoneyRequests;
 function isSplitBillAction(reportAction) {
-    let _a;
+    var _a;
     return (
         isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU) &&
         ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.type) === CONST_1['default'].IOU.REPORT_ACTION_TYPE.SPLIT
@@ -1361,7 +1360,7 @@ function isSplitBillAction(reportAction) {
 }
 exports.isSplitBillAction = isSplitBillAction;
 function isTrackExpenseAction(reportAction) {
-    let _a;
+    var _a;
     return (
         isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU) &&
         ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.type) === CONST_1['default'].IOU.REPORT_ACTION_TYPE.TRACK
@@ -1369,7 +1368,7 @@ function isTrackExpenseAction(reportAction) {
 }
 exports.isTrackExpenseAction = isTrackExpenseAction;
 function isPayAction(reportAction) {
-    let _a;
+    var _a;
     return (
         isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU) &&
         ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.type) === CONST_1['default'].IOU.REPORT_ACTION_TYPE.PAY
@@ -1377,7 +1376,7 @@ function isPayAction(reportAction) {
 }
 exports.isPayAction = isPayAction;
 function isTaskAction(reportAction) {
-    const reportActionName = reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName;
+    var reportActionName = reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName;
     return (
         reportActionName === CONST_1['default'].REPORT.ACTIONS.TYPE.TASK_COMPLETED ||
         reportActionName === CONST_1['default'].REPORT.ACTIONS.TYPE.TASK_CANCELLED ||
@@ -1402,7 +1401,7 @@ function isTagModificationAction(actionName) {
 }
 exports.isTagModificationAction = isTagModificationAction;
 // Get all IOU report actions for the report.
-const iouRequestTypes = new Set([
+var iouRequestTypes = new Set([
     CONST_1['default'].IOU.REPORT_ACTION_TYPE.CREATE,
     CONST_1['default'].IOU.REPORT_ACTION_TYPE.SPLIT,
     CONST_1['default'].IOU.REPORT_ACTION_TYPE.PAY,
@@ -1413,12 +1412,12 @@ const iouRequestTypes = new Set([
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
  */
 function getOneTransactionThreadReportID(reportID, reportActions, isOffline) {
-    let _a;
+    var _a;
     if (isOffline === void 0) {
         isOffline = undefined;
     }
     // If the report is not an IOU, Expense report, or Invoice, it shouldn't be treated as one-transaction report.
-    const report = allReports === null || allReports === void 0 ? void 0 : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${reportID}`];
+    var report = allReports === null || allReports === void 0 ? void 0 : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + reportID];
     if (
         (report === null || report === void 0 ? void 0 : report.type) !== CONST_1['default'].REPORT.TYPE.IOU &&
         (report === null || report === void 0 ? void 0 : report.type) !== CONST_1['default'].REPORT.TYPE.EXPENSE &&
@@ -1426,19 +1425,19 @@ function getOneTransactionThreadReportID(reportID, reportActions, isOffline) {
     ) {
         return;
     }
-    const reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions !== null && reportActions !== void 0 ? reportActions : {});
+    var reportActionsArray = Array.isArray(reportActions) ? reportActions : Object.values(reportActions !== null && reportActions !== void 0 ? reportActions : {});
     if (!reportActionsArray.length) {
         return;
     }
-    const iouRequestActions = [];
-    for (let _i = 0, reportActionsArray_1 = reportActionsArray; _i < reportActionsArray_1.length; _i++) {
-        const action = reportActionsArray_1[_i];
+    var iouRequestActions = [];
+    for (var _i = 0, reportActionsArray_1 = reportActionsArray; _i < reportActionsArray_1.length; _i++) {
+        var action = reportActionsArray_1[_i];
         if (!isMoneyRequestAction(action)) {
             // eslint-disable-next-line no-continue
             continue;
         }
-        const originalMessage_1 = getOriginalMessage(action);
-        const actionType = originalMessage_1 === null || originalMessage_1 === void 0 ? void 0 : originalMessage_1.type;
+        var originalMessage_1 = getOriginalMessage(action);
+        var actionType = originalMessage_1 === null || originalMessage_1 === void 0 ? void 0 : originalMessage_1.type;
         if (
             actionType &&
             iouRequestTypes.has(actionType) &&
@@ -1459,8 +1458,8 @@ function getOneTransactionThreadReportID(reportID, reportActions, isOffline) {
     if (!iouRequestActions.length || iouRequestActions.length > 1) {
         return;
     }
-    const singleAction = iouRequestActions.at(0);
-    const originalMessage = getOriginalMessage(singleAction);
+    var singleAction = iouRequestActions.at(0);
+    var originalMessage = getOriginalMessage(singleAction);
     // If there's only one IOU request action associated with the report but it's been deleted, then we don't consider this a oneTransaction report
     // and want to display it using the standard view
     if (
@@ -1478,13 +1477,13 @@ exports.getOneTransactionThreadReportID = getOneTransactionThreadReportID;
  * If there are no visible actions left (including system messages), we can hide the report from view entirely
  */
 function doesReportHaveVisibleActions(reportID, canUserPerformWriteAction, actionsToMerge) {
-    let _a;
+    var _a;
     if (actionsToMerge === void 0) {
         actionsToMerge = {};
     }
-    const reportActions = Object.values(
+    var reportActions = Object.values(
         expensify_common_1.fastMerge(
-            (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${reportID}`]) !== null &&
+            (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + reportID]) !== null &&
                 _a !== void 0
                 ? _a
                 : {},
@@ -1492,19 +1491,19 @@ function doesReportHaveVisibleActions(reportID, canUserPerformWriteAction, actio
             true,
         ),
     );
-    const visibleReportActions = Object.values(reportActions !== null && reportActions !== void 0 ? reportActions : {}).filter(function (action) {
+    var visibleReportActions = Object.values(reportActions !== null && reportActions !== void 0 ? reportActions : {}).filter(function (action) {
         return shouldReportActionBeVisibleAsLastAction(action, canUserPerformWriteAction);
     });
     // Exclude the task system message and the created message
-    const visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter(function (action) {
+    var visibleReportActionsWithoutTaskSystemMessage = visibleReportActions.filter(function (action) {
         return !isTaskAction(action) && !isCreatedAction(action);
     });
     return visibleReportActionsWithoutTaskSystemMessage.length > 0;
 }
 exports.doesReportHaveVisibleActions = doesReportHaveVisibleActions;
 function getAllReportActions(reportID) {
-    let _a;
-    return (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${reportID}`]) !== null &&
+    var _a;
+    return (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + reportID]) !== null &&
         _a !== void 0
         ? _a
         : {};
@@ -1515,8 +1514,8 @@ exports.getAllReportActions = getAllReportActions;
  *
  */
 function isReportActionAttachment(reportAction) {
-    let _a; let _b;
-    const message = getReportActionMessage(reportAction);
+    var _a, _b;
+    var message = getReportActionMessage(reportAction);
     if (reportAction && ('isAttachmentOnly' in reportAction || 'isAttachmentWithText' in reportAction)) {
         return (_b = (_a = reportAction.isAttachmentOnly) !== null && _a !== void 0 ? _a : reportAction.isAttachmentWithText) !== null && _b !== void 0 ? _b : false;
     }
@@ -1531,50 +1530,50 @@ function isNotifiableReportAction(reportAction) {
     if (!reportAction) {
         return false;
     }
-    const actions = [CONST_1['default'].REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU, CONST_1['default'].REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
+    var actions = [CONST_1['default'].REPORT.ACTIONS.TYPE.ADD_COMMENT, CONST_1['default'].REPORT.ACTIONS.TYPE.IOU, CONST_1['default'].REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE];
     return actions.includes(reportAction.actionName);
 }
 exports.isNotifiableReportAction = isNotifiableReportAction;
 // We pass getReportName as a param to avoid cyclic dependency.
 function getMemberChangeMessageElements(reportAction, getReportNameCallback) {
-    let _a;
-    const isInviteAction = isInviteMemberAction(reportAction);
-    const isLeaveAction = isLeavePolicyAction(reportAction);
+    var _a;
+    var isInviteAction = isInviteMemberAction(reportAction);
+    var isLeaveAction = isLeavePolicyAction(reportAction);
     if (!isMemberChangeAction(reportAction)) {
         return [];
     }
     // Currently, we only render messages when members are invited
-    let verb = Localize_1.translateLocal('workspace.invite.removed');
+    var verb = Localize_1.translateLocal('workspace.invite.removed');
     if (isInviteAction) {
         verb = Localize_1.translateLocal('workspace.invite.invited');
     }
     if (isLeaveAction) {
         verb = getPolicyChangeLogEmployeeLeftMessage(reportAction);
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const targetAccountIDs = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.targetAccountIDs) !== null && _a !== void 0 ? _a : [];
-    const personalDetails = PersonalDetailsUtils_1.getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
-    const mentionElements = targetAccountIDs.map(function (accountID) {
-        let _a;
-        const personalDetail = personalDetails.find(function (personal) {
+    var originalMessage = getOriginalMessage(reportAction);
+    var targetAccountIDs = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.targetAccountIDs) !== null && _a !== void 0 ? _a : [];
+    var personalDetails = PersonalDetailsUtils_1.getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
+    var mentionElements = targetAccountIDs.map(function (accountID) {
+        var _a;
+        var personalDetail = personalDetails.find(function (personal) {
             return personal.accountID === accountID;
         });
-        const handleText = (_a = PersonalDetailsUtils_1.getEffectiveDisplayName(personalDetail)) !== null && _a !== void 0 ? _a : Localize_1.translateLocal('common.hidden');
+        var handleText = (_a = PersonalDetailsUtils_1.getEffectiveDisplayName(personalDetail)) !== null && _a !== void 0 ? _a : Localize_1.translateLocal('common.hidden');
         return {
             kind: 'userMention',
-            content: `@${  handleText}`,
-            accountID,
+            content: '@' + handleText,
+            accountID: accountID,
         };
     });
-    const buildRoomElements = function () {
-        const roomName =
+    var buildRoomElements = function () {
+        var roomName =
             getReportNameCallback(
                 allReports === null || allReports === void 0
                     ? void 0
-                    : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.reportID}`],
+                    : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.reportID)],
             ) || (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.roomName);
         if (roomName && originalMessage) {
-            const preposition = isInviteAction ? ` ${  Localize_1.translateLocal('workspace.invite.to')  } ` : ` ${  Localize_1.translateLocal('workspace.invite.from')  } `;
+            var preposition = isInviteAction ? ' ' + Localize_1.translateLocal('workspace.invite.to') + ' ' : ' ' + Localize_1.translateLocal('workspace.invite.from') + ' ';
             if (originalMessage.reportID) {
                 return [
                     {
@@ -1583,7 +1582,7 @@ function getMemberChangeMessageElements(reportAction, getReportNameCallback) {
                     },
                     {
                         kind: 'roomReference',
-                        roomName,
+                        roomName: roomName,
                         roomID: originalMessage.reportID,
                         content: roomName,
                     },
@@ -1596,7 +1595,7 @@ function getMemberChangeMessageElements(reportAction, getReportNameCallback) {
         [
             {
                 kind: 'text',
-                content: `${verb  } `,
+                content: verb + ' ',
             },
         ],
         Localize_1.formatMessageElementList(mentionElements),
@@ -1604,16 +1603,16 @@ function getMemberChangeMessageElements(reportAction, getReportNameCallback) {
     );
 }
 function getReportActionHtml(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     return (_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.html) !== null && _b !== void 0 ? _b : '';
 }
 exports.getReportActionHtml = getReportActionHtml;
 function getReportActionText(reportAction) {
-    let _a;
-    const message = getReportActionMessage(reportAction);
+    var _a;
+    var message = getReportActionMessage(reportAction);
     // Sometime html can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const text =
+    var text =
         (_a = (message === null || message === void 0 ? void 0 : message.html) || (message === null || message === void 0 ? void 0 : message.text)) !== null && _a !== void 0 ? _a : '';
     return text ? Parser_1['default'].htmlToText(text) : '';
 }
@@ -1668,7 +1667,7 @@ function isOldDotReportAction(action) {
 }
 exports.isOldDotReportAction = isOldDotReportAction;
 function getMessageOfOldDotLegacyAction(legacyAction) {
-    let _a; let _b;
+    var _a, _b;
     if (!Array.isArray(legacyAction === null || legacyAction === void 0 ? void 0 : legacyAction.message)) {
         return getReportActionText(legacyAction);
     }
@@ -1692,49 +1691,49 @@ function getMessageOfOldDotLegacyAction(legacyAction) {
  * Helper method to format message of OldDot Actions.
  */
 function getMessageOfOldDotReportAction(oldDotAction, withMarkdown) {
-    let _a; let _b; let _c; let _d; let _e; let _f;
+    var _a, _b, _c, _d, _e, _f;
     if (withMarkdown === void 0) {
         withMarkdown = true;
     }
     if (isOldDotLegacyAction(oldDotAction)) {
         return getMessageOfOldDotLegacyAction(oldDotAction);
     }
-    const originalMessage = oldDotAction.originalMessage;
-        const actionName = oldDotAction.actionName;
+    var originalMessage = oldDotAction.originalMessage,
+        actionName = oldDotAction.actionName;
     switch (actionName) {
         case CONST_1['default'].REPORT.ACTIONS.TYPE.CHANGE_FIELD: {
-            const oldValue = originalMessage.oldValue;
-                const newValue = originalMessage.newValue;
-                const fieldName = originalMessage.fieldName;
+            var oldValue = originalMessage.oldValue,
+                newValue = originalMessage.newValue,
+                fieldName = originalMessage.fieldName;
             if (!oldValue) {
-                return Localize_1.translateLocal('report.actions.type.changeFieldEmpty', {newValue, fieldName});
+                return Localize_1.translateLocal('report.actions.type.changeFieldEmpty', {newValue: newValue, fieldName: fieldName});
             }
-            return Localize_1.translateLocal('report.actions.type.changeField', {oldValue, newValue, fieldName});
+            return Localize_1.translateLocal('report.actions.type.changeField', {oldValue: oldValue, newValue: newValue, fieldName: fieldName});
         }
         case CONST_1['default'].REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT: {
-            const delegateUser = originalMessage.delegateUser;
-                const originalManager = originalMessage.originalManager;
-            return Localize_1.translateLocal('report.actions.type.delegateSubmit', {delegateUser, originalManager});
+            var delegateUser = originalMessage.delegateUser,
+                originalManager = originalMessage.originalManager;
+            return Localize_1.translateLocal('report.actions.type.delegateSubmit', {delegateUser: delegateUser, originalManager: originalManager});
         }
         case CONST_1['default'].REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV:
             return Localize_1.translateLocal('report.actions.type.exportedToCSV');
         case CONST_1['default'].REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE: {
-            const result = originalMessage.result;
-                const label = originalMessage.label;
-            const errorMessage =
+            var result = originalMessage.result,
+                label = originalMessage.label;
+            var errorMessage =
                 (_b = (_a = result === null || result === void 0 ? void 0 : result.messages) === null || _a === void 0 ? void 0 : _a.join(', ')) !== null && _b !== void 0 ? _b : '';
-            const linkText = (_d = (_c = result === null || result === void 0 ? void 0 : result.link) === null || _c === void 0 ? void 0 : _c.text) !== null && _d !== void 0 ? _d : '';
-            const linkURL = (_f = (_e = result === null || result === void 0 ? void 0 : result.link) === null || _e === void 0 ? void 0 : _e.url) !== null && _f !== void 0 ? _f : '';
-            return Localize_1.translateLocal('report.actions.type.integrationsMessage', {errorMessage, label, linkText, linkURL});
+            var linkText = (_d = (_c = result === null || result === void 0 ? void 0 : result.link) === null || _c === void 0 ? void 0 : _c.text) !== null && _d !== void 0 ? _d : '';
+            var linkURL = (_f = (_e = result === null || result === void 0 ? void 0 : result.link) === null || _e === void 0 ? void 0 : _e.url) !== null && _f !== void 0 ? _f : '';
+            return Localize_1.translateLocal('report.actions.type.integrationsMessage', {errorMessage: errorMessage, label: label, linkText: linkText, linkURL: linkURL});
         }
         case CONST_1['default'].REPORT.ACTIONS.TYPE.MANAGER_ATTACH_RECEIPT:
             return Localize_1.translateLocal('report.actions.type.managerAttachReceipt');
         case CONST_1['default'].REPORT.ACTIONS.TYPE.MANAGER_DETACH_RECEIPT:
             return Localize_1.translateLocal('report.actions.type.managerDetachReceipt');
         case CONST_1['default'].REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION: {
-            const amount = originalMessage.amount;
-                const currency = originalMessage.currency;
-            return Localize_1.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount, currency});
+            var amount = originalMessage.amount,
+                currency = originalMessage.currency;
+            return Localize_1.translateLocal('report.actions.type.markedReimbursedFromIntegration', {amount: amount, currency: currency});
         }
         case CONST_1['default'].REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT:
             return Localize_1.translateLocal('report.actions.type.outdatedBankAccount');
@@ -1747,7 +1746,7 @@ function getMessageOfOldDotReportAction(oldDotAction, withMarkdown) {
         case CONST_1['default'].REPORT.ACTIONS.TYPE.REIMBURSEMENT_DELAYED:
             return Localize_1.translateLocal('report.actions.type.reimbursementDelayed');
         case CONST_1['default'].REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT:
-            return Localize_1.translateLocal(`report.actions.type.selectedForRandomAudit${  withMarkdown ? 'Markdown' : ''}`);
+            return Localize_1.translateLocal('report.actions.type.selectedForRandomAudit' + (withMarkdown ? 'Markdown' : ''));
         case CONST_1['default'].REPORT.ACTIONS.TYPE.SHARE:
             return Localize_1.translateLocal('report.actions.type.share', {to: originalMessage.to});
         case CONST_1['default'].REPORT.ACTIONS.TYPE.UNSHARE:
@@ -1760,51 +1759,51 @@ function getMessageOfOldDotReportAction(oldDotAction, withMarkdown) {
 }
 exports.getMessageOfOldDotReportAction = getMessageOfOldDotReportAction;
 function getMemberChangeMessageFragment(reportAction, getReportNameCallback) {
-    const messageElements = getMemberChangeMessageElements(reportAction, getReportNameCallback);
-    const html = messageElements
+    var messageElements = getMemberChangeMessageElements(reportAction, getReportNameCallback);
+    var html = messageElements
         .map(function (messageElement) {
             switch (messageElement.kind) {
                 case 'userMention':
-                    return `<mention-user accountID=${  messageElement.accountID  }>${  messageElement.content  }</mention-user>`;
+                    return '<mention-user accountID=' + messageElement.accountID + '>' + messageElement.content + '</mention-user>';
                 case 'roomReference':
-                    return `<a href="${  environmentURL  }/r/${  messageElement.roomID  }" target="_blank">${  messageElement.roomName  }</a>`;
+                    return '<a href="' + environmentURL + '/r/' + messageElement.roomID + '" target="_blank">' + messageElement.roomName + '</a>';
                 default:
                     return messageElement.content;
             }
         })
         .join('');
     return {
-        html: `<muted-text>${  html  }</muted-text>`,
+        html: '<muted-text>' + html + '</muted-text>',
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST_1['default'].REPORT.MESSAGE.TYPE.COMMENT,
     };
 }
 exports.getMemberChangeMessageFragment = getMemberChangeMessageFragment;
 function getUpdateRoomDescriptionFragment(reportAction) {
-    const html = getUpdateRoomDescriptionMessage(reportAction);
+    var html = getUpdateRoomDescriptionMessage(reportAction);
     return {
-        html: `<muted-text>${  html  }</muted-text>`,
+        html: '<muted-text>' + html + '</muted-text>',
         text: getReportActionMessage(reportAction) ? getReportActionText(reportAction) : '',
         type: CONST_1['default'].REPORT.MESSAGE.TYPE.COMMENT,
     };
 }
 exports.getUpdateRoomDescriptionFragment = getUpdateRoomDescriptionFragment;
 function getReportActionMessageFragments(action) {
-    let _a;
+    var _a;
     if (isOldDotReportAction(action)) {
-        const oldDotMessage = getMessageOfOldDotReportAction(action);
-        const html = isActionOfType(action, CONST_1['default'].REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser_1['default'].replace(oldDotMessage) : oldDotMessage;
-        return [{text: oldDotMessage, html: `<muted-text>${  html  }</muted-text>`, type: 'COMMENT'}];
+        var oldDotMessage = getMessageOfOldDotReportAction(action);
+        var html = isActionOfType(action, CONST_1['default'].REPORT.ACTIONS.TYPE.SELECTED_FOR_RANDOM_AUDIT) ? Parser_1['default'].replace(oldDotMessage) : oldDotMessage;
+        return [{text: oldDotMessage, html: '<muted-text>' + html + '</muted-text>', type: 'COMMENT'}];
     }
     if (isActionOfType(action, CONST_1['default'].REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
         var message = getUpdateRoomDescriptionMessage(action);
-        return [{text: message, html: `<muted-text>${  message  }</muted-text>`, type: 'COMMENT'}];
+        return [{text: message, html: '<muted-text>' + message + '</muted-text>', type: 'COMMENT'}];
     }
     if (isActionOfType(action, CONST_1['default'].REPORT.ACTIONS.TYPE.REIMBURSED)) {
         var message = getReportActionMessageText(action);
-        return [{text: message, html: `<muted-text>${  message  }</muted-text>`, type: 'COMMENT'}];
+        return [{text: message, html: '<muted-text>' + message + '</muted-text>', type: 'COMMENT'}];
     }
-    const actionMessage = (_a = action.previousMessage) !== null && _a !== void 0 ? _a : action.message;
+    var actionMessage = (_a = action.previousMessage) !== null && _a !== void 0 ? _a : action.message;
     if (Array.isArray(actionMessage)) {
         return actionMessage.filter(function (item) {
             return !!item;
@@ -1824,7 +1823,7 @@ function hasRequestFromCurrentAccount(reportID, currentAccountID) {
     if (!reportID) {
         return false;
     }
-    const reportActions = Object.values(getAllReportActions(reportID));
+    var reportActions = Object.values(getAllReportActions(reportID));
     if (reportActions.length === 0) {
         return false;
     }
@@ -1839,25 +1838,25 @@ exports.hasRequestFromCurrentAccount = hasRequestFromCurrentAccount;
  * @returns the actionable mention whisper message.
  */
 function getActionableMentionWhisperMessage(reportAction) {
-    let _a;
+    var _a;
     if (!reportAction) {
         return '';
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const targetAccountIDs = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.inviteeAccountIDs) !== null && _a !== void 0 ? _a : [];
-    const personalDetails = PersonalDetailsUtils_1.getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
-    const mentionElements = targetAccountIDs.map(function (accountID) {
-        const personalDetail = personalDetails.find(function (personal) {
+    var originalMessage = getOriginalMessage(reportAction);
+    var targetAccountIDs = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.inviteeAccountIDs) !== null && _a !== void 0 ? _a : [];
+    var personalDetails = PersonalDetailsUtils_1.getPersonalDetailsByIDs({accountIDs: targetAccountIDs, currentUserAccountID: 0});
+    var mentionElements = targetAccountIDs.map(function (accountID) {
+        var personalDetail = personalDetails.find(function (personal) {
             return personal.accountID === accountID;
         });
-        const displayName = PersonalDetailsUtils_1.getEffectiveDisplayName(personalDetail);
-        const handleText = isEmpty_1['default'](displayName) ? Localize_1.translateLocal('common.hidden') : displayName;
-        return `<mention-user accountID=${  accountID  }>@${  handleText  }</mention-user>`;
+        var displayName = PersonalDetailsUtils_1.getEffectiveDisplayName(personalDetail);
+        var handleText = isEmpty_1['default'](displayName) ? Localize_1.translateLocal('common.hidden') : displayName;
+        return '<mention-user accountID=' + accountID + '>@' + handleText + '</mention-user>';
     });
-    const preMentionsText = 'Heads up, ';
-    const mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
-    const postMentionsText = ` ${  mentionElements.length > 1 ? "aren't members" : "isn't a member"  } of this room.`;
-    return `${  preMentionsText  }${mentions  }${postMentionsText}`;
+    var preMentionsText = 'Heads up, ';
+    var mentions = mentionElements.join(', ').replace(/, ([^,]*)$/, ' and $1');
+    var postMentionsText = ' ' + (mentionElements.length > 1 ? "aren't members" : "isn't a member") + ' of this room.';
+    return '' + preMentionsText + mentions + postMentionsText;
 }
 exports.getActionableMentionWhisperMessage = getActionableMentionWhisperMessage;
 /**
@@ -1876,16 +1875,16 @@ exports.isReportActionUnread = isReportActionUnread;
  *
  */
 function isCurrentActionUnread(report, reportAction) {
-    let _a;
-    const lastReadTime = (_a = report === null || report === void 0 ? void 0 : report.lastReadTime) !== null && _a !== void 0 ? _a : '';
-    const sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report === null || report === void 0 ? void 0 : report.reportID)));
-    const currentActionIndex = sortedReportActions.findIndex(function (action) {
+    var _a;
+    var lastReadTime = (_a = report === null || report === void 0 ? void 0 : report.lastReadTime) !== null && _a !== void 0 ? _a : '';
+    var sortedReportActions = getSortedReportActions(Object.values(getAllReportActions(report === null || report === void 0 ? void 0 : report.reportID)));
+    var currentActionIndex = sortedReportActions.findIndex(function (action) {
         return action.reportActionID === reportAction.reportActionID;
     });
     if (currentActionIndex === -1) {
         return false;
     }
-    const prevReportAction = sortedReportActions.at(currentActionIndex - 1);
+    var prevReportAction = sortedReportActions.at(currentActionIndex - 1);
     return isReportActionUnread(reportAction, lastReadTime) && (currentActionIndex === 0 || !prevReportAction || !isReportActionUnread(prevReportAction, lastReadTime));
 }
 exports.isCurrentActionUnread = isCurrentActionUnread;
@@ -1898,7 +1897,7 @@ function isActionableJoinRequest(reportAction) {
 }
 exports.isActionableJoinRequest = isActionableJoinRequest;
 function isActionableJoinRequestPendingReportAction(reportAction) {
-    let _a;
+    var _a;
     return isActionableJoinRequest(reportAction) && ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.choice) === '';
 }
 function isConciergeCategoryOptions(reportAction) {
@@ -1906,7 +1905,7 @@ function isConciergeCategoryOptions(reportAction) {
 }
 exports.isConciergeCategoryOptions = isConciergeCategoryOptions;
 function getActionableJoinRequestPendingReportAction(reportID) {
-    const findPendingRequest = Object.values(getAllReportActions(reportID)).find(function (reportActionItem) {
+    var findPendingRequest = Object.values(getAllReportActions(reportID)).find(function (reportActionItem) {
         return isActionableJoinRequestPendingReportAction(reportActionItem);
     });
     return findPendingRequest;
@@ -1930,7 +1929,7 @@ exports.isApprovedOrSubmittedReportAction = isApprovedOrSubmittedReportAction;
  * Gets the text version of the message in a report action
  */
 function getReportActionMessageText(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     if (!Array.isArray(reportAction === null || reportAction === void 0 ? void 0 : reportAction.message)) {
         return getReportActionText(reportAction);
     }
@@ -1940,28 +1939,28 @@ function getReportActionMessageText(reportAction) {
         (_a = reportAction === null || reportAction === void 0 ? void 0 : reportAction.message) === null || _a === void 0
             ? void 0
             : _a.reduce(function (acc, curr) {
-                  return `${  acc  }${getTextFromHtml((curr === null || curr === void 0 ? void 0 : curr.html) || (curr === null || curr === void 0 ? void 0 : curr.text))}`;
+                  return '' + acc + getTextFromHtml((curr === null || curr === void 0 ? void 0 : curr.html) || (curr === null || curr === void 0 ? void 0 : curr.text));
               }, '')) !== null && _b !== void 0
         ? _b
         : '';
 }
 exports.getReportActionMessageText = getReportActionMessageText;
 function getDismissedViolationMessageText(originalMessage) {
-    const reason = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.reason;
-    const violationName = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.violationName;
-    return Localize_1.translateLocal(`violationDismissal.${  violationName  }.${  reason}`);
+    var reason = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.reason;
+    var violationName = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.violationName;
+    return Localize_1.translateLocal('violationDismissal.' + violationName + '.' + reason);
 }
 exports.getDismissedViolationMessageText = getDismissedViolationMessageText;
 /**
  * Check if the linked transaction is on hold
  */
 function isLinkedTransactionHeld(reportActionID, reportID) {
-    const linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
+    var linkedTransactionID = getLinkedTransactionID(reportActionID, reportID);
     return linkedTransactionID ? TransactionUtils_1.isOnHoldByTransactionID(linkedTransactionID) : false;
 }
 exports.isLinkedTransactionHeld = isLinkedTransactionHeld;
 function getMentionedAccountIDsFromAction(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     return isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.ADD_COMMENT)
         ? (_b = (_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.mentionedAccountIDs) !== null && _b !== void 0
             ? _b
@@ -1969,17 +1968,17 @@ function getMentionedAccountIDsFromAction(reportAction) {
         : [];
 }
 function getMentionedEmailsFromMessage(message) {
-    const mentionEmailRegex = /<mention-user>(.*?)<\/mention-user>/g;
-    const matches = __spreadArrays(message.matchAll(mentionEmailRegex));
+    var mentionEmailRegex = /<mention-user>(.*?)<\/mention-user>/g;
+    var matches = __spreadArrays(message.matchAll(mentionEmailRegex));
     return matches.map(function (match) {
         return expensify_common_1.Str.removeSMSDomain(match[1].substring(1));
     });
 }
 function didMessageMentionCurrentUser(reportAction) {
-    let _a; let _b;
-    const accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
-    const message = (_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.html) !== null && _b !== void 0 ? _b : '';
-    const emailsFromMessage = getMentionedEmailsFromMessage(message);
+    var _a, _b;
+    var accountIDsFromMessage = getMentionedAccountIDsFromAction(reportAction);
+    var message = (_b = (_a = getReportActionMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.html) !== null && _b !== void 0 ? _b : '';
+    var emailsFromMessage = getMentionedEmailsFromMessage(message);
     return (
         accountIDsFromMessage.includes(currentUserAccountID !== null && currentUserAccountID !== void 0 ? currentUserAccountID : CONST_1['default'].DEFAULT_NUMBER_ID) ||
         emailsFromMessage.includes(currentEmail) ||
@@ -2001,7 +2000,7 @@ function getIOUActionForReportID(reportID, transactionID) {
     if (!reportID || !transactionID) {
         return undefined;
     }
-    const reportActions = getAllReportActions(reportID);
+    var reportActions = getAllReportActions(reportID);
     return getIOUActionForTransactionID(Object.values(reportActions !== null && reportActions !== void 0 ? reportActions : {}), transactionID);
 }
 exports.getIOUActionForReportID = getIOUActionForReportID;
@@ -2010,8 +2009,8 @@ exports.getIOUActionForReportID = getIOUActionForReportID;
  */
 function getIOUActionForTransactionID(reportActions, transactionID) {
     return reportActions.find(function (reportAction) {
-        let _a;
-        const IOUTransactionID = isMoneyRequestAction(reportAction) ? ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.IOUTransactionID) : undefined;
+        var _a;
+        var IOUTransactionID = isMoneyRequestAction(reportAction) ? ((_a = getOriginalMessage(reportAction)) === null || _a === void 0 ? void 0 : _a.IOUTransactionID) : undefined;
         return IOUTransactionID === transactionID;
     });
 }
@@ -2020,17 +2019,17 @@ exports.getIOUActionForTransactionID = getIOUActionForTransactionID;
  * Get the track expense actionable whisper of the corresponding track expense
  */
 function getTrackExpenseActionableWhisper(transactionID, chatReportID) {
-    let _a;
+    var _a;
     if (!transactionID || !chatReportID) {
         return undefined;
     }
-    const chatReportActions =
-        (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${chatReportID}`]) !== null &&
+    var chatReportActions =
+        (_a = allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + chatReportID]) !== null &&
         _a !== void 0
             ? _a
             : {};
     return Object.values(chatReportActions).find(function (action) {
-        let _a;
+        var _a;
         return isActionableTrackExpense(action) && ((_a = getOriginalMessage(action)) === null || _a === void 0 ? void 0 : _a.transactionID) === transactionID;
     });
 }
@@ -2044,49 +2043,49 @@ function isActionableAddPaymentCard(reportAction) {
 }
 exports.isActionableAddPaymentCard = isActionableAddPaymentCard;
 function getExportIntegrationLastMessageText(reportAction) {
-    const fragments = getExportIntegrationActionFragments(reportAction);
+    var fragments = getExportIntegrationActionFragments(reportAction);
     return fragments.reduce(function (acc, fragment) {
-        return `${acc  } ${  fragment.text}`;
+        return acc + ' ' + fragment.text;
     }, '');
 }
 exports.getExportIntegrationLastMessageText = getExportIntegrationLastMessageText;
 function getExportIntegrationMessageHTML(reportAction) {
-    const fragments = getExportIntegrationActionFragments(reportAction);
-    const htmlFragments = fragments.map(function (fragment) {
-        return fragment.url ? `<a href="${  fragment.url  }">${  fragment.text  }</a>` : fragment.text;
+    var fragments = getExportIntegrationActionFragments(reportAction);
+    var htmlFragments = fragments.map(function (fragment) {
+        return fragment.url ? '<a href="' + fragment.url + '">' + fragment.text + '</a>' : fragment.text;
     });
     return htmlFragments.join(' ');
 }
 exports.getExportIntegrationMessageHTML = getExportIntegrationMessageHTML;
 function getExportIntegrationActionFragments(reportAction) {
-    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     if ((reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName) !== 'EXPORTINTEGRATION') {
-        throw Error(`received wrong action type. actionName: ${  reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName}`);
+        throw Error('received wrong action type. actionName: ' + (reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName));
     }
-    const isPending = (reportAction === null || reportAction === void 0 ? void 0 : reportAction.pendingAction) === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.ADD;
-    const originalMessage = (_a = getOriginalMessage(reportAction)) !== null && _a !== void 0 ? _a : {};
-    const label = originalMessage.label;
-        const markedManually = originalMessage.markedManually;
-        const automaticAction = originalMessage.automaticAction;
-    const reimbursableUrls = (_b = originalMessage.reimbursableUrls) !== null && _b !== void 0 ? _b : [];
-    const nonReimbursableUrls = (_c = originalMessage.nonReimbursableUrls) !== null && _c !== void 0 ? _c : [];
-    const reportID = reportAction === null || reportAction === void 0 ? void 0 : reportAction.reportID;
-    const wasExportedAfterBase62 = ((_d = reportAction === null || reportAction === void 0 ? void 0 : reportAction.created) !== null && _d !== void 0 ? _d : '') > '2022-11-14';
-    const base62ReportID = getBase62ReportID_1['default'](Number(reportID));
-    const result = [];
+    var isPending = (reportAction === null || reportAction === void 0 ? void 0 : reportAction.pendingAction) === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.ADD;
+    var originalMessage = (_a = getOriginalMessage(reportAction)) !== null && _a !== void 0 ? _a : {};
+    var label = originalMessage.label,
+        markedManually = originalMessage.markedManually,
+        automaticAction = originalMessage.automaticAction;
+    var reimbursableUrls = (_b = originalMessage.reimbursableUrls) !== null && _b !== void 0 ? _b : [];
+    var nonReimbursableUrls = (_c = originalMessage.nonReimbursableUrls) !== null && _c !== void 0 ? _c : [];
+    var reportID = reportAction === null || reportAction === void 0 ? void 0 : reportAction.reportID;
+    var wasExportedAfterBase62 = ((_d = reportAction === null || reportAction === void 0 ? void 0 : reportAction.created) !== null && _d !== void 0 ? _d : '') > '2022-11-14';
+    var base62ReportID = getBase62ReportID_1['default'](Number(reportID));
+    var result = [];
     if (isPending) {
         result.push({
-            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.pending', {label}),
+            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.pending', {label: label}),
             url: '',
         });
     } else if (markedManually) {
         result.push({
-            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.manual', {label}),
+            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.manual', {label: label}),
             url: '',
         });
     } else if (automaticAction) {
         result.push({
-            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.automaticActionOne', {label}),
+            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.automaticActionOne', {label: label}),
             url: '',
         });
         var url = CONST_1['default'].HELP_DOC_LINKS[label];
@@ -2096,7 +2095,7 @@ function getExportIntegrationActionFragments(reportAction) {
         });
     } else {
         result.push({
-            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.automatic', {label}),
+            text: Localize_1.translateLocal('report.actions.type.exportedToIntegration.automatic', {label: label}),
             url: '',
         });
     }
@@ -2107,7 +2106,7 @@ function getExportIntegrationActionFragments(reportAction) {
         });
     }
     if (nonReimbursableUrls.length) {
-        const text = Localize_1.translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
+        var text = Localize_1.translateLocal('report.actions.type.exportedToIntegration.nonReimbursableLink');
         var url = '';
         if (nonReimbursableUrls.length === 1) {
             url = (_f = nonReimbursableUrls.at(0)) !== null && _f !== void 0 ? _f : '';
@@ -2131,15 +2130,15 @@ function getExportIntegrationActionFragments(reportAction) {
                     url = QBO_EXPENSES_URL;
             }
         }
-        result.push({text, url});
+        result.push({text: text, url: url});
     }
     return result;
 }
 exports.getExportIntegrationActionFragments = getExportIntegrationActionFragments;
 function getUpdateRoomDescriptionMessage(reportAction) {
-    const originalMessage = getOriginalMessage(reportAction);
+    var originalMessage = getOriginalMessage(reportAction);
     if (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.description) {
-        return `${Localize_1.translateLocal('roomChangeLog.updateRoomDescription')  } ${  originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.description}`;
+        return Localize_1.translateLocal('roomChangeLog.updateRoomDescription') + ' ' + (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.description);
     }
     return Localize_1.translateLocal('roomChangeLog.clearRoomDescription');
 }
@@ -2148,30 +2147,30 @@ function isPolicyChangeLogAddEmployeeMessage(reportAction) {
     return isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_EMPLOYEE);
 }
 function getPolicyChangeLogAddEmployeeMessage(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     if (!isPolicyChangeLogAddEmployeeMessage(reportAction)) {
         return '';
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const email = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _a !== void 0 ? _a : '';
-    const role = Localize_1.translateLocal('workspace.common.roleName', {
+    var originalMessage = getOriginalMessage(reportAction);
+    var email = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _a !== void 0 ? _a : '';
+    var role = Localize_1.translateLocal('workspace.common.roleName', {
         role: (_b = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.role) !== null && _b !== void 0 ? _b : '',
     }).toLowerCase();
-    const formattedEmail = LocalePhoneNumber_1.formatPhoneNumber(email);
-    return Localize_1.translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role});
+    var formattedEmail = LocalePhoneNumber_1.formatPhoneNumber(email);
+    return Localize_1.translateLocal('report.actions.type.addEmployee', {email: formattedEmail, role: role});
 }
 exports.getPolicyChangeLogAddEmployeeMessage = getPolicyChangeLogAddEmployeeMessage;
 function isPolicyChangeLogChangeRoleMessage(reportAction) {
     return isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_EMPLOYEE);
 }
 function getPolicyChangeLogChangeRoleMessage(reportAction) {
-    let _a;
+    var _a;
     if (!isPolicyChangeLogChangeRoleMessage(reportAction)) {
         return '';
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const email = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _a !== void 0 ? _a : '';
-    const newRole = Localize_1.translateLocal('workspace.common.roleName', {
+    var originalMessage = getOriginalMessage(reportAction);
+    var email = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _a !== void 0 ? _a : '';
+    var newRole = Localize_1.translateLocal('workspace.common.roleName', {
         role:
             typeof (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.newValue) === 'string'
                 ? originalMessage === null || originalMessage === void 0
@@ -2179,7 +2178,7 @@ function getPolicyChangeLogChangeRoleMessage(reportAction) {
                     : originalMessage.newValue
                 : '',
     }).toLowerCase();
-    const oldRole = Localize_1.translateLocal('workspace.common.roleName', {
+    var oldRole = Localize_1.translateLocal('workspace.common.roleName', {
         role:
             typeof (originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.oldValue) === 'string'
                 ? originalMessage === null || originalMessage === void 0
@@ -2187,19 +2186,19 @@ function getPolicyChangeLogChangeRoleMessage(reportAction) {
                     : originalMessage.oldValue
                 : '',
     }).toLowerCase();
-    return Localize_1.translateLocal('report.actions.type.updateRole', {email, newRole, currentRole: oldRole});
+    return Localize_1.translateLocal('report.actions.type.updateRole', {email: email, newRole: newRole, currentRole: oldRole});
 }
 exports.getPolicyChangeLogChangeRoleMessage = getPolicyChangeLogChangeRoleMessage;
 function getPolicyChangeLogEmployeeLeftMessage(reportAction, useName) {
-    let _a; let _b;
+    var _a, _b;
     if (useName === void 0) {
         useName = false;
     }
     if (!isLeavePolicyAction(reportAction)) {
         return '';
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const personalDetails =
+    var originalMessage = getOriginalMessage(reportAction);
+    var personalDetails =
         (_a = PersonalDetailsUtils_1.getPersonalDetailsByIDs({accountIDs: reportAction.actorAccountID ? [reportAction.actorAccountID] : [], currentUserAccountID: 0})) === null ||
         _a === void 0
             ? void 0
@@ -2207,13 +2206,13 @@ function getPolicyChangeLogEmployeeLeftMessage(reportAction, useName) {
     if (!!originalMessage && !originalMessage.email) {
         originalMessage.email = personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails.login;
     }
-    const nameOrEmail =
+    var nameOrEmail =
         useName && !!(personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails.firstName)
-            ? `${personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails.firstName  }:`
+            ? (personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails.firstName) + ':'
             : (_b = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _b !== void 0
             ? _b
             : '';
-    const formattedNameOrEmail = LocalePhoneNumber_1.formatPhoneNumber(nameOrEmail);
+    var formattedNameOrEmail = LocalePhoneNumber_1.formatPhoneNumber(nameOrEmail);
     return Localize_1.translateLocal('report.actions.type.leftWorkspace', {nameOrEmail: formattedNameOrEmail});
 }
 exports.getPolicyChangeLogEmployeeLeftMessage = getPolicyChangeLogEmployeeLeftMessage;
@@ -2221,31 +2220,31 @@ function isPolicyChangeLogDeleteMemberMessage(reportAction) {
     return isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_EMPLOYEE);
 }
 function getWorkspaceDescriptionUpdatedMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const oldDescription = _b.oldDescription;
-        const newDescription = _b.newDescription;
-    const message =
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        oldDescription = _b.oldDescription,
+        newDescription = _b.newDescription;
+    var message =
         typeof oldDescription === 'string' && newDescription
-            ? Localize_1.translateLocal('workspaceActions.updateWorkspaceDescription', {newDescription, oldDescription})
+            ? Localize_1.translateLocal('workspaceActions.updateWorkspaceDescription', {newDescription: newDescription, oldDescription: oldDescription})
             : getReportActionText(action);
     return message;
 }
 exports.getWorkspaceDescriptionUpdatedMessage = getWorkspaceDescriptionUpdatedMessage;
 function getWorkspaceCurrencyUpdateMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const oldCurrency = _b.oldCurrency;
-        const newCurrency = _b.newCurrency;
-    const message =
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        oldCurrency = _b.oldCurrency,
+        newCurrency = _b.newCurrency;
+    var message =
         oldCurrency && newCurrency
-            ? Localize_1.translateLocal('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency, newCurrency})
+            ? Localize_1.translateLocal('workspaceActions.updatedWorkspaceCurrencyAction', {oldCurrency: oldCurrency, newCurrency: newCurrency})
             : getReportActionText(action);
     return message;
 }
 exports.getWorkspaceCurrencyUpdateMessage = getWorkspaceCurrencyUpdateMessage;
-const getAutoReportingFrequencyDisplayNames = function () {
-    let _a;
+var getAutoReportingFrequencyDisplayNames = function () {
+    var _a;
     return (
         (_a = {}),
         (_a[CONST_1['default'].POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY] = Localize_1.translateLocal('workflowsPage.frequencies.monthly')),
@@ -2259,16 +2258,16 @@ const getAutoReportingFrequencyDisplayNames = function () {
     );
 };
 function getWorkspaceFrequencyUpdateMessage(action) {
-    let _a; let _b; let _c;
-    const _d = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const oldFrequency = _d.oldFrequency;
-        const newFrequency = _d.newFrequency;
+    var _a, _b, _c;
+    var _d = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        oldFrequency = _d.oldFrequency,
+        newFrequency = _d.newFrequency;
     if (!oldFrequency || !newFrequency) {
         return getReportActionText(action);
     }
-    const frequencyDisplayNames = getAutoReportingFrequencyDisplayNames();
-    const oldFrequencyTranslation = (_b = frequencyDisplayNames[oldFrequency]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
-    const newFrequencyTranslation = (_c = frequencyDisplayNames[newFrequency]) === null || _c === void 0 ? void 0 : _c.toLowerCase();
+    var frequencyDisplayNames = getAutoReportingFrequencyDisplayNames();
+    var oldFrequencyTranslation = (_b = frequencyDisplayNames[oldFrequency]) === null || _b === void 0 ? void 0 : _b.toLowerCase();
+    var newFrequencyTranslation = (_c = frequencyDisplayNames[newFrequency]) === null || _c === void 0 ? void 0 : _c.toLowerCase();
     if (!oldFrequencyTranslation || !newFrequencyTranslation) {
         return getReportActionText(action);
     }
@@ -2279,79 +2278,79 @@ function getWorkspaceFrequencyUpdateMessage(action) {
 }
 exports.getWorkspaceFrequencyUpdateMessage = getWorkspaceFrequencyUpdateMessage;
 function getWorkspaceCategoryUpdateMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const categoryName = _b.categoryName;
-        const oldValue = _b.oldValue;
-        const newName = _b.newName;
-        const oldName = _b.oldName;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        categoryName = _b.categoryName,
+        oldValue = _b.oldValue,
+        newName = _b.newName,
+        oldName = _b.oldName;
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY && categoryName) {
         return Localize_1.translateLocal('workspaceActions.addCategory', {
-            categoryName,
+            categoryName: categoryName,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY && categoryName) {
         return Localize_1.translateLocal('workspaceActions.deleteCategory', {
-            categoryName,
+            categoryName: categoryName,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
         return Localize_1.translateLocal('workspaceActions.updateCategory', {
             oldValue: !!oldValue,
-            categoryName,
+            categoryName: categoryName,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME && oldName && newName) {
         return Localize_1.translateLocal('workspaceActions.setCategoryName', {
-            oldName,
-            newName,
+            oldName: oldName,
+            newName: newName,
         });
     }
     return getReportActionText(action);
 }
 exports.getWorkspaceCategoryUpdateMessage = getWorkspaceCategoryUpdateMessage;
 function getWorkspaceTagUpdateMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const tagListName = _b.tagListName;
-        const tagName = _b.tagName;
-        const enabled = _b.enabled;
-        const newName = _b.newName;
-        const newValue = _b.newValue;
-        const oldName = _b.oldName;
-        const oldValue = _b.oldValue;
-        const updatedField = _b.updatedField;
-        const count = _b.count;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        tagListName = _b.tagListName,
+        tagName = _b.tagName,
+        enabled = _b.enabled,
+        newName = _b.newName,
+        newValue = _b.newValue,
+        oldName = _b.oldName,
+        oldValue = _b.oldValue,
+        updatedField = _b.updatedField,
+        count = _b.count;
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG && tagListName && tagName) {
         return Localize_1.translateLocal('workspaceActions.addTag', {
-            tagListName,
-            tagName,
+            tagListName: tagListName,
+            tagName: tagName,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_TAG && tagListName && tagName) {
         return Localize_1.translateLocal('workspaceActions.deleteTag', {
-            tagListName,
-            tagName,
+            tagListName: tagListName,
+            tagName: tagName,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_MULTIPLE_TAGS && count && tagListName) {
         return Localize_1.translateLocal('workspaceActions.deleteMultipleTags', {
-            count,
-            tagListName,
+            count: count,
+            tagListName: tagListName,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_ENABLED && tagListName && tagName) {
         return Localize_1.translateLocal('workspaceActions.updateTagEnabled', {
-            tagListName,
-            tagName,
-            enabled,
+            tagListName: tagListName,
+            tagName: tagName,
+            enabled: enabled,
         });
     }
     if (action.actionName === CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_NAME && tagListName && newName && oldName) {
         return Localize_1.translateLocal('workspaceActions.updateTagName', {
-            tagListName,
-            newName,
-            oldName,
+            tagListName: tagListName,
+            newName: newName,
+            oldName: oldName,
         });
     }
     if (
@@ -2363,38 +2362,38 @@ function getWorkspaceTagUpdateMessage(action) {
         updatedField
     ) {
         return Localize_1.translateLocal('workspaceActions.updateTag', {
-            tagListName,
-            oldValue,
-            newValue,
-            tagName,
-            updatedField,
+            tagListName: tagListName,
+            oldValue: oldValue,
+            newValue: newValue,
+            tagName: tagName,
+            updatedField: updatedField,
         });
     }
     return getReportActionText(action);
 }
 exports.getWorkspaceTagUpdateMessage = getWorkspaceTagUpdateMessage;
 function getWorkspaceCustomUnitRateAddedMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const customUnitName = _b.customUnitName;
-        const rateName = _b.rateName;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        customUnitName = _b.customUnitName,
+        rateName = _b.rateName;
     if (customUnitName && rateName) {
         return Localize_1.translateLocal('workspaceActions.addCustomUnitRate', {
-            customUnitName,
-            rateName,
+            customUnitName: customUnitName,
+            rateName: rateName,
         });
     }
     return getReportActionText(action);
 }
 exports.getWorkspaceCustomUnitRateAddedMessage = getWorkspaceCustomUnitRateAddedMessage;
 function getWorkspaceReportFieldAddMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const fieldName = _b.fieldName;
-        const fieldType = _b.fieldType;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        fieldName = _b.fieldName,
+        fieldType = _b.fieldType;
     if (fieldName && fieldType) {
         return Localize_1.translateLocal('workspaceActions.addedReportField', {
-            fieldName,
+            fieldName: fieldName,
             fieldType: Localize_1.translateLocal(WorkspaceReportFieldUtils_1.getReportFieldAlternativeTextTranslationKey(fieldType)),
         });
     }
@@ -2402,28 +2401,28 @@ function getWorkspaceReportFieldAddMessage(action) {
 }
 exports.getWorkspaceReportFieldAddMessage = getWorkspaceReportFieldAddMessage;
 function getWorkspaceReportFieldUpdateMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const updateType = _b.updateType;
-        const fieldName = _b.fieldName;
-        const defaultValue = _b.defaultValue;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        updateType = _b.updateType,
+        fieldName = _b.fieldName,
+        defaultValue = _b.defaultValue;
     if (updateType === 'updatedDefaultValue' && fieldName && defaultValue) {
         return Localize_1.translateLocal('workspaceActions.updateReportFieldDefaultValue', {
-            fieldName,
-            defaultValue,
+            fieldName: fieldName,
+            defaultValue: defaultValue,
         });
     }
     return getReportActionText(action);
 }
 exports.getWorkspaceReportFieldUpdateMessage = getWorkspaceReportFieldUpdateMessage;
 function getWorkspaceReportFieldDeleteMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const fieldType = _b.fieldType;
-        const fieldName = _b.fieldName;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        fieldType = _b.fieldType,
+        fieldName = _b.fieldName;
     if (fieldType && fieldName) {
         return Localize_1.translateLocal('workspaceActions.deleteReportField', {
-            fieldName,
+            fieldName: fieldName,
             fieldType: Localize_1.translateLocal(WorkspaceReportFieldUtils_1.getReportFieldAlternativeTextTranslationKey(fieldType)),
         });
     }
@@ -2431,30 +2430,30 @@ function getWorkspaceReportFieldDeleteMessage(action) {
 }
 exports.getWorkspaceReportFieldDeleteMessage = getWorkspaceReportFieldDeleteMessage;
 function getWorkspaceUpdateFieldMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const newValue = _b.newValue;
-        const oldValue = _b.oldValue;
-        const updatedField = _b.updatedField;
-    const newValueTranslationKey = CONST_1['default'].POLICY.APPROVAL_MODE_TRANSLATION_KEYS[newValue];
-    const oldValueTranslationKey = CONST_1['default'].POLICY.APPROVAL_MODE_TRANSLATION_KEYS[oldValue];
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        newValue = _b.newValue,
+        oldValue = _b.oldValue,
+        updatedField = _b.updatedField;
+    var newValueTranslationKey = CONST_1['default'].POLICY.APPROVAL_MODE_TRANSLATION_KEYS[newValue];
+    var oldValueTranslationKey = CONST_1['default'].POLICY.APPROVAL_MODE_TRANSLATION_KEYS[oldValue];
     if (updatedField && updatedField === CONST_1['default'].POLICY.COLLECTION_KEYS.APPROVAL_MODE && oldValueTranslationKey && newValueTranslationKey) {
         return Localize_1.translateLocal('workspaceActions.updateApprovalMode', {
-            newValue: Localize_1.translateLocal(`workspaceApprovalModes.${  newValueTranslationKey}`),
-            oldValue: Localize_1.translateLocal(`workspaceApprovalModes.${  oldValueTranslationKey}`),
+            newValue: Localize_1.translateLocal('workspaceApprovalModes.' + newValueTranslationKey),
+            oldValue: Localize_1.translateLocal('workspaceApprovalModes.' + oldValueTranslationKey),
             fieldName: updatedField,
         });
     }
     if (updatedField && updatedField === CONST_1['default'].POLICY.EXPENSE_REPORT_RULES.PREVENT_SELF_APPROVAL && typeof oldValue === 'string' && typeof newValue === 'string') {
         return Localize_1.translateLocal('workspaceActions.preventSelfApproval', {
-            oldValue,
-            newValue,
+            oldValue: oldValue,
+            newValue: newValue,
         });
     }
     if (updatedField && updatedField === CONST_1['default'].POLICY.EXPENSE_REPORT_RULES.MAX_EXPENSE_AGE && typeof oldValue === 'string' && typeof newValue === 'string') {
         return Localize_1.translateLocal('workspaceActions.updateMaxExpenseAge', {
-            oldValue,
-            newValue,
+            oldValue: oldValue,
+            newValue: newValue,
         });
     }
     if (
@@ -2463,7 +2462,7 @@ function getWorkspaceUpdateFieldMessage(action) {
         (typeof oldValue === 'string' || typeof oldValue === 'number') &&
         (typeof newValue === 'string' || typeof newValue === 'number')
     ) {
-        const getAutoReportingOffsetToDisplay = function (autoReportingOffset) {
+        var getAutoReportingOffsetToDisplay = function (autoReportingOffset) {
             if (autoReportingOffset === CONST_1['default'].POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
                 return Localize_1.translateLocal('workflowsPage.frequencies.lastDayOfMonth');
             }
@@ -2484,11 +2483,11 @@ function getWorkspaceUpdateFieldMessage(action) {
 }
 exports.getWorkspaceUpdateFieldMessage = getWorkspaceUpdateFieldMessage;
 function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const oldMaxExpenseAmountNoReceipt = _b.oldMaxExpenseAmountNoReceipt;
-        const newMaxExpenseAmountNoReceipt = _b.newMaxExpenseAmountNoReceipt;
-        const currency = _b.currency;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        oldMaxExpenseAmountNoReceipt = _b.oldMaxExpenseAmountNoReceipt,
+        newMaxExpenseAmountNoReceipt = _b.newMaxExpenseAmountNoReceipt,
+        currency = _b.currency;
     if (typeof oldMaxExpenseAmountNoReceipt === 'number' && typeof newMaxExpenseAmountNoReceipt === 'number') {
         return Localize_1.translateLocal('workspaceActions.updateMaxExpenseAmountNoReceipt', {
             oldValue: CurrencyUtils_1.convertToDisplayString(oldMaxExpenseAmountNoReceipt, currency),
@@ -2499,11 +2498,11 @@ function getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage(action) {
 }
 exports.getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage = getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage;
 function getPolicyChangeLogMaxExpenseAmountMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const oldMaxExpenseAmount = _b.oldMaxExpenseAmount;
-        const newMaxExpenseAmount = _b.newMaxExpenseAmount;
-        const currency = _b.currency;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        oldMaxExpenseAmount = _b.oldMaxExpenseAmount,
+        newMaxExpenseAmount = _b.newMaxExpenseAmount,
+        currency = _b.currency;
     if (typeof oldMaxExpenseAmount === 'number' && typeof newMaxExpenseAmount === 'number') {
         return Localize_1.translateLocal('workspaceActions.updateMaxExpenseAmount', {
             oldValue: CurrencyUtils_1.convertToDisplayString(oldMaxExpenseAmount, currency),
@@ -2514,10 +2513,10 @@ function getPolicyChangeLogMaxExpenseAmountMessage(action) {
 }
 exports.getPolicyChangeLogMaxExpenseAmountMessage = getPolicyChangeLogMaxExpenseAmountMessage;
 function getPolicyChangeLogDefaultBillableMessage(action) {
-    let _a;
-    const _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {};
-        const oldDefaultBillable = _b.oldDefaultBillable;
-        const newDefaultBillable = _b.newDefaultBillable;
+    var _a;
+    var _b = (_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {},
+        oldDefaultBillable = _b.oldDefaultBillable,
+        newDefaultBillable = _b.newDefaultBillable;
     if (typeof oldDefaultBillable === 'string' && typeof newDefaultBillable === 'string') {
         return Localize_1.translateLocal('workspaceActions.updateDefaultBillable', {
             oldValue: oldDefaultBillable,
@@ -2528,72 +2527,72 @@ function getPolicyChangeLogDefaultBillableMessage(action) {
 }
 exports.getPolicyChangeLogDefaultBillableMessage = getPolicyChangeLogDefaultBillableMessage;
 function getPolicyChangeLogDefaultTitleEnforcedMessage(action) {
-    let _a;
-    const value = ((_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {}).value;
+    var _a;
+    var value = ((_a = getOriginalMessage(action)) !== null && _a !== void 0 ? _a : {}).value;
     if (typeof value === 'boolean') {
         return Localize_1.translateLocal('workspaceActions.updateDefaultTitleEnforced', {
-            value,
+            value: value,
         });
     }
     return getReportActionText(action);
 }
 exports.getPolicyChangeLogDefaultTitleEnforcedMessage = getPolicyChangeLogDefaultTitleEnforcedMessage;
 function getPolicyChangeLogDeleteMemberMessage(reportAction) {
-    let _a; let _b;
+    var _a, _b;
     if (!isPolicyChangeLogDeleteMemberMessage(reportAction)) {
         return '';
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const email = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _a !== void 0 ? _a : '';
-    const role = Localize_1.translateLocal('workspace.common.roleName', {
+    var originalMessage = getOriginalMessage(reportAction);
+    var email = (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.email) !== null && _a !== void 0 ? _a : '';
+    var role = Localize_1.translateLocal('workspace.common.roleName', {
         role: (_b = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.role) !== null && _b !== void 0 ? _b : '',
     }).toLowerCase();
-    return Localize_1.translateLocal('report.actions.type.removeMember', {email, role});
+    return Localize_1.translateLocal('report.actions.type.removeMember', {email: email, role: role});
 }
 exports.getPolicyChangeLogDeleteMemberMessage = getPolicyChangeLogDeleteMemberMessage;
 function getRemovedConnectionMessage(reportAction) {
     if (!isActionOfType(reportAction, CONST_1['default'].REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_INTEGRATION)) {
         return '';
     }
-    const originalMessage = getOriginalMessage(reportAction);
-    const connectionName = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.connectionName;
-    return connectionName ? Localize_1.translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
+    var originalMessage = getOriginalMessage(reportAction);
+    var connectionName = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.connectionName;
+    return connectionName ? Localize_1.translateLocal('report.actions.type.removedConnection', {connectionName: connectionName}) : '';
 }
 exports.getRemovedConnectionMessage = getRemovedConnectionMessage;
 function getRenamedAction(reportAction, actorName) {
-    let _a; let _b;
-    const originalMessage = getOriginalMessage(reportAction);
+    var _a, _b;
+    var originalMessage = getOriginalMessage(reportAction);
     return Localize_1.translateLocal('newRoomPage.renamedRoomAction', {
-        actorName,
+        actorName: actorName,
         oldName: (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.oldName) !== null && _a !== void 0 ? _a : '',
         newName: (_b = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.newName) !== null && _b !== void 0 ? _b : '',
     });
 }
 exports.getRenamedAction = getRenamedAction;
 function getRemovedFromApprovalChainMessage(reportAction) {
-    let _a;
-    const originalMessage = getOriginalMessage(reportAction);
-    const submittersNames = PersonalDetailsUtils_1.getPersonalDetailsByIDs({
+    var _a;
+    var originalMessage = getOriginalMessage(reportAction);
+    var submittersNames = PersonalDetailsUtils_1.getPersonalDetailsByIDs({
         accountIDs: (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.submittersAccountIDs) !== null && _a !== void 0 ? _a : [],
         currentUserAccountID: currentUserAccountID !== null && currentUserAccountID !== void 0 ? currentUserAccountID : CONST_1['default'].DEFAULT_NUMBER_ID,
     }).map(function (_a) {
-        let _b;
-        const displayName = _a.displayName;
-            const login = _a.login;
+        var _b;
+        var displayName = _a.displayName,
+            login = _a.login;
         return (_b = displayName !== null && displayName !== void 0 ? displayName : login) !== null && _b !== void 0 ? _b : 'Unknown Submitter';
     });
-    return Localize_1.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames, count: submittersNames.length});
+    return Localize_1.translateLocal('workspaceActions.removedFromApprovalWorkflow', {submittersNames: submittersNames, count: submittersNames.length});
 }
 exports.getRemovedFromApprovalChainMessage = getRemovedFromApprovalChainMessage;
 function getDemotedFromWorkspaceMessage(reportAction) {
-    let _a;
-    const originalMessage = getOriginalMessage(reportAction);
-    const policyName =
+    var _a;
+    var originalMessage = getOriginalMessage(reportAction);
+    var policyName =
         (_a = originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.policyName) !== null && _a !== void 0
             ? _a
             : Localize_1.translateLocal('workspace.common.workspace');
-    const oldRole = Localize_1.translateLocal('workspace.common.roleName', {role: originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.oldRole}).toLowerCase();
-    return Localize_1.translateLocal('workspaceActions.demotedFromWorkspace', {policyName, oldRole});
+    var oldRole = Localize_1.translateLocal('workspace.common.roleName', {role: originalMessage === null || originalMessage === void 0 ? void 0 : originalMessage.oldRole}).toLowerCase();
+    return Localize_1.translateLocal('workspaceActions.demotedFromWorkspace', {policyName: policyName, oldRole: oldRole});
 }
 exports.getDemotedFromWorkspaceMessage = getDemotedFromWorkspaceMessage;
 function isCardIssuedAction(reportAction) {
@@ -2607,7 +2606,7 @@ function isCardIssuedAction(reportAction) {
 }
 exports.isCardIssuedAction = isCardIssuedAction;
 function shouldShowAddMissingDetails(actionName, card) {
-    const missingDetails =
+    var missingDetails =
         !(privatePersonalDetails === null || privatePersonalDetails === void 0 ? void 0 : privatePersonalDetails.legalFirstName) ||
         !(privatePersonalDetails === null || privatePersonalDetails === void 0 ? void 0 : privatePersonalDetails.legalLastName) ||
         !(privatePersonalDetails === null || privatePersonalDetails === void 0 ? void 0 : privatePersonalDetails.dob) ||
@@ -2621,14 +2620,14 @@ function shouldShowAddMissingDetails(actionName, card) {
 }
 exports.shouldShowAddMissingDetails = shouldShowAddMissingDetails;
 function getCardIssuedMessage(_a) {
-    let _b; let _c;
-    const reportAction = _a.reportAction;
-        const _d = _a.shouldRenderHTML;
-        const shouldRenderHTML = _d === void 0 ? false : _d;
-        const _e = _a.policyID;
-        const policyID = _e === void 0 ? '-1' : _e;
-        const card = _a.card;
-    const cardIssuedActionOriginalMessage = isActionOfType(
+    var _b, _c;
+    var reportAction = _a.reportAction,
+        _d = _a.shouldRenderHTML,
+        shouldRenderHTML = _d === void 0 ? false : _d,
+        _e = _a.policyID,
+        policyID = _e === void 0 ? '-1' : _e,
+        card = _a.card;
+    var cardIssuedActionOriginalMessage = isActionOfType(
         reportAction,
         CONST_1['default'].REPORT.ACTIONS.TYPE.CARD_ISSUED,
         CONST_1['default'].REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL,
@@ -2637,38 +2636,38 @@ function getCardIssuedMessage(_a) {
     )
         ? getOriginalMessage(reportAction)
         : undefined;
-    const assigneeAccountID =
+    var assigneeAccountID =
         (_b = cardIssuedActionOriginalMessage === null || cardIssuedActionOriginalMessage === void 0 ? void 0 : cardIssuedActionOriginalMessage.assigneeAccountID) !== null && _b !== void 0
             ? _b
             : CONST_1['default'].DEFAULT_NUMBER_ID;
-    const cardID =
+    var cardID =
         (_c = cardIssuedActionOriginalMessage === null || cardIssuedActionOriginalMessage === void 0 ? void 0 : cardIssuedActionOriginalMessage.cardID) !== null && _c !== void 0
             ? _c
             : CONST_1['default'].DEFAULT_NUMBER_ID;
-    const isPolicyAdmin = PolicyUtils_1.isPolicyAdmin(PolicyUtils_1.getPolicy(policyID));
-    const assignee = shouldRenderHTML ? `<mention-user accountID="${  assigneeAccountID  }"/>` : Parser_1['default'].htmlToText(`<mention-user accountID="${  assigneeAccountID  }"/>`);
-    const navigateRoute = isPolicyAdmin
+    var isPolicyAdmin = PolicyUtils_1.isPolicyAdmin(PolicyUtils_1.getPolicy(policyID));
+    var assignee = shouldRenderHTML ? '<mention-user accountID="' + assigneeAccountID + '"/>' : Parser_1['default'].htmlToText('<mention-user accountID="' + assigneeAccountID + '"/>');
+    var navigateRoute = isPolicyAdmin
         ? ROUTES_1['default'].EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID))
         : ROUTES_1['default'].SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
-    const expensifyCardLink =
+    var expensifyCardLink =
         shouldRenderHTML && !!card
-            ? `<a href='${  environmentURL  }/${  navigateRoute  }'>${  Localize_1.translateLocal('cardPage.expensifyCard')  }</a>`
+            ? "<a href='" + environmentURL + '/' + navigateRoute + "'>" + Localize_1.translateLocal('cardPage.expensifyCard') + '</a>'
             : Localize_1.translateLocal('cardPage.expensifyCard');
-    const companyCardLink = shouldRenderHTML
-        ? `<a href='${  environmentURL  }/${  ROUTES_1['default'].SETTINGS_WALLET  }'>${  Localize_1.translateLocal('workspace.companyCards.companyCard')  }</a>`
+    var companyCardLink = shouldRenderHTML
+        ? "<a href='" + environmentURL + '/' + ROUTES_1['default'].SETTINGS_WALLET + "'>" + Localize_1.translateLocal('workspace.companyCards.companyCard') + '</a>'
         : Localize_1.translateLocal('workspace.companyCards.companyCard');
-    const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
-    const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName, card);
+    var isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
+    var shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName, card);
     switch (reportAction === null || reportAction === void 0 ? void 0 : reportAction.actionName) {
         case CONST_1['default'].REPORT.ACTIONS.TYPE.CARD_ISSUED:
-            return Localize_1.translateLocal('workspace.expensifyCard.issuedCard', {assignee});
+            return Localize_1.translateLocal('workspace.expensifyCard.issuedCard', {assignee: assignee});
         case CONST_1['default'].REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
-            return Localize_1.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
+            return Localize_1.translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee: assignee, link: expensifyCardLink});
         case CONST_1['default'].REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
-            return Localize_1.translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});
+            return Localize_1.translateLocal('workspace.companyCards.assignedCard', {assignee: assignee, link: companyCardLink});
         case CONST_1['default'].REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS:
-            return Localize_1.translateLocal(`workspace.expensifyCard.${  shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'}`, {
-                assignee,
+            return Localize_1.translateLocal('workspace.expensifyCard.' + (shouldShowAddMissingDetailsMessage ? 'issuedCardNoShippingDetails' : 'addedShippingDetails'), {
+                assignee: assignee,
             });
         default:
             return '';
@@ -2680,7 +2679,7 @@ function getReportActionsLength() {
 }
 exports.getReportActionsLength = getReportActionsLength;
 function getReportActions(report) {
-    return allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS  }${report.reportID}`];
+    return allReportActions === null || allReportActions === void 0 ? void 0 : allReportActions['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + report.reportID];
 }
 exports.getReportActions = getReportActions;
 /**
@@ -2691,7 +2690,7 @@ function wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnli
     if (!lastOfflineAt || !lastOnlineAt) {
         return false;
     }
-    const actionCreatedAt = DateUtils_1['default'].getLocalDateFromDatetime(locale, action.created);
+    var actionCreatedAt = DateUtils_1['default'].getLocalDateFromDatetime(locale, action.created);
     // The action was created before the user went offline.
     if (actionCreatedAt <= lastOfflineAt) {
         return false;
@@ -2707,8 +2706,8 @@ function wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnli
  * Whether a message is NOT from the active user, and it was received while the user was offline.
  */
 function wasMessageReceivedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale) {
-    const wasByCurrentUser = wasActionTakenByCurrentUser(action);
-    const wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
+    var wasByCurrentUser = wasActionTakenByCurrentUser(action);
+    var wasCreatedOffline = wasActionCreatedWhileOffline(action, isOffline, lastOfflineAt, lastOnlineAt, locale);
     return !wasByCurrentUser && wasCreatedOffline && !(action.pendingAction === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.ADD || action.isOptimisticAction);
 }
 exports.wasMessageReceivedWhileOffline = wasMessageReceivedWhileOffline;
