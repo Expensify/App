@@ -81,6 +81,7 @@ function SearchPage({route}: SearchPageProps) {
         return {queryJSON: parsedQuery, policyID: extractedPolicyID};
     }, [q]);
 
+    // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
