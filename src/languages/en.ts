@@ -4298,7 +4298,7 @@ const translations = {
             intacct: 'Sage Intacct',
             sap: 'SAP',
             oracle: 'Oracle',
-            msDynamics: 'Microsoft Dynamics',
+            microsoftDynamics: 'Microsoft Dynamics',
             other: 'Other',
             talkYourOnboardingSpecialist: 'Chat with your setup specialist.',
             talkYourAccountManager: 'Chat with your account manager.',
