@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     CARD_TITLE: 'cardTitle',
@@ -6,6 +6,6 @@ var INPUT_IDS = {
     BANK_ID: 'bankID',
     COMPANY_ID: 'companyID',
     DISTRIBUTION_ID: 'distributionID',
-    DELIVERY_FILE_NAME: 'deliveryFileName'
+    DELIVERY_FILE_NAME: 'deliveryFileName',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

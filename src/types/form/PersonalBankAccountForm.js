@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     BANK_INFO_STEP: {
@@ -10,7 +10,7 @@ var INPUT_IDS = {
         SETUP_TYPE: 'setupType',
         PLAID_ACCOUNT_ID: 'plaidAccountID',
         PLAID_ACCESS_TOKEN: 'plaidAccessToken',
-        SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID'
-    }
+        SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID',
+    },
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

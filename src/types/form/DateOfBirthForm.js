@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
-    DOB: 'dob'
+    DOB: 'dob',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

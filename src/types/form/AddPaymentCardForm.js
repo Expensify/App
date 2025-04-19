@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     SETUP_COMPLETE: 'setupComplete',
@@ -10,6 +10,6 @@ var INPUT_IDS = {
     ADDRESS_ZIP_CODE: 'addressZipCode',
     ADDRESS_STATE: 'addressState',
     ACCEPT_TERMS: 'acceptTerms',
-    CURRENCY: 'currency'
+    CURRENCY: 'currency',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

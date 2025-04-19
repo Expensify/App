@@ -1,10 +1,10 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 /**
  * This is a file containing constants for navigators located directly in the RootStack in AuthScreens file
  * The ResponsiveStackNavigator displays stack differently based on these constants
  * */
-exports["default"] = {
+exports['default'] = {
     CENTRAL_PANE_NAVIGATOR: 'CentralPaneNavigator',
     LEFT_MODAL_NAVIGATOR: 'LeftModalNavigator',
     RIGHT_MODAL_NAVIGATOR: 'RightModalNavigator',
@@ -19,5 +19,5 @@ exports["default"] = {
     WORKSPACE_SPLIT_NAVIGATOR: 'WorkspaceSplitNavigator',
     SEARCH_FULLSCREEN_NAVIGATOR: 'SearchFullscreenNavigator',
     SHARE_MODAL_NAVIGATOR: 'ShareModalNavigator',
-    PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator'
+    PUBLIC_RIGHT_MODAL_NAVIGATOR: 'PublicRightModalNavigator',
 };

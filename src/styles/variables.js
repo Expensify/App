@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
-var react_native_1 = require("react-native");
+var react_native_1 = require('react-native');
 /**
  * Calculate the fontSize, lineHeight and padding when the device font size is changed, In most cases users do not change their device font size so PixelRatio.getFontScale() = 1 and this
  * method always returns the defaultValue (first param). When the device font size increases/decreases, the PixelRatio.getFontScale() value increases/decreases as well.
@@ -11,7 +11,7 @@ var react_native_1 = require("react-native");
 function getValueUsingPixelRatio(defaultValue, maxValue) {
     return react_native_1.PixelRatio.getFontScale() * defaultValue > maxValue ? maxValue : defaultValue * react_native_1.PixelRatio.getFontScale();
 }
-exports["default"] = {
+exports['default'] = {
     bottomTabHeight: 72,
     contentHeaderHeight: getValueUsingPixelRatio(72, 100),
     contentHeaderDesktopHeight: getValueUsingPixelRatio(80, 100),
@@ -297,5 +297,5 @@ exports["default"] = {
     w92: 92,
     w96: 96,
     w184: 184,
-    w191: 191
+    w191: 191,
 };

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     ADDRESS_LINE_1: 'addressLine1',
@@ -6,6 +6,6 @@ var INPUT_IDS = {
     COUNTRY: 'country',
     STATE: 'state',
     CITY: 'city',
-    ZIP_POST_CODE: 'zipPostCode'
+    ZIP_POST_CODE: 'zipPostCode',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

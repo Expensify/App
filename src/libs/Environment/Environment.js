@@ -1,37 +1,52 @@
-"use strict";
+'use strict';
 var _a, _b;
 exports.__esModule = true;
-exports.getOldDotURLFromEnvironment = exports.getOldDotEnvironmentURL = exports.getEnvironmentURL = exports.isProduction = exports.isDevelopment = exports.isInternalTestBuild = exports.getEnvironment = void 0;
-var react_native_config_1 = require("react-native-config");
-var CONFIG_1 = require("@src/CONFIG");
-var CONST_1 = require("@src/CONST");
-var getEnvironment_1 = require("./getEnvironment");
-exports.getEnvironment = getEnvironment_1["default"];
-var ENVIRONMENT_URLS = (_a = {},
-    _a[CONST_1["default"].ENVIRONMENT.DEV] = CONST_1["default"].DEV_NEW_EXPENSIFY_URL + CONFIG_1["default"].DEV_PORT,
-    _a[CONST_1["default"].ENVIRONMENT.STAGING] = CONST_1["default"].STAGING_NEW_EXPENSIFY_URL,
-    _a[CONST_1["default"].ENVIRONMENT.PRODUCTION] = CONST_1["default"].NEW_EXPENSIFY_URL,
-    _a[CONST_1["default"].ENVIRONMENT.ADHOC] = CONST_1["default"].STAGING_NEW_EXPENSIFY_URL,
+exports.getOldDotURLFromEnvironment =
+    exports.getOldDotEnvironmentURL =
+    exports.getEnvironmentURL =
+    exports.isProduction =
+    exports.isDevelopment =
+    exports.isInternalTestBuild =
+    exports.getEnvironment =
+        void 0;
+var react_native_config_1 = require('react-native-config');
+var CONFIG_1 = require('@src/CONFIG');
+var CONST_1 = require('@src/CONST');
+var getEnvironment_1 = require('./getEnvironment');
+exports.getEnvironment = getEnvironment_1['default'];
+var ENVIRONMENT_URLS =
+    ((_a = {}),
+    (_a[CONST_1['default'].ENVIRONMENT.DEV] = CONST_1['default'].DEV_NEW_EXPENSIFY_URL + CONFIG_1['default'].DEV_PORT),
+    (_a[CONST_1['default'].ENVIRONMENT.STAGING] = CONST_1['default'].STAGING_NEW_EXPENSIFY_URL),
+    (_a[CONST_1['default'].ENVIRONMENT.PRODUCTION] = CONST_1['default'].NEW_EXPENSIFY_URL),
+    (_a[CONST_1['default'].ENVIRONMENT.ADHOC] = CONST_1['default'].STAGING_NEW_EXPENSIFY_URL),
     _a);
-var OLDDOT_ENVIRONMENT_URLS = (_b = {},
-    _b[CONST_1["default"].ENVIRONMENT.DEV] = CONST_1["default"].INTERNAL_DEV_EXPENSIFY_URL,
-    _b[CONST_1["default"].ENVIRONMENT.STAGING] = CONST_1["default"].STAGING_EXPENSIFY_URL,
-    _b[CONST_1["default"].ENVIRONMENT.PRODUCTION] = CONST_1["default"].EXPENSIFY_URL,
-    _b[CONST_1["default"].ENVIRONMENT.ADHOC] = CONST_1["default"].STAGING_EXPENSIFY_URL,
+var OLDDOT_ENVIRONMENT_URLS =
+    ((_b = {}),
+    (_b[CONST_1['default'].ENVIRONMENT.DEV] = CONST_1['default'].INTERNAL_DEV_EXPENSIFY_URL),
+    (_b[CONST_1['default'].ENVIRONMENT.STAGING] = CONST_1['default'].STAGING_EXPENSIFY_URL),
+    (_b[CONST_1['default'].ENVIRONMENT.PRODUCTION] = CONST_1['default'].EXPENSIFY_URL),
+    (_b[CONST_1['default'].ENVIRONMENT.ADHOC] = CONST_1['default'].STAGING_EXPENSIFY_URL),
     _b);
 /**
  * Are we running the app in development?
  */
 function isDevelopment() {
     var _a;
-    return ((_a = react_native_config_1["default"] === null || react_native_config_1["default"] === void 0 ? void 0 : react_native_config_1["default"].ENVIRONMENT) !== null && _a !== void 0 ? _a : CONST_1["default"].ENVIRONMENT.DEV) === CONST_1["default"].ENVIRONMENT.DEV;
+    return (
+        ((_a = react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].ENVIRONMENT) !== null && _a !== void 0
+            ? _a
+            : CONST_1['default'].ENVIRONMENT.DEV) === CONST_1['default'].ENVIRONMENT.DEV
+    );
 }
 exports.isDevelopment = isDevelopment;
 /**
  * Are we running the app in production?
  */
 function isProduction() {
-    return getEnvironment_1["default"]().then(function (environment) { return environment === CONST_1["default"].ENVIRONMENT.PRODUCTION; });
+    return getEnvironment_1['default']().then(function (environment) {
+        return environment === CONST_1['default'].ENVIRONMENT.PRODUCTION;
+    });
 }
 exports.isProduction = isProduction;
 /**
@@ -39,7 +54,15 @@ exports.isProduction = isProduction;
  */
 function isInternalTestBuild() {
     var _a, _b;
-    return !!(((_a = react_native_config_1["default"] === null || react_native_config_1["default"] === void 0 ? void 0 : react_native_config_1["default"].ENVIRONMENT) !== null && _a !== void 0 ? _a : CONST_1["default"].ENVIRONMENT.DEV) === CONST_1["default"].ENVIRONMENT.ADHOC && ((_b = react_native_config_1["default"] === null || react_native_config_1["default"] === void 0 ? void 0 : react_native_config_1["default"].PULL_REQUEST_NUMBER) !== null && _b !== void 0 ? _b : ''));
+    return !!(
+        ((_a = react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].ENVIRONMENT) !== null && _a !== void 0
+            ? _a
+            : CONST_1['default'].ENVIRONMENT.DEV) === CONST_1['default'].ENVIRONMENT.ADHOC &&
+        ((_b = react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].PULL_REQUEST_NUMBER) !== null &&
+        _b !== void 0
+            ? _b
+            : '')
+    );
 }
 exports.isInternalTestBuild = isInternalTestBuild;
 /**
@@ -47,7 +70,9 @@ exports.isInternalTestBuild = isInternalTestBuild;
  */
 function getEnvironmentURL() {
     return new Promise(function (resolve) {
-        getEnvironment_1["default"]().then(function (environment) { return resolve(ENVIRONMENT_URLS[environment]); });
+        getEnvironment_1['default']().then(function (environment) {
+            return resolve(ENVIRONMENT_URLS[environment]);
+        });
     });
 }
 exports.getEnvironmentURL = getEnvironmentURL;
@@ -62,6 +87,8 @@ exports.getOldDotURLFromEnvironment = getOldDotURLFromEnvironment;
  * Get the corresponding oldDot URL based on the environment we are in
  */
 function getOldDotEnvironmentURL() {
-    return getEnvironment_1["default"]().then(function (environment) { return OLDDOT_ENVIRONMENT_URLS[environment]; });
+    return getEnvironment_1['default']().then(function (environment) {
+        return OLDDOT_ENVIRONMENT_URLS[environment];
+    });
 }
 exports.getOldDotEnvironmentURL = getOldDotEnvironmentURL;

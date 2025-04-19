@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 /**
  * Take an integer reportID and convert it to a string representing a Base-62 report ID.
@@ -16,6 +16,6 @@ function getBase62ReportID(reportID) {
         result = alphabet[currentVal] + result;
         remainder = Math.floor(remainder / 62);
     }
-    return "R" + result.padStart(11, '0');
+    return 'R' + result.padStart(11, '0');
 }
-exports["default"] = getBase62ReportID;
+exports['default'] = getBase62ReportID;

@@ -1,20 +1,35 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
-exports.sanitizeCurrencyCode = exports.getCurrency = exports.convertToShortDisplayString = exports.isValidCurrencyCode = exports.convertToDisplayStringWithoutCurrency = exports.convertAmountToDisplayString = exports.convertToDisplayString = exports.convertToFrontendAmountAsString = exports.convertToFrontendAmountAsInteger = exports.convertToBackendAmount = exports.isCurrencySymbolLTR = exports.getCurrencySymbol = exports.getLocalizedCurrencySymbol = exports.getCurrencyUnit = exports.getCurrencyDecimals = void 0;
-var react_native_onyx_1 = require("react-native-onyx");
-var CONST_1 = require("@src/CONST");
-var ONYXKEYS_1 = require("@src/ONYXKEYS");
-var BaseLocaleListener_1 = require("./Localize/LocaleListener/BaseLocaleListener");
-var NumberFormatUtils_1 = require("./NumberFormatUtils");
+exports.sanitizeCurrencyCode =
+    exports.getCurrency =
+    exports.convertToShortDisplayString =
+    exports.isValidCurrencyCode =
+    exports.convertToDisplayStringWithoutCurrency =
+    exports.convertAmountToDisplayString =
+    exports.convertToDisplayString =
+    exports.convertToFrontendAmountAsString =
+    exports.convertToFrontendAmountAsInteger =
+    exports.convertToBackendAmount =
+    exports.isCurrencySymbolLTR =
+    exports.getCurrencySymbol =
+    exports.getLocalizedCurrencySymbol =
+    exports.getCurrencyUnit =
+    exports.getCurrencyDecimals =
+        void 0;
+var react_native_onyx_1 = require('react-native-onyx');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var BaseLocaleListener_1 = require('./Localize/LocaleListener/BaseLocaleListener');
+var NumberFormatUtils_1 = require('./NumberFormatUtils');
 var currencyList = {};
-react_native_onyx_1["default"].connect({
-    key: ONYXKEYS_1["default"].CURRENCY_LIST,
+react_native_onyx_1['default'].connect({
+    key: ONYXKEYS_1['default'].CURRENCY_LIST,
     callback: function (val) {
         if (!val || Object.keys(val).length === 0) {
             return;
         }
         currencyList = val;
-    }
+    },
 });
 /**
  * Returns the number of digits after the decimal separator for a specific currency.
@@ -25,13 +40,17 @@ react_native_onyx_1["default"].connect({
  */
 function getCurrencyDecimals(currency) {
     var _a;
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var decimals = (_a = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currency]) === null || _a === void 0 ? void 0 : _a.decimals;
     return decimals !== null && decimals !== void 0 ? decimals : 2;
 }
 exports.getCurrencyDecimals = getCurrencyDecimals;
 function getCurrency(currency) {
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var currencyItem = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currency];
     return currencyItem;
 }
@@ -43,7 +62,9 @@ exports.getCurrency = getCurrency;
  * @param currency - IOU currency
  */
 function getCurrencyUnit(currency) {
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     return Math.pow(10, getCurrencyDecimals(currency));
 }
 exports.getCurrencyUnit = getCurrencyUnit;
@@ -52,11 +73,15 @@ exports.getCurrencyUnit = getCurrencyUnit;
  */
 function getLocalizedCurrencySymbol(currencyCode) {
     var _a;
-    var parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1["default"].getPreferredLocale(), 0, {
+    var parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), 0, {
         style: 'currency',
-        currency: currencyCode
+        currency: currencyCode,
     });
-    return (_a = parts.find(function (part) { return part.type === 'currency'; })) === null || _a === void 0 ? void 0 : _a.value;
+    return (_a = parts.find(function (part) {
+        return part.type === 'currency';
+    })) === null || _a === void 0
+        ? void 0
+        : _a.value;
 }
 exports.getLocalizedCurrencySymbol = getLocalizedCurrencySymbol;
 /**
@@ -72,9 +97,9 @@ exports.getCurrencySymbol = getCurrencySymbol;
  */
 function isCurrencySymbolLTR(currencyCode) {
     var _a;
-    var parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1["default"].getPreferredLocale(), 0, {
+    var parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), 0, {
         style: 'currency',
-        currency: currencyCode
+        currency: currencyCode,
     });
     // Currency is LTR when the first part is of currency type.
     return ((_a = parts.at(0)) === null || _a === void 0 ? void 0 : _a.type) === 'currency';
@@ -97,7 +122,9 @@ exports.convertToBackendAmount = convertToBackendAmount;
  * @note we do not support any currencies with more than two decimal places.
  */
 function convertToFrontendAmountAsInteger(amountAsInt, currency) {
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var decimals = getCurrencyDecimals(currency);
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
@@ -108,8 +135,12 @@ exports.convertToFrontendAmountAsInteger = convertToFrontendAmountAsInteger;
  * @note we do not support any currencies with more than two decimal places.
  */
 function convertToFrontendAmountAsString(amountAsInt, currency, withDecimals) {
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
-    if (withDecimals === void 0) { withDecimals = true; }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
+    if (withDecimals === void 0) {
+        withDecimals = true;
+    }
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
@@ -125,24 +156,28 @@ exports.convertToFrontendAmountAsString = convertToFrontendAmountAsString;
  * @param currency - IOU currency
  */
 function convertToDisplayString(amountInCents, currency) {
-    if (amountInCents === void 0) { amountInCents = 0; }
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (amountInCents === void 0) {
+        amountInCents = 0;
+    }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
     var currencyWithFallback = currency;
     if (!currency) {
-        currencyWithFallback = CONST_1["default"].CURRENCY.USD;
+        currencyWithFallback = CONST_1['default'].CURRENCY.USD;
     }
-    return NumberFormatUtils_1.format(BaseLocaleListener_1["default"].getPreferredLocale(), convertedAmount, {
+    return NumberFormatUtils_1.format(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency: currencyWithFallback,
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
         minimumFractionDigits: getCurrencyDecimals(currency),
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
     });
 }
 exports.convertToDisplayString = convertToDisplayString;
@@ -154,15 +189,19 @@ exports.convertToDisplayString = convertToDisplayString;
  * @param currency - IOU currency
  */
 function convertToShortDisplayString(amountInCents, currency) {
-    if (amountInCents === void 0) { amountInCents = 0; }
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (amountInCents === void 0) {
+        amountInCents = 0;
+    }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return NumberFormatUtils_1.format(BaseLocaleListener_1["default"].getPreferredLocale(), convertedAmount, {
+    return NumberFormatUtils_1.format(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency: currency,
         // There will be no decimals displayed (e.g. $9)
         minimumFractionDigits: 0,
-        maximumFractionDigits: 0
+        maximumFractionDigits: 0,
     });
 }
 exports.convertToShortDisplayString = convertToShortDisplayString;
@@ -173,14 +212,18 @@ exports.convertToShortDisplayString = convertToShortDisplayString;
  * @param currency - IOU currency
  */
 function convertAmountToDisplayString(amount, currency) {
-    if (amount === void 0) { amount = 0; }
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (amount === void 0) {
+        amount = 0;
+    }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var convertedAmount = amount / 100.0;
-    return NumberFormatUtils_1.format(BaseLocaleListener_1["default"].getPreferredLocale(), convertedAmount, {
+    return NumberFormatUtils_1.format(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency: currency,
-        minimumFractionDigits: CONST_1["default"].MIN_TAX_RATE_DECIMAL_PLACES,
-        maximumFractionDigits: CONST_1["default"].MAX_TAX_RATE_DECIMAL_PLACES
+        minimumFractionDigits: CONST_1['default'].MIN_TAX_RATE_DECIMAL_PLACES,
+        maximumFractionDigits: CONST_1['default'].MAX_TAX_RATE_DECIMAL_PLACES,
     });
 }
 exports.convertAmountToDisplayString = convertAmountToDisplayString;
@@ -188,20 +231,28 @@ exports.convertAmountToDisplayString = convertAmountToDisplayString;
  * Acts the same as `convertAmountToDisplayString` but the result string does not contain currency
  */
 function convertToDisplayStringWithoutCurrency(amountInCents, currency) {
-    if (currency === void 0) { currency = CONST_1["default"].CURRENCY.USD; }
+    if (currency === void 0) {
+        currency = CONST_1['default'].CURRENCY.USD;
+    }
     var convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
-    return NumberFormatUtils_1.formatToParts(BaseLocaleListener_1["default"].getPreferredLocale(), convertedAmount, {
+    return NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
         currency: currency,
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
         minimumFractionDigits: getCurrencyDecimals(currency),
         // For currencies that have decimal places > 2, floor to 2 instead as we don't support more than 2 decimal places.
-        maximumFractionDigits: 2
+        maximumFractionDigits: 2,
     })
-        .filter(function (x) { return x.type !== 'currency'; })
-        .filter(function (x) { return x.type !== 'literal' || x.value.trim().length !== 0; })
-        .map(function (x) { return x.value; })
+        .filter(function (x) {
+            return x.type !== 'currency';
+        })
+        .filter(function (x) {
+            return x.type !== 'literal' || x.value.trim().length !== 0;
+        })
+        .map(function (x) {
+            return x.value;
+        })
         .join('');
 }
 exports.convertToDisplayStringWithoutCurrency = convertToDisplayStringWithoutCurrency;
@@ -214,6 +265,6 @@ function isValidCurrencyCode(currencyCode) {
 }
 exports.isValidCurrencyCode = isValidCurrencyCode;
 function sanitizeCurrencyCode(currencyCode) {
-    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST_1["default"].CURRENCY.USD;
+    return isValidCurrencyCode(currencyCode) ? currencyCode : CONST_1['default'].CURRENCY.USD;
 }
 exports.sanitizeCurrencyCode = sanitizeCurrencyCode;

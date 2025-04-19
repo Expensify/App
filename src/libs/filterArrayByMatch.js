@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.MATCH_RANK = void 0;
 var MATCH_RANK = {
@@ -8,7 +8,7 @@ var MATCH_RANK = {
     WORD_STARTS_WITH: 3,
     CONTAINS: 2,
     MATCHES: 1,
-    NO_MATCH: 0
+    NO_MATCH: 0,
 };
 exports.MATCH_RANK = MATCH_RANK;
 /**
@@ -38,7 +38,7 @@ function getMatchRanking(testString, stringToRank) {
         return MATCH_RANK.STARTS_WITH;
     }
     // word starts with
-    if (lowercaseTestString.includes(" " + lowercaseStringToRank)) {
+    if (lowercaseTestString.includes(' ' + lowercaseStringToRank)) {
         return MATCH_RANK.WORD_STARTS_WITH;
     }
     // contains
@@ -92,4 +92,4 @@ function filterArrayByMatch(items, searchValue, extractRankableValuesFromItem) {
     }
     return filteredItems;
 }
-exports["default"] = filterArrayByMatch;
+exports['default'] = filterArrayByMatch;

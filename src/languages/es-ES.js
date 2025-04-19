@@ -1,5 +1,5 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
-exports["default"] = {
-    phoneCountryCode: '34'
+exports['default'] = {
+    phoneCountryCode: '34',
 };

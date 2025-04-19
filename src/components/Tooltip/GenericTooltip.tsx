@@ -74,7 +74,7 @@ function GenericTooltip({
         }
         Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
     }, [text, renderTooltipContent]);
-     /**
+    /**
      * Display the tooltip in an animation.
      */
     const showTooltip = useCallback(() => {
@@ -111,7 +111,7 @@ function GenericTooltip({
         if (!isRendered || !wrapperRef.current) {
             return;
         }
-    
+
         wrapperRef.current.measureInWindow((x, y, width, height) => {
             setXOffset(x);
             setYOffset(y);
@@ -119,7 +119,6 @@ function GenericTooltip({
             setWrapperHeight(height);
         });
     }, [isRendered]);
-    
 
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);

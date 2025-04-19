@@ -1,14 +1,14 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.DATE_FILTER_KEYS = void 0;
-var CONST_1 = require("@src/CONST");
+var CONST_1 = require('@src/CONST');
 var DATE_FILTER_KEYS = [
-    CONST_1["default"].SEARCH.SYNTAX_FILTER_KEYS.DATE,
-    CONST_1["default"].SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
-    CONST_1["default"].SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
-    CONST_1["default"].SEARCH.SYNTAX_FILTER_KEYS.PAID,
-    CONST_1["default"].SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
-    CONST_1["default"].SEARCH.SYNTAX_FILTER_KEYS.POSTED,
+    CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.DATE,
+    CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
+    CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
+    CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.PAID,
+    CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.EXPORTED,
+    CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POSTED,
 ];
 exports.DATE_FILTER_KEYS = DATE_FILTER_KEYS;
 var FILTER_KEYS = {
@@ -44,6 +44,6 @@ var FILTER_KEYS = {
     TO: 'to',
     IN: 'in',
     REIMBURSABLE: 'reimbursable',
-    BILLABLE: 'billable'
+    BILLABLE: 'billable',
 };
-exports["default"] = FILTER_KEYS;
+exports['default'] = FILTER_KEYS;

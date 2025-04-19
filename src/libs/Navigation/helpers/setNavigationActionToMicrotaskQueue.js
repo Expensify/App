@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 function setNavigationActionToMicrotaskQueue(navigationAction) {
     /**
@@ -13,4 +13,4 @@ function setNavigationActionToMicrotaskQueue(navigationAction) {
         });
     });
 }
-exports["default"] = setNavigationActionToMicrotaskQueue;
+exports['default'] = setNavigationActionToMicrotaskQueue;

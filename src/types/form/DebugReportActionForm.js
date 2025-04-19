@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     REPORT_ACTION_ID: 'reportActionID',
@@ -46,6 +46,6 @@ var INPUT_IDS = {
     WHISPERED_TO_ACCOUNT_IDS: 'whisperedToAccountIDs',
     ORIGINAL_MESSAGE: 'originalMessage',
     MESSAGE: 'message',
-    PREVIOUS_MESSAGE: 'previousMessage'
+    PREVIOUS_MESSAGE: 'previousMessage',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

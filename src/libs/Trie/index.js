@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
-var TrieNode_1 = require("./TrieNode");
+var TrieNode_1 = require('./TrieNode');
 var Trie = /** @class */ (function () {
     function Trie() {
-        this.root = new TrieNode_1["default"]();
+        this.root = new TrieNode_1['default']();
     }
     /**
      * Add a word to the Trie
@@ -11,9 +11,15 @@ var Trie = /** @class */ (function () {
      * @param [allowEmptyWords] - empty word doesn't have any char, you shouldn't pass a true value for it because we are disallowing adding an empty word
      */
     Trie.prototype.add = function (word, metaData, node, allowEmptyWords) {
-        if (metaData === void 0) { metaData = {}; }
-        if (node === void 0) { node = this.root; }
-        if (allowEmptyWords === void 0) { allowEmptyWords = false; }
+        if (metaData === void 0) {
+            metaData = {};
+        }
+        if (node === void 0) {
+            node = this.root;
+        }
+        if (allowEmptyWords === void 0) {
+            allowEmptyWords = false;
+        }
         var newWord = word.toLowerCase();
         var newNode = node;
         if (newWord.length === 0 && !allowEmptyWords) {
@@ -25,7 +31,7 @@ var Trie = /** @class */ (function () {
             return;
         }
         if (!newNode.children[newWord[0]]) {
-            newNode.children[newWord[0]] = new TrieNode_1["default"]();
+            newNode.children[newWord[0]] = new TrieNode_1['default']();
         }
         this.add(newWord.substring(1), metaData, newNode.children[newWord[0]], true);
     };
@@ -66,7 +72,9 @@ var Trie = /** @class */ (function () {
      * @param [limit] - matching words limit
      */
     Trie.prototype.getAllMatchingWords = function (substr, limit) {
-        if (limit === void 0) { limit = 5; }
+        if (limit === void 0) {
+            limit = 5;
+        }
         var newSubstr = substr.toLowerCase();
         var node = this.root;
         var prefix = '';
@@ -84,13 +92,15 @@ var Trie = /** @class */ (function () {
      * Find all leaf nodes that are descendants of a given child node.
      */
     Trie.prototype.getChildMatching = function (node, prefix, limit, words) {
-        if (words === void 0) { words = []; }
+        if (words === void 0) {
+            words = [];
+        }
         var matching = words;
         if (matching.length >= limit) {
             return matching;
         }
         if (node.isEndOfWord) {
-            matching.push({ name: prefix, metaData: node.metaData });
+            matching.push({name: prefix, metaData: node.metaData});
         }
         var children = Object.keys(node.children);
         for (var _i = 0, children_1 = children; _i < children_1.length; _i++) {
@@ -100,5 +110,5 @@ var Trie = /** @class */ (function () {
         return matching;
     };
     return Trie;
-}());
-exports["default"] = Trie;
+})();
+exports['default'] = Trie;

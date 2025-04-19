@@ -1,19 +1,22 @@
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+'use strict';
+var __assign =
+    (this && this.__assign) ||
+    function () {
+        __assign =
+            Object.assign ||
+            function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                }
+                return t;
+            };
+        return __assign.apply(this, arguments);
     };
-    return __assign.apply(this, arguments);
-};
 exports.__esModule = true;
 exports.truncateArgs = exports.getEqualityComparator = exports.mergeOptions = void 0;
-var fast_equals_1 = require("fast-equals");
-var const_1 = require("./const");
+var fast_equals_1 = require('fast-equals');
+var const_1 = require('./const');
 function getEqualityComparator(opts) {
     // Use the custom equality comparator if it is provided
     if (typeof opts.equality === 'function') {
@@ -27,9 +30,9 @@ function getEqualityComparator(opts) {
 exports.getEqualityComparator = getEqualityComparator;
 function mergeOptions(options) {
     if (!options) {
-        return const_1["default"];
+        return const_1['default'];
     }
-    return __assign(__assign({}, const_1["default"]), options);
+    return __assign(__assign({}, const_1['default']), options);
 }
 exports.mergeOptions = mergeOptions;
 function truncateArgs(args, maxArgs) {

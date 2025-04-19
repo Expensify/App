@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
-var SearchQueryUtils_1 = require("@libs/SearchQueryUtils");
+var SearchQueryUtils_1 = require('@libs/SearchQueryUtils');
 function extractPolicyIDFromQuery(route) {
     if (!(route === null || route === void 0 ? void 0 : route.params)) {
         return undefined;
@@ -15,4 +15,4 @@ function extractPolicyIDFromQuery(route) {
     }
     return SearchQueryUtils_1.getPolicyIDFromSearchQuery(queryJSON);
 }
-exports["default"] = extractPolicyIDFromQuery;
+exports['default'] = extractPolicyIDFromQuery;

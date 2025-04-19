@@ -1,18 +1,28 @@
-"use strict";
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
+'use strict';
+var __spreadArrays =
+    (this && this.__spreadArrays) ||
+    function () {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        return r;
+    };
 exports.__esModule = true;
-exports.getDomainFeedData = exports.generateDomainFeedData = exports.getWorkspaceCardFeedKey = exports.getCardFeedKey = exports.createCardFeedKey = exports.getSelectedCardsFromFeeds = exports.generateSelectedCards = exports.buildCardFeedsData = exports.getCardFeedNamesWithType = exports.buildCardsData = void 0;
-var CONST_1 = require("@src/CONST");
-var ONYXKEYS_1 = require("@src/ONYXKEYS");
-var EmptyObject_1 = require("@src/types/utils/EmptyObject");
-var CardUtils_1 = require("./CardUtils");
-var PolicyUtils_1 = require("./PolicyUtils");
+exports.getDomainFeedData =
+    exports.generateDomainFeedData =
+    exports.getWorkspaceCardFeedKey =
+    exports.getCardFeedKey =
+    exports.createCardFeedKey =
+    exports.getSelectedCardsFromFeeds =
+    exports.generateSelectedCards =
+    exports.buildCardFeedsData =
+    exports.getCardFeedNamesWithType =
+    exports.buildCardsData =
+        void 0;
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var EmptyObject_1 = require('@src/types/utils/EmptyObject');
+var CardUtils_1 = require('./CardUtils');
+var PolicyUtils_1 = require('./PolicyUtils');
 function getRepeatingBanks(workspaceCardFeedsKeys, domainFeedsData) {
     var bankFrequency = {};
     for (var _i = 0, workspaceCardFeedsKeys_1 = workspaceCardFeedsKeys; _i < workspaceCardFeedsKeys_1.length; _i++) {
@@ -27,7 +37,9 @@ function getRepeatingBanks(workspaceCardFeedsKeys, domainFeedsData) {
         var domainFeed = _b[_a];
         bankFrequency[domainFeed.bank] = (bankFrequency[domainFeed.bank] || 0) + 1;
     }
-    return Object.keys(bankFrequency).filter(function (bank) { return bankFrequency[bank] > 1; });
+    return Object.keys(bankFrequency).filter(function (bank) {
+        return bankFrequency[bank] > 1;
+    });
 }
 /**
  * @returns string with the 'cards_' part removed from the beginning
@@ -37,11 +49,14 @@ function getCardFeedKey(workspaceCardFeeds, workspaceFeedKey) {
     if (!workspaceFeed) {
         return;
     }
-    var representativeCard = Object.values(workspaceFeed).find(function (cardFeedItem) { return CardUtils_1.isCard(cardFeedItem); });
+    var representativeCard = Object.values(workspaceFeed).find(function (cardFeedItem) {
+        return CardUtils_1.isCard(cardFeedItem);
+    });
     if (!representativeCard) {
         return;
     }
-    var fundID = representativeCard.fundID, bank = representativeCard.bank;
+    var fundID = representativeCard.fundID,
+        bank = representativeCard.bank;
     return createCardFeedKey(fundID, bank);
 }
 exports.getCardFeedKey = getCardFeedKey;
@@ -49,15 +64,15 @@ exports.getCardFeedKey = getCardFeedKey;
  * @returns string with added 'cards_' substring at the beginning
  */
 function getWorkspaceCardFeedKey(cardFeedKey) {
-    if (!cardFeedKey.startsWith(ONYXKEYS_1["default"].COLLECTION.WORKSPACE_CARDS_LIST)) {
-        return "" + ONYXKEYS_1["default"].COLLECTION.WORKSPACE_CARDS_LIST + cardFeedKey;
+    if (!cardFeedKey.startsWith(ONYXKEYS_1['default'].COLLECTION.WORKSPACE_CARDS_LIST)) {
+        return '' + ONYXKEYS_1['default'].COLLECTION.WORKSPACE_CARDS_LIST + cardFeedKey;
     }
     return cardFeedKey;
 }
 exports.getWorkspaceCardFeedKey = getWorkspaceCardFeedKey;
 function createCardFilterItem(card, personalDetailsList, selectedCards, illustrations) {
     var _a, _b, _c, _d;
-    var personalDetails = personalDetailsList[(_a = card === null || card === void 0 ? void 0 : card.accountID) !== null && _a !== void 0 ? _a : CONST_1["default"].DEFAULT_NUMBER_ID];
+    var personalDetails = personalDetailsList[(_a = card === null || card === void 0 ? void 0 : card.accountID) !== null && _a !== void 0 ? _a : CONST_1['default'].DEFAULT_NUMBER_ID];
     var isSelected = selectedCards.includes(card.cardID.toString());
     var icon = CardUtils_1.getCardFeedIcon(card === null || card === void 0 ? void 0 : card.bank, illustrations);
     var cardName = (_b = card === null || card === void 0 ? void 0 : card.nameValuePairs) === null || _b === void 0 ? void 0 : _b.cardTitle;
@@ -72,39 +87,52 @@ function createCardFilterItem(card, personalDetailsList, selectedCards, illustra
         keyForList: card.cardID.toString(),
         isSelected: isSelected,
         bankIcon: {
-            icon: icon
+            icon: icon,
         },
         isCardFeed: false,
-        cardFeedKey: ''
+        cardFeedKey: '',
     };
 }
 function buildCardsData(workspaceCardFeeds, userCardList, personalDetailsList, selectedCards, illustrations, isClosedCards) {
-    if (isClosedCards === void 0) { isClosedCards = false; }
+    if (isClosedCards === void 0) {
+        isClosedCards = false;
+    }
     // Filter condition to build different cards data for closed cards and individual cards based on the isClosedCards flag, we don't want to show closed cards in the individual cards section
-    var filterCondition = function (card) { return (isClosedCards ? CardUtils_1.isCardClosed(card) : !CardUtils_1.isCardHiddenFromSearch(card) && !CardUtils_1.isCardClosed(card)); };
+    var filterCondition = function (card) {
+        return isClosedCards ? CardUtils_1.isCardClosed(card) : !CardUtils_1.isCardHiddenFromSearch(card) && !CardUtils_1.isCardClosed(card);
+    };
     var userAssignedCards = Object.values(userCardList !== null && userCardList !== void 0 ? userCardList : {})
-        .filter(function (card) { return filterCondition(card); })
-        .map(function (card) { return createCardFilterItem(card, personalDetailsList, selectedCards, illustrations); });
+        .filter(function (card) {
+            return filterCondition(card);
+        })
+        .map(function (card) {
+            return createCardFilterItem(card, personalDetailsList, selectedCards, illustrations);
+        });
     // When user is admin of a workspace he sees all the cards of workspace under cards_ Onyx key
     var allWorkspaceCards = Object.values(workspaceCardFeeds)
-        .filter(function (cardFeed) { return !EmptyObject_1.isEmptyObject(cardFeed); })
+        .filter(function (cardFeed) {
+            return !EmptyObject_1.isEmptyObject(cardFeed);
+        })
         .flatMap(function (cardFeed) {
-        return Object.values(cardFeed)
-            .filter(function (card) { return card && CardUtils_1.isCard(card) && !(userCardList === null || userCardList === void 0 ? void 0 : userCardList[card.cardID]) && filterCondition(card); })
-            .map(function (card) { return createCardFilterItem(card, personalDetailsList, selectedCards, illustrations); });
-    });
+            return Object.values(cardFeed)
+                .filter(function (card) {
+                    return card && CardUtils_1.isCard(card) && !(userCardList === null || userCardList === void 0 ? void 0 : userCardList[card.cardID]) && filterCondition(card);
+                })
+                .map(function (card) {
+                    return createCardFilterItem(card, personalDetailsList, selectedCards, illustrations);
+                });
+        });
     var allCardItems = __spreadArrays(userAssignedCards, allWorkspaceCards);
     var selectedCardItems = [];
     var unselectedCardItems = [];
     allCardItems.forEach(function (card) {
         if (card.isSelected) {
             selectedCardItems.push(card);
-        }
-        else {
+        } else {
             unselectedCardItems.push(card);
         }
     });
-    return { selected: selectedCardItems, unselected: unselectedCardItems };
+    return {selected: selectedCardItems, unselected: unselectedCardItems};
 }
 exports.buildCardsData = buildCardsData;
 /**
@@ -115,18 +143,23 @@ function generateDomainFeedData(cardList) {
     return Object.values(cardList !== null && cardList !== void 0 ? cardList : {}).reduce(function (domainFeedData, currentCard) {
         var _a, _b;
         // Cards in cardList can also be domain cards, we use them to compute domain feed
-        if (!((_a = currentCard === null || currentCard === void 0 ? void 0 : currentCard.domainName) === null || _a === void 0 ? void 0 : _a.match(CONST_1["default"].REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) && !CardUtils_1.isCardHiddenFromSearch(currentCard) && currentCard.fundID) {
-            if (domainFeedData[currentCard.fundID + "_" + currentCard.bank]) {
-                domainFeedData[currentCard.fundID + "_" + currentCard.bank].correspondingCardIDs.push(currentCard.cardID.toString());
-            }
-            else {
+        if (
+            !((_a = currentCard === null || currentCard === void 0 ? void 0 : currentCard.domainName) === null || _a === void 0
+                ? void 0
+                : _a.match(CONST_1['default'].REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) &&
+            !CardUtils_1.isCardHiddenFromSearch(currentCard) &&
+            currentCard.fundID
+        ) {
+            if (domainFeedData[currentCard.fundID + '_' + currentCard.bank]) {
+                domainFeedData[currentCard.fundID + '_' + currentCard.bank].correspondingCardIDs.push(currentCard.cardID.toString());
+            } else {
                 // if the cards belongs to the same domain, every card of it should have the same fundID
                 // eslint-disable-next-line no-param-reassign
-                domainFeedData[currentCard.fundID + "_" + currentCard.bank] = {
+                domainFeedData[currentCard.fundID + '_' + currentCard.bank] = {
                     fundID: currentCard.fundID,
                     domainName: currentCard.domainName,
                     bank: currentCard === null || currentCard === void 0 ? void 0 : currentCard.bank,
-                    correspondingCardIDs: [(_b = currentCard.cardID) === null || _b === void 0 ? void 0 : _b.toString()]
+                    correspondingCardIDs: [(_b = currentCard.cardID) === null || _b === void 0 ? void 0 : _b.toString()],
                 };
             }
         }
@@ -145,39 +178,50 @@ exports.getDomainFeedData = getDomainFeedData;
 function getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate) {
     var _a, _b;
     var cardFeedArray = Object.values(cardFeed !== null && cardFeed !== void 0 ? cardFeed : {});
-    var representativeCard = cardFeedArray.find(function (cardFeedItem) { return CardUtils_1.isCard(cardFeedItem); });
-    if (!representativeCard || !cardFeedArray.some(function (cardFeedItem) { return CardUtils_1.isCard(cardFeedItem) && !CardUtils_1.isCardHiddenFromSearch(cardFeedItem); })) {
+    var representativeCard = cardFeedArray.find(function (cardFeedItem) {
+        return CardUtils_1.isCard(cardFeedItem);
+    });
+    if (
+        !representativeCard ||
+        !cardFeedArray.some(function (cardFeedItem) {
+            return CardUtils_1.isCard(cardFeedItem) && !CardUtils_1.isCardHiddenFromSearch(cardFeedItem);
+        })
+    ) {
         return;
     }
-    var domainName = representativeCard.domainName, bank = representativeCard.bank;
+    var domainName = representativeCard.domainName,
+        bank = representativeCard.bank;
     var isBankRepeating = repeatingBanks.includes(bank);
-    var policyID = (_b = (_a = domainName.match(CONST_1["default"].REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : '';
+    var policyID = (_b = (_a = domainName.match(CONST_1['default'].REGEX.EXPENSIFY_POLICY_DOMAIN_NAME)) === null || _a === void 0 ? void 0 : _a[1]) !== null && _b !== void 0 ? _b : '';
     var correspondingPolicy = PolicyUtils_1.getPolicy(policyID === null || policyID === void 0 ? void 0 : policyID.toUpperCase());
-    var cardFeedLabel = isBankRepeating ? correspondingPolicy === null || correspondingPolicy === void 0 ? void 0 : correspondingPolicy.name : undefined;
-    var cardFeedBankName = bank === CONST_1["default"].EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils_1.getBankName(bank);
-    var cardName = cardFeedBankName === CONST_1["default"].COMPANY_CARDS.CARD_TYPE.CSV
-        ? translate('search.filters.card.cardFeedNameCSV', { cardFeedLabel: cardFeedLabel })
-        : translate('search.filters.card.cardFeedName', { cardFeedBankName: cardFeedBankName, cardFeedLabel: cardFeedLabel });
+    var cardFeedLabel = isBankRepeating ? (correspondingPolicy === null || correspondingPolicy === void 0 ? void 0 : correspondingPolicy.name) : undefined;
+    var cardFeedBankName = bank === CONST_1['default'].EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils_1.getBankName(bank);
+    var cardName =
+        cardFeedBankName === CONST_1['default'].COMPANY_CARDS.CARD_TYPE.CSV
+            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel: cardFeedLabel})
+            : translate('search.filters.card.cardFeedName', {cardFeedBankName: cardFeedBankName, cardFeedLabel: cardFeedLabel});
     return {
         cardName: cardName,
         bank: bank,
         label: cardFeedLabel,
-        type: 'workspace'
+        type: 'workspace',
     };
 }
 function getDomainCardFeedData(domainFeed, repeatingBanks, translate) {
-    var domainName = domainFeed.domainName, bank = domainFeed.bank;
+    var domainName = domainFeed.domainName,
+        bank = domainFeed.bank;
     var isBankRepeating = repeatingBanks.includes(bank);
-    var cardFeedBankName = bank === CONST_1["default"].EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils_1.getBankName(bank);
+    var cardFeedBankName = bank === CONST_1['default'].EXPENSIFY_CARD.BANK ? translate('search.filters.card.expensify') : CardUtils_1.getBankName(bank);
     var cardFeedLabel = isBankRepeating ? PolicyUtils_1.getDescriptionForPolicyDomainCard(domainName) : undefined;
-    var cardName = cardFeedBankName === CONST_1["default"].COMPANY_CARDS.CARD_TYPE.CSV
-        ? translate('search.filters.card.cardFeedNameCSV', { cardFeedLabel: cardFeedLabel })
-        : translate('search.filters.card.cardFeedName', { cardFeedBankName: cardFeedBankName, cardFeedLabel: cardFeedLabel });
+    var cardName =
+        cardFeedBankName === CONST_1['default'].COMPANY_CARDS.CARD_TYPE.CSV
+            ? translate('search.filters.card.cardFeedNameCSV', {cardFeedLabel: cardFeedLabel})
+            : translate('search.filters.card.cardFeedName', {cardFeedBankName: cardFeedBankName, cardFeedLabel: cardFeedLabel});
     return {
         cardName: cardName,
         bank: bank,
         label: cardFeedLabel,
-        type: 'domain'
+        type: 'domain',
     };
 }
 function filterOutDomainCards(workspaceCardFeeds) {
@@ -186,26 +230,28 @@ function filterOutDomainCards(workspaceCardFeeds) {
         var _b;
         var workspaceFeed = _a[1];
         var domainFeed = (_b = Object.values(workspaceFeed !== null && workspaceFeed !== void 0 ? workspaceFeed : {}).at(0)) !== null && _b !== void 0 ? _b : {};
-        if (Object.keys(domainFeedData).includes(domainFeed.fundID + "_" + domainFeed.bank)) {
+        if (Object.keys(domainFeedData).includes(domainFeed.fundID + '_' + domainFeed.bank)) {
             return false;
         }
         return !EmptyObject_1.isEmptyObject(workspaceFeed);
     });
 }
 function getCardFeedsData(_a) {
-    var workspaceCardFeeds = _a.workspaceCardFeeds, translate = _a.translate;
+    var workspaceCardFeeds = _a.workspaceCardFeeds,
+        translate = _a.translate;
     var domainFeedData = getDomainFeedData(workspaceCardFeeds);
-    var repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds !== null && workspaceCardFeeds !== void 0 ? workspaceCardFeeds : CONST_1["default"].EMPTY_OBJECT), domainFeedData);
+    var repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds !== null && workspaceCardFeeds !== void 0 ? workspaceCardFeeds : CONST_1['default'].EMPTY_OBJECT), domainFeedData);
     var cardFeedData = {};
     filterOutDomainCards(workspaceCardFeeds).forEach(function (_a) {
-        var cardFeedKey = _a[0], cardFeed = _a[1];
+        var cardFeedKey = _a[0],
+            cardFeed = _a[1];
         var workspaceData = getWorkspaceCardFeedData(cardFeed, repeatingBanks, translate);
         if (workspaceData) {
             cardFeedData[cardFeedKey] = workspaceData;
         }
     });
     Object.values(domainFeedData).forEach(function (domainFeed) {
-        var cardFeedKey = createCardFeedKey("cards_" + domainFeed.fundID, domainFeed.bank);
+        var cardFeedKey = createCardFeedKey('cards_' + domainFeed.fundID, domainFeed.bank);
         cardFeedData[cardFeedKey] = getDomainCardFeedData(domainFeed, repeatingBanks, translate);
     });
     return cardFeedData;
@@ -216,7 +262,7 @@ function getCardFeedNamesWithType(params) {
         /* eslint-disable-next-line no-param-reassign */
         cardFeedNamesWithType[cardFeedKey] = {
             name: cardFeedData[cardFeedKey].cardName,
-            type: cardFeedData[cardFeedKey].type
+            type: cardFeedData[cardFeedKey].type,
         };
         return cardFeedNamesWithType;
     }, {});
@@ -226,12 +272,20 @@ function createCardFeedKey(fundID, bank) {
     if (!fundID) {
         return bank;
     }
-    return fundID + "_" + bank;
+    return fundID + '_' + bank;
 }
 exports.createCardFeedKey = createCardFeedKey;
 function createCardFeedItem(_a) {
-    var cardName = _a.cardName, bank = _a.bank, keyForList = _a.keyForList, cardFeedKey = _a.cardFeedKey, correspondingCardIDs = _a.correspondingCardIDs, selectedCards = _a.selectedCards, illustrations = _a.illustrations;
-    var isSelected = correspondingCardIDs.every(function (card) { return selectedCards.includes(card); });
+    var cardName = _a.cardName,
+        bank = _a.bank,
+        keyForList = _a.keyForList,
+        cardFeedKey = _a.cardFeedKey,
+        correspondingCardIDs = _a.correspondingCardIDs,
+        selectedCards = _a.selectedCards,
+        illustrations = _a.illustrations;
+    var isSelected = correspondingCardIDs.every(function (card) {
+        return selectedCards.includes(card);
+    });
     var icon = CardUtils_1.getCardFeedIcon(bank, illustrations);
     return {
         text: cardName,
@@ -239,11 +293,11 @@ function createCardFeedItem(_a) {
         isSelected: isSelected,
         shouldShowOwnersAvatar: false,
         bankIcon: {
-            icon: icon
+            icon: icon,
         },
         cardFeedKey: cardFeedKey,
         isCardFeed: true,
-        correspondingCards: correspondingCardIDs
+        correspondingCards: correspondingCardIDs,
     };
 }
 function buildCardFeedsData(workspaceCardFeeds, domainFeedsData, selectedCards, translate, illustrations) {
@@ -251,41 +305,45 @@ function buildCardFeedsData(workspaceCardFeeds, domainFeedsData, selectedCards, 
     var unselectedFeeds = [];
     var repeatingBanks = getRepeatingBanks(Object.keys(workspaceCardFeeds), domainFeedsData);
     Object.values(domainFeedsData).forEach(function (domainFeed) {
-        var domainName = domainFeed.domainName, bank = domainFeed.bank, correspondingCardIDs = domainFeed.correspondingCardIDs;
+        var domainName = domainFeed.domainName,
+            bank = domainFeed.bank,
+            correspondingCardIDs = domainFeed.correspondingCardIDs;
         var cardFeedKey = createCardFeedKey(domainFeed.fundID, bank);
         var cardName = getDomainCardFeedData(domainFeed, repeatingBanks, translate).cardName;
         var feedItem = createCardFeedItem({
             cardName: cardName,
             bank: bank,
             correspondingCardIDs: correspondingCardIDs,
-            keyForList: domainName + "-" + bank,
+            keyForList: domainName + '-' + bank,
             cardFeedKey: cardFeedKey,
             selectedCards: selectedCards,
-            illustrations: illustrations
+            illustrations: illustrations,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);
-        }
-        else {
+        } else {
             unselectedFeeds.push(feedItem);
         }
     });
     filterOutDomainCards(workspaceCardFeeds).forEach(function (_a) {
-        var workspaceFeedKey = _a[0], workspaceFeed = _a[1];
+        var workspaceFeedKey = _a[0],
+            workspaceFeed = _a[1];
         var correspondingCardIDs = Object.entries(workspaceFeed !== null && workspaceFeed !== void 0 ? workspaceFeed : {})
             .filter(function (_a) {
-            var cardKey = _a[0], card = _a[1];
-            return cardKey !== 'cardList' && CardUtils_1.isCard(card) && !CardUtils_1.isCardHiddenFromSearch(card);
-        })
+                var cardKey = _a[0],
+                    card = _a[1];
+                return cardKey !== 'cardList' && CardUtils_1.isCard(card) && !CardUtils_1.isCardHiddenFromSearch(card);
+            })
             .map(function (_a) {
-            var cardKey = _a[0];
-            return cardKey;
-        });
+                var cardKey = _a[0];
+                return cardKey;
+            });
         var cardFeedData = getWorkspaceCardFeedData(workspaceFeed, repeatingBanks, translate);
         if (!cardFeedData) {
             return;
         }
-        var cardName = cardFeedData.cardName, bank = cardFeedData.bank;
+        var cardName = cardFeedData.cardName,
+            bank = cardFeedData.bank;
         var cardFeedKey = getCardFeedKey(workspaceCardFeeds, workspaceFeedKey);
         var feedItem = createCardFeedItem({
             cardName: cardName,
@@ -294,21 +352,24 @@ function buildCardFeedsData(workspaceCardFeeds, domainFeedsData, selectedCards, 
             cardFeedKey: cardFeedKey !== null && cardFeedKey !== void 0 ? cardFeedKey : '',
             keyForList: workspaceFeedKey,
             selectedCards: selectedCards,
-            illustrations: illustrations
+            illustrations: illustrations,
         });
         if (feedItem.isSelected) {
             selectedFeeds.push(feedItem);
-        }
-        else {
+        } else {
             unselectedFeeds.push(feedItem);
         }
     });
-    return { selected: selectedFeeds, unselected: unselectedFeeds };
+    return {selected: selectedFeeds, unselected: unselectedFeeds};
 }
 exports.buildCardFeedsData = buildCardFeedsData;
 function getSelectedCardsFromFeeds(cards, workspaceCardFeeds, selectedFeeds) {
     var domainFeedsData = generateDomainFeedData(cards);
-    var domainFeedCards = Object.fromEntries(Object.values(domainFeedsData).map(function (domainFeedData) { return [createCardFeedKey(domainFeedData.fundID, domainFeedData.bank), domainFeedData.correspondingCardIDs]; }));
+    var domainFeedCards = Object.fromEntries(
+        Object.values(domainFeedsData).map(function (domainFeedData) {
+            return [createCardFeedKey(domainFeedData.fundID, domainFeedData.bank), domainFeedData.correspondingCardIDs];
+        }),
+    );
     if (!workspaceCardFeeds || !selectedFeeds) {
         return [];
     }
@@ -318,15 +379,19 @@ function getSelectedCardsFromFeeds(cards, workspaceCardFeeds, selectedFeeds) {
             if (!cards || Object.keys(domainFeedCards).length === 0) {
                 return [];
             }
-            return domainFeedCards[cardFeedKey].filter(function (cardNumber) { return cards[cardNumber].state !== CONST_1["default"].EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED; });
+            return domainFeedCards[cardFeedKey].filter(function (cardNumber) {
+                return cards[cardNumber].state !== CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+            });
         }
-        return Object.keys(workspaceCardFeed).filter(function (cardNumber) { return workspaceCardFeed[cardNumber].state !== CONST_1["default"].EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED; });
+        return Object.keys(workspaceCardFeed).filter(function (cardNumber) {
+            return workspaceCardFeed[cardNumber].state !== CONST_1['default'].EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED;
+        });
     });
     return __spreadArrays(new Set(selectedCards));
 }
 exports.getSelectedCardsFromFeeds = getSelectedCardsFromFeeds;
 var generateSelectedCards = function (cardList, workspaceCardFeeds, feeds, cards) {
     var selectedCards = getSelectedCardsFromFeeds(cardList, workspaceCardFeeds, feeds);
-    return __spreadArrays(new Set(__spreadArrays(selectedCards, (cards !== null && cards !== void 0 ? cards : []))));
+    return __spreadArrays(new Set(__spreadArrays(selectedCards, cards !== null && cards !== void 0 ? cards : [])));
 };
 exports.generateSelectedCards = generateSelectedCards;

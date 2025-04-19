@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 /**
  * Get image resolution
@@ -20,7 +20,7 @@ var getImageResolution = function (file) {
         image.onload = function () {
             resolve({
                 width: this.naturalWidth,
-                height: this.naturalHeight
+                height: this.naturalHeight,
             });
             URL.revokeObjectURL(objectUrl);
         };
@@ -28,4 +28,4 @@ var getImageResolution = function (file) {
         image.src = objectUrl;
     });
 };
-exports["default"] = getImageResolution;
+exports['default'] = getImageResolution;

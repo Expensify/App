@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var TrieNode = /** @class */ (function () {
     function TrieNode() {
@@ -7,5 +7,5 @@ var TrieNode = /** @class */ (function () {
         this.isEndOfWord = false;
     }
     return TrieNode;
-}());
-exports["default"] = TrieNode;
+})();
+exports['default'] = TrieNode;

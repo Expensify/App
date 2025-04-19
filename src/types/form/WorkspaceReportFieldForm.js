@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     NAME: 'name',
@@ -7,6 +7,6 @@ var INPUT_IDS = {
     LIST_VALUES: 'listValues',
     DISABLED_LIST_VALUES: 'disabledListValues',
     VALUE_NAME: 'valueName',
-    NEW_VALUE_NAME: 'newValueName'
+    NEW_VALUE_NAME: 'newValueName',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

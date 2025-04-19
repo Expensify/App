@@ -1,7 +1,7 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.MemoizeStats = void 0;
-var Log_1 = require("@libs/Log");
+var Log_1 = require('@libs/Log');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isMemoizeStatsEntry(entry) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
@@ -44,8 +44,7 @@ var MemoizeStats = /** @class */ (function () {
         if (entry.didHit) {
             this.hits++;
             this.avgCacheTime = this.calculateCumulativeAvg(this.avgCacheTime, this.hits, entry.processingTime);
-        }
-        else {
+        } else {
             this.avgFnTime = this.calculateCumulativeAvg(this.avgFnTime, this.calls - this.hits, entry.processingTime);
         }
     };
@@ -54,7 +53,7 @@ var MemoizeStats = /** @class */ (function () {
             return;
         }
         if (!isMemoizeStatsEntry(entry)) {
-            Log_1["default"].warn('MemoizeStats:saveEntry: Invalid entry', entry);
+            Log_1['default'].warn('MemoizeStats:saveEntry: Invalid entry', entry);
             return;
         }
         return this.cumulateEntry(entry);
@@ -64,10 +63,10 @@ var MemoizeStats = /** @class */ (function () {
         // If monitoring is disabled, return a dummy object that does nothing
         if (!this.isEnabled) {
             return {
-                track: function () { },
-                get: function () { },
-                save: function () { },
-                trackTime: function () { }
+                track: function () {},
+                get: function () {},
+                save: function () {},
+                trackTime: function () {},
             };
         }
         var entry = {};
@@ -76,11 +75,17 @@ var MemoizeStats = /** @class */ (function () {
                 entry[cacheProp] = value;
             },
             trackTime: function (cacheProp, startTime, endTime) {
-                if (endTime === void 0) { endTime = performance.now(); }
+                if (endTime === void 0) {
+                    endTime = performance.now();
+                }
                 entry[cacheProp] = endTime - startTime;
             },
-            get: function (cacheProp) { return entry[cacheProp]; },
-            save: function () { return _this.saveEntry(entry); }
+            get: function (cacheProp) {
+                return entry[cacheProp];
+            },
+            save: function () {
+                return _this.saveEntry(entry);
+            },
         };
     };
     MemoizeStats.prototype.startMonitoring = function () {
@@ -98,9 +103,9 @@ var MemoizeStats = /** @class */ (function () {
             hits: this.hits,
             avgCacheTime: this.avgCacheTime,
             avgFnTime: this.avgFnTime,
-            cacheSize: this.cacheSize
+            cacheSize: this.cacheSize,
         };
     };
     return MemoizeStats;
-}());
+})();
 exports.MemoizeStats = MemoizeStats;

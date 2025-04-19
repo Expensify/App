@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     INTERNAL_ID: 'internalID',
@@ -7,6 +7,6 @@ var INPUT_IDS = {
     SEGMENT_TYPE: 'segmentType',
     SEGMENT_NAME: 'segmentName',
     TRANSACTION_FIELD_ID: 'transactionFieldID',
-    SCRIPT_ID: 'scriptID'
+    SCRIPT_ID: 'scriptID',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

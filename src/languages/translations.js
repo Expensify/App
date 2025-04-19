@@ -1,9 +1,9 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.flattenObject = void 0;
-var en_1 = require("./en");
-var es_1 = require("./es");
-var es_ES_1 = require("./es-ES");
+var en_1 = require('./en');
+var es_1 = require('./es');
+var es_ES_1 = require('./es-ES');
 /**
  * Converts an object to it's flattened version.
  *
@@ -21,13 +21,12 @@ function flattenObject(obj) {
         // for more recursion
         if (typeof data === 'function' || Array.isArray(data) || !(typeof data === 'object' && !!data)) {
             result[key] = data;
-        }
-        else {
+        } else {
             var isEmpty_1 = true;
             // Recursive call to the keys and connect to the respective data
             Object.keys(data).forEach(function (k) {
                 isEmpty_1 = false;
-                recursive(data[k], key ? key + "." + k : k);
+                recursive(data[k], key ? key + '.' + k : k);
             });
             // Check for when the object is empty but a key exists, so that
             // it defaults to an empty object
@@ -40,9 +39,9 @@ function flattenObject(obj) {
     return result;
 }
 exports.flattenObject = flattenObject;
-exports["default"] = {
-    en: flattenObject(en_1["default"]),
-    es: flattenObject(es_1["default"]),
+exports['default'] = {
+    en: flattenObject(en_1['default']),
+    es: flattenObject(es_1['default']),
     // eslint-disable-next-line @typescript-eslint/naming-convention
-    'es-ES': flattenObject(es_ES_1["default"])
+    'es-ES': flattenObject(es_ES_1['default']),
 };

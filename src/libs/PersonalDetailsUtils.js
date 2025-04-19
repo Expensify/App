@@ -1,32 +1,56 @@
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+'use strict';
+var __assign =
+    (this && this.__assign) ||
+    function () {
+        __assign =
+            Object.assign ||
+            function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                }
+                return t;
+            };
+        return __assign.apply(this, arguments);
     };
-    return __assign.apply(this, arguments);
-};
 exports.__esModule = true;
-exports.getPhoneNumber = exports.getLoginByAccountID = exports.getDefaultCountry = exports.getShortMentionIfFound = exports.getUserNameByEmail = exports.getPersonalDetailsLength = exports.getNewAccountIDsAndLogins = exports.extractFirstAndLastNameFromAvailableDetails = exports.createDisplayName = exports.getEffectiveDisplayName = exports.getStreetLines = exports.getFormattedStreet = exports.getFormattedAddress = exports.getCurrentAddress = exports.getPersonalDetailsOnyxDataForOptimisticUsers = exports.getLoginsByAccountIDs = exports.getAccountIDsByLogins = exports.getPersonalDetailByEmail = exports.getPersonalDetailsByIDs = exports.getDisplayNameOrDefault = exports.isPersonalDetailsEmpty = void 0;
-var expensify_common_1 = require("expensify-common");
-var react_native_onyx_1 = require("react-native-onyx");
-var CONST_1 = require("@src/CONST");
-var ONYXKEYS_1 = require("@src/ONYXKEYS");
-var EmptyObject_1 = require("@src/types/utils/EmptyObject");
-var LocalePhoneNumber_1 = require("./LocalePhoneNumber");
-var Localize_1 = require("./Localize");
-var LoginUtils_1 = require("./LoginUtils");
-var PhoneNumber_1 = require("./PhoneNumber");
-var UserUtils_1 = require("./UserUtils");
+exports.getPhoneNumber =
+    exports.getLoginByAccountID =
+    exports.getDefaultCountry =
+    exports.getShortMentionIfFound =
+    exports.getUserNameByEmail =
+    exports.getPersonalDetailsLength =
+    exports.getNewAccountIDsAndLogins =
+    exports.extractFirstAndLastNameFromAvailableDetails =
+    exports.createDisplayName =
+    exports.getEffectiveDisplayName =
+    exports.getStreetLines =
+    exports.getFormattedStreet =
+    exports.getFormattedAddress =
+    exports.getCurrentAddress =
+    exports.getPersonalDetailsOnyxDataForOptimisticUsers =
+    exports.getLoginsByAccountIDs =
+    exports.getAccountIDsByLogins =
+    exports.getPersonalDetailByEmail =
+    exports.getPersonalDetailsByIDs =
+    exports.getDisplayNameOrDefault =
+    exports.isPersonalDetailsEmpty =
+        void 0;
+var expensify_common_1 = require('expensify-common');
+var react_native_onyx_1 = require('react-native-onyx');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var EmptyObject_1 = require('@src/types/utils/EmptyObject');
+var LocalePhoneNumber_1 = require('./LocalePhoneNumber');
+var Localize_1 = require('./Localize');
+var LoginUtils_1 = require('./LoginUtils');
+var PhoneNumber_1 = require('./PhoneNumber');
+var UserUtils_1 = require('./UserUtils');
 var personalDetails = [];
 var allPersonalDetails = {};
 var emailToPersonalDetailsCache = {};
-react_native_onyx_1["default"].connect({
-    key: ONYXKEYS_1["default"].PERSONAL_DETAILS_LIST,
+react_native_onyx_1['default'].connect({
+    key: ONYXKEYS_1['default'].PERSONAL_DETAILS_LIST,
     callback: function (val) {
         personalDetails = Object.values(val !== null && val !== void 0 ? val : {});
         allPersonalDetails = val;
@@ -36,42 +60,48 @@ react_native_onyx_1["default"].connect({
             }
             return acc;
         }, {});
-    }
+    },
 });
 var hiddenTranslation = '';
 var youTranslation = '';
-react_native_onyx_1["default"].connect({
-    key: ONYXKEYS_1["default"].NVP_PREFERRED_LOCALE,
+react_native_onyx_1['default'].connect({
+    key: ONYXKEYS_1['default'].NVP_PREFERRED_LOCALE,
     callback: function (value) {
         if (!value) {
             return;
         }
         hiddenTranslation = Localize_1.translateLocal('common.hidden');
         youTranslation = Localize_1.translateLocal('common.you').toLowerCase();
-    }
+    },
 });
 var defaultCountry = '';
-react_native_onyx_1["default"].connect({
-    key: ONYXKEYS_1["default"].COUNTRY,
+react_native_onyx_1['default'].connect({
+    key: ONYXKEYS_1['default'].COUNTRY,
     callback: function (value) {
         if (!value) {
             return;
         }
         defaultCountry = value;
-    }
+    },
 });
-var regexMergedAccount = new RegExp(CONST_1["default"].REGEX.MERGED_ACCOUNT_PREFIX);
+var regexMergedAccount = new RegExp(CONST_1['default'].REGEX.MERGED_ACCOUNT_PREFIX);
 function getDisplayNameOrDefault(passedPersonalDetails, defaultValue, shouldFallbackToHidden, shouldAddCurrentUserPostfix) {
     var _a, _b;
-    if (defaultValue === void 0) { defaultValue = ''; }
-    if (shouldFallbackToHidden === void 0) { shouldFallbackToHidden = true; }
-    if (shouldAddCurrentUserPostfix === void 0) { shouldAddCurrentUserPostfix = false; }
+    if (defaultValue === void 0) {
+        defaultValue = '';
+    }
+    if (shouldFallbackToHidden === void 0) {
+        shouldFallbackToHidden = true;
+    }
+    if (shouldAddCurrentUserPostfix === void 0) {
+        shouldAddCurrentUserPostfix = false;
+    }
     var displayName = (_a = passedPersonalDetails === null || passedPersonalDetails === void 0 ? void 0 : passedPersonalDetails.displayName) !== null && _a !== void 0 ? _a : '';
     var login = (_b = passedPersonalDetails === null || passedPersonalDetails === void 0 ? void 0 : passedPersonalDetails.login) !== null && _b !== void 0 ? _b : '';
     // If the displayName starts with the merged account prefix, remove it.
     if (regexMergedAccount.test(displayName)) {
         // Remove the merged account prefix from the displayName.
-        displayName = displayName.replace(CONST_1["default"].REGEX.MERGED_ACCOUNT_PREFIX, '');
+        displayName = displayName.replace(CONST_1['default'].REGEX.MERGED_ACCOUNT_PREFIX, '');
     }
     // If the displayName is not set by the user, the backend sets the diplayName same as the login so
     // we need to remove the sms domain from the displayName if it is an sms login.
@@ -82,10 +112,10 @@ function getDisplayNameOrDefault(passedPersonalDetails, defaultValue, shouldFall
         login = expensify_common_1.Str.removeSMSDomain(login);
     }
     if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = displayName + " (" + youTranslation + ")";
+        displayName = displayName + ' (' + youTranslation + ')';
     }
-    if ((passedPersonalDetails === null || passedPersonalDetails === void 0 ? void 0 : passedPersonalDetails.accountID) === CONST_1["default"].ACCOUNT_ID.CONCIERGE) {
-        displayName = CONST_1["default"].CONCIERGE_DISPLAY_NAME;
+    if ((passedPersonalDetails === null || passedPersonalDetails === void 0 ? void 0 : passedPersonalDetails.accountID) === CONST_1['default'].ACCOUNT_ID.CONCIERGE) {
+        displayName = CONST_1['default'].CONCIERGE_DISPLAY_NAME;
     }
     if (displayName) {
         return displayName;
@@ -107,17 +137,24 @@ exports.getDisplayNameOrDefault = getDisplayNameOrDefault;
  * @returns - Array of personal detail objects
  */
 function getPersonalDetailsByIDs(_a) {
-    var accountIDs = _a.accountIDs, currentUserAccountID = _a.currentUserAccountID, _b = _a.shouldChangeUserDisplayName, shouldChangeUserDisplayName = _b === void 0 ? false : _b, _c = _a.personalDetailsParam, personalDetailsParam = _c === void 0 ? allPersonalDetails : _c;
+    var accountIDs = _a.accountIDs,
+        currentUserAccountID = _a.currentUserAccountID,
+        _b = _a.shouldChangeUserDisplayName,
+        shouldChangeUserDisplayName = _b === void 0 ? false : _b,
+        _c = _a.personalDetailsParam,
+        personalDetailsParam = _c === void 0 ? allPersonalDetails : _c;
     var result = accountIDs
-        .filter(function (accountID) { return !!(personalDetailsParam === null || personalDetailsParam === void 0 ? void 0 : personalDetailsParam[accountID]); })
+        .filter(function (accountID) {
+            return !!(personalDetailsParam === null || personalDetailsParam === void 0 ? void 0 : personalDetailsParam[accountID]);
+        })
         .map(function (accountID) {
-        var _a;
-        var detail = ((_a = personalDetailsParam === null || personalDetailsParam === void 0 ? void 0 : personalDetailsParam[accountID]) !== null && _a !== void 0 ? _a : {});
-        if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
-            return __assign(__assign({}, detail), { displayName: Localize_1.translateLocal('common.you') });
-        }
-        return detail;
-    });
+            var _a;
+            var detail = (_a = personalDetailsParam === null || personalDetailsParam === void 0 ? void 0 : personalDetailsParam[accountID]) !== null && _a !== void 0 ? _a : {};
+            if (shouldChangeUserDisplayName && currentUserAccountID === detail.accountID) {
+                return __assign(__assign({}, detail), {displayName: Localize_1.translateLocal('common.you')});
+            }
+            return detail;
+        });
     return result;
 }
 exports.getPersonalDetailsByIDs = getPersonalDetailsByIDs;
@@ -133,12 +170,13 @@ exports.getPersonalDetailByEmail = getPersonalDetailByEmail;
  */
 function getAccountIDsByLogins(logins) {
     return logins.reduce(function (foundAccountIDs, login) {
-        var currentDetail = personalDetails.find(function (detail) { return (detail === null || detail === void 0 ? void 0 : detail.login) === (login === null || login === void 0 ? void 0 : login.toLowerCase()); });
+        var currentDetail = personalDetails.find(function (detail) {
+            return (detail === null || detail === void 0 ? void 0 : detail.login) === (login === null || login === void 0 ? void 0 : login.toLowerCase());
+        });
         if (!currentDetail) {
             // generate an account ID because in this case the detail is probably new, so we don't have a real accountID yet
             foundAccountIDs.push(UserUtils_1.generateAccountID(login));
-        }
-        else {
+        } else {
             foundAccountIDs.push(Number(currentDetail.accountID));
         }
         return foundAccountIDs;
@@ -186,7 +224,7 @@ function getNewAccountIDsAndLogins(logins, accountIDs) {
             newLogins.push(login);
         }
     });
-    return { newAccountIDs: newAccountIDs, newLogins: newLogins };
+    return {newAccountIDs: newAccountIDs, newLogins: newLogins};
 }
 exports.getNewAccountIDsAndLogins = getNewAccountIDsAndLogins;
 /**
@@ -203,7 +241,7 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs) 
             login: login,
             accountID: accountID,
             displayName: LocalePhoneNumber_1.formatPhoneNumber(login),
-            isOptimisticPersonalDetail: true
+            isOptimisticPersonalDetail: true,
         };
         /**
          * Cleanup the optimistic user to ensure it does not permanently persist.
@@ -213,21 +251,21 @@ function getPersonalDetailsOnyxDataForOptimisticUsers(newLogins, newAccountIDs) 
     });
     var optimisticData = [
         {
-            onyxMethod: react_native_onyx_1["default"].METHOD.MERGE,
-            key: ONYXKEYS_1["default"].PERSONAL_DETAILS_LIST,
-            value: personalDetailsNew
+            onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
+            key: ONYXKEYS_1['default'].PERSONAL_DETAILS_LIST,
+            value: personalDetailsNew,
         },
     ];
     var finallyData = [
         {
-            onyxMethod: react_native_onyx_1["default"].METHOD.MERGE,
-            key: ONYXKEYS_1["default"].PERSONAL_DETAILS_LIST,
-            value: personalDetailsCleanup
+            onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
+            key: ONYXKEYS_1['default'].PERSONAL_DETAILS_LIST,
+            value: personalDetailsCleanup,
         },
     ];
     return {
         optimisticData: optimisticData,
-        finallyData: finallyData
+        finallyData: finallyData,
     };
 }
 exports.getPersonalDetailsOnyxDataForOptimisticUsers = getPersonalDetailsOnyxDataForOptimisticUsers;
@@ -238,7 +276,7 @@ exports.getPersonalDetailsOnyxDataForOptimisticUsers = getPersonalDetailsOnyxDat
  * @returns - formatted piece
  */
 function formatPiece(piece) {
-    return piece ? piece + ", " : '';
+    return piece ? piece + ', ' : '';
 }
 /**
  *
@@ -247,9 +285,13 @@ function formatPiece(piece) {
  * @returns formatted street
  */
 function getFormattedStreet(street1, street2) {
-    if (street1 === void 0) { street1 = ''; }
-    if (street2 === void 0) { street2 = ''; }
-    return street1 + "\n" + street2;
+    if (street1 === void 0) {
+        street1 = '';
+    }
+    if (street2 === void 0) {
+        street2 = '';
+    }
+    return street1 + '\n' + street2;
 }
 exports.getFormattedStreet = getFormattedStreet;
 /**
@@ -258,7 +300,9 @@ exports.getFormattedStreet = getFormattedStreet;
  * @returns [street1, street2]
  */
 function getStreetLines(street) {
-    if (street === void 0) { street = ''; }
+    if (street === void 0) {
+        street = '';
+    }
     var streets = street.split('\n');
     return [streets.at(0), streets.at(1)];
 }
@@ -271,7 +315,12 @@ exports.getStreetLines = getStreetLines;
  */
 function getCurrentAddress(privatePersonalDetails) {
     var addresses = (privatePersonalDetails !== null && privatePersonalDetails !== void 0 ? privatePersonalDetails : {}).addresses;
-    var currentAddress = addresses === null || addresses === void 0 ? void 0 : addresses.find(function (address) { return address.current; });
+    var currentAddress =
+        addresses === null || addresses === void 0
+            ? void 0
+            : addresses.find(function (address) {
+                  return address.current;
+              });
     return currentAddress !== null && currentAddress !== void 0 ? currentAddress : addresses === null || addresses === void 0 ? void 0 : addresses[addresses.length - 1];
 }
 exports.getCurrentAddress = getCurrentAddress;
@@ -283,8 +332,16 @@ exports.getCurrentAddress = getCurrentAddress;
  */
 function getFormattedAddress(privatePersonalDetails) {
     var address = getCurrentAddress(privatePersonalDetails);
-    var _a = getStreetLines(address === null || address === void 0 ? void 0 : address.street), street1 = _a[0], street2 = _a[1];
-    var formattedAddress = formatPiece(street1) + formatPiece(street2) + formatPiece(address === null || address === void 0 ? void 0 : address.city) + formatPiece(address === null || address === void 0 ? void 0 : address.state) + formatPiece(address === null || address === void 0 ? void 0 : address.zip) + formatPiece(address === null || address === void 0 ? void 0 : address.country);
+    var _a = getStreetLines(address === null || address === void 0 ? void 0 : address.street),
+        street1 = _a[0],
+        street2 = _a[1];
+    var formattedAddress =
+        formatPiece(street1) +
+        formatPiece(street2) +
+        formatPiece(address === null || address === void 0 ? void 0 : address.city) +
+        formatPiece(address === null || address === void 0 ? void 0 : address.state) +
+        formatPiece(address === null || address === void 0 ? void 0 : address.zip) +
+        formatPiece(address === null || address === void 0 ? void 0 : address.country);
     // Remove the last comma of the address
     return formattedAddress.trim().replace(/,$/, '');
 }
@@ -296,7 +353,10 @@ exports.getFormattedAddress = getFormattedAddress;
 function getEffectiveDisplayName(personalDetail) {
     var _a;
     if (personalDetail) {
-        return LocalePhoneNumber_1.formatPhoneNumber((_a = personalDetail === null || personalDetail === void 0 ? void 0 : personalDetail.login) !== null && _a !== void 0 ? _a : '') || personalDetail.displayName;
+        return (
+            LocalePhoneNumber_1.formatPhoneNumber((_a = personalDetail === null || personalDetail === void 0 ? void 0 : personalDetail.login) !== null && _a !== void 0 ? _a : '') ||
+            personalDetail.displayName
+        );
     }
     return undefined;
 }
@@ -314,7 +374,7 @@ function createDisplayName(login, passedPersonalDetails) {
     }
     var firstName = (_a = passedPersonalDetails.firstName) !== null && _a !== void 0 ? _a : '';
     var lastName = (_b = passedPersonalDetails.lastName) !== null && _b !== void 0 ? _b : '';
-    var fullName = (firstName + " " + lastName).trim();
+    var fullName = (firstName + ' ' + lastName).trim();
     // It's possible for fullName to be empty string, so we must use "||" to fallback to userLogin.
     return fullName || userLogin;
 }
@@ -325,27 +385,30 @@ exports.createDisplayName = createDisplayName;
  * so we return empty strings instead.
  */
 function extractFirstAndLastNameFromAvailableDetails(_a) {
-    var login = _a.login, displayName = _a.displayName, firstName = _a.firstName, lastName = _a.lastName;
+    var login = _a.login,
+        displayName = _a.displayName,
+        firstName = _a.firstName,
+        lastName = _a.lastName;
     // It's possible for firstName to be empty string, so we must use "||" to consider lastName instead.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     if (firstName || lastName) {
-        return { firstName: firstName !== null && firstName !== void 0 ? firstName : '', lastName: lastName !== null && lastName !== void 0 ? lastName : '' };
+        return {firstName: firstName !== null && firstName !== void 0 ? firstName : '', lastName: lastName !== null && lastName !== void 0 ? lastName : ''};
     }
     if (login && expensify_common_1.Str.removeSMSDomain(login) === displayName) {
-        return { firstName: '', lastName: '' };
+        return {firstName: '', lastName: ''};
     }
     if (displayName) {
         var firstSpaceIndex = displayName.indexOf(' ');
         var lastSpaceIndex = displayName.lastIndexOf(' ');
         if (firstSpaceIndex === -1) {
-            return { firstName: displayName, lastName: '' };
+            return {firstName: displayName, lastName: ''};
         }
         return {
             firstName: displayName.substring(0, firstSpaceIndex).trim(),
-            lastName: displayName.substring(lastSpaceIndex).trim()
+            lastName: displayName.substring(lastSpaceIndex).trim(),
         };
     }
-    return { firstName: '', lastName: '' };
+    return {firstName: '', lastName: ''};
 }
 exports.extractFirstAndLastNameFromAvailableDetails = extractFirstAndLastNameFromAvailableDetails;
 /**
@@ -369,14 +432,21 @@ function getUserNameByEmail(email, nameToDisplay) {
 exports.getUserNameByEmail = getUserNameByEmail;
 var getShortMentionIfFound = function (displayText, userAccountID, currentUserPersonalDetails, userLogin) {
     var _a;
-    if (userLogin === void 0) { userLogin = ''; }
+    if (userLogin === void 0) {
+        userLogin = '';
+    }
     // If the userAccountID does not exist, this is an email-based mention so the displayText must be an email.
     // If the userAccountID exists but userLogin is different from displayText, this means the displayText is either user display name, Hidden, or phone number, in which case we should return it as is.
     if (userAccountID && userLogin !== displayText) {
         return displayText;
     }
     // If the emails are not in the same private domain, we also return the displayText
-    if (!LoginUtils_1.areEmailsFromSamePrivateDomain(displayText, (_a = currentUserPersonalDetails === null || currentUserPersonalDetails === void 0 ? void 0 : currentUserPersonalDetails.login) !== null && _a !== void 0 ? _a : '')) {
+    if (
+        !LoginUtils_1.areEmailsFromSamePrivateDomain(
+            displayText,
+            (_a = currentUserPersonalDetails === null || currentUserPersonalDetails === void 0 ? void 0 : currentUserPersonalDetails.login) !== null && _a !== void 0 ? _a : '',
+        )
+    ) {
         return displayText;
     }
     // Otherwise, the emails must be of the same private domain, so we should remove the domain part
@@ -392,7 +462,11 @@ exports.getDefaultCountry = getDefaultCountry;
  */
 var getPhoneNumber = function (details) {
     var _a;
-    var _b = details !== null && details !== void 0 ? details : {}, _c = _b.login, login = _c === void 0 ? '' : _c, _d = _b.displayName, displayName = _d === void 0 ? '' : _d;
+    var _b = details !== null && details !== void 0 ? details : {},
+        _c = _b.login,
+        login = _c === void 0 ? '' : _c,
+        _d = _b.displayName,
+        displayName = _d === void 0 ? '' : _d;
     // If the user hasn't set a displayName, it is set to their phone number
     var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(displayName);
     if (parsedPhoneNumber.possible) {

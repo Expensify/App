@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.timezoneBackwardMap = void 0;
 var TIMEZONES = [
@@ -559,7 +559,7 @@ var timezoneBackwardMap = {
     MST: 'America/Phoenix',
     MST7MDT: 'America/Denver',
     PST8PDT: 'America/Los_Angeles',
-    WET: 'Europe/Lisbon'
+    WET: 'Europe/Lisbon',
 };
 exports.timezoneBackwardMap = timezoneBackwardMap;
-exports["default"] = TIMEZONES;
+exports['default'] = TIMEZONES;

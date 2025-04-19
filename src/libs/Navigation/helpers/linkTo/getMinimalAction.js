@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -12,7 +12,11 @@ function getMinimalAction(action, state) {
     var currentAction = action;
     var currentState = state;
     var currentTargetKey;
-    while (currentAction.payload && 'name' in currentAction.payload && (currentState === null || currentState === void 0 ? void 0 : currentState.routes[(_a = currentState.index) !== null && _a !== void 0 ? _a : -1].name) === currentAction.payload.name) {
+    while (
+        currentAction.payload &&
+        'name' in currentAction.payload &&
+        (currentState === null || currentState === void 0 ? void 0 : currentState.routes[(_a = currentState.index) !== null && _a !== void 0 ? _a : -1].name) === currentAction.payload.name
+    ) {
         if (!(currentState === null || currentState === void 0 ? void 0 : currentState.routes[(_b = currentState.index) !== null && _b !== void 0 ? _b : -1].state)) {
             break;
         }
@@ -25,11 +29,11 @@ function getMinimalAction(action, state) {
             payload: {
                 name: (_d = payload === null || payload === void 0 ? void 0 : payload.params) === null || _d === void 0 ? void 0 : _d.screen,
                 params: (_e = payload === null || payload === void 0 ? void 0 : payload.params) === null || _e === void 0 ? void 0 : _e.params,
-                path: (_f = payload === null || payload === void 0 ? void 0 : payload.params) === null || _f === void 0 ? void 0 : _f.path
+                path: (_f = payload === null || payload === void 0 ? void 0 : payload.params) === null || _f === void 0 ? void 0 : _f.path,
             },
-            target: currentTargetKey
+            target: currentTargetKey,
         };
     }
-    return { action: currentAction, targetState: currentState };
+    return {action: currentAction, targetState: currentState};
 }
-exports["default"] = getMinimalAction;
+exports['default'] = getMinimalAction;

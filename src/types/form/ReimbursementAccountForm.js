@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     BANK_INFO_STEP: {
@@ -9,7 +9,7 @@ var INPUT_IDS = {
         BANK_NAME: 'bankName',
         PLAID_ACCOUNT_ID: 'plaidAccountID',
         PLAID_ACCESS_TOKEN: 'plaidAccessToken',
-        SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID'
+        SELECTED_PLAID_ACCOUNT_ID: 'selectedPlaidAccountID',
     },
     PERSONAL_INFO_STEP: {
         FIRST_NAME: 'firstName',
@@ -20,7 +20,7 @@ var INPUT_IDS = {
         CITY: 'requestorAddressCity',
         STATE: 'requestorAddressState',
         ZIP_CODE: 'requestorAddressZipCode',
-        IS_ONFIDO_SETUP_COMPLETE: 'isOnfidoSetupComplete'
+        IS_ONFIDO_SETUP_COMPLETE: 'isOnfidoSetupComplete',
     },
     BUSINESS_INFO_STEP: {
         COMPANY_NAME: 'companyName',
@@ -35,17 +35,17 @@ var INPUT_IDS = {
         INCORPORATION_DATE: 'incorporationDate',
         INCORPORATION_STATE: 'incorporationState',
         INCORPORATION_CODE: 'industryCode',
-        HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis'
+        HAS_NO_CONNECTION_TO_CANNABIS: 'hasNoConnectionToCannabis',
     },
     COMPLETE_VERIFICATION: {
         IS_AUTHORIZED_TO_USE_BANK_ACCOUNT: 'isAuthorizedToUseBankAccount',
         CERTIFY_TRUE_INFORMATION: 'certifyTrueInformation',
-        ACCEPT_TERMS_AND_CONDITIONS: 'acceptTermsAndConditions'
+        ACCEPT_TERMS_AND_CONDITIONS: 'acceptTermsAndConditions',
     },
     BENEFICIAL_OWNER_INFO_STEP: {
         OWNS_MORE_THAN_25_PERCENT: 'ownsMoreThan25Percent',
         HAS_OTHER_BENEFICIAL_OWNERS: 'hasOtherBeneficialOwners',
-        BENEFICIAL_OWNERS: 'beneficialOwners'
+        BENEFICIAL_OWNERS: 'beneficialOwners',
     },
     SIGNER_INFO_STEP: {
         SIGNER_FULL_NAME: 'signerFullName',
@@ -62,7 +62,7 @@ var INPUT_IDS = {
         SIGNER_CODICE_FISCALE: 'signerCodiceFiscale',
         PROOF_OF_DIRECTORS: 'proofOfDirectors',
         DOWNLOADED_PDS_AND_FSG: 'downloadedPDSandFSG',
-        SECOND_SIGNER_EMAIL: 'secondSignerEmail'
+        SECOND_SIGNER_EMAIL: 'secondSignerEmail',
     },
     AMOUNT1: 'amount1',
     AMOUNT2: 'amount2',
@@ -137,8 +137,8 @@ var INPUT_IDS = {
             SIGNER_JOB_TITLE: 'signerJobTitle',
             SIGNER_EMAIL: 'signerEmail',
             SIGNER_COMPLETE_RESIDENTIAL_ADDRESS: 'signerCompleteResidentialAddress',
-            SECOND_SIGNER_EMAIL: 'secondSignerEmail'
-        }
-    }
+            SECOND_SIGNER_EMAIL: 'secondSignerEmail',
+        },
+    },
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

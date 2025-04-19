@@ -1,8 +1,10 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
-var RELATIONS_1 = require("@libs/Navigation/linkingConfig/RELATIONS");
+var RELATIONS_1 = require('@libs/Navigation/linkingConfig/RELATIONS');
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
-var getRoutesWithIndex = function (routes) { return ({ routes: routes, index: routes.length - 1 }); };
+var getRoutesWithIndex = function (routes) {
+    return {routes: routes, index: routes.length - 1};
+};
 function getInitialSplitNavigatorState(splitNavigatorSidebarRoute, route, splitNavigatorParams) {
     var routes = [];
     routes.push(splitNavigatorSidebarRoute);
@@ -12,7 +14,7 @@ function getInitialSplitNavigatorState(splitNavigatorSidebarRoute, route, splitN
     return {
         name: RELATIONS_1.SIDEBAR_TO_SPLIT[splitNavigatorSidebarRoute.name],
         state: getRoutesWithIndex(routes),
-        params: splitNavigatorParams
+        params: splitNavigatorParams,
     };
 }
-exports["default"] = getInitialSplitNavigatorState;
+exports['default'] = getInitialSplitNavigatorState;

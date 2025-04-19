@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
-    REPORT_DESCRIPTION: 'reportDescription'
+    REPORT_DESCRIPTION: 'reportDescription',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

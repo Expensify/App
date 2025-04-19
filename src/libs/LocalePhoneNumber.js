@@ -1,15 +1,17 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.formatPhoneNumber = void 0;
-var expensify_common_1 = require("expensify-common");
-var react_native_onyx_1 = require("react-native-onyx");
-var CONST_1 = require("@src/CONST");
-var ONYXKEYS_1 = require("@src/ONYXKEYS");
-var PhoneNumber_1 = require("./PhoneNumber");
+var expensify_common_1 = require('expensify-common');
+var react_native_onyx_1 = require('react-native-onyx');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
+var PhoneNumber_1 = require('./PhoneNumber');
 var countryCodeByIP;
-react_native_onyx_1["default"].connect({
-    key: ONYXKEYS_1["default"].COUNTRY_CODE,
-    callback: function (val) { return (countryCodeByIP = val !== null && val !== void 0 ? val : 1); }
+react_native_onyx_1['default'].connect({
+    key: ONYXKEYS_1['default'].COUNTRY_CODE,
+    callback: function (val) {
+        return (countryCodeByIP = val !== null && val !== void 0 ? val : 1);
+    },
 });
 /**
  * Returns a locally converted phone number for numbers from the same region
@@ -23,7 +25,7 @@ function formatPhoneNumber(number) {
     // eslint-disable-next-line no-param-reassign
     number = number.replace(/ /g, '\u00A0');
     // do not parse the string, if it doesn't contain the SMS domain and it's not a phone number
-    if (number.indexOf(CONST_1["default"].SMS.DOMAIN) === -1 && !CONST_1["default"].REGEX.DIGITS_AND_PLUS.test(number)) {
+    if (number.indexOf(CONST_1['default'].SMS.DOMAIN) === -1 && !CONST_1['default'].REGEX.DIGITS_AND_PLUS.test(number)) {
         return number;
     }
     var numberWithoutSMSDomain = expensify_common_1.Str.removeSMSDomain(number);

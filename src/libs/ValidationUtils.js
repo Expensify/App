@@ -1,24 +1,74 @@
-"use strict";
-var __spreadArrays = (this && this.__spreadArrays) || function () {
-    for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-    for (var r = Array(s), k = 0, i = 0; i < il; i++)
-        for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++)
-            r[k] = a[j];
-    return r;
-};
+'use strict';
+var __spreadArrays =
+    (this && this.__spreadArrays) ||
+    function () {
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        return r;
+    };
 exports.__esModule = true;
-exports.isValidRegistrationNumber = exports.isValidOwnershipPercentage = exports.isValidZipCodeInternational = exports.isValidPhoneInternational = exports.isValidEmail = exports.isPublicDomain = exports.isExistingTaxCode = exports.isValidSubscriptionSize = exports.isExistingTaxName = exports.isValidPercentage = exports.isValidPersonName = exports.prepareValues = exports.validateDateTimeIsAtLeastOneMinuteInFuture = exports.isValidRecoveryCode = exports.getDatePassedError = exports.isValidAccountRoute = exports.isNumeric = exports.doesContainReservedWord = exports.isValidLegalName = exports.isValidDisplayName = exports.isValidCompanyName = exports.isValidValidateCode = exports.isValidTaxID = exports.isValidRoomNameWithoutLimits = exports.isValidRoomName = exports.isExistingRoomName = exports.isReservedRoomName = exports.isValidSSNFullNine = exports.isValidSSNLastFour = exports.isValidRoutingNumber = exports.isNumericWithSpecialChars = exports.isValidTwoFactorCode = exports.validateIdentity = exports.isValidWebsite = exports.isValidPhoneNumber = exports.isValidUSPhone = exports.getFieldRequiredErrors = exports.isRequiredFulfilled = exports.isValidPaymentZipCode = exports.isValidZipCode = exports.isValidIndustryCode = exports.isValidDebitCard = exports.isValidExpirationDate = exports.isValidSecurityCode = exports.isValidPastDate = exports.isValidDate = exports.isValidAddress = exports.getAgeRequirementError = exports.meetsMaximumAgeRequirement = exports.meetsMinimumAgeRequirement = void 0;
-var date_fns_1 = require("date-fns");
-var expensify_common_1 = require("expensify-common");
-var isEmpty_1 = require("lodash/isEmpty");
-var isObject_1 = require("lodash/isObject");
-var CONST_1 = require("@src/CONST");
-var CardUtils_1 = require("./CardUtils");
-var DateUtils_1 = require("./DateUtils");
-var Localize_1 = require("./Localize");
-var LoginUtils_1 = require("./LoginUtils");
-var PhoneNumber_1 = require("./PhoneNumber");
-var StringUtils_1 = require("./StringUtils");
+exports.isValidRegistrationNumber =
+    exports.isValidOwnershipPercentage =
+    exports.isValidZipCodeInternational =
+    exports.isValidPhoneInternational =
+    exports.isValidEmail =
+    exports.isPublicDomain =
+    exports.isExistingTaxCode =
+    exports.isValidSubscriptionSize =
+    exports.isExistingTaxName =
+    exports.isValidPercentage =
+    exports.isValidPersonName =
+    exports.prepareValues =
+    exports.validateDateTimeIsAtLeastOneMinuteInFuture =
+    exports.isValidRecoveryCode =
+    exports.getDatePassedError =
+    exports.isValidAccountRoute =
+    exports.isNumeric =
+    exports.doesContainReservedWord =
+    exports.isValidLegalName =
+    exports.isValidDisplayName =
+    exports.isValidCompanyName =
+    exports.isValidValidateCode =
+    exports.isValidTaxID =
+    exports.isValidRoomNameWithoutLimits =
+    exports.isValidRoomName =
+    exports.isExistingRoomName =
+    exports.isReservedRoomName =
+    exports.isValidSSNFullNine =
+    exports.isValidSSNLastFour =
+    exports.isValidRoutingNumber =
+    exports.isNumericWithSpecialChars =
+    exports.isValidTwoFactorCode =
+    exports.validateIdentity =
+    exports.isValidWebsite =
+    exports.isValidPhoneNumber =
+    exports.isValidUSPhone =
+    exports.getFieldRequiredErrors =
+    exports.isRequiredFulfilled =
+    exports.isValidPaymentZipCode =
+    exports.isValidZipCode =
+    exports.isValidIndustryCode =
+    exports.isValidDebitCard =
+    exports.isValidExpirationDate =
+    exports.isValidSecurityCode =
+    exports.isValidPastDate =
+    exports.isValidDate =
+    exports.isValidAddress =
+    exports.getAgeRequirementError =
+    exports.meetsMaximumAgeRequirement =
+    exports.meetsMinimumAgeRequirement =
+        void 0;
+var date_fns_1 = require('date-fns');
+var expensify_common_1 = require('expensify-common');
+var isEmpty_1 = require('lodash/isEmpty');
+var isObject_1 = require('lodash/isObject');
+var CONST_1 = require('@src/CONST');
+var CardUtils_1 = require('./CardUtils');
+var DateUtils_1 = require('./DateUtils');
+var Localize_1 = require('./Localize');
+var LoginUtils_1 = require('./LoginUtils');
+var PhoneNumber_1 = require('./PhoneNumber');
+var StringUtils_1 = require('./StringUtils');
 /**
  * Implements the Luhn Algorithm, a checksum formula used to validate credit card
  * numbers.
@@ -48,10 +98,10 @@ function isValidAddress(value) {
     if (typeof value !== 'string') {
         return false;
     }
-    if (!CONST_1["default"].REGEX.ANY_VALUE.test(value) || value.match(CONST_1["default"].REGEX.ALL_EMOJIS)) {
+    if (!CONST_1['default'].REGEX.ANY_VALUE.test(value) || value.match(CONST_1['default'].REGEX.ALL_EMOJIS)) {
         return false;
     }
-    return !CONST_1["default"].REGEX.PO_BOX.test(value);
+    return !CONST_1['default'].REGEX.PO_BOX.test(value);
 }
 exports.isValidAddress = isValidAddress;
 /**
@@ -89,13 +139,13 @@ function isRequiredFulfilled(value) {
         return false;
     }
     if (typeof value === 'string') {
-        return !StringUtils_1["default"].isEmptyString(value);
+        return !StringUtils_1['default'].isEmptyString(value);
     }
-    if (DateUtils_1["default"].isDate(value)) {
+    if (DateUtils_1['default'].isDate(value)) {
         return isValidDate(value);
     }
-    if (Array.isArray(value) || isObject_1["default"](value)) {
-        return !isEmpty_1["default"](value);
+    if (Array.isArray(value) || isObject_1['default'](value)) {
+        return !isEmpty_1['default'](value);
     }
     return !!value;
 }
@@ -124,11 +174,11 @@ exports.getFieldRequiredErrors = getFieldRequiredErrors;
  * 4. MMYYYY
  */
 function isValidExpirationDate(string) {
-    if (!CONST_1["default"].REGEX.CARD_EXPIRATION_DATE.test(string)) {
+    if (!CONST_1['default'].REGEX.CARD_EXPIRATION_DATE.test(string)) {
         return false;
     }
     // Use the last of the month to check if the expiration date is in the future or not
-    var expirationDate = CardUtils_1.getYearFromExpirationDateString(string) + "-" + CardUtils_1.getMonthFromExpirationDateString(string) + "-01";
+    var expirationDate = CardUtils_1.getYearFromExpirationDateString(string) + '-' + CardUtils_1.getMonthFromExpirationDateString(string) + '-01';
     return date_fns_1.isAfter(new Date(expirationDate), date_fns_1.endOfMonth(new Date()));
 }
 exports.isValidExpirationDate = isValidExpirationDate;
@@ -137,37 +187,37 @@ exports.isValidExpirationDate = isValidExpirationDate;
  * in the XXX or XXXX format.
  */
 function isValidSecurityCode(string) {
-    return CONST_1["default"].REGEX.CARD_SECURITY_CODE.test(string);
+    return CONST_1['default'].REGEX.CARD_SECURITY_CODE.test(string);
 }
 exports.isValidSecurityCode = isValidSecurityCode;
 /**
  * Validates a debit card number (15 or 16 digits).
  */
 function isValidDebitCard(string) {
-    if (!CONST_1["default"].REGEX.CARD_NUMBER.test(string)) {
+    if (!CONST_1['default'].REGEX.CARD_NUMBER.test(string)) {
         return false;
     }
     return validateCardNumber(string);
 }
 exports.isValidDebitCard = isValidDebitCard;
 function isValidIndustryCode(code) {
-    return CONST_1["default"].REGEX.INDUSTRY_CODE.test(code);
+    return CONST_1['default'].REGEX.INDUSTRY_CODE.test(code);
 }
 exports.isValidIndustryCode = isValidIndustryCode;
 function isValidZipCode(zipCode) {
-    return CONST_1["default"].REGEX.ZIP_CODE.test(zipCode);
+    return CONST_1['default'].REGEX.ZIP_CODE.test(zipCode);
 }
 exports.isValidZipCode = isValidZipCode;
 function isValidPaymentZipCode(zipCode) {
-    return CONST_1["default"].REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
+    return CONST_1['default'].REGEX.ALPHANUMERIC_WITH_SPACE_AND_HYPHEN.test(zipCode);
 }
 exports.isValidPaymentZipCode = isValidPaymentZipCode;
 function isValidSSNLastFour(ssnLast4) {
-    return CONST_1["default"].REGEX.SSN_LAST_FOUR.test(ssnLast4);
+    return CONST_1['default'].REGEX.SSN_LAST_FOUR.test(ssnLast4);
 }
 exports.isValidSSNLastFour = isValidSSNLastFour;
 function isValidSSNFullNine(ssnFull9) {
-    return CONST_1["default"].REGEX.SSN_FULL_NINE.test(ssnFull9);
+    return CONST_1['default'].REGEX.SSN_FULL_NINE.test(ssnFull9);
 }
 exports.isValidSSNFullNine = isValidSSNFullNine;
 /**
@@ -175,7 +225,7 @@ exports.isValidSSNFullNine = isValidSSNFullNine;
  */
 function meetsMinimumAgeRequirement(date) {
     var testDate = new Date(date);
-    var minDate = date_fns_1.subYears(new Date(), CONST_1["default"].DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
+    var minDate = date_fns_1.subYears(new Date(), CONST_1['default'].DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     return date_fns_1.isValid(testDate) && (date_fns_1.isSameDay(testDate, minDate) || date_fns_1.isBefore(testDate, minDate));
 }
 exports.meetsMinimumAgeRequirement = meetsMinimumAgeRequirement;
@@ -184,7 +234,7 @@ exports.meetsMinimumAgeRequirement = meetsMinimumAgeRequirement;
  */
 function meetsMaximumAgeRequirement(date) {
     var testDate = new Date(date);
-    var maxDate = date_fns_1.subYears(new Date(), CONST_1["default"].DATE_BIRTH.MAX_AGE);
+    var maxDate = date_fns_1.subYears(new Date(), CONST_1['default'].DATE_BIRTH.MAX_AGE);
     return date_fns_1.isValid(testDate) && (date_fns_1.isSameDay(testDate, maxDate) || date_fns_1.isAfter(testDate, maxDate));
 }
 exports.meetsMaximumAgeRequirement = meetsMaximumAgeRequirement;
@@ -193,19 +243,19 @@ exports.meetsMaximumAgeRequirement = meetsMaximumAgeRequirement;
  */
 function getAgeRequirementError(date, minimumAge, maximumAge) {
     var currentDate = date_fns_1.startOfDay(new Date());
-    var testDate = date_fns_1.parse(date, CONST_1["default"].DATE.FNS_FORMAT_STRING, currentDate);
+    var testDate = date_fns_1.parse(date, CONST_1['default'].DATE.FNS_FORMAT_STRING, currentDate);
     if (!date_fns_1.isValid(testDate)) {
         return Localize_1.translateLocal('common.error.dateInvalid');
     }
     var maximalDate = date_fns_1.subYears(currentDate, minimumAge);
     var minimalDate = date_fns_1.subYears(currentDate, maximumAge);
-    if (date_fns_1.isWithinInterval(testDate, { start: minimalDate, end: maximalDate })) {
+    if (date_fns_1.isWithinInterval(testDate, {start: minimalDate, end: maximalDate})) {
         return '';
     }
     if (date_fns_1.isSameDay(testDate, maximalDate) || date_fns_1.isAfter(testDate, maximalDate)) {
-        return Localize_1.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', { dateString: date_fns_1.format(maximalDate, CONST_1["default"].DATE.FNS_FORMAT_STRING) });
+        return Localize_1.translateLocal('privatePersonalDetails.error.dateShouldBeBefore', {dateString: date_fns_1.format(maximalDate, CONST_1['default'].DATE.FNS_FORMAT_STRING)});
     }
-    return Localize_1.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', { dateString: date_fns_1.format(minimalDate, CONST_1["default"].DATE.FNS_FORMAT_STRING) });
+    return Localize_1.translateLocal('privatePersonalDetails.error.dateShouldBeAfter', {dateString: date_fns_1.format(minimalDate, CONST_1['default'].DATE.FNS_FORMAT_STRING)});
 }
 exports.getAgeRequirementError = getAgeRequirementError;
 /**
@@ -213,7 +263,7 @@ exports.getAgeRequirementError = getAgeRequirementError;
  */
 function getDatePassedError(inputDate) {
     var currentDate = new Date();
-    var parsedDate = new Date(inputDate + "T00:00:00"); // set time to 00:00:00 for accurate comparison
+    var parsedDate = new Date(inputDate + 'T00:00:00'); // set time to 00:00:00 for accurate comparison
     // If input date is not valid, return an error
     if (!date_fns_1.isValid(parsedDate)) {
         return Localize_1.translateLocal('common.error.dateInvalid');
@@ -231,12 +281,14 @@ exports.getDatePassedError = getDatePassedError;
  * http/https/ftp URL scheme required.
  */
 function isValidWebsite(url) {
-    return new RegExp("^" + expensify_common_1.Url.URL_REGEX_WITH_REQUIRED_PROTOCOL + "$", 'i').test(url);
+    return new RegExp('^' + expensify_common_1.Url.URL_REGEX_WITH_REQUIRED_PROTOCOL + '$', 'i').test(url);
 }
 exports.isValidWebsite = isValidWebsite;
 /** Checks if the domain is public */
 function isPublicDomain(domain) {
-    return expensify_common_1.PUBLIC_DOMAINS.some(function (publicDomain) { return publicDomain === domain.toLowerCase(); });
+    return expensify_common_1.PUBLIC_DOMAINS.some(function (publicDomain) {
+        return publicDomain === domain.toLowerCase();
+    });
 }
 exports.isPublicDomain = isPublicDomain;
 function validateIdentity(identity) {
@@ -258,8 +310,7 @@ function validateIdentity(identity) {
     // dob field has multiple validations/errors, we are handling it temporarily like this.
     if (!isValidDate(identity.dob) || !meetsMaximumAgeRequirement(identity.dob)) {
         errors.dob = true;
-    }
-    else if (!meetsMinimumAgeRequirement(identity.dob)) {
+    } else if (!meetsMinimumAgeRequirement(identity.dob)) {
         errors.dobAge = true;
     }
     if (!isValidSSNLastFour(identity.ssnLast4)) {
@@ -269,20 +320,22 @@ function validateIdentity(identity) {
 }
 exports.validateIdentity = validateIdentity;
 function isValidUSPhone(phoneNumber, isCountryCodeOptional) {
-    if (phoneNumber === void 0) { phoneNumber = ''; }
+    if (phoneNumber === void 0) {
+        phoneNumber = '';
+    }
     var phone = phoneNumber || '';
-    var regionCode = isCountryCodeOptional ? CONST_1["default"].COUNTRY.US : undefined;
+    var regionCode = isCountryCodeOptional ? CONST_1['default'].COUNTRY.US : undefined;
     // When we pass regionCode as an option to parsePhoneNumber it wrongly assumes inputs like '=15123456789' as valid
     // so we need to check if it is a valid phone.
     if (regionCode && !expensify_common_1.Str.isValidPhoneFormat(phone)) {
         return false;
     }
-    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phone, { regionCode: regionCode });
-    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST_1["default"].COUNTRY.US;
+    var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phone, {regionCode: regionCode});
+    return parsedPhoneNumber.possible && parsedPhoneNumber.regionCode === CONST_1['default'].COUNTRY.US;
 }
 exports.isValidUSPhone = isValidUSPhone;
 function isValidPhoneNumber(phoneNumber) {
-    if (!CONST_1["default"].ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST_1["default"].REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
+    if (!CONST_1['default'].ACCEPTED_PHONE_CHARACTER_REGEX.test(phoneNumber) || CONST_1['default'].REPEATED_SPECIAL_CHAR_PATTERN.test(phoneNumber)) {
         return false;
     }
     var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumber);
@@ -290,15 +343,15 @@ function isValidPhoneNumber(phoneNumber) {
 }
 exports.isValidPhoneNumber = isValidPhoneNumber;
 function isValidValidateCode(validateCode) {
-    return !!validateCode.match(CONST_1["default"].VALIDATE_CODE_REGEX_STRING);
+    return !!validateCode.match(CONST_1['default'].VALIDATE_CODE_REGEX_STRING);
 }
 exports.isValidValidateCode = isValidValidateCode;
 function isValidRecoveryCode(recoveryCode) {
-    return !!recoveryCode.match(CONST_1["default"].RECOVERY_CODE_REGEX_STRING);
+    return !!recoveryCode.match(CONST_1['default'].RECOVERY_CODE_REGEX_STRING);
 }
 exports.isValidRecoveryCode = isValidRecoveryCode;
 function isValidTwoFactorCode(code) {
-    return !!code.match(CONST_1["default"].REGEX.CODE_2FA);
+    return !!code.match(CONST_1['default'].REGEX.CODE_2FA);
 }
 exports.isValidTwoFactorCode = isValidTwoFactorCode;
 /**
@@ -329,7 +382,7 @@ exports.isValidRoutingNumber = isValidRoutingNumber;
  * Checks that the provided name doesn't contain any emojis
  */
 function isValidCompanyName(name) {
-    return !name.match(CONST_1["default"].REGEX.ALL_EMOJIS);
+    return !name.match(CONST_1['default'].REGEX.ALL_EMOJIS);
 }
 exports.isValidCompanyName = isValidCompanyName;
 /**
@@ -343,7 +396,7 @@ exports.isValidDisplayName = isValidDisplayName;
  * Checks that the provided legal name doesn't contain special characters
  */
 function isValidLegalName(name) {
-    return CONST_1["default"].REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
+    return CONST_1['default'].REGEX.ALPHABETIC_AND_LATIN_CHARS.test(name);
 }
 exports.isValidLegalName = isValidLegalName;
 /**
@@ -358,7 +411,9 @@ exports.isValidPersonName = isValidPersonName;
  */
 function doesContainReservedWord(value, reservedWords) {
     var valueToCheck = value.trim().toLowerCase();
-    return reservedWords.some(function (reservedWord) { return valueToCheck.includes(reservedWord.toLowerCase()); });
+    return reservedWords.some(function (reservedWord) {
+        return valueToCheck.includes(reservedWord.toLowerCase());
+    });
 }
 exports.doesContainReservedWord = doesContainReservedWord;
 /**
@@ -366,14 +421,16 @@ exports.doesContainReservedWord = doesContainReservedWord;
  * and should not be used for policy rooms.
  */
 function isReservedRoomName(roomName) {
-    return CONST_1["default"].REPORT.RESERVED_ROOM_NAMES.includes(roomName);
+    return CONST_1['default'].REPORT.RESERVED_ROOM_NAMES.includes(roomName);
 }
 exports.isReservedRoomName = isReservedRoomName;
 /**
  * Checks if the room name already exists.
  */
 function isExistingRoomName(roomName, reports, policyID) {
-    return Object.values(reports !== null && reports !== void 0 ? reports : {}).some(function (report) { return report && policyID && report.policyID === policyID && report.reportName === roomName; });
+    return Object.values(reports !== null && reports !== void 0 ? reports : {}).some(function (report) {
+        return report && policyID && report.policyID === policyID && report.reportName === roomName;
+    });
 }
 exports.isExistingRoomName = isExistingRoomName;
 /**
@@ -383,7 +440,7 @@ exports.isExistingRoomName = isExistingRoomName;
  * - It's between 1 and MAX_ROOM_NAME_LENGTH characters long
  */
 function isValidRoomName(roomName) {
-    return CONST_1["default"].REGEX.ROOM_NAME.test(roomName);
+    return CONST_1['default'].REGEX.ROOM_NAME.test(roomName);
 }
 exports.isValidRoomName = isValidRoomName;
 /**
@@ -392,14 +449,14 @@ exports.isValidRoomName = isValidRoomName;
  * - After the first character, it contains only lowercase letters, numbers, and dashes
  */
 function isValidRoomNameWithoutLimits(roomName) {
-    return CONST_1["default"].REGEX.ROOM_NAME_WITHOUT_LIMIT.test(roomName);
+    return CONST_1['default'].REGEX.ROOM_NAME_WITHOUT_LIMIT.test(roomName);
 }
 exports.isValidRoomNameWithoutLimits = isValidRoomNameWithoutLimits;
 /**
  * Checks if tax ID consists of 9 digits
  */
 function isValidTaxID(taxID) {
-    return CONST_1["default"].REGEX.TAX_ID.test(taxID);
+    return CONST_1['default'].REGEX.TAX_ID.test(taxID);
 }
 exports.isValidTaxID = isValidTaxID;
 /**
@@ -409,14 +466,14 @@ function isNumeric(value) {
     if (typeof value !== 'string') {
         return false;
     }
-    return CONST_1["default"].REGEX.NUMBER.test(value);
+    return CONST_1['default'].REGEX.NUMBER.test(value);
 }
 exports.isNumeric = isNumeric;
 /**
  * Checks that the provided accountID is a number and bigger than 0.
  */
 function isValidAccountRoute(accountID) {
-    return CONST_1["default"].REGEX.NUMBER.test(String(accountID)) && accountID > 0;
+    return CONST_1['default'].REGEX.NUMBER.test(String(accountID)) && accountID > 0;
 }
 exports.isValidAccountRoute = isValidAccountRoute;
 /**
@@ -428,15 +485,15 @@ var validateDateTimeIsAtLeastOneMinuteInFuture = function (data) {
     if (!data) {
         return {
             dateValidationErrorKey: '',
-            timeValidationErrorKey: ''
+            timeValidationErrorKey: '',
         };
     }
     var parsedInputData = date_fns_1.parseISO(data);
-    var dateValidationErrorKey = DateUtils_1["default"].getDayValidationErrorKey(parsedInputData);
-    var timeValidationErrorKey = DateUtils_1["default"].getTimeValidationErrorKey(parsedInputData);
+    var dateValidationErrorKey = DateUtils_1['default'].getDayValidationErrorKey(parsedInputData);
+    var timeValidationErrorKey = DateUtils_1['default'].getTimeValidationErrorKey(parsedInputData);
     return {
         dateValidationErrorKey: dateValidationErrorKey,
-        timeValidationErrorKey: timeValidationErrorKey
+        timeValidationErrorKey: timeValidationErrorKey,
     };
 };
 exports.validateDateTimeIsAtLeastOneMinuteInFuture = validateDateTimeIsAtLeastOneMinuteInFuture;
@@ -446,11 +503,12 @@ exports.validateDateTimeIsAtLeastOneMinuteInFuture = validateDateTimeIsAtLeastOn
 function prepareValues(values) {
     var trimmedStringValues = {};
     for (var _i = 0, _a = Object.entries(values); _i < _a.length; _i++) {
-        var _b = _a[_i], inputID = _b[0], inputValue = _b[1];
+        var _b = _a[_i],
+            inputID = _b[0],
+            inputValue = _b[1];
         if (typeof inputValue === 'string') {
-            trimmedStringValues[inputID] = StringUtils_1["default"].removeInvisibleCharacters(inputValue);
-        }
-        else {
+            trimmedStringValues[inputID] = StringUtils_1['default'].removeInvisibleCharacters(inputValue);
+        } else {
             trimmedStringValues[inputID] = inputValue;
         }
     }
@@ -470,12 +528,16 @@ exports.isValidPercentage = isValidPercentage;
  */
 function isExistingTaxName(taxName, taxRates) {
     var trimmedTaxName = taxName.trim();
-    return !!Object.values(taxRates).find(function (taxRate) { return taxRate.name === trimmedTaxName; });
+    return !!Object.values(taxRates).find(function (taxRate) {
+        return taxRate.name === trimmedTaxName;
+    });
 }
 exports.isExistingTaxName = isExistingTaxName;
 function isExistingTaxCode(taxCode, taxRates) {
     var trimmedTaxCode = taxCode.trim();
-    return !!Object.keys(taxRates).find(function (taxID) { return taxID === trimmedTaxCode; });
+    return !!Object.keys(taxRates).find(function (taxID) {
+        return taxID === trimmedTaxCode;
+    });
 }
 exports.isExistingTaxCode = isExistingTaxCode;
 /**
@@ -483,7 +545,12 @@ exports.isExistingTaxCode = isExistingTaxCode;
  */
 function isValidSubscriptionSize(subscriptionSize) {
     var parsedSubscriptionSize = Number(subscriptionSize);
-    return !Number.isNaN(parsedSubscriptionSize) && parsedSubscriptionSize > 0 && parsedSubscriptionSize <= CONST_1["default"].SUBSCRIPTION_SIZE_LIMIT && Number.isInteger(parsedSubscriptionSize);
+    return (
+        !Number.isNaN(parsedSubscriptionSize) &&
+        parsedSubscriptionSize > 0 &&
+        parsedSubscriptionSize <= CONST_1['default'].SUBSCRIPTION_SIZE_LIMIT &&
+        Number.isInteger(parsedSubscriptionSize)
+    );
 }
 exports.isValidSubscriptionSize = isValidSubscriptionSize;
 /**
@@ -502,7 +569,10 @@ function isValidPhoneInternational(phoneNumber) {
     var _a, _b;
     var phoneNumberWithCountryCode = LoginUtils_1.appendCountryCode(phoneNumber);
     var parsedPhoneNumber = PhoneNumber_1.parsePhoneNumber(phoneNumberWithCountryCode);
-    return parsedPhoneNumber.possible && expensify_common_1.Str.isValidE164Phone((_b = (_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.e164) !== null && _b !== void 0 ? _b : '');
+    return (
+        parsedPhoneNumber.possible &&
+        expensify_common_1.Str.isValidE164Phone((_b = (_a = parsedPhoneNumber.number) === null || _a === void 0 ? void 0 : _a.e164) !== null && _b !== void 0 ? _b : '')
+    );
 }
 exports.isValidPhoneInternational = isValidPhoneInternational;
 /**
@@ -598,13 +668,13 @@ function isValidCARegistrationNumber(registrationNumber) {
  */
 function isValidRegistrationNumber(registrationNumber, country) {
     switch (country) {
-        case CONST_1["default"].COUNTRY.AU:
+        case CONST_1['default'].COUNTRY.AU:
             return isValidAURegistrationNumber(registrationNumber);
-        case CONST_1["default"].COUNTRY.GB:
+        case CONST_1['default'].COUNTRY.GB:
             return isValidGBRegistrationNumber(registrationNumber);
-        case CONST_1["default"].COUNTRY.CA:
+        case CONST_1['default'].COUNTRY.CA:
             return isValidCARegistrationNumber(registrationNumber);
-        case CONST_1["default"].COUNTRY.US:
+        case CONST_1['default'].COUNTRY.US:
             return isValidTaxID(registrationNumber);
         default:
             return true;

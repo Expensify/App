@@ -1,15 +1,18 @@
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+'use strict';
+var __assign =
+    (this && this.__assign) ||
+    function () {
+        __assign =
+            Object.assign ||
+            function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                }
+                return t;
+            };
+        return __assign.apply(this, arguments);
     };
-    return __assign.apply(this, arguments);
-};
 exports.__esModule = true;
 exports.PROTECTED_SCREENS = void 0;
 var PROTECTED_SCREENS = {
@@ -17,10 +20,22 @@ var PROTECTED_SCREENS = {
     CONCIERGE: 'Concierge',
     ATTACHMENTS: 'Attachments',
     TRACK_EXPENSE: 'TrackExpense',
-    SUBMIT_EXPENSE: 'SubmitExpense'
+    SUBMIT_EXPENSE: 'SubmitExpense',
 };
 exports.PROTECTED_SCREENS = PROTECTED_SCREENS;
-var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROFILE_AVATAR: 'ProfileAvatar', WORKSPACE_AVATAR: 'WorkspaceAvatar', REPORT_AVATAR: 'ReportAvatar', NOT_FOUND: 'not-found', TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps', VALIDATE_LOGIN: 'ValidateLogin', CONNECTION_COMPLETE: 'ConnectionComplete', BANK_CONNECTION_COMPLETE: 'BankConnectionComplete', UNLINK_LOGIN: 'UnlinkLogin', SETTINGS_CENTRAL_PANE: 'SettingsCentralPane', TRAVEL: {
+var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), {
+    REPORT: 'Report',
+    PROFILE_AVATAR: 'ProfileAvatar',
+    WORKSPACE_AVATAR: 'WorkspaceAvatar',
+    REPORT_AVATAR: 'ReportAvatar',
+    NOT_FOUND: 'not-found',
+    TRANSITION_BETWEEN_APPS: 'TransitionBetweenApps',
+    VALIDATE_LOGIN: 'ValidateLogin',
+    CONNECTION_COMPLETE: 'ConnectionComplete',
+    BANK_CONNECTION_COMPLETE: 'BankConnectionComplete',
+    UNLINK_LOGIN: 'UnlinkLogin',
+    SETTINGS_CENTRAL_PANE: 'SettingsCentralPane',
+    TRAVEL: {
         MY_TRIPS: 'Travel_MyTrips',
         TCS: 'Travel_TCS',
         TRIP_SUMMARY: 'Travel_TripSummary',
@@ -29,8 +44,9 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         DOMAIN_SELECTOR: 'Travel_DomainSelector',
         DOMAIN_PERMISSION_INFO: 'Travel_DomainPermissionInfo',
         PUBLIC_DOMAIN_ERROR: 'Travel_PublicDomainError',
-        WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress'
-    }, SEARCH: {
+        WORKSPACE_ADDRESS: 'Travel_WorkspaceAddress',
+    },
+    SEARCH: {
         ROOT: 'Search_Root',
         MONEY_REQUEST_REPORT: 'Search_Money_Request_Report',
         MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: 'Search_Money_Request_Report_Hold_Transactions',
@@ -60,8 +76,9 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         ADVANCED_FILTERS_WORKSPACE_RHP: 'Search_Advanced_Filters_Workspace_RHP',
         SAVED_SEARCH_RENAME_RHP: 'Search_Saved_Search_Rename_RHP',
         ADVANCED_FILTERS_IN_RHP: 'Search_Advanced_Filters_In_RHP',
-        TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP'
-    }, SETTINGS: {
+        TRANSACTION_HOLD_REASON_RHP: 'Search_Transaction_Hold_Reason_RHP',
+    },
+    SETTINGS: {
         ROOT: 'Settings_Root',
         SHARE_CODE: 'Settings_Share_Code',
         WORKSPACES: 'Settings_Workspaces',
@@ -96,14 +113,14 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
             PHONE_NUMBER: 'Settings_PhoneNumber',
             ADDRESS: 'Settings_Address',
             ADDRESS_COUNTRY: 'Settings_Address_Country',
-            ADDRESS_STATE: 'Settings_Address_State'
+            ADDRESS_STATE: 'Settings_Address_State',
         },
         PREFERENCES: {
             ROOT: 'Settings_Preferences',
             PRIORITY_MODE: 'Settings_Preferences_PriorityMode',
             LANGUAGE: 'Settings_Preferences_Language',
             THEME: 'Settings_Preferences_Theme',
-            PAYMENT_CURRENCY: 'Settings_Payment_Currency'
+            PAYMENT_CURRENCY: 'Settings_Payment_Currency',
         },
         WALLET: {
             ROOT: 'Settings_Wallet',
@@ -115,13 +132,13 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
             REPORT_VIRTUAL_CARD_FRAUD: 'Settings_Wallet_ReportVirtualCardFraud',
             REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION: 'Settings_Wallet_ReportVirtualCardFraudConfirmation',
             CARDS_DIGITAL_DETAILS_UPDATE_ADDRESS: 'Settings_Wallet_Cards_Digital_Details_Update_Address',
-            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account'
+            VERIFY_ACCOUNT: 'Settings_Wallet_Verify_Account',
         },
         EXIT_SURVEY: {
             BOOK_CALL: 'Settings_ExitSurvey_Book_Call',
             REASON: 'Settings_ExitSurvey_Reason',
             RESPONSE: 'Settings_ExitSurvey_Response',
-            CONFIRM: 'Settings_ExitSurvey_Confirm'
+            CONFIRM: 'Settings_ExitSurvey_Confirm',
         },
         SUBSCRIPTION: {
             ROOT: 'Settings_Subscription',
@@ -131,30 +148,34 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
             DISABLE_AUTO_RENEW_SURVEY: 'Settings_Subscription_DisableAutoRenewSurvey',
             CHANGE_BILLING_CURRENCY: 'Settings_Subscription_Change_Billing_Currency',
             CHANGE_PAYMENT_CURRENCY: 'Settings_Subscription_Change_Payment_Currency',
-            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation'
+            REQUEST_EARLY_CANCELLATION: 'Settings_Subscription_RequestEarlyCancellation',
         },
         DELEGATE: {
             ADD_DELEGATE: 'Settings_Delegate_Add',
             DELEGATE_ROLE: 'Settings_Delegate_Role',
             DELEGATE_CONFIRM: 'Settings_Delegate_Confirm',
-            UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role'
+            UPDATE_DELEGATE_ROLE: 'Settings_Delegate_Update_Role',
         },
         MERGE_ACCOUNTS: {
             ACCOUNT_DETAILS: 'Settings_MergeAccounts_AccountDetails',
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
-            MERGE_RESULT: 'Settings_MergeAccounts_MergeResult'
-        }
-    }, TWO_FACTOR_AUTH: {
+            MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
+        },
+    },
+    TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',
         VERIFY: 'Settings_TwoFactorAuth_Verify',
         SUCCESS: 'Settings_TwoFactorAuth_Success',
         DISABLED: 'Settings_TwoFactorAuth_Disabled',
-        DISABLE: 'Settings_TwoFactorAuth_Disable'
-    }, SAVE_THE_WORLD: {
-        ROOT: 'SaveTheWorld_Root'
-    }, LEFT_MODAL: {
-        WORKSPACE_SWITCHER: 'WorkspaceSwitcher'
-    }, RIGHT_MODAL: {
+        DISABLE: 'Settings_TwoFactorAuth_Disable',
+    },
+    SAVE_THE_WORLD: {
+        ROOT: 'SaveTheWorld_Root',
+    },
+    LEFT_MODAL: {
+        WORKSPACE_SWITCHER: 'WorkspaceSwitcher',
+    },
+    RIGHT_MODAL: {
         SETTINGS: 'Settings',
         TWO_FACTOR_AUTH: 'TwoFactorAuth',
         NEW_CHAT: 'NewChat',
@@ -196,10 +217,19 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         RESTRICTED_ACTION: 'RestrictedAction',
         REPORT_EXPORT: 'Report_Export',
         MISSING_PERSONAL_DETAILS: 'MissingPersonalDetails',
-        DEBUG: 'Debug'
-    }, PUBLIC_CONSOLE_DEBUG: 'Console_Debug', ONBOARDING_MODAL: {
-        ONBOARDING: 'Onboarding'
-    }, SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop', SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop', DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect', SAML_SIGN_IN: 'SAMLSignIn', WORKSPACE_JOIN_USER: 'WorkspaceJoinUser', REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth', MONEY_REQUEST: {
+        DEBUG: 'Debug',
+    },
+    PUBLIC_CONSOLE_DEBUG: 'Console_Debug',
+    ONBOARDING_MODAL: {
+        ONBOARDING: 'Onboarding',
+    },
+    SIGN_IN_WITH_APPLE_DESKTOP: 'AppleSignInDesktop',
+    SIGN_IN_WITH_GOOGLE_DESKTOP: 'GoogleSignInDesktop',
+    DESKTOP_SIGN_IN_REDIRECT: 'DesktopSignInRedirect',
+    SAML_SIGN_IN: 'SAMLSignIn',
+    WORKSPACE_JOIN_USER: 'WorkspaceJoinUser',
+    REQUIRE_TWO_FACTOR_AUTH: 'RequireTwoFactorAuth',
+    MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
         HOLD: 'Money_Request_Hold_Reason',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
@@ -234,8 +264,9 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         STEP_DESTINATION_EDIT: 'Money_Request_Destination_Edit',
         STEP_TIME_EDIT: 'Money_Request_Time_Edit',
         STEP_SUBRATE_EDIT: 'Money_Request_SubRate_Edit',
-        STEP_REPORT: 'Money_Request_Report'
-    }, TRANSACTION_DUPLICATE: {
+        STEP_REPORT: 'Money_Request_Report',
+    },
+    TRANSACTION_DUPLICATE: {
         REVIEW: 'Transaction_Duplicate_Review',
         MERCHANT: 'Transaction_Duplicate_Merchant',
         CATEGORY: 'Transaction_Duplicate_Category',
@@ -244,12 +275,14 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         TAX_CODE: 'Transaction_Duplicate_Tax_Code',
         REIMBURSABLE: 'Transaction_Duplicate_Reimburable',
         BILLABLE: 'Transaction_Duplicate_Billable',
-        CONFIRMATION: 'Transaction_Duplicate_Confirmation'
-    }, IOU_SEND: {
+        CONFIRMATION: 'Transaction_Duplicate_Confirmation',
+    },
+    IOU_SEND: {
         ADD_BANK_ACCOUNT: 'IOU_Send_Add_Bank_Account',
         ADD_DEBIT_CARD: 'IOU_Send_Add_Debit_Card',
-        ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments'
-    }, SETTINGS_CATEGORIES: {
+        ENABLE_PAYMENTS: 'IOU_Send_Enable_Payments',
+    },
+    SETTINGS_CATEGORIES: {
         SETTINGS_CATEGORY_SETTINGS: 'Settings_Category_Settings',
         SETTINGS_CATEGORIES_SETTINGS: 'Settings_Categories_Settings',
         SETTINGS_CATEGORY_CREATE: 'Settings_Category_Create',
@@ -258,16 +291,19 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         SETTINGS_CATEGORIES_IMPORT: 'Settings_Categories_Import',
         SETTINGS_CATEGORIES_IMPORTED: 'Settings_Categories_Imported',
         SETTINGS_CATEGORY_PAYROLL_CODE: 'Settings_Category_Payroll_Code',
-        SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code'
-    }, EXPENSIFY_CARD: {
+        SETTINGS_CATEGORY_GL_CODE: 'Settings_Category_GL_Code',
+    },
+    EXPENSIFY_CARD: {
         EXPENSIFY_CARD_DETAILS: 'Expensify_Card_Details',
         EXPENSIFY_CARD_NAME: 'Expensify_Card_Name',
         EXPENSIFY_CARD_LIMIT: 'Expensify_Card_Limit',
-        EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type'
-    }, DOMAIN_CARD: {
+        EXPENSIFY_CARD_LIMIT_TYPE: 'Expensify_Card_Limit_Type',
+    },
+    DOMAIN_CARD: {
         DOMAIN_CARD_DETAIL: 'Domain_Card_Detail',
-        DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud'
-    }, SETTINGS_TAGS: {
+        DOMAIN_CARD_REPORT_FRAUD: 'Domain_Card_Report_Fraud',
+    },
+    SETTINGS_TAGS: {
         SETTINGS_TAGS_ROOT: 'Settings_Tags',
         SETTINGS_TAGS_SETTINGS: 'Settings_Tags_Settings',
         SETTINGS_TAGS_EDIT: 'Settings_Tags_Edit',
@@ -278,35 +314,44 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         SETTINGS_TAG_LIST_VIEW: 'Settings_Tag_List_View',
         SETTINGS_TAG_GL_CODE: 'Settings_Tag_GL_Code',
         SETTINGS_TAGS_IMPORT: 'Settings_Tags_Import',
-        SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported'
-    }, REPORT_SETTINGS: {
+        SETTINGS_TAGS_IMPORTED: 'Settings_Tags_Imported',
+    },
+    REPORT_SETTINGS: {
         ROOT: 'Report_Settings_Root',
         NAME: 'Report_Settings_Name',
         NOTIFICATION_PREFERENCES: 'Report_Settings_Notification_Preferences',
         WRITE_CAPABILITY: 'Report_Settings_Write_Capability',
-        VISIBILITY: 'Report_Settings_Visibility'
-    }, NEW_TASK: {
+        VISIBILITY: 'Report_Settings_Visibility',
+    },
+    NEW_TASK: {
         ROOT: 'NewTask_Root',
         TASK_ASSIGNEE_SELECTOR: 'NewTask_TaskAssigneeSelector',
         TASK_SHARE_DESTINATION_SELECTOR: 'NewTask_TaskShareDestinationSelector',
         DETAILS: 'NewTask_Details',
         TITLE: 'NewTask_Title',
-        DESCRIPTION: 'NewTask_Description'
-    }, TASK: {
+        DESCRIPTION: 'NewTask_Description',
+    },
+    TASK: {
         TITLE: 'Task_Title',
-        ASSIGNEE: 'Task_Assignee'
-    }, PRIVATE_NOTES: {
+        ASSIGNEE: 'Task_Assignee',
+    },
+    PRIVATE_NOTES: {
         LIST: 'PrivateNotes_List',
-        EDIT: 'PrivateNotes_Edit'
-    }, NEW_REPORT_WORKSPACE_SELECTION: {
-        ROOT: 'NewReportWorkspaceSelection_Root'
-    }, REPORT_DETAILS: {
+        EDIT: 'PrivateNotes_Edit',
+    },
+    NEW_REPORT_WORKSPACE_SELECTION: {
+        ROOT: 'NewReportWorkspaceSelection_Root',
+    },
+    REPORT_DETAILS: {
         ROOT: 'Report_Details_Root',
         SHARE_CODE: 'Report_Details_Share_Code',
-        EXPORT: 'Report_Details_Export'
-    }, REPORT_CHANGE_WORKSPACE: {
-        ROOT: 'ReportChangeWorkspace_Root'
-    }, WORKSPACE_CONFIRMATION: { ROOT: 'Workspace_Confirmation_Root' }, WORKSPACE: {
+        EXPORT: 'Report_Details_Export',
+    },
+    REPORT_CHANGE_WORKSPACE: {
+        ROOT: 'ReportChangeWorkspace_Root',
+    },
+    WORKSPACE_CONFIRMATION: {ROOT: 'Workspace_Confirmation_Root'},
+    WORKSPACE: {
         ACCOUNTING: {
             ROOT: 'Policy_Accounting',
             QUICKBOOKS_ONLINE_IMPORT: 'Policy_Accounting_Quickbooks_Online_Import',
@@ -429,7 +474,7 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
             SAGE_INTACCT_ADVANCED: 'Policy_Accounting_Sage_Intacct_Advanced',
             SAGE_INTACCT_PAYMENT_ACCOUNT: 'Policy_Accounting_Sage_Intacct_Payment_Account',
             CARD_RECONCILIATION: 'Policy_Accounting_Card_Reconciliation',
-            RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings'
+            RECONCILIATION_ACCOUNT_SETTINGS: 'Policy_Accounting_Reconciliation_Account_Settings',
         },
         INITIAL: 'Workspace_Initial',
         PROFILE: 'Workspace_Overview',
@@ -559,21 +604,25 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         PER_DIEM_EDIT_DESTINATION: 'Per_Diem_Edit_Destination',
         PER_DIEM_EDIT_SUBRATE: 'Per_Diem_Edit_Subrate',
         PER_DIEM_EDIT_AMOUNT: 'Per_Diem_Edit_Amount',
-        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency'
-    }, EDIT_REQUEST: {
+        PER_DIEM_EDIT_CURRENCY: 'Per_Diem_Edit_Currency',
+    },
+    EDIT_REQUEST: {
         CURRENCY: 'EditRequest_Currency',
-        REPORT_FIELD: 'EditRequest_ReportField'
-    }, NEW_CHAT: {
+        REPORT_FIELD: 'EditRequest_ReportField',
+    },
+    NEW_CHAT: {
         ROOT: 'NewChat_Root',
         NEW_CHAT: 'chat',
         NEW_CHAT_CONFIRM: 'NewChat_Confirm',
         NEW_CHAT_EDIT_NAME: 'NewChat_Edit_Name',
-        NEW_ROOM: 'room'
-    }, SPLIT_DETAILS: {
+        NEW_ROOM: 'room',
+    },
+    SPLIT_DETAILS: {
         ROOT: 'SplitDetails_Root',
         EDIT_REQUEST: 'SplitDetails_Edit_Request',
-        EDIT_CURRENCY: 'SplitDetails_Edit_Currency'
-    }, ONBOARDING: {
+        EDIT_CURRENCY: 'SplitDetails_Edit_Currency',
+    },
+    ONBOARDING: {
         PERSONAL_DETAILS: 'Onboarding_Personal_Details',
         PURPOSE: 'Onboarding_Purpose',
         PRIVATE_DOMAIN: 'Onboarding_Private_Domain',
@@ -581,29 +630,58 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         ACCOUNTING: 'Onboarding_Accounting',
         WORKSPACES: 'Onboarding_Workspaces',
         WORK_EMAIL: 'Onboarding_Work_Email',
-        WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation'
-    }, WELCOME_VIDEO: {
-        ROOT: 'Welcome_Video_Root'
-    }, EXPLANATION_MODAL: {
-        ROOT: 'Explanation_Modal_Root'
-    }, MIGRATED_USER_WELCOME_MODAL: {
-        ROOT: 'MigratedUserWelcomeModal_Root'
-    }, TEST_DRIVE_MODAL: {
-        ROOT: 'TestDrive_Modal_Root'
-    }, I_KNOW_A_TEACHER: 'I_Know_A_Teacher', INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal', I_AM_A_TEACHER: 'I_Am_A_Teacher', ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root', ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root', REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root', WALLET_STATEMENT_ROOT: 'WalletStatement_Root', SIGN_IN_ROOT: 'SignIn_Root', DETAILS_ROOT: 'Details_Root', PROFILE_ROOT: 'Profile_Root', PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root', CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root', REPORT_DESCRIPTION_ROOT: 'Report_Description_Root', REPORT_PARTICIPANTS: {
+        WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
+    },
+    WELCOME_VIDEO: {
+        ROOT: 'Welcome_Video_Root',
+    },
+    EXPLANATION_MODAL: {
+        ROOT: 'Explanation_Modal_Root',
+    },
+    MIGRATED_USER_WELCOME_MODAL: {
+        ROOT: 'MigratedUserWelcomeModal_Root',
+    },
+    TEST_DRIVE_MODAL: {
+        ROOT: 'TestDrive_Modal_Root',
+    },
+    I_KNOW_A_TEACHER: 'I_Know_A_Teacher',
+    INTRO_SCHOOL_PRINCIPAL: 'Intro_School_Principal',
+    I_AM_A_TEACHER: 'I_Am_A_Teacher',
+    ENABLE_PAYMENTS_ROOT: 'EnablePayments_Root',
+    ADD_PERSONAL_BANK_ACCOUNT_ROOT: 'AddPersonalBankAccount_Root',
+    REIMBURSEMENT_ACCOUNT_ROOT: 'Reimbursement_Account_Root',
+    WALLET_STATEMENT_ROOT: 'WalletStatement_Root',
+    SIGN_IN_ROOT: 'SignIn_Root',
+    DETAILS_ROOT: 'Details_Root',
+    PROFILE_ROOT: 'Profile_Root',
+    PROCESS_MONEY_REQUEST_HOLD_ROOT: 'ProcessMoneyRequestHold_Root',
+    CHANGE_POLICY_EDUCATIONAL_ROOT: 'ChangePolicyEducational_Root',
+    REPORT_DESCRIPTION_ROOT: 'Report_Description_Root',
+    REPORT_PARTICIPANTS: {
         ROOT: 'ReportParticipants_Root',
         INVITE: 'ReportParticipants_Invite',
         DETAILS: 'ReportParticipants_Details',
-        ROLE: 'ReportParticipants_Role'
-    }, ROOM_MEMBERS: {
+        ROLE: 'ReportParticipants_Role',
+    },
+    ROOM_MEMBERS: {
         ROOT: 'RoomMembers_Root',
         INVITE: 'RoomMembers_Invite',
-        DETAILS: 'RoomMember_Details'
-    }, FLAG_COMMENT_ROOT: 'FlagComment_Root', REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount', REFERRAL_DETAILS: 'Referral_Details', KEYBOARD_SHORTCUTS: 'KeyboardShortcuts', SHARE: {
+        DETAILS: 'RoomMember_Details',
+    },
+    FLAG_COMMENT_ROOT: 'FlagComment_Root',
+    REIMBURSEMENT_ACCOUNT: 'ReimbursementAccount',
+    REFERRAL_DETAILS: 'Referral_Details',
+    KEYBOARD_SHORTCUTS: 'KeyboardShortcuts',
+    SHARE: {
         ROOT: 'Share_Root',
         SHARE_DETAILS: 'Share_Details',
-        SUBMIT_DETAILS: 'Submit_Details'
-    }, TRANSACTION_RECEIPT: 'TransactionReceipt', FEATURE_TRAINING_ROOT: 'FeatureTraining_Root', RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root', MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root', DEBUG: {
+        SUBMIT_DETAILS: 'Submit_Details',
+    },
+    TRANSACTION_RECEIPT: 'TransactionReceipt',
+    FEATURE_TRAINING_ROOT: 'FeatureTraining_Root',
+    RESTRICTED_ACTION_ROOT: 'RestrictedAction_Root',
+    MISSING_PERSONAL_DETAILS_ROOT: 'MissingPersonalDetails_Root',
+    DEBUG: {
         REPORT: 'Debug_Report',
         REPORT_ACTION: 'Debug_Report_Action',
         REPORT_ACTION_CREATE: 'Debug_Report_Action_Create',
@@ -611,6 +689,7 @@ var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), { REPORT: 'Report', PROF
         DETAILS_DATE_TIME_PICKER_PAGE: 'Debug_Details_Date_Time_Picker_Page',
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
-        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation'
-    } });
-exports["default"] = SCREENS;
+        TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
+    },
+});
+exports['default'] = SCREENS;

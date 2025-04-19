@@ -1,20 +1,30 @@
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+'use strict';
+var __assign =
+    (this && this.__assign) ||
+    function () {
+        __assign =
+            Object.assign ||
+            function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                }
+                return t;
+            };
+        return __assign.apply(this, arguments);
     };
-    return __assign.apply(this, arguments);
-};
 exports.__esModule = true;
-exports.enablePolicyFeatureCommand = exports.resolveEnableFeatureConflicts = exports.createUpdateCommentMatcher = exports.resolveEditCommentWithNewAddCommentRequest = exports.resolveCommentDeletionConflicts = exports.resolveOpenReportDuplicationConflictAction = exports.resolveDuplicationConflictAction = void 0;
-var react_native_onyx_1 = require("react-native-onyx");
-var types_1 = require("@libs/API/types");
-var ONYXKEYS_1 = require("@src/ONYXKEYS");
+exports.enablePolicyFeatureCommand =
+    exports.resolveEnableFeatureConflicts =
+    exports.createUpdateCommentMatcher =
+    exports.resolveEditCommentWithNewAddCommentRequest =
+    exports.resolveCommentDeletionConflicts =
+    exports.resolveOpenReportDuplicationConflictAction =
+    exports.resolveDuplicationConflictAction =
+        void 0;
+var react_native_onyx_1 = require('react-native-onyx');
+var types_1 = require('@libs/API/types');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
 var addNewMessage = new Set([types_1.WRITE_COMMANDS.ADD_COMMENT, types_1.WRITE_COMMANDS.ADD_ATTACHMENT, types_1.WRITE_COMMANDS.ADD_TEXT_AND_ATTACHMENT]);
 var commentsToBeDeleted = new Set([
     types_1.WRITE_COMMANDS.ADD_COMMENT,
@@ -57,15 +67,15 @@ function resolveDuplicationConflictAction(persistedRequests, requestMatcher) {
     if (index === -1) {
         return {
             conflictAction: {
-                type: 'push'
-            }
+                type: 'push',
+            },
         };
     }
     return {
         conflictAction: {
             type: 'replace',
-            index: index
-        }
+            index: index,
+        },
     };
 }
 exports.resolveDuplicationConflictAction = resolveDuplicationConflictAction;
@@ -73,29 +83,34 @@ function resolveOpenReportDuplicationConflictAction(persistedRequests, parameter
     var _a, _b;
     for (var index = 0; index < persistedRequests.length; index++) {
         var request = persistedRequests.at(index);
-        if (request && request.command === types_1.WRITE_COMMANDS.OPEN_REPORT && ((_a = request.data) === null || _a === void 0 ? void 0 : _a.reportID) === parameters.reportID && ((_b = request.data) === null || _b === void 0 ? void 0 : _b.emailList) === parameters.emailList) {
+        if (
+            request &&
+            request.command === types_1.WRITE_COMMANDS.OPEN_REPORT &&
+            ((_a = request.data) === null || _a === void 0 ? void 0 : _a.reportID) === parameters.reportID &&
+            ((_b = request.data) === null || _b === void 0 ? void 0 : _b.emailList) === parameters.emailList
+        ) {
             // If the previous request had guided setup data, we can safely ignore the new request
             if (request.data.guidedSetupData) {
                 return {
                     conflictAction: {
-                        type: 'noAction'
-                    }
+                        type: 'noAction',
+                    },
                 };
             }
             // In other cases it's safe to replace the previous request with the new one
             return {
                 conflictAction: {
                     type: 'replace',
-                    index: index
-                }
+                    index: index,
+                },
             };
         }
     }
     // If we didn't find any request to replace, we should push the new request
     return {
         conflictAction: {
-            type: 'push'
-        }
+            type: 'push',
+        },
     };
 }
 exports.resolveOpenReportDuplicationConflictAction = resolveOpenReportDuplicationConflictAction;
@@ -107,7 +122,11 @@ function resolveCommentDeletionConflicts(persistedRequests, reportActionID, orig
     persistedRequests.forEach(function (request, index) {
         var _a, _b;
         // If the request will open a Thread, we should not delete the comment and we should send all the requests
-        if (request.command === types_1.WRITE_COMMANDS.OPEN_REPORT && ((_a = request.data) === null || _a === void 0 ? void 0 : _a.parentReportActionID) === reportActionID && reportActionID in commentCouldBeThread) {
+        if (
+            request.command === types_1.WRITE_COMMANDS.OPEN_REPORT &&
+            ((_a = request.data) === null || _a === void 0 ? void 0 : _a.parentReportActionID) === reportActionID &&
+            reportActionID in commentCouldBeThread
+        ) {
             var indexToRemove = commentCouldBeThread[reportActionID];
             commentIndicesToDelete.splice(indexToRemove, 1);
             // The new message performs some changes in Onyx, we want to keep those changes.
@@ -128,29 +147,27 @@ function resolveCommentDeletionConflicts(persistedRequests, reportActionID, orig
     if (commentIndicesToDelete.length === 0) {
         return {
             conflictAction: {
-                type: 'push'
-            }
+                type: 'push',
+            },
         };
     }
     if (addCommentFound) {
         // The new message performs some changes in Onyx, so we need to rollback those changes.
         var rollbackData = [
             {
-                onyxMethod: react_native_onyx_1["default"].METHOD.MERGE,
-                key: "" + ONYXKEYS_1["default"].COLLECTION.REPORT_ACTIONS + originalReportID,
-                value: (_a = {},
-                    _a[reportActionID] = null,
-                    _a)
+                onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
+                key: '' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS + originalReportID,
+                value: ((_a = {}), (_a[reportActionID] = null), _a),
             },
         ];
-        react_native_onyx_1["default"].update(rollbackData);
+        react_native_onyx_1['default'].update(rollbackData);
     }
     return {
         conflictAction: {
             type: 'delete',
             indices: commentIndicesToDelete,
-            pushNewRequest: !addCommentFound
-        }
+            pushNewRequest: !addCommentFound,
+        },
     };
 }
 exports.resolveCommentDeletionConflicts = resolveCommentDeletionConflicts;
@@ -170,11 +187,11 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameter
         nextAction = {
             type: 'replace',
             index: addCommentIndex,
-            request: currentAddComment
+            request: currentAddComment,
         };
         if (indicesToDelete.length === 0) {
             return {
-                conflictAction: nextAction
+                conflictAction: nextAction,
             };
         }
     }
@@ -183,26 +200,33 @@ function resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameter
             type: 'delete',
             indices: indicesToDelete,
             pushNewRequest: false,
-            nextAction: nextAction
-        }
+            nextAction: nextAction,
+        },
     };
 }
 exports.resolveEditCommentWithNewAddCommentRequest = resolveEditCommentWithNewAddCommentRequest;
 function resolveEnableFeatureConflicts(command, persistedRequests, parameters) {
-    var deleteRequestIndex = persistedRequests.findIndex(function (request) { var _a, _b; return request.command === command && ((_a = request.data) === null || _a === void 0 ? void 0 : _a.policyID) === parameters.policyID && ((_b = request.data) === null || _b === void 0 ? void 0 : _b.enabled) !== parameters.enabled; });
+    var deleteRequestIndex = persistedRequests.findIndex(function (request) {
+        var _a, _b;
+        return (
+            request.command === command &&
+            ((_a = request.data) === null || _a === void 0 ? void 0 : _a.policyID) === parameters.policyID &&
+            ((_b = request.data) === null || _b === void 0 ? void 0 : _b.enabled) !== parameters.enabled
+        );
+    });
     if (deleteRequestIndex === -1) {
         return {
             conflictAction: {
-                type: 'push'
-            }
+                type: 'push',
+            },
         };
     }
     return {
         conflictAction: {
             type: 'delete',
             indices: [deleteRequestIndex],
-            pushNewRequest: false
-        }
+            pushNewRequest: false,
+        },
     };
 }
 exports.resolveEnableFeatureConflicts = resolveEnableFeatureConflicts;

@@ -1,4 +1,4 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 var INPUT_IDS = {
     CHAT_TYPE: 'chatType',
@@ -40,6 +40,6 @@ var INPUT_IDS = {
     UNHELD_TOTAL: 'unheldTotal',
     WELCOME_MESSAGE: 'welcomeMessage',
     WRITE_CAPABILITY: 'writeCapability',
-    VISIBILITY: 'visibility'
+    VISIBILITY: 'visibility',
 };
-exports["default"] = INPUT_IDS;
+exports['default'] = INPUT_IDS;

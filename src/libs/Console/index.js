@@ -1,46 +1,51 @@
-"use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
+'use strict';
+var __assign =
+    (this && this.__assign) ||
+    function () {
+        __assign =
+            Object.assign ||
+            function (t) {
+                for (var s, i = 1, n = arguments.length; i < n; i++) {
+                    s = arguments[i];
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                }
+                return t;
+            };
+        return __assign.apply(this, arguments);
     };
-    return __assign.apply(this, arguments);
-};
 exports.__esModule = true;
 exports.parseStringifiedMessages = exports.shouldAttachLog = exports.createLog = exports.sanitizeConsoleInput = void 0;
 /* eslint-disable @typescript-eslint/naming-convention */
-var isEmpty_1 = require("lodash/isEmpty");
-var react_native_onyx_1 = require("react-native-onyx");
-var Console_1 = require("@libs/actions/Console");
-var CONFIG_1 = require("@src/CONFIG");
-var CONST_1 = require("@src/CONST");
-var ONYXKEYS_1 = require("@src/ONYXKEYS");
+var isEmpty_1 = require('lodash/isEmpty');
+var react_native_onyx_1 = require('react-native-onyx');
+var Console_1 = require('@libs/actions/Console');
+var CONFIG_1 = require('@src/CONFIG');
+var CONST_1 = require('@src/CONST');
+var ONYXKEYS_1 = require('@src/ONYXKEYS');
 var shouldStoreLogs = false;
-react_native_onyx_1["default"].connect({
-    key: ONYXKEYS_1["default"].SHOULD_STORE_LOGS,
+react_native_onyx_1['default'].connect({
+    key: ONYXKEYS_1['default'].SHOULD_STORE_LOGS,
     callback: function (val) {
         if (!val) {
             return;
         }
         shouldStoreLogs = val;
-    }
+    },
 });
 /* store the original console.log function so we can call it */
 // eslint-disable-next-line no-console
 var originalConsoleLog = console.log;
 /* List of patterns to ignore in logs. "logs" key always needs to be ignored because otherwise it will cause infinite loop */
-var logPatternsToIgnore = ["merge called for key: " + ONYXKEYS_1["default"].LOGS];
+var logPatternsToIgnore = ['merge called for key: ' + ONYXKEYS_1['default'].LOGS];
 /**
  * Check if the log should be attached to the console
  * @param message the message to check
  * @returns true if the log should be attached to the console
  */
 function shouldAttachLog(message) {
-    return !logPatternsToIgnore.some(function (pattern) { return message.includes(pattern); });
+    return !logPatternsToIgnore.some(function (pattern) {
+        return message.includes(pattern);
+    });
 }
 exports.shouldAttachLog = shouldAttachLog;
 /**
@@ -50,18 +55,17 @@ exports.shouldAttachLog = shouldAttachLog;
 function logMessage(args) {
     var message = args
         .map(function (arg) {
-        if (typeof arg === 'object') {
-            try {
-                return JSON.stringify(arg, null, 2); // Indent for better readability
+            if (typeof arg === 'object') {
+                try {
+                    return JSON.stringify(arg, null, 2); // Indent for better readability
+                } catch (e) {
+                    return 'Unserializable Object';
+                }
             }
-            catch (e) {
-                return 'Unserializable Object';
-            }
-        }
-        return String(arg);
-    })
+            return String(arg);
+        })
         .join(' ');
-    var newLog = { time: new Date(), level: CONST_1["default"].DEBUG_CONSOLE.LEVELS.INFO, message: message, extraData: '' };
+    var newLog = {time: new Date(), level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: message, extraData: ''};
     Console_1.addLog(newLog);
 }
 /**
@@ -75,7 +79,7 @@ console.log = function () {
     for (var _i = 0; _i < arguments.length; _i++) {
         args[_i] = arguments[_i];
     }
-    if (shouldStoreLogs && CONFIG_1["default"].ENVIRONMENT !== CONST_1["default"].ENVIRONMENT.DEV) {
+    if (shouldStoreLogs && CONFIG_1['default'].ENVIRONMENT !== CONST_1['default'].ENVIRONMENT.DEV) {
         logMessage(args);
     }
     originalConsoleLog.apply(console, args);
@@ -87,7 +91,7 @@ var charMap = {
     '\u201C': '"',
     '\u201D': '"',
     '\u201E': '"',
-    '\u2026': '...'
+    '\u2026': '...',
 };
 /**
  * Sanitize the input to the console
@@ -95,7 +99,9 @@ var charMap = {
  * @returns the sanitized text
  */
 function sanitizeConsoleInput(text) {
-    return text.replace(charsToSanitize, function (match) { return charMap[match]; });
+    return text.replace(charsToSanitize, function (match) {
+        return charMap[match];
+    });
 }
 exports.sanitizeConsoleInput = sanitizeConsoleInput;
 /**
@@ -111,16 +117,15 @@ function createLog(text) {
         var result = eval.call(this, text);
         if (result !== undefined) {
             return [
-                { time: time, level: CONST_1["default"].DEBUG_CONSOLE.LEVELS.INFO, message: "> " + text, extraData: '' },
-                { time: time, level: CONST_1["default"].DEBUG_CONSOLE.LEVELS.RESULT, message: String(result), extraData: '' },
+                {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: '> ' + text, extraData: ''},
+                {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.RESULT, message: String(result), extraData: ''},
             ];
         }
-        return [{ time: time, level: CONST_1["default"].DEBUG_CONSOLE.LEVELS.INFO, message: "> " + text, extraData: '' }];
-    }
-    catch (error) {
+        return [{time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.INFO, message: '> ' + text, extraData: ''}];
+    } catch (error) {
         return [
-            { time: time, level: CONST_1["default"].DEBUG_CONSOLE.LEVELS.ERROR, message: "> " + text, extraData: '' },
-            { time: time, level: CONST_1["default"].DEBUG_CONSOLE.LEVELS.ERROR, message: "Error: " + error.message, extraData: '' },
+            {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.ERROR, message: '> ' + text, extraData: ''},
+            {time: time, level: CONST_1['default'].DEBUG_CONSOLE.LEVELS.ERROR, message: 'Error: ' + error.message, extraData: ''},
         ];
     }
 }
@@ -131,15 +136,14 @@ exports.createLog = createLog;
  * @returns CapturedLogs with parsed messages
  */
 function parseStringifiedMessages(logs) {
-    if (isEmpty_1["default"](logs)) {
+    if (isEmpty_1['default'](logs)) {
         return logs;
     }
     return logs.map(function (log) {
         try {
             var parsedMessage = JSON.parse(log.message);
-            return __assign(__assign({}, log), { message: parsedMessage });
-        }
-        catch (_a) {
+            return __assign(__assign({}, log), {message: parsedMessage});
+        } catch (_a) {
             // If the message can't be parsed, just return the original log
             return log;
         }

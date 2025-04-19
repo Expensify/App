@@ -1,7873 +1,7873 @@
-"use strict";
+'use strict';
 exports.__esModule = true;
 exports.categoryFrequentlyUsed = exports.skinTones = void 0;
-var emoji_svg_1 = require("@assets/images/emoji.svg");
-var flag_svg_1 = require("@assets/images/emojiCategoryIcons/flag.svg");
-var hamburger_svg_1 = require("@assets/images/emojiCategoryIcons/hamburger.svg");
-var light_bulb_svg_1 = require("@assets/images/emojiCategoryIcons/light-bulb.svg");
-var peace_sign_svg_1 = require("@assets/images/emojiCategoryIcons/peace-sign.svg");
-var plane_svg_1 = require("@assets/images/emojiCategoryIcons/plane.svg");
-var plant_svg_1 = require("@assets/images/emojiCategoryIcons/plant.svg");
-var soccer_ball_svg_1 = require("@assets/images/emojiCategoryIcons/soccer-ball.svg");
-var history_svg_1 = require("@assets/images/history.svg");
+var emoji_svg_1 = require('@assets/images/emoji.svg');
+var flag_svg_1 = require('@assets/images/emojiCategoryIcons/flag.svg');
+var hamburger_svg_1 = require('@assets/images/emojiCategoryIcons/hamburger.svg');
+var light_bulb_svg_1 = require('@assets/images/emojiCategoryIcons/light-bulb.svg');
+var peace_sign_svg_1 = require('@assets/images/emojiCategoryIcons/peace-sign.svg');
+var plane_svg_1 = require('@assets/images/emojiCategoryIcons/plane.svg');
+var plant_svg_1 = require('@assets/images/emojiCategoryIcons/plant.svg');
+var soccer_ball_svg_1 = require('@assets/images/emojiCategoryIcons/soccer-ball.svg');
+var history_svg_1 = require('@assets/images/history.svg');
 var skinTones = [
     {
         code: '🖐',
-        skinTone: -1
+        skinTone: -1,
     },
     {
         code: '🖐🏻',
-        skinTone: 4
+        skinTone: 4,
     },
     {
         code: '🖐🏼',
-        skinTone: 3
+        skinTone: 3,
     },
     {
         code: '🖐🏽',
-        skinTone: 2
+        skinTone: 2,
     },
     {
         code: '🖐🏾',
-        skinTone: 1
+        skinTone: 1,
     },
     {
         code: '🖐🏿',
-        skinTone: 0
+        skinTone: 0,
     },
 ];
 exports.skinTones = skinTones;
 var emojis = [
     {
         header: true,
-        icon: emoji_svg_1["default"],
-        code: 'smileysAndEmotion'
+        icon: emoji_svg_1['default'],
+        code: 'smileysAndEmotion',
     },
     {
         name: 'grinning',
-        code: '😀'
+        code: '😀',
     },
     {
         name: 'smiley',
-        code: '😃'
+        code: '😃',
     },
     {
         name: 'smile',
-        code: '😄'
+        code: '😄',
     },
     {
         name: 'grin',
-        code: '😁'
+        code: '😁',
     },
     {
         name: 'laughing',
-        code: '😆'
+        code: '😆',
     },
     {
         name: 'sweat_smile',
-        code: '😅'
+        code: '😅',
     },
     {
         name: 'rofl',
-        code: '🤣'
+        code: '🤣',
     },
     {
         name: 'joy',
-        code: '😂'
+        code: '😂',
     },
     {
         name: 'slightly_smiling_face',
-        code: '🙂'
+        code: '🙂',
     },
     {
         name: 'upside_down_face',
-        code: '🙃'
+        code: '🙃',
     },
     {
         name: 'wink',
-        code: '😉'
+        code: '😉',
     },
     {
         name: 'blush',
-        code: '😊'
+        code: '😊',
     },
     {
         name: 'innocent',
-        code: '😇'
+        code: '😇',
     },
     {
         name: 'smiling_face_with_three_hearts',
-        code: '🥰'
+        code: '🥰',
     },
     {
         name: 'heart_eyes',
-        code: '😍'
+        code: '😍',
     },
     {
         name: 'star_struck',
-        code: '🤩'
+        code: '🤩',
     },
     {
         name: 'kissing_heart',
-        code: '😘'
+        code: '😘',
     },
     {
         name: 'kissing',
-        code: '😗'
+        code: '😗',
     },
     {
         name: 'relaxed',
-        code: '☺️'
+        code: '☺️',
     },
     {
         name: 'kissing_closed_eyes',
-        code: '😚'
+        code: '😚',
     },
     {
         name: 'kissing_smiling_eyes',
-        code: '😙'
+        code: '😙',
     },
     {
         name: 'smiling_face_with_tear',
-        code: '🥲'
+        code: '🥲',
     },
     {
         name: 'yum',
-        code: '😋'
+        code: '😋',
     },
     {
         name: 'stuck_out_tongue',
-        code: '😛'
+        code: '😛',
     },
     {
         name: 'stuck_out_tongue_winking_eye',
-        code: '😜'
+        code: '😜',
     },
     {
         name: 'zany_face',
-        code: '🤪'
+        code: '🤪',
     },
     {
         name: 'stuck_out_tongue_closed_eyes',
-        code: '😝'
+        code: '😝',
     },
     {
         name: 'money_mouth_face',
-        code: '🤑'
+        code: '🤑',
     },
     {
         name: 'hugs',
-        code: '🤗'
+        code: '🤗',
     },
     {
         name: 'hand_over_mouth',
-        code: '🤭'
+        code: '🤭',
     },
     {
         name: 'face_with_open_eyes_and_hand_over_mouth',
-        code: '🫢'
+        code: '🫢',
     },
     {
         name: 'saluting_face',
-        code: '🫡'
+        code: '🫡',
     },
     {
         name: 'shushing_face',
-        code: '🤫'
+        code: '🤫',
     },
     {
         name: 'face_with_peeking_eye',
-        code: '🫣'
+        code: '🫣',
     },
     {
         name: 'melting_face',
-        code: '🫠'
+        code: '🫠',
     },
     {
         name: 'thinking',
-        code: '🤔'
+        code: '🤔',
     },
     {
         name: 'zipper_mouth_face',
-        code: '🤐'
+        code: '🤐',
     },
     {
         name: 'dotted_line_face',
-        code: '🫥'
+        code: '🫥',
     },
     {
         name: 'raised_eyebrow',
-        code: '🤨'
+        code: '🤨',
     },
     {
         name: 'neutral_face',
-        code: '😐'
+        code: '😐',
     },
     {
         name: 'face_with_diagonal_mouth',
-        code: '🫤'
+        code: '🫤',
     },
     {
         name: 'expressionless',
-        code: '😑'
+        code: '😑',
     },
     {
         name: 'shaking_face',
-        code: '🫨'
+        code: '🫨',
     },
     {
         name: 'no_mouth',
-        code: '😶'
+        code: '😶',
     },
     {
         name: 'face_in_clouds',
-        code: '😶‍🌫️'
+        code: '😶‍🌫️',
     },
     {
         name: 'smirk',
-        code: '😏'
+        code: '😏',
     },
     {
         name: 'unamused',
-        code: '😒'
+        code: '😒',
     },
     {
         name: 'roll_eyes',
-        code: '🙄'
+        code: '🙄',
     },
     {
         name: 'grimacing',
-        code: '😬'
+        code: '😬',
     },
     {
         name: 'face_exhaling',
-        code: '😮‍💨'
+        code: '😮‍💨',
     },
     {
         name: 'lying_face',
-        code: '🤥'
+        code: '🤥',
     },
     {
         name: 'relieved',
-        code: '😌'
+        code: '😌',
     },
     {
         name: 'pensive',
-        code: '😔'
+        code: '😔',
     },
     {
         name: 'sleepy',
-        code: '😪'
+        code: '😪',
     },
     {
         name: 'drooling_face',
-        code: '🤤'
+        code: '🤤',
     },
     {
         name: 'sleeping',
-        code: '😴'
+        code: '😴',
     },
     {
         name: 'mask',
-        code: '😷'
+        code: '😷',
     },
     {
         name: 'face_with_thermometer',
-        code: '🤒'
+        code: '🤒',
     },
     {
         name: 'face_with_head_bandage',
-        code: '🤕'
+        code: '🤕',
     },
     {
         name: 'nauseated_face',
-        code: '🤢'
+        code: '🤢',
     },
     {
         name: 'vomiting_face',
-        code: '🤮'
+        code: '🤮',
     },
     {
         name: 'sneezing_face',
-        code: '🤧'
+        code: '🤧',
     },
     {
         name: 'hot_face',
-        code: '🥵'
+        code: '🥵',
     },
     {
         name: 'cold_face',
-        code: '🥶'
+        code: '🥶',
     },
     {
         name: 'woozy_face',
-        code: '🥴'
+        code: '🥴',
     },
     {
         name: 'dizzy_face',
-        code: '😵'
+        code: '😵',
     },
     {
         name: 'face_with_spiral_eyes',
-        code: '😵‍💫'
+        code: '😵‍💫',
     },
     {
         name: 'exploding_head',
-        code: '🤯'
+        code: '🤯',
     },
     {
         name: 'cowboy_hat_face',
-        code: '🤠'
+        code: '🤠',
     },
     {
         name: 'partying_face',
-        code: '🥳'
+        code: '🥳',
     },
     {
         name: 'disguised_face',
-        code: '🥸'
+        code: '🥸',
     },
     {
         name: 'sunglasses',
-        code: '😎'
+        code: '😎',
     },
     {
         name: 'nerd_face',
-        code: '🤓'
+        code: '🤓',
     },
     {
         name: 'monocle_face',
-        code: '🧐'
+        code: '🧐',
     },
     {
         name: 'confused',
-        code: '😕'
+        code: '😕',
     },
     {
         name: 'worried',
-        code: '😟'
+        code: '😟',
     },
     {
         name: 'slightly_frowning_face',
-        code: '🙁'
+        code: '🙁',
     },
     {
         name: 'frowning_face',
-        code: '☹️'
+        code: '☹️',
     },
     {
         name: 'open_mouth',
-        code: '😮'
+        code: '😮',
     },
     {
         name: 'hushed',
-        code: '😯'
+        code: '😯',
     },
     {
         name: 'astonished',
-        code: '😲'
+        code: '😲',
     },
     {
         name: 'flushed',
-        code: '😳'
+        code: '😳',
     },
     {
         name: 'pleading_face',
-        code: '🥺'
+        code: '🥺',
     },
     {
         name: 'frowning',
-        code: '😦'
+        code: '😦',
     },
     {
         name: 'anguished',
-        code: '😧'
+        code: '😧',
     },
     {
         name: 'fearful',
-        code: '😨'
+        code: '😨',
     },
     {
         name: 'cold_sweat',
-        code: '😰'
+        code: '😰',
     },
     {
         name: 'face_holding_back_tears',
-        code: '🥹'
+        code: '🥹',
     },
     {
         name: 'disappointed_relieved',
-        code: '😥'
+        code: '😥',
     },
     {
         name: 'cry',
-        code: '😢'
+        code: '😢',
     },
     {
         name: 'sob',
-        code: '😭'
+        code: '😭',
     },
     {
         name: 'scream',
-        code: '😱'
+        code: '😱',
     },
     {
         name: 'confounded',
-        code: '😖'
+        code: '😖',
     },
     {
         name: 'persevere',
-        code: '😣'
+        code: '😣',
     },
     {
         name: 'disappointed',
-        code: '😞'
+        code: '😞',
     },
     {
         name: 'sweat',
-        code: '😓'
+        code: '😓',
     },
     {
         name: 'weary',
-        code: '😩'
+        code: '😩',
     },
     {
         name: 'tired_face',
-        code: '😫'
+        code: '😫',
     },
     {
         name: 'yawning_face',
-        code: '🥱'
+        code: '🥱',
     },
     {
         name: 'triumph',
-        code: '😤'
+        code: '😤',
     },
     {
         name: 'rage',
-        code: '😡'
+        code: '😡',
     },
     {
         name: 'angry',
-        code: '😠'
+        code: '😠',
     },
     {
         name: 'cursing_face',
-        code: '🤬'
+        code: '🤬',
     },
     {
         name: 'smiling_imp',
-        code: '😈'
+        code: '😈',
     },
     {
         name: 'imp',
-        code: '👿'
+        code: '👿',
     },
     {
         name: 'skull',
-        code: '💀'
+        code: '💀',
     },
     {
         name: 'skull_and_crossbones',
-        code: '☠️'
+        code: '☠️',
     },
     {
         name: 'hankey',
-        code: '💩'
+        code: '💩',
     },
     {
         name: 'clown_face',
-        code: '🤡'
+        code: '🤡',
     },
     {
         name: 'japanese_ogre',
-        code: '👹'
+        code: '👹',
     },
     {
         name: 'japanese_goblin',
-        code: '👺'
+        code: '👺',
     },
     {
         name: 'ghost',
-        code: '👻'
+        code: '👻',
     },
     {
         name: 'alien',
-        code: '👽'
+        code: '👽',
     },
     {
         name: 'space_invader',
-        code: '👾'
+        code: '👾',
     },
     {
         name: 'robot',
-        code: '🤖'
+        code: '🤖',
     },
     {
         name: 'smiley_cat',
-        code: '😺'
+        code: '😺',
     },
     {
         name: 'smile_cat',
-        code: '😸'
+        code: '😸',
     },
     {
         name: 'joy_cat',
-        code: '😹'
+        code: '😹',
     },
     {
         name: 'heart_eyes_cat',
-        code: '😻'
+        code: '😻',
     },
     {
         name: 'smirk_cat',
-        code: '😼'
+        code: '😼',
     },
     {
         name: 'kissing_cat',
-        code: '😽'
+        code: '😽',
     },
     {
         name: 'scream_cat',
-        code: '🙀'
+        code: '🙀',
     },
     {
         name: 'crying_cat_face',
-        code: '😿'
+        code: '😿',
     },
     {
         name: 'pouting_cat',
-        code: '😾'
+        code: '😾',
     },
     {
         name: 'see_no_evil',
-        code: '🙈'
+        code: '🙈',
     },
     {
         name: 'hear_no_evil',
-        code: '🙉'
+        code: '🙉',
     },
     {
         name: 'speak_no_evil',
-        code: '🙊'
+        code: '🙊',
     },
     {
         name: 'kiss',
-        code: '💋'
+        code: '💋',
     },
     {
         name: 'love_letter',
-        code: '💌'
+        code: '💌',
     },
     {
         name: 'cupid',
-        code: '💘'
+        code: '💘',
     },
     {
         name: 'gift_heart',
-        code: '💝'
+        code: '💝',
     },
     {
         name: 'sparkling_heart',
-        code: '💖'
+        code: '💖',
     },
     {
         name: 'heartpulse',
-        code: '💗'
+        code: '💗',
     },
     {
         name: 'heartbeat',
-        code: '💓'
+        code: '💓',
     },
     {
         name: 'revolving_hearts',
-        code: '💞'
+        code: '💞',
     },
     {
         name: 'two_hearts',
-        code: '💕'
+        code: '💕',
     },
     {
         name: 'heart_decoration',
-        code: '💟'
+        code: '💟',
     },
     {
         name: 'heavy_heart_exclamation',
-        code: '❣️'
+        code: '❣️',
     },
     {
         name: 'broken_heart',
-        code: '💔'
+        code: '💔',
     },
     {
         name: 'heart_on_fire',
-        code: '❤️‍🔥'
+        code: '❤️‍🔥',
     },
     {
         name: 'mending_heart',
-        code: '❤️‍🩹'
+        code: '❤️‍🩹',
     },
     {
         name: 'heart',
-        code: '❤️'
+        code: '❤️',
     },
     {
         name: 'pink_heart',
-        code: '🩷'
+        code: '🩷',
     },
     {
         name: 'light_blue_heart',
-        code: '🩵'
+        code: '🩵',
     },
     {
         name: 'grey_heart',
-        code: '🩶'
+        code: '🩶',
     },
     {
         name: 'orange_heart',
-        code: '🧡'
+        code: '🧡',
     },
     {
         name: 'yellow_heart',
-        code: '💛'
+        code: '💛',
     },
     {
         name: 'green_heart',
-        code: '💚'
+        code: '💚',
     },
     {
         name: 'blue_heart',
-        code: '💙'
+        code: '💙',
     },
     {
         name: 'purple_heart',
-        code: '💜'
+        code: '💜',
     },
     {
         name: 'brown_heart',
-        code: '🤎'
+        code: '🤎',
     },
     {
         name: 'black_heart',
-        code: '🖤'
+        code: '🖤',
     },
     {
         name: 'white_heart',
-        code: '🤍'
+        code: '🤍',
     },
     {
         name: '100',
-        code: '💯'
+        code: '💯',
     },
     {
         name: 'anger',
-        code: '💢'
+        code: '💢',
     },
     {
         name: 'boom',
-        code: '💥'
+        code: '💥',
     },
     {
         name: 'dizzy',
-        code: '💫'
+        code: '💫',
     },
     {
         name: 'sweat_drops',
-        code: '💦'
+        code: '💦',
     },
     {
         name: 'bubbles',
-        code: '🫧'
+        code: '🫧',
     },
     {
         name: 'dash',
-        code: '💨'
+        code: '💨',
     },
     {
         name: 'hole',
-        code: '🕳️'
+        code: '🕳️',
     },
     {
         name: 'bomb',
-        code: '💣'
+        code: '💣',
     },
     {
         name: 'speech_balloon',
-        code: '💬'
+        code: '💬',
     },
     {
         name: 'eye_speech_bubble',
-        code: '👁️‍🗨️'
+        code: '👁️‍🗨️',
     },
     {
         name: 'left_speech_bubble',
-        code: '🗨️'
+        code: '🗨️',
     },
     {
         name: 'right_anger_bubble',
-        code: '🗯️'
+        code: '🗯️',
     },
     {
         name: 'thought_balloon',
-        code: '💭'
+        code: '💭',
     },
     {
         name: 'zzz',
-        code: '💤'
+        code: '💤',
     },
     {
         name: 'wave',
         code: '👋',
-        types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻']
+        types: ['👋🏿', '👋🏾', '👋🏽', '👋🏼', '👋🏻'],
     },
     {
         name: 'raised_back_of_hand',
         code: '🤚',
-        types: ['🤚🏿', '🤚🏾', '🤚🏽', '🤚🏼', '🤚🏻']
+        types: ['🤚🏿', '🤚🏾', '🤚🏽', '🤚🏼', '🤚🏻'],
     },
     {
         name: 'raised_hand_with_fingers_splayed',
         code: '🖐️',
-        types: ['🖐🏿', '🖐🏾', '🖐🏽', '🖐🏼', '🖐🏻']
+        types: ['🖐🏿', '🖐🏾', '🖐🏽', '🖐🏼', '🖐🏻'],
     },
     {
         name: 'hand',
         code: '✋',
-        types: ['✋🏿', '✋🏾', '✋🏽', '✋🏼', '✋🏻']
+        types: ['✋🏿', '✋🏾', '✋🏽', '✋🏼', '✋🏻'],
     },
     {
         name: 'vulcan_salute',
         code: '🖖',
-        types: ['🖖🏿', '🖖🏾', '🖖🏽', '🖖🏼', '🖖🏻']
+        types: ['🖖🏿', '🖖🏾', '🖖🏽', '🖖🏼', '🖖🏻'],
     },
     {
         name: 'ok_hand',
         code: '👌',
-        types: ['👌🏿', '👌🏾', '👌🏽', '👌🏼', '👌🏻']
+        types: ['👌🏿', '👌🏾', '👌🏽', '👌🏼', '👌🏻'],
     },
     {
         name: 'pinched_fingers',
         code: '🤌',
-        types: ['🤌🏿', '🤌🏾', '🤌🏽', '🤌🏼', '🤌🏻']
+        types: ['🤌🏿', '🤌🏾', '🤌🏽', '🤌🏼', '🤌🏻'],
     },
     {
         name: 'pinching_hand',
         code: '🤏',
-        types: ['🤏🏿', '🤏🏾', '🤏🏽', '🤏🏼', '🤏🏻']
+        types: ['🤏🏿', '🤏🏾', '🤏🏽', '🤏🏼', '🤏🏻'],
     },
     {
         name: 'palm_down_hand',
         code: '🫳',
-        types: ['🫳🏿', '🫳🏾', '🫳🏽', '🫳🏼', '🫳🏻']
+        types: ['🫳🏿', '🫳🏾', '🫳🏽', '🫳🏼', '🫳🏻'],
     },
     {
         name: 'palm_up_hand',
         code: '🫴',
-        types: ['🫴🏿', '🫴🏾', '🫴🏽', '🫴🏼', '🫴🏻']
+        types: ['🫴🏿', '🫴🏾', '🫴🏽', '🫴🏼', '🫴🏻'],
     },
     {
         name: 'v',
         code: '✌️',
-        types: ['✌🏿', '✌🏾', '✌🏽', '✌🏼', '✌🏻']
+        types: ['✌🏿', '✌🏾', '✌🏽', '✌🏼', '✌🏻'],
     },
     {
         name: 'crossed_fingers',
         code: '🤞',
-        types: ['🤞🏿', '🤞🏾', '🤞🏽', '🤞🏼', '🤞🏻']
+        types: ['🤞🏿', '🤞🏾', '🤞🏽', '🤞🏼', '🤞🏻'],
     },
     {
         name: 'love_you_gesture',
         code: '🤟',
-        types: ['🤟🏿', '🤟🏾', '🤟🏽', '🤟🏼', '🤟🏻']
+        types: ['🤟🏿', '🤟🏾', '🤟🏽', '🤟🏼', '🤟🏻'],
     },
     {
         name: 'metal',
         code: '🤘',
-        types: ['🤘🏿', '🤘🏾', '🤘🏽', '🤘🏼', '🤘🏻']
+        types: ['🤘🏿', '🤘🏾', '🤘🏽', '🤘🏼', '🤘🏻'],
     },
     {
         name: 'call_me_hand',
         code: '🤙',
-        types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻']
+        types: ['🤙🏿', '🤙🏾', '🤙🏽', '🤙🏼', '🤙🏻'],
     },
     {
         name: 'rightwards_hand',
         code: '🫱',
-        types: ['🫱🏿', '🫱🏾', '🫱🏽', '🫱🏼', '🫱🏻']
+        types: ['🫱🏿', '🫱🏾', '🫱🏽', '🫱🏼', '🫱🏻'],
     },
     {
         name: 'leftwards_hand',
         code: '🫲',
-        types: ['🫲🏿', '🫲🏾', '🫲🏽', '🫲🏼', '🫲🏻']
+        types: ['🫲🏿', '🫲🏾', '🫲🏽', '🫲🏼', '🫲🏻'],
     },
     {
         name: 'point_left',
         code: '👈',
-        types: ['👈🏿', '👈🏾', '👈🏽', '👈🏼', '👈🏻']
+        types: ['👈🏿', '👈🏾', '👈🏽', '👈🏼', '👈🏻'],
     },
     {
         name: 'point_right',
         code: '👉',
-        types: ['👉🏿', '👉🏾', '👉🏽', '👉🏼', '👉🏻']
+        types: ['👉🏿', '👉🏾', '👉🏽', '👉🏼', '👉🏻'],
     },
     {
         name: 'point_up_2',
         code: '👆',
-        types: ['👆🏿', '👆🏾', '👆🏽', '👆🏼', '👆🏻']
+        types: ['👆🏿', '👆🏾', '👆🏽', '👆🏼', '👆🏻'],
     },
     {
         name: 'middle_finger',
         code: '🖕',
-        types: ['🖕🏿', '🖕🏾', '🖕🏽', '🖕🏼', '🖕🏻']
+        types: ['🖕🏿', '🖕🏾', '🖕🏽', '🖕🏼', '🖕🏻'],
     },
     {
         name: 'point_down',
         code: '👇',
-        types: ['👇🏿', '👇🏾', '👇🏽', '👇🏼', '👇🏻']
+        types: ['👇🏿', '👇🏾', '👇🏽', '👇🏼', '👇🏻'],
     },
     {
         name: 'point_up',
         code: '☝️',
-        types: ['☝🏿', '☝🏾', '☝🏽', '☝🏼', '☝🏻']
+        types: ['☝🏿', '☝🏾', '☝🏽', '☝🏼', '☝🏻'],
     },
     {
         name: '+1',
         code: '👍',
-        types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻']
+        types: ['👍🏿', '👍🏾', '👍🏽', '👍🏼', '👍🏻'],
     },
     {
         name: '-1',
         code: '👎',
-        types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻']
+        types: ['👎🏿', '👎🏾', '👎🏽', '👎🏼', '👎🏻'],
     },
     {
         name: 'hand_with_index_finger_and_thumb_crossed',
         code: '🫰',
-        types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻']
+        types: ['🫰🏿', '🫰🏾', '🫰🏽', '🫰🏼', '🫰🏻'],
     },
     {
         name: 'fist_raised',
         code: '✊',
-        types: ['✊🏿', '✊🏾', '✊🏽', '✊🏼', '✊🏻']
+        types: ['✊🏿', '✊🏾', '✊🏽', '✊🏼', '✊🏻'],
     },
     {
         name: 'fist_oncoming',
         code: '👊',
-        types: ['👊🏿', '👊🏾', '👊🏽', '👊🏼', '👊🏻']
+        types: ['👊🏿', '👊🏾', '👊🏽', '👊🏼', '👊🏻'],
     },
     {
         name: 'fist_left',
         code: '🤛',
-        types: ['🤛🏿', '🤛🏾', '🤛🏽', '🤛🏼', '🤛🏻']
+        types: ['🤛🏿', '🤛🏾', '🤛🏽', '🤛🏼', '🤛🏻'],
     },
     {
         name: 'fist_right',
         code: '🤜',
-        types: ['🤜🏿', '🤜🏾', '🤜🏽', '🤜🏼', '🤜🏻']
+        types: ['🤜🏿', '🤜🏾', '🤜🏽', '🤜🏼', '🤜🏻'],
     },
     {
         name: 'leftwards_pushing_hand',
         code: '🫷',
-        types: ['🫷🏿', '🫷🏾', '🫷🏽', '🫷🏼', '🫷🏻']
+        types: ['🫷🏿', '🫷🏾', '🫷🏽', '🫷🏼', '🫷🏻'],
     },
     {
         name: 'rightwards_pushing_hand',
         code: '🫸',
-        types: ['🫸🏿', '🫸🏾', '🫸🏽', '🫸🏼', '🫸🏻']
+        types: ['🫸🏿', '🫸🏾', '🫸🏽', '🫸🏼', '🫸🏻'],
     },
     {
         name: 'clap',
         code: '👏',
-        types: ['👏🏿', '👏🏾', '👏🏽', '👏🏼', '👏🏻']
+        types: ['👏🏿', '👏🏾', '👏🏽', '👏🏼', '👏🏻'],
     },
     {
         name: 'raised_hands',
         code: '🙌',
-        types: ['🙌🏿', '🙌🏾', '🙌🏽', '🙌🏼', '🙌🏻']
+        types: ['🙌🏿', '🙌🏾', '🙌🏽', '🙌🏼', '🙌🏻'],
     },
     {
         name: 'heart_hands',
         code: '🫶',
-        types: ['🫶🏿', '🫶🏾', '🫶🏽', '🫶🏼', '🫶🏻']
+        types: ['🫶🏿', '🫶🏾', '🫶🏽', '🫶🏼', '🫶🏻'],
     },
     {
         name: 'open_hands',
         code: '👐',
-        types: ['👐🏿', '👐🏾', '👐🏽', '👐🏼', '👐🏻']
+        types: ['👐🏿', '👐🏾', '👐🏽', '👐🏼', '👐🏻'],
     },
     {
         name: 'palms_up_together',
         code: '🤲',
-        types: ['🤲🏿', '🤲🏾', '🤲🏽', '🤲🏼', '🤲🏻']
+        types: ['🤲🏿', '🤲🏾', '🤲🏽', '🤲🏼', '🤲🏻'],
     },
     {
         name: 'handshake',
         code: '🤝',
-        types: ['🤝🏿', '🤝🏾', '🤝🏽', '🤝🏼', '🤝🏻']
+        types: ['🤝🏿', '🤝🏾', '🤝🏽', '🤝🏼', '🤝🏻'],
     },
     {
         name: 'pray',
         code: '🙏',
-        types: ['🙏🏿', '🙏🏾', '🙏🏽', '🙏🏼', '🙏🏻']
+        types: ['🙏🏿', '🙏🏾', '🙏🏽', '🙏🏼', '🙏🏻'],
     },
     {
         name: 'index_pointing_at_the_viewer',
         code: '🫵',
-        types: ['🫵🏿', '🫵🏾', '🫵🏽', '🫵🏼', '🫵🏻']
+        types: ['🫵🏿', '🫵🏾', '🫵🏽', '🫵🏼', '🫵🏻'],
     },
     {
         name: 'writing_hand',
         code: '✍️',
-        types: ['✍🏿', '✍🏾', '✍🏽', '✍🏼', '✍🏻']
+        types: ['✍🏿', '✍🏾', '✍🏽', '✍🏼', '✍🏻'],
     },
     {
         name: 'nail_care',
         code: '💅',
-        types: ['💅🏿', '💅🏾', '💅🏽', '💅🏼', '💅🏻']
+        types: ['💅🏿', '💅🏾', '💅🏽', '💅🏼', '💅🏻'],
     },
     {
         name: 'selfie',
         code: '🤳',
-        types: ['🤳🏿', '🤳🏾', '🤳🏽', '🤳🏼', '🤳🏻']
+        types: ['🤳🏿', '🤳🏾', '🤳🏽', '🤳🏼', '🤳🏻'],
     },
     {
         name: 'muscle',
         code: '💪',
-        types: ['💪🏿', '💪🏾', '💪🏽', '💪🏼', '💪🏻']
+        types: ['💪🏿', '💪🏾', '💪🏽', '💪🏼', '💪🏻'],
     },
     {
         name: 'mechanical_arm',
-        code: '🦾'
+        code: '🦾',
     },
     {
         name: 'mechanical_leg',
-        code: '🦿'
+        code: '🦿',
     },
     {
         name: 'leg',
         code: '🦵',
-        types: ['🦵🏿', '🦵🏾', '🦵🏽', '🦵🏼', '🦵🏻']
+        types: ['🦵🏿', '🦵🏾', '🦵🏽', '🦵🏼', '🦵🏻'],
     },
     {
         name: 'foot',
         code: '🦶',
-        types: ['🦶🏿', '🦶🏾', '🦶🏽', '🦶🏼', '🦶🏻']
+        types: ['🦶🏿', '🦶🏾', '🦶🏽', '🦶🏼', '🦶🏻'],
     },
     {
         name: 'ear',
         code: '👂',
-        types: ['👂🏿', '👂🏾', '👂🏽', '👂🏼', '👂🏻']
+        types: ['👂🏿', '👂🏾', '👂🏽', '👂🏼', '👂🏻'],
     },
     {
         name: 'ear_with_hearing_aid',
         code: '🦻',
-        types: ['🦻🏿', '🦻🏾', '🦻🏽', '🦻🏼', '🦻🏻']
+        types: ['🦻🏿', '🦻🏾', '🦻🏽', '🦻🏼', '🦻🏻'],
     },
     {
         name: 'nose',
         code: '👃',
-        types: ['👃🏿', '👃🏾', '👃🏽', '👃🏼', '👃🏻']
+        types: ['👃🏿', '👃🏾', '👃🏽', '👃🏼', '👃🏻'],
     },
     {
         name: 'brain',
-        code: '🧠'
+        code: '🧠',
     },
     {
         name: 'anatomical_heart',
-        code: '🫀'
+        code: '🫀',
     },
     {
         name: 'lungs',
-        code: '🫁'
+        code: '🫁',
     },
     {
         name: 'tooth',
-        code: '🦷'
+        code: '🦷',
     },
     {
         name: 'bone',
-        code: '🦴'
+        code: '🦴',
     },
     {
         name: 'eyes',
-        code: '👀'
+        code: '👀',
     },
     {
         name: 'eye',
-        code: '👁️'
+        code: '👁️',
     },
     {
         name: 'tongue',
-        code: '👅'
+        code: '👅',
     },
     {
         name: 'lips',
-        code: '👄'
+        code: '👄',
     },
     {
         name: 'biting_lip',
-        code: '🫦'
+        code: '🫦',
     },
     {
         name: 'baby',
         code: '👶',
-        types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻']
+        types: ['👶🏿', '👶🏾', '👶🏽', '👶🏼', '👶🏻'],
     },
     {
         name: 'child',
         code: '🧒',
-        types: ['🧒🏿', '🧒🏾', '🧒🏽', '🧒🏼', '🧒🏻']
+        types: ['🧒🏿', '🧒🏾', '🧒🏽', '🧒🏼', '🧒🏻'],
     },
     {
         name: 'boy',
         code: '👦',
-        types: ['👦🏿', '👦🏾', '👦🏽', '👦🏼', '👦🏻']
+        types: ['👦🏿', '👦🏾', '👦🏽', '👦🏼', '👦🏻'],
     },
     {
         name: 'girl',
         code: '👧',
-        types: ['👧🏿', '👧🏾', '👧🏽', '👧🏼', '👧🏻']
+        types: ['👧🏿', '👧🏾', '👧🏽', '👧🏼', '👧🏻'],
     },
     {
         name: 'adult',
         code: '🧑',
-        types: ['🧑🏿', '🧑🏾', '🧑🏽', '🧑🏼', '🧑🏻']
+        types: ['🧑🏿', '🧑🏾', '🧑🏽', '🧑🏼', '🧑🏻'],
     },
     {
         name: 'blond_haired_person',
         code: '👱',
-        types: ['👱🏿', '👱🏾', '👱🏽', '👱🏼', '👱🏻']
+        types: ['👱🏿', '👱🏾', '👱🏽', '👱🏼', '👱🏻'],
     },
     {
         name: 'man',
         code: '👨',
-        types: ['👨🏿', '👨🏾', '👨🏽', '👨🏼', '👨🏻']
+        types: ['👨🏿', '👨🏾', '👨🏽', '👨🏼', '👨🏻'],
     },
     {
         name: 'bearded_person',
         code: '🧔',
-        types: ['🧔🏿', '🧔🏾', '🧔🏽', '🧔🏼', '🧔🏻']
+        types: ['🧔🏿', '🧔🏾', '🧔🏽', '🧔🏼', '🧔🏻'],
     },
     {
         name: 'man_beard',
         code: '🧔‍♂️',
-        types: ['🧔🏿‍♂️', '🧔🏾‍♂️', '🧔🏽‍♂️', '🧔🏼‍♂️', '🧔🏻‍♂️']
+        types: ['🧔🏿‍♂️', '🧔🏾‍♂️', '🧔🏽‍♂️', '🧔🏼‍♂️', '🧔🏻‍♂️'],
     },
     {
         name: 'woman_beard',
         code: '🧔‍♀️',
-        types: ['🧔🏿‍♀️', '🧔🏾‍♀️', '🧔🏽‍♀️', '🧔🏼‍♀️', '🧔🏻‍♀️']
+        types: ['🧔🏿‍♀️', '🧔🏾‍♀️', '🧔🏽‍♀️', '🧔🏼‍♀️', '🧔🏻‍♀️'],
     },
     {
         name: 'red_haired_man',
         code: '👨‍🦰',
-        types: ['👨🏿‍🦰', '👨🏾‍🦰', '👨🏽‍🦰', '👨🏼‍🦰', '👨🏻‍🦰']
+        types: ['👨🏿‍🦰', '👨🏾‍🦰', '👨🏽‍🦰', '👨🏼‍🦰', '👨🏻‍🦰'],
     },
     {
         name: 'curly_haired_man',
         code: '👨‍🦱',
-        types: ['👨🏿‍🦱', '👨🏾‍🦱', '👨🏽‍🦱', '👨🏼‍🦱', '👨🏻‍🦱']
+        types: ['👨🏿‍🦱', '👨🏾‍🦱', '👨🏽‍🦱', '👨🏼‍🦱', '👨🏻‍🦱'],
     },
     {
         name: 'white_haired_man',
         code: '👨‍🦳',
-        types: ['👨🏿‍🦳', '👨🏾‍🦳', '👨🏽‍🦳', '👨🏼‍🦳', '👨🏻‍🦳']
+        types: ['👨🏿‍🦳', '👨🏾‍🦳', '👨🏽‍🦳', '👨🏼‍🦳', '👨🏻‍🦳'],
     },
     {
         name: 'bald_man',
         code: '👨‍🦲',
-        types: ['👨🏿‍🦲', '👨🏾‍🦲', '👨🏽‍🦲', '👨🏼‍🦲', '👨🏻‍🦲']
+        types: ['👨🏿‍🦲', '👨🏾‍🦲', '👨🏽‍🦲', '👨🏼‍🦲', '👨🏻‍🦲'],
     },
     {
         name: 'woman',
         code: '👩',
-        types: ['👩🏿', '👩🏾', '👩🏽', '👩🏼', '👩🏻']
+        types: ['👩🏿', '👩🏾', '👩🏽', '👩🏼', '👩🏻'],
     },
     {
         name: 'red_haired_woman',
         code: '👩‍🦰',
-        types: ['👩🏿‍🦰', '👩🏾‍🦰', '👩🏽‍🦰', '👩🏼‍🦰', '👩🏻‍🦰']
+        types: ['👩🏿‍🦰', '👩🏾‍🦰', '👩🏽‍🦰', '👩🏼‍🦰', '👩🏻‍🦰'],
     },
     {
         name: 'person_red_hair',
         code: '🧑‍🦰',
-        types: ['🧑🏿‍🦰', '🧑🏾‍🦰', '🧑🏽‍🦰', '🧑🏼‍🦰', '🧑🏻‍🦰']
+        types: ['🧑🏿‍🦰', '🧑🏾‍🦰', '🧑🏽‍🦰', '🧑🏼‍🦰', '🧑🏻‍🦰'],
     },
     {
         name: 'curly_haired_woman',
         code: '👩‍🦱',
-        types: ['👩🏿‍🦱', '👩🏾‍🦱', '👩🏽‍🦱', '👩🏼‍🦱', '👩🏻‍🦱']
+        types: ['👩🏿‍🦱', '👩🏾‍🦱', '👩🏽‍🦱', '👩🏼‍🦱', '👩🏻‍🦱'],
     },
     {
         name: 'person_curly_hair',
         code: '🧑‍🦱',
-        types: ['🧑🏿‍🦱', '🧑🏾‍🦱', '🧑🏽‍🦱', '🧑🏼‍🦱', '🧑🏻‍🦱']
+        types: ['🧑🏿‍🦱', '🧑🏾‍🦱', '🧑🏽‍🦱', '🧑🏼‍🦱', '🧑🏻‍🦱'],
     },
     {
         name: 'white_haired_woman',
         code: '👩‍🦳',
-        types: ['👩🏿‍🦳', '👩🏾‍🦳', '👩🏽‍🦳', '👩🏼‍🦳', '👩🏻‍🦳']
+        types: ['👩🏿‍🦳', '👩🏾‍🦳', '👩🏽‍🦳', '👩🏼‍🦳', '👩🏻‍🦳'],
     },
     {
         name: 'person_white_hair',
         code: '🧑‍🦳',
-        types: ['🧑🏿‍🦳', '🧑🏾‍🦳', '🧑🏽‍🦳', '🧑🏼‍🦳', '🧑🏻‍🦳']
+        types: ['🧑🏿‍🦳', '🧑🏾‍🦳', '🧑🏽‍🦳', '🧑🏼‍🦳', '🧑🏻‍🦳'],
     },
     {
         name: 'bald_woman',
         code: '👩‍🦲',
-        types: ['👩🏿‍🦲', '👩🏾‍🦲', '👩🏽‍🦲', '👩🏼‍🦲', '👩🏻‍🦲']
+        types: ['👩🏿‍🦲', '👩🏾‍🦲', '👩🏽‍🦲', '👩🏼‍🦲', '👩🏻‍🦲'],
     },
     {
         name: 'person_bald',
         code: '🧑‍🦲',
-        types: ['🧑🏿‍🦲', '🧑🏾‍🦲', '🧑🏽‍🦲', '🧑🏼‍🦲', '🧑🏻‍🦲']
+        types: ['🧑🏿‍🦲', '🧑🏾‍🦲', '🧑🏽‍🦲', '🧑🏼‍🦲', '🧑🏻‍🦲'],
     },
     {
         name: 'blond_haired_woman',
         code: '👱‍♀️',
-        types: ['👱🏿‍♀️', '👱🏾‍♀️', '👱🏽‍♀️', '👱🏼‍♀️', '👱🏻‍♀️']
+        types: ['👱🏿‍♀️', '👱🏾‍♀️', '👱🏽‍♀️', '👱🏼‍♀️', '👱🏻‍♀️'],
     },
     {
         name: 'blond_haired_man',
         code: '👱‍♂️',
-        types: ['👱🏿‍♂️', '👱🏾‍♂️', '👱🏽‍♂️', '👱🏼‍♂️', '👱🏻‍♂️']
+        types: ['👱🏿‍♂️', '👱🏾‍♂️', '👱🏽‍♂️', '👱🏼‍♂️', '👱🏻‍♂️'],
     },
     {
         name: 'older_adult',
         code: '🧓',
-        types: ['🧓🏿', '🧓🏾', '🧓🏽', '🧓🏼', '🧓🏻']
+        types: ['🧓🏿', '🧓🏾', '🧓🏽', '🧓🏼', '🧓🏻'],
     },
     {
         name: 'older_man',
         code: '👴',
-        types: ['👴🏿', '👴🏾', '👴🏽', '👴🏼', '👴🏻']
+        types: ['👴🏿', '👴🏾', '👴🏽', '👴🏼', '👴🏻'],
     },
     {
         name: 'older_woman',
         code: '👵',
-        types: ['👵🏿', '👵🏾', '👵🏽', '👵🏼', '👵🏻']
+        types: ['👵🏿', '👵🏾', '👵🏽', '👵🏼', '👵🏻'],
     },
     {
         name: 'frowning_person',
         code: '🙍',
-        types: ['🙍🏿', '🙍🏾', '🙍🏽', '🙍🏼', '🙍🏻']
+        types: ['🙍🏿', '🙍🏾', '🙍🏽', '🙍🏼', '🙍🏻'],
     },
     {
         name: 'frowning_man',
         code: '🙍‍♂️',
-        types: ['🙍🏿‍♂️', '🙍🏾‍♂️', '🙍🏽‍♂️', '🙍🏼‍♂️', '🙍🏻‍♂️']
+        types: ['🙍🏿‍♂️', '🙍🏾‍♂️', '🙍🏽‍♂️', '🙍🏼‍♂️', '🙍🏻‍♂️'],
     },
     {
         name: 'frowning_woman',
         code: '🙍‍♀️',
-        types: ['🙍🏿‍♀️', '🙍🏾‍♀️', '🙍🏽‍♀️', '🙍🏼‍♀️', '🙍🏻‍♀️']
+        types: ['🙍🏿‍♀️', '🙍🏾‍♀️', '🙍🏽‍♀️', '🙍🏼‍♀️', '🙍🏻‍♀️'],
     },
     {
         name: 'pouting_face',
         code: '🙎',
-        types: ['🙎🏿', '🙎🏾', '🙎🏽', '🙎🏼', '🙎🏻']
+        types: ['🙎🏿', '🙎🏾', '🙎🏽', '🙎🏼', '🙎🏻'],
     },
     {
         name: 'pouting_man',
         code: '🙎‍♂️',
-        types: ['🙎🏿‍♂️', '🙎🏾‍♂️', '🙎🏽‍♂️', '🙎🏼‍♂️', '🙎🏻‍♂️']
+        types: ['🙎🏿‍♂️', '🙎🏾‍♂️', '🙎🏽‍♂️', '🙎🏼‍♂️', '🙎🏻‍♂️'],
     },
     {
         name: 'pouting_woman',
         code: '🙎‍♀️',
-        types: ['🙎🏿‍♀️', '🙎🏾‍♀️', '🙎🏽‍♀️', '🙎🏼‍♀️', '🙎🏻‍♀️']
+        types: ['🙎🏿‍♀️', '🙎🏾‍♀️', '🙎🏽‍♀️', '🙎🏼‍♀️', '🙎🏻‍♀️'],
     },
     {
         name: 'no_good',
         code: '🙅',
-        types: ['🙅🏿', '🙅🏾', '🙅🏽', '🙅🏼', '🙅🏻']
+        types: ['🙅🏿', '🙅🏾', '🙅🏽', '🙅🏼', '🙅🏻'],
     },
     {
         name: 'no_good_man',
         code: '🙅‍♂️',
-        types: ['🙅🏿‍♂️', '🙅🏾‍♂️', '🙅🏽‍♂️', '🙅🏼‍♂️', '🙅🏻‍♂️']
+        types: ['🙅🏿‍♂️', '🙅🏾‍♂️', '🙅🏽‍♂️', '🙅🏼‍♂️', '🙅🏻‍♂️'],
     },
     {
         name: 'no_good_woman',
         code: '🙅‍♀️',
-        types: ['🙅🏿‍♀️', '🙅🏾‍♀️', '🙅🏽‍♀️', '🙅🏼‍♀️', '🙅🏻‍♀️']
+        types: ['🙅🏿‍♀️', '🙅🏾‍♀️', '🙅🏽‍♀️', '🙅🏼‍♀️', '🙅🏻‍♀️'],
     },
     {
         name: 'ok_person',
         code: '🙆',
-        types: ['🙆🏿', '🙆🏾', '🙆🏽', '🙆🏼', '🙆🏻']
+        types: ['🙆🏿', '🙆🏾', '🙆🏽', '🙆🏼', '🙆🏻'],
     },
     {
         name: 'ok_man',
         code: '🙆‍♂️',
-        types: ['🙆🏿‍♂️', '🙆🏾‍♂️', '🙆🏽‍♂️', '🙆🏼‍♂️', '🙆🏻‍♂️']
+        types: ['🙆🏿‍♂️', '🙆🏾‍♂️', '🙆🏽‍♂️', '🙆🏼‍♂️', '🙆🏻‍♂️'],
     },
     {
         name: 'ok_woman',
         code: '🙆‍♀️',
-        types: ['🙆🏿‍♀️', '🙆🏾‍♀️', '🙆🏽‍♀️', '🙆🏼‍♀️', '🙆🏻‍♀️']
+        types: ['🙆🏿‍♀️', '🙆🏾‍♀️', '🙆🏽‍♀️', '🙆🏼‍♀️', '🙆🏻‍♀️'],
     },
     {
         name: 'tipping_hand_person',
         code: '💁',
-        types: ['💁🏿', '💁🏾', '💁🏽', '💁🏼', '💁🏻']
+        types: ['💁🏿', '💁🏾', '💁🏽', '💁🏼', '💁🏻'],
     },
     {
         name: 'tipping_hand_man',
         code: '💁‍♂️',
-        types: ['💁🏿‍♂️', '💁🏾‍♂️', '💁🏽‍♂️', '💁🏼‍♂️', '💁🏻‍♂️']
+        types: ['💁🏿‍♂️', '💁🏾‍♂️', '💁🏽‍♂️', '💁🏼‍♂️', '💁🏻‍♂️'],
     },
     {
         name: 'tipping_hand_woman',
         code: '💁‍♀️',
-        types: ['💁🏿‍♀️', '💁🏾‍♀️', '💁🏽‍♀️', '💁🏼‍♀️', '💁🏻‍♀️']
+        types: ['💁🏿‍♀️', '💁🏾‍♀️', '💁🏽‍♀️', '💁🏼‍♀️', '💁🏻‍♀️'],
     },
     {
         name: 'raising_hand',
         code: '🙋',
-        types: ['🙋🏿', '🙋🏾', '🙋🏽', '🙋🏼', '🙋🏻']
+        types: ['🙋🏿', '🙋🏾', '🙋🏽', '🙋🏼', '🙋🏻'],
     },
     {
         name: 'raising_hand_man',
         code: '🙋‍♂️',
-        types: ['🙋🏿‍♂️', '🙋🏾‍♂️', '🙋🏽‍♂️', '🙋🏼‍♂️', '🙋🏻‍♂️']
+        types: ['🙋🏿‍♂️', '🙋🏾‍♂️', '🙋🏽‍♂️', '🙋🏼‍♂️', '🙋🏻‍♂️'],
     },
     {
         name: 'raising_hand_woman',
         code: '🙋‍♀️',
-        types: ['🙋🏿‍♀️', '🙋🏾‍♀️', '🙋🏽‍♀️', '🙋🏼‍♀️', '🙋🏻‍♀️']
+        types: ['🙋🏿‍♀️', '🙋🏾‍♀️', '🙋🏽‍♀️', '🙋🏼‍♀️', '🙋🏻‍♀️'],
     },
     {
         name: 'deaf_person',
         code: '🧏',
-        types: ['🧏🏿', '🧏🏾', '🧏🏽', '🧏🏼', '🧏🏻']
+        types: ['🧏🏿', '🧏🏾', '🧏🏽', '🧏🏼', '🧏🏻'],
     },
     {
         name: 'deaf_man',
         code: '🧏‍♂️',
-        types: ['🧏🏿‍♂️', '🧏🏾‍♂️', '🧏🏽‍♂️', '🧏🏼‍♂️', '🧏🏻‍♂️']
+        types: ['🧏🏿‍♂️', '🧏🏾‍♂️', '🧏🏽‍♂️', '🧏🏼‍♂️', '🧏🏻‍♂️'],
     },
     {
         name: 'deaf_woman',
         code: '🧏‍♀️',
-        types: ['🧏🏿‍♀️', '🧏🏾‍♀️', '🧏🏽‍♀️', '🧏🏼‍♀️', '🧏🏻‍♀️']
+        types: ['🧏🏿‍♀️', '🧏🏾‍♀️', '🧏🏽‍♀️', '🧏🏼‍♀️', '🧏🏻‍♀️'],
     },
     {
         name: 'bow',
         code: '🙇',
-        types: ['🙇🏿', '🙇🏾', '🙇🏽', '🙇🏼', '🙇🏻']
+        types: ['🙇🏿', '🙇🏾', '🙇🏽', '🙇🏼', '🙇🏻'],
     },
     {
         name: 'bowing_man',
         code: '🙇‍♂️',
-        types: ['🙇🏿‍♂️', '🙇🏾‍♂️', '🙇🏽‍♂️', '🙇🏼‍♂️', '🙇🏻‍♂️']
+        types: ['🙇🏿‍♂️', '🙇🏾‍♂️', '🙇🏽‍♂️', '🙇🏼‍♂️', '🙇🏻‍♂️'],
     },
     {
         name: 'bowing_woman',
         code: '🙇‍♀️',
-        types: ['🙇🏿‍♀️', '🙇🏾‍♀️', '🙇🏽‍♀️', '🙇🏼‍♀️', '🙇🏻‍♀️']
+        types: ['🙇🏿‍♀️', '🙇🏾‍♀️', '🙇🏽‍♀️', '🙇🏼‍♀️', '🙇🏻‍♀️'],
     },
     {
         name: 'facepalm',
         code: '🤦',
-        types: ['🤦🏿', '🤦🏾', '🤦🏽', '🤦🏼', '🤦🏻']
+        types: ['🤦🏿', '🤦🏾', '🤦🏽', '🤦🏼', '🤦🏻'],
     },
     {
         name: 'man_facepalming',
         code: '🤦‍♂️',
-        types: ['🤦🏿‍♂️', '🤦🏾‍♂️', '🤦🏽‍♂️', '🤦🏼‍♂️', '🤦🏻‍♂️']
+        types: ['🤦🏿‍♂️', '🤦🏾‍♂️', '🤦🏽‍♂️', '🤦🏼‍♂️', '🤦🏻‍♂️'],
     },
     {
         name: 'woman_facepalming',
         code: '🤦‍♀️',
-        types: ['🤦🏿‍♀️', '🤦🏾‍♀️', '🤦🏽‍♀️', '🤦🏼‍♀️', '🤦🏻‍♀️']
+        types: ['🤦🏿‍♀️', '🤦🏾‍♀️', '🤦🏽‍♀️', '🤦🏼‍♀️', '🤦🏻‍♀️'],
     },
     {
         name: 'shrug',
         code: '🤷',
-        types: ['🤷🏿', '🤷🏾', '🤷🏽', '🤷🏼', '🤷🏻']
+        types: ['🤷🏿', '🤷🏾', '🤷🏽', '🤷🏼', '🤷🏻'],
     },
     {
         name: 'man_shrugging',
         code: '🤷‍♂️',
-        types: ['🤷🏿‍♂️', '🤷🏾‍♂️', '🤷🏽‍♂️', '🤷🏼‍♂️', '🤷🏻‍♂️']
+        types: ['🤷🏿‍♂️', '🤷🏾‍♂️', '🤷🏽‍♂️', '🤷🏼‍♂️', '🤷🏻‍♂️'],
     },
     {
         name: 'woman_shrugging',
         code: '🤷‍♀️',
-        types: ['🤷🏿‍♀️', '🤷🏾‍♀️', '🤷🏽‍♀️', '🤷🏼‍♀️', '🤷🏻‍♀️']
+        types: ['🤷🏿‍♀️', '🤷🏾‍♀️', '🤷🏽‍♀️', '🤷🏼‍♀️', '🤷🏻‍♀️'],
     },
     {
         name: 'health_worker',
         code: '🧑‍⚕️',
-        types: ['🧑🏿‍⚕️', '🧑🏾‍⚕️', '🧑🏽‍⚕️', '🧑🏼‍⚕️', '🧑🏻‍⚕️']
+        types: ['🧑🏿‍⚕️', '🧑🏾‍⚕️', '🧑🏽‍⚕️', '🧑🏼‍⚕️', '🧑🏻‍⚕️'],
     },
     {
         name: 'man_health_worker',
         code: '👨‍⚕️',
-        types: ['👨🏿‍⚕️', '👨🏾‍⚕️', '👨🏽‍⚕️', '👨🏼‍⚕️', '👨🏻‍⚕️']
+        types: ['👨🏿‍⚕️', '👨🏾‍⚕️', '👨🏽‍⚕️', '👨🏼‍⚕️', '👨🏻‍⚕️'],
     },
     {
         name: 'woman_health_worker',
         code: '👩‍⚕️',
-        types: ['👩🏿‍⚕️', '👩🏾‍⚕️', '👩🏽‍⚕️', '👩🏼‍⚕️', '👩🏻‍⚕️']
+        types: ['👩🏿‍⚕️', '👩🏾‍⚕️', '👩🏽‍⚕️', '👩🏼‍⚕️', '👩🏻‍⚕️'],
     },
     {
         name: 'student',
         code: '🧑‍🎓',
-        types: ['🧑🏿‍🎓', '🧑🏾‍🎓', '🧑🏽‍🎓', '🧑🏼‍🎓', '🧑🏻‍🎓']
+        types: ['🧑🏿‍🎓', '🧑🏾‍🎓', '🧑🏽‍🎓', '🧑🏼‍🎓', '🧑🏻‍🎓'],
     },
     {
         name: 'man_student',
         code: '👨‍🎓',
-        types: ['👨🏿‍🎓', '👨🏾‍🎓', '👨🏽‍🎓', '👨🏼‍🎓', '👨🏻‍🎓']
+        types: ['👨🏿‍🎓', '👨🏾‍🎓', '👨🏽‍🎓', '👨🏼‍🎓', '👨🏻‍🎓'],
     },
     {
         name: 'woman_student',
         code: '👩‍🎓',
-        types: ['👩🏿‍🎓', '👩🏾‍🎓', '👩🏽‍🎓', '👩🏼‍🎓', '👩🏻‍🎓']
+        types: ['👩🏿‍🎓', '👩🏾‍🎓', '👩🏽‍🎓', '👩🏼‍🎓', '👩🏻‍🎓'],
     },
     {
         name: 'teacher',
         code: '🧑‍🏫',
-        types: ['🧑🏿‍🏫', '🧑🏾‍🏫', '🧑🏽‍🏫', '🧑🏼‍🏫', '🧑🏻‍🏫']
+        types: ['🧑🏿‍🏫', '🧑🏾‍🏫', '🧑🏽‍🏫', '🧑🏼‍🏫', '🧑🏻‍🏫'],
     },
     {
         name: 'man_teacher',
         code: '👨‍🏫',
-        types: ['👨🏿‍🏫', '👨🏾‍🏫', '👨🏽‍🏫', '👨🏼‍🏫', '👨🏻‍🏫']
+        types: ['👨🏿‍🏫', '👨🏾‍🏫', '👨🏽‍🏫', '👨🏼‍🏫', '👨🏻‍🏫'],
     },
     {
         name: 'woman_teacher',
         code: '👩‍🏫',
-        types: ['👩🏿‍🏫', '👩🏾‍🏫', '👩🏽‍🏫', '👩🏼‍🏫', '👩🏻‍🏫']
+        types: ['👩🏿‍🏫', '👩🏾‍🏫', '👩🏽‍🏫', '👩🏼‍🏫', '👩🏻‍🏫'],
     },
     {
         name: 'judge',
         code: '🧑‍⚖️',
-        types: ['🧑🏿‍⚖️', '🧑🏾‍⚖️', '🧑🏽‍⚖️', '🧑🏼‍⚖️', '🧑🏻‍⚖️']
+        types: ['🧑🏿‍⚖️', '🧑🏾‍⚖️', '🧑🏽‍⚖️', '🧑🏼‍⚖️', '🧑🏻‍⚖️'],
     },
     {
         name: 'man_judge',
         code: '👨‍⚖️',
-        types: ['👨🏿‍⚖️', '👨🏾‍⚖️', '👨🏽‍⚖️', '👨🏼‍⚖️', '👨🏻‍⚖️']
+        types: ['👨🏿‍⚖️', '👨🏾‍⚖️', '👨🏽‍⚖️', '👨🏼‍⚖️', '👨🏻‍⚖️'],
     },
     {
         name: 'woman_judge',
         code: '👩‍⚖️',
-        types: ['👩🏿‍⚖️', '👩🏾‍⚖️', '👩🏽‍⚖️', '👩🏼‍⚖️', '👩🏻‍⚖️']
+        types: ['👩🏿‍⚖️', '👩🏾‍⚖️', '👩🏽‍⚖️', '👩🏼‍⚖️', '👩🏻‍⚖️'],
     },
     {
         name: 'farmer',
         code: '🧑‍🌾',
-        types: ['🧑🏿‍🌾', '🧑🏾‍🌾', '🧑🏽‍🌾', '🧑🏼‍🌾', '🧑🏻‍🌾']
+        types: ['🧑🏿‍🌾', '🧑🏾‍🌾', '🧑🏽‍🌾', '🧑🏼‍🌾', '🧑🏻‍🌾'],
     },
     {
         name: 'man_farmer',
         code: '👨‍🌾',
-        types: ['👨🏿‍🌾', '👨🏾‍🌾', '👨🏽‍🌾', '👨🏼‍🌾', '👨🏻‍🌾']
+        types: ['👨🏿‍🌾', '👨🏾‍🌾', '👨🏽‍🌾', '👨🏼‍🌾', '👨🏻‍🌾'],
     },
     {
         name: 'woman_farmer',
         code: '👩‍🌾',
-        types: ['👩🏿‍🌾', '👩🏾‍🌾', '👩🏽‍🌾', '👩🏼‍🌾', '👩🏻‍🌾']
+        types: ['👩🏿‍🌾', '👩🏾‍🌾', '👩🏽‍🌾', '👩🏼‍🌾', '👩🏻‍🌾'],
     },
     {
         name: 'cook',
         code: '🧑‍🍳',
-        types: ['🧑🏿‍🍳', '🧑🏾‍🍳', '🧑🏽‍🍳', '🧑🏼‍🍳', '🧑🏻‍🍳']
+        types: ['🧑🏿‍🍳', '🧑🏾‍🍳', '🧑🏽‍🍳', '🧑🏼‍🍳', '🧑🏻‍🍳'],
     },
     {
         name: 'man_cook',
         code: '👨‍🍳',
-        types: ['👨🏿‍🍳', '👨🏾‍🍳', '👨🏽‍🍳', '👨🏼‍🍳', '👨🏻‍🍳']
+        types: ['👨🏿‍🍳', '👨🏾‍🍳', '👨🏽‍🍳', '👨🏼‍🍳', '👨🏻‍🍳'],
     },
     {
         name: 'woman_cook',
         code: '👩‍🍳',
-        types: ['👩🏿‍🍳', '👩🏾‍🍳', '👩🏽‍🍳', '👩🏼‍🍳', '👩🏻‍🍳']
+        types: ['👩🏿‍🍳', '👩🏾‍🍳', '👩🏽‍🍳', '👩🏼‍🍳', '👩🏻‍🍳'],
     },
     {
         name: 'mechanic',
         code: '🧑‍🔧',
-        types: ['🧑🏿‍🔧', '🧑🏾‍🔧', '🧑🏽‍🔧', '🧑🏼‍🔧', '🧑🏻‍🔧']
+        types: ['🧑🏿‍🔧', '🧑🏾‍🔧', '🧑🏽‍🔧', '🧑🏼‍🔧', '🧑🏻‍🔧'],
     },
     {
         name: 'man_mechanic',
         code: '👨‍🔧',
-        types: ['👨🏿‍🔧', '👨🏾‍🔧', '👨🏽‍🔧', '👨🏼‍🔧', '👨🏻‍🔧']
+        types: ['👨🏿‍🔧', '👨🏾‍🔧', '👨🏽‍🔧', '👨🏼‍🔧', '👨🏻‍🔧'],
     },
     {
         name: 'woman_mechanic',
         code: '👩‍🔧',
-        types: ['👩🏿‍🔧', '👩🏾‍🔧', '👩🏽‍🔧', '👩🏼‍🔧', '👩🏻‍🔧']
+        types: ['👩🏿‍🔧', '👩🏾‍🔧', '👩🏽‍🔧', '👩🏼‍🔧', '👩🏻‍🔧'],
     },
     {
         name: 'factory_worker',
         code: '🧑‍🏭',
-        types: ['🧑🏿‍🏭', '🧑🏾‍🏭', '🧑🏽‍🏭', '🧑🏼‍🏭', '🧑🏻‍🏭']
+        types: ['🧑🏿‍🏭', '🧑🏾‍🏭', '🧑🏽‍🏭', '🧑🏼‍🏭', '🧑🏻‍🏭'],
     },
     {
         name: 'man_factory_worker',
         code: '👨‍🏭',
-        types: ['👨🏿‍🏭', '👨🏾‍🏭', '👨🏽‍🏭', '👨🏼‍🏭', '👨🏻‍🏭']
+        types: ['👨🏿‍🏭', '👨🏾‍🏭', '👨🏽‍🏭', '👨🏼‍🏭', '👨🏻‍🏭'],
     },
     {
         name: 'woman_factory_worker',
         code: '👩‍🏭',
-        types: ['👩🏿‍🏭', '👩🏾‍🏭', '👩🏽‍🏭', '👩🏼‍🏭', '👩🏻‍🏭']
+        types: ['👩🏿‍🏭', '👩🏾‍🏭', '👩🏽‍🏭', '👩🏼‍🏭', '👩🏻‍🏭'],
     },
     {
         name: 'office_worker',
         code: '🧑‍💼',
-        types: ['🧑🏿‍💼', '🧑🏾‍💼', '🧑🏽‍💼', '🧑🏼‍💼', '🧑🏻‍💼']
+        types: ['🧑🏿‍💼', '🧑🏾‍💼', '🧑🏽‍💼', '🧑🏼‍💼', '🧑🏻‍💼'],
     },
     {
         name: 'man_office_worker',
         code: '👨‍💼',
-        types: ['👨🏿‍💼', '👨🏾‍💼', '👨🏽‍💼', '👨🏼‍💼', '👨🏻‍💼']
+        types: ['👨🏿‍💼', '👨🏾‍💼', '👨🏽‍💼', '👨🏼‍💼', '👨🏻‍💼'],
     },
     {
         name: 'woman_office_worker',
         code: '👩‍💼',
-        types: ['👩🏿‍💼', '👩🏾‍💼', '👩🏽‍💼', '👩🏼‍💼', '👩🏻‍💼']
+        types: ['👩🏿‍💼', '👩🏾‍💼', '👩🏽‍💼', '👩🏼‍💼', '👩🏻‍💼'],
     },
     {
         name: 'scientist',
         code: '🧑‍🔬',
-        types: ['🧑🏿‍🔬', '🧑🏾‍🔬', '🧑🏽‍🔬', '🧑🏼‍🔬', '🧑🏻‍🔬']
+        types: ['🧑🏿‍🔬', '🧑🏾‍🔬', '🧑🏽‍🔬', '🧑🏼‍🔬', '🧑🏻‍🔬'],
     },
     {
         name: 'man_scientist',
         code: '👨‍🔬',
-        types: ['👨🏿‍🔬', '👨🏾‍🔬', '👨🏽‍🔬', '👨🏼‍🔬', '👨🏻‍🔬']
+        types: ['👨🏿‍🔬', '👨🏾‍🔬', '👨🏽‍🔬', '👨🏼‍🔬', '👨🏻‍🔬'],
     },
     {
         name: 'woman_scientist',
         code: '👩‍🔬',
-        types: ['👩🏿‍🔬', '👩🏾‍🔬', '👩🏽‍🔬', '👩🏼‍🔬', '👩🏻‍🔬']
+        types: ['👩🏿‍🔬', '👩🏾‍🔬', '👩🏽‍🔬', '👩🏼‍🔬', '👩🏻‍🔬'],
     },
     {
         name: 'technologist',
         code: '🧑‍💻',
-        types: ['🧑🏿‍💻', '🧑🏾‍💻', '🧑🏽‍💻', '🧑🏼‍💻', '🧑🏻‍💻']
+        types: ['🧑🏿‍💻', '🧑🏾‍💻', '🧑🏽‍💻', '🧑🏼‍💻', '🧑🏻‍💻'],
     },
     {
         name: 'man_technologist',
         code: '👨‍💻',
-        types: ['👨🏿‍💻', '👨🏾‍💻', '👨🏽‍💻', '👨🏼‍💻', '👨🏻‍💻']
+        types: ['👨🏿‍💻', '👨🏾‍💻', '👨🏽‍💻', '👨🏼‍💻', '👨🏻‍💻'],
     },
     {
         name: 'woman_technologist',
         code: '👩‍💻',
-        types: ['👩🏿‍💻', '👩🏾‍💻', '👩🏽‍💻', '👩🏼‍💻', '👩🏻‍💻']
+        types: ['👩🏿‍💻', '👩🏾‍💻', '👩🏽‍💻', '👩🏼‍💻', '👩🏻‍💻'],
     },
     {
         name: 'singer',
         code: '🧑‍🎤',
-        types: ['🧑🏿‍🎤', '🧑🏾‍🎤', '🧑🏽‍🎤', '🧑🏼‍🎤', '🧑🏻‍🎤']
+        types: ['🧑🏿‍🎤', '🧑🏾‍🎤', '🧑🏽‍🎤', '🧑🏼‍🎤', '🧑🏻‍🎤'],
     },
     {
         name: 'man_singer',
         code: '👨‍🎤',
-        types: ['👨🏿‍🎤', '👨🏾‍🎤', '👨🏽‍🎤', '👨🏼‍🎤', '👨🏻‍🎤']
+        types: ['👨🏿‍🎤', '👨🏾‍🎤', '👨🏽‍🎤', '👨🏼‍🎤', '👨🏻‍🎤'],
     },
     {
         name: 'woman_singer',
         code: '👩‍🎤',
-        types: ['👩🏿‍🎤', '👩🏾‍🎤', '👩🏽‍🎤', '👩🏼‍🎤', '👩🏻‍🎤']
+        types: ['👩🏿‍🎤', '👩🏾‍🎤', '👩🏽‍🎤', '👩🏼‍🎤', '👩🏻‍🎤'],
     },
     {
         name: 'artist',
         code: '🧑‍🎨',
-        types: ['🧑🏿‍🎨', '🧑🏾‍🎨', '🧑🏽‍🎨', '🧑🏼‍🎨', '🧑🏻‍🎨']
+        types: ['🧑🏿‍🎨', '🧑🏾‍🎨', '🧑🏽‍🎨', '🧑🏼‍🎨', '🧑🏻‍🎨'],
     },
     {
         name: 'man_artist',
         code: '👨‍🎨',
-        types: ['👨🏿‍🎨', '👨🏾‍🎨', '👨🏽‍🎨', '👨🏼‍🎨', '👨🏻‍🎨']
+        types: ['👨🏿‍🎨', '👨🏾‍🎨', '👨🏽‍🎨', '👨🏼‍🎨', '👨🏻‍🎨'],
     },
     {
         name: 'woman_artist',
         code: '👩‍🎨',
-        types: ['👩🏿‍🎨', '👩🏾‍🎨', '👩🏽‍🎨', '👩🏼‍🎨', '👩🏻‍🎨']
+        types: ['👩🏿‍🎨', '👩🏾‍🎨', '👩🏽‍🎨', '👩🏼‍🎨', '👩🏻‍🎨'],
     },
     {
         name: 'pilot',
         code: '🧑‍✈️',
-        types: ['🧑🏿‍✈️', '🧑🏾‍✈️', '🧑🏽‍✈️', '🧑🏼‍✈️', '🧑🏻‍✈️']
+        types: ['🧑🏿‍✈️', '🧑🏾‍✈️', '🧑🏽‍✈️', '🧑🏼‍✈️', '🧑🏻‍✈️'],
     },
     {
         name: 'man_pilot',
         code: '👨‍✈️',
-        types: ['👨🏿‍✈️', '👨🏾‍✈️', '👨🏽‍✈️', '👨🏼‍✈️', '👨🏻‍✈️']
+        types: ['👨🏿‍✈️', '👨🏾‍✈️', '👨🏽‍✈️', '👨🏼‍✈️', '👨🏻‍✈️'],
     },
     {
         name: 'woman_pilot',
         code: '👩‍✈️',
-        types: ['👩🏿‍✈️', '👩🏾‍✈️', '👩🏽‍✈️', '👩🏼‍✈️', '👩🏻‍✈️']
+        types: ['👩🏿‍✈️', '👩🏾‍✈️', '👩🏽‍✈️', '👩🏼‍✈️', '👩🏻‍✈️'],
     },
     {
         name: 'astronaut',
         code: '🧑‍🚀',
-        types: ['🧑🏿‍🚀', '🧑🏾‍🚀', '🧑🏽‍🚀', '🧑🏼‍🚀', '🧑🏻‍🚀']
+        types: ['🧑🏿‍🚀', '🧑🏾‍🚀', '🧑🏽‍🚀', '🧑🏼‍🚀', '🧑🏻‍🚀'],
     },
     {
         name: 'man_astronaut',
         code: '👨‍🚀',
-        types: ['👨🏿‍🚀', '👨🏾‍🚀', '👨🏽‍🚀', '👨🏼‍🚀', '👨🏻‍🚀']
+        types: ['👨🏿‍🚀', '👨🏾‍🚀', '👨🏽‍🚀', '👨🏼‍🚀', '👨🏻‍🚀'],
     },
     {
         name: 'woman_astronaut',
         code: '👩‍🚀',
-        types: ['👩🏿‍🚀', '👩🏾‍🚀', '👩🏽‍🚀', '👩🏼‍🚀', '👩🏻‍🚀']
+        types: ['👩🏿‍🚀', '👩🏾‍🚀', '👩🏽‍🚀', '👩🏼‍🚀', '👩🏻‍🚀'],
     },
     {
         name: 'firefighter',
         code: '🧑‍🚒',
-        types: ['🧑🏿‍🚒', '🧑🏾‍🚒', '🧑🏽‍🚒', '🧑🏼‍🚒', '🧑🏻‍🚒']
+        types: ['🧑🏿‍🚒', '🧑🏾‍🚒', '🧑🏽‍🚒', '🧑🏼‍🚒', '🧑🏻‍🚒'],
     },
     {
         name: 'man_firefighter',
         code: '👨‍🚒',
-        types: ['👨🏿‍🚒', '👨🏾‍🚒', '👨🏽‍🚒', '👨🏼‍🚒', '👨🏻‍🚒']
+        types: ['👨🏿‍🚒', '👨🏾‍🚒', '👨🏽‍🚒', '👨🏼‍🚒', '👨🏻‍🚒'],
     },
     {
         name: 'woman_firefighter',
         code: '👩‍🚒',
-        types: ['👩🏿‍🚒', '👩🏾‍🚒', '👩🏽‍🚒', '👩🏼‍🚒', '👩🏻‍🚒']
+        types: ['👩🏿‍🚒', '👩🏾‍🚒', '👩🏽‍🚒', '👩🏼‍🚒', '👩🏻‍🚒'],
     },
     {
         name: 'police_officer',
         code: '👮',
-        types: ['👮🏿', '👮🏾', '👮🏽', '👮🏼', '👮🏻']
+        types: ['👮🏿', '👮🏾', '👮🏽', '👮🏼', '👮🏻'],
     },
     {
         name: 'policeman',
         code: '👮‍♂️',
-        types: ['👮🏿‍♂️', '👮🏾‍♂️', '👮🏽‍♂️', '👮🏼‍♂️', '👮🏻‍♂️']
+        types: ['👮🏿‍♂️', '👮🏾‍♂️', '👮🏽‍♂️', '👮🏼‍♂️', '👮🏻‍♂️'],
     },
     {
         name: 'policewoman',
         code: '👮‍♀️',
-        types: ['👮🏿‍♀️', '👮🏾‍♀️', '👮🏽‍♀️', '👮🏼‍♀️', '👮🏻‍♀️']
+        types: ['👮🏿‍♀️', '👮🏾‍♀️', '👮🏽‍♀️', '👮🏼‍♀️', '👮🏻‍♀️'],
     },
     {
         name: 'detective',
         code: '🕵️',
-        types: ['🕵🏿', '🕵🏾', '🕵🏽', '🕵🏼', '🕵🏻']
+        types: ['🕵🏿', '🕵🏾', '🕵🏽', '🕵🏼', '🕵🏻'],
     },
     {
         name: 'male_detective',
         code: '🕵️‍♂️',
-        types: ['🕵🏿‍♂️', '🕵🏾‍♂️', '🕵🏽‍♂️', '🕵🏼‍♂️', '🕵🏻‍♂️']
+        types: ['🕵🏿‍♂️', '🕵🏾‍♂️', '🕵🏽‍♂️', '🕵🏼‍♂️', '🕵🏻‍♂️'],
     },
     {
         name: 'female_detective',
         code: '🕵️‍♀️',
-        types: ['🕵🏿‍♀️', '🕵🏾‍♀️', '🕵🏽‍♀️', '🕵🏼‍♀️', '🕵🏻‍♀️']
+        types: ['🕵🏿‍♀️', '🕵🏾‍♀️', '🕵🏽‍♀️', '🕵🏼‍♀️', '🕵🏻‍♀️'],
     },
     {
         name: 'guard',
         code: '💂',
-        types: ['💂🏿', '💂🏾', '💂🏽', '💂🏼', '💂🏻']
+        types: ['💂🏿', '💂🏾', '💂🏽', '💂🏼', '💂🏻'],
     },
     {
         name: 'guardsman',
         code: '💂‍♂️',
-        types: ['💂🏿‍♂️', '💂🏾‍♂️', '💂🏽‍♂️', '💂🏼‍♂️', '💂🏻‍♂️']
+        types: ['💂🏿‍♂️', '💂🏾‍♂️', '💂🏽‍♂️', '💂🏼‍♂️', '💂🏻‍♂️'],
     },
     {
         name: 'guardswoman',
         code: '💂‍♀️',
-        types: ['💂🏿‍♀️', '💂🏾‍♀️', '💂🏽‍♀️', '💂🏼‍♀️', '💂🏻‍♀️']
+        types: ['💂🏿‍♀️', '💂🏾‍♀️', '💂🏽‍♀️', '💂🏼‍♀️', '💂🏻‍♀️'],
     },
     {
         name: 'ninja',
         code: '🥷',
-        types: ['🥷🏿', '🥷🏾', '🥷🏽', '🥷🏼', '🥷🏻']
+        types: ['🥷🏿', '🥷🏾', '🥷🏽', '🥷🏼', '🥷🏻'],
     },
     {
         name: 'construction_worker',
         code: '👷',
-        types: ['👷🏿', '👷🏾', '👷🏽', '👷🏼', '👷🏻']
+        types: ['👷🏿', '👷🏾', '👷🏽', '👷🏼', '👷🏻'],
     },
     {
         name: 'construction_worker_man',
         code: '👷‍♂️',
-        types: ['👷🏿‍♂️', '👷🏾‍♂️', '👷🏽‍♂️', '👷🏼‍♂️', '👷🏻‍♂️']
+        types: ['👷🏿‍♂️', '👷🏾‍♂️', '👷🏽‍♂️', '👷🏼‍♂️', '👷🏻‍♂️'],
     },
     {
         name: 'construction_worker_woman',
         code: '👷‍♀️',
-        types: ['👷🏿‍♀️', '👷🏾‍♀️', '👷🏽‍♀️', '👷🏼‍♀️', '👷🏻‍♀️']
+        types: ['👷🏿‍♀️', '👷🏾‍♀️', '👷🏽‍♀️', '👷🏼‍♀️', '👷🏻‍♀️'],
     },
     {
         name: 'prince',
         code: '🤴',
-        types: ['🤴🏿', '🤴🏾', '🤴🏽', '🤴🏼', '🤴🏻']
+        types: ['🤴🏿', '🤴🏾', '🤴🏽', '🤴🏼', '🤴🏻'],
     },
     {
         name: 'person_with_crown',
         code: '🫅',
-        types: ['🫅🏿', '🫅🏾', '🫅🏽', '🫅🏼', '🫅🏻']
+        types: ['🫅🏿', '🫅🏾', '🫅🏽', '🫅🏼', '🫅🏻'],
     },
     {
         name: 'princess',
         code: '👸',
-        types: ['👸🏿', '👸🏾', '👸🏽', '👸🏼', '👸🏻']
+        types: ['👸🏿', '👸🏾', '👸🏽', '👸🏼', '👸🏻'],
     },
     {
         name: 'person_with_turban',
         code: '👳',
-        types: ['👳🏿', '👳🏾', '👳🏽', '👳🏼', '👳🏻']
+        types: ['👳🏿', '👳🏾', '👳🏽', '👳🏼', '👳🏻'],
     },
     {
         name: 'man_with_turban',
         code: '👳‍♂️',
-        types: ['👳🏿‍♂️', '👳🏾‍♂️', '👳🏽‍♂️', '👳🏼‍♂️', '👳🏻‍♂️']
+        types: ['👳🏿‍♂️', '👳🏾‍♂️', '👳🏽‍♂️', '👳🏼‍♂️', '👳🏻‍♂️'],
     },
     {
         name: 'woman_with_turban',
         code: '👳‍♀️',
-        types: ['👳🏿‍♀️', '👳🏾‍♀️', '👳🏽‍♀️', '👳🏼‍♀️', '👳🏻‍♀️']
+        types: ['👳🏿‍♀️', '👳🏾‍♀️', '👳🏽‍♀️', '👳🏼‍♀️', '👳🏻‍♀️'],
     },
     {
         name: 'man_with_gua_pi_mao',
         code: '👲',
-        types: ['👲🏿', '👲🏾', '👲🏽', '👲🏼', '👲🏻']
+        types: ['👲🏿', '👲🏾', '👲🏽', '👲🏼', '👲🏻'],
     },
     {
         name: 'woman_with_headscarf',
         code: '🧕',
-        types: ['🧕🏿', '🧕🏾', '🧕🏽', '🧕🏼', '🧕🏻']
+        types: ['🧕🏿', '🧕🏾', '🧕🏽', '🧕🏼', '🧕🏻'],
     },
     {
         name: 'person_in_tuxedo',
         code: '🤵',
-        types: ['🤵🏿', '🤵🏾', '🤵🏽', '🤵🏼', '🤵🏻']
+        types: ['🤵🏿', '🤵🏾', '🤵🏽', '🤵🏼', '🤵🏻'],
     },
     {
         name: 'man_in_tuxedo',
         code: '🤵‍♂️',
-        types: ['🤵🏿‍♂️', '🤵🏾‍♂️', '🤵🏽‍♂️', '🤵🏼‍♂️', '🤵🏻‍♂️']
+        types: ['🤵🏿‍♂️', '🤵🏾‍♂️', '🤵🏽‍♂️', '🤵🏼‍♂️', '🤵🏻‍♂️'],
     },
     {
         name: 'woman_in_tuxedo',
         code: '🤵‍♀️',
-        types: ['🤵🏿‍♀️', '🤵🏾‍♀️', '🤵🏽‍♀️', '🤵🏼‍♀️', '🤵🏻‍♀️']
+        types: ['🤵🏿‍♀️', '🤵🏾‍♀️', '🤵🏽‍♀️', '🤵🏼‍♀️', '🤵🏻‍♀️'],
     },
     {
         name: 'person_with_veil',
         code: '👰',
-        types: ['👰🏿', '👰🏾', '👰🏽', '👰🏼', '👰🏻']
+        types: ['👰🏿', '👰🏾', '👰🏽', '👰🏼', '👰🏻'],
     },
     {
         name: 'man_with_veil',
         code: '👰‍♂️',
-        types: ['👰🏿‍♂️', '👰🏾‍♂️', '👰🏽‍♂️', '👰🏼‍♂️', '👰🏻‍♂️']
+        types: ['👰🏿‍♂️', '👰🏾‍♂️', '👰🏽‍♂️', '👰🏼‍♂️', '👰🏻‍♂️'],
     },
     {
         name: 'woman_with_veil',
         code: '👰‍♀️',
-        types: ['👰🏿‍♀️', '👰🏾‍♀️', '👰🏽‍♀️', '👰🏼‍♀️', '👰🏻‍♀️']
+        types: ['👰🏿‍♀️', '👰🏾‍♀️', '👰🏽‍♀️', '👰🏼‍♀️', '👰🏻‍♀️'],
     },
     {
         name: 'pregnant_woman',
         code: '🤰',
-        types: ['🤰🏿', '🤰🏾', '🤰🏽', '🤰🏼', '🤰🏻']
+        types: ['🤰🏿', '🤰🏾', '🤰🏽', '🤰🏼', '🤰🏻'],
     },
     {
         name: 'pregnant_person',
         code: '🫄',
-        types: ['🫄🏿', '🫄🏾', '🫄🏽', '🫄🏼', '🫄🏻']
+        types: ['🫄🏿', '🫄🏾', '🫄🏽', '🫄🏼', '🫄🏻'],
     },
     {
         name: 'pregnant_man',
         code: '🫃',
-        types: ['🫃🏿', '🫃🏾', '🫃🏽', '🫃🏼', '🫃🏻']
+        types: ['🫃🏿', '🫃🏾', '🫃🏽', '🫃🏼', '🫃🏻'],
     },
     {
         name: 'breast_feeding',
         code: '🤱',
-        types: ['🤱🏿', '🤱🏾', '🤱🏽', '🤱🏼', '🤱🏻']
+        types: ['🤱🏿', '🤱🏾', '🤱🏽', '🤱🏼', '🤱🏻'],
     },
     {
         name: 'woman_feeding_baby',
         code: '👩‍🍼',
-        types: ['👩🏿‍🍼', '👩🏾‍🍼', '👩🏽‍🍼', '👩🏼‍🍼', '👩🏻‍🍼']
+        types: ['👩🏿‍🍼', '👩🏾‍🍼', '👩🏽‍🍼', '👩🏼‍🍼', '👩🏻‍🍼'],
     },
     {
         name: 'man_feeding_baby',
         code: '👨‍🍼',
-        types: ['👨🏿‍🍼', '👨🏾‍🍼', '👨🏽‍🍼', '👨🏼‍🍼', '👨🏻‍🍼']
+        types: ['👨🏿‍🍼', '👨🏾‍🍼', '👨🏽‍🍼', '👨🏼‍🍼', '👨🏻‍🍼'],
     },
     {
         name: 'person_feeding_baby',
         code: '🧑‍🍼',
-        types: ['🧑🏿‍🍼', '🧑🏾‍🍼', '🧑🏽‍🍼', '🧑🏼‍🍼', '🧑🏻‍🍼']
+        types: ['🧑🏿‍🍼', '🧑🏾‍🍼', '🧑🏽‍🍼', '🧑🏼‍🍼', '🧑🏻‍🍼'],
     },
     {
         name: 'angel',
         code: '👼',
-        types: ['👼🏿', '👼🏾', '👼🏽', '👼🏼', '👼🏻']
+        types: ['👼🏿', '👼🏾', '👼🏽', '👼🏼', '👼🏻'],
     },
     {
         name: 'santa',
         code: '🎅',
-        types: ['🎅🏿', '🎅🏾', '🎅🏽', '🎅🏼', '🎅🏻']
+        types: ['🎅🏿', '🎅🏾', '🎅🏽', '🎅🏼', '🎅🏻'],
     },
     {
         name: 'mrs_claus',
         code: '🤶',
-        types: ['🤶🏿', '🤶🏾', '🤶🏽', '🤶🏼', '🤶🏻']
+        types: ['🤶🏿', '🤶🏾', '🤶🏽', '🤶🏼', '🤶🏻'],
     },
     {
         name: 'mx_claus',
         code: '🧑‍🎄',
-        types: ['🧑🏿‍🎄', '🧑🏾‍🎄', '🧑🏽‍🎄', '🧑🏼‍🎄', '🧑🏻‍🎄']
+        types: ['🧑🏿‍🎄', '🧑🏾‍🎄', '🧑🏽‍🎄', '🧑🏼‍🎄', '🧑🏻‍🎄'],
     },
     {
         name: 'superhero',
         code: '🦸',
-        types: ['🦸🏿', '🦸🏾', '🦸🏽', '🦸🏼', '🦸🏻']
+        types: ['🦸🏿', '🦸🏾', '🦸🏽', '🦸🏼', '🦸🏻'],
     },
     {
         name: 'superhero_man',
         code: '🦸‍♂️',
-        types: ['🦸🏿‍♂️', '🦸🏾‍♂️', '🦸🏽‍♂️', '🦸🏼‍♂️', '🦸🏻‍♂️']
+        types: ['🦸🏿‍♂️', '🦸🏾‍♂️', '🦸🏽‍♂️', '🦸🏼‍♂️', '🦸🏻‍♂️'],
     },
     {
         name: 'superhero_woman',
         code: '🦸‍♀️',
-        types: ['🦸🏿‍♀️', '🦸🏾‍♀️', '🦸🏽‍♀️', '🦸🏼‍♀️', '🦸🏻‍♀️']
+        types: ['🦸🏿‍♀️', '🦸🏾‍♀️', '🦸🏽‍♀️', '🦸🏼‍♀️', '🦸🏻‍♀️'],
     },
     {
         name: 'supervillain',
         code: '🦹',
-        types: ['🦹🏿', '🦹🏾', '🦹🏽', '🦹🏼', '🦹🏻']
+        types: ['🦹🏿', '🦹🏾', '🦹🏽', '🦹🏼', '🦹🏻'],
     },
     {
         name: 'supervillain_man',
         code: '🦹‍♂️',
-        types: ['🦹🏿‍♂️', '🦹🏾‍♂️', '🦹🏽‍♂️', '🦹🏼‍♂️', '🦹🏻‍♂️']
+        types: ['🦹🏿‍♂️', '🦹🏾‍♂️', '🦹🏽‍♂️', '🦹🏼‍♂️', '🦹🏻‍♂️'],
     },
     {
         name: 'supervillain_woman',
         code: '🦹‍♀️',
-        types: ['🦹🏿‍♀️', '🦹🏾‍♀️', '🦹🏽‍♀️', '🦹🏼‍♀️', '🦹🏻‍♀️']
+        types: ['🦹🏿‍♀️', '🦹🏾‍♀️', '🦹🏽‍♀️', '🦹🏼‍♀️', '🦹🏻‍♀️'],
     },
     {
         name: 'mage',
         code: '🧙',
-        types: ['🧙🏿', '🧙🏾', '🧙🏽', '🧙🏼', '🧙🏻']
+        types: ['🧙🏿', '🧙🏾', '🧙🏽', '🧙🏼', '🧙🏻'],
     },
     {
         name: 'mage_man',
         code: '🧙‍♂️',
-        types: ['🧙🏿‍♂️', '🧙🏾‍♂️', '🧙🏽‍♂️', '🧙🏼‍♂️', '🧙🏻‍♂️']
+        types: ['🧙🏿‍♂️', '🧙🏾‍♂️', '🧙🏽‍♂️', '🧙🏼‍♂️', '🧙🏻‍♂️'],
     },
     {
         name: 'mage_woman',
         code: '🧙‍♀️',
-        types: ['🧙🏿‍♀️', '🧙🏾‍♀️', '🧙🏽‍♀️', '🧙🏼‍♀️', '🧙🏻‍♀️']
+        types: ['🧙🏿‍♀️', '🧙🏾‍♀️', '🧙🏽‍♀️', '🧙🏼‍♀️', '🧙🏻‍♀️'],
     },
     {
         name: 'fairy',
         code: '🧚',
-        types: ['🧚🏿', '🧚🏾', '🧚🏽', '🧚🏼', '🧚🏻']
+        types: ['🧚🏿', '🧚🏾', '🧚🏽', '🧚🏼', '🧚🏻'],
     },
     {
         name: 'fairy_man',
         code: '🧚‍♂️',
-        types: ['🧚🏿‍♂️', '🧚🏾‍♂️', '🧚🏽‍♂️', '🧚🏼‍♂️', '🧚🏻‍♂️']
+        types: ['🧚🏿‍♂️', '🧚🏾‍♂️', '🧚🏽‍♂️', '🧚🏼‍♂️', '🧚🏻‍♂️'],
     },
     {
         name: 'fairy_woman',
         code: '🧚‍♀️',
-        types: ['🧚🏿‍♀️', '🧚🏾‍♀️', '🧚🏽‍♀️', '🧚🏼‍♀️', '🧚🏻‍♀️']
+        types: ['🧚🏿‍♀️', '🧚🏾‍♀️', '🧚🏽‍♀️', '🧚🏼‍♀️', '🧚🏻‍♀️'],
     },
     {
         name: 'vampire',
         code: '🧛',
-        types: ['🧛🏿', '🧛🏾', '🧛🏽', '🧛🏼', '🧛🏻']
+        types: ['🧛🏿', '🧛🏾', '🧛🏽', '🧛🏼', '🧛🏻'],
     },
     {
         name: 'vampire_man',
         code: '🧛‍♂️',
-        types: ['🧛🏿‍♂️', '🧛🏾‍♂️', '🧛🏽‍♂️', '🧛🏼‍♂️', '🧛🏻‍♂️']
+        types: ['🧛🏿‍♂️', '🧛🏾‍♂️', '🧛🏽‍♂️', '🧛🏼‍♂️', '🧛🏻‍♂️'],
     },
     {
         name: 'vampire_woman',
         code: '🧛‍♀️',
-        types: ['🧛🏿‍♀️', '🧛🏾‍♀️', '🧛🏽‍♀️', '🧛🏼‍♀️', '🧛🏻‍♀️']
+        types: ['🧛🏿‍♀️', '🧛🏾‍♀️', '🧛🏽‍♀️', '🧛🏼‍♀️', '🧛🏻‍♀️'],
     },
     {
         name: 'merperson',
         code: '🧜',
-        types: ['🧜🏿', '🧜🏾', '🧜🏽', '🧜🏼', '🧜🏻']
+        types: ['🧜🏿', '🧜🏾', '🧜🏽', '🧜🏼', '🧜🏻'],
     },
     {
         name: 'merman',
         code: '🧜‍♂️',
-        types: ['🧜🏿‍♂️', '🧜🏾‍♂️', '🧜🏽‍♂️', '🧜🏼‍♂️', '🧜🏻‍♂️']
+        types: ['🧜🏿‍♂️', '🧜🏾‍♂️', '🧜🏽‍♂️', '🧜🏼‍♂️', '🧜🏻‍♂️'],
     },
     {
         name: 'mermaid',
         code: '🧜‍♀️',
-        types: ['🧜🏿‍♀️', '🧜🏾‍♀️', '🧜🏽‍♀️', '🧜🏼‍♀️', '🧜🏻‍♀️']
+        types: ['🧜🏿‍♀️', '🧜🏾‍♀️', '🧜🏽‍♀️', '🧜🏼‍♀️', '🧜🏻‍♀️'],
     },
     {
         name: 'elf',
         code: '🧝',
-        types: ['🧝🏿', '🧝🏾', '🧝🏽', '🧝🏼', '🧝🏻']
+        types: ['🧝🏿', '🧝🏾', '🧝🏽', '🧝🏼', '🧝🏻'],
     },
     {
         name: 'elf_man',
         code: '🧝‍♂️',
-        types: ['🧝🏿‍♂️', '🧝🏾‍♂️', '🧝🏽‍♂️', '🧝🏼‍♂️', '🧝🏻‍♂️']
+        types: ['🧝🏿‍♂️', '🧝🏾‍♂️', '🧝🏽‍♂️', '🧝🏼‍♂️', '🧝🏻‍♂️'],
     },
     {
         name: 'elf_woman',
         code: '🧝‍♀️',
-        types: ['🧝🏿‍♀️', '🧝🏾‍♀️', '🧝🏽‍♀️', '🧝🏼‍♀️', '🧝🏻‍♀️']
+        types: ['🧝🏿‍♀️', '🧝🏾‍♀️', '🧝🏽‍♀️', '🧝🏼‍♀️', '🧝🏻‍♀️'],
     },
     {
         name: 'troll',
-        code: '🧌'
+        code: '🧌',
     },
     {
         name: 'genie',
-        code: '🧞'
+        code: '🧞',
     },
     {
         name: 'genie_man',
-        code: '🧞‍♂️'
+        code: '🧞‍♂️',
     },
     {
         name: 'genie_woman',
-        code: '🧞‍♀️'
+        code: '🧞‍♀️',
     },
     {
         name: 'zombie',
-        code: '🧟'
+        code: '🧟',
     },
     {
         name: 'zombie_man',
-        code: '🧟‍♂️'
+        code: '🧟‍♂️',
     },
     {
         name: 'zombie_woman',
-        code: '🧟‍♀️'
+        code: '🧟‍♀️',
     },
     {
         name: 'massage',
         code: '💆',
-        types: ['💆🏿', '💆🏾', '💆🏽', '💆🏼', '💆🏻']
+        types: ['💆🏿', '💆🏾', '💆🏽', '💆🏼', '💆🏻'],
     },
     {
         name: 'massage_man',
         code: '💆‍♂️',
-        types: ['💆🏿‍♂️', '💆🏾‍♂️', '💆🏽‍♂️', '💆🏼‍♂️', '💆🏻‍♂️']
+        types: ['💆🏿‍♂️', '💆🏾‍♂️', '💆🏽‍♂️', '💆🏼‍♂️', '💆🏻‍♂️'],
     },
     {
         name: 'massage_woman',
         code: '💆‍♀️',
-        types: ['💆🏿‍♀️', '💆🏾‍♀️', '💆🏽‍♀️', '💆🏼‍♀️', '💆🏻‍♀️']
+        types: ['💆🏿‍♀️', '💆🏾‍♀️', '💆🏽‍♀️', '💆🏼‍♀️', '💆🏻‍♀️'],
     },
     {
         name: 'haircut',
         code: '💇',
-        types: ['💇🏿', '💇🏾', '💇🏽', '💇🏼', '💇🏻']
+        types: ['💇🏿', '💇🏾', '💇🏽', '💇🏼', '💇🏻'],
     },
     {
         name: 'haircut_man',
         code: '💇‍♂️',
-        types: ['💇🏿‍♂️', '💇🏾‍♂️', '💇🏽‍♂️', '💇🏼‍♂️', '💇🏻‍♂️']
+        types: ['💇🏿‍♂️', '💇🏾‍♂️', '💇🏽‍♂️', '💇🏼‍♂️', '💇🏻‍♂️'],
     },
     {
         name: 'haircut_woman',
         code: '💇‍♀️',
-        types: ['💇🏿‍♀️', '💇🏾‍♀️', '💇🏽‍♀️', '💇🏼‍♀️', '💇🏻‍♀️']
+        types: ['💇🏿‍♀️', '💇🏾‍♀️', '💇🏽‍♀️', '💇🏼‍♀️', '💇🏻‍♀️'],
     },
     {
         name: 'walking',
         code: '🚶',
-        types: ['🚶🏿', '🚶🏾', '🚶🏽', '🚶🏼', '🚶🏻']
+        types: ['🚶🏿', '🚶🏾', '🚶🏽', '🚶🏼', '🚶🏻'],
     },
     {
         name: 'walking_man',
         code: '🚶‍♂️',
-        types: ['🚶🏿‍♂️', '🚶🏾‍♂️', '🚶🏽‍♂️', '🚶🏼‍♂️', '🚶🏻‍♂️']
+        types: ['🚶🏿‍♂️', '🚶🏾‍♂️', '🚶🏽‍♂️', '🚶🏼‍♂️', '🚶🏻‍♂️'],
     },
     {
         name: 'walking_woman',
         code: '🚶‍♀️',
-        types: ['🚶🏿‍♀️', '🚶🏾‍♀️', '🚶🏽‍♀️', '🚶🏼‍♀️', '🚶🏻‍♀️']
+        types: ['🚶🏿‍♀️', '🚶🏾‍♀️', '🚶🏽‍♀️', '🚶🏼‍♀️', '🚶🏻‍♀️'],
     },
     {
         name: 'standing_person',
         code: '🧍',
-        types: ['🧍🏿', '🧍🏾', '🧍🏽', '🧍🏼', '🧍🏻']
+        types: ['🧍🏿', '🧍🏾', '🧍🏽', '🧍🏼', '🧍🏻'],
     },
     {
         name: 'standing_man',
         code: '🧍‍♂️',
-        types: ['🧍🏿‍♂️', '🧍🏾‍♂️', '🧍🏽‍♂️', '🧍🏼‍♂️', '🧍🏻‍♂️']
+        types: ['🧍🏿‍♂️', '🧍🏾‍♂️', '🧍🏽‍♂️', '🧍🏼‍♂️', '🧍🏻‍♂️'],
     },
     {
         name: 'standing_woman',
         code: '🧍‍♀️',
-        types: ['🧍🏿‍♀️', '🧍🏾‍♀️', '🧍🏽‍♀️', '🧍🏼‍♀️', '🧍🏻‍♀️']
+        types: ['🧍🏿‍♀️', '🧍🏾‍♀️', '🧍🏽‍♀️', '🧍🏼‍♀️', '🧍🏻‍♀️'],
     },
     {
         name: 'kneeling_person',
         code: '🧎',
-        types: ['🧎🏿', '🧎🏾', '🧎🏽', '🧎🏼', '🧎🏻']
+        types: ['🧎🏿', '🧎🏾', '🧎🏽', '🧎🏼', '🧎🏻'],
     },
     {
         name: 'kneeling_man',
         code: '🧎‍♂️',
-        types: ['🧎🏿‍♂️', '🧎🏾‍♂️', '🧎🏽‍♂️', '🧎🏼‍♂️', '🧎🏻‍♂️']
+        types: ['🧎🏿‍♂️', '🧎🏾‍♂️', '🧎🏽‍♂️', '🧎🏼‍♂️', '🧎🏻‍♂️'],
     },
     {
         name: 'kneeling_woman',
         code: '🧎‍♀️',
-        types: ['🧎🏿‍♀️', '🧎🏾‍♀️', '🧎🏽‍♀️', '🧎🏼‍♀️', '🧎🏻‍♀️']
+        types: ['🧎🏿‍♀️', '🧎🏾‍♀️', '🧎🏽‍♀️', '🧎🏼‍♀️', '🧎🏻‍♀️'],
     },
     {
         name: 'person_with_probing_cane',
         code: '🧑‍🦯',
-        types: ['🧑🏿‍🦯', '🧑🏾‍🦯', '🧑🏽‍🦯', '🧑🏼‍🦯', '🧑🏻‍🦯']
+        types: ['🧑🏿‍🦯', '🧑🏾‍🦯', '🧑🏽‍🦯', '🧑🏼‍🦯', '🧑🏻‍🦯'],
     },
     {
         name: 'man_with_probing_cane',
         code: '👨‍🦯',
-        types: ['👨🏿‍🦯', '👨🏾‍🦯', '👨🏽‍🦯', '👨🏼‍🦯', '👨🏻‍🦯']
+        types: ['👨🏿‍🦯', '👨🏾‍🦯', '👨🏽‍🦯', '👨🏼‍🦯', '👨🏻‍🦯'],
     },
     {
         name: 'woman_with_probing_cane',
         code: '👩‍🦯',
-        types: ['👩🏿‍🦯', '👩🏾‍🦯', '👩🏽‍🦯', '👩🏼‍🦯', '👩🏻‍🦯']
+        types: ['👩🏿‍🦯', '👩🏾‍🦯', '👩🏽‍🦯', '👩🏼‍🦯', '👩🏻‍🦯'],
     },
     {
         name: 'person_in_motorized_wheelchair',
         code: '🧑‍🦼',
-        types: ['🧑🏿‍🦼', '🧑🏾‍🦼', '🧑🏽‍🦼', '🧑🏼‍🦼', '🧑🏻‍🦼']
+        types: ['🧑🏿‍🦼', '🧑🏾‍🦼', '🧑🏽‍🦼', '🧑🏼‍🦼', '🧑🏻‍🦼'],
     },
     {
         name: 'man_in_motorized_wheelchair',
         code: '👨‍🦼',
-        types: ['👨🏿‍🦼', '👨🏾‍🦼', '👨🏽‍🦼', '👨🏼‍🦼', '👨🏻‍🦼']
+        types: ['👨🏿‍🦼', '👨🏾‍🦼', '👨🏽‍🦼', '👨🏼‍🦼', '👨🏻‍🦼'],
     },
     {
         name: 'woman_in_motorized_wheelchair',
         code: '👩‍🦼',
-        types: ['👩🏿‍🦼', '👩🏾‍🦼', '👩🏽‍🦼', '👩🏼‍🦼', '👩🏻‍🦼']
+        types: ['👩🏿‍🦼', '👩🏾‍🦼', '👩🏽‍🦼', '👩🏼‍🦼', '👩🏻‍🦼'],
     },
     {
         name: 'person_in_manual_wheelchair',
         code: '🧑‍🦽',
-        types: ['🧑🏿‍🦽', '🧑🏾‍🦽', '🧑🏽‍🦽', '🧑🏼‍🦽', '🧑🏻‍🦽']
+        types: ['🧑🏿‍🦽', '🧑🏾‍🦽', '🧑🏽‍🦽', '🧑🏼‍🦽', '🧑🏻‍🦽'],
     },
     {
         name: 'man_in_manual_wheelchair',
         code: '👨‍🦽',
-        types: ['👨🏿‍🦽', '👨🏾‍🦽', '👨🏽‍🦽', '👨🏼‍🦽', '👨🏻‍🦽']
+        types: ['👨🏿‍🦽', '👨🏾‍🦽', '👨🏽‍🦽', '👨🏼‍🦽', '👨🏻‍🦽'],
     },
     {
         name: 'woman_in_manual_wheelchair',
         code: '👩‍🦽',
-        types: ['👩🏿‍🦽', '👩🏾‍🦽', '👩🏽‍🦽', '👩🏼‍🦽', '👩🏻‍🦽']
+        types: ['👩🏿‍🦽', '👩🏾‍🦽', '👩🏽‍🦽', '👩🏼‍🦽', '👩🏻‍🦽'],
     },
     {
         name: 'runner',
         code: '🏃',
-        types: ['🏃🏿', '🏃🏾', '🏃🏽', '🏃🏼', '🏃🏻']
+        types: ['🏃🏿', '🏃🏾', '🏃🏽', '🏃🏼', '🏃🏻'],
     },
     {
         name: 'running_man',
         code: '🏃‍♂️',
-        types: ['🏃🏿‍♂️', '🏃🏾‍♂️', '🏃🏽‍♂️', '🏃🏼‍♂️', '🏃🏻‍♂️']
+        types: ['🏃🏿‍♂️', '🏃🏾‍♂️', '🏃🏽‍♂️', '🏃🏼‍♂️', '🏃🏻‍♂️'],
     },
     {
         name: 'running_woman',
         code: '🏃‍♀️',
-        types: ['🏃🏿‍♀️', '🏃🏾‍♀️', '🏃🏽‍♀️', '🏃🏼‍♀️', '🏃🏻‍♀️']
+        types: ['🏃🏿‍♀️', '🏃🏾‍♀️', '🏃🏽‍♀️', '🏃🏼‍♀️', '🏃🏻‍♀️'],
     },
     {
         name: 'woman_dancing',
         code: '💃',
-        types: ['💃🏿', '💃🏾', '💃🏽', '💃🏼', '💃🏻']
+        types: ['💃🏿', '💃🏾', '💃🏽', '💃🏼', '💃🏻'],
     },
     {
         name: 'man_dancing',
         code: '🕺',
-        types: ['🕺🏿', '🕺🏾', '🕺🏽', '🕺🏼', '🕺🏻']
+        types: ['🕺🏿', '🕺🏾', '🕺🏽', '🕺🏼', '🕺🏻'],
     },
     {
         name: 'business_suit_levitating',
         code: '🕴️',
-        types: ['🕴🏿', '🕴🏾', '🕴🏽', '🕴🏼', '🕴🏻']
+        types: ['🕴🏿', '🕴🏾', '🕴🏽', '🕴🏼', '🕴🏻'],
     },
     {
         name: 'dancers',
-        code: '👯'
+        code: '👯',
     },
     {
         name: 'dancing_men',
-        code: '👯‍♂️'
+        code: '👯‍♂️',
     },
     {
         name: 'dancing_women',
-        code: '👯‍♀️'
+        code: '👯‍♀️',
     },
     {
         name: 'sauna_person',
         code: '🧖',
-        types: ['🧖🏿', '🧖🏾', '🧖🏽', '🧖🏼', '🧖🏻']
+        types: ['🧖🏿', '🧖🏾', '🧖🏽', '🧖🏼', '🧖🏻'],
     },
     {
         name: 'sauna_man',
         code: '🧖‍♂️',
-        types: ['🧖🏿‍♂️', '🧖🏾‍♂️', '🧖🏽‍♂️', '🧖🏼‍♂️', '🧖🏻‍♂️']
+        types: ['🧖🏿‍♂️', '🧖🏾‍♂️', '🧖🏽‍♂️', '🧖🏼‍♂️', '🧖🏻‍♂️'],
     },
     {
         name: 'sauna_woman',
         code: '🧖‍♀️',
-        types: ['🧖🏿‍♀️', '🧖🏾‍♀️', '🧖🏽‍♀️', '🧖🏼‍♀️', '🧖🏻‍♀️']
+        types: ['🧖🏿‍♀️', '🧖🏾‍♀️', '🧖🏽‍♀️', '🧖🏼‍♀️', '🧖🏻‍♀️'],
     },
     {
         name: 'climbing',
         code: '🧗',
-        types: ['🧗🏿', '🧗🏾', '🧗🏽', '🧗🏼', '🧗🏻']
+        types: ['🧗🏿', '🧗🏾', '🧗🏽', '🧗🏼', '🧗🏻'],
     },
     {
         name: 'climbing_man',
         code: '🧗‍♂️',
-        types: ['🧗🏿‍♂️', '🧗🏾‍♂️', '🧗🏽‍♂️', '🧗🏼‍♂️', '🧗🏻‍♂️']
+        types: ['🧗🏿‍♂️', '🧗🏾‍♂️', '🧗🏽‍♂️', '🧗🏼‍♂️', '🧗🏻‍♂️'],
     },
     {
         name: 'climbing_woman',
         code: '🧗‍♀️',
-        types: ['🧗🏿‍♀️', '🧗🏾‍♀️', '🧗🏽‍♀️', '🧗🏼‍♀️', '🧗🏻‍♀️']
+        types: ['🧗🏿‍♀️', '🧗🏾‍♀️', '🧗🏽‍♀️', '🧗🏼‍♀️', '🧗🏻‍♀️'],
     },
     {
         name: 'person_fencing',
-        code: '🤺'
+        code: '🤺',
     },
     {
         name: 'horse_racing',
         code: '🏇',
-        types: ['🏇🏿', '🏇🏾', '🏇🏽', '🏇🏼', '🏇🏻']
+        types: ['🏇🏿', '🏇🏾', '🏇🏽', '🏇🏼', '🏇🏻'],
     },
     {
         name: 'skier',
-        code: '⛷️'
+        code: '⛷️',
     },
     {
         name: 'snowboarder',
         code: '🏂',
-        types: ['🏂🏿', '🏂🏾', '🏂🏽', '🏂🏼', '🏂🏻']
+        types: ['🏂🏿', '🏂🏾', '🏂🏽', '🏂🏼', '🏂🏻'],
     },
     {
         name: 'golfing',
         code: '🏌️',
-        types: ['🏌🏿', '🏌🏾', '🏌🏽', '🏌🏼', '🏌🏻']
+        types: ['🏌🏿', '🏌🏾', '🏌🏽', '🏌🏼', '🏌🏻'],
     },
     {
         name: 'golfing_man',
         code: '🏌️‍♂️',
-        types: ['🏌🏿‍♂️', '🏌🏾‍♂️', '🏌🏽‍♂️', '🏌🏼‍♂️', '🏌🏻‍♂️']
+        types: ['🏌🏿‍♂️', '🏌🏾‍♂️', '🏌🏽‍♂️', '🏌🏼‍♂️', '🏌🏻‍♂️'],
     },
     {
         name: 'golfing_woman',
         code: '🏌️‍♀️',
-        types: ['🏌🏿‍♀️', '🏌🏾‍♀️', '🏌🏽‍♀️', '🏌🏼‍♀️', '🏌🏻‍♀️']
+        types: ['🏌🏿‍♀️', '🏌🏾‍♀️', '🏌🏽‍♀️', '🏌🏼‍♀️', '🏌🏻‍♀️'],
     },
     {
         name: 'surfer',
         code: '🏄',
-        types: ['🏄🏿', '🏄🏾', '🏄🏽', '🏄🏼', '🏄🏻']
+        types: ['🏄🏿', '🏄🏾', '🏄🏽', '🏄🏼', '🏄🏻'],
     },
     {
         name: 'surfing_man',
         code: '🏄‍♂️',
-        types: ['🏄🏿‍♂️', '🏄🏾‍♂️', '🏄🏽‍♂️', '🏄🏼‍♂️', '🏄🏻‍♂️']
+        types: ['🏄🏿‍♂️', '🏄🏾‍♂️', '🏄🏽‍♂️', '🏄🏼‍♂️', '🏄🏻‍♂️'],
     },
     {
         name: 'surfing_woman',
         code: '🏄‍♀️',
-        types: ['🏄🏿‍♀️', '🏄🏾‍♀️', '🏄🏽‍♀️', '🏄🏼‍♀️', '🏄🏻‍♀️']
+        types: ['🏄🏿‍♀️', '🏄🏾‍♀️', '🏄🏽‍♀️', '🏄🏼‍♀️', '🏄🏻‍♀️'],
     },
     {
         name: 'rowboat',
         code: '🚣',
-        types: ['🚣🏿', '🚣🏾', '🚣🏽', '🚣🏼', '🚣🏻']
+        types: ['🚣🏿', '🚣🏾', '🚣🏽', '🚣🏼', '🚣🏻'],
     },
     {
         name: 'rowing_man',
         code: '🚣‍♂️',
-        types: ['🚣🏿‍♂️', '🚣🏾‍♂️', '🚣🏽‍♂️', '🚣🏼‍♂️', '🚣🏻‍♂️']
+        types: ['🚣🏿‍♂️', '🚣🏾‍♂️', '🚣🏽‍♂️', '🚣🏼‍♂️', '🚣🏻‍♂️'],
     },
     {
         name: 'rowing_woman',
         code: '🚣‍♀️',
-        types: ['🚣🏿‍♀️', '🚣🏾‍♀️', '🚣🏽‍♀️', '🚣🏼‍♀️', '🚣🏻‍♀️']
+        types: ['🚣🏿‍♀️', '🚣🏾‍♀️', '🚣🏽‍♀️', '🚣🏼‍♀️', '🚣🏻‍♀️'],
     },
     {
         name: 'swimmer',
         code: '🏊',
-        types: ['🏊🏿', '🏊🏾', '🏊🏽', '🏊🏼', '🏊🏻']
+        types: ['🏊🏿', '🏊🏾', '🏊🏽', '🏊🏼', '🏊🏻'],
     },
     {
         name: 'swimming_man',
         code: '🏊‍♂️',
-        types: ['🏊🏿‍♂️', '🏊🏾‍♂️', '🏊🏽‍♂️', '🏊🏼‍♂️', '🏊🏻‍♂️']
+        types: ['🏊🏿‍♂️', '🏊🏾‍♂️', '🏊🏽‍♂️', '🏊🏼‍♂️', '🏊🏻‍♂️'],
     },
     {
         name: 'swimming_woman',
         code: '🏊‍♀️',
-        types: ['🏊🏿‍♀️', '🏊🏾‍♀️', '🏊🏽‍♀️', '🏊🏼‍♀️', '🏊🏻‍♀️']
+        types: ['🏊🏿‍♀️', '🏊🏾‍♀️', '🏊🏽‍♀️', '🏊🏼‍♀️', '🏊🏻‍♀️'],
     },
     {
         name: 'bouncing_ball_person',
         code: '⛹️',
-        types: ['⛹🏿', '⛹🏾', '⛹🏽', '⛹🏼', '⛹🏻']
+        types: ['⛹🏿', '⛹🏾', '⛹🏽', '⛹🏼', '⛹🏻'],
     },
     {
         name: 'bouncing_ball_man',
         code: '⛹️‍♂️',
-        types: ['⛹🏿‍♂️', '⛹🏾‍♂️', '⛹🏽‍♂️', '⛹🏼‍♂️', '⛹🏻‍♂️']
+        types: ['⛹🏿‍♂️', '⛹🏾‍♂️', '⛹🏽‍♂️', '⛹🏼‍♂️', '⛹🏻‍♂️'],
     },
     {
         name: 'bouncing_ball_woman',
         code: '⛹️‍♀️',
-        types: ['⛹🏿‍♀️', '⛹🏾‍♀️', '⛹🏽‍♀️', '⛹🏼‍♀️', '⛹🏻‍♀️']
+        types: ['⛹🏿‍♀️', '⛹🏾‍♀️', '⛹🏽‍♀️', '⛹🏼‍♀️', '⛹🏻‍♀️'],
     },
     {
         name: 'weight_lifting',
         code: '🏋️',
-        types: ['🏋🏿', '🏋🏾', '🏋🏽', '🏋🏼', '🏋🏻']
+        types: ['🏋🏿', '🏋🏾', '🏋🏽', '🏋🏼', '🏋🏻'],
     },
     {
         name: 'weight_lifting_man',
         code: '🏋️‍♂️',
-        types: ['🏋🏿‍♂️', '🏋🏾‍♂️', '🏋🏽‍♂️', '🏋🏼‍♂️', '🏋🏻‍♂️']
+        types: ['🏋🏿‍♂️', '🏋🏾‍♂️', '🏋🏽‍♂️', '🏋🏼‍♂️', '🏋🏻‍♂️'],
     },
     {
         name: 'weight_lifting_woman',
         code: '🏋️‍♀️',
-        types: ['🏋🏿‍♀️', '🏋🏾‍♀️', '🏋🏽‍♀️', '🏋🏼‍♀️', '🏋🏻‍♀️']
+        types: ['🏋🏿‍♀️', '🏋🏾‍♀️', '🏋🏽‍♀️', '🏋🏼‍♀️', '🏋🏻‍♀️'],
     },
     {
         name: 'bicyclist',
         code: '🚴',
-        types: ['🚴🏿', '🚴🏾', '🚴🏽', '🚴🏼', '🚴🏻']
+        types: ['🚴🏿', '🚴🏾', '🚴🏽', '🚴🏼', '🚴🏻'],
     },
     {
         name: 'biking_man',
         code: '🚴‍♂️',
-        types: ['🚴🏿‍♂️', '🚴🏾‍♂️', '🚴🏽‍♂️', '🚴🏼‍♂️', '🚴🏻‍♂️']
+        types: ['🚴🏿‍♂️', '🚴🏾‍♂️', '🚴🏽‍♂️', '🚴🏼‍♂️', '🚴🏻‍♂️'],
     },
     {
         name: 'biking_woman',
         code: '🚴‍♀️',
-        types: ['🚴🏿‍♀️', '🚴🏾‍♀️', '🚴🏽‍♀️', '🚴🏼‍♀️', '🚴🏻‍♀️']
+        types: ['🚴🏿‍♀️', '🚴🏾‍♀️', '🚴🏽‍♀️', '🚴🏼‍♀️', '🚴🏻‍♀️'],
     },
     {
         name: 'mountain_bicyclist',
         code: '🚵',
-        types: ['🚵🏿', '🚵🏾', '🚵🏽', '🚵🏼', '🚵🏻']
+        types: ['🚵🏿', '🚵🏾', '🚵🏽', '🚵🏼', '🚵🏻'],
     },
     {
         name: 'mountain_biking_man',
         code: '🚵‍♂️',
-        types: ['🚵🏿‍♂️', '🚵🏾‍♂️', '🚵🏽‍♂️', '🚵🏼‍♂️', '🚵🏻‍♂️']
+        types: ['🚵🏿‍♂️', '🚵🏾‍♂️', '🚵🏽‍♂️', '🚵🏼‍♂️', '🚵🏻‍♂️'],
     },
     {
         name: 'mountain_biking_woman',
         code: '🚵‍♀️',
-        types: ['🚵🏿‍♀️', '🚵🏾‍♀️', '🚵🏽‍♀️', '🚵🏼‍♀️', '🚵🏻‍♀️']
+        types: ['🚵🏿‍♀️', '🚵🏾‍♀️', '🚵🏽‍♀️', '🚵🏼‍♀️', '🚵🏻‍♀️'],
     },
     {
         name: 'cartwheeling',
         code: '🤸',
-        types: ['🤸🏿', '🤸🏾', '🤸🏽', '🤸🏼', '🤸🏻']
+        types: ['🤸🏿', '🤸🏾', '🤸🏽', '🤸🏼', '🤸🏻'],
     },
     {
         name: 'man_cartwheeling',
         code: '🤸‍♂️',
-        types: ['🤸🏿‍♂️', '🤸🏾‍♂️', '🤸🏽‍♂️', '🤸🏼‍♂️', '🤸🏻‍♂️']
+        types: ['🤸🏿‍♂️', '🤸🏾‍♂️', '🤸🏽‍♂️', '🤸🏼‍♂️', '🤸🏻‍♂️'],
     },
     {
         name: 'woman_cartwheeling',
         code: '🤸‍♀️',
-        types: ['🤸🏿‍♀️', '🤸🏾‍♀️', '🤸🏽‍♀️', '🤸🏼‍♀️', '🤸🏻‍♀️']
+        types: ['🤸🏿‍♀️', '🤸🏾‍♀️', '🤸🏽‍♀️', '🤸🏼‍♀️', '🤸🏻‍♀️'],
     },
     {
         name: 'wrestling',
-        code: '🤼'
+        code: '🤼',
     },
     {
         name: 'men_wrestling',
-        code: '🤼‍♂️'
+        code: '🤼‍♂️',
     },
     {
         name: 'women_wrestling',
-        code: '🤼‍♀️'
+        code: '🤼‍♀️',
     },
     {
         name: 'water_polo',
         code: '🤽',
-        types: ['🤽🏿', '🤽🏾', '🤽🏽', '🤽🏼', '🤽🏻']
+        types: ['🤽🏿', '🤽🏾', '🤽🏽', '🤽🏼', '🤽🏻'],
     },
     {
         name: 'man_playing_water_polo',
         code: '🤽‍♂️',
-        types: ['🤽🏿‍♂️', '🤽🏾‍♂️', '🤽🏽‍♂️', '🤽🏼‍♂️', '🤽🏻‍♂️']
+        types: ['🤽🏿‍♂️', '🤽🏾‍♂️', '🤽🏽‍♂️', '🤽🏼‍♂️', '🤽🏻‍♂️'],
     },
     {
         name: 'woman_playing_water_polo',
         code: '🤽‍♀️',
-        types: ['🤽🏿‍♀️', '🤽🏾‍♀️', '🤽🏽‍♀️', '🤽🏼‍♀️', '🤽🏻‍♀️']
+        types: ['🤽🏿‍♀️', '🤽🏾‍♀️', '🤽🏽‍♀️', '🤽🏼‍♀️', '🤽🏻‍♀️'],
     },
     {
         name: 'handball_person',
         code: '🤾',
-        types: ['🤾🏿', '🤾🏾', '🤾🏽', '🤾🏼', '🤾🏻']
+        types: ['🤾🏿', '🤾🏾', '🤾🏽', '🤾🏼', '🤾🏻'],
     },
     {
         name: 'man_playing_handball',
         code: '🤾‍♂️',
-        types: ['🤾🏿‍♂️', '🤾🏾‍♂️', '🤾🏽‍♂️', '🤾🏼‍♂️', '🤾🏻‍♂️']
+        types: ['🤾🏿‍♂️', '🤾🏾‍♂️', '🤾🏽‍♂️', '🤾🏼‍♂️', '🤾🏻‍♂️'],
     },
     {
         name: 'woman_playing_handball',
         code: '🤾‍♀️',
-        types: ['🤾🏿‍♀️', '🤾🏾‍♀️', '🤾🏽‍♀️', '🤾🏼‍♀️', '🤾🏻‍♀️']
+        types: ['🤾🏿‍♀️', '🤾🏾‍♀️', '🤾🏽‍♀️', '🤾🏼‍♀️', '🤾🏻‍♀️'],
     },
     {
         name: 'juggling_person',
         code: '🤹',
-        types: ['🤹🏿', '🤹🏾', '🤹🏽', '🤹🏼', '🤹🏻']
+        types: ['🤹🏿', '🤹🏾', '🤹🏽', '🤹🏼', '🤹🏻'],
     },
     {
         name: 'man_juggling',
         code: '🤹‍♂️',
-        types: ['🤹🏿‍♂️', '🤹🏾‍♂️', '🤹🏽‍♂️', '🤹🏼‍♂️', '🤹🏻‍♂️']
+        types: ['🤹🏿‍♂️', '🤹🏾‍♂️', '🤹🏽‍♂️', '🤹🏼‍♂️', '🤹🏻‍♂️'],
     },
     {
         name: 'woman_juggling',
         code: '🤹‍♀️',
-        types: ['🤹🏿‍♀️', '🤹🏾‍♀️', '🤹🏽‍♀️', '🤹🏼‍♀️', '🤹🏻‍♀️']
+        types: ['🤹🏿‍♀️', '🤹🏾‍♀️', '🤹🏽‍♀️', '🤹🏼‍♀️', '🤹🏻‍♀️'],
     },
     {
         name: 'lotus_position',
         code: '🧘',
-        types: ['🧘🏿', '🧘🏾', '🧘🏽', '🧘🏼', '🧘🏻']
+        types: ['🧘🏿', '🧘🏾', '🧘🏽', '🧘🏼', '🧘🏻'],
     },
     {
         name: 'lotus_position_man',
         code: '🧘‍♂️',
-        types: ['🧘🏿‍♂️', '🧘🏾‍♂️', '🧘🏽‍♂️', '🧘🏼‍♂️', '🧘🏻‍♂️']
+        types: ['🧘🏿‍♂️', '🧘🏾‍♂️', '🧘🏽‍♂️', '🧘🏼‍♂️', '🧘🏻‍♂️'],
     },
     {
         name: 'lotus_position_woman',
         code: '🧘‍♀️',
-        types: ['🧘🏿‍♀️', '🧘🏾‍♀️', '🧘🏽‍♀️', '🧘🏼‍♀️', '🧘🏻‍♀️']
+        types: ['🧘🏿‍♀️', '🧘🏾‍♀️', '🧘🏽‍♀️', '🧘🏼‍♀️', '🧘🏻‍♀️'],
     },
     {
         name: 'bath',
         code: '🛀',
-        types: ['🛀🏿', '🛀🏾', '🛀🏽', '🛀🏼', '🛀🏻']
+        types: ['🛀🏿', '🛀🏾', '🛀🏽', '🛀🏼', '🛀🏻'],
     },
     {
         name: 'sleeping_bed',
         code: '🛌',
-        types: ['🛌🏿', '🛌🏾', '🛌🏽', '🛌🏼', '🛌🏻']
+        types: ['🛌🏿', '🛌🏾', '🛌🏽', '🛌🏼', '🛌🏻'],
     },
     {
         name: 'people_holding_hands',
         code: '🧑‍🤝‍🧑',
-        types: ['🧑🏿‍🤝‍🧑🏿', '🧑🏾‍🤝‍🧑🏾', '🧑🏽‍🤝‍🧑🏽', '🧑🏼‍🤝‍🧑🏼', '🧑🏻‍🤝‍🧑🏻']
+        types: ['🧑🏿‍🤝‍🧑🏿', '🧑🏾‍🤝‍🧑🏾', '🧑🏽‍🤝‍🧑🏽', '🧑🏼‍🤝‍🧑🏼', '🧑🏻‍🤝‍🧑🏻'],
     },
     {
         name: 'two_women_holding_hands',
         code: '👭',
-        types: ['👭🏿', '👭🏾', '👭🏽', '👭🏼', '👭🏻']
+        types: ['👭🏿', '👭🏾', '👭🏽', '👭🏼', '👭🏻'],
     },
     {
         name: 'couple',
         code: '👫',
-        types: ['👫🏿', '👫🏾', '👫🏽', '👫🏼', '👫🏻']
+        types: ['👫🏿', '👫🏾', '👫🏽', '👫🏼', '👫🏻'],
     },
     {
         name: 'two_men_holding_hands',
         code: '👬',
-        types: ['👬🏿', '👬🏾', '👬🏽', '👬🏼', '👬🏻']
+        types: ['👬🏿', '👬🏾', '👬🏽', '👬🏼', '👬🏻'],
     },
     {
         name: 'couplekiss',
         code: '💏',
-        types: ['💏🏿', '💏🏾', '💏🏽', '💏🏼', '💏🏻']
+        types: ['💏🏿', '💏🏾', '💏🏽', '💏🏼', '💏🏻'],
     },
     {
         name: 'couplekiss_man_woman',
         code: '👩‍❤️‍💋‍👨',
-        types: ['👩🏿‍❤️‍💋‍👨🏿', '👩🏾‍❤️‍💋‍👨🏾', '👩🏽‍❤️‍💋‍👨🏽', '👩🏼‍❤️‍💋‍👨🏼', '👩🏻‍❤️‍💋‍👨🏻']
+        types: ['👩🏿‍❤️‍💋‍👨🏿', '👩🏾‍❤️‍💋‍👨🏾', '👩🏽‍❤️‍💋‍👨🏽', '👩🏼‍❤️‍💋‍👨🏼', '👩🏻‍❤️‍💋‍👨🏻'],
     },
     {
         name: 'couplekiss_man_man',
         code: '👨‍❤️‍💋‍👨',
-        types: ['👨🏿‍❤️‍💋‍👨🏿', '👨🏾‍❤️‍💋‍👨🏾', '👨🏽‍❤️‍💋‍👨🏽', '👨🏼‍❤️‍💋‍👨🏼', '👨🏻‍❤️‍💋‍👨🏻']
+        types: ['👨🏿‍❤️‍💋‍👨🏿', '👨🏾‍❤️‍💋‍👨🏾', '👨🏽‍❤️‍💋‍👨🏽', '👨🏼‍❤️‍💋‍👨🏼', '👨🏻‍❤️‍💋‍👨🏻'],
     },
     {
         name: 'couplekiss_woman_woman',
         code: '👩‍❤️‍💋‍👩',
-        types: ['👩🏿‍❤️‍💋‍👩🏿', '👩🏾‍❤️‍💋‍👩🏾', '👩🏽‍❤️‍💋‍👩🏽', '👩🏼‍❤️‍💋‍👩🏼', '👩🏻‍❤️‍💋‍👩🏻']
+        types: ['👩🏿‍❤️‍💋‍👩🏿', '👩🏾‍❤️‍💋‍👩🏾', '👩🏽‍❤️‍💋‍👩🏽', '👩🏼‍❤️‍💋‍👩🏼', '👩🏻‍❤️‍💋‍👩🏻'],
     },
     {
         name: 'couple_with_heart',
         code: '💑',
-        types: ['💑🏿', '💑🏾', '💑🏽', '💑🏼', '💑🏻']
+        types: ['💑🏿', '💑🏾', '💑🏽', '💑🏼', '💑🏻'],
     },
     {
         name: 'couple_with_heart_woman_man',
         code: '👩‍❤️‍👨',
-        types: ['👩🏿‍❤️‍👨🏿', '👩🏾‍❤️‍👨🏾', '👩🏽‍❤️‍👨🏽', '👩🏼‍❤️‍👨🏼', '👩🏻‍❤️‍👨🏻']
+        types: ['👩🏿‍❤️‍👨🏿', '👩🏾‍❤️‍👨🏾', '👩🏽‍❤️‍👨🏽', '👩🏼‍❤️‍👨🏼', '👩🏻‍❤️‍👨🏻'],
     },
     {
         name: 'couple_with_heart_man_man',
         code: '👨‍❤️‍👨',
-        types: ['👨🏿‍❤️‍👨🏿', '👨🏾‍❤️‍👨🏾', '👨🏽‍❤️‍👨🏽', '👨🏼‍❤️‍👨🏼', '👨🏻‍❤️‍👨🏻']
+        types: ['👨🏿‍❤️‍👨🏿', '👨🏾‍❤️‍👨🏾', '👨🏽‍❤️‍👨🏽', '👨🏼‍❤️‍👨🏼', '👨🏻‍❤️‍👨🏻'],
     },
     {
         name: 'couple_with_heart_woman_woman',
         code: '👩‍❤️‍👩',
-        types: ['👩🏿‍❤️‍👩🏿', '👩🏾‍❤️‍👩🏾', '👩🏽‍❤️‍👩🏽', '👩🏼‍❤️‍👩🏼', '👩🏻‍❤️‍👩🏻']
+        types: ['👩🏿‍❤️‍👩🏿', '👩🏾‍❤️‍👩🏾', '👩🏽‍❤️‍👩🏽', '👩🏼‍❤️‍👩🏼', '👩🏻‍❤️‍👩🏻'],
     },
     {
         name: 'family',
-        code: '👪'
+        code: '👪',
     },
     {
         name: 'family_man_woman_boy',
-        code: '👨‍👩‍👦'
+        code: '👨‍👩‍👦',
     },
     {
         name: 'family_man_woman_girl',
-        code: '👨‍👩‍👧'
+        code: '👨‍👩‍👧',
     },
     {
         name: 'family_man_woman_girl_boy',
-        code: '👨‍👩‍👧‍👦'
+        code: '👨‍👩‍👧‍👦',
     },
     {
         name: 'family_man_woman_boy_boy',
-        code: '👨‍👩‍👦‍👦'
+        code: '👨‍👩‍👦‍👦',
     },
     {
         name: 'family_man_woman_girl_girl',
-        code: '👨‍👩‍👧‍👧'
+        code: '👨‍👩‍👧‍👧',
     },
     {
         name: 'family_man_man_boy',
-        code: '👨‍👨‍👦'
+        code: '👨‍👨‍👦',
     },
     {
         name: 'family_man_man_girl',
-        code: '👨‍👨‍👧'
+        code: '👨‍👨‍👧',
     },
     {
         name: 'family_man_man_girl_boy',
-        code: '👨‍👨‍👧‍👦'
+        code: '👨‍👨‍👧‍👦',
     },
     {
         name: 'family_man_man_boy_boy',
-        code: '👨‍👨‍👦‍👦'
+        code: '👨‍👨‍👦‍👦',
     },
     {
         name: 'family_man_man_girl_girl',
-        code: '👨‍👨‍👧‍👧'
+        code: '👨‍👨‍👧‍👧',
     },
     {
         name: 'family_woman_woman_boy',
-        code: '👩‍👩‍👦'
+        code: '👩‍👩‍👦',
     },
     {
         name: 'family_woman_woman_girl',
-        code: '👩‍👩‍👧'
+        code: '👩‍👩‍👧',
     },
     {
         name: 'family_woman_woman_girl_boy',
-        code: '👩‍👩‍👧‍👦'
+        code: '👩‍👩‍👧‍👦',
     },
     {
         name: 'family_woman_woman_boy_boy',
-        code: '👩‍👩‍👦‍👦'
+        code: '👩‍👩‍👦‍👦',
     },
     {
         name: 'family_woman_woman_girl_girl',
-        code: '👩‍👩‍👧‍👧'
+        code: '👩‍👩‍👧‍👧',
     },
     {
         name: 'family_man_boy',
-        code: '👨‍👦'
+        code: '👨‍👦',
     },
     {
         name: 'family_man_boy_boy',
-        code: '👨‍👦‍👦'
+        code: '👨‍👦‍👦',
     },
     {
         name: 'family_man_girl',
-        code: '👨‍👧'
+        code: '👨‍👧',
     },
     {
         name: 'family_man_girl_boy',
-        code: '👨‍👧‍👦'
+        code: '👨‍👧‍👦',
     },
     {
         name: 'family_man_girl_girl',
-        code: '👨‍👧‍👧'
+        code: '👨‍👧‍👧',
     },
     {
         name: 'family_woman_boy',
-        code: '👩‍👦'
+        code: '👩‍👦',
     },
     {
         name: 'family_woman_boy_boy',
-        code: '👩‍👦‍👦'
+        code: '👩‍👦‍👦',
     },
     {
         name: 'family_woman_girl',
-        code: '👩‍👧'
+        code: '👩‍👧',
     },
     {
         name: 'family_woman_girl_boy',
-        code: '👩‍👧‍👦'
+        code: '👩‍👧‍👦',
     },
     {
         name: 'family_woman_girl_girl',
-        code: '👩‍👧‍👧'
+        code: '👩‍👧‍👧',
     },
     {
         name: 'speaking_head',
-        code: '🗣️'
+        code: '🗣️',
     },
     {
         name: 'bust_in_silhouette',
-        code: '👤'
+        code: '👤',
     },
     {
         name: 'busts_in_silhouette',
-        code: '👥'
+        code: '👥',
     },
     {
         name: 'people_hugging',
-        code: '🫂'
+        code: '🫂',
     },
     {
         name: 'footprints',
-        code: '👣'
+        code: '👣',
     },
     {
         header: true,
-        icon: plant_svg_1["default"],
-        code: 'animalsAndNature'
+        icon: plant_svg_1['default'],
+        code: 'animalsAndNature',
     },
     {
         name: 'monkey_face',
-        code: '🐵'
+        code: '🐵',
     },
     {
         name: 'monkey',
-        code: '🐒'
+        code: '🐒',
     },
     {
         name: 'gorilla',
-        code: '🦍'
+        code: '🦍',
     },
     {
         name: 'orangutan',
-        code: '🦧'
+        code: '🦧',
     },
     {
         name: 'dog',
-        code: '🐶'
+        code: '🐶',
     },
     {
         name: 'dog2',
-        code: '🐕'
+        code: '🐕',
     },
     {
         name: 'guide_dog',
-        code: '🦮'
+        code: '🦮',
     },
     {
         name: 'service_dog',
-        code: '🐕‍🦺'
+        code: '🐕‍🦺',
     },
     {
         name: 'poodle',
-        code: '🐩'
+        code: '🐩',
     },
     {
         name: 'wolf',
-        code: '🐺'
+        code: '🐺',
     },
     {
         name: 'fox_face',
-        code: '🦊'
+        code: '🦊',
     },
     {
         name: 'raccoon',
-        code: '🦝'
+        code: '🦝',
     },
     {
         name: 'cat',
-        code: '🐱'
+        code: '🐱',
     },
     {
         name: 'cat2',
-        code: '🐈'
+        code: '🐈',
     },
     {
         name: 'black_cat',
-        code: '🐈‍⬛'
+        code: '🐈‍⬛',
     },
     {
         name: 'lion',
-        code: '🦁'
+        code: '🦁',
     },
     {
         name: 'tiger',
-        code: '🐯'
+        code: '🐯',
     },
     {
         name: 'tiger2',
-        code: '🐅'
+        code: '🐅',
     },
     {
         name: 'leopard',
-        code: '🐆'
+        code: '🐆',
     },
     {
         name: 'horse',
-        code: '🐴'
+        code: '🐴',
     },
     {
         name: 'racehorse',
-        code: '🐎'
+        code: '🐎',
     },
     {
         name: 'unicorn',
-        code: '🦄'
+        code: '🦄',
     },
     {
         name: 'moose',
-        code: '🫎'
+        code: '🫎',
     },
     {
         name: 'donkey',
-        code: '🫏'
+        code: '🫏',
     },
     {
         name: 'wing',
-        code: '🪽'
+        code: '🪽',
     },
     {
         name: 'black_bird',
-        code: '🐦‍⬛'
+        code: '🐦‍⬛',
     },
     {
         name: 'goose',
-        code: '🪿'
+        code: '🪿',
     },
     {
         name: 'jellyfish',
-        code: '🪼'
+        code: '🪼',
     },
     {
         name: 'zebra',
-        code: '🦓'
+        code: '🦓',
     },
     {
         name: 'deer',
-        code: '🦌'
+        code: '🦌',
     },
     {
         name: 'bison',
-        code: '🦬'
+        code: '🦬',
     },
     {
         name: 'cow',
-        code: '🐮'
+        code: '🐮',
     },
     {
         name: 'ox',
-        code: '🐂'
+        code: '🐂',
     },
     {
         name: 'water_buffalo',
-        code: '🐃'
+        code: '🐃',
     },
     {
         name: 'cow2',
-        code: '🐄'
+        code: '🐄',
     },
     {
         name: 'pig',
-        code: '🐷'
+        code: '🐷',
     },
     {
         name: 'pig2',
-        code: '🐖'
+        code: '🐖',
     },
     {
         name: 'boar',
-        code: '🐗'
+        code: '🐗',
     },
     {
         name: 'pig_nose',
-        code: '🐽'
+        code: '🐽',
     },
     {
         name: 'ram',
-        code: '🐏'
+        code: '🐏',
     },
     {
         name: 'sheep',
-        code: '🐑'
+        code: '🐑',
     },
     {
         name: 'goat',
-        code: '🐐'
+        code: '🐐',
     },
     {
         name: 'dromedary_camel',
-        code: '🐪'
+        code: '🐪',
     },
     {
         name: 'camel',
-        code: '🐫'
+        code: '🐫',
     },
     {
         name: 'llama',
-        code: '🦙'
+        code: '🦙',
     },
     {
         name: 'giraffe',
-        code: '🦒'
+        code: '🦒',
     },
     {
         name: 'elephant',
-        code: '🐘'
+        code: '🐘',
     },
     {
         name: 'mammoth',
-        code: '🦣'
+        code: '🦣',
     },
     {
         name: 'rhinoceros',
-        code: '🦏'
+        code: '🦏',
     },
     {
         name: 'hippopotamus',
-        code: '🦛'
+        code: '🦛',
     },
     {
         name: 'mouse',
-        code: '🐭'
+        code: '🐭',
     },
     {
         name: 'mouse2',
-        code: '🐁'
+        code: '🐁',
     },
     {
         name: 'rat',
-        code: '🐀'
+        code: '🐀',
     },
     {
         name: 'hamster',
-        code: '🐹'
+        code: '🐹',
     },
     {
         name: 'rabbit',
-        code: '🐰'
+        code: '🐰',
     },
     {
         name: 'rabbit2',
-        code: '🐇'
+        code: '🐇',
     },
     {
         name: 'chipmunk',
-        code: '🐿️'
+        code: '🐿️',
     },
     {
         name: 'beaver',
-        code: '🦫'
+        code: '🦫',
     },
     {
         name: 'hedgehog',
-        code: '🦔'
+        code: '🦔',
     },
     {
         name: 'bat',
-        code: '🦇'
+        code: '🦇',
     },
     {
         name: 'bear',
-        code: '🐻'
+        code: '🐻',
     },
     {
         name: 'polar_bear',
-        code: '🐻‍❄️'
+        code: '🐻‍❄️',
     },
     {
         name: 'koala',
-        code: '🐨'
+        code: '🐨',
     },
     {
         name: 'panda_face',
-        code: '🐼'
+        code: '🐼',
     },
     {
         name: 'sloth',
-        code: '🦥'
+        code: '🦥',
     },
     {
         name: 'otter',
-        code: '🦦'
+        code: '🦦',
     },
     {
         name: 'skunk',
-        code: '🦨'
+        code: '🦨',
     },
     {
         name: 'kangaroo',
-        code: '🦘'
+        code: '🦘',
     },
     {
         name: 'badger',
-        code: '🦡'
+        code: '🦡',
     },
     {
         name: 'feet',
-        code: '🐾'
+        code: '🐾',
     },
     {
         name: 'turkey',
-        code: '🦃'
+        code: '🦃',
     },
     {
         name: 'chicken',
-        code: '🐔'
+        code: '🐔',
     },
     {
         name: 'rooster',
-        code: '🐓'
+        code: '🐓',
     },
     {
         name: 'hatching_chick',
-        code: '🐣'
+        code: '🐣',
     },
     {
         name: 'baby_chick',
-        code: '🐤'
+        code: '🐤',
     },
     {
         name: 'hatched_chick',
-        code: '🐥'
+        code: '🐥',
     },
     {
         name: 'bird',
-        code: '🐦'
+        code: '🐦',
     },
     {
         name: 'penguin',
-        code: '🐧'
+        code: '🐧',
     },
     {
         name: 'dove',
-        code: '🕊️'
+        code: '🕊️',
     },
     {
         name: 'eagle',
-        code: '🦅'
+        code: '🦅',
     },
     {
         name: 'duck',
-        code: '🦆'
+        code: '🦆',
     },
     {
         name: 'swan',
-        code: '🦢'
+        code: '🦢',
     },
     {
         name: 'owl',
-        code: '🦉'
+        code: '🦉',
     },
     {
         name: 'dodo',
-        code: '🦤'
+        code: '🦤',
     },
     {
         name: 'feather',
-        code: '🪶'
+        code: '🪶',
     },
     {
         name: 'flamingo',
-        code: '🦩'
+        code: '🦩',
     },
     {
         name: 'peacock',
-        code: '🦚'
+        code: '🦚',
     },
     {
         name: 'parrot',
-        code: '🦜'
+        code: '🦜',
     },
     {
         name: 'frog',
-        code: '🐸'
+        code: '🐸',
     },
     {
         name: 'crocodile',
-        code: '🐊'
+        code: '🐊',
     },
     {
         name: 'turtle',
-        code: '🐢'
+        code: '🐢',
     },
     {
         name: 'lizard',
-        code: '🦎'
+        code: '🦎',
     },
     {
         name: 'snake',
-        code: '🐍'
+        code: '🐍',
     },
     {
         name: 'dragon_face',
-        code: '🐲'
+        code: '🐲',
     },
     {
         name: 'dragon',
-        code: '🐉'
+        code: '🐉',
     },
     {
         name: 'sauropod',
-        code: '🦕'
+        code: '🦕',
     },
     {
         name: 't-rex',
-        code: '🦖'
+        code: '🦖',
     },
     {
         name: 'whale',
-        code: '🐳'
+        code: '🐳',
     },
     {
         name: 'whale2',
-        code: '🐋'
+        code: '🐋',
     },
     {
         name: 'dolphin',
-        code: '🐬'
+        code: '🐬',
     },
     {
         name: 'seal',
-        code: '🦭'
+        code: '🦭',
     },
     {
         name: 'fish',
-        code: '🐟'
+        code: '🐟',
     },
     {
         name: 'tropical_fish',
-        code: '🐠'
+        code: '🐠',
     },
     {
         name: 'blowfish',
-        code: '🐡'
+        code: '🐡',
     },
     {
         name: 'shark',
-        code: '🦈'
+        code: '🦈',
     },
     {
         name: 'octopus',
-        code: '🐙'
+        code: '🐙',
     },
     {
         name: 'shell',
-        code: '🐚'
+        code: '🐚',
     },
     {
         name: 'coral',
-        code: '🪸'
+        code: '🪸',
     },
     {
         name: 'snail',
-        code: '🐌'
+        code: '🐌',
     },
     {
         name: 'butterfly',
-        code: '🦋'
+        code: '🦋',
     },
     {
         name: 'bug',
-        code: '🐛'
+        code: '🐛',
     },
     {
         name: 'ant',
-        code: '🐜'
+        code: '🐜',
     },
     {
         name: 'bee',
-        code: '🐝'
+        code: '🐝',
     },
     {
         name: 'beetle',
-        code: '🪲'
+        code: '🪲',
     },
     {
         name: 'lady_beetle',
-        code: '🐞'
+        code: '🐞',
     },
     {
         name: 'cricket',
-        code: '🦗'
+        code: '🦗',
     },
     {
         name: 'cockroach',
-        code: '🪳'
+        code: '🪳',
     },
     {
         name: 'spider',
-        code: '🕷️'
+        code: '🕷️',
     },
     {
         name: 'spider_web',
-        code: '🕸️'
+        code: '🕸️',
     },
     {
         name: 'scorpion',
-        code: '🦂'
+        code: '🦂',
     },
     {
         name: 'mosquito',
-        code: '🦟'
+        code: '🦟',
     },
     {
         name: 'fly',
-        code: '🪰'
+        code: '🪰',
     },
     {
         name: 'worm',
-        code: '🪱'
+        code: '🪱',
     },
     {
         name: 'microbe',
-        code: '🦠'
+        code: '🦠',
     },
     {
         name: 'bouquet',
-        code: '💐'
+        code: '💐',
     },
     {
         name: 'cherry_blossom',
-        code: '🌸'
+        code: '🌸',
     },
     {
         name: 'white_flower',
-        code: '💮'
+        code: '💮',
     },
     {
         name: 'rosette',
-        code: '🏵️'
+        code: '🏵️',
     },
     {
         name: 'rose',
-        code: '🌹'
+        code: '🌹',
     },
     {
         name: 'wilted_flower',
-        code: '🥀'
+        code: '🥀',
     },
     {
         name: 'hyacinth',
-        code: '🪻'
+        code: '🪻',
     },
     {
         name: 'lotus',
-        code: '🪷'
+        code: '🪷',
     },
     {
         name: 'hibiscus',
-        code: '🌺'
+        code: '🌺',
     },
     {
         name: 'sunflower',
-        code: '🌻'
+        code: '🌻',
     },
     {
         name: 'blossom',
-        code: '🌼'
+        code: '🌼',
     },
     {
         name: 'tulip',
-        code: '🌷'
+        code: '🌷',
     },
     {
         name: 'seedling',
-        code: '🌱'
+        code: '🌱',
     },
     {
         name: 'potted_plant',
-        code: '🪴'
+        code: '🪴',
     },
     {
         name: 'evergreen_tree',
-        code: '🌲'
+        code: '🌲',
     },
     {
         name: 'deciduous_tree',
-        code: '🌳'
+        code: '🌳',
     },
     {
         name: 'palm_tree',
-        code: '🌴'
+        code: '🌴',
     },
     {
         name: 'cactus',
-        code: '🌵'
+        code: '🌵',
     },
     {
         name: 'ear_of_rice',
-        code: '🌾'
+        code: '🌾',
     },
     {
         name: 'herb',
-        code: '🌿'
+        code: '🌿',
     },
     {
         name: 'shamrock',
-        code: '☘️'
+        code: '☘️',
     },
     {
         name: 'four_leaf_clover',
-        code: '🍀'
+        code: '🍀',
     },
     {
         name: 'maple_leaf',
-        code: '🍁'
+        code: '🍁',
     },
     {
         name: 'fallen_leaf',
-        code: '🍂'
+        code: '🍂',
     },
     {
         name: 'leaves',
-        code: '🍃'
+        code: '🍃',
     },
     {
         name: 'nest_with_eggs',
-        code: '🪺'
+        code: '🪺',
     },
     {
         name: 'empty_nest',
-        code: '🪹'
+        code: '🪹',
     },
     {
         header: true,
-        icon: hamburger_svg_1["default"],
-        code: 'foodAndDrink'
+        icon: hamburger_svg_1['default'],
+        code: 'foodAndDrink',
     },
     {
         name: 'grapes',
-        code: '🍇'
+        code: '🍇',
     },
     {
         name: 'melon',
-        code: '🍈'
+        code: '🍈',
     },
     {
         name: 'watermelon',
-        code: '🍉'
+        code: '🍉',
     },
     {
         name: 'tangerine',
-        code: '🍊'
+        code: '🍊',
     },
     {
         name: 'lemon',
-        code: '🍋'
+        code: '🍋',
     },
     {
         name: 'banana',
-        code: '🍌'
+        code: '🍌',
     },
     {
         name: 'pineapple',
-        code: '🍍'
+        code: '🍍',
     },
     {
         name: 'mango',
-        code: '🥭'
+        code: '🥭',
     },
     {
         name: 'apple',
-        code: '🍎'
+        code: '🍎',
     },
     {
         name: 'green_apple',
-        code: '🍏'
+        code: '🍏',
     },
     {
         name: 'pear',
-        code: '🍐'
+        code: '🍐',
     },
     {
         name: 'peach',
-        code: '🍑'
+        code: '🍑',
     },
     {
         name: 'cherries',
-        code: '🍒'
+        code: '🍒',
     },
     {
         name: 'strawberry',
-        code: '🍓'
+        code: '🍓',
     },
     {
         name: 'blueberries',
-        code: '🫐'
+        code: '🫐',
     },
     {
         name: 'kiwi_fruit',
-        code: '🥝'
+        code: '🥝',
     },
     {
         name: 'tomato',
-        code: '🍅'
+        code: '🍅',
     },
     {
         name: 'olive',
-        code: '🫒'
+        code: '🫒',
     },
     {
         name: 'coconut',
-        code: '🥥'
+        code: '🥥',
     },
     {
         name: 'avocado',
-        code: '🥑'
+        code: '🥑',
     },
     {
         name: 'eggplant',
-        code: '🍆'
+        code: '🍆',
     },
     {
         name: 'potato',
-        code: '🥔'
+        code: '🥔',
     },
     {
         name: 'carrot',
-        code: '🥕'
+        code: '🥕',
     },
     {
         name: 'corn',
-        code: '🌽'
+        code: '🌽',
     },
     {
         name: 'hot_pepper',
-        code: '🌶️'
+        code: '🌶️',
     },
     {
         name: 'bell_pepper',
-        code: '🫑'
+        code: '🫑',
     },
     {
         name: 'cucumber',
-        code: '🥒'
+        code: '🥒',
     },
     {
         name: 'leafy_green',
-        code: '🥬'
+        code: '🥬',
     },
     {
         name: 'broccoli',
-        code: '🥦'
+        code: '🥦',
     },
     {
         name: 'garlic',
-        code: '🧄'
+        code: '🧄',
     },
     {
         name: 'onion',
-        code: '🧅'
+        code: '🧅',
     },
     {
         name: 'mushroom',
-        code: '🍄'
+        code: '🍄',
     },
     {
         name: 'peanuts',
-        code: '🥜'
+        code: '🥜',
     },
     {
         name: 'beans',
-        code: '🫘'
+        code: '🫘',
     },
     {
         name: 'chestnut',
-        code: '🌰'
+        code: '🌰',
     },
     {
         name: 'bread',
-        code: '🍞'
+        code: '🍞',
     },
     {
         name: 'croissant',
-        code: '🥐'
+        code: '🥐',
     },
     {
         name: 'baguette_bread',
-        code: '🥖'
+        code: '🥖',
     },
     {
         name: 'flatbread',
-        code: '🫓'
+        code: '🫓',
     },
     {
         name: 'pretzel',
-        code: '🥨'
+        code: '🥨',
     },
     {
         name: 'bagel',
-        code: '🥯'
+        code: '🥯',
     },
     {
         name: 'pancakes',
-        code: '🥞'
+        code: '🥞',
     },
     {
         name: 'waffle',
-        code: '🧇'
+        code: '🧇',
     },
     {
         name: 'cheese',
-        code: '🧀'
+        code: '🧀',
     },
     {
         name: 'meat_on_bone',
-        code: '🍖'
+        code: '🍖',
     },
     {
         name: 'poultry_leg',
-        code: '🍗'
+        code: '🍗',
     },
     {
         name: 'cut_of_meat',
-        code: '🥩'
+        code: '🥩',
     },
     {
         name: 'bacon',
-        code: '🥓'
+        code: '🥓',
     },
     {
         name: 'hamburger',
-        code: '🍔'
+        code: '🍔',
     },
     {
         name: 'fries',
-        code: '🍟'
+        code: '🍟',
     },
     {
         name: 'pizza',
-        code: '🍕'
+        code: '🍕',
     },
     {
         name: 'hotdog',
-        code: '🌭'
+        code: '🌭',
     },
     {
         name: 'sandwich',
-        code: '🥪'
+        code: '🥪',
     },
     {
         name: 'taco',
-        code: '🌮'
+        code: '🌮',
     },
     {
         name: 'burrito',
-        code: '🌯'
+        code: '🌯',
     },
     {
         name: 'tamale',
-        code: '🫔'
+        code: '🫔',
     },
     {
         name: 'stuffed_flatbread',
-        code: '🥙'
+        code: '🥙',
     },
     {
         name: 'falafel',
-        code: '🧆'
+        code: '🧆',
     },
     {
         name: 'egg',
-        code: '🥚'
+        code: '🥚',
     },
     {
         name: 'fried_egg',
-        code: '🍳'
+        code: '🍳',
     },
     {
         name: 'shallow_pan_of_food',
-        code: '🥘'
+        code: '🥘',
     },
     {
         name: 'stew',
-        code: '🍲'
+        code: '🍲',
     },
     {
         name: 'fondue',
-        code: '🫕'
+        code: '🫕',
     },
     {
         name: 'bowl_with_spoon',
-        code: '🥣'
+        code: '🥣',
     },
     {
         name: 'green_salad',
-        code: '🥗'
+        code: '🥗',
     },
     {
         name: 'popcorn',
-        code: '🍿'
+        code: '🍿',
     },
     {
         name: 'butter',
-        code: '🧈'
+        code: '🧈',
     },
     {
         name: 'salt',
-        code: '🧂'
+        code: '🧂',
     },
     {
         name: 'canned_food',
-        code: '🥫'
+        code: '🥫',
     },
     {
         name: 'jar',
-        code: '🫙'
+        code: '🫙',
     },
     {
         name: 'bento',
-        code: '🍱'
+        code: '🍱',
     },
     {
         name: 'rice_cracker',
-        code: '🍘'
+        code: '🍘',
     },
     {
         name: 'rice_ball',
-        code: '🍙'
+        code: '🍙',
     },
     {
         name: 'rice',
-        code: '🍚'
+        code: '🍚',
     },
     {
         name: 'curry',
-        code: '🍛'
+        code: '🍛',
     },
     {
         name: 'ramen',
-        code: '🍜'
+        code: '🍜',
     },
     {
         name: 'spaghetti',
-        code: '🍝'
+        code: '🍝',
     },
     {
         name: 'sweet_potato',
-        code: '🍠'
+        code: '🍠',
     },
     {
         name: 'ginger',
-        code: '🫚'
+        code: '🫚',
     },
     {
         name: 'pea_pod',
-        code: '🫛'
+        code: '🫛',
     },
     {
         name: 'oden',
-        code: '🍢'
+        code: '🍢',
     },
     {
         name: 'sushi',
-        code: '🍣'
+        code: '🍣',
     },
     {
         name: 'fried_shrimp',
-        code: '🍤'
+        code: '🍤',
     },
     {
         name: 'fish_cake',
-        code: '🍥'
+        code: '🍥',
     },
     {
         name: 'moon_cake',
-        code: '🥮'
+        code: '🥮',
     },
     {
         name: 'dango',
-        code: '🍡'
+        code: '🍡',
     },
     {
         name: 'dumpling',
-        code: '🥟'
+        code: '🥟',
     },
     {
         name: 'fortune_cookie',
-        code: '🥠'
+        code: '🥠',
     },
     {
         name: 'takeout_box',
-        code: '🥡'
+        code: '🥡',
     },
     {
         name: 'crab',
-        code: '🦀'
+        code: '🦀',
     },
     {
         name: 'lobster',
-        code: '🦞'
+        code: '🦞',
     },
     {
         name: 'shrimp',
-        code: '🦐'
+        code: '🦐',
     },
     {
         name: 'squid',
-        code: '🦑'
+        code: '🦑',
     },
     {
         name: 'oyster',
-        code: '🦪'
+        code: '🦪',
     },
     {
         name: 'icecream',
-        code: '🍦'
+        code: '🍦',
     },
     {
         name: 'shaved_ice',
-        code: '🍧'
+        code: '🍧',
     },
     {
         name: 'ice_cream',
-        code: '🍨'
+        code: '🍨',
     },
     {
         name: 'doughnut',
-        code: '🍩'
+        code: '🍩',
     },
     {
         name: 'cookie',
-        code: '🍪'
+        code: '🍪',
     },
     {
         name: 'birthday',
-        code: '🎂'
+        code: '🎂',
     },
     {
         name: 'cake',
-        code: '🍰'
+        code: '🍰',
     },
     {
         name: 'cupcake',
-        code: '🧁'
+        code: '🧁',
     },
     {
         name: 'pie',
-        code: '🥧'
+        code: '🥧',
     },
     {
         name: 'chocolate_bar',
-        code: '🍫'
+        code: '🍫',
     },
     {
         name: 'candy',
-        code: '🍬'
+        code: '🍬',
     },
     {
         name: 'lollipop',
-        code: '🍭'
+        code: '🍭',
     },
     {
         name: 'custard',
-        code: '🍮'
+        code: '🍮',
     },
     {
         name: 'honey_pot',
-        code: '🍯'
+        code: '🍯',
     },
     {
         name: 'baby_bottle',
-        code: '🍼'
+        code: '🍼',
     },
     {
         name: 'milk_glass',
-        code: '🥛'
+        code: '🥛',
     },
     {
         name: 'pouring_liquid',
-        code: '🫗'
+        code: '🫗',
     },
     {
         name: 'coffee',
-        code: '☕'
+        code: '☕',
     },
     {
         name: 'teapot',
-        code: '🫖'
+        code: '🫖',
     },
     {
         name: 'tea',
-        code: '🍵'
+        code: '🍵',
     },
     {
         name: 'sake',
-        code: '🍶'
+        code: '🍶',
     },
     {
         name: 'champagne',
-        code: '🍾'
+        code: '🍾',
     },
     {
         name: 'wine_glass',
-        code: '🍷'
+        code: '🍷',
     },
     {
         name: 'cocktail',
-        code: '🍸'
+        code: '🍸',
     },
     {
         name: 'tropical_drink',
-        code: '🍹'
+        code: '🍹',
     },
     {
         name: 'beer',
-        code: '🍺'
+        code: '🍺',
     },
     {
         name: 'beers',
-        code: '🍻'
+        code: '🍻',
     },
     {
         name: 'clinking_glasses',
-        code: '🥂'
+        code: '🥂',
     },
     {
         name: 'tumbler_glass',
-        code: '🥃'
+        code: '🥃',
     },
     {
         name: 'cup_with_straw',
-        code: '🥤'
+        code: '🥤',
     },
     {
         name: 'bubble_tea',
-        code: '🧋'
+        code: '🧋',
     },
     {
         name: 'beverage_box',
-        code: '🧃'
+        code: '🧃',
     },
     {
         name: 'mate',
-        code: '🧉'
+        code: '🧉',
     },
     {
         name: 'ice_cube',
-        code: '🧊'
+        code: '🧊',
     },
     {
         name: 'chopsticks',
-        code: '🥢'
+        code: '🥢',
     },
     {
         name: 'plate_with_cutlery',
-        code: '🍽️'
+        code: '🍽️',
     },
     {
         name: 'fork_and_knife',
-        code: '🍴'
+        code: '🍴',
     },
     {
         name: 'spoon',
-        code: '🥄'
+        code: '🥄',
     },
     {
         name: 'hocho',
-        code: '🔪'
+        code: '🔪',
     },
     {
         name: 'amphora',
-        code: '🏺'
+        code: '🏺',
     },
     {
         header: true,
-        icon: plane_svg_1["default"],
-        code: 'travelAndPlaces'
+        icon: plane_svg_1['default'],
+        code: 'travelAndPlaces',
     },
     {
         name: 'earth_africa',
-        code: '🌍'
+        code: '🌍',
     },
     {
         name: 'earth_americas',
-        code: '🌎'
+        code: '🌎',
     },
     {
         name: 'earth_asia',
-        code: '🌏'
+        code: '🌏',
     },
     {
         name: 'globe_with_meridians',
-        code: '🌐'
+        code: '🌐',
     },
     {
         name: 'world_map',
-        code: '🗺️'
+        code: '🗺️',
     },
     {
         name: 'japan',
-        code: '🗾'
+        code: '🗾',
     },
     {
         name: 'compass',
-        code: '🧭'
+        code: '🧭',
     },
     {
         name: 'mountain_snow',
-        code: '🏔️'
+        code: '🏔️',
     },
     {
         name: 'mountain',
-        code: '⛰️'
+        code: '⛰️',
     },
     {
         name: 'volcano',
-        code: '🌋'
+        code: '🌋',
     },
     {
         name: 'mount_fuji',
-        code: '🗻'
+        code: '🗻',
     },
     {
         name: 'camping',
-        code: '🏕️'
+        code: '🏕️',
     },
     {
         name: 'beach_umbrella',
-        code: '🏖️'
+        code: '🏖️',
     },
     {
         name: 'desert',
-        code: '🏜️'
+        code: '🏜️',
     },
     {
         name: 'desert_island',
-        code: '🏝️'
+        code: '🏝️',
     },
     {
         name: 'national_park',
-        code: '🏞️'
+        code: '🏞️',
     },
     {
         name: 'stadium',
-        code: '🏟️'
+        code: '🏟️',
     },
     {
         name: 'classical_building',
-        code: '🏛️'
+        code: '🏛️',
     },
     {
         name: 'building_construction',
-        code: '🏗️'
+        code: '🏗️',
     },
     {
         name: 'bricks',
-        code: '🧱'
+        code: '🧱',
     },
     {
         name: 'rock',
-        code: '🪨'
+        code: '🪨',
     },
     {
         name: 'wood',
-        code: '🪵'
+        code: '🪵',
     },
     {
         name: 'hut',
-        code: '🛖'
+        code: '🛖',
     },
     {
         name: 'houses',
-        code: '🏘️'
+        code: '🏘️',
     },
     {
         name: 'derelict_house',
-        code: '🏚️'
+        code: '🏚️',
     },
     {
         name: 'house',
-        code: '🏠'
+        code: '🏠',
     },
     {
         name: 'house_with_garden',
-        code: '🏡'
+        code: '🏡',
     },
     {
         name: 'office',
-        code: '🏢'
+        code: '🏢',
     },
     {
         name: 'post_office',
-        code: '🏣'
+        code: '🏣',
     },
     {
         name: 'european_post_office',
-        code: '🏤'
+        code: '🏤',
     },
     {
         name: 'hospital',
-        code: '🏥'
+        code: '🏥',
     },
     {
         name: 'bank',
-        code: '🏦'
+        code: '🏦',
     },
     {
         name: 'hotel',
-        code: '🏨'
+        code: '🏨',
     },
     {
         name: 'love_hotel',
-        code: '🏩'
+        code: '🏩',
     },
     {
         name: 'convenience_store',
-        code: '🏪'
+        code: '🏪',
     },
     {
         name: 'school',
-        code: '🏫'
+        code: '🏫',
     },
     {
         name: 'department_store',
-        code: '🏬'
+        code: '🏬',
     },
     {
         name: 'factory',
-        code: '🏭'
+        code: '🏭',
     },
     {
         name: 'japanese_castle',
-        code: '🏯'
+        code: '🏯',
     },
     {
         name: 'european_castle',
-        code: '🏰'
+        code: '🏰',
     },
     {
         name: 'wedding',
-        code: '💒'
+        code: '💒',
     },
     {
         name: 'tokyo_tower',
-        code: '🗼'
+        code: '🗼',
     },
     {
         name: 'statue_of_liberty',
-        code: '🗽'
+        code: '🗽',
     },
     {
         name: 'church',
-        code: '⛪'
+        code: '⛪',
     },
     {
         name: 'mosque',
-        code: '🕌'
+        code: '🕌',
     },
     {
         name: 'hindu_temple',
-        code: '🛕'
+        code: '🛕',
     },
     {
         name: 'synagogue',
-        code: '🕍'
+        code: '🕍',
     },
     {
         name: 'shinto_shrine',
-        code: '⛩️'
+        code: '⛩️',
     },
     {
         name: 'kaaba',
-        code: '🕋'
+        code: '🕋',
     },
     {
         name: 'fountain',
-        code: '⛲'
+        code: '⛲',
     },
     {
         name: 'tent',
-        code: '⛺'
+        code: '⛺',
     },
     {
         name: 'foggy',
-        code: '🌁'
+        code: '🌁',
     },
     {
         name: 'night_with_stars',
-        code: '🌃'
+        code: '🌃',
     },
     {
         name: 'cityscape',
-        code: '🏙️'
+        code: '🏙️',
     },
     {
         name: 'sunrise_over_mountains',
-        code: '🌄'
+        code: '🌄',
     },
     {
         name: 'sunrise',
-        code: '🌅'
+        code: '🌅',
     },
     {
         name: 'city_sunset',
-        code: '🌆'
+        code: '🌆',
     },
     {
         name: 'city_sunrise',
-        code: '🌇'
+        code: '🌇',
     },
     {
         name: 'bridge_at_night',
-        code: '🌉'
+        code: '🌉',
     },
     {
         name: 'hotsprings',
-        code: '♨️'
+        code: '♨️',
     },
     {
         name: 'carousel_horse',
-        code: '🎠'
+        code: '🎠',
     },
     {
         name: 'ferris_wheel',
-        code: '🎡'
+        code: '🎡',
     },
     {
         name: 'roller_coaster',
-        code: '🎢'
+        code: '🎢',
     },
     {
         name: 'barber',
-        code: '💈'
+        code: '💈',
     },
     {
         name: 'circus_tent',
-        code: '🎪'
+        code: '🎪',
     },
     {
         name: 'steam_locomotive',
-        code: '🚂'
+        code: '🚂',
     },
     {
         name: 'railway_car',
-        code: '🚃'
+        code: '🚃',
     },
     {
         name: 'bullettrain_side',
-        code: '🚄'
+        code: '🚄',
     },
     {
         name: 'bullettrain_front',
-        code: '🚅'
+        code: '🚅',
     },
     {
         name: 'train2',
-        code: '🚆'
+        code: '🚆',
     },
     {
         name: 'metro',
-        code: '🚇'
+        code: '🚇',
     },
     {
         name: 'light_rail',
-        code: '🚈'
+        code: '🚈',
     },
     {
         name: 'station',
-        code: '🚉'
+        code: '🚉',
     },
     {
         name: 'tram',
-        code: '🚊'
+        code: '🚊',
     },
     {
         name: 'monorail',
-        code: '🚝'
+        code: '🚝',
     },
     {
         name: 'mountain_railway',
-        code: '🚞'
+        code: '🚞',
     },
     {
         name: 'train',
-        code: '🚋'
+        code: '🚋',
     },
     {
         name: 'bus',
-        code: '🚌'
+        code: '🚌',
     },
     {
         name: 'oncoming_bus',
-        code: '🚍'
+        code: '🚍',
     },
     {
         name: 'trolleybus',
-        code: '🚎'
+        code: '🚎',
     },
     {
         name: 'minibus',
-        code: '🚐'
+        code: '🚐',
     },
     {
         name: 'ambulance',
-        code: '🚑'
+        code: '🚑',
     },
     {
         name: 'fire_engine',
-        code: '🚒'
+        code: '🚒',
     },
     {
         name: 'police_car',
-        code: '🚓'
+        code: '🚓',
     },
     {
         name: 'oncoming_police_car',
-        code: '🚔'
+        code: '🚔',
     },
     {
         name: 'taxi',
-        code: '🚕'
+        code: '🚕',
     },
     {
         name: 'oncoming_taxi',
-        code: '🚖'
+        code: '🚖',
     },
     {
         name: 'car',
-        code: '🚗'
+        code: '🚗',
     },
     {
         name: 'oncoming_automobile',
-        code: '🚘'
+        code: '🚘',
     },
     {
         name: 'blue_car',
-        code: '🚙'
+        code: '🚙',
     },
     {
         name: 'pickup_truck',
-        code: '🛻'
+        code: '🛻',
     },
     {
         name: 'truck',
-        code: '🚚'
+        code: '🚚',
     },
     {
         name: 'articulated_lorry',
-        code: '🚛'
+        code: '🚛',
     },
     {
         name: 'tractor',
-        code: '🚜'
+        code: '🚜',
     },
     {
         name: 'racing_car',
-        code: '🏎️'
+        code: '🏎️',
     },
     {
         name: 'motorcycle',
-        code: '🏍️'
+        code: '🏍️',
     },
     {
         name: 'motor_scooter',
-        code: '🛵'
+        code: '🛵',
     },
     {
         name: 'manual_wheelchair',
-        code: '🦽'
+        code: '🦽',
     },
     {
         name: 'motorized_wheelchair',
-        code: '🦼'
+        code: '🦼',
     },
     {
         name: 'crutch',
-        code: '🩼'
+        code: '🩼',
     },
     {
         name: 'auto_rickshaw',
-        code: '🛺'
+        code: '🛺',
     },
     {
         name: 'bike',
-        code: '🚲'
+        code: '🚲',
     },
     {
         name: 'kick_scooter',
-        code: '🛴'
+        code: '🛴',
     },
     {
         name: 'skateboard',
-        code: '🛹'
+        code: '🛹',
     },
     {
         name: 'roller_skate',
-        code: '🛼'
+        code: '🛼',
     },
     {
         name: 'wheel',
-        code: '🛞'
+        code: '🛞',
     },
     {
         name: 'busstop',
-        code: '🚏'
+        code: '🚏',
     },
     {
         name: 'motorway',
-        code: '🛣️'
+        code: '🛣️',
     },
     {
         name: 'railway_track',
-        code: '🛤️'
+        code: '🛤️',
     },
     {
         name: 'oil_drum',
-        code: '🛢️'
+        code: '🛢️',
     },
     {
         name: 'fuelpump',
-        code: '⛽'
+        code: '⛽',
     },
     {
         name: 'rotating_light',
-        code: '🚨'
+        code: '🚨',
     },
     {
         name: 'traffic_light',
-        code: '🚥'
+        code: '🚥',
     },
     {
         name: 'vertical_traffic_light',
-        code: '🚦'
+        code: '🚦',
     },
     {
         name: 'stop_sign',
-        code: '🛑'
+        code: '🛑',
     },
     {
         name: 'construction',
-        code: '🚧'
+        code: '🚧',
     },
     {
         name: 'anchor',
-        code: '⚓'
+        code: '⚓',
     },
     {
         name: 'boat',
-        code: '⛵'
+        code: '⛵',
     },
     {
         name: 'canoe',
-        code: '🛶'
+        code: '🛶',
     },
     {
         name: 'speedboat',
-        code: '🚤'
+        code: '🚤',
     },
     {
         name: 'passenger_ship',
-        code: '🛳️'
+        code: '🛳️',
     },
     {
         name: 'ferry',
-        code: '⛴️'
+        code: '⛴️',
     },
     {
         name: 'motor_boat',
-        code: '🛥️'
+        code: '🛥️',
     },
     {
         name: 'ship',
-        code: '🚢'
+        code: '🚢',
     },
     {
         name: 'ring_buoy',
-        code: '🛟'
+        code: '🛟',
     },
     {
         name: 'airplane',
-        code: '✈️'
+        code: '✈️',
     },
     {
         name: 'small_airplane',
-        code: '🛩️'
+        code: '🛩️',
     },
     {
         name: 'flight_departure',
-        code: '🛫'
+        code: '🛫',
     },
     {
         name: 'flight_arrival',
-        code: '🛬'
+        code: '🛬',
     },
     {
         name: 'parachute',
-        code: '🪂'
+        code: '🪂',
     },
     {
         name: 'seat',
-        code: '💺'
+        code: '💺',
     },
     {
         name: 'helicopter',
-        code: '🚁'
+        code: '🚁',
     },
     {
         name: 'suspension_railway',
-        code: '🚟'
+        code: '🚟',
     },
     {
         name: 'mountain_cableway',
-        code: '🚠'
+        code: '🚠',
     },
     {
         name: 'aerial_tramway',
-        code: '🚡'
+        code: '🚡',
     },
     {
         name: 'artificial_satellite',
-        code: '🛰️'
+        code: '🛰️',
     },
     {
         name: 'rocket',
-        code: '🚀'
+        code: '🚀',
     },
     {
         name: 'flying_saucer',
-        code: '🛸'
+        code: '🛸',
     },
     {
         name: 'bellhop_bell',
-        code: '🛎️'
+        code: '🛎️',
     },
     {
         name: 'luggage',
-        code: '🧳'
+        code: '🧳',
     },
     {
         name: 'hourglass',
-        code: '⌛'
+        code: '⌛',
     },
     {
         name: 'hourglass_flowing_sand',
-        code: '⏳'
+        code: '⏳',
     },
     {
         name: 'watch',
-        code: '⌚'
+        code: '⌚',
     },
     {
         name: 'alarm_clock',
-        code: '⏰'
+        code: '⏰',
     },
     {
         name: 'stopwatch',
-        code: '⏱️'
+        code: '⏱️',
     },
     {
         name: 'timer_clock',
-        code: '⏲️'
+        code: '⏲️',
     },
     {
         name: 'mantelpiece_clock',
-        code: '🕰️'
+        code: '🕰️',
     },
     {
         name: 'clock12',
-        code: '🕛'
+        code: '🕛',
     },
     {
         name: 'clock1230',
-        code: '🕧'
+        code: '🕧',
     },
     {
         name: 'clock1',
-        code: '🕐'
+        code: '🕐',
     },
     {
         name: 'clock130',
-        code: '🕜'
+        code: '🕜',
     },
     {
         name: 'clock2',
-        code: '🕑'
+        code: '🕑',
     },
     {
         name: 'clock230',
-        code: '🕝'
+        code: '🕝',
     },
     {
         name: 'clock3',
-        code: '🕒'
+        code: '🕒',
     },
     {
         name: 'clock330',
-        code: '🕞'
+        code: '🕞',
     },
     {
         name: 'clock4',
-        code: '🕓'
+        code: '🕓',
     },
     {
         name: 'clock430',
-        code: '🕟'
+        code: '🕟',
     },
     {
         name: 'clock5',
-        code: '🕔'
+        code: '🕔',
     },
     {
         name: 'clock530',
-        code: '🕠'
+        code: '🕠',
     },
     {
         name: 'clock6',
-        code: '🕕'
+        code: '🕕',
     },
     {
         name: 'clock630',
-        code: '🕡'
+        code: '🕡',
     },
     {
         name: 'clock7',
-        code: '🕖'
+        code: '🕖',
     },
     {
         name: 'clock730',
-        code: '🕢'
+        code: '🕢',
     },
     {
         name: 'clock8',
-        code: '🕗'
+        code: '🕗',
     },
     {
         name: 'clock830',
-        code: '🕣'
+        code: '🕣',
     },
     {
         name: 'clock9',
-        code: '🕘'
+        code: '🕘',
     },
     {
         name: 'clock930',
-        code: '🕤'
+        code: '🕤',
     },
     {
         name: 'clock10',
-        code: '🕙'
+        code: '🕙',
     },
     {
         name: 'clock1030',
-        code: '🕥'
+        code: '🕥',
     },
     {
         name: 'clock11',
-        code: '🕚'
+        code: '🕚',
     },
     {
         name: 'clock1130',
-        code: '🕦'
+        code: '🕦',
     },
     {
         name: 'new_moon',
-        code: '🌑'
+        code: '🌑',
     },
     {
         name: 'waxing_crescent_moon',
-        code: '🌒'
+        code: '🌒',
     },
     {
         name: 'first_quarter_moon',
-        code: '🌓'
+        code: '🌓',
     },
     {
         name: 'moon',
-        code: '🌔'
+        code: '🌔',
     },
     {
         name: 'full_moon',
-        code: '🌕'
+        code: '🌕',
     },
     {
         name: 'waning_gibbous_moon',
-        code: '🌖'
+        code: '🌖',
     },
     {
         name: 'last_quarter_moon',
-        code: '🌗'
+        code: '🌗',
     },
     {
         name: 'waning_crescent_moon',
-        code: '🌘'
+        code: '🌘',
     },
     {
         name: 'crescent_moon',
-        code: '🌙'
+        code: '🌙',
     },
     {
         name: 'new_moon_with_face',
-        code: '🌚'
+        code: '🌚',
     },
     {
         name: 'first_quarter_moon_with_face',
-        code: '🌛'
+        code: '🌛',
     },
     {
         name: 'last_quarter_moon_with_face',
-        code: '🌜'
+        code: '🌜',
     },
     {
         name: 'thermometer',
-        code: '🌡️'
+        code: '🌡️',
     },
     {
         name: 'sunny',
-        code: '☀️'
+        code: '☀️',
     },
     {
         name: 'full_moon_with_face',
-        code: '🌝'
+        code: '🌝',
     },
     {
         name: 'sun_with_face',
-        code: '🌞'
+        code: '🌞',
     },
     {
         name: 'ringed_planet',
-        code: '🪐'
+        code: '🪐',
     },
     {
         name: 'star',
-        code: '⭐'
+        code: '⭐',
     },
     {
         name: 'star2',
-        code: '🌟'
+        code: '🌟',
     },
     {
         name: 'stars',
-        code: '🌠'
+        code: '🌠',
     },
     {
         name: 'milky_way',
-        code: '🌌'
+        code: '🌌',
     },
     {
         name: 'cloud',
-        code: '☁️'
+        code: '☁️',
     },
     {
         name: 'partly_sunny',
-        code: '⛅'
+        code: '⛅',
     },
     {
         name: 'cloud_with_lightning_and_rain',
-        code: '⛈️'
+        code: '⛈️',
     },
     {
         name: 'sun_behind_small_cloud',
-        code: '🌤️'
+        code: '🌤️',
     },
     {
         name: 'sun_behind_large_cloud',
-        code: '🌥️'
+        code: '🌥️',
     },
     {
         name: 'sun_behind_rain_cloud',
-        code: '🌦️'
+        code: '🌦️',
     },
     {
         name: 'cloud_with_rain',
-        code: '🌧️'
+        code: '🌧️',
     },
     {
         name: 'cloud_with_snow',
-        code: '🌨️'
+        code: '🌨️',
     },
     {
         name: 'cloud_with_lightning',
-        code: '🌩️'
+        code: '🌩️',
     },
     {
         name: 'tornado',
-        code: '🌪️'
+        code: '🌪️',
     },
     {
         name: 'fog',
-        code: '🌫️'
+        code: '🌫️',
     },
     {
         name: 'wind_face',
-        code: '🌬️'
+        code: '🌬️',
     },
     {
         name: 'cyclone',
-        code: '🌀'
+        code: '🌀',
     },
     {
         name: 'rainbow',
-        code: '🌈'
+        code: '🌈',
     },
     {
         name: 'closed_umbrella',
-        code: '🌂'
+        code: '🌂',
     },
     {
         name: 'open_umbrella',
-        code: '☂️'
+        code: '☂️',
     },
     {
         name: 'umbrella',
-        code: '☔'
+        code: '☔',
     },
     {
         name: 'parasol_on_ground',
-        code: '⛱️'
+        code: '⛱️',
     },
     {
         name: 'zap',
-        code: '⚡'
+        code: '⚡',
     },
     {
         name: 'snowflake',
-        code: '❄️'
+        code: '❄️',
     },
     {
         name: 'snowman_with_snow',
-        code: '☃️'
+        code: '☃️',
     },
     {
         name: 'snowman',
-        code: '⛄'
+        code: '⛄',
     },
     {
         name: 'comet',
-        code: '☄️'
+        code: '☄️',
     },
     {
         name: 'fire',
-        code: '🔥'
+        code: '🔥',
     },
     {
         name: 'droplet',
-        code: '💧'
+        code: '💧',
     },
     {
         name: 'ocean',
-        code: '🌊'
+        code: '🌊',
     },
     {
         header: true,
-        icon: soccer_ball_svg_1["default"],
-        code: 'activities'
+        icon: soccer_ball_svg_1['default'],
+        code: 'activities',
     },
     {
         name: 'jack_o_lantern',
-        code: '🎃'
+        code: '🎃',
     },
     {
         name: 'christmas_tree',
-        code: '🎄'
+        code: '🎄',
     },
     {
         name: 'fireworks',
-        code: '🎆'
+        code: '🎆',
     },
     {
         name: 'sparkler',
-        code: '🎇'
+        code: '🎇',
     },
     {
         name: 'firecracker',
-        code: '🧨'
+        code: '🧨',
     },
     {
         name: 'sparkles',
-        code: '✨'
+        code: '✨',
     },
     {
         name: 'balloon',
-        code: '🎈'
+        code: '🎈',
     },
     {
         name: 'tada',
-        code: '🎉'
+        code: '🎉',
     },
     {
         name: 'confetti_ball',
-        code: '🎊'
+        code: '🎊',
     },
     {
         name: 'tanabata_tree',
-        code: '🎋'
+        code: '🎋',
     },
     {
         name: 'bamboo',
-        code: '🎍'
+        code: '🎍',
     },
     {
         name: 'dolls',
-        code: '🎎'
+        code: '🎎',
     },
     {
         name: 'folding_hand_fan',
-        code: '🪭'
+        code: '🪭',
     },
     {
         name: 'flags',
-        code: '🎏'
+        code: '🎏',
     },
     {
         name: 'wind_chime',
-        code: '🎐'
+        code: '🎐',
     },
     {
         name: 'mirror_ball',
-        code: '🪩'
+        code: '🪩',
     },
     {
         name: 'rice_scene',
-        code: '🎑'
+        code: '🎑',
     },
     {
         name: 'red_envelope',
-        code: '🧧'
+        code: '🧧',
     },
     {
         name: 'ribbon',
-        code: '🎀'
+        code: '🎀',
     },
     {
         name: 'gift',
-        code: '🎁'
+        code: '🎁',
     },
     {
         name: 'reminder_ribbon',
-        code: '🎗️'
+        code: '🎗️',
     },
     {
         name: 'tickets',
-        code: '🎟️'
+        code: '🎟️',
     },
     {
         name: 'ticket',
-        code: '🎫'
+        code: '🎫',
     },
     {
         name: 'medal_military',
-        code: '🎖️'
+        code: '🎖️',
     },
     {
         name: 'trophy',
-        code: '🏆'
+        code: '🏆',
     },
     {
         name: 'medal_sports',
-        code: '🏅'
+        code: '🏅',
     },
     {
         name: '1st_place_medal',
-        code: '🥇'
+        code: '🥇',
     },
     {
         name: '2nd_place_medal',
-        code: '🥈'
+        code: '🥈',
     },
     {
         name: '3rd_place_medal',
-        code: '🥉'
+        code: '🥉',
     },
     {
         name: 'soccer',
-        code: '⚽'
+        code: '⚽',
     },
     {
         name: 'baseball',
-        code: '⚾'
+        code: '⚾',
     },
     {
         name: 'softball',
-        code: '🥎'
+        code: '🥎',
     },
     {
         name: 'basketball',
-        code: '🏀'
+        code: '🏀',
     },
     {
         name: 'volleyball',
-        code: '🏐'
+        code: '🏐',
     },
     {
         name: 'football',
-        code: '🏈'
+        code: '🏈',
     },
     {
         name: 'rugby_football',
-        code: '🏉'
+        code: '🏉',
     },
     {
         name: 'tennis',
-        code: '🎾'
+        code: '🎾',
     },
     {
         name: 'flying_disc',
-        code: '🥏'
+        code: '🥏',
     },
     {
         name: 'bowling',
-        code: '🎳'
+        code: '🎳',
     },
     {
         name: 'cricket_game',
-        code: '🏏'
+        code: '🏏',
     },
     {
         name: 'field_hockey',
-        code: '🏑'
+        code: '🏑',
     },
     {
         name: 'ice_hockey',
-        code: '🏒'
+        code: '🏒',
     },
     {
         name: 'lacrosse',
-        code: '🥍'
+        code: '🥍',
     },
     {
         name: 'ping_pong',
-        code: '🏓'
+        code: '🏓',
     },
     {
         name: 'badminton',
-        code: '🏸'
+        code: '🏸',
     },
     {
         name: 'boxing_glove',
-        code: '🥊'
+        code: '🥊',
     },
     {
         name: 'martial_arts_uniform',
-        code: '🥋'
+        code: '🥋',
     },
     {
         name: 'goal_net',
-        code: '🥅'
+        code: '🥅',
     },
     {
         name: 'golf',
-        code: '⛳'
+        code: '⛳',
     },
     {
         name: 'ice_skate',
-        code: '⛸️'
+        code: '⛸️',
     },
     {
         name: 'fishing_pole_and_fish',
-        code: '🎣'
+        code: '🎣',
     },
     {
         name: 'diving_mask',
-        code: '🤿'
+        code: '🤿',
     },
     {
         name: 'running_shirt_with_sash',
-        code: '🎽'
+        code: '🎽',
     },
     {
         name: 'ski',
-        code: '🎿'
+        code: '🎿',
     },
     {
         name: 'sled',
-        code: '🛷'
+        code: '🛷',
     },
     {
         name: 'curling_stone',
-        code: '🥌'
+        code: '🥌',
     },
     {
         name: 'dart',
-        code: '🎯'
+        code: '🎯',
     },
     {
         name: 'yo_yo',
-        code: '🪀'
+        code: '🪀',
     },
     {
         name: 'kite',
-        code: '🪁'
+        code: '🪁',
     },
     {
         name: 'playground_slide',
-        code: '🛝'
+        code: '🛝',
     },
     {
         name: '8ball',
-        code: '🎱'
+        code: '🎱',
     },
     {
         name: 'crystal_ball',
-        code: '🔮'
+        code: '🔮',
     },
     {
         name: 'magic_wand',
-        code: '🪄'
+        code: '🪄',
     },
     {
         name: 'nazar_amulet',
-        code: '🧿'
+        code: '🧿',
     },
     {
         name: 'hamsa',
-        code: '🪬'
+        code: '🪬',
     },
     {
         name: 'video_game',
-        code: '🎮'
+        code: '🎮',
     },
     {
         name: 'joystick',
-        code: '🕹️'
+        code: '🕹️',
     },
     {
         name: 'slot_machine',
-        code: '🎰'
+        code: '🎰',
     },
     {
         name: 'game_die',
-        code: '🎲'
+        code: '🎲',
     },
     {
         name: 'jigsaw',
-        code: '🧩'
+        code: '🧩',
     },
     {
         name: 'teddy_bear',
-        code: '🧸'
+        code: '🧸',
     },
     {
         name: 'pinata',
-        code: '🪅'
+        code: '🪅',
     },
     {
         name: 'nesting_dolls',
-        code: '🪆'
+        code: '🪆',
     },
     {
         name: 'spades',
-        code: '♠️'
+        code: '♠️',
     },
     {
         name: 'hearts',
-        code: '♥️'
+        code: '♥️',
     },
     {
         name: 'diamonds',
-        code: '♦️'
+        code: '♦️',
     },
     {
         name: 'clubs',
-        code: '♣️'
+        code: '♣️',
     },
     {
         name: 'chess_pawn',
-        code: '♟️'
+        code: '♟️',
     },
     {
         name: 'black_joker',
-        code: '🃏'
+        code: '🃏',
     },
     {
         name: 'mahjong',
-        code: '🀄'
+        code: '🀄',
     },
     {
         name: 'flower_playing_cards',
-        code: '🎴'
+        code: '🎴',
     },
     {
         name: 'performing_arts',
-        code: '🎭'
+        code: '🎭',
     },
     {
         name: 'framed_picture',
-        code: '🖼️'
+        code: '🖼️',
     },
     {
         name: 'art',
-        code: '🎨'
+        code: '🎨',
     },
     {
         name: 'thread',
-        code: '🧵'
+        code: '🧵',
     },
     {
         name: 'sewing_needle',
-        code: '🪡'
+        code: '🪡',
     },
     {
         name: 'yarn',
-        code: '🧶'
+        code: '🧶',
     },
     {
         name: 'knot',
-        code: '🪢'
+        code: '🪢',
     },
     {
         header: true,
-        icon: light_bulb_svg_1["default"],
-        code: 'objects'
+        icon: light_bulb_svg_1['default'],
+        code: 'objects',
     },
     {
         name: 'eyeglasses',
-        code: '👓'
+        code: '👓',
     },
     {
         name: 'dark_sunglasses',
-        code: '🕶️'
+        code: '🕶️',
     },
     {
         name: 'goggles',
-        code: '🥽'
+        code: '🥽',
     },
     {
         name: 'lab_coat',
-        code: '🥼'
+        code: '🥼',
     },
     {
         name: 'safety_vest',
-        code: '🦺'
+        code: '🦺',
     },
     {
         name: 'necktie',
-        code: '👔'
+        code: '👔',
     },
     {
         name: 'shirt',
-        code: '👕'
+        code: '👕',
     },
     {
         name: 'jeans',
-        code: '👖'
+        code: '👖',
     },
     {
         name: 'scarf',
-        code: '🧣'
+        code: '🧣',
     },
     {
         name: 'gloves',
-        code: '🧤'
+        code: '🧤',
     },
     {
         name: 'coat',
-        code: '🧥'
+        code: '🧥',
     },
     {
         name: 'socks',
-        code: '🧦'
+        code: '🧦',
     },
     {
         name: 'dress',
-        code: '👗'
+        code: '👗',
     },
     {
         name: 'kimono',
-        code: '👘'
+        code: '👘',
     },
     {
         name: 'sari',
-        code: '🥻'
+        code: '🥻',
     },
     {
         name: 'one_piece_swimsuit',
-        code: '🩱'
+        code: '🩱',
     },
     {
         name: 'swim_brief',
-        code: '🩲'
+        code: '🩲',
     },
     {
         name: 'shorts',
-        code: '🩳'
+        code: '🩳',
     },
     {
         name: 'bikini',
-        code: '👙'
+        code: '👙',
     },
     {
         name: 'womans_clothes',
-        code: '👚'
+        code: '👚',
     },
     {
         name: 'purse',
-        code: '👛'
+        code: '👛',
     },
     {
         name: 'handbag',
-        code: '👜'
+        code: '👜',
     },
     {
         name: 'pouch',
-        code: '👝'
+        code: '👝',
     },
     {
         name: 'shopping',
-        code: '🛍️'
+        code: '🛍️',
     },
     {
         name: 'school_satchel',
-        code: '🎒'
+        code: '🎒',
     },
     {
         name: 'thong_sandal',
-        code: '🩴'
+        code: '🩴',
     },
     {
         name: 'mans_shoe',
-        code: '👞'
+        code: '👞',
     },
     {
         name: 'athletic_shoe',
-        code: '👟'
+        code: '👟',
     },
     {
         name: 'hiking_boot',
-        code: '🥾'
+        code: '🥾',
     },
     {
         name: 'flat_shoe',
-        code: '🥿'
+        code: '🥿',
     },
     {
         name: 'high_heel',
-        code: '👠'
+        code: '👠',
     },
     {
         name: 'sandal',
-        code: '👡'
+        code: '👡',
     },
     {
         name: 'ballet_shoes',
-        code: '🩰'
+        code: '🩰',
     },
     {
         name: 'boot',
-        code: '👢'
+        code: '👢',
     },
     {
         name: 'crown',
-        code: '👑'
+        code: '👑',
     },
     {
         name: 'womans_hat',
-        code: '👒'
+        code: '👒',
     },
     {
         name: 'tophat',
-        code: '🎩'
+        code: '🎩',
     },
     {
         name: 'mortar_board',
-        code: '🎓'
+        code: '🎓',
     },
     {
         name: 'billed_cap',
-        code: '🧢'
+        code: '🧢',
     },
     {
         name: 'military_helmet',
-        code: '🪖'
+        code: '🪖',
     },
     {
         name: 'rescue_worker_helmet',
-        code: '⛑️'
+        code: '⛑️',
     },
     {
         name: 'prayer_beads',
-        code: '📿'
+        code: '📿',
     },
     {
         name: 'lipstick',
-        code: '💄'
+        code: '💄',
     },
     {
         name: 'ring',
-        code: '💍'
+        code: '💍',
     },
     {
         name: 'gem',
-        code: '💎'
+        code: '💎',
     },
     {
         name: 'mute',
-        code: '🔇'
+        code: '🔇',
     },
     {
         name: 'speaker',
-        code: '🔈'
+        code: '🔈',
     },
     {
         name: 'sound',
-        code: '🔉'
+        code: '🔉',
     },
     {
         name: 'loud_sound',
-        code: '🔊'
+        code: '🔊',
     },
     {
         name: 'loudspeaker',
-        code: '📢'
+        code: '📢',
     },
     {
         name: 'mega',
-        code: '📣'
+        code: '📣',
     },
     {
         name: 'postal_horn',
-        code: '📯'
+        code: '📯',
     },
     {
         name: 'bell',
-        code: '🔔'
+        code: '🔔',
     },
     {
         name: 'no_bell',
-        code: '🔕'
+        code: '🔕',
     },
     {
         name: 'musical_score',
-        code: '🎼'
+        code: '🎼',
     },
     {
         name: 'musical_note',
-        code: '🎵'
+        code: '🎵',
     },
     {
         name: 'notes',
-        code: '🎶'
+        code: '🎶',
     },
     {
         name: 'studio_microphone',
-        code: '🎙️'
+        code: '🎙️',
     },
     {
         name: 'level_slider',
-        code: '🎚️'
+        code: '🎚️',
     },
     {
         name: 'control_knobs',
-        code: '🎛️'
+        code: '🎛️',
     },
     {
         name: 'microphone',
-        code: '🎤'
+        code: '🎤',
     },
     {
         name: 'headphones',
-        code: '🎧'
+        code: '🎧',
     },
     {
         name: 'radio',
-        code: '📻'
+        code: '📻',
     },
     {
         name: 'saxophone',
-        code: '🎷'
+        code: '🎷',
     },
     {
         name: 'accordion',
-        code: '🪗'
+        code: '🪗',
     },
     {
         name: 'guitar',
-        code: '🎸'
+        code: '🎸',
     },
     {
         name: 'musical_keyboard',
-        code: '🎹'
+        code: '🎹',
     },
     {
         name: 'maracas',
-        code: '🪇'
+        code: '🪇',
     },
     {
         name: 'trumpet',
-        code: '🎺'
+        code: '🎺',
     },
     {
         name: 'violin',
-        code: '🎻'
+        code: '🎻',
     },
     {
         name: 'flute',
-        code: '🪈'
+        code: '🪈',
     },
     {
         name: 'banjo',
-        code: '🪕'
+        code: '🪕',
     },
     {
         name: 'drum',
-        code: '🥁'
+        code: '🥁',
     },
     {
         name: 'long_drum',
-        code: '🪘'
+        code: '🪘',
     },
     {
         name: 'iphone',
-        code: '📱'
+        code: '📱',
     },
     {
         name: 'calling',
-        code: '📲'
+        code: '📲',
     },
     {
         name: 'phone',
-        code: '☎️'
+        code: '☎️',
     },
     {
         name: 'telephone_receiver',
-        code: '📞'
+        code: '📞',
     },
     {
         name: 'pager',
-        code: '📟'
+        code: '📟',
     },
     {
         name: 'fax',
-        code: '📠'
+        code: '📠',
     },
     {
         name: 'battery',
-        code: '🔋'
+        code: '🔋',
     },
     {
         name: 'low_battery',
-        code: '🪫'
+        code: '🪫',
     },
     {
         name: 'electric_plug',
-        code: '🔌'
+        code: '🔌',
     },
     {
         name: 'computer',
-        code: '💻'
+        code: '💻',
     },
     {
         name: 'desktop_computer',
-        code: '🖥️'
+        code: '🖥️',
     },
     {
         name: 'printer',
-        code: '🖨️'
+        code: '🖨️',
     },
     {
         name: 'keyboard',
-        code: '⌨️'
+        code: '⌨️',
     },
     {
         name: 'computer_mouse',
-        code: '🖱️'
+        code: '🖱️',
     },
     {
         name: 'trackball',
-        code: '🖲️'
+        code: '🖲️',
     },
     {
         name: 'minidisc',
-        code: '💽'
+        code: '💽',
     },
     {
         name: 'floppy_disk',
-        code: '💾'
+        code: '💾',
     },
     {
         name: 'cd',
-        code: '💿'
+        code: '💿',
     },
     {
         name: 'dvd',
-        code: '📀'
+        code: '📀',
     },
     {
         name: 'abacus',
-        code: '🧮'
+        code: '🧮',
     },
     {
         name: 'movie_camera',
-        code: '🎥'
+        code: '🎥',
     },
     {
         name: 'film_strip',
-        code: '🎞️'
+        code: '🎞️',
     },
     {
         name: 'film_projector',
-        code: '📽️'
+        code: '📽️',
     },
     {
         name: 'clapper',
-        code: '🎬'
+        code: '🎬',
     },
     {
         name: 'tv',
-        code: '📺'
+        code: '📺',
     },
     {
         name: 'camera',
-        code: '📷'
+        code: '📷',
     },
     {
         name: 'camera_flash',
-        code: '📸'
+        code: '📸',
     },
     {
         name: 'video_camera',
-        code: '📹'
+        code: '📹',
     },
     {
         name: 'vhs',
-        code: '📼'
+        code: '📼',
     },
     {
         name: 'mag',
-        code: '🔍'
+        code: '🔍',
     },
     {
         name: 'mag_right',
-        code: '🔎'
+        code: '🔎',
     },
     {
         name: 'candle',
-        code: '🕯️'
+        code: '🕯️',
     },
     {
         name: 'bulb',
-        code: '💡'
+        code: '💡',
     },
     {
         name: 'flashlight',
-        code: '🔦'
+        code: '🔦',
     },
     {
         name: 'izakaya_lantern',
-        code: '🏮'
+        code: '🏮',
     },
     {
         name: 'diya_lamp',
-        code: '🪔'
+        code: '🪔',
     },
     {
         name: 'notebook_with_decorative_cover',
-        code: '📔'
+        code: '📔',
     },
     {
         name: 'closed_book',
-        code: '📕'
+        code: '📕',
     },
     {
         name: 'book',
-        code: '📖'
+        code: '📖',
     },
     {
         name: 'green_book',
-        code: '📗'
+        code: '📗',
     },
     {
         name: 'blue_book',
-        code: '📘'
+        code: '📘',
     },
     {
         name: 'orange_book',
-        code: '📙'
+        code: '📙',
     },
     {
         name: 'books',
-        code: '📚'
+        code: '📚',
     },
     {
         name: 'notebook',
-        code: '📓'
+        code: '📓',
     },
     {
         name: 'ledger',
-        code: '📒'
+        code: '📒',
     },
     {
         name: 'page_with_curl',
-        code: '📃'
+        code: '📃',
     },
     {
         name: 'scroll',
-        code: '📜'
+        code: '📜',
     },
     {
         name: 'page_facing_up',
-        code: '📄'
+        code: '📄',
     },
     {
         name: 'newspaper',
-        code: '📰'
+        code: '📰',
     },
     {
         name: 'newspaper_roll',
-        code: '🗞️'
+        code: '🗞️',
     },
     {
         name: 'bookmark_tabs',
-        code: '📑'
+        code: '📑',
     },
     {
         name: 'bookmark',
-        code: '🔖'
+        code: '🔖',
     },
     {
         name: 'label',
-        code: '🏷️'
+        code: '🏷️',
     },
     {
         name: 'moneybag',
-        code: '💰'
+        code: '💰',
     },
     {
         name: 'coin',
-        code: '🪙'
+        code: '🪙',
     },
     {
         name: 'yen',
-        code: '💴'
+        code: '💴',
     },
     {
         name: 'dollar',
-        code: '💵'
+        code: '💵',
     },
     {
         name: 'euro',
-        code: '💶'
+        code: '💶',
     },
     {
         name: 'pound',
-        code: '💷'
+        code: '💷',
     },
     {
         name: 'money_with_wings',
-        code: '💸'
+        code: '💸',
     },
     {
         name: 'credit_card',
-        code: '💳'
+        code: '💳',
     },
     {
         name: 'identification_card',
-        code: '🪪'
+        code: '🪪',
     },
     {
         name: 'receipt',
-        code: '🧾'
+        code: '🧾',
     },
     {
         name: 'chart',
-        code: '💹'
+        code: '💹',
     },
     {
         name: 'envelope',
-        code: '✉️'
+        code: '✉️',
     },
     {
         name: 'email',
-        code: '📧'
+        code: '📧',
     },
     {
         name: 'incoming_envelope',
-        code: '📨'
+        code: '📨',
     },
     {
         name: 'envelope_with_arrow',
-        code: '📩'
+        code: '📩',
     },
     {
         name: 'outbox_tray',
-        code: '📤'
+        code: '📤',
     },
     {
         name: 'inbox_tray',
-        code: '📥'
+        code: '📥',
     },
     {
         name: 'package',
-        code: '📦'
+        code: '📦',
     },
     {
         name: 'mailbox',
-        code: '📫'
+        code: '📫',
     },
     {
         name: 'mailbox_closed',
-        code: '📪'
+        code: '📪',
     },
     {
         name: 'mailbox_with_mail',
-        code: '📬'
+        code: '📬',
     },
     {
         name: 'mailbox_with_no_mail',
-        code: '📭'
+        code: '📭',
     },
     {
         name: 'postbox',
-        code: '📮'
+        code: '📮',
     },
     {
         name: 'ballot_box',
-        code: '🗳️'
+        code: '🗳️',
     },
     {
         name: 'pencil2',
-        code: '✏️'
+        code: '✏️',
     },
     {
         name: 'black_nib',
-        code: '✒️'
+        code: '✒️',
     },
     {
         name: 'fountain_pen',
-        code: '🖋️'
+        code: '🖋️',
     },
     {
         name: 'pen',
-        code: '🖊️'
+        code: '🖊️',
     },
     {
         name: 'paintbrush',
-        code: '🖌️'
+        code: '🖌️',
     },
     {
         name: 'crayon',
-        code: '🖍️'
+        code: '🖍️',
     },
     {
         name: 'memo',
-        code: '📝'
+        code: '📝',
     },
     {
         name: 'briefcase',
-        code: '💼'
+        code: '💼',
     },
     {
         name: 'file_folder',
-        code: '📁'
+        code: '📁',
     },
     {
         name: 'open_file_folder',
-        code: '📂'
+        code: '📂',
     },
     {
         name: 'card_index_dividers',
-        code: '🗂️'
+        code: '🗂️',
     },
     {
         name: 'date',
-        code: '📅'
+        code: '📅',
     },
     {
         name: 'calendar',
-        code: '📆'
+        code: '📆',
     },
     {
         name: 'spiral_notepad',
-        code: '🗒️'
+        code: '🗒️',
     },
     {
         name: 'spiral_calendar',
-        code: '🗓️'
+        code: '🗓️',
     },
     {
         name: 'card_index',
-        code: '📇'
+        code: '📇',
     },
     {
         name: 'chart_with_upwards_trend',
-        code: '📈'
+        code: '📈',
     },
     {
         name: 'chart_with_downwards_trend',
-        code: '📉'
+        code: '📉',
     },
     {
         name: 'bar_chart',
-        code: '📊'
+        code: '📊',
     },
     {
         name: 'clipboard',
-        code: '📋'
+        code: '📋',
     },
     {
         name: 'pushpin',
-        code: '📌'
+        code: '📌',
     },
     {
         name: 'round_pushpin',
-        code: '📍'
+        code: '📍',
     },
     {
         name: 'paperclip',
-        code: '📎'
+        code: '📎',
     },
     {
         name: 'paperclips',
-        code: '🖇️'
+        code: '🖇️',
     },
     {
         name: 'straight_ruler',
-        code: '📏'
+        code: '📏',
     },
     {
         name: 'triangular_ruler',
-        code: '📐'
+        code: '📐',
     },
     {
         name: 'scissors',
-        code: '✂️'
+        code: '✂️',
     },
     {
         name: 'card_file_box',
-        code: '🗃️'
+        code: '🗃️',
     },
     {
         name: 'file_cabinet',
-        code: '🗄️'
+        code: '🗄️',
     },
     {
         name: 'wastebasket',
-        code: '🗑️'
+        code: '🗑️',
     },
     {
         name: 'lock',
-        code: '🔒'
+        code: '🔒',
     },
     {
         name: 'unlock',
-        code: '🔓'
+        code: '🔓',
     },
     {
         name: 'lock_with_ink_pen',
-        code: '🔏'
+        code: '🔏',
     },
     {
         name: 'closed_lock_with_key',
-        code: '🔐'
+        code: '🔐',
     },
     {
         name: 'key',
-        code: '🔑'
+        code: '🔑',
     },
     {
         name: 'old_key',
-        code: '🗝️'
+        code: '🗝️',
     },
     {
         name: 'hammer',
-        code: '🔨'
+        code: '🔨',
     },
     {
         name: 'axe',
-        code: '🪓'
+        code: '🪓',
     },
     {
         name: 'pick',
-        code: '⛏️'
+        code: '⛏️',
     },
     {
         name: 'hammer_and_pick',
-        code: '⚒️'
+        code: '⚒️',
     },
     {
         name: 'hammer_and_wrench',
-        code: '🛠️'
+        code: '🛠️',
     },
     {
         name: 'dagger',
-        code: '🗡️'
+        code: '🗡️',
     },
     {
         name: 'crossed_swords',
-        code: '⚔️'
+        code: '⚔️',
     },
     {
         name: 'gun',
-        code: '🔫'
+        code: '🔫',
     },
     {
         name: 'boomerang',
-        code: '🪃'
+        code: '🪃',
     },
     {
         name: 'bow_and_arrow',
-        code: '🏹'
+        code: '🏹',
     },
     {
         name: 'shield',
-        code: '🛡️'
+        code: '🛡️',
     },
     {
         name: 'carpentry_saw',
-        code: '🪚'
+        code: '🪚',
     },
     {
         name: 'wrench',
-        code: '🔧'
+        code: '🔧',
     },
     {
         name: 'screwdriver',
-        code: '🪛'
+        code: '🪛',
     },
     {
         name: 'nut_and_bolt',
-        code: '🔩'
+        code: '🔩',
     },
     {
         name: 'gear',
-        code: '⚙️'
+        code: '⚙️',
     },
     {
         name: 'clamp',
-        code: '🗜️'
+        code: '🗜️',
     },
     {
         name: 'balance_scale',
-        code: '⚖️'
+        code: '⚖️',
     },
     {
         name: 'probing_cane',
-        code: '🦯'
+        code: '🦯',
     },
     {
         name: 'link',
-        code: '🔗'
+        code: '🔗',
     },
     {
         name: 'chains',
-        code: '⛓️'
+        code: '⛓️',
     },
     {
         name: 'hook',
-        code: '🪝'
+        code: '🪝',
     },
     {
         name: 'toolbox',
-        code: '🧰'
+        code: '🧰',
     },
     {
         name: 'magnet',
-        code: '🧲'
+        code: '🧲',
     },
     {
         name: 'ladder',
-        code: '🪜'
+        code: '🪜',
     },
     {
         name: 'alembic',
-        code: '⚗️'
+        code: '⚗️',
     },
     {
         name: 'test_tube',
-        code: '🧪'
+        code: '🧪',
     },
     {
         name: 'petri_dish',
-        code: '🧫'
+        code: '🧫',
     },
     {
         name: 'dna',
-        code: '🧬'
+        code: '🧬',
     },
     {
         name: 'microscope',
-        code: '🔬'
+        code: '🔬',
     },
     {
         name: 'telescope',
-        code: '🔭'
+        code: '🔭',
     },
     {
         name: 'x_ray',
-        code: '🩻'
+        code: '🩻',
     },
     {
         name: 'satellite',
-        code: '📡'
+        code: '📡',
     },
     {
         name: 'syringe',
-        code: '💉'
+        code: '💉',
     },
     {
         name: 'drop_of_blood',
-        code: '🩸'
+        code: '🩸',
     },
     {
         name: 'pill',
-        code: '💊'
+        code: '💊',
     },
     {
         name: 'adhesive_bandage',
-        code: '🩹'
+        code: '🩹',
     },
     {
         name: 'stethoscope',
-        code: '🩺'
+        code: '🩺',
     },
     {
         name: 'door',
-        code: '🚪'
+        code: '🚪',
     },
     {
         name: 'elevator',
-        code: '🛗'
+        code: '🛗',
     },
     {
         name: 'mirror',
-        code: '🪞'
+        code: '🪞',
     },
     {
         name: 'window',
-        code: '🪟'
+        code: '🪟',
     },
     {
         name: 'bed',
-        code: '🛏️'
+        code: '🛏️',
     },
     {
         name: 'couch_and_lamp',
-        code: '🛋️'
+        code: '🛋️',
     },
     {
         name: 'chair',
-        code: '🪑'
+        code: '🪑',
     },
     {
         name: 'toilet',
-        code: '🚽'
+        code: '🚽',
     },
     {
         name: 'plunger',
-        code: '🪠'
+        code: '🪠',
     },
     {
         name: 'shower',
-        code: '🚿'
+        code: '🚿',
     },
     {
         name: 'bathtub',
-        code: '🛁'
+        code: '🛁',
     },
     {
         name: 'mouse_trap',
-        code: '🪤'
+        code: '🪤',
     },
     {
         name: 'razor',
-        code: '🪒'
+        code: '🪒',
     },
     {
         name: 'hair_pick',
-        code: '🪮'
+        code: '🪮',
     },
     {
         name: 'lotion_bottle',
-        code: '🧴'
+        code: '🧴',
     },
     {
         name: 'safety_pin',
-        code: '🧷'
+        code: '🧷',
     },
     {
         name: 'broom',
-        code: '🧹'
+        code: '🧹',
     },
     {
         name: 'basket',
-        code: '🧺'
+        code: '🧺',
     },
     {
         name: 'roll_of_paper',
-        code: '🧻'
+        code: '🧻',
     },
     {
         name: 'bucket',
-        code: '🪣'
+        code: '🪣',
     },
     {
         name: 'soap',
-        code: '🧼'
+        code: '🧼',
     },
     {
         name: 'toothbrush',
-        code: '🪥'
+        code: '🪥',
     },
     {
         name: 'sponge',
-        code: '🧽'
+        code: '🧽',
     },
     {
         name: 'fire_extinguisher',
-        code: '🧯'
+        code: '🧯',
     },
     {
         name: 'shopping_cart',
-        code: '🛒'
+        code: '🛒',
     },
     {
         name: 'smoking',
-        code: '🚬'
+        code: '🚬',
     },
     {
         name: 'coffin',
-        code: '⚰️'
+        code: '⚰️',
     },
     {
         name: 'headstone',
-        code: '🪦'
+        code: '🪦',
     },
     {
         name: 'funeral_urn',
-        code: '⚱️'
+        code: '⚱️',
     },
     {
         name: 'moyai',
-        code: '🗿'
+        code: '🗿',
     },
     {
         name: 'placard',
-        code: '🪧'
+        code: '🪧',
     },
     {
         header: true,
-        icon: peace_sign_svg_1["default"],
-        code: 'symbols'
+        icon: peace_sign_svg_1['default'],
+        code: 'symbols',
     },
     {
         name: 'atm',
-        code: '🏧'
+        code: '🏧',
     },
     {
         name: 'put_litter_in_its_place',
-        code: '🚮'
+        code: '🚮',
     },
     {
         name: 'potable_water',
-        code: '🚰'
+        code: '🚰',
     },
     {
         name: 'wheelchair',
-        code: '♿'
+        code: '♿',
     },
     {
         name: 'mens',
-        code: '🚹'
+        code: '🚹',
     },
     {
         name: 'womens',
-        code: '🚺'
+        code: '🚺',
     },
     {
         name: 'restroom',
-        code: '🚻'
+        code: '🚻',
     },
     {
         name: 'baby_symbol',
-        code: '🚼'
+        code: '🚼',
     },
     {
         name: 'wc',
-        code: '🚾'
+        code: '🚾',
     },
     {
         name: 'passport_control',
-        code: '🛂'
+        code: '🛂',
     },
     {
         name: 'customs',
-        code: '🛃'
+        code: '🛃',
     },
     {
         name: 'baggage_claim',
-        code: '🛄'
+        code: '🛄',
     },
     {
         name: 'left_luggage',
-        code: '🛅'
+        code: '🛅',
     },
     {
         name: 'wireless',
-        code: '🛜'
+        code: '🛜',
     },
     {
         name: 'warning',
-        code: '⚠️'
+        code: '⚠️',
     },
     {
         name: 'children_crossing',
-        code: '🚸'
+        code: '🚸',
     },
     {
         name: 'no_entry',
-        code: '⛔'
+        code: '⛔',
     },
     {
         name: 'no_entry_sign',
-        code: '🚫'
+        code: '🚫',
     },
     {
         name: 'no_bicycles',
-        code: '🚳'
+        code: '🚳',
     },
     {
         name: 'no_smoking',
-        code: '🚭'
+        code: '🚭',
     },
     {
         name: 'do_not_litter',
-        code: '🚯'
+        code: '🚯',
     },
     {
         name: 'non-potable_water',
-        code: '🚱'
+        code: '🚱',
     },
     {
         name: 'no_pedestrians',
-        code: '🚷'
+        code: '🚷',
     },
     {
         name: 'no_mobile_phones',
-        code: '📵'
+        code: '📵',
     },
     {
         name: 'underage',
-        code: '🔞'
+        code: '🔞',
     },
     {
         name: 'radioactive',
-        code: '☢️'
+        code: '☢️',
     },
     {
         name: 'biohazard',
-        code: '☣️'
+        code: '☣️',
     },
     {
         name: 'arrow_up',
-        code: '⬆️'
+        code: '⬆️',
     },
     {
         name: 'arrow_upper_right',
-        code: '↗️'
+        code: '↗️',
     },
     {
         name: 'arrow_right',
-        code: '➡️'
+        code: '➡️',
     },
     {
         name: 'arrow_lower_right',
-        code: '↘️'
+        code: '↘️',
     },
     {
         name: 'arrow_down',
-        code: '⬇️'
+        code: '⬇️',
     },
     {
         name: 'arrow_lower_left',
-        code: '↙️'
+        code: '↙️',
     },
     {
         name: 'arrow_left',
-        code: '⬅️'
+        code: '⬅️',
     },
     {
         name: 'arrow_upper_left',
-        code: '↖️'
+        code: '↖️',
     },
     {
         name: 'arrow_up_down',
-        code: '↕️'
+        code: '↕️',
     },
     {
         name: 'left_right_arrow',
-        code: '↔️'
+        code: '↔️',
     },
     {
         name: 'leftwards_arrow_with_hook',
-        code: '↩️'
+        code: '↩️',
     },
     {
         name: 'arrow_right_hook',
-        code: '↪️'
+        code: '↪️',
     },
     {
         name: 'arrow_heading_up',
-        code: '⤴️'
+        code: '⤴️',
     },
     {
         name: 'arrow_heading_down',
-        code: '⤵️'
+        code: '⤵️',
     },
     {
         name: 'arrows_clockwise',
-        code: '🔃'
+        code: '🔃',
     },
     {
         name: 'arrows_counterclockwise',
-        code: '🔄'
+        code: '🔄',
     },
     {
         name: 'back',
-        code: '🔙'
+        code: '🔙',
     },
     {
         name: 'end',
-        code: '🔚'
+        code: '🔚',
     },
     {
         name: 'on',
-        code: '🔛'
+        code: '🔛',
     },
     {
         name: 'soon',
-        code: '🔜'
+        code: '🔜',
     },
     {
         name: 'top',
-        code: '🔝'
+        code: '🔝',
     },
     {
         name: 'place_of_worship',
-        code: '🛐'
+        code: '🛐',
     },
     {
         name: 'atom_symbol',
-        code: '⚛️'
+        code: '⚛️',
     },
     {
         name: 'om',
-        code: '🕉️'
+        code: '🕉️',
     },
     {
         name: 'star_of_david',
-        code: '✡️'
+        code: '✡️',
     },
     {
         name: 'wheel_of_dharma',
-        code: '☸️'
+        code: '☸️',
     },
     {
         name: 'khanda',
-        code: '🪯'
+        code: '🪯',
     },
     {
         name: 'yin_yang',
-        code: '☯️'
+        code: '☯️',
     },
     {
         name: 'latin_cross',
-        code: '✝️'
+        code: '✝️',
     },
     {
         name: 'orthodox_cross',
-        code: '☦️'
+        code: '☦️',
     },
     {
         name: 'star_and_crescent',
-        code: '☪️'
+        code: '☪️',
     },
     {
         name: 'peace_symbol',
-        code: '☮️'
+        code: '☮️',
     },
     {
         name: 'menorah',
-        code: '🕎'
+        code: '🕎',
     },
     {
         name: 'six_pointed_star',
-        code: '🔯'
+        code: '🔯',
     },
     {
         name: 'aries',
-        code: '♈'
+        code: '♈',
     },
     {
         name: 'taurus',
-        code: '♉'
+        code: '♉',
     },
     {
         name: 'gemini',
-        code: '♊'
+        code: '♊',
     },
     {
         name: 'cancer',
-        code: '♋'
+        code: '♋',
     },
     {
         name: 'leo',
-        code: '♌'
+        code: '♌',
     },
     {
         name: 'virgo',
-        code: '♍'
+        code: '♍',
     },
     {
         name: 'libra',
-        code: '♎'
+        code: '♎',
     },
     {
         name: 'scorpius',
-        code: '♏'
+        code: '♏',
     },
     {
         name: 'sagittarius',
-        code: '♐'
+        code: '♐',
     },
     {
         name: 'capricorn',
-        code: '♑'
+        code: '♑',
     },
     {
         name: 'aquarius',
-        code: '♒'
+        code: '♒',
     },
     {
         name: 'pisces',
-        code: '♓'
+        code: '♓',
     },
     {
         name: 'ophiuchus',
-        code: '⛎'
+        code: '⛎',
     },
     {
         name: 'twisted_rightwards_arrows',
-        code: '🔀'
+        code: '🔀',
     },
     {
         name: 'repeat',
-        code: '🔁'
+        code: '🔁',
     },
     {
         name: 'repeat_one',
-        code: '🔂'
+        code: '🔂',
     },
     {
         name: 'arrow_forward',
-        code: '▶️'
+        code: '▶️',
     },
     {
         name: 'fast_forward',
-        code: '⏩'
+        code: '⏩',
     },
     {
         name: 'next_track_button',
-        code: '⏭️'
+        code: '⏭️',
     },
     {
         name: 'play_or_pause_button',
-        code: '⏯️'
+        code: '⏯️',
     },
     {
         name: 'arrow_backward',
-        code: '◀️'
+        code: '◀️',
     },
     {
         name: 'rewind',
-        code: '⏪'
+        code: '⏪',
     },
     {
         name: 'previous_track_button',
-        code: '⏮️'
+        code: '⏮️',
     },
     {
         name: 'arrow_up_small',
-        code: '🔼'
+        code: '🔼',
     },
     {
         name: 'arrow_double_up',
-        code: '⏫'
+        code: '⏫',
     },
     {
         name: 'arrow_down_small',
-        code: '🔽'
+        code: '🔽',
     },
     {
         name: 'arrow_double_down',
-        code: '⏬'
+        code: '⏬',
     },
     {
         name: 'pause_button',
-        code: '⏸️'
+        code: '⏸️',
     },
     {
         name: 'stop_button',
-        code: '⏹️'
+        code: '⏹️',
     },
     {
         name: 'record_button',
-        code: '⏺️'
+        code: '⏺️',
     },
     {
         name: 'eject_button',
-        code: '⏏️'
+        code: '⏏️',
     },
     {
         name: 'cinema',
-        code: '🎦'
+        code: '🎦',
     },
     {
         name: 'low_brightness',
-        code: '🔅'
+        code: '🔅',
     },
     {
         name: 'high_brightness',
-        code: '🔆'
+        code: '🔆',
     },
     {
         name: 'signal_strength',
-        code: '📶'
+        code: '📶',
     },
     {
         name: 'vibration_mode',
-        code: '📳'
+        code: '📳',
     },
     {
         name: 'mobile_phone_off',
-        code: '📴'
+        code: '📴',
     },
     {
         name: 'female_sign',
-        code: '♀️'
+        code: '♀️',
     },
     {
         name: 'male_sign',
-        code: '♂️'
+        code: '♂️',
     },
     {
         name: 'transgender_symbol',
-        code: '⚧️'
+        code: '⚧️',
     },
     {
         name: 'heavy_multiplication_x',
-        code: '✖️'
+        code: '✖️',
     },
     {
         name: 'heavy_plus_sign',
-        code: '➕'
+        code: '➕',
     },
     {
         name: 'heavy_minus_sign',
-        code: '➖'
+        code: '➖',
     },
     {
         name: 'heavy_division_sign',
-        code: '➗'
+        code: '➗',
     },
     {
         name: 'heavy_equals_sign',
-        code: '🟰'
+        code: '🟰',
     },
     {
         name: 'infinity',
-        code: '♾️'
+        code: '♾️',
     },
     {
         name: 'bangbang',
-        code: '‼️'
+        code: '‼️',
     },
     {
         name: 'interrobang',
-        code: '⁉️'
+        code: '⁉️',
     },
     {
         name: 'question',
-        code: '❓'
+        code: '❓',
     },
     {
         name: 'grey_question',
-        code: '❔'
+        code: '❔',
     },
     {
         name: 'grey_exclamation',
-        code: '❕'
+        code: '❕',
     },
     {
         name: 'exclamation',
-        code: '❗'
+        code: '❗',
     },
     {
         name: 'wavy_dash',
-        code: '〰️'
+        code: '〰️',
     },
     {
         name: 'currency_exchange',
-        code: '💱'
+        code: '💱',
     },
     {
         name: 'heavy_dollar_sign',
-        code: '💲'
+        code: '💲',
     },
     {
         name: 'medical_symbol',
-        code: '⚕️'
+        code: '⚕️',
     },
     {
         name: 'recycle',
-        code: '♻️'
+        code: '♻️',
     },
     {
         name: 'fleur_de_lis',
-        code: '⚜️'
+        code: '⚜️',
     },
     {
         name: 'trident',
-        code: '🔱'
+        code: '🔱',
     },
     {
         name: 'name_badge',
-        code: '📛'
+        code: '📛',
     },
     {
         name: 'beginner',
-        code: '🔰'
+        code: '🔰',
     },
     {
         name: 'o',
-        code: '⭕'
+        code: '⭕',
     },
     {
         name: 'white_check_mark',
-        code: '✅'
+        code: '✅',
     },
     {
         name: 'ballot_box_with_check',
-        code: '☑️'
+        code: '☑️',
     },
     {
         name: 'heavy_check_mark',
-        code: '✔️'
+        code: '✔️',
     },
     {
         name: 'x',
-        code: '❌'
+        code: '❌',
     },
     {
         name: 'negative_squared_cross_mark',
-        code: '❎'
+        code: '❎',
     },
     {
         name: 'curly_loop',
-        code: '➰'
+        code: '➰',
     },
     {
         name: 'loop',
-        code: '➿'
+        code: '➿',
     },
     {
         name: 'part_alternation_mark',
-        code: '〽️'
+        code: '〽️',
     },
     {
         name: 'eight_spoked_asterisk',
-        code: '✳️'
+        code: '✳️',
     },
     {
         name: 'eight_pointed_black_star',
-        code: '✴️'
+        code: '✴️',
     },
     {
         name: 'sparkle',
-        code: '❇️'
+        code: '❇️',
     },
     {
         name: 'copyright',
-        code: '©️'
+        code: '©️',
     },
     {
         name: 'registered',
-        code: '®️'
+        code: '®️',
     },
     {
         name: 'tm',
-        code: '™️'
+        code: '™️',
     },
     {
         name: 'hash',
-        code: '#️⃣'
+        code: '#️⃣',
     },
     {
         name: 'asterisk',
-        code: '*️⃣'
+        code: '*️⃣',
     },
     {
         name: 'zero',
-        code: '0️⃣'
+        code: '0️⃣',
     },
     {
         name: 'one',
-        code: '1️⃣'
+        code: '1️⃣',
     },
     {
         name: 'two',
-        code: '2️⃣'
+        code: '2️⃣',
     },
     {
         name: 'three',
-        code: '3️⃣'
+        code: '3️⃣',
     },
     {
         name: 'four',
-        code: '4️⃣'
+        code: '4️⃣',
     },
     {
         name: 'five',
-        code: '5️⃣'
+        code: '5️⃣',
     },
     {
         name: 'six',
-        code: '6️⃣'
+        code: '6️⃣',
     },
     {
         name: 'seven',
-        code: '7️⃣'
+        code: '7️⃣',
     },
     {
         name: 'eight',
-        code: '8️⃣'
+        code: '8️⃣',
     },
     {
         name: 'nine',
-        code: '9️⃣'
+        code: '9️⃣',
     },
     {
         name: 'keycap_ten',
-        code: '🔟'
+        code: '🔟',
     },
     {
         name: 'capital_abcd',
-        code: '🔠'
+        code: '🔠',
     },
     {
         name: 'abcd',
-        code: '🔡'
+        code: '🔡',
     },
     {
         name: '1234',
-        code: '🔢'
+        code: '🔢',
     },
     {
         name: 'symbols',
-        code: '🔣'
+        code: '🔣',
     },
     {
         name: 'abc',
-        code: '🔤'
+        code: '🔤',
     },
     {
         name: 'a',
-        code: '🅰️'
+        code: '🅰️',
     },
     {
         name: 'ab',
-        code: '🆎'
+        code: '🆎',
     },
     {
         name: 'b',
-        code: '🅱️'
+        code: '🅱️',
     },
     {
         name: 'cl',
-        code: '🆑'
+        code: '🆑',
     },
     {
         name: 'cool',
-        code: '🆒'
+        code: '🆒',
     },
     {
         name: 'free',
-        code: '🆓'
+        code: '🆓',
     },
     {
         name: 'information_source',
-        code: 'ℹ️'
+        code: 'ℹ️',
     },
     {
         name: 'id',
-        code: '🆔'
+        code: '🆔',
     },
     {
         name: 'm',
-        code: 'Ⓜ️'
+        code: 'Ⓜ️',
     },
     {
         name: 'new',
-        code: '🆕'
+        code: '🆕',
     },
     {
         name: 'ng',
-        code: '🆖'
+        code: '🆖',
     },
     {
         name: 'o2',
-        code: '🅾️'
+        code: '🅾️',
     },
     {
         name: 'ok',
-        code: '🆗'
+        code: '🆗',
     },
     {
         name: 'parking',
-        code: '🅿️'
+        code: '🅿️',
     },
     {
         name: 'sos',
-        code: '🆘'
+        code: '🆘',
     },
     {
         name: 'up',
-        code: '🆙'
+        code: '🆙',
     },
     {
         name: 'vs',
-        code: '🆚'
+        code: '🆚',
     },
     {
         name: 'koko',
-        code: '🈁'
+        code: '🈁',
     },
     {
         name: 'sa',
-        code: '🈂️'
+        code: '🈂️',
     },
     {
         name: 'u6708',
-        code: '🈷️'
+        code: '🈷️',
     },
     {
         name: 'u6709',
-        code: '🈶'
+        code: '🈶',
     },
     {
         name: 'u6307',
-        code: '🈯'
+        code: '🈯',
     },
     {
         name: 'ideograph_advantage',
-        code: '🉐'
+        code: '🉐',
     },
     {
         name: 'u5272',
-        code: '🈹'
+        code: '🈹',
     },
     {
         name: 'u7121',
-        code: '🈚'
+        code: '🈚',
     },
     {
         name: 'u7981',
-        code: '🈲'
+        code: '🈲',
     },
     {
         name: 'accept',
-        code: '🉑'
+        code: '🉑',
     },
     {
         name: 'u7533',
-        code: '🈸'
+        code: '🈸',
     },
     {
         name: 'u5408',
-        code: '🈴'
+        code: '🈴',
     },
     {
         name: 'u7a7a',
-        code: '🈳'
+        code: '🈳',
     },
     {
         name: 'congratulations',
-        code: '㊗️'
+        code: '㊗️',
     },
     {
         name: 'secret',
-        code: '㊙️'
+        code: '㊙️',
     },
     {
         name: 'u55b6',
-        code: '🈺'
+        code: '🈺',
     },
     {
         name: 'u6e80',
-        code: '🈵'
+        code: '🈵',
     },
     {
         name: 'red_circle',
-        code: '🔴'
+        code: '🔴',
     },
     {
         name: 'orange_circle',
-        code: '🟠'
+        code: '🟠',
     },
     {
         name: 'yellow_circle',
-        code: '🟡'
+        code: '🟡',
     },
     {
         name: 'green_circle',
-        code: '🟢'
+        code: '🟢',
     },
     {
         name: 'large_blue_circle',
-        code: '🔵'
+        code: '🔵',
     },
     {
         name: 'purple_circle',
-        code: '🟣'
+        code: '🟣',
     },
     {
         name: 'brown_circle',
-        code: '🟤'
+        code: '🟤',
     },
     {
         name: 'black_circle',
-        code: '⚫'
+        code: '⚫',
     },
     {
         name: 'white_circle',
-        code: '⚪'
+        code: '⚪',
     },
     {
         name: 'red_square',
-        code: '🟥'
+        code: '🟥',
     },
     {
         name: 'orange_square',
-        code: '🟧'
+        code: '🟧',
     },
     {
         name: 'yellow_square',
-        code: '🟨'
+        code: '🟨',
     },
     {
         name: 'green_square',
-        code: '🟩'
+        code: '🟩',
     },
     {
         name: 'blue_square',
-        code: '🟦'
+        code: '🟦',
     },
     {
         name: 'purple_square',
-        code: '🟪'
+        code: '🟪',
     },
     {
         name: 'brown_square',
-        code: '🟫'
+        code: '🟫',
     },
     {
         name: 'black_large_square',
-        code: '⬛'
+        code: '⬛',
     },
     {
         name: 'white_large_square',
-        code: '⬜'
+        code: '⬜',
     },
     {
         name: 'black_medium_square',
-        code: '◼️'
+        code: '◼️',
     },
     {
         name: 'white_medium_square',
-        code: '◻️'
+        code: '◻️',
     },
     {
         name: 'black_medium_small_square',
-        code: '◾'
+        code: '◾',
     },
     {
         name: 'white_medium_small_square',
-        code: '◽'
+        code: '◽',
     },
     {
         name: 'black_small_square',
-        code: '▪️'
+        code: '▪️',
     },
     {
         name: 'white_small_square',
-        code: '▫️'
+        code: '▫️',
     },
     {
         name: 'large_orange_diamond',
-        code: '🔶'
+        code: '🔶',
     },
     {
         name: 'large_blue_diamond',
-        code: '🔷'
+        code: '🔷',
     },
     {
         name: 'small_orange_diamond',
-        code: '🔸'
+        code: '🔸',
     },
     {
         name: 'small_blue_diamond',
-        code: '🔹'
+        code: '🔹',
     },
     {
         name: 'small_red_triangle',
-        code: '🔺'
+        code: '🔺',
     },
     {
         name: 'small_red_triangle_down',
-        code: '🔻'
+        code: '🔻',
     },
     {
         name: 'diamond_shape_with_a_dot_inside',
-        code: '💠'
+        code: '💠',
     },
     {
         name: 'radio_button',
-        code: '🔘'
+        code: '🔘',
     },
     {
         name: 'white_square_button',
-        code: '🔳'
+        code: '🔳',
     },
     {
         name: 'black_square_button',
-        code: '🔲'
+        code: '🔲',
     },
     {
         header: true,
-        icon: flag_svg_1["default"],
-        code: 'flags'
+        icon: flag_svg_1['default'],
+        code: 'flags',
     },
     {
         name: 'checkered_flag',
-        code: '🏁'
+        code: '🏁',
     },
     {
         name: 'triangular_flag_on_post',
-        code: '🚩'
+        code: '🚩',
     },
     {
         name: 'crossed_flags',
-        code: '🎌'
+        code: '🎌',
     },
     {
         name: 'black_flag',
-        code: '🏴'
+        code: '🏴',
     },
     {
         name: 'white_flag',
-        code: '🏳️'
+        code: '🏳️',
     },
     {
         name: 'rainbow_flag',
-        code: '🏳️‍🌈'
+        code: '🏳️‍🌈',
     },
     {
         name: 'transgender_flag',
-        code: '🏳️‍⚧️'
+        code: '🏳️‍⚧️',
     },
     {
         name: 'pirate_flag',
-        code: '🏴‍☠️'
+        code: '🏴‍☠️',
     },
     {
         name: 'ascension_island',
-        code: '🇦🇨'
+        code: '🇦🇨',
     },
     {
         name: 'andorra',
-        code: '🇦🇩'
+        code: '🇦🇩',
     },
     {
         name: 'united_arab_emirates',
-        code: '🇦🇪'
+        code: '🇦🇪',
     },
     {
         name: 'afghanistan',
-        code: '🇦🇫'
+        code: '🇦🇫',
     },
     {
         name: 'antigua_barbuda',
-        code: '🇦🇬'
+        code: '🇦🇬',
     },
     {
         name: 'anguilla',
-        code: '🇦🇮'
+        code: '🇦🇮',
     },
     {
         name: 'albania',
-        code: '🇦🇱'
+        code: '🇦🇱',
     },
     {
         name: 'armenia',
-        code: '🇦🇲'
+        code: '🇦🇲',
     },
     {
         name: 'angola',
-        code: '🇦🇴'
+        code: '🇦🇴',
     },
     {
         name: 'antarctica',
-        code: '🇦🇶'
+        code: '🇦🇶',
     },
     {
         name: 'argentina',
-        code: '🇦🇷'
+        code: '🇦🇷',
     },
     {
         name: 'american_samoa',
-        code: '🇦🇸'
+        code: '🇦🇸',
     },
     {
         name: 'austria',
-        code: '🇦🇹'
+        code: '🇦🇹',
     },
     {
         name: 'australia',
-        code: '🇦🇺'
+        code: '🇦🇺',
     },
     {
         name: 'aruba',
-        code: '🇦🇼'
+        code: '🇦🇼',
     },
     {
         name: 'aland_islands',
-        code: '🇦🇽'
+        code: '🇦🇽',
     },
     {
         name: 'azerbaijan',
-        code: '🇦🇿'
+        code: '🇦🇿',
     },
     {
         name: 'bosnia_herzegovina',
-        code: '🇧🇦'
+        code: '🇧🇦',
     },
     {
         name: 'barbados',
-        code: '🇧🇧'
+        code: '🇧🇧',
     },
     {
         name: 'bangladesh',
-        code: '🇧🇩'
+        code: '🇧🇩',
     },
     {
         name: 'belgium',
-        code: '🇧🇪'
+        code: '🇧🇪',
     },
     {
         name: 'burkina_faso',
-        code: '🇧🇫'
+        code: '🇧🇫',
     },
     {
         name: 'bulgaria',
-        code: '🇧🇬'
+        code: '🇧🇬',
     },
     {
         name: 'bahrain',
-        code: '🇧🇭'
+        code: '🇧🇭',
     },
     {
         name: 'burundi',
-        code: '🇧🇮'
+        code: '🇧🇮',
     },
     {
         name: 'benin',
-        code: '🇧🇯'
+        code: '🇧🇯',
     },
     {
         name: 'st_barthelemy',
-        code: '🇧🇱'
+        code: '🇧🇱',
     },
     {
         name: 'bermuda',
-        code: '🇧🇲'
+        code: '🇧🇲',
     },
     {
         name: 'brunei',
-        code: '🇧🇳'
+        code: '🇧🇳',
     },
     {
         name: 'bolivia',
-        code: '🇧🇴'
+        code: '🇧🇴',
     },
     {
         name: 'caribbean_netherlands',
-        code: '🇧🇶'
+        code: '🇧🇶',
     },
     {
         name: 'brazil',
-        code: '🇧🇷'
+        code: '🇧🇷',
     },
     {
         name: 'bahamas',
-        code: '🇧🇸'
+        code: '🇧🇸',
     },
     {
         name: 'bhutan',
-        code: '🇧🇹'
+        code: '🇧🇹',
     },
     {
         name: 'bouvet_island',
-        code: '🇧🇻'
+        code: '🇧🇻',
     },
     {
         name: 'botswana',
-        code: '🇧🇼'
+        code: '🇧🇼',
     },
     {
         name: 'belarus',
-        code: '🇧🇾'
+        code: '🇧🇾',
     },
     {
         name: 'belize',
-        code: '🇧🇿'
+        code: '🇧🇿',
     },
     {
         name: 'canada',
-        code: '🇨🇦'
+        code: '🇨🇦',
     },
     {
         name: 'cocos_islands',
-        code: '🇨🇨'
+        code: '🇨🇨',
     },
     {
         name: 'congo_kinshasa',
-        code: '🇨🇩'
+        code: '🇨🇩',
     },
     {
         name: 'central_african_republic',
-        code: '🇨🇫'
+        code: '🇨🇫',
     },
     {
         name: 'congo_brazzaville',
-        code: '🇨🇬'
+        code: '🇨🇬',
     },
     {
         name: 'switzerland',
-        code: '🇨🇭'
+        code: '🇨🇭',
     },
     {
         name: 'cote_divoire',
-        code: '🇨🇮'
+        code: '🇨🇮',
     },
     {
         name: 'cook_islands',
-        code: '🇨🇰'
+        code: '🇨🇰',
     },
     {
         name: 'chile',
-        code: '🇨🇱'
+        code: '🇨🇱',
     },
     {
         name: 'cameroon',
-        code: '🇨🇲'
+        code: '🇨🇲',
     },
     {
         name: 'cn',
-        code: '🇨🇳'
+        code: '🇨🇳',
     },
     {
         name: 'colombia',
-        code: '🇨🇴'
+        code: '🇨🇴',
     },
     {
         name: 'clipperton_island',
-        code: '🇨🇵'
+        code: '🇨🇵',
     },
     {
         name: 'costa_rica',
-        code: '🇨🇷'
+        code: '🇨🇷',
     },
     {
         name: 'cuba',
-        code: '🇨🇺'
+        code: '🇨🇺',
     },
     {
         name: 'cape_verde',
-        code: '🇨🇻'
+        code: '🇨🇻',
     },
     {
         name: 'curacao',
-        code: '🇨🇼'
+        code: '🇨🇼',
     },
     {
         name: 'christmas_island',
-        code: '🇨🇽'
+        code: '🇨🇽',
     },
     {
         name: 'cyprus',
-        code: '🇨🇾'
+        code: '🇨🇾',
     },
     {
         name: 'czech_republic',
-        code: '🇨🇿'
+        code: '🇨🇿',
     },
     {
         name: 'de',
-        code: '🇩🇪'
+        code: '🇩🇪',
     },
     {
         name: 'diego_garcia',
-        code: '🇩🇬'
+        code: '🇩🇬',
     },
     {
         name: 'djibouti',
-        code: '🇩🇯'
+        code: '🇩🇯',
     },
     {
         name: 'denmark',
-        code: '🇩🇰'
+        code: '🇩🇰',
     },
     {
         name: 'dominica',
-        code: '🇩🇲'
+        code: '🇩🇲',
     },
     {
         name: 'dominican_republic',
-        code: '🇩🇴'
+        code: '🇩🇴',
     },
     {
         name: 'algeria',
-        code: '🇩🇿'
+        code: '🇩🇿',
     },
     {
         name: 'ceuta_melilla',
-        code: '🇪🇦'
+        code: '🇪🇦',
     },
     {
         name: 'ecuador',
-        code: '🇪🇨'
+        code: '🇪🇨',
     },
     {
         name: 'estonia',
-        code: '🇪🇪'
+        code: '🇪🇪',
     },
     {
         name: 'egypt',
-        code: '🇪🇬'
+        code: '🇪🇬',
     },
     {
         name: 'western_sahara',
-        code: '🇪🇭'
+        code: '🇪🇭',
     },
     {
         name: 'eritrea',
-        code: '🇪🇷'
+        code: '🇪🇷',
     },
     {
         name: 'es',
-        code: '🇪🇸'
+        code: '🇪🇸',
     },
     {
         name: 'ethiopia',
-        code: '🇪🇹'
+        code: '🇪🇹',
     },
     {
         name: 'eu',
-        code: '🇪🇺'
+        code: '🇪🇺',
     },
     {
         name: 'finland',
-        code: '🇫🇮'
+        code: '🇫🇮',
     },
     {
         name: 'fiji',
-        code: '🇫🇯'
+        code: '🇫🇯',
     },
     {
         name: 'falkland_islands',
-        code: '🇫🇰'
+        code: '🇫🇰',
     },
     {
         name: 'micronesia',
-        code: '🇫🇲'
+        code: '🇫🇲',
     },
     {
         name: 'faroe_islands',
-        code: '🇫🇴'
+        code: '🇫🇴',
     },
     {
         name: 'fr',
-        code: '🇫🇷'
+        code: '🇫🇷',
     },
     {
         name: 'gabon',
-        code: '🇬🇦'
+        code: '🇬🇦',
     },
     {
         name: 'gb',
-        code: '🇬🇧'
+        code: '🇬🇧',
     },
     {
         name: 'grenada',
-        code: '🇬🇩'
+        code: '🇬🇩',
     },
     {
         name: 'georgia',
-        code: '🇬🇪'
+        code: '🇬🇪',
     },
     {
         name: 'french_guiana',
-        code: '🇬🇫'
+        code: '🇬🇫',
     },
     {
         name: 'guernsey',
-        code: '🇬🇬'
+        code: '🇬🇬',
     },
     {
         name: 'ghana',
-        code: '🇬🇭'
+        code: '🇬🇭',
     },
     {
         name: 'gibraltar',
-        code: '🇬🇮'
+        code: '🇬🇮',
     },
     {
         name: 'greenland',
-        code: '🇬🇱'
+        code: '🇬🇱',
     },
     {
         name: 'gambia',
-        code: '🇬🇲'
+        code: '🇬🇲',
     },
     {
         name: 'guinea',
-        code: '🇬🇳'
+        code: '🇬🇳',
     },
     {
         name: 'guadeloupe',
-        code: '🇬🇵'
+        code: '🇬🇵',
     },
     {
         name: 'equatorial_guinea',
-        code: '🇬🇶'
+        code: '🇬🇶',
     },
     {
         name: 'greece',
-        code: '🇬🇷'
+        code: '🇬🇷',
     },
     {
         name: 'south_georgia_south_sandwich_islands',
-        code: '🇬🇸'
+        code: '🇬🇸',
     },
     {
         name: 'guatemala',
-        code: '🇬🇹'
+        code: '🇬🇹',
     },
     {
         name: 'guam',
-        code: '🇬🇺'
+        code: '🇬🇺',
     },
     {
         name: 'guinea_bissau',
-        code: '🇬🇼'
+        code: '🇬🇼',
     },
     {
         name: 'guyana',
-        code: '🇬🇾'
+        code: '🇬🇾',
     },
     {
         name: 'hong_kong',
-        code: '🇭🇰'
+        code: '🇭🇰',
     },
     {
         name: 'heard_mcdonald_islands',
-        code: '🇭🇲'
+        code: '🇭🇲',
     },
     {
         name: 'honduras',
-        code: '🇭🇳'
+        code: '🇭🇳',
     },
     {
         name: 'croatia',
-        code: '🇭🇷'
+        code: '🇭🇷',
     },
     {
         name: 'haiti',
-        code: '🇭🇹'
+        code: '🇭🇹',
     },
     {
         name: 'hungary',
-        code: '🇭🇺'
+        code: '🇭🇺',
     },
     {
         name: 'canary_islands',
-        code: '🇮🇨'
+        code: '🇮🇨',
     },
     {
         name: 'indonesia',
-        code: '🇮🇩'
+        code: '🇮🇩',
     },
     {
         name: 'ireland',
-        code: '🇮🇪'
+        code: '🇮🇪',
     },
     {
         name: 'israel',
-        code: '🇮🇱'
+        code: '🇮🇱',
     },
     {
         name: 'isle_of_man',
-        code: '🇮🇲'
+        code: '🇮🇲',
     },
     {
         name: 'india',
-        code: '🇮🇳'
+        code: '🇮🇳',
     },
     {
         name: 'british_indian_ocean_territory',
-        code: '🇮🇴'
+        code: '🇮🇴',
     },
     {
         name: 'iraq',
-        code: '🇮🇶'
+        code: '🇮🇶',
     },
     {
         name: 'iran',
-        code: '🇮🇷'
+        code: '🇮🇷',
     },
     {
         name: 'iceland',
-        code: '🇮🇸'
+        code: '🇮🇸',
     },
     {
         name: 'it',
-        code: '🇮🇹'
+        code: '🇮🇹',
     },
     {
         name: 'jersey',
-        code: '🇯🇪'
+        code: '🇯🇪',
     },
     {
         name: 'jamaica',
-        code: '🇯🇲'
+        code: '🇯🇲',
     },
     {
         name: 'jordan',
-        code: '🇯🇴'
+        code: '🇯🇴',
     },
     {
         name: 'jp',
-        code: '🇯🇵'
+        code: '🇯🇵',
     },
     {
         name: 'kenya',
-        code: '🇰🇪'
+        code: '🇰🇪',
     },
     {
         name: 'kyrgyzstan',
-        code: '🇰🇬'
+        code: '🇰🇬',
     },
     {
         name: 'cambodia',
-        code: '🇰🇭'
+        code: '🇰🇭',
     },
     {
         name: 'kiribati',
-        code: '🇰🇮'
+        code: '🇰🇮',
     },
     {
         name: 'comoros',
-        code: '🇰🇲'
+        code: '🇰🇲',
     },
     {
         name: 'st_kitts_nevis',
-        code: '🇰🇳'
+        code: '🇰🇳',
     },
     {
         name: 'north_korea',
-        code: '🇰🇵'
+        code: '🇰🇵',
     },
     {
         name: 'kr',
-        code: '🇰🇷'
+        code: '🇰🇷',
     },
     {
         name: 'kuwait',
-        code: '🇰🇼'
+        code: '🇰🇼',
     },
     {
         name: 'cayman_islands',
-        code: '🇰🇾'
+        code: '🇰🇾',
     },
     {
         name: 'kazakhstan',
-        code: '🇰🇿'
+        code: '🇰🇿',
     },
     {
         name: 'laos',
-        code: '🇱🇦'
+        code: '🇱🇦',
     },
     {
         name: 'lebanon',
-        code: '🇱🇧'
+        code: '🇱🇧',
     },
     {
         name: 'st_lucia',
-        code: '🇱🇨'
+        code: '🇱🇨',
     },
     {
         name: 'liechtenstein',
-        code: '🇱🇮'
+        code: '🇱🇮',
     },
     {
         name: 'sri_lanka',
-        code: '🇱🇰'
+        code: '🇱🇰',
     },
     {
         name: 'liberia',
-        code: '🇱🇷'
+        code: '🇱🇷',
     },
     {
         name: 'lesotho',
-        code: '🇱🇸'
+        code: '🇱🇸',
     },
     {
         name: 'lithuania',
-        code: '🇱🇹'
+        code: '🇱🇹',
     },
     {
         name: 'luxembourg',
-        code: '🇱🇺'
+        code: '🇱🇺',
     },
     {
         name: 'latvia',
-        code: '🇱🇻'
+        code: '🇱🇻',
     },
     {
         name: 'libya',
-        code: '🇱🇾'
+        code: '🇱🇾',
     },
     {
         name: 'morocco',
-        code: '🇲🇦'
+        code: '🇲🇦',
     },
     {
         name: 'monaco',
-        code: '🇲🇨'
+        code: '🇲🇨',
     },
     {
         name: 'moldova',
-        code: '🇲🇩'
+        code: '🇲🇩',
     },
     {
         name: 'montenegro',
-        code: '🇲🇪'
+        code: '🇲🇪',
     },
     {
         name: 'st_martin',
-        code: '🇲🇫'
+        code: '🇲🇫',
     },
     {
         name: 'madagascar',
-        code: '🇲🇬'
+        code: '🇲🇬',
     },
     {
         name: 'marshall_islands',
-        code: '🇲🇭'
+        code: '🇲🇭',
     },
     {
         name: 'macedonia',
-        code: '🇲🇰'
+        code: '🇲🇰',
     },
     {
         name: 'mali',
-        code: '🇲🇱'
+        code: '🇲🇱',
     },
     {
         name: 'myanmar',
-        code: '🇲🇲'
+        code: '🇲🇲',
     },
     {
         name: 'mongolia',
-        code: '🇲🇳'
+        code: '🇲🇳',
     },
     {
         name: 'macau',
-        code: '🇲🇴'
+        code: '🇲🇴',
     },
     {
         name: 'northern_mariana_islands',
-        code: '🇲🇵'
+        code: '🇲🇵',
     },
     {
         name: 'martinique',
-        code: '🇲🇶'
+        code: '🇲🇶',
     },
     {
         name: 'mauritania',
-        code: '🇲🇷'
+        code: '🇲🇷',
     },
     {
         name: 'montserrat',
-        code: '🇲🇸'
+        code: '🇲🇸',
     },
     {
         name: 'malta',
-        code: '🇲🇹'
+        code: '🇲🇹',
     },
     {
         name: 'mauritius',
-        code: '🇲🇺'
+        code: '🇲🇺',
     },
     {
         name: 'maldives',
-        code: '🇲🇻'
+        code: '🇲🇻',
     },
     {
         name: 'malawi',
-        code: '🇲🇼'
+        code: '🇲🇼',
     },
     {
         name: 'mexico',
-        code: '🇲🇽'
+        code: '🇲🇽',
     },
     {
         name: 'malaysia',
-        code: '🇲🇾'
+        code: '🇲🇾',
     },
     {
         name: 'mozambique',
-        code: '🇲🇿'
+        code: '🇲🇿',
     },
     {
         name: 'namibia',
-        code: '🇳🇦'
+        code: '🇳🇦',
     },
     {
         name: 'new_caledonia',
-        code: '🇳🇨'
+        code: '🇳🇨',
     },
     {
         name: 'niger',
-        code: '🇳🇪'
+        code: '🇳🇪',
     },
     {
         name: 'norfolk_island',
-        code: '🇳🇫'
+        code: '🇳🇫',
     },
     {
         name: 'nigeria',
-        code: '🇳🇬'
+        code: '🇳🇬',
     },
     {
         name: 'nicaragua',
-        code: '🇳🇮'
+        code: '🇳🇮',
     },
     {
         name: 'netherlands',
-        code: '🇳🇱'
+        code: '🇳🇱',
     },
     {
         name: 'norway',
-        code: '🇳🇴'
+        code: '🇳🇴',
     },
     {
         name: 'nepal',
-        code: '🇳🇵'
+        code: '🇳🇵',
     },
     {
         name: 'nauru',
-        code: '🇳🇷'
+        code: '🇳🇷',
     },
     {
         name: 'niue',
-        code: '🇳🇺'
+        code: '🇳🇺',
     },
     {
         name: 'new_zealand',
-        code: '🇳🇿'
+        code: '🇳🇿',
     },
     {
         name: 'oman',
-        code: '🇴🇲'
+        code: '🇴🇲',
     },
     {
         name: 'panama',
-        code: '🇵🇦'
+        code: '🇵🇦',
     },
     {
         name: 'peru',
-        code: '🇵🇪'
+        code: '🇵🇪',
     },
     {
         name: 'french_polynesia',
-        code: '🇵🇫'
+        code: '🇵🇫',
     },
     {
         name: 'papua_new_guinea',
-        code: '🇵🇬'
+        code: '🇵🇬',
     },
     {
         name: 'philippines',
-        code: '🇵🇭'
+        code: '🇵🇭',
     },
     {
         name: 'pakistan',
-        code: '🇵🇰'
+        code: '🇵🇰',
     },
     {
         name: 'poland',
-        code: '🇵🇱'
+        code: '🇵🇱',
     },
     {
         name: 'st_pierre_miquelon',
-        code: '🇵🇲'
+        code: '🇵🇲',
     },
     {
         name: 'pitcairn_islands',
-        code: '🇵🇳'
+        code: '🇵🇳',
     },
     {
         name: 'puerto_rico',
-        code: '🇵🇷'
+        code: '🇵🇷',
     },
     {
         name: 'palestinian_territories',
-        code: '🇵🇸'
+        code: '🇵🇸',
     },
     {
         name: 'portugal',
-        code: '🇵🇹'
+        code: '🇵🇹',
     },
     {
         name: 'palau',
-        code: '🇵🇼'
+        code: '🇵🇼',
     },
     {
         name: 'paraguay',
-        code: '🇵🇾'
+        code: '🇵🇾',
     },
     {
         name: 'qatar',
-        code: '🇶🇦'
+        code: '🇶🇦',
     },
     {
         name: 'reunion',
-        code: '🇷🇪'
+        code: '🇷🇪',
     },
     {
         name: 'romania',
-        code: '🇷🇴'
+        code: '🇷🇴',
     },
     {
         name: 'serbia',
-        code: '🇷🇸'
+        code: '🇷🇸',
     },
     {
         name: 'ru',
-        code: '🇷🇺'
+        code: '🇷🇺',
     },
     {
         name: 'rwanda',
-        code: '🇷🇼'
+        code: '🇷🇼',
     },
     {
         name: 'saudi_arabia',
-        code: '🇸🇦'
+        code: '🇸🇦',
     },
     {
         name: 'solomon_islands',
-        code: '🇸🇧'
+        code: '🇸🇧',
     },
     {
         name: 'seychelles',
-        code: '🇸🇨'
+        code: '🇸🇨',
     },
     {
         name: 'sudan',
-        code: '🇸🇩'
+        code: '🇸🇩',
     },
     {
         name: 'sweden',
-        code: '🇸🇪'
+        code: '🇸🇪',
     },
     {
         name: 'singapore',
-        code: '🇸🇬'
+        code: '🇸🇬',
     },
     {
         name: 'st_helena',
-        code: '🇸🇭'
+        code: '🇸🇭',
     },
     {
         name: 'slovenia',
-        code: '🇸🇮'
+        code: '🇸🇮',
     },
     {
         name: 'svalbard_jan_mayen',
-        code: '🇸🇯'
+        code: '🇸🇯',
     },
     {
         name: 'slovakia',
-        code: '🇸🇰'
+        code: '🇸🇰',
     },
     {
         name: 'sierra_leone',
-        code: '🇸🇱'
+        code: '🇸🇱',
     },
     {
         name: 'san_marino',
-        code: '🇸🇲'
+        code: '🇸🇲',
     },
     {
         name: 'senegal',
-        code: '🇸🇳'
+        code: '🇸🇳',
     },
     {
         name: 'somalia',
-        code: '🇸🇴'
+        code: '🇸🇴',
     },
     {
         name: 'suriname',
-        code: '🇸🇷'
+        code: '🇸🇷',
     },
     {
         name: 'south_sudan',
-        code: '🇸🇸'
+        code: '🇸🇸',
     },
     {
         name: 'sao_tome_principe',
-        code: '🇸🇹'
+        code: '🇸🇹',
     },
     {
         name: 'el_salvador',
-        code: '🇸🇻'
+        code: '🇸🇻',
     },
     {
         name: 'sint_maarten',
-        code: '🇸🇽'
+        code: '🇸🇽',
     },
     {
         name: 'syria',
-        code: '🇸🇾'
+        code: '🇸🇾',
     },
     {
         name: 'swaziland',
-        code: '🇸🇿'
+        code: '🇸🇿',
     },
     {
         name: 'tristan_da_cunha',
-        code: '🇹🇦'
+        code: '🇹🇦',
     },
     {
         name: 'turks_caicos_islands',
-        code: '🇹🇨'
+        code: '🇹🇨',
     },
     {
         name: 'chad',
-        code: '🇹🇩'
+        code: '🇹🇩',
     },
     {
         name: 'french_southern_territories',
-        code: '🇹🇫'
+        code: '🇹🇫',
     },
     {
         name: 'togo',
-        code: '🇹🇬'
+        code: '🇹🇬',
     },
     {
         name: 'thailand',
-        code: '🇹🇭'
+        code: '🇹🇭',
     },
     {
         name: 'tajikistan',
-        code: '🇹🇯'
+        code: '🇹🇯',
     },
     {
         name: 'tokelau',
-        code: '🇹🇰'
+        code: '🇹🇰',
     },
     {
         name: 'timor_leste',
-        code: '🇹🇱'
+        code: '🇹🇱',
     },
     {
         name: 'turkmenistan',
-        code: '🇹🇲'
+        code: '🇹🇲',
     },
     {
         name: 'tunisia',
-        code: '🇹🇳'
+        code: '🇹🇳',
     },
     {
         name: 'tonga',
-        code: '🇹🇴'
+        code: '🇹🇴',
     },
     {
         name: 'tr',
-        code: '🇹🇷'
+        code: '🇹🇷',
     },
     {
         name: 'trinidad_tobago',
-        code: '🇹🇹'
+        code: '🇹🇹',
     },
     {
         name: 'tuvalu',
-        code: '🇹🇻'
+        code: '🇹🇻',
     },
     {
         name: 'taiwan',
-        code: '🇹🇼'
+        code: '🇹🇼',
     },
     {
         name: 'tanzania',
-        code: '🇹🇿'
+        code: '🇹🇿',
     },
     {
         name: 'ukraine',
-        code: '🇺🇦'
+        code: '🇺🇦',
     },
     {
         name: 'uganda',
-        code: '🇺🇬'
+        code: '🇺🇬',
     },
     {
         name: 'us_outlying_islands',
-        code: '🇺🇲'
+        code: '🇺🇲',
     },
     {
         name: 'united_nations',
-        code: '🇺🇳'
+        code: '🇺🇳',
     },
     {
         name: 'us',
-        code: '🇺🇸'
+        code: '🇺🇸',
     },
     {
         name: 'uruguay',
-        code: '🇺🇾'
+        code: '🇺🇾',
     },
     {
         name: 'uzbekistan',
-        code: '🇺🇿'
+        code: '🇺🇿',
     },
     {
         name: 'vatican_city',
-        code: '🇻🇦'
+        code: '🇻🇦',
     },
     {
         name: 'st_vincent_grenadines',
-        code: '🇻🇨'
+        code: '🇻🇨',
     },
     {
         name: 'venezuela',
-        code: '🇻🇪'
+        code: '🇻🇪',
     },
     {
         name: 'british_virgin_islands',
-        code: '🇻🇬'
+        code: '🇻🇬',
     },
     {
         name: 'us_virgin_islands',
-        code: '🇻🇮'
+        code: '🇻🇮',
     },
     {
         name: 'vietnam',
-        code: '🇻🇳'
+        code: '🇻🇳',
     },
     {
         name: 'vanuatu',
-        code: '🇻🇺'
+        code: '🇻🇺',
     },
     {
         name: 'wallis_futuna',
-        code: '🇼🇫'
+        code: '🇼🇫',
     },
     {
         name: 'samoa',
-        code: '🇼🇸'
+        code: '🇼🇸',
     },
     {
         name: 'kosovo',
-        code: '🇽🇰'
+        code: '🇽🇰',
     },
     {
         name: 'yemen',
-        code: '🇾🇪'
+        code: '🇾🇪',
     },
     {
         name: 'mayotte',
-        code: '🇾🇹'
+        code: '🇾🇹',
     },
     {
         name: 'south_africa',
-        code: '🇿🇦'
+        code: '🇿🇦',
     },
     {
         name: 'zambia',
-        code: '🇿🇲'
+        code: '🇿🇲',
     },
     {
         name: 'zimbabwe',
-        code: '🇿🇼'
+        code: '🇿🇼',
     },
     {
         name: 'england',
-        code: '🏴󠁧󠁢󠁥󠁮󠁧󠁿'
+        code: '🏴󠁧󠁢󠁥󠁮󠁧󠁿',
     },
     {
         name: 'scotland',
-        code: '🏴󠁧󠁢󠁳󠁣󠁴󠁿'
+        code: '🏴󠁧󠁢󠁳󠁣󠁴󠁿',
     },
     {
         name: 'wales',
-        code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿'
+        code: '🏴󠁧󠁢󠁷󠁬󠁳󠁿',
     },
 ];
 var categoryFrequentlyUsed = {
     header: true,
     code: 'frequentlyUsed',
-    icon: history_svg_1["default"]
+    icon: history_svg_1['default'],
 };
 exports.categoryFrequentlyUsed = categoryFrequentlyUsed;
-exports["default"] = emojis;
+exports['default'] = emojis;
