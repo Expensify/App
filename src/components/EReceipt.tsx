@@ -13,6 +13,7 @@ import {getCardName} from '@libs/TransactionUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type Transaction from '@src/types/onyx/Transaction';
 import Icon from './Icon';
 import * as Expensicons from './Icon/Expensicons';
 import ImageSVG from './ImageSVG';
@@ -24,7 +25,7 @@ type EReceiptProps = {
     transactionID: string | undefined;
 
     /** The transaction data in search */
-    transactionItem?: TransactionListItemType;
+    transactionItem?: TransactionListItemType | Transaction;
 
     /** Where it is the preview */
     isThumbnail?: boolean;

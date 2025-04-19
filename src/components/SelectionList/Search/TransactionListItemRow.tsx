@@ -32,6 +32,7 @@ import {
     isExpensifyCardTransaction,
     isPending,
     isReceiptBeingScanned,
+    hasReceiptSource,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
@@ -113,7 +114,7 @@ function ReceiptCell({transactionItem}: TransactionCellProps) {
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt}
+                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired

@@ -11,6 +11,7 @@ import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
+import { hasReceiptSource } from '@libs/TransactionUtils';
 
 function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transaction; isSelected: boolean}) {
     const theme = useTheme();
@@ -38,7 +39,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
         >
             <ReceiptImage
                 source={source}
-                isEReceipt={transactionItem.hasEReceipt}
+                isEReceipt={transactionItem.hasEReceipt && !hasReceiptSource(transactionItem)}
                 transactionID={transactionItem.transactionID}
                 shouldUseThumbnailImage={!transactionItem?.receipt?.source}
                 isAuthTokenRequired
@@ -47,6 +48,7 @@ function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transactio
                 fallbackIconColor={theme.icon}
                 fallbackIconBackground={isSelected ? theme.buttonHoveredBG : undefined}
                 iconSize="x-small"
+                transactionItem={transactionItem}
             />
         </View>
     );
