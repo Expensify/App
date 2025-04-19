@@ -67,8 +67,9 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
+    const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: false});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: false});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: false});
     const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: false});
     const theme = useTheme();
     const styles = useThemeStyles();
