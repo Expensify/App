@@ -667,6 +667,15 @@ Onyx.connect({
     },
 });
 
+let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
 let userAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
@@ -8674,7 +8683,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = getReportNameValuePairs(iouReport?.reportID);
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
@@ -8709,7 +8718,7 @@ function canIOUBePaid(
     shouldCheckApprovedState = true,
 ) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    const reportNameValuePairs = chatReportRNVP ?? getReportNameValuePairs(chatReport?.reportID);
+    const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
