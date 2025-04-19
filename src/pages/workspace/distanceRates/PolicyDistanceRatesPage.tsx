@@ -32,6 +32,7 @@ import {
 } from '@libs/actions/Policy/DistanceRate';
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
@@ -237,7 +238,7 @@ function PolicyDistanceRatesPage({
     };
 
     const toggleAllRates = () => {
-        if (selectedDistanceRates.length === allSelectableRates.length) {
+        if (selectedDistanceRates.length > 0) {
             setSelectedDistanceRates([]);
         } else {
             setSelectedDistanceRates([...allSelectableRates]);
@@ -340,7 +341,7 @@ function PolicyDistanceRatesPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRatesPage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
@@ -356,7 +357,7 @@ function PolicyDistanceRatesPage({
                             turnOffMobileSelectionMode();
                             return;
                         }
-                        Navigation.goBack();
+                        goBackFromWorkspaceCentralScreen(policyID);
                     }}
                 >
                     {!shouldUseNarrowLayout && headerButtons}
@@ -372,6 +373,7 @@ function PolicyDistanceRatesPage({
                 )}
                 {Object.values(customUnitRates).length > 0 && (
                     <SelectionListWithModal
+                        addBottomSafeAreaPadding
                         canSelectMultiple={canSelectMultiple}
                         turnOnSelectionModeOnLongPress
                         onTurnOnSelectionMode={(item) => item && toggleRate(item)}

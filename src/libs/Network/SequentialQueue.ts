@@ -19,6 +19,17 @@ import type OnyxRequest from '@src/types/onyx/Request';
 import type {ConflictData} from '@src/types/onyx/Request';
 import {isOffline, onReconnection} from './NetworkStore';
 
+let shouldFailAllRequests: boolean;
+Onyx.connect({
+    key: ONYXKEYS.NETWORK,
+    callback: (network) => {
+        if (!network) {
+            return;
+        }
+        shouldFailAllRequests = !!network.shouldFailAllRequests;
+    },
+});
+
 type RequestError = Error & {
     name?: string;
     message?: string;
@@ -114,7 +125,10 @@ function process(): Promise<void> {
         .catch((error: RequestError) => {
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
-            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD) {
+            if (error.name === CONST.ERROR.REQUEST_CANCELLED || error.message === CONST.ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
+                if (shouldFailAllRequests) {
+                    Onyx.update(requestToProcess.failureData ?? []);
+                }
                 Log.info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 endPersistedRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();

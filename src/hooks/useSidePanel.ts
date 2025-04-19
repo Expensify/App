@@ -5,7 +5,6 @@ import {Animated} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {triggerSidePanel} from '@libs/actions/SidePanel';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import Permissions from '@libs/Permissions';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -21,7 +20,6 @@ function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
     const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    const [canUseHelpSidePanel = false] = useOnyx(ONYXKEYS.BETAS, {selector: Permissions.canUseHelpSidePanel});
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
         selector: (modal) =>
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
@@ -37,14 +35,14 @@ function useSidePanelDisplayStatus() {
     // - NVP is not set or it is false
     // - language is unsupported
     // - modal centered is visible
-    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !canUseHelpSidePanel;
-    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !canUseHelpSidePanel;
+    const shouldHideSidePanel = !isSidePanelVisible || isLanguageUnsupported || isModalCenteredVisible || !sidePanelNVP;
+    const isSidePanelHiddenOrLargeScreen = !isSidePanelVisible || isLanguageUnsupported || isExtraLargeScreenWidth || !sidePanelNVP;
 
     // The help button is hidden when:
-    // - the user is not part of the corresponding beta
+    // - side pane nvp is not set
     // - Side Panel is displayed currently
     // - language is unsupported
-    const shouldHideHelpButton = !canUseHelpSidePanel || !shouldHideSidePanel || isLanguageUnsupported;
+    const shouldHideHelpButton = !sidePanelNVP || !shouldHideSidePanel || isLanguageUnsupported;
     const shouldHideSidePanelBackdrop = shouldHideSidePanel || isExtraLargeScreenWidth || shouldUseNarrowLayout;
 
     return {
