@@ -7386,10 +7386,10 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
             value: transaction ?? null,
         },
         {
-          onyxMethod: Onyx.METHOD.SET,
-          key: `${ONYXKEYS.COLLECTION.TRANSACTION_DELETED}${transactionID}`,
-          value: null,
-        }
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DELETED}${transactionID}`,
+            value: null,
+        },
     ];
 
     if (transactionViolations) {
