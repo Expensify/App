@@ -1,4 +1,4 @@
-
+'use strict';
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,7 +7,7 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
+                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
                 }
                 return t;
             };
@@ -15,7 +15,7 @@ var __assign =
     };
 exports.__esModule = true;
 exports.PROTECTED_SCREENS = void 0;
-const PROTECTED_SCREENS = {
+var PROTECTED_SCREENS = {
     HOME: 'Home',
     CONCIERGE: 'Concierge',
     ATTACHMENTS: 'Attachments',
@@ -23,7 +23,8 @@ const PROTECTED_SCREENS = {
     SUBMIT_EXPENSE: 'SubmitExpense',
 };
 exports.PROTECTED_SCREENS = PROTECTED_SCREENS;
-const SCREENS = {...PROTECTED_SCREENS, REPORT: 'Report',
+var SCREENS = __assign(__assign({}, PROTECTED_SCREENS), {
+    REPORT: 'Report',
     PROFILE_AVATAR: 'ProfileAvatar',
     WORKSPACE_AVATAR: 'WorkspaceAvatar',
     REPORT_AVATAR: 'ReportAvatar',
@@ -689,5 +690,6 @@ const SCREENS = {...PROTECTED_SCREENS, REPORT: 'Report',
         TRANSACTION: 'Debug_Transaction',
         TRANSACTION_VIOLATION_CREATE: 'Debug_Transaction_Violation_Create',
         TRANSACTION_VIOLATION: 'Debug_Transaction_Violation',
-    },};
+    },
+});
 exports['default'] = SCREENS;

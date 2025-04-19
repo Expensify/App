@@ -1,12 +1,12 @@
-
+'use strict';
 exports.__esModule = true;
-const RELATIONS_1 = require('@libs/Navigation/linkingConfig/RELATIONS');
+var RELATIONS_1 = require('@libs/Navigation/linkingConfig/RELATIONS');
 // The function getPathFromState that we are using in some places isn't working correctly without defined index.
-const getRoutesWithIndex = function (routes) {
-    return {routes, index: routes.length - 1};
+var getRoutesWithIndex = function (routes) {
+    return {routes: routes, index: routes.length - 1};
 };
 function getInitialSplitNavigatorState(splitNavigatorSidebarRoute, route, splitNavigatorParams) {
-    const routes = [];
+    var routes = [];
     routes.push(splitNavigatorSidebarRoute);
     if (route) {
         routes.push(route);

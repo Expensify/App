@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
 exports.WorkspaceBuilding =
     exports.WorkspaceZ =
@@ -38,114 +38,77 @@ exports.WorkspaceBuilding =
     exports.Workspace1 =
     exports.Workspace0 =
         void 0;
-const default_avatar_0_svg_1 = require('@assets/images/avatars/workspace/default-avatar_0.svg');
-
+var default_avatar_0_svg_1 = require('@assets/images/avatars/workspace/default-avatar_0.svg');
 exports.Workspace0 = default_avatar_0_svg_1['default'];
-const default_avatar_1_svg_1 = require('@assets/images/avatars/workspace/default-avatar_1.svg');
-
+var default_avatar_1_svg_1 = require('@assets/images/avatars/workspace/default-avatar_1.svg');
 exports.Workspace1 = default_avatar_1_svg_1['default'];
-const default_avatar_2_svg_1 = require('@assets/images/avatars/workspace/default-avatar_2.svg');
-
+var default_avatar_2_svg_1 = require('@assets/images/avatars/workspace/default-avatar_2.svg');
 exports.Workspace2 = default_avatar_2_svg_1['default'];
-const default_avatar_3_svg_1 = require('@assets/images/avatars/workspace/default-avatar_3.svg');
-
+var default_avatar_3_svg_1 = require('@assets/images/avatars/workspace/default-avatar_3.svg');
 exports.Workspace3 = default_avatar_3_svg_1['default'];
-const default_avatar_4_svg_1 = require('@assets/images/avatars/workspace/default-avatar_4.svg');
-
+var default_avatar_4_svg_1 = require('@assets/images/avatars/workspace/default-avatar_4.svg');
 exports.Workspace4 = default_avatar_4_svg_1['default'];
-const default_avatar_5_svg_1 = require('@assets/images/avatars/workspace/default-avatar_5.svg');
-
+var default_avatar_5_svg_1 = require('@assets/images/avatars/workspace/default-avatar_5.svg');
 exports.Workspace5 = default_avatar_5_svg_1['default'];
-const default_avatar_6_svg_1 = require('@assets/images/avatars/workspace/default-avatar_6.svg');
-
+var default_avatar_6_svg_1 = require('@assets/images/avatars/workspace/default-avatar_6.svg');
 exports.Workspace6 = default_avatar_6_svg_1['default'];
-const default_avatar_7_svg_1 = require('@assets/images/avatars/workspace/default-avatar_7.svg');
-
+var default_avatar_7_svg_1 = require('@assets/images/avatars/workspace/default-avatar_7.svg');
 exports.Workspace7 = default_avatar_7_svg_1['default'];
-const default_avatar_8_svg_1 = require('@assets/images/avatars/workspace/default-avatar_8.svg');
-
+var default_avatar_8_svg_1 = require('@assets/images/avatars/workspace/default-avatar_8.svg');
 exports.Workspace8 = default_avatar_8_svg_1['default'];
-const default_avatar_9_svg_1 = require('@assets/images/avatars/workspace/default-avatar_9.svg');
-
+var default_avatar_9_svg_1 = require('@assets/images/avatars/workspace/default-avatar_9.svg');
 exports.Workspace9 = default_avatar_9_svg_1['default'];
-const default_avatar_a_svg_1 = require('@assets/images/avatars/workspace/default-avatar_a.svg');
-
+var default_avatar_a_svg_1 = require('@assets/images/avatars/workspace/default-avatar_a.svg');
 exports.WorkspaceA = default_avatar_a_svg_1['default'];
-const default_avatar_b_svg_1 = require('@assets/images/avatars/workspace/default-avatar_b.svg');
-
+var default_avatar_b_svg_1 = require('@assets/images/avatars/workspace/default-avatar_b.svg');
 exports.WorkspaceB = default_avatar_b_svg_1['default'];
-const default_avatar_building_svg_1 = require('@assets/images/avatars/workspace/default-avatar_building.svg');
-
+var default_avatar_building_svg_1 = require('@assets/images/avatars/workspace/default-avatar_building.svg');
 exports.WorkspaceBuilding = default_avatar_building_svg_1['default'];
-const default_avatar_c_svg_1 = require('@assets/images/avatars/workspace/default-avatar_c.svg');
-
+var default_avatar_c_svg_1 = require('@assets/images/avatars/workspace/default-avatar_c.svg');
 exports.WorkspaceC = default_avatar_c_svg_1['default'];
-const default_avatar_d_svg_1 = require('@assets/images/avatars/workspace/default-avatar_d.svg');
-
+var default_avatar_d_svg_1 = require('@assets/images/avatars/workspace/default-avatar_d.svg');
 exports.WorkspaceD = default_avatar_d_svg_1['default'];
-const default_avatar_e_svg_1 = require('@assets/images/avatars/workspace/default-avatar_e.svg');
-
+var default_avatar_e_svg_1 = require('@assets/images/avatars/workspace/default-avatar_e.svg');
 exports.WorkspaceE = default_avatar_e_svg_1['default'];
-const default_avatar_f_svg_1 = require('@assets/images/avatars/workspace/default-avatar_f.svg');
-
+var default_avatar_f_svg_1 = require('@assets/images/avatars/workspace/default-avatar_f.svg');
 exports.WorkspaceF = default_avatar_f_svg_1['default'];
-const default_avatar_g_svg_1 = require('@assets/images/avatars/workspace/default-avatar_g.svg');
-
+var default_avatar_g_svg_1 = require('@assets/images/avatars/workspace/default-avatar_g.svg');
 exports.WorkspaceG = default_avatar_g_svg_1['default'];
-const default_avatar_h_svg_1 = require('@assets/images/avatars/workspace/default-avatar_h.svg');
-
+var default_avatar_h_svg_1 = require('@assets/images/avatars/workspace/default-avatar_h.svg');
 exports.WorkspaceH = default_avatar_h_svg_1['default'];
-const default_avatar_i_svg_1 = require('@assets/images/avatars/workspace/default-avatar_i.svg');
-
+var default_avatar_i_svg_1 = require('@assets/images/avatars/workspace/default-avatar_i.svg');
 exports.WorkspaceI = default_avatar_i_svg_1['default'];
-const default_avatar_j_svg_1 = require('@assets/images/avatars/workspace/default-avatar_j.svg');
-
+var default_avatar_j_svg_1 = require('@assets/images/avatars/workspace/default-avatar_j.svg');
 exports.WorkspaceJ = default_avatar_j_svg_1['default'];
-const default_avatar_k_svg_1 = require('@assets/images/avatars/workspace/default-avatar_k.svg');
-
+var default_avatar_k_svg_1 = require('@assets/images/avatars/workspace/default-avatar_k.svg');
 exports.WorkspaceK = default_avatar_k_svg_1['default'];
-const default_avatar_l_svg_1 = require('@assets/images/avatars/workspace/default-avatar_l.svg');
-
+var default_avatar_l_svg_1 = require('@assets/images/avatars/workspace/default-avatar_l.svg');
 exports.WorkspaceL = default_avatar_l_svg_1['default'];
-const default_avatar_m_svg_1 = require('@assets/images/avatars/workspace/default-avatar_m.svg');
-
+var default_avatar_m_svg_1 = require('@assets/images/avatars/workspace/default-avatar_m.svg');
 exports.WorkspaceM = default_avatar_m_svg_1['default'];
-const default_avatar_n_svg_1 = require('@assets/images/avatars/workspace/default-avatar_n.svg');
-
+var default_avatar_n_svg_1 = require('@assets/images/avatars/workspace/default-avatar_n.svg');
 exports.WorkspaceN = default_avatar_n_svg_1['default'];
-const default_avatar_o_svg_1 = require('@assets/images/avatars/workspace/default-avatar_o.svg');
-
+var default_avatar_o_svg_1 = require('@assets/images/avatars/workspace/default-avatar_o.svg');
 exports.WorkspaceO = default_avatar_o_svg_1['default'];
-const default_avatar_p_svg_1 = require('@assets/images/avatars/workspace/default-avatar_p.svg');
-
+var default_avatar_p_svg_1 = require('@assets/images/avatars/workspace/default-avatar_p.svg');
 exports.WorkspaceP = default_avatar_p_svg_1['default'];
-const default_avatar_q_svg_1 = require('@assets/images/avatars/workspace/default-avatar_q.svg');
-
+var default_avatar_q_svg_1 = require('@assets/images/avatars/workspace/default-avatar_q.svg');
 exports.WorkspaceQ = default_avatar_q_svg_1['default'];
-const default_avatar_r_svg_1 = require('@assets/images/avatars/workspace/default-avatar_r.svg');
-
+var default_avatar_r_svg_1 = require('@assets/images/avatars/workspace/default-avatar_r.svg');
 exports.WorkspaceR = default_avatar_r_svg_1['default'];
-const default_avatar_s_svg_1 = require('@assets/images/avatars/workspace/default-avatar_s.svg');
-
+var default_avatar_s_svg_1 = require('@assets/images/avatars/workspace/default-avatar_s.svg');
 exports.WorkspaceS = default_avatar_s_svg_1['default'];
-const default_avatar_t_svg_1 = require('@assets/images/avatars/workspace/default-avatar_t.svg');
-
+var default_avatar_t_svg_1 = require('@assets/images/avatars/workspace/default-avatar_t.svg');
 exports.WorkspaceT = default_avatar_t_svg_1['default'];
-const default_avatar_u_svg_1 = require('@assets/images/avatars/workspace/default-avatar_u.svg');
-
+var default_avatar_u_svg_1 = require('@assets/images/avatars/workspace/default-avatar_u.svg');
 exports.WorkspaceU = default_avatar_u_svg_1['default'];
-const default_avatar_v_svg_1 = require('@assets/images/avatars/workspace/default-avatar_v.svg');
-
+var default_avatar_v_svg_1 = require('@assets/images/avatars/workspace/default-avatar_v.svg');
 exports.WorkspaceV = default_avatar_v_svg_1['default'];
-const default_avatar_w_svg_1 = require('@assets/images/avatars/workspace/default-avatar_w.svg');
-
+var default_avatar_w_svg_1 = require('@assets/images/avatars/workspace/default-avatar_w.svg');
 exports.WorkspaceW = default_avatar_w_svg_1['default'];
-const default_avatar_x_svg_1 = require('@assets/images/avatars/workspace/default-avatar_x.svg');
-
+var default_avatar_x_svg_1 = require('@assets/images/avatars/workspace/default-avatar_x.svg');
 exports.WorkspaceX = default_avatar_x_svg_1['default'];
-const default_avatar_y_svg_1 = require('@assets/images/avatars/workspace/default-avatar_y.svg');
-
+var default_avatar_y_svg_1 = require('@assets/images/avatars/workspace/default-avatar_y.svg');
 exports.WorkspaceY = default_avatar_y_svg_1['default'];
-const default_avatar_z_svg_1 = require('@assets/images/avatars/workspace/default-avatar_z.svg');
-
+var default_avatar_z_svg_1 = require('@assets/images/avatars/workspace/default-avatar_z.svg');
 exports.WorkspaceZ = default_avatar_z_svg_1['default'];

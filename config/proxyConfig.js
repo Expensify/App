@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const proxyConfig = {
+var proxyConfig = {
     STAGING: '/staging/',
     STAGING_SECURE: '/staging-secure/',
 };

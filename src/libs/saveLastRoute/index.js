@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
-const saveLastRoute = function () {};
+var saveLastRoute = function () {};
 exports['default'] = saveLastRoute;

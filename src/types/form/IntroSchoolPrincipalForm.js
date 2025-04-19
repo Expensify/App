@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     FIRST_NAME: 'firstName',
     LAST_NAME: 'lastName',
     PARTNER_USER_ID: 'partnerUserID',

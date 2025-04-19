@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
 /**
  * This is a file containing constants for navigators located directly in the RootStack in AuthScreens file

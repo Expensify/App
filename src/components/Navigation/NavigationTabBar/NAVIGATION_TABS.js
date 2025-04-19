@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const NAVIGATION_TABS = {
+var NAVIGATION_TABS = {
     HOME: 'HOME',
     SEARCH: 'SEARCH',
     SETTINGS: 'SETTINGS',

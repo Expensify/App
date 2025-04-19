@@ -1,11 +1,11 @@
-
+'use strict';
 exports.__esModule = true;
 /** Web does not use Firebase for performance tracing */
-const startTrace = function () {};
-const stopTrace = function () {};
-const log = function () {};
+var startTrace = function () {};
+var stopTrace = function () {};
+var log = function () {};
 exports['default'] = {
-    startTrace,
-    stopTrace,
-    log,
+    startTrace: startTrace,
+    stopTrace: stopTrace,
+    log: log,
 };

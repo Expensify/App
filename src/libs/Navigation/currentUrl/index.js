@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const getCurrentUrl = function () {
+var getCurrentUrl = function () {
     return window.location.href;
 };
 exports['default'] = getCurrentUrl;

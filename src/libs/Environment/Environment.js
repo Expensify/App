@@ -1,5 +1,5 @@
-
-let _a; let _b;
+'use strict';
+var _a, _b;
 exports.__esModule = true;
 exports.getOldDotURLFromEnvironment =
     exports.getOldDotEnvironmentURL =
@@ -9,20 +9,19 @@ exports.getOldDotURLFromEnvironment =
     exports.isInternalTestBuild =
     exports.getEnvironment =
         void 0;
-const react_native_config_1 = require('react-native-config');
-const CONFIG_1 = require('@src/CONFIG');
-const CONST_1 = require('@src/CONST');
-const getEnvironment_1 = require('./getEnvironment');
-
+var react_native_config_1 = require('react-native-config');
+var CONFIG_1 = require('@src/CONFIG');
+var CONST_1 = require('@src/CONST');
+var getEnvironment_1 = require('./getEnvironment');
 exports.getEnvironment = getEnvironment_1['default'];
-const ENVIRONMENT_URLS =
+var ENVIRONMENT_URLS =
     ((_a = {}),
     (_a[CONST_1['default'].ENVIRONMENT.DEV] = CONST_1['default'].DEV_NEW_EXPENSIFY_URL + CONFIG_1['default'].DEV_PORT),
     (_a[CONST_1['default'].ENVIRONMENT.STAGING] = CONST_1['default'].STAGING_NEW_EXPENSIFY_URL),
     (_a[CONST_1['default'].ENVIRONMENT.PRODUCTION] = CONST_1['default'].NEW_EXPENSIFY_URL),
     (_a[CONST_1['default'].ENVIRONMENT.ADHOC] = CONST_1['default'].STAGING_NEW_EXPENSIFY_URL),
     _a);
-const OLDDOT_ENVIRONMENT_URLS =
+var OLDDOT_ENVIRONMENT_URLS =
     ((_b = {}),
     (_b[CONST_1['default'].ENVIRONMENT.DEV] = CONST_1['default'].INTERNAL_DEV_EXPENSIFY_URL),
     (_b[CONST_1['default'].ENVIRONMENT.STAGING] = CONST_1['default'].STAGING_EXPENSIFY_URL),
@@ -33,7 +32,7 @@ const OLDDOT_ENVIRONMENT_URLS =
  * Are we running the app in development?
  */
 function isDevelopment() {
-    let _a;
+    var _a;
     return (
         ((_a = react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].ENVIRONMENT) !== null && _a !== void 0
             ? _a
@@ -54,7 +53,7 @@ exports.isProduction = isProduction;
  * Are we running an internal test build?
  */
 function isInternalTestBuild() {
-    let _a; let _b;
+    var _a, _b;
     return !!(
         ((_a = react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].ENVIRONMENT) !== null && _a !== void 0
             ? _a

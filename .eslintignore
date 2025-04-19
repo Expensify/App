@@ -17,10 +17,13 @@ help/_scripts/**
 Mobile-Expensify/**
 vendor
 
-# Ignore emoji and legacy config files with CommonJS/bundled output
-assets/emojis/**
-config/proxyConfig.js
+# 🛑 Ignore heavy or problematic files
+src/NAICS.ts
 src/NAVIGATORS.js
 src/SCREENS.js
 src/TIMEZONES.js
+assets/emojis/**
+config/proxyConfig.js
 src/components/Icon/DefaultAvatars.js
+src/components/ButtonWithDropdownMenu/types.js
+src/components/Form/types.js

@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     TASK_TITLE: 'taskTitle',
     TASK_DESCRIPTION: 'taskDescription',
 };

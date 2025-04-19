@@ -1,34 +1,33 @@
-
-const __createBinding =
+'use strict';
+var __createBinding =
     (this && this.__createBinding) ||
     (Object.create
         ? function (o, m, k, k2) {
-              if (k2 === undefined) {k2 = k;}
+              if (k2 === undefined) k2 = k;
               Object.defineProperty(o, k2, {
                   enumerable: true,
-                  get () {
+                  get: function () {
                       return m[k];
                   },
               });
           }
         : function (o, m, k, k2) {
-              if (k2 === undefined) {k2 = k;}
+              if (k2 === undefined) k2 = k;
               o[k2] = m[k];
           });
 exports.__esModule = true;
 exports.categoryFrequentlyUsed = exports.skinTones = exports.importEmojiLocale = exports.localeEmojis = exports.emojiCodeTableWithSkinTones = exports.emojiNameTable = void 0;
-const common_1 = require('./common');
-
-const emojiNameTable = common_1['default'].reduce(function (prev, cur) {
-    const newValue = prev;
+var common_1 = require('./common');
+var emojiNameTable = common_1['default'].reduce(function (prev, cur) {
+    var newValue = prev;
     if (!('header' in cur) && cur.name) {
         newValue[cur.name] = cur;
     }
     return newValue;
 }, {});
 exports.emojiNameTable = emojiNameTable;
-const emojiCodeTableWithSkinTones = common_1['default'].reduce(function (prev, cur) {
-    const newValue = prev;
+var emojiCodeTableWithSkinTones = common_1['default'].reduce(function (prev, cur) {
+    var newValue = prev;
     if (!('header' in cur)) {
         newValue[cur.code] = cur;
     }
@@ -40,15 +39,15 @@ const emojiCodeTableWithSkinTones = common_1['default'].reduce(function (prev, c
     return newValue;
 }, {});
 exports.emojiCodeTableWithSkinTones = emojiCodeTableWithSkinTones;
-const localeEmojis = {
+var localeEmojis = {
     en: undefined,
     es: undefined,
 };
 exports.localeEmojis = localeEmojis;
-const importEmojiLocale = function (locale) {
-    const normalizedLocale = locale.toLowerCase().split('-').at(0);
+var importEmojiLocale = function (locale) {
+    var normalizedLocale = locale.toLowerCase().split('-').at(0);
     if (!localeEmojis[normalizedLocale]) {
-        const emojiImportPromise =
+        var emojiImportPromise =
             normalizedLocale === 'en'
                 ? Promise.resolve().then(function () {
                       return require('./en');
@@ -65,7 +64,6 @@ const importEmojiLocale = function (locale) {
 };
 exports.importEmojiLocale = importEmojiLocale;
 exports['default'] = common_1['default'];
-const common_2 = require('./common');
-
+var common_2 = require('./common');
 __createBinding(exports, common_2, 'skinTones');
 __createBinding(exports, common_2, 'categoryFrequentlyUsed');

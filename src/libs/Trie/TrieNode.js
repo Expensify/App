@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const TrieNode = /** @class */ (function () {
+var TrieNode = /** @class */ (function () {
     function TrieNode() {
         this.children = {};
         this.metaData = {};

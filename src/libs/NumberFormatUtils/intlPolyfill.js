@@ -1,4 +1,4 @@
-
+'use strict';
 exports.__esModule = true;
-const initPolyfill = function () {};
+var initPolyfill = function () {};
 exports['default'] = initPolyfill;

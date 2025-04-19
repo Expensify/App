@@ -277,7 +277,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                     const transactionsWithActions = selectedTransactions.map((t) => ({
                         transactionID: t?.transactionID,
                         action: iouActions.find((action) => {
-                            const IOUTransactionID = (getOriginalMessage(action))?.IOUTransactionID;
+                            const IOUTransactionID = (getOriginalMessage(action) as OnyxTypes.OriginalMessageIOU)?.IOUTransactionID;
 
                             return t?.transactionID === IOUTransactionID;
                         }),

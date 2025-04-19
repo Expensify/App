@@ -1,8 +1,8 @@
-
+'use strict';
 exports.__esModule = true;
-const deburr_1 = require('lodash/deburr');
-const CONST_1 = require('@src/CONST');
-const Browser_1 = require('./Browser');
+var deburr_1 = require('lodash/deburr');
+var CONST_1 = require('@src/CONST');
+var Browser_1 = require('./Browser');
 /**
  * Removes diacritical marks and non-alphabetic and non-latin characters from a string.
  * @param str - The input string to be sanitized.
@@ -18,7 +18,7 @@ function isEmptyString(value) {
     // \p{C} matches all 'Other' characters
     // \p{Z} matches all separators (spaces etc.)
     // Source: http://www.unicode.org/reports/tr18/#General_Category_Property
-    let transformed = value.replace(CONST_1['default'].REGEX.INVISIBLE_CHARACTERS_GROUPS, '');
+    var transformed = value.replace(CONST_1['default'].REGEX.INVISIBLE_CHARACTERS_GROUPS, '');
     // Remove other invisible characters that are not in the above unicode categories
     transformed = transformed.replace(CONST_1['default'].REGEX.OTHER_INVISIBLE_CHARACTERS, '');
     // Check if after removing invisible characters the string is empty
@@ -28,12 +28,12 @@ function isEmptyString(value) {
  *  Remove invisible characters from a string except for spaces and format characters for emoji, and trim it.
  */
 function removeInvisibleCharacters(value) {
-    let result = value;
+    var result = value;
     // Remove spaces:
     // - \u200B: zero-width space
     // - \u2060: word joiner
     result = result.replace(/[\u200B\u2060]/g, '');
-    const invisibleCharacterRegex = Browser_1.isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
+    var invisibleCharacterRegex = Browser_1.isSafari() ? /([\uD800-\uDBFF][\uDC00-\uDFFF])|[\p{Cc}\p{Co}\p{Cn}]/gu : /[\p{Cc}\p{Cs}\p{Co}\p{Cn}]/gu;
     // The control unicode (Cc) regex removes all newlines,
     // so we first split the string by newline and rejoin it afterward to retain the original line breaks.
     result = result
@@ -90,7 +90,7 @@ function getFirstLine(text) {
         text = '';
     }
     // Split the input string by newline characters and return the first element of the resulting array
-    const lines = text.split('\n');
+    var lines = text.split('\n');
     return lines.at(0);
 }
 /**
@@ -112,13 +112,13 @@ function removePreCodeBlock(text) {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 exports['default'] = {
-    sanitizeString,
-    isEmptyString,
-    removeInvisibleCharacters,
-    normalizeAccents,
-    normalizeCRLF,
-    lineBreaksToSpaces,
-    getFirstLine,
-    removeDoubleQuotes,
-    removePreCodeBlock,
+    sanitizeString: sanitizeString,
+    isEmptyString: isEmptyString,
+    removeInvisibleCharacters: removeInvisibleCharacters,
+    normalizeAccents: normalizeAccents,
+    normalizeCRLF: normalizeCRLF,
+    lineBreaksToSpaces: lineBreaksToSpaces,
+    getFirstLine: getFirstLine,
+    removeDoubleQuotes: removeDoubleQuotes,
+    removePreCodeBlock: removePreCodeBlock,
 };

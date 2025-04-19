@@ -1,10 +1,9 @@
-
+'use strict';
 exports.__esModule = true;
 exports.isReportMessageAttachment = void 0;
-const expensify_common_1 = require('expensify-common');
-const CONST_1 = require('@src/CONST');
-
-const attachmentRegex = new RegExp(` ${  CONST_1['default'].ATTACHMENT_SOURCE_ATTRIBUTE  }="(.*)"`, 'i');
+var expensify_common_1 = require('expensify-common');
+var CONST_1 = require('@src/CONST');
+var attachmentRegex = new RegExp(' ' + CONST_1['default'].ATTACHMENT_SOURCE_ATTRIBUTE + '="(.*)"', 'i');
 /**
  * Check whether a report action is Attachment or not.
  * Ignore messages containing [Attachment] as the main content. Attachments are actions with only text as [Attachment].
@@ -18,11 +17,11 @@ function isReportMessageAttachment(message) {
     if (message.translationKey) {
         return message.text === CONST_1['default'].ATTACHMENT_MESSAGE_TEXT && message.translationKey === CONST_1['default'].TRANSLATION_KEYS.ATTACHMENT;
     }
-    const hasAttachmentHtml = attachmentRegex.test(message.html);
+    var hasAttachmentHtml = attachmentRegex.test(message.html);
     if (!hasAttachmentHtml) {
         return false;
     }
-    const isAttachmentMessageText = message.text === CONST_1['default'].ATTACHMENT_MESSAGE_TEXT;
+    var isAttachmentMessageText = message.text === CONST_1['default'].ATTACHMENT_MESSAGE_TEXT;
     if (isAttachmentMessageText) {
         return true;
     }

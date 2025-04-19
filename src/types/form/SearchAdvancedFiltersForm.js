@@ -1,9 +1,8 @@
-
+'use strict';
 exports.__esModule = true;
 exports.DATE_FILTER_KEYS = void 0;
-const CONST_1 = require('@src/CONST');
-
-const DATE_FILTER_KEYS = [
+var CONST_1 = require('@src/CONST');
+var DATE_FILTER_KEYS = [
     CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.DATE,
     CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED,
     CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.APPROVED,
@@ -12,7 +11,7 @@ const DATE_FILTER_KEYS = [
     CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POSTED,
 ];
 exports.DATE_FILTER_KEYS = DATE_FILTER_KEYS;
-const FILTER_KEYS = {
+var FILTER_KEYS = {
     TYPE: 'type',
     STATUS: 'status',
     DATE_AFTER: 'dateAfter',

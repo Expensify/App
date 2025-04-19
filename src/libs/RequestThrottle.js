@@ -1,10 +1,9 @@
-
+'use strict';
 exports.__esModule = true;
-const CONST_1 = require('@src/CONST');
-const Log_1 = require('./Log');
-const NumberUtils_1 = require('./NumberUtils');
-
-const RequestThrottle = /** @class */ (function () {
+var CONST_1 = require('@src/CONST');
+var Log_1 = require('./Log');
+var NumberUtils_1 = require('./NumberUtils');
+var RequestThrottle = /** @class */ (function () {
     function RequestThrottle(name) {
         this.requestWaitTime = 0;
         this.requestRetryCount = 0;
@@ -14,11 +13,11 @@ const RequestThrottle = /** @class */ (function () {
         this.requestWaitTime = 0;
         this.requestRetryCount = 0;
         if (this.timeoutID) {
-            Log_1['default'].info(`[RequestThrottle - ${  this.name  }] clearing timeoutID: ${  String(this.timeoutID)}`);
+            Log_1['default'].info('[RequestThrottle - ' + this.name + '] clearing timeoutID: ' + String(this.timeoutID));
             clearTimeout(this.timeoutID);
             this.timeoutID = undefined;
         }
-        Log_1['default'].info(`[RequestThrottle - ${  this.name  }] cleared`);
+        Log_1['default'].info('[RequestThrottle - ' + this.name + '] cleared');
     };
     RequestThrottle.prototype.getRequestWaitTime = function () {
         if (this.requestWaitTime) {
@@ -32,26 +31,26 @@ const RequestThrottle = /** @class */ (function () {
         return this.requestWaitTime;
     };
     RequestThrottle.prototype.sleep = function (error, command) {
-        const _this = this;
+        var _this = this;
         this.requestRetryCount++;
         return new Promise(function (resolve, reject) {
             if (_this.requestRetryCount <= CONST_1['default'].NETWORK.MAX_REQUEST_RETRIES) {
-                const currentRequestWaitTime = _this.getRequestWaitTime();
+                var currentRequestWaitTime = _this.getRequestWaitTime();
                 Log_1['default'].info(
-                    `[RequestThrottle - ${ 
-                        _this.name 
-                        }] Retrying request after error: '${ 
-                        error.name 
-                        }', '${ 
-                        error.message 
-                        }', '${ 
-                        error.status 
-                        }'. Command: ${ 
-                        command 
-                        }. Retry count:  ${ 
-                        _this.requestRetryCount 
-                        }. Wait time: ${ 
-                        currentRequestWaitTime}`,
+                    '[RequestThrottle - ' +
+                        _this.name +
+                        "] Retrying request after error: '" +
+                        error.name +
+                        "', '" +
+                        error.message +
+                        "', '" +
+                        error.status +
+                        "'. Command: " +
+                        command +
+                        '. Retry count:  ' +
+                        _this.requestRetryCount +
+                        '. Wait time: ' +
+                        currentRequestWaitTime,
                 );
                 _this.timeoutID = setTimeout(resolve, currentRequestWaitTime);
             } else {

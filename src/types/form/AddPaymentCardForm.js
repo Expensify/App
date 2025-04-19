@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     SETUP_COMPLETE: 'setupComplete',
     NAME_ON_CARD: 'nameOnCard',
     CARD_NUMBER: 'cardNumber',

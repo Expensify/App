@@ -1,8 +1,7 @@
-
+'use strict';
 exports.__esModule = true;
-const TrieNode_1 = require('./TrieNode');
-
-const Trie = /** @class */ (function () {
+var TrieNode_1 = require('./TrieNode');
+var Trie = /** @class */ (function () {
     function Trie() {
         this.root = new TrieNode_1['default']();
     }
@@ -21,8 +20,8 @@ const Trie = /** @class */ (function () {
         if (allowEmptyWords === void 0) {
             allowEmptyWords = false;
         }
-        const newWord = word.toLowerCase();
-        const newNode = node;
+        var newWord = word.toLowerCase();
+        var newNode = node;
         if (newWord.length === 0 && !allowEmptyWords) {
             throw new Error('Cannot insert empty word into Trie');
         }
@@ -41,9 +40,9 @@ const Trie = /** @class */ (function () {
      * @returns - the node for the word if it's found, or null if it's not found
      */
     Trie.prototype.search = function (word) {
-        let _a;
-        let newWord = word.toLowerCase();
-        let node = this.root;
+        var _a;
+        var newWord = word.toLowerCase();
+        var node = this.root;
         while (newWord.length > 1) {
             if (!node.children[newWord[0]]) {
                 return null;
@@ -57,8 +56,8 @@ const Trie = /** @class */ (function () {
      * Update a word data in the Trie.
      */
     Trie.prototype.update = function (word, metaData) {
-        let newWord = word.toLowerCase();
-        let node = this.root;
+        var newWord = word.toLowerCase();
+        var node = this.root;
         while (newWord.length > 1) {
             if (!node.children[newWord[0]]) {
                 throw new Error('Word does not exist in the Trie');
@@ -76,11 +75,11 @@ const Trie = /** @class */ (function () {
         if (limit === void 0) {
             limit = 5;
         }
-        const newSubstr = substr.toLowerCase();
-        let node = this.root;
-        let prefix = '';
-        for (let _i = 0, newSubstr_1 = newSubstr; _i < newSubstr_1.length; _i++) {
-            const char = newSubstr_1[_i];
+        var newSubstr = substr.toLowerCase();
+        var node = this.root;
+        var prefix = '';
+        for (var _i = 0, newSubstr_1 = newSubstr; _i < newSubstr_1.length; _i++) {
+            var char = newSubstr_1[_i];
             prefix += char;
             if (!node.children[char]) {
                 return [];
@@ -96,16 +95,16 @@ const Trie = /** @class */ (function () {
         if (words === void 0) {
             words = [];
         }
-        const matching = words;
+        var matching = words;
         if (matching.length >= limit) {
             return matching;
         }
         if (node.isEndOfWord) {
             matching.push({name: prefix, metaData: node.metaData});
         }
-        const children = Object.keys(node.children);
-        for (let _i = 0, children_1 = children; _i < children_1.length; _i++) {
-            const child = children_1[_i];
+        var children = Object.keys(node.children);
+        for (var _i = 0, children_1 = children; _i < children_1.length; _i++) {
+            var child = children_1[_i];
             this.getChildMatching(node.children[child], prefix + child, limit, matching);
         }
         return matching;

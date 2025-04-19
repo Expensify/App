@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     CREATED: 'created',
     MONEY_REQUEST_CREATED: 'moneyRequestCreated',
 };

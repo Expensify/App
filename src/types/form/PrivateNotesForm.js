@@ -1,6 +1,6 @@
-
+'use strict';
 exports.__esModule = true;
-const INPUT_IDS = {
+var INPUT_IDS = {
     PRIVATE_NOTES: 'privateNotes',
 };
 exports['default'] = INPUT_IDS;
