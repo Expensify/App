@@ -19,7 +19,7 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCardPendingActivate, isCardPendingIssue} from './CardUtils';
+import {isCardPendingActivate, isCardPendingIssue, isCardPendingReplace} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2273,7 +2273,11 @@ function shouldShowAddMissingDetails(actionName?: ReportActionName, card?: Card)
 
 function shouldShowActivateCard(actionName?: ReportActionName, card?: Card) {
     const missingDetails = isMissingPrivatePersonalDetails(privatePersonalDetails);
-    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS && isCardPendingActivate(card) && !missingDetails;
+    return (actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED || actionName === CONST.REPORT.ACTIONS.TYPE.CARD_MISSING_ADDRESS) && isCardPendingActivate(card) && !missingDetails;
+}
+
+function shouldShowReplacedCard(actionName?: ReportActionName, card?: Card) {
+    return actionName === CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED && isCardPendingReplace(card);
 }
 
 function getCardIssuedMessage({
@@ -2309,9 +2313,12 @@ function getCardIssuedMessage({
         : translateLocal('workspace.companyCards.companyCard');
     const isAssigneeCurrentUser = currentUserAccountID === assigneeAccountID;
     const shouldShowAddMissingDetailsMessage = !isAssigneeCurrentUser || shouldShowAddMissingDetails(reportAction?.actionName, card);
-    const shouldShowActivateCardMessage = !isAssigneeCurrentUser || shouldShowActivateCard(reportAction?.actionName, card);
+    const shouldShowReplaceCardMessage = !isAssigneeCurrentUser || shouldShowReplacedCard(reportAction?.actionName, card);
     switch (reportAction?.actionName) {
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED:
+            if (shouldShowReplaceCardMessage) {
+                return translateLocal('workspace.expensifyCard.replacedCard', {assignee});
+            }
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
             return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
@@ -2321,10 +2328,7 @@ function getCardIssuedMessage({
             if (shouldShowAddMissingDetailsMessage) {
                 return translateLocal('workspace.expensifyCard.issuedCardNoShippingDetails', {assignee});
             }
-            if (shouldShowActivateCardMessage) {
-                return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
-            }
-            return translateLocal(`workspace.expensifyCard.replacedCard`, {assignee});
+            return translateLocal('workspace.expensifyCard.addedShippingDetails', {assignee});
         default:
             return '';
     }
@@ -2512,6 +2516,7 @@ export {
     getWorkspaceReportFieldDeleteMessage,
     getReportActions,
     shouldShowActivateCard,
+    shouldShowReplacedCard,
 };
 
 export type {LastVisibleMessage};

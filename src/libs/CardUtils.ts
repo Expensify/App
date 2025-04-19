@@ -592,8 +592,19 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+function isCardPendingReplace(card?: Card) {
+    return (
+        (isCardPendingActivate(card) || isCardPendingIssue(card)) &&
+        !!card?.nameValuePairs?.terminationReason &&
+        card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED
+    );
+}
+
 function isExpensifyCardPendingAction(card?: Card) {
-    return card?.bank === CONST.EXPENSIFY_CARD.BANK && (isCardPendingIssue(card) || isCardPendingActivate(card) || isMissingPrivatePersonalDetails(privatePersonalDetails));
+    return (
+        card?.bank === CONST.EXPENSIFY_CARD.BANK &&
+        (isCardPendingIssue(card) || isCardPendingActivate(card) || isCardPendingReplace(card) || isMissingPrivatePersonalDetails(privatePersonalDetails))
+    );
 }
 
 function hasPendingExpensifyCardAction(cards: CardList | undefined = allCards) {
@@ -656,4 +667,5 @@ export {
     hasPendingExpensifyCardAction,
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
+    isCardPendingReplace,
 };
