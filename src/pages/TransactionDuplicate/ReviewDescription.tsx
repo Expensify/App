@@ -9,6 +9,7 @@ import {setReviewDuplicatesKey} from '@libs/actions/Transaction';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
 import Parser from '@libs/Parser';
+import StringUtils from '@libs/StringUtils';
 import {compareDuplicateTransactionFields, getTransactionID} from '@libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -34,7 +35,7 @@ function ReviewDescription() {
                 !description?.comment
                     ? {text: translate('violations.none'), value: ''}
                     : {
-                          text: Parser.htmlToText(description.comment),
+                          text: StringUtils.lineBreaksToSpaces(Parser.htmlToText(description.comment)),
                           value: description.comment,
                       },
             ),

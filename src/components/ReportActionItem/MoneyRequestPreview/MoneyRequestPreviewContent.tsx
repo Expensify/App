@@ -142,7 +142,7 @@ function MoneyRequestPreviewContent({
         category,
     } = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
 
-    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToMarkdown(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const description = truncate(StringUtils.lineBreaksToSpaces(Parser.htmlToText(requestComment ?? '')), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const hasReceipt = hasReceiptTransactionUtils(transaction);
     const isScanning = hasReceipt && isReceiptBeingScanned(transaction);
@@ -203,7 +203,7 @@ function MoneyRequestPreviewContent({
 
     let merchantOrDescription = requestMerchant;
     if (!shouldShowMerchant) {
-        merchantOrDescription = Parser.htmlToText(Parser.replace(description || ''));
+        merchantOrDescription = description || '';
     }
 
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
