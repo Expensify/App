@@ -5415,7 +5415,17 @@ const CONST = {
                 {
                     type: 'connectCorporateCard',
                     title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
-                    description: () => 'Link your corporate card so transactions flow automatically.',
+                    description: ({corporateCardLink}) =>
+                        `Connect your corporate card to automatically import and code expenses.\n` +
+                        '\n' +
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click *Workspaces*.\n' +
+                        '2. Select your workspace.\n' +
+                        '3. Click *Corporate cards*.\n' +
+                        '4. Follow the prompts to connect your card.\n' +
+                        '\n' +
+                        `[Take me to connect my corporate card](${corporateCardLink}).`,
                     autoCompleted: false,
                     mediaAttributes: {},
                 },
