@@ -5374,7 +5374,7 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: ({onboardingCompanySize}) => `Here is a task list I’d recommend for a company of your size with ${onboardingCompanySize} submitters:`,
+            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
                 selfGuidedTourTask,
