@@ -1,6 +1,6 @@
-'use strict';
+
 exports.__esModule = true;
-var INPUT_IDS = {
+const INPUT_IDS = {
     CHAT_TYPE: 'chatType',
     CURRENCY: 'currency',
     DESCRIPTION: 'description',

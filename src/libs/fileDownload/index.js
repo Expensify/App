@@ -1,10 +1,10 @@
-'use strict';
+
 exports.__esModule = true;
-var DownloadUtils_1 = require('./DownloadUtils');
+const DownloadUtils_1 = require('./DownloadUtils');
 /**
  * The function downloads an attachment on web/desktop platforms.
  */
-var fileDownload = function (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed) {
+const fileDownload = function (url, fileName, successMessage, shouldOpenExternalLink, formData, requestType, onDownloadFailed) {
     if (successMessage === void 0) {
         successMessage = '';
     }

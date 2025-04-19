@@ -16,3 +16,11 @@ src/libs/SearchParser/autocompleteParser.js
 help/_scripts/**
 Mobile-Expensify/**
 vendor
+
+# Ignore emoji and legacy config files with CommonJS/bundled output
+assets/emojis/**
+config/proxyConfig.js
+src/NAVIGATORS.js
+src/SCREENS.js
+src/TIMEZONES.js
+src/components/Icon/DefaultAvatars.js

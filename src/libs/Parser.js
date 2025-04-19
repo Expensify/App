@@ -1,8 +1,8 @@
-'use strict';
-var __extends =
+
+const __extends =
     (this && this.__extends) ||
     (function () {
-        var extendStatics = function (d, b) {
+        let extendStatics = function (d, b) {
             extendStatics =
                 Object.setPrototypeOf ||
                 ({__proto__: []} instanceof Array &&
@@ -10,7 +10,7 @@ var __extends =
                         d.__proto__ = b;
                     }) ||
                 function (d, b) {
-                    for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p];
+                    for (const p in b) {if (Object.prototype.hasOwnProperty.call(b, p)) {d[p] = b[p];}}
                 };
             return extendStatics(d, b);
         };
@@ -24,21 +24,22 @@ var __extends =
     })();
 exports.__esModule = true;
 // eslint-disable-next-line no-restricted-imports
-var expensify_common_1 = require('expensify-common');
-var react_native_onyx_1 = require('react-native-onyx');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var Log_1 = require('./Log');
-var accountIDToNameMap = {};
-var reportIDToNameMap = {};
+const expensify_common_1 = require('expensify-common');
+const react_native_onyx_1 = require('react-native-onyx');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+const Log_1 = require('./Log');
+
+const accountIDToNameMap = {};
+const reportIDToNameMap = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: function (value) {
+    callback (value) {
         if (!value) {
             return;
         }
         Object.values(value).forEach(function (report) {
-            var _a;
+            let _a;
             if (!report) {
                 return;
             }
@@ -48,9 +49,9 @@ react_native_onyx_1['default'].connect({
 });
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].PERSONAL_DETAILS_LIST,
-    callback: function (personalDetailsList) {
+    callback (personalDetailsList) {
         Object.values(personalDetailsList !== null && personalDetailsList !== void 0 ? personalDetailsList : {}).forEach(function (personalDetails) {
-            var _a, _b;
+            let _a; let _b;
             if (!personalDetails) {
                 return;
             }
@@ -59,13 +60,13 @@ react_native_onyx_1['default'].connect({
         });
     },
 });
-var ExpensiMarkWithContext = /** @class */ (function (_super) {
+const ExpensiMarkWithContext = /** @class */ (function (_super) {
     __extends(ExpensiMarkWithContext, _super);
     function ExpensiMarkWithContext() {
         return (_super !== null && _super.apply(this, arguments)) || this;
     }
     ExpensiMarkWithContext.prototype.htmlToMarkdown = function (htmlString, extras) {
-        var _a, _b;
+        let _a; let _b;
         return _super.prototype.htmlToMarkdown.call(this, htmlString, {
             reportIDToName: (_a = extras === null || extras === void 0 ? void 0 : extras.reportIDToName) !== null && _a !== void 0 ? _a : reportIDToNameMap,
             accountIDToName: (_b = extras === null || extras === void 0 ? void 0 : extras.accountIDToName) !== null && _b !== void 0 ? _b : accountIDToNameMap,
@@ -73,7 +74,7 @@ var ExpensiMarkWithContext = /** @class */ (function (_super) {
         });
     };
     ExpensiMarkWithContext.prototype.htmlToText = function (htmlString, extras) {
-        var _a, _b;
+        let _a; let _b;
         return _super.prototype.htmlToText.call(this, htmlString, {
             reportIDToName: (_a = extras === null || extras === void 0 ? void 0 : extras.reportIDToName) !== null && _a !== void 0 ? _a : reportIDToNameMap,
             accountIDToName: (_b = extras === null || extras === void 0 ? void 0 : extras.accountIDToName) !== null && _b !== void 0 ? _b : accountIDToNameMap,
@@ -86,5 +87,5 @@ var ExpensiMarkWithContext = /** @class */ (function (_super) {
     return ExpensiMarkWithContext;
 })(expensify_common_1.ExpensiMark);
 ExpensiMarkWithContext.setLogger(Log_1['default']);
-var Parser = new ExpensiMarkWithContext();
+const Parser = new ExpensiMarkWithContext();
 exports['default'] = Parser;

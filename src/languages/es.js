@@ -1,10 +1,10 @@
-'use strict';
-var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11;
+
+let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m; let _o; let _p; let _q; let _r; let _s; let _t; let _u; let _v; let _w; let _x; let _y; let _z; let _0; let _1; let _2; let _3; let _4; let _5; let _6; let _7; let _8; let _9; let _10; let _11;
 exports.__esModule = true;
-var expensify_common_1 = require('expensify-common');
-var CONST_1 = require('@src/CONST');
+const expensify_common_1 = require('expensify-common');
+const CONST_1 = require('@src/CONST');
 /* eslint-disable max-len */
-var translations = {
+const translations = {
     common: {
         cancel: 'Cancelar',
         dismiss: 'Descartar',
@@ -54,12 +54,12 @@ var translations = {
         wallet: 'Billetera',
         preferences: 'Preferencias',
         view: 'Ver',
-        review: function (reviewParams) {
+        review (reviewParams) {
             return (
-                'Revisar' +
-                ((reviewParams === null || reviewParams === void 0 ? void 0 : reviewParams.amount)
-                    ? ' ' + (reviewParams === null || reviewParams === void 0 ? void 0 : reviewParams.amount)
-                    : '')
+                `Revisar${ 
+                (reviewParams === null || reviewParams === void 0 ? void 0 : reviewParams.amount)
+                    ? ` ${  reviewParams === null || reviewParams === void 0 ? void 0 : reviewParams.amount}`
+                    : ''}`
             );
         },
         not: 'No',
@@ -107,9 +107,9 @@ var translations = {
         currentMonth: 'Mes actual',
         ssnLast4: 'Últimos 4 dígitos de tu SSN',
         ssnFull9: 'Los 9 dígitos del SSN',
-        addressLine: function (_a) {
-            var lineNumber = _a.lineNumber;
-            return 'Direcci\u00F3n l\u00EDnea ' + lineNumber;
+        addressLine (_a) {
+            const lineNumber = _a.lineNumber;
+            return `Direcci\u00F3n l\u00EDnea ${  lineNumber}`;
         },
         personalAddress: 'Dirección física personal',
         companyAddress: 'Dirección física de la empresa',
@@ -143,13 +143,13 @@ var translations = {
         error: {
             invalidAmount: 'Importe no válido',
             acceptTerms: 'Debes aceptar los Términos de Servicio para continuar',
-            phoneNumber: 'Introduce un tel\u00E9fono v\u00E1lido, incluyendo el c\u00F3digo del pa\u00EDs (p. ej. ' + CONST_1['default'].EXAMPLE_PHONE_NUMBER + ')',
+            phoneNumber: `Introduce un tel\u00E9fono v\u00E1lido, incluyendo el c\u00F3digo del pa\u00EDs (p. ej. ${  CONST_1['default'].EXAMPLE_PHONE_NUMBER  })`,
             fieldRequired: 'Este campo es obligatorio',
             requestModified: 'Esta solicitud está siendo modificada por otro miembro',
-            characterLimitExceedCounter: function (_a) {
-                var length = _a.length,
-                    limit = _a.limit;
-                return 'Se super\u00F3 el l\u00EDmite de caracteres (' + length + '/' + limit + ')';
+            characterLimitExceedCounter (_a) {
+                const length = _a.length;
+                    const limit = _a.limit;
+                return `Se super\u00F3 el l\u00EDmite de caracteres (${  length  }/${  limit  })`;
             },
             dateInvalid: 'Por favor, selecciona una fecha válida',
             invalidDateShouldBeFuture: 'Por favor, elige una fecha igual o posterior a hoy',
@@ -206,9 +206,9 @@ var translations = {
         verify: 'Verifique',
         yesContinue: 'Sí, continuar',
         websiteExample: 'p. ej. https://www.expensify.com',
-        zipCodeExampleFormat: function (_a) {
-            var zipSampleFormat = _a.zipSampleFormat;
-            return zipSampleFormat ? 'p. ej. ' + zipSampleFormat : '';
+        zipCodeExampleFormat (_a) {
+            const zipSampleFormat = _a.zipSampleFormat;
+            return zipSampleFormat ? `p. ej. ${  zipSampleFormat}` : '';
         },
         description: 'Descripción',
         with: 'con',
@@ -304,9 +304,9 @@ var translations = {
         address: 'Dirección',
         hourAbbreviation: 'h',
         minuteAbbreviation: 'm',
-        chatWithAccountManager: function (_a) {
-            var accountManagerDisplayName = _a.accountManagerDisplayName;
-            return '\u00BFNecesitas algo espec\u00EDfico? Habla con tu gerente de cuenta, ' + accountManagerDisplayName + '.';
+        chatWithAccountManager (_a) {
+            const accountManagerDisplayName = _a.accountManagerDisplayName;
+            return `\u00BFNecesitas algo espec\u00EDfico? Habla con tu gerente de cuenta, ${  accountManagerDisplayName  }.`;
         },
         chatNow: 'Chatear ahora',
         workEmail: 'correo electrónico de trabajo',
@@ -354,9 +354,9 @@ var translations = {
         chooseDocument: 'Elegir un archivo',
         attachmentTooLarge: 'Archivo adjunto demasiado grande',
         sizeExceeded: 'El archivo adjunto supera el límite de 24 MB.',
-        sizeExceededWithLimit: function (_a) {
-            var maxUploadSizeInMB = _a.maxUploadSizeInMB;
-            return 'El archivo adjunto supera el l\u00EDmite de ' + maxUploadSizeInMB + ' MB.';
+        sizeExceededWithLimit (_a) {
+            const maxUploadSizeInMB = _a.maxUploadSizeInMB;
+            return `El archivo adjunto supera el l\u00EDmite de ${  maxUploadSizeInMB  } MB.`;
         },
         attachmentTooSmall: 'Archivo adjunto demasiado pequeño',
         sizeNotMet: 'El archivo adjunto debe ser más grande que 240 bytes.',
@@ -366,13 +366,13 @@ var translations = {
         protectedPDFNotSupported: 'Los PDFs con contraseña no son compatibles',
         attachmentImageResized: 'Se ha cambiado el tamaño de esta imagen para obtener una vista previa. Descargar para resolución completa.',
         attachmentImageTooLarge: 'Esta imagen es demasiado grande para obtener una vista previa antes de subirla.',
-        tooManyFiles: function (_a) {
-            var fileLimit = _a.fileLimit;
-            return 'Solamente puedes suber ' + fileLimit + ' archivos a la vez.';
+        tooManyFiles (_a) {
+            const fileLimit = _a.fileLimit;
+            return `Solamente puedes suber ${  fileLimit  } archivos a la vez.`;
         },
-        sizeExceededWithValue: function (_a) {
-            var maxUploadSizeInMB = _a.maxUploadSizeInMB;
-            return 'El archivo supera los ' + maxUploadSizeInMB + ' MB. Por favor, vuelve a intentarlo.';
+        sizeExceededWithValue (_a) {
+            const maxUploadSizeInMB = _a.maxUploadSizeInMB;
+            return `El archivo supera los ${  maxUploadSizeInMB  } MB. Por favor, vuelve a intentarlo.`;
         },
     },
     filePicker: {
@@ -386,13 +386,13 @@ var translations = {
     composer: {
         noExtensionFoundForMimeType: 'No se encontró una extension para este tipo de contenido',
         problemGettingImageYouPasted: 'Ha ocurrido un problema al obtener la imagen que has pegado',
-        commentExceededMaxLength: function (_a) {
-            var formattedMaxLength = _a.formattedMaxLength;
-            return 'El comentario debe tener m\u00E1ximo ' + formattedMaxLength + ' caracteres.';
+        commentExceededMaxLength (_a) {
+            const formattedMaxLength = _a.formattedMaxLength;
+            return `El comentario debe tener m\u00E1ximo ${  formattedMaxLength  } caracteres.`;
         },
-        taskTitleExceededMaxLength: function (_a) {
-            var formattedMaxLength = _a.formattedMaxLength;
-            return 'La longitud m\u00E1xima del t\u00EDtulo de una tarea es de ' + formattedMaxLength + ' caracteres.';
+        taskTitleExceededMaxLength (_a) {
+            const formattedMaxLength = _a.formattedMaxLength;
+            return `La longitud m\u00E1xima del t\u00EDtulo de una tarea es de ${  formattedMaxLength  } caracteres.`;
         },
     },
     baseUpdateAppModal: {
@@ -406,9 +406,9 @@ var translations = {
         redirectedToDesktopApp: 'Te hemos redirigido a la aplicación de escritorio.',
         youCanAlso: 'También puedes',
         openLinkInBrowser: 'abrir este enlace en tu navegador',
-        loggedInAs: function (_a) {
-            var email = _a.email;
-            return 'Has iniciado sesi\u00F3n como ' + email + '. Haz clic en "Abrir enlace" en el aviso para iniciar sesi\u00F3n en la aplicaci\u00F3n de escritorio con esta cuenta.';
+        loggedInAs (_a) {
+            const email = _a.email;
+            return `Has iniciado sesi\u00F3n como ${  email  }. Haz clic en "Abrir enlace" en el aviso para iniciar sesi\u00F3n en la aplicaci\u00F3n de escritorio con esta cuenta.`;
         },
         doNotSeePrompt: '¿No ves el aviso?',
         tryAgain: 'Inténtalo de nuevo',
@@ -459,13 +459,13 @@ var translations = {
         phrase2: 'El dinero habla. Y ahora que chat y pagos están en un mismo lugar, es también fácil.',
         phrase3: 'Tus pagos llegan tan rápido como tus mensajes.',
         enterPassword: 'Por favor, introduce tu contraseña',
-        welcomeNewFace: function (_a) {
-            var login = _a.login;
-            return login + ', siempre es genial ver una cara nueva por aqu\u00ED!';
+        welcomeNewFace (_a) {
+            const login = _a.login;
+            return `${login  }, siempre es genial ver una cara nueva por aqu\u00ED!`;
         },
-        welcomeEnterMagicCode: function (_a) {
-            var login = _a.login;
-            return 'Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ' + login + '. Deber\u00EDa llegar en un par de minutos.';
+        welcomeEnterMagicCode (_a) {
+            const login = _a.login;
+            return `Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ${  login  }. Deber\u00EDa llegar en un par de minutos.`;
         },
     },
     login: {
@@ -475,13 +475,13 @@ var translations = {
         },
     },
     thirdPartySignIn: {
-        alreadySignedIn: function (_a) {
-            var email = _a.email;
-            return 'Ya has iniciado sesi\u00F3n con ' + email + '.';
+        alreadySignedIn (_a) {
+            const email = _a.email;
+            return `Ya has iniciado sesi\u00F3n con ${  email  }.`;
         },
-        goBackMessage: function (_a) {
-            var provider = _a.provider;
-            return 'No quieres iniciar sesi\u00F3n con ' + provider + '?';
+        goBackMessage (_a) {
+            const provider = _a.provider;
+            return `No quieres iniciar sesi\u00F3n con ${  provider  }?`;
         },
         continueWithMyCurrentSession: 'Continuar con mi sesión actual',
         redirectToDesktopMessage: 'Lo redirigiremos a la aplicación de escritorio una vez que termine de iniciar sesión.',
@@ -504,10 +504,10 @@ var translations = {
         writeSomething: 'Escribe algo...',
         blockedFromConcierge: 'Comunicación no permitida',
         fileUploadFailed: 'Subida fallida. El archivo no es compatible.',
-        localTime: function (_a) {
-            var user = _a.user,
-                time = _a.time;
-            return 'Son las ' + time + ' para ' + user;
+        localTime (_a) {
+            const user = _a.user;
+                const time = _a.time;
+            return `Son las ${  time  } para ${  user}`;
         },
         edited: '(editado)',
         emoji: 'Emoji',
@@ -522,20 +522,20 @@ var translations = {
         copyEmailToClipboard: 'Copiar correo electrónico al portapapeles',
         markAsUnread: 'Marcar como no leído',
         markAsRead: 'Marcar como leído',
-        editAction: function (_a) {
-            var action = _a.action;
-            return 'Editar ' + ((action === null || action === void 0 ? void 0 : action.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario');
+        editAction (_a) {
+            const action = _a.action;
+            return `Editar ${  (action === null || action === void 0 ? void 0 : action.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`;
         },
-        deleteAction: function (_a) {
-            var action = _a.action;
-            return 'Eliminar ' + ((action === null || action === void 0 ? void 0 : action.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario');
+        deleteAction (_a) {
+            const action = _a.action;
+            return `Eliminar ${  (action === null || action === void 0 ? void 0 : action.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario'}`;
         },
-        deleteConfirmation: function (_a) {
-            var action = _a.action;
+        deleteConfirmation (_a) {
+            const action = _a.action;
             return (
-                '\u00BFEst\u00E1s seguro de que quieres eliminar este ' +
-                ((action === null || action === void 0 ? void 0 : action.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario') +
-                '?'
+                `\u00BFEst\u00E1s seguro de que quieres eliminar este ${ 
+                (action === null || action === void 0 ? void 0 : action.actionName) === CONST_1['default'].REPORT.ACTIONS.TYPE.IOU ? 'gasto' : 'comentario' 
+                }?`
             );
         },
         onlyVisible: 'Visible sólo para',
@@ -553,21 +553,21 @@ var translations = {
     reportActionsView: {
         beginningOfArchivedRoomPartOne: 'Te perdiste la fiesta en ',
         beginningOfArchivedRoomPartTwo: ', no hay nada que ver aquí.',
-        beginningOfChatHistoryDomainRoomPartOne: function (_a) {
-            var domainRoom = _a.domainRoom;
-            return 'Este chat es con todos los miembros de Expensify en el dominio ' + domainRoom + '.';
+        beginningOfChatHistoryDomainRoomPartOne (_a) {
+            const domainRoom = _a.domainRoom;
+            return `Este chat es con todos los miembros de Expensify en el dominio ${  domainRoom  }.`;
         },
         beginningOfChatHistoryDomainRoomPartTwo: ' Úsalo para chatear con colegas, compartir consejos y hacer preguntas.',
         beginningOfChatHistoryAdminRoomPartOneFirst: 'Este chat es con los administradores del espacio de trabajo',
-        beginningOfChatHistoryAdminRoomWorkspaceName: function (_a) {
-            var workspaceName = _a.workspaceName;
-            return ' ' + workspaceName;
+        beginningOfChatHistoryAdminRoomWorkspaceName (_a) {
+            const workspaceName = _a.workspaceName;
+            return ` ${  workspaceName}`;
         },
         beginningOfChatHistoryAdminRoomPartOneLast: '.',
         beginningOfChatHistoryAdminRoomPartTwo: ' Úsalo para hablar sobre la configuración del espacio de trabajo y más.',
-        beginningOfChatHistoryAnnounceRoomPartOne: function (_a) {
-            var workspaceName = _a.workspaceName;
-            return 'Este chat es con todos en ' + workspaceName + '.';
+        beginningOfChatHistoryAnnounceRoomPartOne (_a) {
+            const workspaceName = _a.workspaceName;
+            return `Este chat es con todos en ${  workspaceName  }.`;
         },
         beginningOfChatHistoryAnnounceRoomPartTwo: ' \u00DAsalo para hablar sobre la configuraci\u00F3n del espacio de trabajo y m\u00E1s.',
         beginningOfChatHistoryUserRoomPartOne: 'ste chat es para todo lo relacionado con ',
@@ -583,13 +583,13 @@ var translations = {
         chatWithAccountManager: 'Chatea con tu gestor de cuenta aquí',
         sayHello: '¡Saluda!',
         yourSpace: 'Tu espacio',
-        welcomeToRoom: function (_a) {
-            var roomName = _a.roomName;
-            return '\u00A1Bienvenido a ' + roomName + '!';
+        welcomeToRoom (_a) {
+            const roomName = _a.roomName;
+            return `\u00A1Bienvenido a ${  roomName  }!`;
         },
-        usePlusButton: function (_a) {
-            var additionalText = _a.additionalText;
-            return '\nUsa el bot\u00F3n + para ' + additionalText + ' un gasto';
+        usePlusButton (_a) {
+            const additionalText = _a.additionalText;
+            return `\nUsa el bot\u00F3n + para ${  additionalText  } un gasto`;
         },
         askConcierge: 'Haz preguntas y obtén soporte en tiempo real las 24/7.',
         conciergeSupport: 'Soporte 24/7',
@@ -620,30 +620,30 @@ var translations = {
         ((_b = {}),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.DEFAULT] = 'Esta sala de chat ha sido eliminada.'),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.ACCOUNT_CLOSED] = function (_a) {
-            var displayName = _a.displayName;
-            return 'Este chat est\u00E1 desactivado porque ' + displayName + ' ha cerrado tu cuenta.';
+            const displayName = _a.displayName;
+            return `Este chat est\u00E1 desactivado porque ${  displayName  } ha cerrado tu cuenta.`;
         }),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.ACCOUNT_MERGED] = function (_a) {
-            var displayName = _a.displayName,
-                oldDisplayName = _a.oldDisplayName;
-            return 'Este chat est\u00E1 desactivado porque ' + oldDisplayName + ' ha combinado tu cuenta con ' + displayName;
+            const displayName = _a.displayName;
+                const oldDisplayName = _a.oldDisplayName;
+            return `Este chat est\u00E1 desactivado porque ${  oldDisplayName  } ha combinado tu cuenta con ${  displayName}`;
         }),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.REMOVED_FROM_POLICY] = function (_a) {
-            var displayName = _a.displayName,
-                policyName = _a.policyName,
-                _b = _a.shouldUseYou,
-                shouldUseYou = _b === void 0 ? false : _b;
+            const displayName = _a.displayName;
+                const policyName = _a.policyName;
+                const _b = _a.shouldUseYou;
+                const shouldUseYou = _b === void 0 ? false : _b;
             return shouldUseYou
-                ? 'Este chat ya no est\u00E1 activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ' + policyName + '.'
-                : 'Este chat est\u00E1 desactivado porque ' + displayName + ' ha dejado de ser miembro del espacio de trabajo ' + policyName + '.';
+                ? `Este chat ya no est\u00E1 activo porque <strong>tu</strong> ya no eres miembro del espacio de trabajo ${  policyName  }.`
+                : `Este chat est\u00E1 desactivado porque ${  displayName  } ha dejado de ser miembro del espacio de trabajo ${  policyName  }.`;
         }),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.POLICY_DELETED] = function (_a) {
-            var policyName = _a.policyName;
-            return 'Este chat est\u00E1 desactivado porque el espacio de trabajo ' + policyName + ' se ha eliminado.';
+            const policyName = _a.policyName;
+            return `Este chat est\u00E1 desactivado porque el espacio de trabajo ${  policyName  } se ha eliminado.`;
         }),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.INVOICE_RECEIVER_POLICY_DELETED] = function (_a) {
-            var policyName = _a.policyName;
-            return 'Este chat est\u00E1 desactivado porque el espacio de trabajo ' + policyName + ' se ha eliminado.';
+            const policyName = _a.policyName;
+            return `Este chat est\u00E1 desactivado porque el espacio de trabajo ${  policyName  } se ha eliminado.`;
         }),
         (_b[CONST_1['default'].REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED] = 'Esta reserva está archivada.'),
         _b),
@@ -686,65 +686,65 @@ var translations = {
         dragAndDrop: 'Arrastra y suelta un archivo de hoja de cálculo aquí',
         chooseSpreadsheet: 'Subir',
         fileContainsHeader: 'El archivo contiene encabezados',
-        column: function (_a) {
-            var name = _a.name;
-            return 'Columna ' + name;
+        column (_a) {
+            const name = _a.name;
+            return `Columna ${  name}`;
         },
-        fieldNotMapped: function (_a) {
-            var fieldName = _a.fieldName;
-            return '\u00A1Vaya! Un campo obligatorio ("' + fieldName + '") no ha sido mapeado. Por favor, revisa e int\u00E9ntalo de nuevo.';
+        fieldNotMapped (_a) {
+            const fieldName = _a.fieldName;
+            return `\u00A1Vaya! Un campo obligatorio ("${  fieldName  }") no ha sido mapeado. Por favor, revisa e int\u00E9ntalo de nuevo.`;
         },
-        singleFieldMultipleColumns: function (_a) {
-            var fieldName = _a.fieldName;
-            return '\u00A1Vaya! Has mapeado un solo campo ("' + fieldName + '") a varias columnas. Por favor, revisa e int\u00E9ntalo de nuevo.';
+        singleFieldMultipleColumns (_a) {
+            const fieldName = _a.fieldName;
+            return `\u00A1Vaya! Has mapeado un solo campo ("${  fieldName  }") a varias columnas. Por favor, revisa e int\u00E9ntalo de nuevo.`;
         },
-        emptyMappedField: function (_a) {
-            var fieldName = _a.fieldName;
-            return '\u00A1Vaya! El campo ("' + fieldName + '") contiene uno o m\u00E1s valores vac\u00EDos. Por favor, rev\u00EDsalo e int\u00E9ntalo de nuevo.';
+        emptyMappedField (_a) {
+            const fieldName = _a.fieldName;
+            return `\u00A1Vaya! El campo ("${  fieldName  }") contiene uno o m\u00E1s valores vac\u00EDos. Por favor, rev\u00EDsalo e int\u00E9ntalo de nuevo.`;
         },
         importFailedTitle: 'Fallo en la importación',
         importFailedDescription: 'Por favor, asegúrate de que todos los campos estén llenos correctamente e inténtalo de nuevo. Si el problema persiste, por favor contacta a Concierge.',
-        importCategoriesSuccessfullDescription: function (_a) {
-            var categories = _a.categories;
-            return categories > 1 ? 'Se han agregado ' + categories + ' categor\u00EDas.' : 'Se ha agregado 1 categoría.';
+        importCategoriesSuccessfullDescription (_a) {
+            const categories = _a.categories;
+            return categories > 1 ? `Se han agregado ${  categories  } categor\u00EDas.` : 'Se ha agregado 1 categoría.';
         },
-        importMembersSuccessfullDescription: function (_a) {
-            var added = _a.added,
-                updated = _a.updated;
+        importMembersSuccessfullDescription (_a) {
+            const added = _a.added;
+                const updated = _a.updated;
             if (!added && !updated) {
                 return 'No se han añadido ni actualizado miembros.';
             }
             if (added && updated) {
-                var getPluralSuffix = function (count) {
+                const getPluralSuffix = function (count) {
                     return count > 1 ? 's' : '';
                 };
                 return (
-                    added +
-                    ' miembro' +
-                    getPluralSuffix(added) +
-                    ' a\u00F1adido' +
-                    getPluralSuffix(added) +
-                    ', ' +
-                    updated +
-                    ' miembro' +
-                    getPluralSuffix(updated) +
-                    ' actualizado' +
-                    getPluralSuffix(updated) +
-                    '.'
+                    `${added 
+                    } miembro${ 
+                    getPluralSuffix(added) 
+                    } a\u00F1adido${ 
+                    getPluralSuffix(added) 
+                    }, ${ 
+                    updated 
+                    } miembro${ 
+                    getPluralSuffix(updated) 
+                    } actualizado${ 
+                    getPluralSuffix(updated) 
+                    }.`
                 );
             }
             if (updated) {
-                return updated > 1 ? updated + ' miembros han sido actualizados.' : '1 miembro ha sido actualizado.';
+                return updated > 1 ? `${updated  } miembros han sido actualizados.` : '1 miembro ha sido actualizado.';
             }
-            return added > 1 ? 'Se han agregado ' + added + ' miembros' : 'Se ha agregado 1 miembro.';
+            return added > 1 ? `Se han agregado ${  added  } miembros` : 'Se ha agregado 1 miembro.';
         },
-        importTagsSuccessfullDescription: function (_a) {
-            var tags = _a.tags;
-            return tags > 1 ? 'Se han agregado ' + tags + ' etiquetas.' : 'Se ha agregado 1 etiqueta.';
+        importTagsSuccessfullDescription (_a) {
+            const tags = _a.tags;
+            return tags > 1 ? `Se han agregado ${  tags  } etiquetas.` : 'Se ha agregado 1 etiqueta.';
         },
-        importPerDiemRatesSuccessfullDescription: function (_a) {
-            var rates = _a.rates;
-            return rates > 1 ? 'Se han a\u00F1adido ' + rates + ' tasas de per diem.' : 'Se ha añadido 1 tasa de per diem.';
+        importPerDiemRatesSuccessfullDescription (_a) {
+            const rates = _a.rates;
+            return rates > 1 ? `Se han a\u00F1adido ${  rates  } tasas de per diem.` : 'Se ha añadido 1 tasa de per diem.';
         },
         importSuccessfullTitle: 'Importar categorías',
         importDescription: 'Elige qué campos mapear desde tu hoja de cálculo haciendo clic en el menú desplegable junto a cada columna importada a continuación.',
@@ -788,10 +788,10 @@ var translations = {
         splitBill: 'Dividir gasto',
         splitScan: 'Dividir recibo',
         splitDistance: 'Dividir distancia',
-        paySomeone: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                name = _b.name;
-            return 'Pagar a ' + (name !== null && name !== void 0 ? name : 'alguien');
+        paySomeone (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const name = _b.name;
+            return `Pagar a ${  name !== null && name !== void 0 ? name : 'alguien'}`;
         },
         assignTask: 'Assignar tarea',
         header: 'Acción rápida',
@@ -815,15 +815,15 @@ var translations = {
         share: 'Compartir',
         participants: 'Participantes',
         createExpense: 'Crear gasto',
-        paySomeone: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                name = _b.name;
-            return 'Pagar a ' + (name !== null && name !== void 0 ? name : 'alguien');
+        paySomeone (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const name = _b.name;
+            return `Pagar a ${  name !== null && name !== void 0 ? name : 'alguien'}`;
         },
         chooseRecipient: 'Elige destinatario',
-        createExpenseWithAmount: function (_a) {
-            var amount = _a.amount;
-            return 'Crear un gasto de ' + amount;
+        createExpenseWithAmount (_a) {
+            const amount = _a.amount;
+            return `Crear un gasto de ${  amount}`;
         },
         confirmDetails: 'Confirma los detalles',
         pay: 'Pagar',
@@ -839,29 +839,29 @@ var translations = {
         pendingMatchWithCreditCardDescription: 'Recibo pendiente de adjuntar con la transacción de la tarjeta. Márcalo como efectivo para cancelar.',
         markAsCash: 'Marcar como efectivo',
         routePending: 'Ruta pendiente...',
-        deletedTransaction: function (_a) {
-            var amount = _a.amount,
-                merchant = _a.merchant;
-            return 'elimin\u00F3 un gasto de este informe, ' + merchant + ' - ' + amount;
+        deletedTransaction (_a) {
+            const amount = _a.amount;
+                const merchant = _a.merchant;
+            return `elimin\u00F3 un gasto de este informe, ${  merchant  } - ${  amount}`;
         },
-        movedTransaction: function (_a) {
-            var reportUrl = _a.reportUrl,
-                reportName = _a.reportName;
-            return 'movi\u00F3 este gasto a <a href="' + reportUrl + '">' + reportName + '</a>';
+        movedTransaction (_a) {
+            const reportUrl = _a.reportUrl;
+                const reportName = _a.reportName;
+            return `movi\u00F3 este gasto a <a href="${  reportUrl  }">${  reportName  }</a>`;
         },
-        unreportedTransaction: function (_a) {
-            var reportUrl = _a.reportUrl,
-                reportName = _a.reportName;
-            return 'elimin\u00F3 este gasto de <a href="' + reportUrl + '">' + reportName + '</a>';
+        unreportedTransaction (_a) {
+            const reportUrl = _a.reportUrl;
+                const reportName = _a.reportName;
+            return `elimin\u00F3 este gasto de <a href="${  reportUrl  }">${  reportName  }</a>`;
         },
-        receiptIssuesFound: function () {
+        receiptIssuesFound () {
             return {
                 one: 'Problema encontrado',
                 other: 'Problemas encontrados',
             };
         },
         fieldPending: 'Pendiente...',
-        receiptScanning: function () {
+        receiptScanning () {
             return {
                 one: 'Escaneando recibo...',
                 other: 'Escaneando recibos...',
@@ -869,8 +869,8 @@ var translations = {
         },
         receiptScanInProgress: 'Escaneado de recibo en proceso',
         receiptScanInProgressDescription: 'Escaneado de recibo en proceso. Vuelve a comprobarlo más tarde o introduce los detalles ahora.',
-        duplicateTransaction: function (_a) {
-            var isSubmitted = _a.isSubmitted;
+        duplicateTransaction (_a) {
+            const isSubmitted = _a.isSubmitted;
             return !isSubmitted
                 ? 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar el envío.'
                 : 'Se han identificado posibles gastos duplicados. Revisa los duplicados para habilitar la aprobación.';
@@ -891,40 +891,40 @@ var translations = {
         invalidDomainError: 'Ha introducido un dominio no válido. Para continuar, introduzca un dominio válido.',
         publicDomainError: 'Ha introducido un dominio público. Para continuar, introduzca un dominio privado.',
         // TODO: This key should be deprecated. More details: https://github.com/Expensify/App/pull/59653#discussion_r2028653252
-        expenseCountWithStatus: function (_a) {
-            var _b = _a.scanningReceipts,
-                scanningReceipts = _b === void 0 ? 0 : _b,
-                _c = _a.pendingReceipts,
-                pendingReceipts = _c === void 0 ? 0 : _c;
-            var statusText = [];
+        expenseCountWithStatus (_a) {
+            const _b = _a.scanningReceipts;
+                const scanningReceipts = _b === void 0 ? 0 : _b;
+                const _c = _a.pendingReceipts;
+                const pendingReceipts = _c === void 0 ? 0 : _c;
+            const statusText = [];
             if (scanningReceipts > 0) {
-                statusText.push(scanningReceipts + ' escaneando');
+                statusText.push(`${scanningReceipts  } escaneando`);
             }
             if (pendingReceipts > 0) {
-                statusText.push(pendingReceipts + ' pendiente');
+                statusText.push(`${pendingReceipts  } pendiente`);
             }
             return {
-                one: statusText.length > 0 ? '1 gasto (' + statusText.join(', ') + ')' : '1 gasto',
-                other: function (count) {
-                    return statusText.length > 0 ? count + ' gastos (' + statusText.join(', ') + ')' : count + ' gastos';
+                one: statusText.length > 0 ? `1 gasto (${  statusText.join(', ')  })` : '1 gasto',
+                other (count) {
+                    return statusText.length > 0 ? `${count  } gastos (${  statusText.join(', ')  })` : `${count  } gastos`;
                 },
             };
         },
-        expenseCount: function () {
+        expenseCount () {
             return {
                 one: '1 gasto',
-                other: function (count) {
-                    return count + ' gastos';
+                other (count) {
+                    return `${count  } gastos`;
                 },
             };
         },
-        deleteExpense: function () {
+        deleteExpense () {
             return {
                 one: 'Eliminar gasto',
                 other: 'Eliminar gastos',
             };
         },
-        deleteConfirmation: function () {
+        deleteConfirmation () {
             return {
                 one: '¿Estás seguro de que quieres eliminar esta solicitud?',
                 other: '¿Estás seguro de que quieres eliminar estas solicitudes?',
@@ -935,251 +935,251 @@ var translations = {
         settledElsewhere: 'Pagado de otra forma',
         individual: 'Individual',
         business: 'Empresa',
-        settleExpensify: function (_a) {
-            var formattedAmount = _a.formattedAmount;
-            return formattedAmount ? 'Pagar ' + formattedAmount + ' con Expensify' : 'Pagar con Expensify';
+        settleExpensify (_a) {
+            const formattedAmount = _a.formattedAmount;
+            return formattedAmount ? `Pagar ${  formattedAmount  } con Expensify` : 'Pagar con Expensify';
         },
-        settlePersonal: function (_a) {
-            var formattedAmount = _a.formattedAmount;
-            return formattedAmount ? 'Pago ' + formattedAmount + ' como individuo' : 'Pago individual';
+        settlePersonal (_a) {
+            const formattedAmount = _a.formattedAmount;
+            return formattedAmount ? `Pago ${  formattedAmount  } como individuo` : 'Pago individual';
         },
-        settlePayment: function (_a) {
-            var formattedAmount = _a.formattedAmount;
-            return 'Pagar ' + formattedAmount;
+        settlePayment (_a) {
+            const formattedAmount = _a.formattedAmount;
+            return `Pagar ${  formattedAmount}`;
         },
-        settleBusiness: function (_a) {
-            var formattedAmount = _a.formattedAmount;
-            return formattedAmount ? 'Pagar ' + formattedAmount + ' como negocio' : 'Pagar como empresa';
+        settleBusiness (_a) {
+            const formattedAmount = _a.formattedAmount;
+            return formattedAmount ? `Pagar ${  formattedAmount  } como negocio` : 'Pagar como empresa';
         },
-        payElsewhere: function (_a) {
-            var formattedAmount = _a.formattedAmount;
-            return formattedAmount ? 'Pagar ' + formattedAmount + ' de otra forma' : 'Pagar de otra forma';
+        payElsewhere (_a) {
+            const formattedAmount = _a.formattedAmount;
+            return formattedAmount ? `Pagar ${  formattedAmount  } de otra forma` : 'Pagar de otra forma';
         },
         nextStep: 'Pasos siguientes',
         finished: 'Finalizado',
-        sendInvoice: function (_a) {
-            var amount = _a.amount;
-            return 'Enviar factura de ' + amount;
+        sendInvoice (_a) {
+            const amount = _a.amount;
+            return `Enviar factura de ${  amount}`;
         },
-        submitAmount: function (_a) {
-            var amount = _a.amount;
-            return 'Solicitar ' + amount;
+        submitAmount (_a) {
+            const amount = _a.amount;
+            return `Solicitar ${  amount}`;
         },
-        submittedAmount: function (_a) {
-            var formattedAmount = _a.formattedAmount,
-                comment = _a.comment;
-            return 'solicit\u00F3 ' + formattedAmount + (comment ? ' para ' + comment : '');
+        submittedAmount (_a) {
+            const formattedAmount = _a.formattedAmount;
+                const comment = _a.comment;
+            return `solicit\u00F3 ${  formattedAmount  }${comment ? ` para ${  comment}` : ''}`;
         },
-        automaticallySubmittedAmount: function (_a) {
-            var formattedAmount = _a.formattedAmount;
-            return 'se enviaron autom\u00E1ticamente ' + formattedAmount + ' mediante <a href="' + CONST_1['default'].DELAYED_SUBMISSION_HELP_URL + '">env\u00EDo diferido</a>';
+        automaticallySubmittedAmount (_a) {
+            const formattedAmount = _a.formattedAmount;
+            return `se enviaron autom\u00E1ticamente ${  formattedAmount  } mediante <a href="${  CONST_1['default'].DELAYED_SUBMISSION_HELP_URL  }">env\u00EDo diferido</a>`;
         },
-        trackedAmount: function (_a) {
-            var formattedAmount = _a.formattedAmount,
-                comment = _a.comment;
-            return 'realiz\u00F3 un seguimiento de ' + formattedAmount + (comment ? ' para ' + comment : '');
+        trackedAmount (_a) {
+            const formattedAmount = _a.formattedAmount;
+                const comment = _a.comment;
+            return `realiz\u00F3 un seguimiento de ${  formattedAmount  }${comment ? ` para ${  comment}` : ''}`;
         },
-        splitAmount: function (_a) {
-            var amount = _a.amount;
-            return 'dividir ' + amount;
+        splitAmount (_a) {
+            const amount = _a.amount;
+            return `dividir ${  amount}`;
         },
-        didSplitAmount: function (_a) {
-            var formattedAmount = _a.formattedAmount,
-                comment = _a.comment;
-            return 'dividi\u00F3 ' + formattedAmount + (comment ? ' para ' + comment : '');
+        didSplitAmount (_a) {
+            const formattedAmount = _a.formattedAmount;
+                const comment = _a.comment;
+            return `dividi\u00F3 ${  formattedAmount  }${comment ? ` para ${  comment}` : ''}`;
         },
-        yourSplit: function (_a) {
-            var amount = _a.amount;
-            return 'Tu parte ' + amount;
+        yourSplit (_a) {
+            const amount = _a.amount;
+            return `Tu parte ${  amount}`;
         },
-        payerOwesAmount: function (_a) {
-            var payer = _a.payer,
-                amount = _a.amount,
-                comment = _a.comment;
-            return payer + ' debe ' + amount + (comment ? ' para ' + comment : '');
+        payerOwesAmount (_a) {
+            const payer = _a.payer;
+                const amount = _a.amount;
+                const comment = _a.comment;
+            return `${payer  } debe ${  amount  }${comment ? ` para ${  comment}` : ''}`;
         },
-        payerOwes: function (_a) {
-            var payer = _a.payer;
-            return payer + ' debe: ';
+        payerOwes (_a) {
+            const payer = _a.payer;
+            return `${payer  } debe: `;
         },
-        payerPaidAmount: function (_a) {
-            var payer = _a.payer,
-                amount = _a.amount;
-            return (payer ? payer + ' ' : '') + 'pag\u00F3 ' + amount;
+        payerPaidAmount (_a) {
+            const payer = _a.payer;
+                const amount = _a.amount;
+            return `${payer ? `${payer  } ` : ''  }pag\u00F3 ${  amount}`;
         },
-        payerPaid: function (_a) {
-            var payer = _a.payer;
-            return payer + ' pag\u00F3: ';
+        payerPaid (_a) {
+            const payer = _a.payer;
+            return `${payer  } pag\u00F3: `;
         },
-        payerSpentAmount: function (_a) {
-            var payer = _a.payer,
-                amount = _a.amount;
-            return payer + ' gast\u00F3 ' + amount;
+        payerSpentAmount (_a) {
+            const payer = _a.payer;
+                const amount = _a.amount;
+            return `${payer  } gast\u00F3 ${  amount}`;
         },
-        payerSpent: function (_a) {
-            var payer = _a.payer;
-            return payer + ' gast\u00F3: ';
+        payerSpent (_a) {
+            const payer = _a.payer;
+            return `${payer  } gast\u00F3: `;
         },
-        managerApproved: function (_a) {
-            var manager = _a.manager;
-            return manager + ' aprob\u00F3:';
+        managerApproved (_a) {
+            const manager = _a.manager;
+            return `${manager  } aprob\u00F3:`;
         },
-        managerApprovedAmount: function (_a) {
-            var manager = _a.manager,
-                amount = _a.amount;
-            return manager + ' aprob\u00F3 ' + amount;
+        managerApprovedAmount (_a) {
+            const manager = _a.manager;
+                const amount = _a.amount;
+            return `${manager  } aprob\u00F3 ${  amount}`;
         },
-        payerSettled: function (_a) {
-            var amount = _a.amount;
-            return 'pag\u00F3 ' + amount;
+        payerSettled (_a) {
+            const amount = _a.amount;
+            return `pag\u00F3 ${  amount}`;
         },
-        payerSettledWithMissingBankAccount: function (_a) {
-            var amount = _a.amount;
-            return 'pag\u00F3 ' + amount + '. Agrega una cuenta bancaria para recibir tu pago.';
+        payerSettledWithMissingBankAccount (_a) {
+            const amount = _a.amount;
+            return `pag\u00F3 ${  amount  }. Agrega una cuenta bancaria para recibir tu pago.`;
         },
-        automaticallyApprovedAmount: function (_a) {
-            var amount = _a.amount;
+        automaticallyApprovedAmount (_a) {
+            const amount = _a.amount;
             return (
-                'aprobado autom\u00E1ticamente ' + amount + ' seg\u00FAn las <a href="' + CONST_1['default'].CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL + '">reglas del espacio de trabajo</a>'
+                `aprobado autom\u00E1ticamente ${  amount  } seg\u00FAn las <a href="${  CONST_1['default'].CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL  }">reglas del espacio de trabajo</a>`
             );
         },
-        approvedAmount: function (_a) {
-            var amount = _a.amount;
-            return 'aprob\u00F3 ' + amount;
+        approvedAmount (_a) {
+            const amount = _a.amount;
+            return `aprob\u00F3 ${  amount}`;
         },
-        unapprovedAmount: function (_a) {
-            var amount = _a.amount;
-            return 'desaprob\u00F3 ' + amount;
+        unapprovedAmount (_a) {
+            const amount = _a.amount;
+            return `desaprob\u00F3 ${  amount}`;
         },
-        automaticallyForwardedAmount: function (_a) {
-            var amount = _a.amount;
+        automaticallyForwardedAmount (_a) {
+            const amount = _a.amount;
             return (
-                'aprobado autom\u00E1ticamente ' + amount + ' seg\u00FAn las <a href="' + CONST_1['default'].CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL + '">reglas del espacio de trabajo</a>'
+                `aprobado autom\u00E1ticamente ${  amount  } seg\u00FAn las <a href="${  CONST_1['default'].CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL  }">reglas del espacio de trabajo</a>`
             );
         },
-        forwardedAmount: function (_a) {
-            var amount = _a.amount;
-            return 'aprob\u00F3 ' + amount;
+        forwardedAmount (_a) {
+            const amount = _a.amount;
+            return `aprob\u00F3 ${  amount}`;
         },
         rejectedThisReport: 'rechazó este informe',
-        waitingOnBankAccount: function (_a) {
-            var submitterDisplayName = _a.submitterDisplayName;
-            return 'inici\u00F3 el pago, pero no se procesar\u00E1 hasta que ' + submitterDisplayName + ' a\u00F1ada una cuenta bancaria';
+        waitingOnBankAccount (_a) {
+            const submitterDisplayName = _a.submitterDisplayName;
+            return `inici\u00F3 el pago, pero no se procesar\u00E1 hasta que ${  submitterDisplayName  } a\u00F1ada una cuenta bancaria`;
         },
-        adminCanceledRequest: function (_a) {
-            var manager = _a.manager,
-                amount = _a.amount;
-            return (manager ? manager + ': ' : '') + 'cancel\u00F3 el pago de ' + amount;
+        adminCanceledRequest (_a) {
+            const manager = _a.manager;
+                const amount = _a.amount;
+            return `${manager ? `${manager  }: ` : ''  }cancel\u00F3 el pago de ${  amount}`;
         },
-        canceledRequest: function (_a) {
-            var amount = _a.amount,
-                submitterDisplayName = _a.submitterDisplayName;
-            return 'cancel\u00F3 el pago  ' + amount + ', porque ' + submitterDisplayName + ' no habilit\u00F3 tu Billetera Expensify en un plazo de 30 d\u00EDas.';
+        canceledRequest (_a) {
+            const amount = _a.amount;
+                const submitterDisplayName = _a.submitterDisplayName;
+            return `cancel\u00F3 el pago  ${  amount  }, porque ${  submitterDisplayName  } no habilit\u00F3 tu Billetera Expensify en un plazo de 30 d\u00EDas.`;
         },
-        settledAfterAddedBankAccount: function (_a) {
-            var submitterDisplayName = _a.submitterDisplayName,
-                amount = _a.amount;
-            return submitterDisplayName + ' a\u00F1adi\u00F3 una cuenta bancaria. El pago de ' + amount + ' se ha realizado.';
+        settledAfterAddedBankAccount (_a) {
+            const submitterDisplayName = _a.submitterDisplayName;
+                const amount = _a.amount;
+            return `${submitterDisplayName  } a\u00F1adi\u00F3 una cuenta bancaria. El pago de ${  amount  } se ha realizado.`;
         },
-        paidElsewhereWithAmount: function (_a) {
-            var payer = _a.payer,
-                amount = _a.amount;
-            return (payer ? payer + ' ' : '') + 'pag\u00F3 ' + amount + ' de otra forma';
+        paidElsewhereWithAmount (_a) {
+            const payer = _a.payer;
+                const amount = _a.amount;
+            return `${payer ? `${payer  } ` : ''  }pag\u00F3 ${  amount  } de otra forma`;
         },
-        paidWithExpensifyWithAmount: function (_a) {
-            var payer = _a.payer,
-                amount = _a.amount;
-            return (payer ? payer + ' ' : '') + 'pag\u00F3 ' + amount + ' con Expensify';
+        paidWithExpensifyWithAmount (_a) {
+            const payer = _a.payer;
+                const amount = _a.amount;
+            return `${payer ? `${payer  } ` : ''  }pag\u00F3 ${  amount  } con Expensify`;
         },
-        automaticallyPaidWithExpensify: function (_a) {
-            var payer = _a.payer,
-                amount = _a.amount;
+        automaticallyPaidWithExpensify (_a) {
+            const payer = _a.payer;
+                const amount = _a.amount;
             return (
-                (payer ? payer + ' ' : '') +
-                'auto-pag\u00F3 ' +
-                amount +
-                ' con Expensify via <a href="' +
-                CONST_1['default'].CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL +
-                '">reglas del espacio de trabajo</a>'
+                `${payer ? `${payer  } ` : '' 
+                }auto-pag\u00F3 ${ 
+                amount 
+                } con Expensify via <a href="${ 
+                CONST_1['default'].CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL 
+                }">reglas del espacio de trabajo</a>`
             );
         },
         noReimbursableExpenses: 'El importe de este informe no es válido',
         pendingConversionMessage: 'El total se actualizará cuando estés online',
         changedTheExpense: 'cambió el gasto',
-        setTheRequest: function (_a) {
-            var valueName = _a.valueName,
-                newValueToDisplay = _a.newValueToDisplay;
-            return (valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la') + ' ' + valueName + ' a ' + newValueToDisplay;
+        setTheRequest (_a) {
+            const valueName = _a.valueName;
+                const newValueToDisplay = _a.newValueToDisplay;
+            return `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'  } ${  valueName  } a ${  newValueToDisplay}`;
         },
-        setTheDistanceMerchant: function (_a) {
-            var translatedChangedField = _a.translatedChangedField,
-                newMerchant = _a.newMerchant,
-                newAmountToDisplay = _a.newAmountToDisplay;
-            return 'estableci\u00F3 la ' + translatedChangedField + ' a ' + newMerchant + ', lo que estableci\u00F3 el importe a ' + newAmountToDisplay;
+        setTheDistanceMerchant (_a) {
+            const translatedChangedField = _a.translatedChangedField;
+                const newMerchant = _a.newMerchant;
+                const newAmountToDisplay = _a.newAmountToDisplay;
+            return `estableci\u00F3 la ${  translatedChangedField  } a ${  newMerchant  }, lo que estableci\u00F3 el importe a ${  newAmountToDisplay}`;
         },
-        removedTheRequest: function (_a) {
-            var valueName = _a.valueName,
-                oldValueToDisplay = _a.oldValueToDisplay;
-            return (valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la') + ' ' + valueName + ' (previamente ' + oldValueToDisplay + ')';
+        removedTheRequest (_a) {
+            const valueName = _a.valueName;
+                const oldValueToDisplay = _a.oldValueToDisplay;
+            return `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la'  } ${  valueName  } (previamente ${  oldValueToDisplay  })`;
         },
-        updatedTheRequest: function (_a) {
-            var valueName = _a.valueName,
-                newValueToDisplay = _a.newValueToDisplay,
-                oldValueToDisplay = _a.oldValueToDisplay;
+        updatedTheRequest (_a) {
+            const valueName = _a.valueName;
+                const newValueToDisplay = _a.newValueToDisplay;
+                const oldValueToDisplay = _a.oldValueToDisplay;
             return (
-                (valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la') +
-                ' ' +
-                valueName +
-                ' a ' +
-                newValueToDisplay +
-                ' (previamente ' +
-                oldValueToDisplay +
-                ')'
+                `${valueName === 'comerciante' || valueName === 'importe' || valueName === 'gasto' ? 'el' : 'la' 
+                } ${ 
+                valueName 
+                } a ${ 
+                newValueToDisplay 
+                } (previamente ${ 
+                oldValueToDisplay 
+                })`
             );
         },
-        updatedTheDistanceMerchant: function (_a) {
-            var translatedChangedField = _a.translatedChangedField,
-                newMerchant = _a.newMerchant,
-                oldMerchant = _a.oldMerchant,
-                newAmountToDisplay = _a.newAmountToDisplay,
-                oldAmountToDisplay = _a.oldAmountToDisplay;
+        updatedTheDistanceMerchant (_a) {
+            const translatedChangedField = _a.translatedChangedField;
+                const newMerchant = _a.newMerchant;
+                const oldMerchant = _a.oldMerchant;
+                const newAmountToDisplay = _a.newAmountToDisplay;
+                const oldAmountToDisplay = _a.oldAmountToDisplay;
             return (
-                'cambi\u00F3 la ' +
-                translatedChangedField +
-                ' a ' +
-                newMerchant +
-                ' (previamente ' +
-                oldMerchant +
-                '), lo que cambi\u00F3 el importe a ' +
-                newAmountToDisplay +
-                ' (previamente ' +
-                oldAmountToDisplay +
-                ')'
+                `cambi\u00F3 la ${ 
+                translatedChangedField 
+                } a ${ 
+                newMerchant 
+                } (previamente ${ 
+                oldMerchant 
+                }), lo que cambi\u00F3 el importe a ${ 
+                newAmountToDisplay 
+                } (previamente ${ 
+                oldAmountToDisplay 
+                })`
             );
         },
-        threadExpenseReportName: function (_a) {
-            var formattedAmount = _a.formattedAmount,
-                comment = _a.comment;
-            return '' + (comment ? formattedAmount + ' para ' + comment : 'Gasto de ' + formattedAmount);
+        threadExpenseReportName (_a) {
+            const formattedAmount = _a.formattedAmount;
+                const comment = _a.comment;
+            return `${  comment ? `${formattedAmount  } para ${  comment}` : `Gasto de ${  formattedAmount}`}`;
         },
-        threadTrackReportName: function (_a) {
-            var formattedAmount = _a.formattedAmount,
-                comment = _a.comment;
-            return 'Seguimiento ' + formattedAmount + ' ' + (comment ? 'para ' + comment : '');
+        threadTrackReportName (_a) {
+            const formattedAmount = _a.formattedAmount;
+                const comment = _a.comment;
+            return `Seguimiento ${  formattedAmount  } ${  comment ? `para ${  comment}` : ''}`;
         },
-        invoiceReportName: function (_a) {
-            var linkedReportID = _a.linkedReportID;
-            return 'Informe de facturaci\u00F3n #' + linkedReportID;
+        invoiceReportName (_a) {
+            const linkedReportID = _a.linkedReportID;
+            return `Informe de facturaci\u00F3n #${  linkedReportID}`;
         },
-        threadPaySomeoneReportName: function (_a) {
-            var formattedAmount = _a.formattedAmount,
-                comment = _a.comment;
-            return formattedAmount + ' enviado' + (comment ? ' para ' + comment : '');
+        threadPaySomeoneReportName (_a) {
+            const formattedAmount = _a.formattedAmount;
+                const comment = _a.comment;
+            return `${formattedAmount  } enviado${  comment ? ` para ${  comment}` : ''}`;
         },
-        movedFromPersonalSpace: function (_a) {
-            var workspaceName = _a.workspaceName,
-                reportName = _a.reportName;
-            return 'movi\u00F3 el gasto desde su espacio personal a ' + (workspaceName !== null && workspaceName !== void 0 ? workspaceName : 'un chat con ' + reportName);
+        movedFromPersonalSpace (_a) {
+            const workspaceName = _a.workspaceName;
+                const reportName = _a.reportName;
+            return `movi\u00F3 el gasto desde su espacio personal a ${  workspaceName !== null && workspaceName !== void 0 ? workspaceName : `un chat con ${  reportName}`}`;
         },
         movedToPersonalSpace: 'movió el gasto a su espacio personal',
         tagSelection: 'Selecciona una etiqueta para organizar mejor tus gastos.',
@@ -1189,9 +1189,9 @@ var translations = {
             invalidTagLength: 'La longitud de la etiqueta escogida excede el máximo permitido (255). Por favor, escoge otra etiqueta o acorta la etiqueta primero.',
             invalidAmount: 'Por favor, ingresa un importe válido antes de continuar',
             invalidIntegerAmount: 'Por favor, introduce una cantidad entera en dólares antes de continuar',
-            invalidTaxAmount: function (_a) {
-                var amount = _a.amount;
-                return 'El importe m\u00E1ximo del impuesto es ' + amount;
+            invalidTaxAmount (_a) {
+                const amount = _a.amount;
+                return `El importe m\u00E1ximo del impuesto es ${  amount}`;
             },
             invalidSplit: 'La suma de las partes debe ser igual al importe total',
             invalidSplitParticipants: 'Introduce un importe superior a cero para al menos dos participantes',
@@ -1222,9 +1222,9 @@ var translations = {
         },
         dismissReceiptError: 'Descartar error',
         dismissReceiptErrorConfirmation: '¡Atención! Descartar este error eliminará completamente tu recibo cargado. ¿Estás seguro?',
-        waitingOnEnabledWallet: function (_a) {
-            var submitterDisplayName = _a.submitterDisplayName;
-            return 'inici\u00F3 el pago, pero no se procesar\u00E1 hasta que ' + submitterDisplayName + ' active su billetera';
+        waitingOnEnabledWallet (_a) {
+            const submitterDisplayName = _a.submitterDisplayName;
+            return `inici\u00F3 el pago, pero no se procesar\u00E1 hasta que ${  submitterDisplayName  } active su billetera`;
         },
         enableWallet: 'Habilitar billetera',
         holdExpense: 'Retener gasto',
@@ -1243,7 +1243,7 @@ var translations = {
         keepAll: 'Mantener todos',
         confirmApprove: 'Confirmar importe a aprobar',
         confirmApprovalAmount: 'Aprueba sólo los gastos conformes, o aprueba todo el informe.',
-        confirmApprovalAllHoldAmount: function () {
+        confirmApprovalAllHoldAmount () {
             return {
                 one: 'Este gasto está retenido. ¿Quieres aprobarlo de todos modos?',
                 other: 'Estos gastos están retenidos. ¿Quieres aprobarlos de todos modos?',
@@ -1251,7 +1251,7 @@ var translations = {
         },
         confirmPay: 'Confirmar importe de pago',
         confirmPayAmount: 'Paga lo que no está retenido, o paga el informe completo.',
-        confirmPayAllHoldAmount: function () {
+        confirmPayAllHoldAmount () {
             return {
                 one: 'Este gasto está retenido. ¿Quieres pagarlo de todos modos?',
                 other: 'Estos gastos están retenidos. ¿Quieres pagarlos de todos modos?',
@@ -1281,12 +1281,12 @@ var translations = {
         unapprove: 'Desaprobar',
         unapproveReport: 'Anular la aprobación del informe',
         headsUp: 'Atención!',
-        unapproveWithIntegrationWarning: function (_a) {
-            var accountingIntegration = _a.accountingIntegration;
+        unapproveWithIntegrationWarning (_a) {
+            const accountingIntegration = _a.accountingIntegration;
             return (
-                'Este informe ya se ha exportado a ' +
-                accountingIntegration +
-                '. Modificarlo puede provocar discrepancias en los datos. \u00BFEst\u00E1s seguro de que deseas cancelar la aprobaci\u00F3n de este informe?'
+                `Este informe ya se ha exportado a ${ 
+                accountingIntegration 
+                }. Modificarlo puede provocar discrepancias en los datos. \u00BFEst\u00E1s seguro de que deseas cancelar la aprobaci\u00F3n de este informe?`
             );
         },
         reimbursable: 'reembolsable',
@@ -1307,35 +1307,35 @@ var translations = {
         quantity: 'Cantidad',
         subrateSelection: 'Selecciona una subtasa e introduce una cantidad.',
         qty: 'Cant',
-        firstDayText: function () {
+        firstDayText () {
             return {
                 one: 'Primer d\u00EDa: 1 hora',
-                other: function (count) {
-                    return 'Primer d\u00EDa: ' + count + ' horas';
+                other (count) {
+                    return `Primer d\u00EDa: ${  count  } horas`;
                 },
             };
         },
-        lastDayText: function () {
+        lastDayText () {
             return {
                 one: '\u00DAltimo d\u00EDa: 1 hora',
-                other: function (count) {
-                    return '\u00DAltimo d\u00EDa: ' + count + ' horas';
+                other (count) {
+                    return `\u00DAltimo d\u00EDa: ${  count  } horas`;
                 },
             };
         },
-        tripLengthText: function () {
+        tripLengthText () {
             return {
                 one: 'Viaje: 1 d\u00EDa completo',
-                other: function (count) {
-                    return 'Viaje: ' + count + ' d\u00EDas completos';
+                other (count) {
+                    return `Viaje: ${  count  } d\u00EDas completos`;
                 },
             };
         },
         dates: 'Fechas',
         rates: 'Tasas',
-        submitsTo: function (_a) {
-            var name = _a.name;
-            return 'Se env\u00EDa a ' + name;
+        submitsTo (_a) {
+            const name = _a.name;
+            return `Se env\u00EDa a ${  name}`;
         },
     },
     share: {
@@ -1363,30 +1363,30 @@ var translations = {
         viewPhoto: 'Ver foto',
         imageUploadFailed: 'Error al cargar la imagen',
         deleteWorkspaceError: 'Lo sentimos, hubo un problema eliminando el avatar de tu espacio de trabajo',
-        sizeExceeded: function (_a) {
-            var maxUploadSizeInMB = _a.maxUploadSizeInMB;
-            return 'La imagen supera el tama\u00F1o m\u00E1ximo de ' + maxUploadSizeInMB + ' MB.';
+        sizeExceeded (_a) {
+            const maxUploadSizeInMB = _a.maxUploadSizeInMB;
+            return `La imagen supera el tama\u00F1o m\u00E1ximo de ${  maxUploadSizeInMB  } MB.`;
         },
-        resolutionConstraints: function (_a) {
-            var minHeightInPx = _a.minHeightInPx,
-                minWidthInPx = _a.minWidthInPx,
-                maxHeightInPx = _a.maxHeightInPx,
-                maxWidthInPx = _a.maxWidthInPx;
+        resolutionConstraints (_a) {
+            const minHeightInPx = _a.minHeightInPx;
+                const minWidthInPx = _a.minWidthInPx;
+                const maxHeightInPx = _a.maxHeightInPx;
+                const maxWidthInPx = _a.maxWidthInPx;
             return (
-                'Por favor, elige una imagen m\u00E1s grande que ' +
-                minHeightInPx +
-                'x' +
-                minWidthInPx +
-                ' p\u00EDxeles y m\u00E1s peque\u00F1a que ' +
-                maxHeightInPx +
-                'x' +
-                maxWidthInPx +
-                ' p\u00EDxeles.'
+                `Por favor, elige una imagen m\u00E1s grande que ${ 
+                minHeightInPx 
+                }x${ 
+                minWidthInPx 
+                } p\u00EDxeles y m\u00E1s peque\u00F1a que ${ 
+                maxHeightInPx 
+                }x${ 
+                maxWidthInPx 
+                } p\u00EDxeles.`
             );
         },
-        notAllowedExtension: function (_a) {
-            var allowedExtensions = _a.allowedExtensions;
-            return 'La foto de perfil debe ser de uno de los siguientes tipos: ' + allowedExtensions.join(', ') + '.';
+        notAllowedExtension (_a) {
+            const allowedExtensions = _a.allowedExtensions;
+            return `La foto de perfil debe ser de uno de los siguientes tipos: ${  allowedExtensions.join(', ')  }.`;
         },
     },
     modal: {
@@ -1438,9 +1438,9 @@ var translations = {
         helpTextAfterEmail: ' desde varias direcciones de correo electrónico.',
         pleaseVerify: 'Por favor, verifica este método de contacto',
         getInTouch: 'Utilizaremos este método de contacto cuando necesitemos contactarte.',
-        enterMagicCode: function (_a) {
-            var contactMethod = _a.contactMethod;
-            return 'Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ' + contactMethod + '. Deber\u00EDa llegar en un par de minutos.';
+        enterMagicCode (_a) {
+            const contactMethod = _a.contactMethod;
+            return `Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ${  contactMethod  }. Deber\u00EDa llegar en un par de minutos.`;
         },
         setAsDefault: 'Establecer como predeterminado',
         yourDefaultContactMethod:
@@ -1560,9 +1560,9 @@ var translations = {
             enterCommand: 'Introducir comando',
             execute: 'Ejecutar',
             noLogsAvailable: 'No hay registros disponibles',
-            logSizeTooLarge: function (_a) {
-                var size = _a.size;
-                return 'El tama\u00F1o del registro excede el l\u00EDmite de ' + size + ' MB. Utilice "Guardar registro" para descargar el archivo de registro.';
+            logSizeTooLarge (_a) {
+                const size = _a.size;
+                return `El tama\u00F1o del registro excede el l\u00EDmite de ${  size  } MB. Utilice "Guardar registro" para descargar el archivo de registro.`;
             },
             logs: 'Logs',
             viewConsole: 'Ver consola',
@@ -1846,23 +1846,23 @@ var translations = {
         availableSpend: 'Límite restante',
         smartLimit: {
             name: 'Límite inteligente',
-            title: function (_a) {
-                var formattedLimit = _a.formattedLimit;
-                return 'Puedes gastar hasta ' + formattedLimit + ' en esta tarjeta al mes. El l\u00EDmite se restablecer\u00E1 el primer d\u00EDa del mes.';
+            title (_a) {
+                const formattedLimit = _a.formattedLimit;
+                return `Puedes gastar hasta ${  formattedLimit  } en esta tarjeta al mes. El l\u00EDmite se restablecer\u00E1 el primer d\u00EDa del mes.`;
             },
         },
         fixedLimit: {
             name: 'Límite fijo',
-            title: function (_a) {
-                var formattedLimit = _a.formattedLimit;
-                return 'Puedes gastar hasta ' + formattedLimit + ' en esta tarjeta, luego se desactivar\u00E1.';
+            title (_a) {
+                const formattedLimit = _a.formattedLimit;
+                return `Puedes gastar hasta ${  formattedLimit  } en esta tarjeta, luego se desactivar\u00E1.`;
             },
         },
         monthlyLimit: {
             name: 'Límite mensual',
-            title: function (_a) {
-                var formattedLimit = _a.formattedLimit;
-                return 'Puedes gastar hasta ' + formattedLimit + ' en esta tarjeta y el l\u00EDmite se restablecer\u00E1 a medida que se aprueben tus gastos.';
+            title (_a) {
+                const formattedLimit = _a.formattedLimit;
+                return `Puedes gastar hasta ${  formattedLimit  } en esta tarjeta y el l\u00EDmite se restablecer\u00E1 a medida que se aprueben tus gastos.`;
             },
         },
         virtualCardNumber: 'Número de la tarjeta virtual',
@@ -1888,9 +1888,9 @@ var translations = {
         cardAlreadyInWallet: 'La tarjeta ya está en la billetera',
         cardDetailsLoadingFailure: 'Se ha producido un error al cargar los datos de la tarjeta. Comprueba tu conexión a Internet e inténtalo de nuevo.',
         validateCardTitle: 'Asegurémonos de que eres tú',
-        enterMagicCode: function (_a) {
-            var contactMethod = _a.contactMethod;
-            return 'Introduzca el c\u00F3digo m\u00E1gico enviado a ' + contactMethod + ' para ver los datos de su tarjeta. Deber\u00EDa llegar en un par de minutos.';
+        enterMagicCode (_a) {
+            const contactMethod = _a.contactMethod;
+            return `Introduzca el c\u00F3digo m\u00E1gico enviado a ${  contactMethod  } para ver los datos de su tarjeta. Deber\u00EDa llegar en un par de minutos.`;
         },
     },
     workflowsPage: {
@@ -1941,10 +1941,10 @@ var translations = {
             },
         },
         approverInMultipleWorkflows: 'Este miembro ya pertenece a otro flujo de aprobación. Cualquier actualización aquí se reflejará allí también.',
-        approverCircularReference: function (_a) {
-            var name1 = _a.name1,
-                name2 = _a.name2;
-            return '<strong>' + name1 + '</strong> ya aprueba informes a <strong>' + name2 + '</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.';
+        approverCircularReference (_a) {
+            const name1 = _a.name1;
+                const name2 = _a.name2;
+            return `<strong>${  name1  }</strong> ya aprueba informes a <strong>${  name2  }</strong>. Por favor, elige un aprobador diferente para evitar un flujo de trabajo circular.`;
         },
         emptyContent: {
             title: 'No hay miembros para mostrar',
@@ -2027,15 +2027,15 @@ var translations = {
         shipCard: 'Enviar tarjeta',
     },
     transferAmountPage: {
-        transfer: function (_a) {
-            var amount = _a.amount;
-            return 'Transferir' + (amount ? ' ' + amount : '');
+        transfer (_a) {
+            const amount = _a.amount;
+            return `Transferir${  amount ? ` ${  amount}` : ''}`;
         },
         instant: 'Instante',
-        instantSummary: function (_a) {
-            var rate = _a.rate,
-                minAmount = _a.minAmount;
-            return 'Tarifa del ' + rate + '% (' + minAmount + ' m\u00EDnimo)';
+        instantSummary (_a) {
+            const rate = _a.rate;
+                const minAmount = _a.minAmount;
+            return `Tarifa del ${  rate  }% (${  minAmount  } m\u00EDnimo)`;
         },
         ach: '1-3 días laborales',
         achSummary: 'Sin cargo',
@@ -2087,9 +2087,9 @@ var translations = {
         },
     },
     reportDetailsPage: {
-        inWorkspace: function (_a) {
-            var policyName = _a.policyName;
-            return 'en ' + policyName;
+        inWorkspace (_a) {
+            const policyName = _a.policyName;
+            return `en ${  policyName}`;
         },
         generatingPDF: 'Creando PDF',
         waitForPDF: 'Por favor, espera mientras creamos el PDF',
@@ -2104,9 +2104,9 @@ var translations = {
     groupChat: {
         lastMemberTitle: '¡Atención!',
         lastMemberWarning: 'Ya que eres la última persona aquí, si te vas, este chat quedará inaccesible para todos los miembros. ¿Estás seguro de que quieres salir del chat?',
-        defaultReportName: function (_a) {
-            var displayName = _a.displayName;
-            return 'Chat de grupo de ' + displayName;
+        defaultReportName (_a) {
+            const displayName = _a.displayName;
+            return `Chat de grupo de ${  displayName}`;
         },
     },
     languagePage: {
@@ -2140,7 +2140,7 @@ var translations = {
         phrase2: 'Términos de Servicio',
         phrase3: 'y',
         phrase4: 'Privacidad',
-        phrase5: 'El env\u00EDo de dinero es brindado por ' + CONST_1['default'].WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS + ' (NMLS ID:2017010) de conformidad con sus',
+        phrase5: `El env\u00EDo de dinero es brindado por ${  CONST_1['default'].WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS  } (NMLS ID:2017010) de conformidad con sus`,
         phrase6: 'licencias',
     },
     validateCodeForm: {
@@ -2183,9 +2183,9 @@ var translations = {
         },
         cannotGetAccountDetails: 'No se pudieron cargar los detalles de tu cuenta. Por favor, intenta iniciar sesión de nuevo.',
         loginForm: 'Formulario de inicio de sesión',
-        notYou: function (_a) {
-            var user = _a.user;
-            return '\u00BFNo eres ' + user + '?';
+        notYou (_a) {
+            const user = _a.user;
+            return `\u00BFNo eres ${  user  }?`;
         },
     },
     onboarding: {
@@ -2203,15 +2203,15 @@ var translations = {
         getStarted: 'Comenzar',
         whatsYourName: '¿Cómo te llamas?',
         peopleYouMayKnow: 'Las personas que tal vez conozcas ya están aquí. Verifica tu correo electrónico para unirte a ellos.',
-        workspaceMemberList: function (_a) {
-            var employeeCount = _a.employeeCount,
-                policyOwner = _a.policyOwner;
-            return employeeCount + ' miembro' + (employeeCount > 1 ? 's' : '') + ' \u2022 ' + policyOwner;
+        workspaceMemberList (_a) {
+            const employeeCount = _a.employeeCount;
+                const policyOwner = _a.policyOwner;
+            return `${employeeCount  } miembro${  employeeCount > 1 ? 's' : ''  } \u2022 ${  policyOwner}`;
         },
-        workspaceYouMayJoin: function (_a) {
-            var domain = _a.domain,
-                email = _a.email;
-            return 'Alguien de ' + domain + ' ya ha creado un espacio de trabajo. Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ' + email + '.';
+        workspaceYouMayJoin (_a) {
+            const domain = _a.domain;
+                const email = _a.email;
+            return `Alguien de ${  domain  } ya ha creado un espacio de trabajo. Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ${  email  }.`;
         },
         joinAWorkspace: 'Unirse a un espacio de trabajo',
         listOfWorkspaces: 'Aquí está la lista de espacios de trabajo a los que puedes unirte. No te preocupes, siempre puedes unirte a ellos más tarde si lo prefieres.',
@@ -2258,9 +2258,9 @@ var translations = {
         },
         workEmailValidation: {
             title: 'Verifica tu correo electrónico de trabajo',
-            magicCodeSent: function (_a) {
-                var workEmail = _a.workEmail;
-                return 'Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ' + workEmail + '. Deber\u00EDa llegar en uno o dos minutos.';
+            magicCodeSent (_a) {
+                const workEmail = _a.workEmail;
+                return `Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ${  workEmail  }. Deber\u00EDa llegar en uno o dos minutos.`;
             },
         },
         workEmailValidationError: {
@@ -2269,9 +2269,9 @@ var translations = {
         },
         mergeBlockScreen: {
             title: 'No se pudo añadir el correo electrónico de trabajo',
-            subtitle: function (_a) {
-                var workEmail = _a.workEmail;
-                return 'No pudimos a\u00F1adir ' + workEmail + '. Por favor, int\u00E9ntalo de nuevo m\u00E1s tarde en Configuraci\u00F3n o chatea con Concierge para obtener ayuda.';
+            subtitle (_a) {
+                const workEmail = _a.workEmail;
+                return `No pudimos a\u00F1adir ${  workEmail  }. Por favor, int\u00E9ntalo de nuevo m\u00E1s tarde en Configuraci\u00F3n o chatea con Concierge para obtener ayuda.`;
             },
         },
     },
@@ -2297,58 +2297,58 @@ var translations = {
         legalLastName: 'Apellidos legales',
         address: 'Dirección',
         error: {
-            dateShouldBeBefore: function (_a) {
-                var dateString = _a.dateString;
-                return 'La fecha debe ser anterior a ' + dateString;
+            dateShouldBeBefore (_a) {
+                const dateString = _a.dateString;
+                return `La fecha debe ser anterior a ${  dateString}`;
             },
-            dateShouldBeAfter: function (_a) {
-                var dateString = _a.dateString;
-                return 'La fecha debe ser posterior a ' + dateString;
+            dateShouldBeAfter (_a) {
+                const dateString = _a.dateString;
+                return `La fecha debe ser posterior a ${  dateString}`;
             },
-            incorrectZipFormat: function (_a) {
-                var _b = _a === void 0 ? {} : _a,
-                    zipFormat = _b.zipFormat;
-                return 'Formato de c\u00F3digo postal incorrecto.' + (zipFormat ? ' Formato aceptable: ' + zipFormat : '');
+            incorrectZipFormat (_a) {
+                const _b = _a === void 0 ? {} : _a;
+                    const zipFormat = _b.zipFormat;
+                return `Formato de c\u00F3digo postal incorrecto.${  zipFormat ? ` Formato aceptable: ${  zipFormat}` : ''}`;
             },
             hasInvalidCharacter: 'El nombre sólo puede incluir caracteres latinos',
-            invalidPhoneNumber: 'Aseg\u00FArese de que el n\u00FAmero de tel\u00E9fono sean v\u00E1lidos (p. ej. ' + CONST_1['default'].EXAMPLE_PHONE_NUMBER + ')',
+            invalidPhoneNumber: `Aseg\u00FArese de que el n\u00FAmero de tel\u00E9fono sean v\u00E1lidos (p. ej. ${  CONST_1['default'].EXAMPLE_PHONE_NUMBER  })`,
         },
     },
     resendValidationForm: {
         linkHasBeenResent: 'El enlace se ha reenviado',
-        weSentYouMagicSignInLink: function (_a) {
-            var login = _a.login,
-                loginType = _a.loginType;
-            return 'Te he enviado un hiperenlace m\u00E1gico para iniciar sesi\u00F3n a ' + login + '. Por favor, revisa tu ' + loginType;
+        weSentYouMagicSignInLink (_a) {
+            const login = _a.login;
+                const loginType = _a.loginType;
+            return `Te he enviado un hiperenlace m\u00E1gico para iniciar sesi\u00F3n a ${  login  }. Por favor, revisa tu ${  loginType}`;
         },
         resendLink: 'Reenviar enlace',
     },
     unlinkLoginForm: {
-        toValidateLogin: function (_a) {
-            var primaryLogin = _a.primaryLogin,
-                secondaryLogin = _a.secondaryLogin;
-            return 'Para validar ' + secondaryLogin + ', reenv\u00EDa el c\u00F3digo m\u00E1gico desde la Configuraci\u00F3n de la cuenta de ' + primaryLogin + '.';
+        toValidateLogin (_a) {
+            const primaryLogin = _a.primaryLogin;
+                const secondaryLogin = _a.secondaryLogin;
+            return `Para validar ${  secondaryLogin  }, reenv\u00EDa el c\u00F3digo m\u00E1gico desde la Configuraci\u00F3n de la cuenta de ${  primaryLogin  }.`;
         },
-        noLongerHaveAccess: function (_a) {
-            var primaryLogin = _a.primaryLogin;
-            return 'Si ya no tienes acceso a ' + primaryLogin + ' por favor, desvincula las cuentas.';
+        noLongerHaveAccess (_a) {
+            const primaryLogin = _a.primaryLogin;
+            return `Si ya no tienes acceso a ${  primaryLogin  } por favor, desvincula las cuentas.`;
         },
         unlink: 'Desvincular',
         linkSent: '¡Enlace enviado!',
         succesfullyUnlinkedLogin: '¡Nombre de usuario secundario desvinculado correctamente!',
     },
     emailDeliveryFailurePage: {
-        ourEmailProvider: function (_a) {
-            var login = _a.login;
+        ourEmailProvider (_a) {
+            const login = _a.login;
             return (
-                'Nuestro proveedor de correo electr\u00F3nico ha suspendido temporalmente los correos electr\u00F3nicos a ' +
-                login +
-                ' debido a problemas de entrega. Para desbloquear el inicio de sesi\u00F3n, sigue estos pasos:'
+                `Nuestro proveedor de correo electr\u00F3nico ha suspendido temporalmente los correos electr\u00F3nicos a ${ 
+                login 
+                } debido a problemas de entrega. Para desbloquear el inicio de sesi\u00F3n, sigue estos pasos:`
             );
         },
-        confirmThat: function (_a) {
-            var login = _a.login;
-            return 'Confirma que ' + login + ' est\u00E1 escrito correctamente y que es una direcci\u00F3n de correo electr\u00F3nico real que puede recibir correos. ';
+        confirmThat (_a) {
+            const login = _a.login;
+            return `Confirma que ${  login  } est\u00E1 escrito correctamente y que es una direcci\u00F3n de correo electr\u00F3nico real que puede recibir correos. `;
         },
         emailAliases:
             'Los alias de correo electrónico como "expenses@domain.com" deben tener acceso a tu propia bandeja de entrada de correo electrónico para que sea un inicio de sesión válido de Expensify.',
@@ -2359,36 +2359,36 @@ var translations = {
         toUnblock: ' para desbloquear el inicio de sesión.',
     },
     smsDeliveryFailurePage: {
-        smsDeliveryFailureMessage: function (_a) {
-            var login = _a.login;
-            return 'No hemos podido entregar mensajes SMS a ' + login + ', as\u00ED que lo hemos suspendido temporalmente. Por favor, intenta validar tu n\u00FAmero:';
+        smsDeliveryFailureMessage (_a) {
+            const login = _a.login;
+            return `No hemos podido entregar mensajes SMS a ${  login  }, as\u00ED que lo hemos suspendido temporalmente. Por favor, intenta validar tu n\u00FAmero:`;
         },
         validationSuccess: '¡Tu número ha sido validado! Haz clic abajo para enviar un nuevo código mágico de inicio de sesión.',
-        validationFailed: function (_a) {
-            var _b;
-            var timeData = _a.timeData;
+        validationFailed (_a) {
+            let _b;
+            const timeData = _a.timeData;
             if (!timeData) {
                 return 'Por favor, espera un momento antes de intentarlo de nuevo.';
             }
-            var timeParts = [];
+            const timeParts = [];
             if (timeData.days) {
-                timeParts.push(timeData.days + ' ' + (timeData.days === 1 ? 'día' : 'días'));
+                timeParts.push(`${timeData.days  } ${  timeData.days === 1 ? 'día' : 'días'}`);
             }
             if (timeData.hours) {
-                timeParts.push(timeData.hours + ' ' + (timeData.hours === 1 ? 'hora' : 'horas'));
+                timeParts.push(`${timeData.hours  } ${  timeData.hours === 1 ? 'hora' : 'horas'}`);
             }
             if (timeData.minutes) {
-                timeParts.push(timeData.minutes + ' ' + (timeData.minutes === 1 ? 'minuto' : 'minutos'));
+                timeParts.push(`${timeData.minutes  } ${  timeData.minutes === 1 ? 'minuto' : 'minutos'}`);
             }
-            var timeText = '';
+            let timeText = '';
             if (timeParts.length === 1) {
                 timeText = (_b = timeParts.at(0)) !== null && _b !== void 0 ? _b : '';
             } else if (timeParts.length === 2) {
-                timeText = timeParts.at(0) + ' y ' + timeParts.at(1);
+                timeText = `${timeParts.at(0)  } y ${  timeParts.at(1)}`;
             } else if (timeParts.length === 3) {
-                timeText = timeParts.at(0) + ', ' + timeParts.at(1) + ', y ' + timeParts.at(2);
+                timeText = `${timeParts.at(0)  }, ${  timeParts.at(1)  }, y ${  timeParts.at(2)}`;
             }
-            return '\u00A1Un momento! Debes esperar ' + timeText + ' antes de intentar validar tu n\u00FAmero nuevamente.';
+            return `\u00A1Un momento! Debes esperar ${  timeText  } antes de intentar validar tu n\u00FAmero nuevamente.`;
         },
     },
     welcomeSignUpForm: {
@@ -2420,9 +2420,9 @@ var translations = {
         goBackHome: 'Volver a la página principal',
     },
     errorPage: {
-        title: function (_a) {
-            var isBreakline = _a.isBreakline;
-            return 'Ups... ' + (isBreakline ? '\n' : '') + 'Algo no ha ido bien';
+        title (_a) {
+            const isBreakline = _a.isBreakline;
+            return `Ups... ${  isBreakline ? '\n' : ''  }Algo no ha ido bien`;
         },
         subtitle: 'No se ha podido completar la acción. Por favor, inténtalo más tarde.',
     },
@@ -2451,38 +2451,38 @@ var translations = {
             custom: 'Personalizado',
         },
         untilTomorrow: 'Hasta mañana',
-        untilTime: function (_a) {
-            var time = _a.time;
+        untilTime (_a) {
+            const time = _a.time;
             // Check for HH:MM AM/PM format and starts with '01:'
             if (CONST_1['default'].REGEX.TIME_STARTS_01.test(time)) {
-                return 'Hasta la ' + time;
+                return `Hasta la ${  time}`;
             }
             // Check for any HH:MM AM/PM format not starting with '01:'
             if (CONST_1['default'].REGEX.TIME_FORMAT.test(time)) {
-                return 'Hasta las ' + time;
+                return `Hasta las ${  time}`;
             }
             // Check for date-time format like "06-29 11:30 AM"
             if (CONST_1['default'].REGEX.DATE_TIME_FORMAT.test(time)) {
-                return 'Hasta el d\u00EDa ' + time;
+                return `Hasta el d\u00EDa ${  time}`;
             }
             // Default case
-            return 'Hasta ' + time;
+            return `Hasta ${  time}`;
         },
         date: 'Fecha',
         time: 'Hora',
         clearAfter: 'Borrar después',
         whenClearStatus: '¿Cuándo deberíamos borrar tu estado?',
     },
-    stepCounter: function (_a) {
-        var step = _a.step,
-            total = _a.total,
-            text = _a.text;
-        var result = 'Paso ' + step;
+    stepCounter (_a) {
+        const step = _a.step;
+            const total = _a.total;
+            const text = _a.text;
+        let result = `Paso ${  step}`;
         if (total) {
-            result = result + ' de ' + total;
+            result = `${result  } de ${  total}`;
         }
         if (text) {
-            result = result + ': ' + text;
+            result = `${result  }: ${  text}`;
         }
         return result;
     },
@@ -2518,7 +2518,7 @@ var translations = {
             noBankAccountSelected: 'Por favor, elige una cuenta bancaria',
             taxID: 'Por favor, introduce un número de identificación fiscal válido',
             website: 'Por favor, introduce un sitio web válido',
-            zipCode: 'Formato de c\u00F3digo postal incorrecto. Formato aceptable: ' + CONST_1['default'].COUNTRY_ZIP_REGEX_DATA.US.samples + '.',
+            zipCode: `Formato de c\u00F3digo postal incorrecto. Formato aceptable: ${  CONST_1['default'].COUNTRY_ZIP_REGEX_DATA.US.samples  }.`,
             phoneNumber: 'Por favor, introduce un teléfono válido',
             email: 'Por favor, introduce una dirección de correo electrónico válida',
             companyName: 'Por favor, introduce un nombre comercial legal válido',
@@ -2582,14 +2582,14 @@ var translations = {
     },
     messages: {
         errorMessageInvalidPhone:
-            'Por favor, introduce un n\u00FAmero de tel\u00E9fono v\u00E1lido sin par\u00E9ntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ' +
-            CONST_1['default'].EXAMPLE_PHONE_NUMBER +
-            ').',
+            `Por favor, introduce un n\u00FAmero de tel\u00E9fono v\u00E1lido sin par\u00E9ntesis o guiones. Si reside fuera de Estados Unidos, por favor incluye el prefijo internacional (p. ej. ${ 
+            CONST_1['default'].EXAMPLE_PHONE_NUMBER 
+            }).`,
         errorMessageInvalidEmail: 'Correo electrónico inválido',
-        userIsAlreadyMember: function (_a) {
-            var login = _a.login,
-                name = _a.name;
-            return login + ' ya es miembro de ' + name;
+        userIsAlreadyMember (_a) {
+            const login = _a.login;
+                const name = _a.name;
+            return `${login  } ya es miembro de ${  name}`;
         },
     },
     onfidoStep: {
@@ -2645,9 +2645,9 @@ var translations = {
         checkTheBoxes: 'Por favor, marca las siguientes casillas.',
         agreeToTerms: 'Debes aceptar los términos y condiciones para continuar.',
         shortTermsForm: {
-            expensifyPaymentsAccount: function (_a) {
-                var walletProgram = _a.walletProgram;
-                return 'La Billetera Expensify es emitida por ' + walletProgram + '.';
+            expensifyPaymentsAccount (_a) {
+                const walletProgram = _a.walletProgram;
+                return `La Billetera Expensify es emitida por ${  walletProgram  }.`;
             },
             perPurchase: 'Por compra',
             atmWithdrawal: 'Retiro en cajeros automáticos',
@@ -2665,9 +2665,9 @@ var translations = {
             conditionsDetails: 'Encuentra detalles y condiciones para todas las tarifas y servicios visitando',
             conditionsPhone: 'o llamando al +1 833-400-0904.',
             instant: '(instantáneo)',
-            electronicFundsInstantFeeMin: function (_a) {
-                var amount = _a.amount;
-                return '(m\u00EDnimo ' + amount + ')';
+            electronicFundsInstantFeeMin (_a) {
+                const amount = _a.amount;
+                return `(m\u00EDnimo ${  amount  })`;
             },
         },
         longTermsForm: {
@@ -2687,27 +2687,27 @@ var translations = {
                 'No hay cargo por transferir fondos desde tu Billetera Expensify ' +
                 'a tu cuenta bancaria utilizando la opción estándar. Esta transferencia generalmente se completa en' +
                 '1-3 días laborables.',
-            electronicFundsInstantDetails: function (_a) {
-                var percentage = _a.percentage,
-                    amount = _a.amount;
+            electronicFundsInstantDetails (_a) {
+                const percentage = _a.percentage;
+                    const amount = _a.amount;
                 return (
-                    'Hay una tarifa para transferir fondos desde tu Billetera Expensify a ' +
-                    'la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ' +
-                    ('generalmente se completa dentro de varios minutos. La tarifa es el ' + percentage + '% del importe de la ') +
-                    ('transferencia (con una tarifa m\u00EDnima de ' + amount + '). ')
+                    `Hay una tarifa para transferir fondos desde tu Billetera Expensify a ` +
+                    `la tarjeta de débito vinculada utilizando la opción de transferencia instantánea. Esta transferencia ` +
+                    `generalmente se completa dentro de varios minutos. La tarifa es el ${  percentage  }% del importe de la ` +
+                    `transferencia (con una tarifa m\u00EDnima de ${  amount  }). `
                 );
             },
-            fdicInsuranceBancorp: function (_a) {
-                var amount = _a.amount;
+            fdicInsuranceBancorp (_a) {
+                const amount = _a.amount;
                 return (
-                    'Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ' +
-                    ('transferidos a ' + CONST_1['default'].WALLET.PROGRAM_ISSUERS.BANCORP_BANK + ', una instituci\u00F3n asegurada por la FDIC. Una vez all\u00ED, tus fondos ') +
-                    ('est\u00E1n asegurados hasta ' + amount + ' por la FDIC en caso de que ' + CONST_1['default'].WALLET.PROGRAM_ISSUERS.BANCORP_BANK + ' quiebre, si se cumplen ') +
-                    'los requisitos espec\u00EDficos del seguro de dep\u00F3sitos y tu tarjeta est\u00E1 registrada. Ver'
+                    `Tus fondos pueden acogerse al seguro de la FDIC. Tus fondos se mantendrán o serán ` +
+                    `transferidos a ${  CONST_1['default'].WALLET.PROGRAM_ISSUERS.BANCORP_BANK  }, una instituci\u00F3n asegurada por la FDIC. Una vez all\u00ED, tus fondos ` +
+                    `est\u00E1n asegurados hasta ${  amount  } por la FDIC en caso de que ${  CONST_1['default'].WALLET.PROGRAM_ISSUERS.BANCORP_BANK  } quiebre, si se cumplen ` +
+                    `los requisitos espec\u00EDficos del seguro de dep\u00F3sitos y tu tarjeta est\u00E1 registrada. Ver`
                 );
             },
             fdicInsuranceBancorp2: 'para más detalles.',
-            contactExpensifyPayments: 'Comun\u00EDcate con ' + CONST_1['default'].WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS + ' llamando al + 1833-400-0904, o por correo electr\u00F3nico a',
+            contactExpensifyPayments: `Comun\u00EDcate con ${  CONST_1['default'].WALLET.PROGRAM_ISSUERS.EXPENSIFY_PAYMENTS  } llamando al + 1833-400-0904, o por correo electr\u00F3nico a`,
             contactExpensifyPayments2: 'o inicie sesión en',
             generalInformation: 'Para obtener información general sobre cuentas de prepago, visite',
             generalInformation2: 'Si tienes alguna queja sobre una cuenta de prepago, llama al Consumer Financial Oficina de Protección al 1-855-411-2372 o visita',
@@ -2715,9 +2715,9 @@ var translations = {
             automated: 'Automatizado',
             liveAgent: 'Agente en vivo',
             instant: 'Instantáneo',
-            electronicFundsInstantFeeMin: function (_a) {
-                var amount = _a.amount;
-                return 'M\u00EDnimo ' + amount;
+            electronicFundsInstantFeeMin (_a) {
+                const amount = _a.amount;
+                return `M\u00EDnimo ${  amount}`;
             },
         },
     },
@@ -2833,14 +2833,14 @@ var translations = {
         incorporationTypeName: 'Tipo de constitución',
         businessCategory: 'Categoría de la empresa',
         annualPaymentVolume: 'Volumen anual de pagos',
-        annualPaymentVolumeInCurrency: function (_a) {
-            var currencyCode = _a.currencyCode;
-            return 'Volumen anual de pagos en ' + currencyCode;
+        annualPaymentVolumeInCurrency (_a) {
+            const currencyCode = _a.currencyCode;
+            return `Volumen anual de pagos en ${  currencyCode}`;
         },
         averageReimbursementAmount: 'Monto promedio de reembolso',
-        averageReimbursementAmountInCurrency: function (_a) {
-            var currencyCode = _a.currencyCode;
-            return 'Monto promedio de reembolso en ' + currencyCode;
+        averageReimbursementAmountInCurrency (_a) {
+            const currencyCode = _a.currencyCode;
+            return `Monto promedio de reembolso en ${  currencyCode}`;
         },
         selectIncorporationType: 'Seleccione tipo de constitución',
         selectBusinessCategory: 'Seleccione categoría de la empresa',
@@ -2881,13 +2881,13 @@ var translations = {
         ownerInfo: 'Información del propietario',
         businessOwner: 'Propietario del negocio',
         signerInfo: 'Información del firmante',
-        doYouOwn: function (_a) {
-            var companyName = _a.companyName;
-            return '\u00BFPosee el 25% o m\u00E1s de ' + companyName + '?';
+        doYouOwn (_a) {
+            const companyName = _a.companyName;
+            return `\u00BFPosee el 25% o m\u00E1s de ${  companyName  }?`;
         },
-        doesAnyoneOwn: function (_a) {
-            var companyName = _a.companyName;
-            return '\u00BFAlguien posee el 25% o m\u00E1s de ' + companyName + '?';
+        doesAnyoneOwn (_a) {
+            const companyName = _a.companyName;
+            return `\u00BFAlguien posee el 25% o m\u00E1s de ${  companyName  }?`;
         },
         regulationsRequire: 'Las regulaciones requieren que verifiquemos la identidad de cualquier persona que posea más del 25% del negocio.',
         legalFirstName: 'Nombre legal',
@@ -2909,9 +2909,9 @@ var translations = {
         letsDoubleCheck: 'Verifiquemos que todo esté correcto.',
         legalName: 'Nombre legal',
         ownershipPercentage: 'Porcentaje de propiedad',
-        areThereOther: function (_a) {
-            var companyName = _a.companyName;
-            return '\u00BFHay otras personas que posean el 25% o m\u00E1s de ' + companyName + '?';
+        areThereOther (_a) {
+            const companyName = _a.companyName;
+            return `\u00BFHay otras personas que posean el 25% o m\u00E1s de ${  companyName  }?`;
         },
         owners: 'Propietarios',
         addCertified: 'Agregue un organigrama certificado que muestre los propietarios beneficiarios',
@@ -3011,16 +3011,16 @@ var translations = {
         bankStatement: 'Extracto bancario',
         chooseFile: 'Elegir archivo',
         uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
-        pleaseUpload: function (_a) {
-            var lastFourDigits = _a.lastFourDigits;
-            return 'Por favor suba el estado de cuenta mensual m\u00E1s reciente de tu cuenta bancaria comercial que termina en ' + lastFourDigits + '.';
+        pleaseUpload (_a) {
+            const lastFourDigits = _a.lastFourDigits;
+            return `Por favor suba el estado de cuenta mensual m\u00E1s reciente de tu cuenta bancaria comercial que termina en ${  lastFourDigits  }.`;
         },
     },
     signerInfoStep: {
         signerInfo: 'Información del firmante',
-        areYouDirector: function (_a) {
-            var companyName = _a.companyName;
-            return '\u00BFEs usted director o alto funcionario de ' + companyName + '?';
+        areYouDirector (_a) {
+            const companyName = _a.companyName;
+            return `\u00BFEs usted director o alto funcionario de ${  companyName  }?`;
         },
         regulationRequiresUs: 'La regulación requiere que verifiquemos si el firmante tiene la autoridad para realizar esta acción en nombre de la empresa.',
         whatsYourName: '¿Cuál es tu nombre legal?',
@@ -3109,9 +3109,9 @@ var translations = {
         flight: 'Vuelo',
         flightDetails: {
             passenger: 'Pasajero',
-            layover: function (_a) {
-                var layover = _a.layover;
-                return '<muted-text-label>Tienes una <strong>escala de ' + layover + '</strong> antes de este vuelo</muted-text-label>';
+            layover (_a) {
+                const layover = _a.layover;
+                return `<muted-text-label>Tienes una <strong>escala de ${  layover  }</strong> antes de este vuelo</muted-text-label>`;
             },
             takeOff: 'Despegue',
             landing: 'Aterrizaje',
@@ -3226,27 +3226,27 @@ var translations = {
             testTransactions: 'Transacciones de prueba',
             issueAndManageCards: 'Emitir y gestionar tarjetas',
             reconcileCards: 'Reconciliar tarjetas',
-            selected: function () {
+            selected () {
                 return {
                     one: '1 seleccionado',
-                    other: function (count) {
-                        return count + ' seleccionados';
+                    other (count) {
+                        return `${count  } seleccionados`;
                     },
                 };
             },
             settlementFrequency: 'Frecuencia de liquidación',
             setAsDefault: 'Establecer como espacio de trabajo predeterminado',
-            defaultNote: 'Los recibos enviados a ' + CONST_1['default'].EMAIL.RECEIPTS + ' aparecer\u00E1n en este espacio de trabajo.',
+            defaultNote: `Los recibos enviados a ${  CONST_1['default'].EMAIL.RECEIPTS  } aparecer\u00E1n en este espacio de trabajo.`,
             deleteConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo?',
             deleteWithCardsConfirmation: '¿Estás seguro de que quieres eliminar este espacio de trabajo? Se eliminarán todos los datos de las tarjetas y las tarjetas asignadas.',
             unavailable: 'Espacio de trabajo no disponible',
             memberNotFound: 'Miembro no encontrado. Para invitar a un nuevo miembro al espacio de trabajo, por favor, utiliza el botón invitar que está arriba.',
             notAuthorized:
-                'No tienes acceso a esta p\u00E1gina. Si est\u00E1s intentando unirte a este espacio de trabajo, pide al due\u00F1o del espacio de trabajo que te a\u00F1ada como miembro. \u00BFNecesitas algo m\u00E1s? Comun\u00EDcate con ' +
-                CONST_1['default'].EMAIL.CONCIERGE,
-            goToRoom: function (_a) {
-                var roomName = _a.roomName;
-                return 'Ir a la sala ' + roomName;
+                `No tienes acceso a esta p\u00E1gina. Si est\u00E1s intentando unirte a este espacio de trabajo, pide al due\u00F1o del espacio de trabajo que te a\u00F1ada como miembro. \u00BFNecesitas algo m\u00E1s? Comun\u00EDcate con ${ 
+                CONST_1['default'].EMAIL.CONCIERGE}`,
+            goToRoom (_a) {
+                const roomName = _a.roomName;
+                return `Ir a la sala ${  roomName}`;
             },
             goToWorkspace: 'Ir al espacio de trabajo',
             goToWorkspaces: 'Ir a espacios de trabajo',
@@ -3264,9 +3264,9 @@ var translations = {
             welcomeNote: 'Por favor, utiliza Expensify para enviar tus recibos para reembolso, \u00A1gracias!',
             subscription: 'Suscripción',
             markAsExported: 'Marcar como introducido manualmente',
-            exportIntegrationSelected: function (_a) {
-                var connectionName = _a.connectionName;
-                return 'Exportar a  ' + CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+            exportIntegrationSelected (_a) {
+                const connectionName = _a.connectionName;
+                return `Exportar a  ${  CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`;
             },
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -3281,38 +3281,38 @@ var translations = {
                     secondPart: 'para tu revisión.',
                 },
             },
-            connectTo: function (_a) {
-                var connectionName = _a.connectionName;
-                return 'Con\u00E9ctate a ' + CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+            connectTo (_a) {
+                const connectionName = _a.connectionName;
+                return `Con\u00E9ctate a ${  CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`;
             },
             createNewConnection: 'Crear una nueva conexión',
             reuseExistingConnection: 'Reutilizar la conexión existente',
             existingConnections: 'Conexiones existentes',
-            existingConnectionsDescription: function (_a) {
-                var connectionName = _a.connectionName;
+            existingConnectionsDescription (_a) {
+                const connectionName = _a.connectionName;
                 return (
-                    'Como ya te has conectado a ' +
-                    CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] +
-                    ' antes, puedes optar por reutilizar una conexi\u00F3n existente o crear una nueva.'
+                    `Como ya te has conectado a ${ 
+                    CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] 
+                    } antes, puedes optar por reutilizar una conexi\u00F3n existente o crear una nueva.`
                 );
             },
-            lastSyncDate: function (_a) {
-                var connectionName = _a.connectionName,
-                    formattedDate = _a.formattedDate;
-                return connectionName + ' - \u00DAltima sincronizaci\u00F3n ' + formattedDate;
+            lastSyncDate (_a) {
+                const connectionName = _a.connectionName;
+                    const formattedDate = _a.formattedDate;
+                return `${connectionName  } - \u00DAltima sincronizaci\u00F3n ${  formattedDate}`;
             },
             topLevel: 'Nivel superior',
-            authenticationError: function (_a) {
-                var connectionName = _a.connectionName;
-                return 'No se puede conectar a ' + connectionName + ' debido a un error de autenticaci\u00F3n';
+            authenticationError (_a) {
+                const connectionName = _a.connectionName;
+                return `No se puede conectar a ${  connectionName  } debido a un error de autenticaci\u00F3n`;
             },
             learnMore: 'Más información.',
             memberAlternateText: 'Los miembros pueden presentar y aprobar informes.',
             adminAlternateText: 'Los administradores tienen acceso total para editar todos los informes y la configuración del área de trabajo.',
             auditorAlternateText: 'Los auditores pueden ver y comentar los informes.',
-            roleName: function (_a) {
-                var _b = _a === void 0 ? {} : _a,
-                    role = _b.role;
+            roleName (_a) {
+                const _b = _a === void 0 ? {} : _a;
+                    const role = _b.role;
                 switch (role) {
                     case CONST_1['default'].POLICY.ROLE.ADMIN:
                         return 'Administrador';
@@ -3337,22 +3337,22 @@ var translations = {
             submitExpense: 'Envía tus gastos a continuación:',
             defaultCategory: 'Categoría predeterminada',
             viewTransactions: 'Ver transacciones',
-            policyExpenseChatName: function (_a) {
-                var displayName = _a.displayName;
-                return displayName + "'s gastos";
+            policyExpenseChatName (_a) {
+                const displayName = _a.displayName;
+                return `${displayName  }'s gastos`;
             },
         },
         perDiem: {
             subtitle: 'Establece las tasas per diem para controlar los gastos diarios de los empleados. ',
             amount: 'Cantidad',
-            deleteRates: function () {
+            deleteRates () {
                 return {
                     one: 'Eliminar tasa',
                     other: 'Eliminar tasas',
                 };
             },
             deletePerDiemRate: 'Eliminar tasa per diem',
-            areYouSureDelete: function () {
+            areYouSureDelete () {
                 return {
                     one: '¿Estás seguro de que quieres eliminar esta tasa?',
                     other: '¿Estás seguro de que quieres eliminar estas tasas?',
@@ -3363,21 +3363,21 @@ var translations = {
                 subtitle: 'Establece dietas per diem para controlar el gasto diario de los empleados. Importa las tarifas desde una hoja de cálculo para comenzar.',
             },
             errors: {
-                existingRateError: function (_a) {
-                    var rate = _a.rate;
-                    return 'Ya existe una tasa con el valor ' + rate;
+                existingRateError (_a) {
+                    const rate = _a.rate;
+                    return `Ya existe una tasa con el valor ${  rate}`;
                 },
             },
             importPerDiemRates: 'Importar tasas de per diem',
             editPerDiemRate: 'Editar la tasa de per diem',
             editPerDiemRates: 'Editar las tasas de per diem',
-            editDestinationSubtitle: function (_a) {
-                var destination = _a.destination;
-                return 'Actualizar este destino lo modificar\u00E1 para todas las subtasas per diem de ' + destination + '.';
+            editDestinationSubtitle (_a) {
+                const destination = _a.destination;
+                return `Actualizar este destino lo modificar\u00E1 para todas las subtasas per diem de ${  destination  }.`;
             },
-            editCurrencySubtitle: function (_a) {
-                var destination = _a.destination;
-                return 'Actualizar esta moneda la modificar\u00E1 para todas las subtasas per diem de ' + destination + '.';
+            editCurrencySubtitle (_a) {
+                const destination = _a.destination;
+                return `Actualizar esta moneda la modificar\u00E1 para todas las subtasas per diem de ${  destination  }.`;
             },
         },
         qbd: {
@@ -3429,22 +3429,22 @@ var translations = {
                 (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL] = 'Factura del proveedor'),
                 (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY] = 'Asiento contable'),
                 (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK] = 'Cheque'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK + 'Description'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CHECK  }Description`] =
                     'Crearemos un cheque desglosado para cada informe de Expensify y lo enviaremos desde la cuenta bancaria a continuación.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD + 'Description'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD  }Description`] =
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'."),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL + 'Description'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL  }Description`] =
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos el 1º del siguiente periodo abierto.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD + 'AccountDescription'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD  }AccountDescription`] =
                     'Elige dónde exportar las transacciones con tarjeta de crédito.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL + 'AccountDescription'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL  }AccountDescription`] =
                     'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK + 'AccountDescription'] = 'Elige desde dónde enviar los cheques.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL + 'Error'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK  }AccountDescription`] = 'Elige desde dónde enviar los cheques.'),
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL  }Error`] =
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK + 'Error'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.CHECK  }Error`] =
                     'Los cheques no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación.'),
-                (_f[CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY + 'Error'] =
+                (_f[`${CONST_1['default'].QUICKBOOKS_DESKTOP_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY  }Error`] =
                     'Los asientos contables no están disponibles cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación.'),
                 _f),
             noAccountsFound: 'No se encontraron cuentas',
@@ -3568,22 +3568,22 @@ var translations = {
                 (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL] = 'Factura del proveedor'),
                 (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY] = 'Asiento contable'),
                 (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK] = 'Cheque'),
-                (_h[CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD + 'Description'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD  }Description`] =
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de débito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Debit Card Misc.'."),
-                (_h[CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD + 'Description'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD  }Description`] =
                     "Automáticamente relacionaremos el nombre del comerciante de la transacción con tarjeta de crédito con cualquier proveedor correspondiente en QuickBooks. Si no existen proveedores, crearemos un proveedor asociado 'Credit Card Misc.'."),
-                (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL + 'Description'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL  }Description`] =
                     'Crearemos una factura de proveedor desglosada para cada informe de Expensify con la fecha del último gasto, y la añadiremos a la cuenta a continuación. Si este periodo está cerrado, lo contabilizaremos en el día 1 del siguiente periodo abierto.'),
-                (_h[CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD + 'AccountDescription'] = 'Elige dónde exportar las transacciones con tarjeta de débito.'),
-                (_h[CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD + 'AccountDescription'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD  }AccountDescription`] = 'Elige dónde exportar las transacciones con tarjeta de débito.'),
+                (_h[`${CONST_1['default'].QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD  }AccountDescription`] =
                     'Elige dónde exportar las transacciones con tarjeta de crédito.'),
-                (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL + 'AccountDescription'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL  }AccountDescription`] =
                     'Selecciona el proveedor que se aplicará a todas las transacciones con tarjeta de crédito.'),
-                (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL + 'Error'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.VENDOR_BILL  }Error`] =
                     'Las facturas de proveedores no están disponibles cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.'),
-                (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK + 'Error'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.CHECK  }Error`] =
                     'La verificación no está disponible cuando las ubicaciones están habilitadas. Por favor, selecciona otra opción de exportación diferente.'),
-                (_h[CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY + 'Error'] =
+                (_h[`${CONST_1['default'].QUICKBOOKS_REIMBURSABLE_ACCOUNT_TYPE.JOURNAL_ENTRY  }Error`] =
                     'El asiento de diario no está disponible cuando los impuestos están habilitados. Por favor, selecciona otra opción de exportación diferente.'),
                 _h),
             exportDestinationAccountsMisconfigurationError:
@@ -3630,13 +3630,13 @@ var translations = {
             accountsSwitchDescription: 'Las categorías activas estarán disponibles para ser escogidas cuando se crea un gasto.',
             trackingCategories: 'Categorías de seguimiento',
             trackingCategoriesDescription: 'Elige cómo gestionar categorías de seguimiento de Xero en Expensify.',
-            mapTrackingCategoryTo: function (_a) {
-                var categoryName = _a.categoryName;
-                return 'Asignar ' + categoryName + ' de Xero a';
+            mapTrackingCategoryTo (_a) {
+                const categoryName = _a.categoryName;
+                return `Asignar ${  categoryName  } de Xero a`;
             },
-            mapTrackingCategoryToDescription: function (_a) {
-                var categoryName = _a.categoryName;
-                return 'Elige d\u00F3nde mapear ' + categoryName + ' al exportar a Xero.';
+            mapTrackingCategoryToDescription (_a) {
+                const categoryName = _a.categoryName;
+                return `Elige d\u00F3nde mapear ${  categoryName  } al exportar a Xero.`;
             },
             customers: 'Volver a facturar a los clientes',
             customersDescription:
@@ -3745,12 +3745,12 @@ var translations = {
             },
             creditCardAccount: 'Cuenta de tarjeta de crédito',
             defaultVendor: 'Proveedor por defecto',
-            defaultVendorDescription: function (_a) {
-                var isReimbursable = _a.isReimbursable;
+            defaultVendorDescription (_a) {
+                const isReimbursable = _a.isReimbursable;
                 return (
-                    'Establezca un proveedor predeterminado que se aplicar\u00E1 a los gastos ' +
-                    (isReimbursable ? '' : 'no ') +
-                    'reembolsables que no tienen un proveedor coincidente en Sage Intacct.'
+                    `Establezca un proveedor predeterminado que se aplicar\u00E1 a los gastos ${ 
+                    isReimbursable ? '' : 'no ' 
+                    }reembolsables que no tienen un proveedor coincidente en Sage Intacct.`
                 );
             },
             exportDescription: 'Configure cómo se exportan los datos de Expensify a Sage Intacct.',
@@ -3990,22 +3990,22 @@ var translations = {
                     importJobs: 'Importar proyectos',
                     customers: 'clientes',
                     jobs: 'proyectos',
-                    label: function (_a) {
-                        var importFields = _a.importFields,
-                            importType = _a.importType;
-                        return importFields.join(' y ') + ', ' + importType;
+                    label (_a) {
+                        const importFields = _a.importFields;
+                            const importType = _a.importType;
+                        return `${importFields.join(' y ')  }, ${  importType}`;
                     },
                 },
                 importTaxDescription: 'Importar grupos de impuestos desde NetSuite.',
                 importCustomFields: {
                     chooseOptionBelow: 'Elija una de las opciones siguientes:',
-                    label: function (_a) {
-                        var importedTypes = _a.importedTypes;
-                        return 'Importados como ' + importedTypes.join(' y ');
+                    label (_a) {
+                        const importedTypes = _a.importedTypes;
+                        return `Importados como ${  importedTypes.join(' y ')}`;
                     },
-                    requiredFieldError: function (_a) {
-                        var fieldName = _a.fieldName;
-                        return 'Por favor, introduzca el ' + fieldName;
+                    requiredFieldError (_a) {
+                        const fieldName = _a.fieldName;
+                        return `Por favor, introduzca el ${  fieldName}`;
                     },
                     customSegments: {
                         title: 'Segmentos/registros personalizados',
@@ -4035,39 +4035,39 @@ var translations = {
                             customSegmentNameTitle: '¿Cuál es el nombre del segmento personalizado?',
                             customRecordNameTitle: '¿Cuál es el nombre del registro personalizado?',
                             customSegmentNameFooter:
-                                'Puede encontrar los nombres de los segmentos personalizados en NetSuite en la p\u00E1gina *Personalizaciones > V\u00EDnculos, registros y campos > Segmentos personalizados*.\nn_Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS +
-                                ')_.',
+                                `Puede encontrar los nombres de los segmentos personalizados en NetSuite en la p\u00E1gina *Personalizaciones > V\u00EDnculos, registros y campos > Segmentos personalizados*.\nn_Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS 
+                                })_.`,
                             customRecordNameFooter:
-                                'Puede encontrar nombres de registros personalizados en NetSuite introduciendo el "Campo de columna de transacci\u00F3n" en la b\u00FAsqueda global.\nn_Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS +
-                                ')_.',
+                                `Puede encontrar nombres de registros personalizados en NetSuite introduciendo el "Campo de columna de transacci\u00F3n" en la b\u00FAsqueda global.\nn_Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS 
+                                })_.`,
                             customSegmentInternalIDTitle: '¿Cuál es la identificación interna?',
                             customSegmentInternalIDFooter:
-                                'En primer lugar, aseg\u00FArese de que ha habilitado los ID internos en NetSuite en *Inicio > Establecer preferencias > Mostrar ID interno*. *Personalizaci\u00F3n > Listas, registros y campos > Segmentos personalizados*.\n2. Haga clic en un segmento personalizado. Haga clic en un segmento personalizado. Haga clic en el hiperv\u00EDnculo situado junto a *Tipo de registro personalizado*.\n4. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS +
-                                ')_.',
+                                `En primer lugar, aseg\u00FArese de que ha habilitado los ID internos en NetSuite en *Inicio > Establecer preferencias > Mostrar ID interno*. *Personalizaci\u00F3n > Listas, registros y campos > Segmentos personalizados*.\n2. Haga clic en un segmento personalizado. Haga clic en un segmento personalizado. Haga clic en el hiperv\u00EDnculo situado junto a *Tipo de registro personalizado*.\n4. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS 
+                                })_.`,
                             customRecordInternalIDFooter:
-                                'Puede encontrar IDs internos de registros personalizados en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en la b\u00FAsqueda global. Haga clic en un registro personalizado. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS +
-                                ')_.',
+                                `Puede encontrar IDs internos de registros personalizados en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en la b\u00FAsqueda global. Haga clic en un registro personalizado. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS 
+                                })_.`,
                             customSegmentScriptIDTitle: '¿Cuál es el ID del guión?',
                             customSegmentScriptIDFooter:
-                                'Puede encontrar IDs de script de segmentos personalizados en NetSuite en: \n\n1. *Personalizaci\u00F3n > Listas, Registros y Campos > Segmentos Personalizados*.\n2. Haga clic en un segmento personalizado. a. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpesta\u00F1a *Columnas de transacci\u00F3n* y utilice el *ID de campo*. b. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpesta\u00F1a *Columnas de transacci\u00F3n* y utilice el *ID de campo*. Si desea mostrar el segmento personalizado como un *campo de informe* (a nivel de informe) en Expensify, haga clic en la subpesta\u00F1a *Transacciones* y utilice el *ID de campo*. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS +
-                                ')_.',
+                                `Puede encontrar IDs de script de segmentos personalizados en NetSuite en: \n\n1. *Personalizaci\u00F3n > Listas, Registros y Campos > Segmentos Personalizados*.\n2. Haga clic en un segmento personalizado. a. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpesta\u00F1a *Columnas de transacci\u00F3n* y utilice el *ID de campo*. b. Si desea mostrar el segmento personalizado como una *etiqueta* (a nivel de partida) en Expensify, haga clic en la subpesta\u00F1a *Columnas de transacci\u00F3n* y utilice el *ID de campo*. Si desea mostrar el segmento personalizado como un *campo de informe* (a nivel de informe) en Expensify, haga clic en la subpesta\u00F1a *Transacciones* y utilice el *ID de campo*. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS 
+                                })_.`,
                             customRecordScriptIDTitle: '¿Cuál es el ID de columna de la transacción?',
                             customRecordScriptIDFooter:
-                                'Puede encontrar IDs de script de registro personalizados en NetSuite en:\n\n1. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en la b\u00FAsqueda global.\n2. Haga clic en un registro personalizado.\n3. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS +
-                                ')_.',
+                                `Puede encontrar IDs de script de registro personalizados en NetSuite en:\n\n1. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en la b\u00FAsqueda global.\n2. Haga clic en un registro personalizado.\n3. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_SEGMENTS 
+                                })_.`,
                             customSegmentMappingTitle: '¿Cómo debería mostrarse este segmento personalizado en Expensify?',
                             customRecordMappingTitle: '¿Cómo debería mostrarse este registro de segmento personalizado en Expensify?',
                         },
                         errors: {
-                            uniqueFieldError: function (_a) {
-                                var fieldName = _a.fieldName;
-                                return 'Ya existe un segmento/registro personalizado con este ' + (fieldName === null || fieldName === void 0 ? void 0 : fieldName.toLowerCase());
+                            uniqueFieldError (_a) {
+                                const fieldName = _a.fieldName;
+                                return `Ya existe un segmento/registro personalizado con este ${  fieldName === null || fieldName === void 0 ? void 0 : fieldName.toLowerCase()}`;
                             },
                         },
                     },
@@ -4091,9 +4091,9 @@ var translations = {
                             listNameTitle: 'Elija una lista personalizada',
                             transactionFieldIDTitle: '¿Cuál es el ID del campo de transacción?',
                             transactionFieldIDFooter:
-                                'Puede encontrar los ID de campo de transacci\u00F3n en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en b\u00FAsqueda global. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en la b\u00FAsqueda global.\n2. Haga clic en una lista personalizada.\n3. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](' +
-                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS +
-                                ')_.',
+                                `Puede encontrar los ID de campo de transacci\u00F3n en NetSuite siguiendo estos pasos:\n\n1. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en b\u00FAsqueda global. Introduzca "Campos de l\u00EDnea de transacci\u00F3n" en la b\u00FAsqueda global.\n2. Haga clic en una lista personalizada.\n3. Para obtener instrucciones m\u00E1s detalladas, [visite nuestro sitio de ayuda](${ 
+                                CONST_1['default'].NETSUITE_IMPORT.HELP_LINKS.CUSTOM_LISTS 
+                                })_.`,
                             mappingTitle: '¿Cómo debería mostrarse esta lista personalizada en Expensify?',
                         },
                         errors: {
@@ -4106,29 +4106,29 @@ var translations = {
                     (_3[CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT] = {
                         label: 'Predeterminado del empleado NetSuite',
                         description: 'No importado a Expensify, aplicado en exportación',
-                        footerContent: function (_a) {
-                            var importField = _a.importField;
+                        footerContent (_a) {
+                            const importField = _a.importField;
                             return (
-                                'Si usa ' +
-                                importField +
-                                ' en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.'
+                                `Si usa ${ 
+                                importField 
+                                } en NetSuite, aplicaremos el conjunto predeterminado en el registro del empleado al exportarlo a Informe de gastos o Entrada de diario.`
                             );
                         },
                     }),
                     (_3[CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.TAG] = {
                         label: 'Etiquetas',
                         description: 'Nivel de línea de pedido',
-                        footerContent: function (_a) {
-                            var importField = _a.importField;
-                            return 'Se podr\u00E1n seleccionar ' + importField + ' para cada gasto individual en el informe de un empleado.';
+                        footerContent (_a) {
+                            const importField = _a.importField;
+                            return `Se podr\u00E1n seleccionar ${  importField  } para cada gasto individual en el informe de un empleado.`;
                         },
                     }),
                     (_3[CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD] = {
                         label: 'Campos de informe',
                         description: 'Nivel de informe',
-                        footerContent: function (_a) {
-                            var importField = _a.importField;
-                            return 'La selecci\u00F3n de ' + importField + ' se aplicar\u00E1 a todos los gastos en el informe de un empleado.';
+                        footerContent (_a) {
+                            const importField = _a.importField;
+                            return `La selecci\u00F3n de ${  importField  } se aplicar\u00E1 a todos los gastos en el informe de un empleado.`;
                         },
                     }),
                     _3),
@@ -4160,16 +4160,16 @@ var translations = {
             addAUserDefinedDimension: 'Añadir una dimensión definida por el usuario',
             detailedInstructionsLink: 'Ver instrucciones detalladas',
             detailedInstructionsRestOfSentence: ' para añadir dimensiones definidas por el usuario.',
-            userDimensionsAdded: function () {
+            userDimensionsAdded () {
                 return {
                     one: '1 UDD añadido',
-                    other: function (count) {
-                        return count + ' UDDs a\u00F1adido';
+                    other (count) {
+                        return `${count  } UDDs a\u00F1adido`;
                     },
                 };
             },
-            mappingTitle: function (_a) {
-                var mappingName = _a.mappingName;
+            mappingTitle (_a) {
+                const mappingName = _a.mappingName;
                 switch (mappingName) {
                     case CONST_1['default'].SAGE_INTACCT_CONFIG.MAPPINGS.DEPARTMENTS:
                         return 'departamentos';
@@ -4212,34 +4212,34 @@ var translations = {
                 commercialFeedDetails: 'Requiere configuración con tu banco. Esto suele ser utilizado por empresas más grandes y a menudo es la mejor opción si calificas.',
                 directFeedDetails: 'El enfoque más simple. Conéctate de inmediato usando tus credenciales maestras. Este método es el más común.',
                 enableFeed: {
-                    title: function (_a) {
-                        var provider = _a.provider;
-                        return 'Habilita tu feed ' + provider;
+                    title (_a) {
+                        const provider = _a.provider;
+                        return `Habilita tu feed ${  provider}`;
                     },
                     heading:
                         'Tenemos una integración directa con el emisor de su tarjeta y podemos importar los datos de sus transacciones a Expensify de forma rápida y precisa.\n\nPara empezar, simplemente:',
                     visa: 'Contamos con integraciones globales con Visa, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nTPara empezar, simplemente:',
                     mastercard: 'Contamos con integraciones globales con Mastercard, aunque la elegibilidad varía según el banco y el programa de la tarjeta.\n\nPara empezar, simplemente:',
                     vcf:
-                        '1. Visite [este art\u00EDculo de ayuda](' +
-                        CONST_1['default'].COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP +
-                        ') para obtener instrucciones detalladas sobre c\u00F3mo configurar sus tarjetas comerciales Visa.\n\n2. [P\u00F3ngase en contacto con su banco](' +
-                        CONST_1['default'].COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP +
-                        ') para comprobar que admiten un feed personalizado para su programa, y p\u00EDdales que lo activen.\n\n3. *Una vez que el feed est\u00E9 habilitado y tengas sus datos, pasa a la siguiente pantalla.*',
+                        `1. Visite [este art\u00EDculo de ayuda](${ 
+                        CONST_1['default'].COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP 
+                        }) para obtener instrucciones detalladas sobre c\u00F3mo configurar sus tarjetas comerciales Visa.\n\n2. [P\u00F3ngase en contacto con su banco](${ 
+                        CONST_1['default'].COMPANY_CARDS_VISA_COMMERICAL_CARD_HELP 
+                        }) para comprobar que admiten un feed personalizado para su programa, y p\u00EDdales que lo activen.\n\n3. *Una vez que el feed est\u00E9 habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
                     gl1025:
-                        '1. Visite [este art\u00EDculo de ayuda](' +
-                        CONST_1['default'].COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP +
-                        ') para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentaci\u00F3n, Amex le enviar\u00E1 una carta de producci\u00F3n.\n\n3. *Una vez que tenga la informaci\u00F3n de alimentaci\u00F3n, contin\u00FAe con la siguiente pantalla.*',
+                        `1. Visite [este art\u00EDculo de ayuda](${ 
+                        CONST_1['default'].COMPANY_CARDS_AMEX_COMMERICAL_CARD_HELP 
+                        }) para saber si American Express puede habilitar un feed personalizado para su programa.\n\n2. Una vez activada la alimentaci\u00F3n, Amex le enviar\u00E1 una carta de producci\u00F3n.\n\n3. *Una vez que tenga la informaci\u00F3n de alimentaci\u00F3n, contin\u00FAe con la siguiente pantalla.*`,
                     cdf:
-                        '1. Visite [este art\u00EDculo de ayuda](' +
-                        CONST_1['default'].COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS +
-                        ') para obtener instrucciones detalladas sobre c\u00F3mo configurar sus tarjetas comerciales Mastercard.\n\n 2. [P\u00F3ngase en contacto con su banco](' +
-                        CONST_1['default'].COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS +
-                        ') para verificar que admiten un feed personalizado para su programa, y p\u00EDdales que lo habiliten.\n\n3. *Una vez que el feed est\u00E9 habilitado y tengas sus datos, pasa a la siguiente pantalla.*',
+                        `1. Visite [este art\u00EDculo de ayuda](${ 
+                        CONST_1['default'].COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS 
+                        }) para obtener instrucciones detalladas sobre c\u00F3mo configurar sus tarjetas comerciales Mastercard.\n\n 2. [P\u00F3ngase en contacto con su banco](${ 
+                        CONST_1['default'].COMPANY_CARDS_MASTERCARD_COMMERCIAL_CARDS 
+                        }) para verificar que admiten un feed personalizado para su programa, y p\u00EDdales que lo habiliten.\n\n3. *Una vez que el feed est\u00E9 habilitado y tengas sus datos, pasa a la siguiente pantalla.*`,
                     stripe:
-                        '1. Visita el Panel de Stripe y ve a [Configuraciones](' +
-                        CONST_1['default'].COMPANY_CARDS_STRIPE_HELP +
-                        ').\n\n2. En Integraciones de Productos, haz clic en Habilitar junto a Expensify.\n\n3. Una vez que la fuente est\u00E9 habilitada, haz clic en Enviar abajo y comenzaremos a a\u00F1adirla.',
+                        `1. Visita el Panel de Stripe y ve a [Configuraciones](${ 
+                        CONST_1['default'].COMPANY_CARDS_STRIPE_HELP 
+                        }).\n\n2. En Integraciones de Productos, haz clic en Habilitar junto a Expensify.\n\n3. Una vez que la fuente est\u00E9 habilitada, haz clic en Enviar abajo y comenzaremos a a\u00F1adirla.`,
                 },
                 whatBankIssuesCard: '¿Qué banco emite estas tarjetas?',
                 enterNameOfBank: 'Introduzca el nombre del banco',
@@ -4275,17 +4275,17 @@ var translations = {
             assignCard: 'Asignar tarjeta',
             cardNumber: 'Número de la tarjeta',
             commercialFeed: 'Fuente comercial',
-            feedName: function (_a) {
-                var feedName = _a.feedName;
-                return 'Tarjetas ' + feedName;
+            feedName (_a) {
+                const feedName = _a.feedName;
+                return `Tarjetas ${  feedName}`;
             },
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseCard: 'Elige una tarjeta',
-            chooseCardFor: function (_a) {
-                var assignee = _a.assignee,
-                    feed = _a.feed;
-                return 'Elige una tarjeta para ' + assignee + ' del feed de tarjetas ' + feed + '.';
+            chooseCardFor (_a) {
+                const assignee = _a.assignee;
+                    const feed = _a.feed;
+                return `Elige una tarjeta para ${  assignee  } del feed de tarjetas ${  feed  }.`;
             },
             noActiveCards: 'No hay tarjetas activas en este feed',
             somethingMightBeBroken: 'O algo podría estar roto. De cualquier manera, si tienes alguna pregunta,',
@@ -4302,10 +4302,10 @@ var translations = {
             brokenConnectionErrorFirstPart: 'La conexi\u00F3n de la fuente de tarjetas est\u00E1 rota. Por favor, ',
             brokenConnectionErrorLink: 'inicia sesión en tu banco ',
             brokenConnectionErrorSecondPart: 'para que podamos restablecer la conexión.',
-            assignedCard: function (_a) {
-                var assignee = _a.assignee,
-                    link = _a.link;
-                return 'ha asignado a ' + assignee + ' una ' + link + '! Las transacciones importadas aparecer\u00E1n en este chat.';
+            assignedCard (_a) {
+                const assignee = _a.assignee;
+                    const link = _a.link;
+                return `ha asignado a ${  assignee  } una ${  link  }! Las transacciones importadas aparecer\u00E1n en este chat.`;
             },
             companyCard: 'tarjeta de empresa',
             chooseCardFeed: 'Elige feed de tarjetas',
@@ -4325,9 +4325,9 @@ var translations = {
             currentBalance: 'Saldo actual',
             currentBalanceDescription:
                 'El saldo actual es la suma de todas las transacciones contabilizadas con la Tarjeta Expensify que se han producido desde la última fecha de liquidación.',
-            balanceWillBeSettledOn: function (_a) {
-                var settlementDate = _a.settlementDate;
-                return 'El saldo se liquidar\u00E1 el ' + settlementDate + '.';
+            balanceWillBeSettledOn (_a) {
+                const settlementDate = _a.settlementDate;
+                return `El saldo se liquidar\u00E1 el ${  settlementDate  }.`;
             },
             settleBalance: 'Liquidar saldo',
             cardLimit: 'Límite de la tarjeta',
@@ -4362,53 +4362,53 @@ var translations = {
             deactivate: 'Desactivar tarjeta',
             changeCardLimit: 'Modificar el límite de la tarjeta',
             changeLimit: 'Modificar límite',
-            smartLimitWarning: function (_a) {
-                var limit = _a.limit;
-                return 'Si cambias el l\u00EDmite de esta tarjeta a ' + limit + ', las nuevas transacciones ser\u00E1n rechazadas hasta que apruebes antiguos gastos de la tarjeta.';
+            smartLimitWarning (_a) {
+                const limit = _a.limit;
+                return `Si cambias el l\u00EDmite de esta tarjeta a ${  limit  }, las nuevas transacciones ser\u00E1n rechazadas hasta que apruebes antiguos gastos de la tarjeta.`;
             },
-            monthlyLimitWarning: function (_a) {
-                var limit = _a.limit;
-                return 'Si cambias el l\u00EDmite de esta tarjeta a ' + limit + ', las nuevas transacciones ser\u00E1n rechazadas hasta el pr\u00F3ximo mes.';
+            monthlyLimitWarning (_a) {
+                const limit = _a.limit;
+                return `Si cambias el l\u00EDmite de esta tarjeta a ${  limit  }, las nuevas transacciones ser\u00E1n rechazadas hasta el pr\u00F3ximo mes.`;
             },
-            fixedLimitWarning: function (_a) {
-                var limit = _a.limit;
-                return 'Si cambias el l\u00EDmite de esta tarjeta a ' + limit + ', se rechazar\u00E1n las nuevas transacciones.';
+            fixedLimitWarning (_a) {
+                const limit = _a.limit;
+                return `Si cambias el l\u00EDmite de esta tarjeta a ${  limit  }, se rechazar\u00E1n las nuevas transacciones.`;
             },
             changeCardLimitType: 'Modificar el tipo de límite de la tarjeta',
             changeLimitType: 'Modificar el tipo de límite',
-            changeCardSmartLimitTypeWarning: function (_a) {
-                var limit = _a.limit;
+            changeCardSmartLimitTypeWarning (_a) {
+                const limit = _a.limit;
                 return (
-                    'Si cambias el tipo de l\u00EDmite de esta tarjeta a L\u00EDmite inteligente, las nuevas transacciones ser\u00E1n rechazadas porque ya se ha alcanzado el l\u00EDmite de ' +
-                    limit +
-                    ' no aprobado.'
+                    `Si cambias el tipo de l\u00EDmite de esta tarjeta a L\u00EDmite inteligente, las nuevas transacciones ser\u00E1n rechazadas porque ya se ha alcanzado el l\u00EDmite de ${ 
+                    limit 
+                    } no aprobado.`
                 );
             },
-            changeCardMonthlyLimitTypeWarning: function (_a) {
-                var limit = _a.limit;
+            changeCardMonthlyLimitTypeWarning (_a) {
+                const limit = _a.limit;
                 return (
-                    'Si cambias el tipo de l\u00EDmite de esta tarjeta a Mensual, las nuevas transacciones ser\u00E1n rechazadas porque ya se ha alcanzado el l\u00EDmite de ' +
-                    limit +
-                    ' mensual.'
+                    `Si cambias el tipo de l\u00EDmite de esta tarjeta a Mensual, las nuevas transacciones ser\u00E1n rechazadas porque ya se ha alcanzado el l\u00EDmite de ${ 
+                    limit 
+                    } mensual.`
                 );
             },
             addShippingDetails: 'Añadir detalles de envío',
-            issuedCard: function (_a) {
-                var assignee = _a.assignee;
-                return 'emiti\u00F3 a ' + assignee + ' una Tarjeta Expensify. La tarjeta llegar\u00E1 en 2-3 d\u00EDas laborables.';
+            issuedCard (_a) {
+                const assignee = _a.assignee;
+                return `emiti\u00F3 a ${  assignee  } una Tarjeta Expensify. La tarjeta llegar\u00E1 en 2-3 d\u00EDas laborables.`;
             },
-            issuedCardNoShippingDetails: function (_a) {
-                var assignee = _a.assignee;
-                return 'emiti\u00F3 a ' + assignee + ' una Tarjeta Expensify. La tarjeta se enviar\u00E1 una vez que se agreguen los detalles de env\u00EDo.';
+            issuedCardNoShippingDetails (_a) {
+                const assignee = _a.assignee;
+                return `emiti\u00F3 a ${  assignee  } una Tarjeta Expensify. La tarjeta se enviar\u00E1 una vez que se agreguen los detalles de env\u00EDo.`;
             },
-            issuedCardVirtual: function (_a) {
-                var assignee = _a.assignee,
-                    link = _a.link;
-                return 'emiti\u00F3 a ' + assignee + ' una ' + link + ' virtual. La tarjeta puede utilizarse inmediatamente.';
+            issuedCardVirtual (_a) {
+                const assignee = _a.assignee;
+                    const link = _a.link;
+                return `emiti\u00F3 a ${  assignee  } una ${  link  } virtual. La tarjeta puede utilizarse inmediatamente.`;
             },
-            addedShippingDetails: function (_a) {
-                var assignee = _a.assignee;
-                return assignee + ' agreg\u00F3 los detalles de env\u00EDo. La Tarjeta Expensify llegar\u00E1 en 2-3 d\u00EDas h\u00E1biles.';
+            addedShippingDetails (_a) {
+                const assignee = _a.assignee;
+                return `${assignee  } agreg\u00F3 los detalles de env\u00EDo. La Tarjeta Expensify llegar\u00E1 en 2-3 d\u00EDas h\u00E1biles.`;
             },
             verifyingHeader: 'Verificando',
             bankAccountVerifiedHeader: 'Cuenta bancaria verificada',
@@ -4435,9 +4435,9 @@ var translations = {
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
-            needCategoryForExportToIntegration: function (_a) {
-                var connectionName = _a.connectionName;
-                return 'Todos los gastos deben estar categorizados para poder exportar a ' + connectionName + '.';
+            needCategoryForExportToIntegration (_a) {
+                const connectionName = _a.connectionName;
+                return `Todos los gastos deben estar categorizados para poder exportar a ${  connectionName  }.`;
             },
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
@@ -4524,14 +4524,14 @@ var translations = {
                 cardNumber: 'Número de la tarjeta',
                 cardholder: 'Titular de la tarjeta',
                 cardName: 'Nombre de la tarjeta',
-                integrationExport: function (_a) {
-                    var integration = _a.integration,
-                        type = _a.type;
-                    return integration && type ? 'Exportaci\u00F3n a ' + integration + ' ' + type.toLowerCase() : 'Exportaci\u00F3n a ' + integration;
+                integrationExport (_a) {
+                    const integration = _a.integration;
+                        const type = _a.type;
+                    return integration && type ? `Exportaci\u00F3n a ${  integration  } ${  type.toLowerCase()}` : `Exportaci\u00F3n a ${  integration}`;
                 },
-                integrationExportTitleFirstPart: function (_a) {
-                    var integration = _a.integration;
-                    return 'Seleccione la cuenta ' + integration + ' donde se deben exportar las transacciones.';
+                integrationExportTitleFirstPart (_a) {
+                    const integration = _a.integration;
+                    return `Seleccione la cuenta ${  integration  } donde se deben exportar las transacciones.`;
                 },
                 integrationExportTitleLinkPart: 'opción de exportación',
                 integrationExportTitlePart: 'Seleccione una cuenta diferente',
@@ -4550,9 +4550,9 @@ var translations = {
                 cardFeedRestrictDeletingTransaction: 'Restringir eliminación de transacciones',
                 cardFeedAllowDeletingTransaction: 'Permitir eliminación de transacciones',
                 removeCardFeed: 'Quitar la alimentación de tarjetas',
-                removeCardFeedTitle: function (_a) {
-                    var feedName = _a.feedName;
-                    return 'Eliminar el feed de ' + feedName;
+                removeCardFeedTitle (_a) {
+                    const feedName = _a.feedName;
+                    return `Eliminar el feed de ${  feedName}`;
                 },
                 removeCardFeedDescription: '¿Estás seguro de que deseas eliminar esta fuente de tarjetas? Esto anulará la asignación de todas las tarjetas.',
                 error: {
@@ -4568,9 +4568,9 @@ var translations = {
                 pendingFeedTitle: 'Estamos revisando tu solicitud...',
                 pendingFeedDescription: 'Actualmente estamos revisando los detalles de tu feed. Una vez hecho esto, nos pondremos en contacto contigo a trav\u00E9s de',
                 pendingBankTitle: 'Comprueba la ventana de tu navegador',
-                pendingBankDescription: function (_a) {
-                    var bankName = _a.bankName;
-                    return 'Con\u00E9ctese a ' + bankName + ' a trav\u00E9s de la ventana del navegador que acaba de abrir. Si no se abri\u00F3, ';
+                pendingBankDescription (_a) {
+                    const bankName = _a.bankName;
+                    return `Con\u00E9ctese a ${  bankName  } a trav\u00E9s de la ventana del navegador que acaba de abrir. Si no se abri\u00F3, `;
                 },
                 pendingBankLink: 'por favor haga clic aquí.',
                 giveItNameInstruction: 'Nombra la tarjeta para distingirla de las demás.',
@@ -4582,9 +4582,9 @@ var translations = {
                     'No es posible cambiar a una versi\u00F3n inferior de este espacio de trabajo porque hay varias fuentes de tarjetas conectadas (excluidas las tarjetas Expensify). Por favor',
                 downgradeSubTitleMiddlePart: 'mantenga solo una tarjeta',
                 downgradeSubTitleLastPart: 'para continuar.',
-                noAccountsFoundDescription: function (_a) {
-                    var connection = _a.connection;
-                    return 'A\u00F1ade la cuenta en ' + connection + ' y sincroniza la conexi\u00F3n de nuevo';
+                noAccountsFoundDescription (_a) {
+                    const connection = _a.connection;
+                    return `A\u00F1ade la cuenta en ${  connection  } y sincroniza la conexi\u00F3n de nuevo`;
                 },
                 expensifyCardBannerTitle: 'Obtén la Tarjeta Expensify',
                 expensifyCardBannerSubtitle:
@@ -4718,12 +4718,12 @@ var translations = {
             tagRules: 'Reglas de etiquetas',
             approverDescription: 'Aprobador',
             importTags: 'Importar categorías',
-            importedTagsMessage: function (_a) {
-                var columnCounts = _a.columnCounts;
+            importedTagsMessage (_a) {
+                const columnCounts = _a.columnCounts;
                 return (
-                    'Hemos encontrado *' +
-                    columnCounts +
-                    ' columnas* en su hoja de c\u00E1lculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. Tambi\u00E9n puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.'
+                    `Hemos encontrado *${ 
+                    columnCounts 
+                    } columnas* en su hoja de c\u00E1lculo. Seleccione *Nombre* junto a la columna que contiene los nombres de las etiquetas. Tambi\u00E9n puede seleccionar *Habilitado* junto a la columna que establece el estado de la etiqueta.`
                 );
             },
         },
@@ -4747,22 +4747,22 @@ var translations = {
                 updateTaxClaimableFailureMessage: 'La porción recuperable debe ser menor al monto del importe por distancia',
             },
             deleteTaxConfirmation: '¿Estás seguro de que quieres eliminar este impuesto?',
-            deleteMultipleTaxConfirmation: function (_a) {
-                var taxAmount = _a.taxAmount;
-                return '\u00BFEst\u00E1s seguro de que quieres eliminar ' + taxAmount + ' impuestos?';
+            deleteMultipleTaxConfirmation (_a) {
+                const taxAmount = _a.taxAmount;
+                return `\u00BFEst\u00E1s seguro de que quieres eliminar ${  taxAmount  } impuestos?`;
             },
             actions: {
                 delete: 'Eliminar tasa',
                 deleteMultiple: 'Eliminar tasas',
                 enable: 'Activar tasa',
                 disable: 'Desactivar tasa',
-                enableTaxRates: function () {
+                enableTaxRates () {
                     return {
                         one: 'Activar tasa',
                         other: 'Activar tasas',
                     };
                 },
-                disableTaxRates: function () {
+                disableTaxRates () {
                     return {
                         one: 'Desactivar tasa',
                         other: 'Desactivar tasas',
@@ -4795,31 +4795,31 @@ var translations = {
             getTheExpensifyCardAndMore: 'Consigue la Tarjeta Expensify y más',
             confirmWorkspace: 'Confirmar espacio de trabajo',
             myGroupWorkspace: 'Mi Espacio de Trabajo en Grupo',
-            workspaceName: function (_a) {
-                var userName = _a.userName,
-                    workspaceNumber = _a.workspaceNumber;
-                return 'Espacio de trabajo' + (workspaceNumber ? ' ' + workspaceNumber : '') + ' de ' + userName;
+            workspaceName (_a) {
+                const userName = _a.userName;
+                    const workspaceNumber = _a.workspaceNumber;
+                return `Espacio de trabajo${  workspaceNumber ? ` ${  workspaceNumber}` : ''  } de ${  userName}`;
             },
         },
         people: {
             genericFailureMessage: 'Se ha producido un error al intentar eliminar a un miembro del espacio de trabajo. Por favor, inténtalo más tarde.',
-            removeMembersPrompt: function (_a) {
-                var memberName = _a.memberName;
+            removeMembersPrompt (_a) {
+                const memberName = _a.memberName;
                 return {
-                    one: '\u00BFEst\u00E1s seguro de que deseas eliminar ' + memberName,
+                    one: `\u00BFEst\u00E1s seguro de que deseas eliminar ${  memberName}`,
                     other: '¿Estás seguro de que deseas eliminar a estos miembros?',
                 };
             },
-            removeMembersWarningPrompt: function (_a) {
-                var memberName = _a.memberName,
-                    ownerName = _a.ownerName;
+            removeMembersWarningPrompt (_a) {
+                const memberName = _a.memberName;
+                    const ownerName = _a.ownerName;
                 return (
-                    memberName +
-                    ' es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobaci\u00F3n por el propietario del espacio de trabajo, ' +
-                    ownerName
+                    `${memberName 
+                    } es un aprobador en este espacio de trabajo. Cuando lo elimine de este espacio de trabajo, los sustituiremos en el flujo de trabajo de aprobaci\u00F3n por el propietario del espacio de trabajo, ${ 
+                    ownerName}`
                 );
             },
-            removeMembersTitle: function () {
+            removeMembersTitle () {
                 return {
                     one: 'Eliminar miembro',
                     other: 'Eliminar miembros',
@@ -4828,9 +4828,9 @@ var translations = {
             removeWorkspaceMemberButtonTitle: 'Eliminar del espacio de trabajo',
             removeGroupMemberButtonTitle: 'Eliminar del grupo',
             removeRoomMemberButtonTitle: 'Eliminar del chat',
-            removeMemberPrompt: function (_a) {
-                var memberName = _a.memberName;
-                return '\u00BFEst\u00E1s seguro de que deseas eliminar a ' + memberName + '?';
+            removeMemberPrompt (_a) {
+                const memberName = _a.memberName;
+                return `\u00BFEst\u00E1s seguro de que deseas eliminar a ${  memberName  }?`;
             },
             removeMemberTitle: 'Eliminar miembro',
             transferOwner: 'Transferir la propiedad',
@@ -4844,9 +4844,9 @@ var translations = {
                 genericRemove: 'Ha ocurrido un problema al eliminar al miembro del espacio de trabajo',
             },
             addedWithPrimary: 'Se agregaron algunos miembros con sus nombres de usuario principales.',
-            invitedBySecondaryLogin: function (_a) {
-                var secondaryLogin = _a.secondaryLogin;
-                return 'Agregado por nombre de usuario secundario ' + secondaryLogin + '.';
+            invitedBySecondaryLogin (_a) {
+                const secondaryLogin = _a.secondaryLogin;
+                return `Agregado por nombre de usuario secundario ${  secondaryLogin  }.`;
             },
             membersListTitle: 'Directorio de todos los miembros del espacio de trabajo.',
             importMembers: 'Importar miembros',
@@ -4864,8 +4864,8 @@ var translations = {
             talkYourAccountManager: 'Chatea con tu gestor de cuenta.',
             talkToConcierge: 'Chatear con Concierge.',
             needAnotherAccounting: '¿Necesitas otro software de contabilidad? ',
-            connectionName: function (_a) {
-                var connectionName = _a.connectionName;
+            connectionName (_a) {
+                const connectionName = _a.connectionName;
                 switch (connectionName) {
                     case CONST_1['default'].POLICY.CONNECTIONS.NAME.QBO:
                         return 'QuickBooks Online';
@@ -4884,9 +4884,9 @@ var translations = {
             goToODToFix: 'Ve a Expensify Classic para solucionar este problema.',
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
-            lastSync: function (_a) {
-                var relativeDate = _a.relativeDate;
-                return 'Reci\u00E9n sincronizado ' + relativeDate;
+            lastSync (_a) {
+                const relativeDate = _a.relativeDate;
+                return `Reci\u00E9n sincronizado ${  relativeDate}`;
             },
             import: 'Importar',
             export: 'Exportar',
@@ -4895,23 +4895,23 @@ var translations = {
             syncNow: 'Sincronizar ahora',
             disconnect: 'Desconectar',
             reinstall: 'Reinstalar el conector',
-            disconnectTitle: function (_a) {
-                var _b = _a === void 0 ? {} : _a,
-                    connectionName = _b.connectionName;
-                var integrationName =
+            disconnectTitle (_a) {
+                const _b = _a === void 0 ? {} : _a;
+                    const connectionName = _b.connectionName;
+                const integrationName =
                     connectionName && CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]
                         ? CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]
                         : 'integración';
-                return 'Desconectar ' + integrationName;
+                return `Desconectar ${  integrationName}`;
             },
-            connectTitle: function (_a) {
-                var _b;
-                var connectionName = _a.connectionName;
-                return 'Conectar ' + ((_b = CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]) !== null && _b !== void 0 ? _b : 'accounting integration');
+            connectTitle (_a) {
+                let _b;
+                const connectionName = _a.connectionName;
+                return `Conectar ${  (_b = CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]) !== null && _b !== void 0 ? _b : 'accounting integration'}`;
             },
-            syncError: function (_a) {
-                var _b = _a === void 0 ? {} : _a,
-                    connectionName = _b.connectionName;
+            syncError (_a) {
+                const _b = _a === void 0 ? {} : _a;
+                    const connectionName = _b.connectionName;
                 switch (connectionName) {
                     case CONST_1['default'].POLICY.CONNECTIONS.NAME.QBO:
                         return 'No se puede conectar a QuickBooks Online';
@@ -4941,28 +4941,28 @@ var translations = {
                 (_4[CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.REPORT_FIELD] = 'Importado como campos de informe'),
                 (_4[CONST_1['default'].INTEGRATION_ENTITY_MAP_TYPES.NETSUITE_DEFAULT] = 'Predeterminado del empleado NetSuite'),
                 _4),
-            disconnectPrompt: function (_a) {
-                var _b = _a === void 0 ? {} : _a,
-                    connectionName = _b.connectionName;
-                var integrationName =
+            disconnectPrompt (_a) {
+                const _b = _a === void 0 ? {} : _a;
+                    const connectionName = _b.connectionName;
+                const integrationName =
                     connectionName && CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]
                         ? CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]
                         : 'integración';
-                return '\u00BFEst\u00E1s seguro de que quieres desconectar ' + integrationName + '?';
+                return `\u00BFEst\u00E1s seguro de que quieres desconectar ${  integrationName  }?`;
             },
-            connectPrompt: function (_a) {
-                var _b;
-                var connectionName = _a.connectionName;
+            connectPrompt (_a) {
+                let _b;
+                const connectionName = _a.connectionName;
                 return (
-                    '\u00BFEst\u00E1s seguro de que quieres conectar a ' +
-                    ((_b = CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]) !== null && _b !== void 0 ? _b : 'esta integración contable') +
-                    '? Esto eliminar\u00E1 cualquier conexi\u00F3n contable existente.'
+                    `\u00BFEst\u00E1s seguro de que quieres conectar a ${ 
+                    (_b = CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]) !== null && _b !== void 0 ? _b : 'esta integración contable' 
+                    }? Esto eliminar\u00E1 cualquier conexi\u00F3n contable existente.`
                 );
             },
             enterCredentials: 'Ingresa tus credenciales',
             connections: {
-                syncStageName: function (_a) {
-                    var stage = _a.stage;
+                syncStageName (_a) {
+                    const stage = _a.stage;
                     switch (stage) {
                         case 'quickbooksOnlineImportCustomers':
                         case 'quickbooksDesktopImportCustomers':
@@ -5091,7 +5091,7 @@ var translations = {
                             return 'Importando datos desde Sage Intacct';
                         default: {
                             // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                            return 'Translation missing for stage: ' + stage;
+                            return `Translation missing for stage: ${  stage}`;
                         }
                     }
                 },
@@ -5118,9 +5118,9 @@ var translations = {
                 chooseBankAccount: 'Elige la cuenta bancaria con la que se conciliarán los pagos de tu Tarjeta Expensify.',
                 accountMatches: 'Asegúrate de que esta cuenta coincide con ',
                 settlementAccount: 'la cuenta de liquidación de tu Tarjeta Expensify ',
-                reconciliationWorks: function (_a) {
-                    var lastFourPAN = _a.lastFourPAN;
-                    return '(que termina en ' + lastFourPAN + ') para que la conciliaci\u00F3n continua funcione correctamente.';
+                reconciliationWorks (_a) {
+                    const lastFourPAN = _a.lastFourPAN;
+                    return `(que termina en ${  lastFourPAN  }) para que la conciliaci\u00F3n continua funcione correctamente.`;
                 },
             },
         },
@@ -5191,7 +5191,7 @@ var translations = {
             invitePeople: 'Invitar nuevos miembros',
             genericFailureMessage: 'Se ha producido un error al invitar al miembro al espacio de trabajo. Vuelva a intentarlo.',
             pleaseEnterValidLogin:
-                'Aseg\u00FArese de que el correo electr\u00F3nico o el n\u00FAmero de tel\u00E9fono sean v\u00E1lidos (p. ej. ' + CONST_1['default'].EXAMPLE_PHONE_NUMBER + ').',
+                `Aseg\u00FArese de que el correo electr\u00F3nico o el n\u00FAmero de tel\u00E9fono sean v\u00E1lidos (p. ej. ${  CONST_1['default'].EXAMPLE_PHONE_NUMBER  }).`,
             user: 'miembro',
             users: 'miembros',
             invited: 'invitó',
@@ -5214,19 +5214,19 @@ var translations = {
             rate: 'Tasa',
             addRate: 'Agregar tasa',
             trackTax: 'Impuesto de seguimiento',
-            deleteRates: function () {
+            deleteRates () {
                 return {
                     one: 'Eliminar tasa',
                     other: 'Eliminar tasas',
                 };
             },
-            enableRates: function () {
+            enableRates () {
                 return {
                     one: 'Activar tasa',
                     other: 'Activar tasas',
                 };
             },
-            disableRates: function () {
+            disableRates () {
                 return {
                     one: 'Desactivar tasa',
                     other: 'Desactivar tasas',
@@ -5238,7 +5238,7 @@ var translations = {
             taxFeatureNotEnabledMessage: 'Los impuestos deben estar activados en el área de trabajo para poder utilizar esta función. Dirígete a ',
             changePromptMessage: ' para hacer ese cambio.',
             deleteDistanceRate: 'Eliminar tasa de distancia',
-            areYouSureDelete: function () {
+            areYouSureDelete () {
                 return {
                     one: '¿Estás seguro de que quieres eliminar esta tasa?',
                     other: '¿Estás seguro de que quieres eliminar estas tasas?',
@@ -5304,51 +5304,51 @@ var translations = {
             amountOwedText: 'Esta cuenta tiene un saldo pendiente de un mes anterior.\n\n¿Quiere liquidar el saldo y hacerse cargo de la facturación de este espacio de trabajo?',
             ownerOwesAmountTitle: 'Saldo pendiente',
             ownerOwesAmountButtonText: 'Transferir saldo',
-            ownerOwesAmountText: function (_a) {
-                var email = _a.email,
-                    amount = _a.amount;
+            ownerOwesAmountText (_a) {
+                const email = _a.email;
+                    const amount = _a.amount;
                 return (
-                    'La cuenta propietaria de este espacio de trabajo (' +
-                    email +
-                    ') tiene un saldo pendiente de un mes anterior.\n\n\u00BFDesea transferir este monto (' +
-                    amount +
-                    ') para hacerse cargo de la facturaci\u00F3n de este espacio de trabajo? tu tarjeta de pago se cargar\u00E1 inmediatamente.'
+                    `La cuenta propietaria de este espacio de trabajo (${ 
+                    email 
+                    }) tiene un saldo pendiente de un mes anterior.\n\n\u00BFDesea transferir este monto (${ 
+                    amount 
+                    }) para hacerse cargo de la facturaci\u00F3n de este espacio de trabajo? tu tarjeta de pago se cargar\u00E1 inmediatamente.`
                 );
             },
             subscriptionTitle: 'Asumir la suscripción anual',
             subscriptionButtonText: 'Transferir suscripción',
-            subscriptionText: function (_a) {
-                var usersCount = _a.usersCount,
-                    finalCount = _a.finalCount;
+            subscriptionText (_a) {
+                const usersCount = _a.usersCount;
+                    const finalCount = _a.finalCount;
                 return (
-                    'Al hacerse cargo de este espacio de trabajo se fusionar\u00E1 tu suscripci\u00F3n anual asociada con tu suscripci\u00F3n actual. Esto aumentar\u00E1 el tama\u00F1o de tu suscripci\u00F3n en ' +
-                    usersCount +
-                    ' miembros, lo que har\u00E1 que tu nuevo tama\u00F1o de suscripci\u00F3n sea ' +
-                    finalCount +
-                    '. \u00BFTe gustaria continuar?'
+                    `Al hacerse cargo de este espacio de trabajo se fusionar\u00E1 tu suscripci\u00F3n anual asociada con tu suscripci\u00F3n actual. Esto aumentar\u00E1 el tama\u00F1o de tu suscripci\u00F3n en ${ 
+                    usersCount 
+                    } miembros, lo que har\u00E1 que tu nuevo tama\u00F1o de suscripci\u00F3n sea ${ 
+                    finalCount 
+                    }. \u00BFTe gustaria continuar?`
                 );
             },
             duplicateSubscriptionTitle: 'Alerta de suscripción duplicada',
             duplicateSubscriptionButtonText: 'Continuar',
-            duplicateSubscriptionText: function (_a) {
-                var email = _a.email,
-                    workspaceName = _a.workspaceName;
+            duplicateSubscriptionText (_a) {
+                const email = _a.email;
+                    const workspaceName = _a.workspaceName;
                 return (
-                    'Parece que est\u00E1s intentando hacerte cargo de la facturaci\u00F3n de los espacios de trabajo de ' +
-                    email +
-                    ', pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturaci\u00F3n para el espacio de trabajo ' +
-                    workspaceName +
-                    '.\n\nSi desea hacerse cargo de la facturaci\u00F3n de toda tu suscripci\u00F3n, p\u00EDdales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturaci\u00F3n.'
+                    `Parece que est\u00E1s intentando hacerte cargo de la facturaci\u00F3n de los espacios de trabajo de ${ 
+                    email 
+                    }, pero para hacerlo, primero debes ser administrador de todos sus espacios de trabajo.\n\nHaz clic en "Continuar" si solo quieres tomar sobrefacturaci\u00F3n para el espacio de trabajo ${ 
+                    workspaceName 
+                    }.\n\nSi desea hacerse cargo de la facturaci\u00F3n de toda tu suscripci\u00F3n, p\u00EDdales que lo agreguen como administrador a todos sus espacios de trabajo antes de hacerse cargo de la facturaci\u00F3n.`
                 );
             },
             hasFailedSettlementsTitle: 'No se puede transferir la propiedad',
             hasFailedSettlementsButtonText: 'Entiendo',
-            hasFailedSettlementsText: function (_a) {
-                var email = _a.email;
+            hasFailedSettlementsText (_a) {
+                const email = _a.email;
                 return (
-                    'No puede hacerse cargo de la facturaci\u00F3n porque ' +
-                    email +
-                    ' tiene una liquidaci\u00F3n vencida de la tarjeta Expensify. Av\u00EDseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podr\u00E1 hacerse cargo de la facturaci\u00F3n de este espacio de trabajo.'
+                    `No puede hacerse cargo de la facturaci\u00F3n porque ${ 
+                    email 
+                    } tiene una liquidaci\u00F3n vencida de la tarjeta Expensify. Av\u00EDseles que se comuniquen con concierge@expensify.com para resolver el problema. Luego, podr\u00E1 hacerse cargo de la facturaci\u00F3n de este espacio de trabajo.`
                 );
             },
             failedToClearBalanceTitle: 'Fallo al liquidar el saldo',
@@ -5363,15 +5363,15 @@ var translations = {
         },
         exportAgainModal: {
             title: '¡Cuidado!',
-            description: function (_a) {
-                var reportName = _a.reportName,
-                    connectionName = _a.connectionName;
+            description (_a) {
+                const reportName = _a.reportName;
+                    const connectionName = _a.connectionName;
                 return (
-                    'Los siguientes informes ya se han exportado a ' +
-                    CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] +
-                    ':\n\n' +
-                    reportName +
-                    '\n\n\u00BFEst\u00E1s seguro de que deseas exportarlos de nuevo?'
+                    `Los siguientes informes ya se han exportado a ${ 
+                    CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName] 
+                    }:\n\n${ 
+                    reportName 
+                    }\n\n\u00BFEst\u00E1s seguro de que deseas exportarlos de nuevo?`
                 );
             },
             confirmText: 'Sí, exportar de nuevo',
@@ -5390,24 +5390,24 @@ var translations = {
             },
             description: 'Elige el plan adecuado para ti. Para ver una lista detallada de funciones y precios, consulta nuestra',
             subscriptionLink: 'página de ayuda sobre tipos de planes y precios',
-            lockedPlanDescription: function (_a) {
-                var count = _a.count,
-                    annualSubscriptionEndDate = _a.annualSubscriptionEndDate;
+            lockedPlanDescription (_a) {
+                const count = _a.count;
+                    const annualSubscriptionEndDate = _a.annualSubscriptionEndDate;
                 return {
                     one:
-                        'Tienes un compromiso anual de 1 miembro activo en el plan Controlar hasta el ' +
-                        annualSubscriptionEndDate +
-                        '. Puedes cambiar a una suscripci\u00F3n de pago por uso y desmejorar al plan Recopilar a partir del ' +
-                        annualSubscriptionEndDate +
-                        ' desactivando la renovaci\u00F3n autom\u00E1tica en',
+                        `Tienes un compromiso anual de 1 miembro activo en el plan Controlar hasta el ${ 
+                        annualSubscriptionEndDate 
+                        }. Puedes cambiar a una suscripci\u00F3n de pago por uso y desmejorar al plan Recopilar a partir del ${ 
+                        annualSubscriptionEndDate 
+                        } desactivando la renovaci\u00F3n autom\u00E1tica en`,
                     other:
-                        'Tienes un compromiso anual de ' +
-                        count +
-                        ' miembros activos en el plan Controlar hasta el ' +
-                        annualSubscriptionEndDate +
-                        '. Puedes cambiar a una suscripci\u00F3n de pago por uso y desmejorar al plan Recopilar a partir del ' +
-                        annualSubscriptionEndDate +
-                        ' desactivando la renovaci\u00F3n autom\u00E1tica en',
+                        `Tienes un compromiso anual de ${ 
+                        count 
+                        } miembros activos en el plan Controlar hasta el ${ 
+                        annualSubscriptionEndDate 
+                        }. Puedes cambiar a una suscripci\u00F3n de pago por uso y desmejorar al plan Recopilar a partir del ${ 
+                        annualSubscriptionEndDate 
+                        } desactivando la renovaci\u00F3n autom\u00E1tica en`,
                 };
             },
             subscriptions: 'Suscripciones',
@@ -5504,9 +5504,9 @@ var translations = {
                 headline: 'Has mejorado tu espacio de trabajo.',
                 categorizeMessage: 'Has actualizado con \u00E9xito a un espacio de trabajo en el plan Recopilar. \u00A1Ahora puedes categorizar tus gastos!',
                 travelMessage: 'Has mejorado con éxito a un espacio de trabajo en el plan Recopilar. ¡Ahora puedes comenzar a reservar y gestionar viajes!',
-                successMessage: function (_a) {
-                    var policyName = _a.policyName;
-                    return 'Has actualizado con \u00E9xito ' + policyName + ' al plan Controlar.';
+                successMessage (_a) {
+                    const policyName = _a.policyName;
+                    return `Has actualizado con \u00E9xito ${  policyName  } al plan Controlar.`;
                 },
                 viewSubscription: 'Ver su suscripción',
                 moreDetails: 'para obtener más información.',
@@ -5558,9 +5558,9 @@ var translations = {
             title: 'Pagar y bajar de categoría',
             headline: 'Tu pago final',
             description1: 'Tu factura final por esta suscripción será',
-            description2: function (_a) {
-                var date = _a.date;
-                return 'Consulta el desglose a continuaci\u00F3n para ' + date + ':';
+            description2 (_a) {
+                const date = _a.date;
+                return `Consulta el desglose a continuaci\u00F3n para ${  date  }:`;
             },
             subscription:
                 'Esto finalizará tu suscripción a Expensify, eliminará tu espacio de trabajo restante y todos los miembros perderán acceso de ahora en adelante. Si solo deseas eliminarte a ti mismo, haz que otro administrador se encargue de la facturación, y en ese momento podrás salir de este espacio de trabajo.',
@@ -5568,16 +5568,16 @@ var translations = {
         },
         restrictedAction: {
             restricted: 'Restringido',
-            actionsAreCurrentlyRestricted: function (_a) {
-                var workspaceName = _a.workspaceName;
-                return 'Las acciones en el espacio de trabajo ' + workspaceName + ' est\u00E1n actualmente restringidas';
+            actionsAreCurrentlyRestricted (_a) {
+                const workspaceName = _a.workspaceName;
+                return `Las acciones en el espacio de trabajo ${  workspaceName  } est\u00E1n actualmente restringidas`;
             },
-            workspaceOwnerWillNeedToAddOrUpdatePaymentCard: function (_a) {
-                var workspaceOwnerName = _a.workspaceOwnerName;
+            workspaceOwnerWillNeedToAddOrUpdatePaymentCard (_a) {
+                const workspaceOwnerName = _a.workspaceOwnerName;
                 return (
-                    'El propietario del espacio de trabajo, ' +
-                    workspaceOwnerName +
-                    ' tendr\u00E1 que a\u00F1adir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.'
+                    `El propietario del espacio de trabajo, ${ 
+                    workspaceOwnerName 
+                    } tendr\u00E1 que a\u00F1adir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.`
                 );
             },
             youWillNeedToAddOrUpdatePaymentCard: 'Debes añadir o actualizar la tarjeta de pago registrada para desbloquear nueva actividad en el espacio de trabajo.',
@@ -5599,11 +5599,11 @@ var translations = {
                 maxAge: 'Antigüedad máxima',
                 maxExpenseAge: 'Antigüedad máxima de los gastos',
                 maxExpenseAgeDescription: 'Marca los gastos de más de un número determinado de días.',
-                maxExpenseAgeDays: function () {
+                maxExpenseAgeDays () {
                     return {
                         one: '1 día',
-                        other: function (count) {
-                            return count + ' d\u00EDas';
+                        other (count) {
+                            return `${count  } d\u00EDas`;
                         },
                     };
                 },
@@ -5652,22 +5652,22 @@ var translations = {
                 randomReportAuditDescription: 'Requiere que algunos informes sean aprobados manualmente, incluso si son elegibles para la aprobación automática.',
                 autoPayApprovedReportsTitle: 'Pago automático de informes aprobados',
                 autoPayApprovedReportsSubtitle: 'Configura qué informes de gastos pueden pagarse de forma automática.',
-                autoPayApprovedReportsLimitError: function (_a) {
-                    var _b = _a === void 0 ? {} : _a,
-                        currency = _b.currency;
-                    return 'Por favor, introduce un monto menor a ' + (currency !== null && currency !== void 0 ? currency : '') + '20,000';
+                autoPayApprovedReportsLimitError (_a) {
+                    const _b = _a === void 0 ? {} : _a;
+                        const currency = _b.currency;
+                    return `Por favor, introduce un monto menor a ${  currency !== null && currency !== void 0 ? currency : ''  }20,000`;
                 },
                 autoPayApprovedReportsLockedSubtitle: 'Ve a más funciones y habilita flujos de trabajo, luego agrega pagos para desbloquear esta función.',
                 autoPayReportsUnderTitle: 'Pagar automáticamente informes por debajo de',
                 autoPayReportsUnderDescription: 'Los informes de gastos totalmente conformes por debajo de esta cantidad se pagarán automáticamente.',
                 unlockFeatureGoToSubtitle: 'Ir a',
-                unlockFeatureEnableWorkflowsSubtitle: function (_a) {
-                    var featureName = _a.featureName;
-                    return 'y habilita flujos de trabajo, luego agrega ' + featureName + ' para desbloquear esta funci\u00F3n.';
+                unlockFeatureEnableWorkflowsSubtitle (_a) {
+                    const featureName = _a.featureName;
+                    return `y habilita flujos de trabajo, luego agrega ${  featureName  } para desbloquear esta funci\u00F3n.`;
                 },
-                enableFeatureSubtitle: function (_a) {
-                    var featureName = _a.featureName;
-                    return 'y habilita ' + featureName + ' para desbloquear esta funci\u00F3n.';
+                enableFeatureSubtitle (_a) {
+                    const featureName = _a.featureName;
+                    return `y habilita ${  featureName  } para desbloquear esta funci\u00F3n.`;
                 },
             },
             categoryRules: {
@@ -5675,21 +5675,21 @@ var translations = {
                 approver: 'Aprobador',
                 requireDescription: 'Requerir descripción',
                 descriptionHint: 'Sugerencia de descripción',
-                descriptionHintDescription: function (_a) {
-                    var categoryName = _a.categoryName;
+                descriptionHintDescription (_a) {
+                    const categoryName = _a.categoryName;
                     return (
-                        'Recuerda a los empleados que deben proporcionar informaci\u00F3n adicional para los gastos de \u201C' +
-                        categoryName +
-                        '\u201D. Esta sugerencia aparece en el campo de descripci\u00F3n en los gastos.'
+                        `Recuerda a los empleados que deben proporcionar informaci\u00F3n adicional para los gastos de \u201C${ 
+                        categoryName 
+                        }\u201D. Esta sugerencia aparece en el campo de descripci\u00F3n en los gastos.`
                     );
                 },
                 descriptionHintLabel: 'Sugerencia',
                 descriptionHintSubtitle: 'Consejo: ¡Cuanto más corta, mejor!',
                 maxAmount: 'Importe máximo',
                 flagAmountsOver: 'Señala importes superiores a',
-                flagAmountsOverDescription: function (_a) {
-                    var categoryName = _a.categoryName;
-                    return 'Aplica a la categor\u00EDa \u201C' + categoryName + '\u201D.';
+                flagAmountsOverDescription (_a) {
+                    const categoryName = _a.categoryName;
+                    return `Aplica a la categor\u00EDa \u201C${  categoryName  }\u201D.`;
                 },
                 flagAmountsOverSubtitle: 'Esto anula el importe máximo para todos los gastos.',
                 expenseLimitTypes: {
@@ -5700,9 +5700,9 @@ var translations = {
                 },
                 requireReceiptsOver: 'Requerir recibos para importes superiores a',
                 requireReceiptsOverList: {
-                    default: function (_a) {
-                        var defaultAmount = _a.defaultAmount;
-                        return defaultAmount + ' ' + CONST_1['default'].DOT_SEPARATOR + ' Predeterminado';
+                    default (_a) {
+                        const defaultAmount = _a.defaultAmount;
+                        return `${defaultAmount  } ${  CONST_1['default'].DOT_SEPARATOR  } Predeterminado`;
                     },
                     never: 'Nunca requerir recibos',
                     always: 'Requerir recibos siempre',
@@ -5755,22 +5755,22 @@ var translations = {
         public_announceDescription: 'Cualquier persona puede unirse a esta sala',
         createRoom: 'Crea una sala de chat',
         roomAlreadyExistsError: 'Ya existe una sala con este nombre',
-        roomNameReservedError: function (_a) {
-            var reservedName = _a.reservedName;
-            return reservedName + ' es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.';
+        roomNameReservedError (_a) {
+            const reservedName = _a.reservedName;
+            return `${reservedName  } es el nombre una sala por defecto de todos los espacios de trabajo. Por favor, elige otro nombre.`;
         },
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
-        renamedRoomAction: function (_a) {
-            var oldName = _a.oldName,
-                newName = _a.newName,
-                actorName = _a.actorName;
-            return (actorName ? actorName + ' ' : '') + 'renamed this room to "' + newName + '" (previously "' + oldName + '")';
+        renamedRoomAction (_a) {
+            const oldName = _a.oldName;
+                const newName = _a.newName;
+                const actorName = _a.actorName;
+            return `${actorName ? `${actorName  } ` : ''  }renamed this room to "${  newName  }" (previously "${  oldName  }")`;
         },
-        roomRenamedTo: function (_a) {
-            var newName = _a.newName;
-            return 'Sala renombrada a ' + newName;
+        roomRenamedTo (_a) {
+            const newName = _a.newName;
+            return `Sala renombrada a ${  newName}`;
         },
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
@@ -5792,186 +5792,186 @@ var translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
-        addCategory: function (_a) {
-            var categoryName = _a.categoryName;
-            return 'a\u00F1adi\u00F3 la categor\u00EDa "' + categoryName + '""';
+        addCategory (_a) {
+            const categoryName = _a.categoryName;
+            return `a\u00F1adi\u00F3 la categor\u00EDa "${  categoryName  }""`;
         },
-        deleteCategory: function (_a) {
-            var categoryName = _a.categoryName;
-            return 'elimin\u00F3 la categor\u00EDa "' + categoryName + '"';
+        deleteCategory (_a) {
+            const categoryName = _a.categoryName;
+            return `elimin\u00F3 la categor\u00EDa "${  categoryName  }"`;
         },
-        updateCategory: function (_a) {
-            var oldValue = _a.oldValue,
-                categoryName = _a.categoryName;
-            return (oldValue ? 'deshabilitó' : 'habilitó') + ' la categor\u00EDa "' + categoryName + '"';
+        updateCategory (_a) {
+            const oldValue = _a.oldValue;
+                const categoryName = _a.categoryName;
+            return `${oldValue ? 'deshabilitó' : 'habilitó'  } la categor\u00EDa "${  categoryName  }"`;
         },
-        setCategoryName: function (_a) {
-            var oldName = _a.oldName,
-                newName = _a.newName;
-            return 'renombr\u00F3 la categor\u00EDa "' + oldName + '" a "' + newName;
+        setCategoryName (_a) {
+            const oldName = _a.oldName;
+                const newName = _a.newName;
+            return `renombr\u00F3 la categor\u00EDa "${  oldName  }" a "${  newName}`;
         },
-        addTag: function (_a) {
-            var tagListName = _a.tagListName,
-                tagName = _a.tagName;
-            return 'a\u00F1adi\u00F3 la etiqueta "' + tagName + '" a la lista "' + tagListName + '"';
+        addTag (_a) {
+            const tagListName = _a.tagListName;
+                const tagName = _a.tagName;
+            return `a\u00F1adi\u00F3 la etiqueta "${  tagName  }" a la lista "${  tagListName  }"`;
         },
-        updateTagName: function (_a) {
-            var tagListName = _a.tagListName,
-                newName = _a.newName,
-                oldName = _a.oldName;
-            return 'actualiz\u00F3 la lista de etiquetas "' + tagListName + '" cambiando la etiqueta "' + oldName + '" a "' + newName + '"';
+        updateTagName (_a) {
+            const tagListName = _a.tagListName;
+                const newName = _a.newName;
+                const oldName = _a.oldName;
+            return `actualiz\u00F3 la lista de etiquetas "${  tagListName  }" cambiando la etiqueta "${  oldName  }" a "${  newName  }"`;
         },
-        updateTagEnabled: function (_a) {
-            var tagListName = _a.tagListName,
-                tagName = _a.tagName,
-                enabled = _a.enabled;
-            return (enabled ? 'habilitó' : 'deshabilitó') + ' la etiqueta "' + tagName + '" en la lista "' + tagListName + '"';
+        updateTagEnabled (_a) {
+            const tagListName = _a.tagListName;
+                const tagName = _a.tagName;
+                const enabled = _a.enabled;
+            return `${enabled ? 'habilitó' : 'deshabilitó'  } la etiqueta "${  tagName  }" en la lista "${  tagListName  }"`;
         },
-        deleteTag: function (_a) {
-            var tagListName = _a.tagListName,
-                tagName = _a.tagName;
-            return 'elimin\u00F3 la etiqueta "' + tagName + '" de la lista "' + tagListName + '"';
+        deleteTag (_a) {
+            const tagListName = _a.tagListName;
+                const tagName = _a.tagName;
+            return `elimin\u00F3 la etiqueta "${  tagName  }" de la lista "${  tagListName  }"`;
         },
-        deleteMultipleTags: function (_a) {
-            var count = _a.count,
-                tagListName = _a.tagListName;
-            return 'elimin\u00F3 "' + count + '" etiquetas de la lista "' + tagListName + '"';
+        deleteMultipleTags (_a) {
+            const count = _a.count;
+                const tagListName = _a.tagListName;
+            return `elimin\u00F3 "${  count  }" etiquetas de la lista "${  tagListName  }"`;
         },
-        updateTag: function (_a) {
-            var tagListName = _a.tagListName,
-                newValue = _a.newValue,
-                tagName = _a.tagName,
-                updatedField = _a.updatedField,
-                oldValue = _a.oldValue;
+        updateTag (_a) {
+            const tagListName = _a.tagListName;
+                const newValue = _a.newValue;
+                const tagName = _a.tagName;
+                const updatedField = _a.updatedField;
+                const oldValue = _a.oldValue;
             if (oldValue) {
                 return (
-                    'actualiz\u00F3 la etiqueta "' + tagName + '" en la lista "' + tagListName + '" cambiando el ' + updatedField + ' a "' + newValue + '" (previamente "' + oldValue + '")'
+                    `actualiz\u00F3 la etiqueta "${  tagName  }" en la lista "${  tagListName  }" cambiando el ${  updatedField  } a "${  newValue  }" (previamente "${  oldValue  }")`
                 );
             }
-            return 'actualiz\u00F3 la etiqueta "' + tagName + '" en la lista "' + tagListName + '" a\u00F1adiendo un ' + updatedField + ' de "' + newValue + '"';
+            return `actualiz\u00F3 la etiqueta "${  tagName  }" en la lista "${  tagListName  }" a\u00F1adiendo un ${  updatedField  } de "${  newValue  }"`;
         },
-        addCustomUnitRate: function (_a) {
-            var customUnitName = _a.customUnitName,
-                rateName = _a.rateName;
-            return 'a\u00F1adi\u00F3 una nueva tasa de "' + rateName + '" para "' + customUnitName + '"';
+        addCustomUnitRate (_a) {
+            const customUnitName = _a.customUnitName;
+                const rateName = _a.rateName;
+            return `a\u00F1adi\u00F3 una nueva tasa de "${  rateName  }" para "${  customUnitName  }"`;
         },
-        addedReportField: function (_a) {
-            var fieldType = _a.fieldType,
-                fieldName = _a.fieldName;
-            return 'a\u00F1adi\u00F3 el campo de informe ' + fieldType + ' "' + fieldName + '"';
+        addedReportField (_a) {
+            const fieldType = _a.fieldType;
+                const fieldName = _a.fieldName;
+            return `a\u00F1adi\u00F3 el campo de informe ${  fieldType  } "${  fieldName  }"`;
         },
-        updateReportFieldDefaultValue: function (_a) {
-            var defaultValue = _a.defaultValue,
-                fieldName = _a.fieldName;
-            return 'estableci\u00F3 el valor predeterminado del campo de informe "' + fieldName + '" en "' + defaultValue + '"';
+        updateReportFieldDefaultValue (_a) {
+            const defaultValue = _a.defaultValue;
+                const fieldName = _a.fieldName;
+            return `estableci\u00F3 el valor predeterminado del campo de informe "${  fieldName  }" en "${  defaultValue  }"`;
         },
-        deleteReportField: function (_a) {
-            var fieldType = _a.fieldType,
-                fieldName = _a.fieldName;
-            return 'elimin\u00F3 el campo de informe ' + fieldType + ' "' + fieldName + '"';
+        deleteReportField (_a) {
+            const fieldType = _a.fieldType;
+                const fieldName = _a.fieldName;
+            return `elimin\u00F3 el campo de informe ${  fieldType  } "${  fieldName  }"`;
         },
-        preventSelfApproval: function (_a) {
-            var oldValue = _a.oldValue,
-                newValue = _a.newValue;
+        preventSelfApproval (_a) {
+            const oldValue = _a.oldValue;
+                const newValue = _a.newValue;
             return (
-                'actualiz\u00F3 "Evitar la autoaprobaci\u00F3n" a "' +
-                (newValue === 'true' ? 'Habilitada' : 'Deshabilitada') +
-                '" (previamente "' +
-                (oldValue === 'true' ? 'Habilitada' : 'Deshabilitada') +
-                '")'
+                `actualiz\u00F3 "Evitar la autoaprobaci\u00F3n" a "${ 
+                newValue === 'true' ? 'Habilitada' : 'Deshabilitada' 
+                }" (previamente "${ 
+                oldValue === 'true' ? 'Habilitada' : 'Deshabilitada' 
+                }")`
             );
         },
-        updateMaxExpenseAmountNoReceipt: function (_a) {
-            var oldValue = _a.oldValue,
-                newValue = _a.newValue;
-            return 'cambi\u00F3 el monto m\u00E1ximo de gasto requerido sin recibo a ' + newValue + ' (previamente ' + oldValue + ')';
+        updateMaxExpenseAmountNoReceipt (_a) {
+            const oldValue = _a.oldValue;
+                const newValue = _a.newValue;
+            return `cambi\u00F3 el monto m\u00E1ximo de gasto requerido sin recibo a ${  newValue  } (previamente ${  oldValue  })`;
         },
-        updateMaxExpenseAmount: function (_a) {
-            var oldValue = _a.oldValue,
-                newValue = _a.newValue;
-            return 'cambi\u00F3 el monto m\u00E1ximo de gasto para violaciones a ' + newValue + ' (previamente ' + oldValue + ')';
+        updateMaxExpenseAmount (_a) {
+            const oldValue = _a.oldValue;
+                const newValue = _a.newValue;
+            return `cambi\u00F3 el monto m\u00E1ximo de gasto para violaciones a ${  newValue  } (previamente ${  oldValue  })`;
         },
-        updateMaxExpenseAge: function (_a) {
-            var oldValue = _a.oldValue,
-                newValue = _a.newValue;
+        updateMaxExpenseAge (_a) {
+            const oldValue = _a.oldValue;
+                const newValue = _a.newValue;
             return (
-                'actualiz\u00F3 "Antig\u00FCedad m\u00E1xima de gastos (d\u00EDas)" a "' +
-                newValue +
-                '" (previamente "' +
-                (oldValue === 'false' ? CONST_1['default'].POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue) +
-                '")'
+                `actualiz\u00F3 "Antig\u00FCedad m\u00E1xima de gastos (d\u00EDas)" a "${ 
+                newValue 
+                }" (previamente "${ 
+                oldValue === 'false' ? CONST_1['default'].POLICY.DEFAULT_MAX_EXPENSE_AGE : oldValue 
+                }")`
             );
         },
-        updateDefaultBillable: function (_a) {
-            var oldValue = _a.oldValue,
-                newValue = _a.newValue;
-            return 'actualiz\u00F3 "Volver a facturar gastos a clientes" a "' + newValue + '" (previamente "' + oldValue + '")';
+        updateDefaultBillable (_a) {
+            const oldValue = _a.oldValue;
+                const newValue = _a.newValue;
+            return `actualiz\u00F3 "Volver a facturar gastos a clientes" a "${  newValue  }" (previamente "${  oldValue  }")`;
         },
-        updateMonthlyOffset: function (_a) {
-            var oldValue = _a.oldValue,
-                newValue = _a.newValue;
+        updateMonthlyOffset (_a) {
+            const oldValue = _a.oldValue;
+                const newValue = _a.newValue;
             if (!oldValue) {
-                return 'establecer la fecha de env\u00EDo del informe mensual a "' + newValue + '"';
+                return `establecer la fecha de env\u00EDo del informe mensual a "${  newValue  }"`;
             }
-            return 'actualizar la fecha de env\u00EDo del informe mensual a "' + newValue + '" (previamente "' + oldValue + '")';
+            return `actualizar la fecha de env\u00EDo del informe mensual a "${  newValue  }" (previamente "${  oldValue  }")`;
         },
-        updateDefaultTitleEnforced: function (_a) {
-            var value = _a.value;
-            return 'cambi\u00F3 "Requerir t\u00EDtulo predeterminado de informe" a ' + (value ? 'activado' : 'desactivado');
+        updateDefaultTitleEnforced (_a) {
+            const value = _a.value;
+            return `cambi\u00F3 "Requerir t\u00EDtulo predeterminado de informe" a ${  value ? 'activado' : 'desactivado'}`;
         },
-        updateWorkspaceDescription: function (_a) {
-            var newDescription = _a.newDescription,
-                oldDescription = _a.oldDescription;
+        updateWorkspaceDescription (_a) {
+            const newDescription = _a.newDescription;
+                const oldDescription = _a.oldDescription;
             return !oldDescription
-                ? 'estableci\u00F3 la descripci\u00F3n de este espacio de trabajo como "' + newDescription + '"'
-                : 'actualiz\u00F3 la descripci\u00F3n de este espacio de trabajo a "' + newDescription + '" (previamente "' + oldDescription + '")';
+                ? `estableci\u00F3 la descripci\u00F3n de este espacio de trabajo como "${  newDescription  }"`
+                : `actualiz\u00F3 la descripci\u00F3n de este espacio de trabajo a "${  newDescription  }" (previamente "${  oldDescription  }")`;
         },
-        renamedWorkspaceNameAction: function (_a) {
-            var oldName = _a.oldName,
-                newName = _a.newName;
-            return 'actualiz\u00F3 el nombre de este espacio de trabajo a "' + newName + '" (previamente "' + oldName + '")';
+        renamedWorkspaceNameAction (_a) {
+            const oldName = _a.oldName;
+                const newName = _a.newName;
+            return `actualiz\u00F3 el nombre de este espacio de trabajo a "${  newName  }" (previamente "${  oldName  }")`;
         },
-        removedFromApprovalWorkflow: function (_a) {
-            var _b;
-            var submittersNames = _a.submittersNames;
-            var joinedNames = '';
+        removedFromApprovalWorkflow (_a) {
+            let _b;
+            const submittersNames = _a.submittersNames;
+            let joinedNames = '';
             if (submittersNames.length === 1) {
                 joinedNames = (_b = submittersNames.at(0)) !== null && _b !== void 0 ? _b : '';
             } else if (submittersNames.length === 2) {
                 joinedNames = submittersNames.join(' y ');
             } else if (submittersNames.length > 2) {
-                joinedNames = submittersNames.slice(0, submittersNames.length - 1).join(', ') + ' y ' + submittersNames.at(-1);
+                joinedNames = `${submittersNames.slice(0, submittersNames.length - 1).join(', ')  } y ${  submittersNames.at(-1)}`;
             }
             return {
                 one:
-                    'te elimin\u00F3 del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ' +
-                    joinedNames +
-                    '. Los informes enviados anteriormente seguir\u00E1n estando disponibles para su aprobaci\u00F3n en tu bandeja de entrada.',
+                    `te elimin\u00F3 del flujo de trabajo de aprobaciones y del chat del espacio de trabajo de ${ 
+                    joinedNames 
+                    }. Los informes enviados anteriormente seguir\u00E1n estando disponibles para su aprobaci\u00F3n en tu bandeja de entrada.`,
                 other:
-                    'te elimin\u00F3 de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ' +
-                    joinedNames +
-                    '. Los informes enviados anteriormente seguir\u00E1n estando disponibles para su aprobaci\u00F3n en tu bandeja de entrada.',
+                    `te elimin\u00F3 de los flujos de trabajo de aprobaciones y de los chats del espacio de trabajo de ${ 
+                    joinedNames 
+                    }. Los informes enviados anteriormente seguir\u00E1n estando disponibles para su aprobaci\u00F3n en tu bandeja de entrada.`,
             };
         },
-        demotedFromWorkspace: function (_a) {
-            var policyName = _a.policyName,
-                oldRole = _a.oldRole;
-            return 'cambi\u00F3 tu rol en ' + policyName + ' de ' + oldRole + ' a miembro. Te eliminamos de todos los chats del espacio de trabajo, excepto el suyo.';
+        demotedFromWorkspace (_a) {
+            const policyName = _a.policyName;
+                const oldRole = _a.oldRole;
+            return `cambi\u00F3 tu rol en ${  policyName  } de ${  oldRole  } a miembro. Te eliminamos de todos los chats del espacio de trabajo, excepto el suyo.`;
         },
-        updatedWorkspaceCurrencyAction: function (_a) {
-            var oldCurrency = _a.oldCurrency,
-                newCurrency = _a.newCurrency;
-            return 'actualiz\u00F3 la moneda predeterminada a ' + newCurrency + ' (previamente ' + oldCurrency + ')';
+        updatedWorkspaceCurrencyAction (_a) {
+            const oldCurrency = _a.oldCurrency;
+                const newCurrency = _a.newCurrency;
+            return `actualiz\u00F3 la moneda predeterminada a ${  newCurrency  } (previamente ${  oldCurrency  })`;
         },
-        updatedWorkspaceFrequencyAction: function (_a) {
-            var oldFrequency = _a.oldFrequency,
-                newFrequency = _a.newFrequency;
-            return 'actualiz\u00F3 la frecuencia de generaci\u00F3n autom\u00E1tica de informes a "' + newFrequency + '" (previamente "' + oldFrequency + '")';
+        updatedWorkspaceFrequencyAction (_a) {
+            const oldFrequency = _a.oldFrequency;
+                const newFrequency = _a.newFrequency;
+            return `actualiz\u00F3 la frecuencia de generaci\u00F3n autom\u00E1tica de informes a "${  newFrequency  }" (previamente "${  oldFrequency  }")`;
         },
-        updateApprovalMode: function (_a) {
-            var newValue = _a.newValue,
-                oldValue = _a.oldValue;
-            return 'actualiz\u00F3 el modo de aprobaci\u00F3n a "' + newValue + '" (previamente "' + oldValue + '")';
+        updateApprovalMode (_a) {
+            const newValue = _a.newValue;
+                const oldValue = _a.oldValue;
+            return `actualiz\u00F3 el modo de aprobaci\u00F3n a "${  newValue  }" (previamente "${  oldValue  }")`;
         },
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
@@ -5980,12 +5980,12 @@ var translations = {
         memberNotFound: 'Miembro no encontrado.',
         useInviteButton: 'Para invitar a un nuevo miembro al chat, por favor, utiliza el botón invitar que está más arriba.',
         notAuthorized:
-            'No tienes acceso a esta p\u00E1gina. Si est\u00E1s intentando unirte a esta sala, pide a un miembro de la sala que te a\u00F1ada. \u00BFNecesitas algo m\u00E1s? Comun\u00EDcate con ' +
-            CONST_1['default'].EMAIL.CONCIERGE,
-        removeMembersPrompt: function (_a) {
-            var memberName = _a.memberName;
+            `No tienes acceso a esta p\u00E1gina. Si est\u00E1s intentando unirte a esta sala, pide a un miembro de la sala que te a\u00F1ada. \u00BFNecesitas algo m\u00E1s? Comun\u00EDcate con ${ 
+            CONST_1['default'].EMAIL.CONCIERGE}`,
+        removeMembersPrompt (_a) {
+            const memberName = _a.memberName;
             return {
-                one: '\u00BFEst\u00E1s seguro de que quieres eliminar ' + memberName + ' de la sala de chat?',
+                one: `\u00BFEst\u00E1s seguro de que quieres eliminar ${  memberName  } de la sala de chat?`,
                 other: '¿Estás seguro de que quieres eliminar a los miembros seleccionados de la sala de chat?',
             };
         },
@@ -6009,9 +6009,9 @@ var translations = {
         assignee: 'Miembro asignado',
         completed: 'Completada',
         messages: {
-            created: function (_a) {
-                var title = _a.title;
-                return 'tarea para ' + title;
+            created (_a) {
+                const title = _a.title;
+                return `tarea para ${  title}`;
             },
             completed: 'marcada como completa',
             canceled: 'tarea eliminada',
@@ -6026,10 +6026,10 @@ var translations = {
         deleteConfirmation: '¿Estás seguro de que quieres eliminar esta tarea?',
     },
     statementPage: {
-        title: function (_a) {
-            var year = _a.year,
-                monthName = _a.monthName;
-            return 'Estado de cuenta de ' + monthName + ' ' + year;
+        title (_a) {
+            const year = _a.year;
+                const monthName = _a.monthName;
+            return `Estado de cuenta de ${  monthName  } ${  year}`;
         },
     },
     keyboardShortcutsPage: {
@@ -6090,15 +6090,15 @@ var translations = {
         filtersHeader: 'Filtros',
         filters: {
             date: {
-                before: function (_a) {
-                    var _b = _a === void 0 ? {} : _a,
-                        date = _b.date;
-                    return 'Antes de ' + (date !== null && date !== void 0 ? date : '');
+                before (_a) {
+                    const _b = _a === void 0 ? {} : _a;
+                        const date = _b.date;
+                    return `Antes de ${  date !== null && date !== void 0 ? date : ''}`;
                 },
-                after: function (_a) {
-                    var _b = _a === void 0 ? {} : _a,
-                        date = _b.date;
-                    return 'Despu\u00E9s de ' + (date !== null && date !== void 0 ? date : '');
+                after (_a) {
+                    const _b = _a === void 0 ? {} : _a;
+                        const date = _b.date;
+                    return `Despu\u00E9s de ${  date !== null && date !== void 0 ? date : ''}`;
                 },
             },
             status: 'Estado',
@@ -6113,31 +6113,31 @@ var translations = {
                 individualCards: 'Tarjetas individuales',
                 closedCards: 'Tarjetas cerradas',
                 cardFeeds: 'Flujos de tarjetas',
-                cardFeedName: function (_a) {
-                    var cardFeedBankName = _a.cardFeedBankName,
-                        cardFeedLabel = _a.cardFeedLabel;
-                    return 'Todo ' + cardFeedBankName + (cardFeedLabel ? ' - ' + cardFeedLabel : '');
+                cardFeedName (_a) {
+                    const cardFeedBankName = _a.cardFeedBankName;
+                        const cardFeedLabel = _a.cardFeedLabel;
+                    return `Todo ${  cardFeedBankName  }${cardFeedLabel ? ` - ${  cardFeedLabel}` : ''}`;
                 },
-                cardFeedNameCSV: function (_a) {
-                    var cardFeedLabel = _a.cardFeedLabel;
-                    return 'Todas las Tarjetas Importadas desde CSV' + (cardFeedLabel ? ' - ' + cardFeedLabel : '');
+                cardFeedNameCSV (_a) {
+                    const cardFeedLabel = _a.cardFeedLabel;
+                    return `Todas las Tarjetas Importadas desde CSV${  cardFeedLabel ? ` - ${  cardFeedLabel}` : ''}`;
                 },
             },
             amount: {
-                lessThan: function (_a) {
-                    var _b = _a === void 0 ? {} : _a,
-                        amount = _b.amount;
-                    return 'Menos de ' + (amount !== null && amount !== void 0 ? amount : '');
+                lessThan (_a) {
+                    const _b = _a === void 0 ? {} : _a;
+                        const amount = _b.amount;
+                    return `Menos de ${  amount !== null && amount !== void 0 ? amount : ''}`;
                 },
-                greaterThan: function (_a) {
-                    var _b = _a === void 0 ? {} : _a,
-                        amount = _b.amount;
-                    return 'M\u00E1s que ' + (amount !== null && amount !== void 0 ? amount : '');
+                greaterThan (_a) {
+                    const _b = _a === void 0 ? {} : _a;
+                        const amount = _b.amount;
+                    return `M\u00E1s que ${  amount !== null && amount !== void 0 ? amount : ''}`;
                 },
-                between: function (_a) {
-                    var greaterThan = _a.greaterThan,
-                        lessThan = _a.lessThan;
-                    return 'Entre ' + greaterThan + ' y ' + lessThan;
+                between (_a) {
+                    const greaterThan = _a.greaterThan;
+                        const lessThan = _a.lessThan;
+                    return `Entre ${  greaterThan  } y ${  lessThan}`;
                 },
             },
             current: 'Actual',
@@ -6242,9 +6242,9 @@ var translations = {
     checkForUpdatesModal: {
         available: {
             title: 'Actualización disponible',
-            message: function (_a) {
-                var isSilentUpdating = _a.isSilentUpdating;
-                return 'La nueva versi\u00F3n estar\u00E1 disponible dentro de poco.' + (isSilentUpdating ? ' Te notificaremos cuando esté lista.' : '');
+            message (_a) {
+                const isSilentUpdating = _a.isSilentUpdating;
+                return `La nueva versi\u00F3n estar\u00E1 disponible dentro de poco.${  isSilentUpdating ? ' Te notificaremos cuando esté lista.' : ''}`;
             },
             soundsGood: 'Suena bien',
         },
@@ -6270,72 +6270,72 @@ var translations = {
         noActivityYet: 'Sin actividad todavía',
         actions: {
             type: {
-                changeField: function (_a) {
-                    var oldValue = _a.oldValue,
-                        newValue = _a.newValue,
-                        fieldName = _a.fieldName;
-                    return 'cambi\u00F3 ' + fieldName + ' de ' + oldValue + ' a ' + newValue;
+                changeField (_a) {
+                    const oldValue = _a.oldValue;
+                        const newValue = _a.newValue;
+                        const fieldName = _a.fieldName;
+                    return `cambi\u00F3 ${  fieldName  } de ${  oldValue  } a ${  newValue}`;
                 },
-                changeFieldEmpty: function (_a) {
-                    var newValue = _a.newValue,
-                        fieldName = _a.fieldName;
-                    return 'cambi\u00F3 ' + fieldName + ' a ' + newValue;
+                changeFieldEmpty (_a) {
+                    const newValue = _a.newValue;
+                        const fieldName = _a.fieldName;
+                    return `cambi\u00F3 ${  fieldName  } a ${  newValue}`;
                 },
-                changeReportPolicy: function (_a) {
-                    var fromPolicyName = _a.fromPolicyName,
-                        toPolicyName = _a.toPolicyName;
-                    return 'cambi\u00F3 el espacio de trabajo a ' + toPolicyName + (fromPolicyName ? ' (previamente ' + fromPolicyName + ')' : '');
+                changeReportPolicy (_a) {
+                    const fromPolicyName = _a.fromPolicyName;
+                        const toPolicyName = _a.toPolicyName;
+                    return `cambi\u00F3 el espacio de trabajo a ${  toPolicyName  }${fromPolicyName ? ` (previamente ${  fromPolicyName  })` : ''}`;
                 },
-                changeType: function (_a) {
-                    var oldType = _a.oldType,
-                        newType = _a.newType;
-                    return 'cambi\u00F3 type de ' + oldType + ' a ' + newType;
+                changeType (_a) {
+                    const oldType = _a.oldType;
+                        const newType = _a.newType;
+                    return `cambi\u00F3 type de ${  oldType  } a ${  newType}`;
                 },
-                delegateSubmit: function (_a) {
-                    var delegateUser = _a.delegateUser,
-                        originalManager = _a.originalManager;
-                    return 'envi\u00E9 este informe a ' + delegateUser + ' ya que ' + originalManager + ' est\u00E1 de vacaciones';
+                delegateSubmit (_a) {
+                    const delegateUser = _a.delegateUser;
+                        const originalManager = _a.originalManager;
+                    return `envi\u00E9 este informe a ${  delegateUser  } ya que ${  originalManager  } est\u00E1 de vacaciones`;
                 },
                 exportedToCSV: 'export\u00F3 este informe a CSV',
                 exportedToIntegration: {
-                    automatic: function (_a) {
-                        var label = _a.label;
-                        return 'export\u00F3 este informe a ' + label + '.';
+                    automatic (_a) {
+                        const label = _a.label;
+                        return `export\u00F3 este informe a ${  label  }.`;
                     },
-                    automaticActionOne: function (_a) {
-                        var label = _a.label;
-                        return 'export\u00F3 autom\u00E1ticamente este informe a ' + label + ' a trav\u00E9s de la';
+                    automaticActionOne (_a) {
+                        const label = _a.label;
+                        return `export\u00F3 autom\u00E1ticamente este informe a ${  label  } a trav\u00E9s de la`;
                     },
                     automaticActionTwo: 'configuración contable.',
-                    manual: function (_a) {
-                        var label = _a.label;
-                        return 'marc\u00F3 este informe como exportado manualmente a ' + label + '.';
+                    manual (_a) {
+                        const label = _a.label;
+                        return `marc\u00F3 este informe como exportado manualmente a ${  label  }.`;
                     },
                     reimburseableLink: 'Ver los gastos por cuenta propia.',
                     nonReimbursableLink: 'Ver los gastos de la tarjeta de empresa.',
-                    pending: function (_a) {
-                        var label = _a.label;
-                        return 'comenz\u00F3 a exportar este informe a ' + label + '...';
+                    pending (_a) {
+                        const label = _a.label;
+                        return `comenz\u00F3 a exportar este informe a ${  label  }...`;
                     },
                 },
-                integrationsMessage: function (_a) {
-                    var label = _a.label,
-                        errorMessage = _a.errorMessage,
-                        linkText = _a.linkText,
-                        linkURL = _a.linkURL;
-                    return 'no se pudo exportar este informe a ' + label + ' ("' + errorMessage + ' ' + (linkText ? '<a href="' + linkURL + '">' + linkText + '</a>' : '') + '")';
+                integrationsMessage (_a) {
+                    const label = _a.label;
+                        const errorMessage = _a.errorMessage;
+                        const linkText = _a.linkText;
+                        const linkURL = _a.linkURL;
+                    return `no se pudo exportar este informe a ${  label  } ("${  errorMessage  } ${  linkText ? `<a href="${  linkURL  }">${  linkText  }</a>` : ''  }")`;
                 },
                 managerAttachReceipt: 'agreg\u00F3 un recibo',
                 managerDetachReceipt: 'quit\u00F3 un recibo',
-                markedReimbursed: function (_a) {
-                    var amount = _a.amount,
-                        currency = _a.currency;
-                    return 'pag\u00F3 ' + currency + amount + ' en otro lugar';
+                markedReimbursed (_a) {
+                    const amount = _a.amount;
+                        const currency = _a.currency;
+                    return `pag\u00F3 ${  currency  }${amount  } en otro lugar`;
                 },
-                markedReimbursedFromIntegration: function (_a) {
-                    var amount = _a.amount,
-                        currency = _a.currency;
-                    return 'pag\u00F3 ' + currency + amount + ' mediante integraci\u00F3n';
+                markedReimbursedFromIntegration (_a) {
+                    const amount = _a.amount;
+                        const currency = _a.currency;
+                    return `pag\u00F3 ${  currency  }${amount  } mediante integraci\u00F3n`;
                 },
                 outdatedBankAccount: 'no se pudo procesar el pago debido a un problema con la cuenta bancaria del pagador',
                 reimbursementACHBounce: 'no se pudo procesar el pago porque el pagador no tiene fondos suficientes',
@@ -6344,64 +6344,64 @@ var translations = {
                 reimbursementDelayed: 'proces\u00F3 el pago pero se retras\u00F3 entre 1 y 2 d\u00EDas h\u00E1biles m\u00E1s',
                 selectedForRandomAudit: 'seleccionado al azar para revisi\u00F3n',
                 selectedForRandomAuditMarkdown: '[seleccionado al azar](https://help.expensify.com/articles/expensify-classic/reports/Set-a-random-report-audit-schedule) para revisi\u00F3n',
-                share: function (_a) {
-                    var to = _a.to;
-                    return 'miembro invitado ' + to;
+                share (_a) {
+                    const to = _a.to;
+                    return `miembro invitado ${  to}`;
                 },
-                unshare: function (_a) {
-                    var to = _a.to;
-                    return 'miembro eliminado ' + to;
+                unshare (_a) {
+                    const to = _a.to;
+                    return `miembro eliminado ${  to}`;
                 },
-                stripePaid: function (_a) {
-                    var amount = _a.amount,
-                        currency = _a.currency;
-                    return 'pagado ' + currency + amount;
+                stripePaid (_a) {
+                    const amount = _a.amount;
+                        const currency = _a.currency;
+                    return `pagado ${  currency  }${amount}`;
                 },
                 takeControl: 'tom\u00F3 el control',
-                integrationSyncFailed: function (_a) {
-                    var label = _a.label,
-                        errorMessage = _a.errorMessage;
-                    return 'no se pudo sincronizar con ' + label + (errorMessage ? ' ("' + errorMessage + '")' : '');
+                integrationSyncFailed (_a) {
+                    const label = _a.label;
+                        const errorMessage = _a.errorMessage;
+                    return `no se pudo sincronizar con ${  label  }${errorMessage ? ` ("${  errorMessage  }")` : ''}`;
                 },
-                addEmployee: function (_a) {
-                    var email = _a.email,
-                        role = _a.role;
-                    return 'agreg\u00F3 a ' + email + ' como ' + role;
+                addEmployee (_a) {
+                    const email = _a.email;
+                        const role = _a.role;
+                    return `agreg\u00F3 a ${  email  } como ${  role}`;
                 },
-                updateRole: function (_a) {
-                    var email = _a.email,
-                        currentRole = _a.currentRole,
-                        newRole = _a.newRole;
-                    return 'actualiz\u00F3 el rol ' + email + ' a ' + newRole + ' (previamente ' + currentRole + ')';
+                updateRole (_a) {
+                    const email = _a.email;
+                        const currentRole = _a.currentRole;
+                        const newRole = _a.newRole;
+                    return `actualiz\u00F3 el rol ${  email  } a ${  newRole  } (previamente ${  currentRole  })`;
                 },
-                leftWorkspace: function (_a) {
-                    var nameOrEmail = _a.nameOrEmail;
-                    return nameOrEmail + ' sali\u00F3 del espacio de trabajo';
+                leftWorkspace (_a) {
+                    const nameOrEmail = _a.nameOrEmail;
+                    return `${nameOrEmail  } sali\u00F3 del espacio de trabajo`;
                 },
-                removeMember: function (_a) {
-                    var email = _a.email,
-                        role = _a.role;
-                    return 'eliminado ' + role + ' ' + email;
+                removeMember (_a) {
+                    const email = _a.email;
+                        const role = _a.role;
+                    return `eliminado ${  role  } ${  email}`;
                 },
-                removedConnection: function (_a) {
-                    var connectionName = _a.connectionName;
-                    return 'elimin\u00F3 la conexi\u00F3n a ' + CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName];
+                removedConnection (_a) {
+                    const connectionName = _a.connectionName;
+                    return `elimin\u00F3 la conexi\u00F3n a ${  CONST_1['default'].POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`;
                 },
             },
         },
     },
     chronos: {
-        oooEventSummaryFullDay: function (_a) {
-            var summary = _a.summary,
-                dayCount = _a.dayCount,
-                date = _a.date;
-            return summary + ' por ' + dayCount + ' ' + (dayCount === 1 ? 'día' : 'días') + ' hasta el ' + date;
+        oooEventSummaryFullDay (_a) {
+            const summary = _a.summary;
+                const dayCount = _a.dayCount;
+                const date = _a.date;
+            return `${summary  } por ${  dayCount  } ${  dayCount === 1 ? 'día' : 'días'  } hasta el ${  date}`;
         },
-        oooEventSummaryPartialDay: function (_a) {
-            var summary = _a.summary,
-                timePeriod = _a.timePeriod,
-                date = _a.date;
-            return summary + ' de ' + timePeriod + ' del ' + date;
+        oooEventSummaryPartialDay (_a) {
+            const summary = _a.summary;
+                const timePeriod = _a.timePeriod;
+                const date = _a.date;
+            return `${summary  } de ${  timePeriod  } del ${  date}`;
         },
     },
     footer: {
@@ -6922,10 +6922,10 @@ var translations = {
         reply: 'Respuesta',
         from: 'De',
         in: 'en',
-        parentNavigationSummary: function (_a) {
-            var reportName = _a.reportName,
-                workspaceName = _a.workspaceName;
-            return 'De ' + reportName + (workspaceName ? ' en ' + workspaceName : '');
+        parentNavigationSummary (_a) {
+            const reportName = _a.reportName;
+                const workspaceName = _a.workspaceName;
+            return `De ${  reportName  }${workspaceName ? ` en ${  workspaceName}` : ''}`;
         },
     },
     qrCodes: {
@@ -7075,44 +7075,44 @@ var translations = {
         _7),
     violations: {
         allTagLevelsRequired: 'Todas las etiquetas son obligatorias',
-        autoReportedRejectedExpense: function (_a) {
-            var rejectedBy = _a.rejectedBy,
-                rejectReason = _a.rejectReason;
-            return rejectedBy + ' rechaz\u00F3 la solicitud y coment\u00F3 "' + rejectReason + '"';
+        autoReportedRejectedExpense (_a) {
+            const rejectedBy = _a.rejectedBy;
+                const rejectReason = _a.rejectReason;
+            return `${rejectedBy  } rechaz\u00F3 la solicitud y coment\u00F3 "${  rejectReason  }"`;
         },
         billableExpense: 'La opción facturable ya no es válida',
-        cashExpenseWithNoReceipt: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                formattedLimit = _b.formattedLimit;
-            return 'Recibo obligatorio para cantidades mayores de ' + formattedLimit;
+        cashExpenseWithNoReceipt (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const formattedLimit = _b.formattedLimit;
+            return `Recibo obligatorio para cantidades mayores de ${  formattedLimit}`;
         },
         categoryOutOfPolicy: 'La categoría ya no es válida',
-        conversionSurcharge: function (_a) {
-            var surcharge = _a.surcharge;
-            return surcharge + '% de recargo aplicado';
+        conversionSurcharge (_a) {
+            const surcharge = _a.surcharge;
+            return `${surcharge  }% de recargo aplicado`;
         },
         customUnitOutOfPolicy: 'Tasa inválida para este espacio de trabajo',
         duplicatedTransaction: 'Duplicado',
         fieldRequired: 'Los campos del informe son obligatorios',
         futureDate: 'Fecha futura no permitida',
-        invoiceMarkup: function (_a) {
-            var invoiceMarkup = _a.invoiceMarkup;
-            return 'Incrementado un ' + invoiceMarkup + '%';
+        invoiceMarkup (_a) {
+            const invoiceMarkup = _a.invoiceMarkup;
+            return `Incrementado un ${  invoiceMarkup  }%`;
         },
-        maxAge: function (_a) {
-            var maxAge = _a.maxAge;
-            return 'Fecha de m\u00E1s de ' + maxAge + ' d\u00EDas';
+        maxAge (_a) {
+            const maxAge = _a.maxAge;
+            return `Fecha de m\u00E1s de ${  maxAge  } d\u00EDas`;
         },
         missingCategory: 'Falta categoría',
         missingComment: 'Descripción obligatoria para la categoría seleccionada',
-        missingTag: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                tagName = _b.tagName;
-            return 'Falta ' + (tagName !== null && tagName !== void 0 ? tagName : 'etiqueta');
+        missingTag (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const tagName = _b.tagName;
+            return `Falta ${  tagName !== null && tagName !== void 0 ? tagName : 'etiqueta'}`;
         },
-        modifiedAmount: function (_a) {
-            var type = _a.type,
-                displayPercentVariance = _a.displayPercentVariance;
+        modifiedAmount (_a) {
+            const type = _a.type;
+                const displayPercentVariance = _a.displayPercentVariance;
             switch (type) {
                 case 'distance':
                     return 'Importe difiere del calculado basado en distancia';
@@ -7120,42 +7120,42 @@ var translations = {
                     return 'Importe mayor al de la transacción de la tarjeta';
                 default:
                     if (displayPercentVariance) {
-                        return 'Importe ' + displayPercentVariance + '% mayor al del recibo escaneado';
+                        return `Importe ${  displayPercentVariance  }% mayor al del recibo escaneado`;
                     }
                     return 'Importe mayor al del recibo escaneado';
             }
         },
         modifiedDate: 'Fecha difiere del recibo escaneado',
         nonExpensiworksExpense: 'Gasto no proviene de Expensiworks',
-        overAutoApprovalLimit: function (_a) {
-            var formattedLimit = _a.formattedLimit;
-            return 'Importe supera el l\u00EDmite de aprobaci\u00F3n autom\u00E1tica' + (formattedLimit ? ' de ' + formattedLimit : '');
+        overAutoApprovalLimit (_a) {
+            const formattedLimit = _a.formattedLimit;
+            return `Importe supera el l\u00EDmite de aprobaci\u00F3n autom\u00E1tica${  formattedLimit ? ` de ${  formattedLimit}` : ''}`;
         },
-        overCategoryLimit: function (_a) {
-            var formattedLimit = _a.formattedLimit;
-            return 'Importe supera el l\u00EDmite para la categor\u00EDa' + (formattedLimit ? ' de ' + formattedLimit + '/persona' : '');
+        overCategoryLimit (_a) {
+            const formattedLimit = _a.formattedLimit;
+            return `Importe supera el l\u00EDmite para la categor\u00EDa${  formattedLimit ? ` de ${  formattedLimit  }/persona` : ''}`;
         },
-        overLimit: function (_a) {
-            var formattedLimit = _a.formattedLimit;
-            return 'Importe supera el l\u00EDmite' + (formattedLimit ? ' de ' + formattedLimit + '/persona' : '');
+        overLimit (_a) {
+            const formattedLimit = _a.formattedLimit;
+            return `Importe supera el l\u00EDmite${  formattedLimit ? ` de ${  formattedLimit  }/persona` : ''}`;
         },
-        overLimitAttendee: function (_a) {
-            var formattedLimit = _a.formattedLimit;
-            return 'Importe supera el l\u00EDmite' + (formattedLimit ? ' de ' + formattedLimit + '/persona' : '');
+        overLimitAttendee (_a) {
+            const formattedLimit = _a.formattedLimit;
+            return `Importe supera el l\u00EDmite${  formattedLimit ? ` de ${  formattedLimit  }/persona` : ''}`;
         },
-        perDayLimit: function (_a) {
-            var formattedLimit = _a.formattedLimit;
-            return 'Importe supera el l\u00EDmite diario de la categor\u00EDa' + (formattedLimit ? ' de ' + formattedLimit + '/persona' : '');
+        perDayLimit (_a) {
+            const formattedLimit = _a.formattedLimit;
+            return `Importe supera el l\u00EDmite diario de la categor\u00EDa${  formattedLimit ? ` de ${  formattedLimit  }/persona` : ''}`;
         },
         receiptNotSmartScanned: 'Escaneo de recibo incompleto. Por favor, verifica los detalles manualmente.',
-        receiptRequired: function (_a) {
-            var formattedLimit = _a.formattedLimit,
-                category = _a.category;
-            var message = 'Recibo obligatorio';
+        receiptRequired (_a) {
+            const formattedLimit = _a.formattedLimit;
+                const category = _a.category;
+            let message = 'Recibo obligatorio';
             if (formattedLimit !== null && formattedLimit !== void 0 ? formattedLimit : category) {
                 message += ' para importes sobre';
                 if (formattedLimit) {
-                    message += ' ' + formattedLimit;
+                    message += ` ${  formattedLimit}`;
                 }
                 if (category) {
                     message += ' el límite de la categoría';
@@ -7163,47 +7163,47 @@ var translations = {
             }
             return message;
         },
-        prohibitedExpense: function (_a) {
-            var prohibitedExpenseType = _a.prohibitedExpenseType;
-            var preMessage = 'Gasto prohibido: ';
+        prohibitedExpense (_a) {
+            const prohibitedExpenseType = _a.prohibitedExpenseType;
+            const preMessage = 'Gasto prohibido: ';
             switch (prohibitedExpenseType) {
                 case 'alcohol':
-                    return preMessage + ' Alcohol';
+                    return `${preMessage  } Alcohol`;
                 case 'gambling':
-                    return preMessage + ' Juego de apuestas';
+                    return `${preMessage  } Juego de apuestas`;
                 case 'tobacco':
-                    return preMessage + ' Tobacco';
+                    return `${preMessage  } Tobacco`;
                 case 'adultEntertainment':
-                    return preMessage + ' Entretenimiento para adultos';
+                    return `${preMessage  } Entretenimiento para adultos`;
                 case 'hotelIncidentals':
-                    return preMessage + ' Gastos adicionales de hotel';
+                    return `${preMessage  } Gastos adicionales de hotel`;
                 default:
-                    return '' + preMessage + prohibitedExpenseType;
+                    return `${  preMessage  }${prohibitedExpenseType}`;
             }
         },
-        customRules: function (_a) {
-            var message = _a.message;
+        customRules (_a) {
+            const message = _a.message;
             return message;
         },
         reviewRequired: 'Revisión requerida',
-        rter: function (_a) {
-            var brokenBankConnection = _a.brokenBankConnection,
-                isAdmin = _a.isAdmin,
-                email = _a.email,
-                isTransactionOlderThan7Days = _a.isTransactionOlderThan7Days,
-                member = _a.member,
-                rterType = _a.rterType;
+        rter (_a) {
+            const brokenBankConnection = _a.brokenBankConnection;
+                const isAdmin = _a.isAdmin;
+                const email = _a.email;
+                const isTransactionOlderThan7Days = _a.isTransactionOlderThan7Days;
+                const member = _a.member;
+                const rterType = _a.rterType;
             if (rterType === CONST_1['default'].RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 || rterType === CONST_1['default'].RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION) {
                 return '';
             }
             if (brokenBankConnection) {
                 return isAdmin
-                    ? 'No se puede adjuntar recibo debido a un problema con la conexi\u00F3n a tu banco que ' + email + ' necesita arreglar'
+                    ? `No se puede adjuntar recibo debido a un problema con la conexi\u00F3n a tu banco que ${  email  } necesita arreglar`
                     : 'No se puede adjuntar recibo debido a un problema con la conexión a tu banco que necesitas arreglar';
             }
             if (!isTransactionOlderThan7Days) {
                 return isAdmin
-                    ? 'Pide a ' + member + ' que marque la transacci\u00F3n como efectivo o espera 7 d\u00EDas e int\u00E9ntalo de nuevo'
+                    ? `Pide a ${  member  } que marque la transacci\u00F3n como efectivo o espera 7 d\u00EDas e int\u00E9ntalo de nuevo`
                     : 'Esperando a adjuntar automáticamente la transacción de tarjeta de crédito';
             }
             return '';
@@ -7212,27 +7212,27 @@ var translations = {
         adminBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, resuélvelo en ',
         memberBrokenConnectionError: 'Recibo pendiente debido a una conexión bancaria rota. Por favor, pide a un administrador del espacio de trabajo que lo resuelva.',
         markAsCashToIgnore: 'Márcalo como efectivo para ignorar y solicitar el pago.',
-        smartscanFailed: function (_a) {
-            var _b = _a.canEdit,
-                canEdit = _b === void 0 ? true : _b;
-            return 'No se pudo escanear el recibo.' + (canEdit ? ' Introduce los datos manualmente.' : '');
+        smartscanFailed (_a) {
+            const _b = _a.canEdit;
+                const canEdit = _b === void 0 ? true : _b;
+            return `No se pudo escanear el recibo.${  canEdit ? ' Introduce los datos manualmente.' : ''}`;
         },
         receiptGeneratedWithAI: 'Posible recibo generado por IA',
-        someTagLevelsRequired: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                tagName = _b.tagName;
-            return 'Falta ' + (tagName !== null && tagName !== void 0 ? tagName : 'Tag');
+        someTagLevelsRequired (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const tagName = _b.tagName;
+            return `Falta ${  tagName !== null && tagName !== void 0 ? tagName : 'Tag'}`;
         },
-        tagOutOfPolicy: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                tagName = _b.tagName;
-            return 'La etiqueta ' + (tagName ? tagName + ' ' : '') + 'ya no es v\u00E1lida';
+        tagOutOfPolicy (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const tagName = _b.tagName;
+            return `La etiqueta ${  tagName ? `${tagName  } ` : ''  }ya no es v\u00E1lida`;
         },
         taxAmountChanged: 'El importe del impuesto fue modificado',
-        taxOutOfPolicy: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                taxName = _b.taxName;
-            return (taxName !== null && taxName !== void 0 ? taxName : 'El impuesto') + ' ya no es v\u00E1lido';
+        taxOutOfPolicy (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const taxName = _b.taxName;
+            return `${taxName !== null && taxName !== void 0 ? taxName : 'El impuesto'  } ya no es v\u00E1lido`;
         },
         taxRateChanged: 'La tasa de impuesto fue modificada',
         taxRequired: 'Falta la tasa de impuesto',
@@ -7253,8 +7253,8 @@ var translations = {
     reportViolations:
         ((_8 = {}),
         (_8[CONST_1['default'].REPORT_VIOLATIONS.FIELD_REQUIRED] = function (_a) {
-            var fieldName = _a.fieldName;
-            return fieldName + ' es obligatorio';
+            const fieldName = _a.fieldName;
+            return `${fieldName  } es obligatorio`;
         }),
         _8),
     violationDismissal: {
@@ -7326,38 +7326,38 @@ var translations = {
         authenticatePaymentCard: 'Autenticar tarjeta de pago',
         mobileReducedFunctionalityMessage: 'No puedes hacer cambios en tu suscripción en la aplicación móvil.',
         badge: {
-            freeTrial: function (_a) {
-                var numOfDays = _a.numOfDays;
-                return 'Prueba gratuita: ' + (numOfDays === 1 ? 'queda 1 d\u00EDa' : 'quedan ' + numOfDays + ' d\u00EDas');
+            freeTrial (_a) {
+                const numOfDays = _a.numOfDays;
+                return `Prueba gratuita: ${  numOfDays === 1 ? 'queda 1 d\u00EDa' : `quedan ${  numOfDays  } d\u00EDas`}`;
             },
         },
         billingBanner: {
             policyOwnerAmountOwed: {
                 title: 'Tu información de pago está desactualizada',
-                subtitle: function (_a) {
-                    var date = _a.date;
-                    return 'Actualiza tu tarjeta de pago antes del ' + date + ' para continuar utilizando todas tus herramientas favoritas';
+                subtitle (_a) {
+                    const date = _a.date;
+                    return `Actualiza tu tarjeta de pago antes del ${  date  } para continuar utilizando todas tus herramientas favoritas`;
                 },
             },
             policyOwnerAmountOwedOverdue: {
                 title: 'No se pudo procesar tu pago',
-                subtitle: function (_a) {
-                    var date = _a.date,
-                        purchaseAmountOwed = _a.purchaseAmountOwed;
+                subtitle (_a) {
+                    const date = _a.date;
+                        const purchaseAmountOwed = _a.purchaseAmountOwed;
                     return date && purchaseAmountOwed
-                        ? 'No se ha podido procesar tu cargo de ' +
-                              purchaseAmountOwed +
-                              ' del d\u00EDa ' +
-                              date +
-                              '. Por favor, a\u00F1ade una tarjeta de pago para saldar la cantidad adeudada.'
+                        ? `No se ha podido procesar tu cargo de ${ 
+                              purchaseAmountOwed 
+                              } del d\u00EDa ${ 
+                              date 
+                              }. Por favor, a\u00F1ade una tarjeta de pago para saldar la cantidad adeudada.`
                         : 'Por favor, añade una tarjeta de pago para saldar la cantidad adeudada.';
                 },
             },
             policyOwnerUnderInvoicing: {
                 title: 'Tu información de pago está desactualizada',
-                subtitle: function (_a) {
-                    var date = _a.date;
-                    return 'Tu pago est\u00E1 vencido. Por favor, paga tu factura antes del ' + date + ' para evitar la interrupci\u00F3n del servicio.';
+                subtitle (_a) {
+                    const date = _a.date;
+                    return `Tu pago est\u00E1 vencido. Por favor, paga tu factura antes del ${  date  } para evitar la interrupci\u00F3n del servicio.`;
                 },
             },
             policyOwnerUnderInvoicingOverdue: {
@@ -7366,45 +7366,45 @@ var translations = {
             },
             billingDisputePending: {
                 title: 'No se ha podido realizar el cobro a tu tarjeta',
-                subtitle: function (_a) {
-                    var amountOwed = _a.amountOwed,
-                        cardEnding = _a.cardEnding;
+                subtitle (_a) {
+                    const amountOwed = _a.amountOwed;
+                        const cardEnding = _a.cardEnding;
                     return (
-                        'Has impugnado el cargo ' +
-                        amountOwed +
-                        ' en la tarjeta terminada en ' +
-                        cardEnding +
-                        '. Tu cuenta estar\u00E1 bloqueada hasta que se resuelva la disputa con tu banco.'
+                        `Has impugnado el cargo ${ 
+                        amountOwed 
+                        } en la tarjeta terminada en ${ 
+                        cardEnding 
+                        }. Tu cuenta estar\u00E1 bloqueada hasta que se resuelva la disputa con tu banco.`
                     );
                 },
             },
             cardAuthenticationRequired: {
                 title: 'No se ha podido realizar el cobro a tu tarjeta',
-                subtitle: function (_a) {
-                    var cardEnding = _a.cardEnding;
+                subtitle (_a) {
+                    const cardEnding = _a.cardEnding;
                     return (
-                        'Tu tarjeta de pago no ha sido autenticada completamente. Por favor, completa el proceso de autenticaci\u00F3n para activar tu tarjeta de pago que termina en ' +
-                        cardEnding +
-                        '.'
+                        `Tu tarjeta de pago no ha sido autenticada completamente. Por favor, completa el proceso de autenticaci\u00F3n para activar tu tarjeta de pago que termina en ${ 
+                        cardEnding 
+                        }.`
                     );
                 },
             },
             insufficientFunds: {
                 title: 'No se ha podido realizar el cobro a tu tarjeta',
-                subtitle: function (_a) {
-                    var amountOwed = _a.amountOwed;
+                subtitle (_a) {
+                    const amountOwed = _a.amountOwed;
                     return (
-                        'Tu tarjeta de pago fue rechazada por falta de fondos. Vuelve a intentarlo o a\u00F1ade una nueva tarjeta de pago para liquidar tu saldo pendiente de ' +
-                        amountOwed +
-                        '.'
+                        `Tu tarjeta de pago fue rechazada por falta de fondos. Vuelve a intentarlo o a\u00F1ade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${ 
+                        amountOwed 
+                        }.`
                     );
                 },
             },
             cardExpired: {
                 title: 'No se ha podido realizar el cobro a tu tarjeta',
-                subtitle: function (_a) {
-                    var amountOwed = _a.amountOwed;
-                    return 'Tu tarjeta de pago ha expirado. Por favor, a\u00F1ade una nueva tarjeta de pago para liquidar tu saldo pendiente de ' + amountOwed + '.';
+                subtitle (_a) {
+                    const amountOwed = _a.amountOwed;
+                    return `Tu tarjeta de pago ha expirado. Por favor, a\u00F1ade una nueva tarjeta de pago para liquidar tu saldo pendiente de ${  amountOwed  }.`;
                 },
             },
             cardExpireSoon: {
@@ -7421,11 +7421,11 @@ var translations = {
                 subtitle:
                     'Antes de volver a intentarlo, llama directamente a tu banco para que autorice los cargos de Expensify y elimine las retenciones. De lo contrario, añade una tarjeta de pago diferente.',
             },
-            cardOnDispute: function (_a) {
-                var amountOwed = _a.amountOwed,
-                    cardEnding = _a.cardEnding;
+            cardOnDispute (_a) {
+                const amountOwed = _a.amountOwed;
+                    const cardEnding = _a.cardEnding;
                 return (
-                    'Has impugnado el cargo ' + amountOwed + ' en la tarjeta terminada en ' + cardEnding + '. Tu cuenta estar\u00E1 bloqueada hasta que se resuelva la disputa con tu banco.'
+                    `Has impugnado el cargo ${  amountOwed  } en la tarjeta terminada en ${  cardEnding  }. Tu cuenta estar\u00E1 bloqueada hasta que se resuelva la disputa con tu banco.`
                 );
             },
             preTrial: {
@@ -7435,9 +7435,9 @@ var translations = {
                 subtitleEnd: 'para que tu equipo pueda empezar a enviar gastos.',
             },
             trialStarted: {
-                title: function (_a) {
-                    var numOfDays = _a.numOfDays;
-                    return 'Prueba gratuita: \u00A1' + (numOfDays === 1 ? 'queda 1 d\u00EDa' : 'quedan ' + numOfDays + ' d\u00EDas') + '!';
+                title (_a) {
+                    const numOfDays = _a.numOfDays;
+                    return `Prueba gratuita: \u00A1${  numOfDays === 1 ? 'queda 1 d\u00EDa' : `quedan ${  numOfDays  } d\u00EDas`  }!`;
                 },
                 subtitle: 'Añade una tarjeta de pago para seguir utilizando tus funciones favoritas.',
             },
@@ -7449,25 +7449,25 @@ var translations = {
                 claimOffer: 'Solicitar oferta',
                 noThanks: 'No, gracias',
                 subscriptionPageTitle: {
-                    phrase1: function (_a) {
-                        var discountType = _a.discountType;
-                        return '\u00A1' + discountType + '% de descuento en tu primer a\u00F1o!';
+                    phrase1 (_a) {
+                        const discountType = _a.discountType;
+                        return `\u00A1${  discountType  }% de descuento en tu primer a\u00F1o!`;
                     },
                     phrase2: '\u00A1Solo a\u00F1ade una tarjeta de pago y comienza una suscripci\u00F3n anual!',
                 },
                 onboardingChatTitle: {
                     phrase1: 'Oferta por tiempo limitado:',
-                    phrase2: function (_a) {
-                        var discountType = _a.discountType;
-                        return '\u00A1' + discountType + '% de descuento en tu primer a\u00F1o!';
+                    phrase2 (_a) {
+                        const discountType = _a.discountType;
+                        return `\u00A1${  discountType  }% de descuento en tu primer a\u00F1o!`;
                     },
                 },
-                subtitle: function (_a) {
-                    var days = _a.days,
-                        hours = _a.hours,
-                        minutes = _a.minutes,
-                        seconds = _a.seconds;
-                    return 'Solic\u00EDtala en ' + (days > 0 ? days + 'd : ' : '') + hours + 'h : ' + minutes + 'm : ' + seconds + 's';
+                subtitle (_a) {
+                    const days = _a.days;
+                        const hours = _a.hours;
+                        const minutes = _a.minutes;
+                        const seconds = _a.seconds;
+                    return `Solic\u00EDtala en ${  days > 0 ? `${days  }d : ` : ''  }${hours  }h : ${  minutes  }m : ${  seconds  }s`;
                 },
             },
         },
@@ -7475,19 +7475,19 @@ var translations = {
             title: 'Pago',
             subtitle: 'Añade una tarjeta para pagar tu suscripción a Expensify.',
             addCardButton: 'Añade tarjeta de pago',
-            cardNextPayment: function (_a) {
-                var nextPaymentDate = _a.nextPaymentDate;
-                return 'Tu pr\u00F3xima fecha de pago es ' + nextPaymentDate + '.';
+            cardNextPayment (_a) {
+                const nextPaymentDate = _a.nextPaymentDate;
+                return `Tu pr\u00F3xima fecha de pago es ${  nextPaymentDate  }.`;
             },
-            cardEnding: function (_a) {
-                var cardNumber = _a.cardNumber;
-                return 'Tarjeta terminada en ' + cardNumber;
+            cardEnding (_a) {
+                const cardNumber = _a.cardNumber;
+                return `Tarjeta terminada en ${  cardNumber}`;
             },
-            cardInfo: function (_a) {
-                var name = _a.name,
-                    expiration = _a.expiration,
-                    currency = _a.currency;
-                return 'Nombre: ' + name + ', Expiraci\u00F3n: ' + expiration + ', Moneda: ' + currency;
+            cardInfo (_a) {
+                const name = _a.name;
+                    const expiration = _a.expiration;
+                    const currency = _a.currency;
+                return `Nombre: ${  name  }, Expiraci\u00F3n: ${  expiration  }, Moneda: ${  currency}`;
             },
             changeCard: 'Cambiar tarjeta de pago',
             changeCurrency: 'Cambiar moneda de pago',
@@ -7507,31 +7507,31 @@ var translations = {
             title: 'Tu plan',
             exploreAllPlans: 'Explorar todos los planes',
             customPricing: 'Precios personalizados',
-            asLowAs: function (_a) {
-                var price = _a.price;
-                return 'desde ' + price + ' por miembro activo/mes';
+            asLowAs (_a) {
+                const price = _a.price;
+                return `desde ${  price  } por miembro activo/mes`;
             },
-            pricePerMemberMonth: function (_a) {
-                var price = _a.price;
-                return price + ' por miembro/mes';
+            pricePerMemberMonth (_a) {
+                const price = _a.price;
+                return `${price  } por miembro/mes`;
             },
-            pricePerMemberPerMonth: function (_a) {
-                var price = _a.price;
-                return price + ' por miembro por mes';
+            pricePerMemberPerMonth (_a) {
+                const price = _a.price;
+                return `${price  } por miembro por mes`;
             },
             perMemberMonth: 'por miembro/mes',
             collect: {
                 title: 'Recopilar',
                 description: 'El plan SMB que te ofrece gestión de gastos, viajes y chat.',
-                priceAnnual: function (_a) {
-                    var lower = _a.lower,
-                        upper = _a.upper;
-                    return 'Desde ' + lower + '/miembro activo con la Tarjeta Expensify, ' + upper + '/miembro activo sin la Tarjeta Expensify.';
+                priceAnnual (_a) {
+                    const lower = _a.lower;
+                        const upper = _a.upper;
+                    return `Desde ${  lower  }/miembro activo con la Tarjeta Expensify, ${  upper  }/miembro activo sin la Tarjeta Expensify.`;
                 },
-                pricePayPerUse: function (_a) {
-                    var lower = _a.lower,
-                        upper = _a.upper;
-                    return 'Desde ' + lower + '/miembro activo con la Tarjeta Expensify, ' + upper + '/miembro activo sin la Tarjeta Expensify.';
+                pricePayPerUse (_a) {
+                    const lower = _a.lower;
+                        const upper = _a.upper;
+                    return `Desde ${  lower  }/miembro activo con la Tarjeta Expensify, ${  upper  }/miembro activo sin la Tarjeta Expensify.`;
                 },
                 benefit1: 'Escaneo de recibos',
                 benefit2: 'Reembolsos',
@@ -7545,15 +7545,15 @@ var translations = {
             control: {
                 title: 'Controlar',
                 description: 'Gastos, viajes y chat para empresas más grandes.',
-                priceAnnual: function (_a) {
-                    var lower = _a.lower,
-                        upper = _a.upper;
-                    return 'Desde ' + lower + '/miembro activo con la Tarjeta Expensify, ' + upper + '/miembro activo sin la Tarjeta Expensify.';
+                priceAnnual (_a) {
+                    const lower = _a.lower;
+                        const upper = _a.upper;
+                    return `Desde ${  lower  }/miembro activo con la Tarjeta Expensify, ${  upper  }/miembro activo sin la Tarjeta Expensify.`;
                 },
-                pricePayPerUse: function (_a) {
-                    var lower = _a.lower,
-                        upper = _a.upper;
-                    return 'Desde ' + lower + '/miembro activo con la Tarjeta Expensify, ' + upper + '/miembro activo sin la Tarjeta Expensify.';
+                pricePayPerUse (_a) {
+                    const lower = _a.lower;
+                        const upper = _a.upper;
+                    return `Desde ${  lower  }/miembro activo con la Tarjeta Expensify, ${  upper  }/miembro activo sin la Tarjeta Expensify.`;
                 },
                 benefit1: 'Todo lo incluido en el plan Collect',
                 benefit2: 'Flujos de aprobación multinivel',
@@ -7598,23 +7598,23 @@ var translations = {
             note: 'Nota: Un miembro activo es cualquiera que haya creado, editado, enviado, aprobado, reembolsado, o exportado datos de gastos vinculados al espacio de trabajo de tu empresa.',
             confirmDetails: 'Confirma los datos de tu nueva suscripción anual:',
             subscriptionSize: 'Tamaño de suscripción',
-            activeMembers: function (_a) {
-                var size = _a.size;
-                return size + ' miembros activos/mes';
+            activeMembers (_a) {
+                const size = _a.size;
+                return `${size  } miembros activos/mes`;
             },
             subscriptionRenews: 'Renovación de la suscripción',
             youCantDowngrade: 'No puedes bajar de categoría durante tu suscripción anual.',
-            youAlreadyCommitted: function (_a) {
-                var size = _a.size,
-                    date = _a.date;
+            youAlreadyCommitted (_a) {
+                const size = _a.size;
+                    const date = _a.date;
                 return (
-                    'Ya se ha comprometido a un tama\u00F1o de suscripci\u00F3n anual de ' +
-                    size +
-                    ' miembros activos al mes hasta el ' +
-                    date +
-                    '. Puede cambiar a una suscripci\u00F3n de pago por uso en ' +
-                    date +
-                    ' desactivando la auto-renovaci\u00F3n.'
+                    `Ya se ha comprometido a un tama\u00F1o de suscripci\u00F3n anual de ${ 
+                    size 
+                    } miembros activos al mes hasta el ${ 
+                    date 
+                    }. Puede cambiar a una suscripci\u00F3n de pago por uso en ${ 
+                    date 
+                    } desactivando la auto-renovaci\u00F3n.`
                 );
             },
             error: {
@@ -7630,20 +7630,20 @@ var translations = {
         },
         subscriptionSettings: {
             title: 'Configuración de suscripción',
-            summary: function (_a) {
-                var subscriptionType = _a.subscriptionType,
-                    subscriptionSize = _a.subscriptionSize,
-                    autoRenew = _a.autoRenew,
-                    autoIncrease = _a.autoIncrease;
+            summary (_a) {
+                const subscriptionType = _a.subscriptionType;
+                    const subscriptionSize = _a.subscriptionSize;
+                    const autoRenew = _a.autoRenew;
+                    const autoIncrease = _a.autoIncrease;
                 return (
-                    'Tipo de suscripci\u00F3n: ' +
-                    subscriptionType +
-                    ', Tama\u00F1o de suscripci\u00F3n: ' +
-                    subscriptionSize +
-                    ', Renovaci\u00F3n autom\u00E1tica: ' +
-                    autoRenew +
-                    ', Aumento autom\u00E1tico de asientos anuales: ' +
-                    autoIncrease
+                    `Tipo de suscripci\u00F3n: ${ 
+                    subscriptionType 
+                    }, Tama\u00F1o de suscripci\u00F3n: ${ 
+                    subscriptionSize 
+                    }, Renovaci\u00F3n autom\u00E1tica: ${ 
+                    autoRenew 
+                    }, Aumento autom\u00E1tico de asientos anuales: ${ 
+                    autoIncrease}`
                 );
             },
             none: 'ninguno',
@@ -7652,18 +7652,18 @@ var translations = {
             annual: 'Anual',
             autoRenew: 'Auto-renovación',
             autoIncrease: 'Auto-incremento',
-            saveUpTo: function (_a) {
-                var amountWithCurrency = _a.amountWithCurrency;
-                return 'Ahorre hasta ' + amountWithCurrency + ' al mes por miembro activo';
+            saveUpTo (_a) {
+                const amountWithCurrency = _a.amountWithCurrency;
+                return `Ahorre hasta ${  amountWithCurrency  } al mes por miembro activo`;
             },
             automaticallyIncrease:
                 'Aumenta automáticamente tus plazas anuales para dar lugar a los miembros activos que superen el tamaño de tu suscripción. Nota: Esto ampliará la fecha de finalización de tu suscripción anual.',
             disableAutoRenew: 'Desactivar auto-renovación',
             helpUsImprove: 'Ayúdanos a mejorar Expensify',
             whatsMainReason: '¿Cuál es la razón principal por la que deseas desactivar la auto-renovación?',
-            renewsOn: function (_a) {
-                var date = _a.date;
-                return 'Se renovar\u00E1 el ' + date + '.';
+            renewsOn (_a) {
+                const date = _a.date;
+                return `Se renovar\u00E1 el ${  date  }.`;
             },
             pricingConfiguration: 'El precio depende de la configuración. Para obtener el precio más bajo, elige una suscripción anual y obtén la Tarjeta Expensify.',
             learnMore: {
@@ -7722,9 +7722,9 @@ var translations = {
         addCopilot: 'Agregar copiloto',
         membersCanAccessYourAccount: 'Estos miembros pueden acceder a tu cuenta:',
         youCanAccessTheseAccounts: 'Puedes acceder a estas cuentas a través del conmutador de cuentas:',
-        role: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                role = _b.role;
+        role (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const role = _b.role;
             switch (role) {
                 case CONST_1['default'].DELEGATE_ROLE.ALL:
                     return 'Completo';
@@ -7735,16 +7735,16 @@ var translations = {
             }
         },
         genericError: '¡Ups! Ha ocurrido un error. Por favor, inténtalo de nuevo.',
-        onBehalfOfMessage: function (_a) {
-            var delegator = _a.delegator;
-            return 'en nombre de ' + delegator;
+        onBehalfOfMessage (_a) {
+            const delegator = _a.delegator;
+            return `en nombre de ${  delegator}`;
         },
         accessLevel: 'Nivel de acceso',
         confirmCopilot: 'Confirma tu copiloto a continuación.',
         accessLevelDescription: 'Elige un nivel de acceso a continuación. Tanto el acceso Completo como el Limitado permiten a los copilotos ver todas las conversaciones y gastos.',
-        roleDescription: function (_a) {
-            var _b = _a === void 0 ? {} : _a,
-                role = _b.role;
+        roleDescription (_a) {
+            const _b = _a === void 0 ? {} : _a;
+                const role = _b.role;
             switch (role) {
                 case CONST_1['default'].DELEGATE_ROLE.ALL:
                     return 'Permite a otro miembro realizar todas las acciones en tu cuenta, en tu nombre. Incluye chat, presentaciones, aprobaciones, pagos, actualizaciones de configuración y más.';
@@ -7758,21 +7758,21 @@ var translations = {
         removeCopilotConfirmation: '¿Estás seguro de que quieres eliminar este copiloto?',
         changeAccessLevel: 'Cambiar nivel de acceso',
         makeSureItIsYou: 'Vamos a asegurarnos de que eres tú',
-        enterMagicCode: function (_a) {
-            var contactMethod = _a.contactMethod;
-            return 'Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ' + contactMethod + ' para agregar un copiloto. Deber\u00EDa llegar en un par de minutos.';
+        enterMagicCode (_a) {
+            const contactMethod = _a.contactMethod;
+            return `Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ${  contactMethod  } para agregar un copiloto. Deber\u00EDa llegar en un par de minutos.`;
         },
-        enterMagicCodeUpdate: function (_a) {
-            var contactMethod = _a.contactMethod;
-            return 'Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ' + contactMethod + ' para actualizar el nivel de acceso de tu copiloto.';
+        enterMagicCodeUpdate (_a) {
+            const contactMethod = _a.contactMethod;
+            return `Por favor, introduce el c\u00F3digo m\u00E1gico enviado a ${  contactMethod  } para actualizar el nivel de acceso de tu copiloto.`;
         },
         notAllowed: 'No tan rápido...',
         noAccessMessage: 'Como copiloto, no tienes acceso a esta página. ¡Lo sentimos!',
         notAllowedMessageStart: 'Como',
         notAllowedMessageHyperLinked: ' copiloto',
-        notAllowedMessageEnd: function (_a) {
-            var accountOwnerEmail = _a.accountOwnerEmail;
-            return ' de ' + accountOwnerEmail + ', no tienes permiso para realizar esta acci\u00F3n. \u00A1Lo siento!';
+        notAllowedMessageEnd (_a) {
+            const accountOwnerEmail = _a.accountOwnerEmail;
+            return ` de ${  accountOwnerEmail  }, no tienes permiso para realizar esta acci\u00F3n. \u00A1Lo siento!`;
         },
         copilotAccess: 'Acceso a Copilot',
     },
@@ -7785,18 +7785,18 @@ var translations = {
         nothingToPreview: 'Nada que previsualizar',
         editJson: 'Editar JSON:',
         preview: 'Previa:',
-        missingProperty: function (_a) {
-            var propertyName = _a.propertyName;
-            return 'Falta ' + propertyName;
+        missingProperty (_a) {
+            const propertyName = _a.propertyName;
+            return `Falta ${  propertyName}`;
         },
-        invalidProperty: function (_a) {
-            var propertyName = _a.propertyName,
-                expectedType = _a.expectedType;
-            return 'Propiedad inv\u00E1lida: ' + propertyName + ' - Esperado: ' + expectedType;
+        invalidProperty (_a) {
+            const propertyName = _a.propertyName;
+                const expectedType = _a.expectedType;
+            return `Propiedad inv\u00E1lida: ${  propertyName  } - Esperado: ${  expectedType}`;
         },
-        invalidValue: function (_a) {
-            var expectedValues = _a.expectedValues;
-            return 'Valor inv\u00E1lido - Esperado: ' + expectedValues;
+        invalidValue (_a) {
+            const expectedValues = _a.expectedValues;
+            return `Valor inv\u00E1lido - Esperado: ${  expectedValues}`;
         },
         missingValue: 'Valor en falta',
         createReportAction: 'Crear acción de informe',

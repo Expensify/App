@@ -1,9 +1,9 @@
-'use strict';
-var _a;
+
+let _a;
 exports.__esModule = true;
-var SCREENS_1 = require('@src/SCREENS');
+const SCREENS_1 = require('@src/SCREENS');
 // This file is used to define relation between settings split navigator's central screens and RHP screens.
-var CENTRAL_PANE_TO_RHP_MAPPING =
+const CENTRAL_PANE_TO_RHP_MAPPING =
     ((_a = {}),
     (_a[SCREENS_1['default'].SETTINGS.PROFILE.ROOT] = [
         SCREENS_1['default'].SETTINGS.PROFILE.DISPLAY_NAME,

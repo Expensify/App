@@ -1,9 +1,9 @@
-'use strict';
-var _a;
+
+let _a;
 exports.__esModule = true;
-var SCREENS_1 = require('@src/SCREENS');
+const SCREENS_1 = require('@src/SCREENS');
 // This file is used to define relation between workspace split navigator's central screens and RHP screens.
-var WORKSPACE_TO_RHP =
+const WORKSPACE_TO_RHP =
     ((_a = {}),
     (_a[SCREENS_1['default'].WORKSPACE.INITIAL] = []),
     (_a[SCREENS_1['default'].WORKSPACE.PROFILE] = [

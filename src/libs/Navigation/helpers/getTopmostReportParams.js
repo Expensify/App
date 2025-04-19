@@ -1,13 +1,14 @@
-'use strict';
+
 exports.__esModule = true;
-var NAVIGATORS_1 = require('@src/NAVIGATORS');
-var SCREENS_1 = require('@src/SCREENS');
+const NAVIGATORS_1 = require('@src/NAVIGATORS');
+const SCREENS_1 = require('@src/SCREENS');
+
 function getTopmostReportParams(state) {
-    var _a, _b;
+    let _a; let _b;
     if (!state) {
         return;
     }
-    var topmostReportsSplitNavigator =
+    const topmostReportsSplitNavigator =
         (_a = state.routes) === null || _a === void 0
             ? void 0
             : _a
@@ -18,7 +19,7 @@ function getTopmostReportParams(state) {
     if (!topmostReportsSplitNavigator) {
         return;
     }
-    var topmostReport =
+    const topmostReport =
         (_b = topmostReportsSplitNavigator.state) === null || _b === void 0
             ? void 0
             : _b.routes

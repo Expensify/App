@@ -1,9 +1,10 @@
-'use strict';
+
 exports.__esModule = true;
-var react_native_config_1 = require('react-native-config');
-var CONST_1 = require('@src/CONST');
+const react_native_config_1 = require('react-native-config');
+const CONST_1 = require('@src/CONST');
+
 function getEnvironment() {
-    var _a;
+    let _a;
     return Promise.resolve(
         (_a = react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].ENVIRONMENT) !== null && _a !== void 0
             ? _a

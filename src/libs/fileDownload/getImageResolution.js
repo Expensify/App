@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 /**
  * Get image resolution
@@ -10,13 +10,13 @@ exports.__esModule = true;
  * because FileReader is slow and causes a noticeable delay in the UI when selecting an image.
  *
  */
-var getImageResolution = function (file) {
+const getImageResolution = function (file) {
     if (!(file instanceof File)) {
         return Promise.reject(new Error('Object is not an instance of File'));
     }
     return new Promise(function (resolve, reject) {
-        var image = new Image();
-        var objectUrl = URL.createObjectURL(file);
+        const image = new Image();
+        const objectUrl = URL.createObjectURL(file);
         image.onload = function () {
             resolve({
                 width: this.naturalWidth,

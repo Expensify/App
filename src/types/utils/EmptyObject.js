@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.isEmptyObject = void 0;
 function isEmptyObject(obj) {

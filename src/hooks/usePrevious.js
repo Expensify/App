@@ -1,11 +1,11 @@
-'use strict';
+
 exports.__esModule = true;
-var react_1 = require('react');
+const react_1 = require('react');
 /**
  * A hook that returns the previous value of a variable
  */
 function usePrevious(value) {
-    var ref = react_1.useRef(value);
+    const ref = react_1.useRef(value);
     react_1.useEffect(
         function () {
             ref.current = value;

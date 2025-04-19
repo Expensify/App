@@ -1,6 +1,7 @@
-'use strict';
+
 exports.__esModule = true;
-var SearchQueryUtils_1 = require('@libs/SearchQueryUtils');
+const SearchQueryUtils_1 = require('@libs/SearchQueryUtils');
+
 function extractPolicyIDFromQuery(route) {
     if (!(route === null || route === void 0 ? void 0 : route.params)) {
         return undefined;
@@ -8,8 +9,8 @@ function extractPolicyIDFromQuery(route) {
     if (!('q' in route.params)) {
         return undefined;
     }
-    var queryString = route.params.q;
-    var queryJSON = SearchQueryUtils_1.buildSearchQueryJSON(queryString);
+    const queryString = route.params.q;
+    const queryJSON = SearchQueryUtils_1.buildSearchQueryJSON(queryString);
     if (!queryJSON) {
         return undefined;
     }

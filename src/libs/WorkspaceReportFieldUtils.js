@@ -1,9 +1,9 @@
-'use strict';
-var __spreadArrays =
+
+const __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
         return r;
     };
 exports.__esModule = true;
@@ -13,16 +13,16 @@ exports.getReportFieldInitialValue =
     exports.getReportFieldAlternativeTextTranslationKey =
     exports.getReportFieldTypeTranslationKey =
         void 0;
-var CONST_1 = require('@src/CONST');
-var ErrorUtils = require('./ErrorUtils');
-var Localize = require('./Localize');
-var ValidationUtils = require('./ValidationUtils');
+const CONST_1 = require('@src/CONST');
+const ErrorUtils = require('./ErrorUtils');
+const Localize = require('./Localize');
+const ValidationUtils = require('./ValidationUtils');
 /**
  * Gets the translation key for the report field type.
  */
 function getReportFieldTypeTranslationKey(reportFieldType) {
-    var _a;
-    var typeTranslationKeysStrategy =
+    let _a;
+    const typeTranslationKeysStrategy =
         ((_a = {}),
         (_a[CONST_1['default'].REPORT_FIELD_TYPES.TEXT] = 'workspace.reportFields.textType'),
         (_a[CONST_1['default'].REPORT_FIELD_TYPES.DATE] = 'workspace.reportFields.dateType'),
@@ -35,8 +35,8 @@ exports.getReportFieldTypeTranslationKey = getReportFieldTypeTranslationKey;
  * Gets the translation key for the alternative text for the report field.
  */
 function getReportFieldAlternativeTextTranslationKey(reportFieldType) {
-    var _a;
-    var typeTranslationKeysStrategy =
+    let _a;
+    const typeTranslationKeysStrategy =
         ((_a = {}),
         (_a[CONST_1['default'].REPORT_FIELD_TYPES.TEXT] = 'workspace.reportFields.textAlternateText'),
         (_a[CONST_1['default'].REPORT_FIELD_TYPES.DATE] = 'workspace.reportFields.dateAlternateText'),
@@ -49,7 +49,7 @@ exports.getReportFieldAlternativeTextTranslationKey = getReportFieldAlternativeT
  * Validates the list value name.
  */
 function validateReportFieldListValueName(valueName, priorValueName, listValues, inputID) {
-    var errors = {};
+    const errors = {};
     if (!ValidationUtils.isRequiredFulfilled(valueName)) {
         errors[inputID] = Localize.translateLocal('workspace.reportFields.listValueRequiredError');
     } else if (
@@ -77,14 +77,14 @@ exports.validateReportFieldListValueName = validateReportFieldListValueName;
  * Generates a field ID based on the field name.
  */
 function generateFieldID(name) {
-    return 'field_id_' + name.replace(CONST_1['default'].REGEX.ANY_SPACE, '_').toUpperCase();
+    return `field_id_${  name.replace(CONST_1['default'].REGEX.ANY_SPACE, '_').toUpperCase()}`;
 }
 exports.generateFieldID = generateFieldID;
 /**
  * Gets the initial value for a report field.
  */
 function getReportFieldInitialValue(reportField) {
-    var _a, _b;
+    let _a; let _b;
     if (!reportField) {
         return '';
     }

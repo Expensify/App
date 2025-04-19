@@ -1,7 +1,8 @@
-'use strict';
+
 exports.__esModule = true;
-var Browser = require('@libs/Browser');
-var CONST_1 = require('@src/CONST');
+const Browser = require('@libs/Browser');
+const CONST_1 = require('@src/CONST');
+
 function getPlatform(shouldMobileWebBeDistinctFromWeb) {
     if (shouldMobileWebBeDistinctFromWeb === void 0) {
         shouldMobileWebBeDistinctFromWeb = false;

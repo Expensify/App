@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.isSupportRequest =
     exports.isSupportAuthToken =
@@ -14,18 +14,19 @@ exports.isSupportRequest =
     exports.setAuthToken =
     exports.getAuthToken =
         void 0;
-var react_native_onyx_1 = require('react-native-onyx');
-var types_1 = require('@libs/API/types');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var credentials;
-var authToken;
-var authTokenType;
-var currentUserEmail = null;
-var offline = false;
-var authenticating = false;
+const react_native_onyx_1 = require('react-native-onyx');
+const types_1 = require('@libs/API/types');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+
+let credentials;
+let authToken;
+let authTokenType;
+let currentUserEmail = null;
+let offline = false;
+let authenticating = false;
 // Allow code that is outside of the network listen for when a reconnection happens so that it can execute any side-effects (like flushing the sequential network queue)
-var reconnectCallback;
+let reconnectCallback;
 function triggerReconnectCallback() {
     if (typeof reconnectCallback !== 'function') {
         return;
@@ -36,8 +37,8 @@ function onReconnection(callbackFunction) {
     reconnectCallback = callbackFunction;
 }
 exports.onReconnection = onReconnection;
-var resolveIsReadyPromise;
-var isReadyPromise = new Promise(function (resolve) {
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise(function (resolve) {
     resolveIsReadyPromise = resolve;
 });
 /**
@@ -60,8 +61,8 @@ function resetHasReadRequiredDataFromStorage() {
 exports.resetHasReadRequiredDataFromStorage = resetHasReadRequiredDataFromStorage;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].SESSION,
-    callback: function (val) {
-        var _a, _b, _c;
+    callback (val) {
+        let _a; let _b; let _c;
         authToken = (_a = val === null || val === void 0 ? void 0 : val.authToken) !== null && _a !== void 0 ? _a : null;
         authTokenType = (_b = val === null || val === void 0 ? void 0 : val.authTokenType) !== null && _b !== void 0 ? _b : null;
         currentUserEmail = (_c = val === null || val === void 0 ? void 0 : val.email) !== null && _c !== void 0 ? _c : null;
@@ -70,7 +71,7 @@ react_native_onyx_1['default'].connect({
 });
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].CREDENTIALS,
-    callback: function (val) {
+    callback (val) {
         credentials = val !== null && val !== void 0 ? val : null;
         checkRequiredData();
     },
@@ -79,7 +80,7 @@ react_native_onyx_1['default'].connect({
 // vs queueing them for later.
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NETWORK,
-    callback: function (network) {
+    callback (network) {
         if (!network) {
             return;
         }

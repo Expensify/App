@@ -1,8 +1,8 @@
-'use strict';
+
 exports.__esModule = true;
-var SCREENS_1 = require('@src/SCREENS');
+const SCREENS_1 = require('@src/SCREENS');
 // This file is used to define RHP screens that are in relation to the search screen.
-var SEARCH_TO_RHP = [
+const SEARCH_TO_RHP = [
     SCREENS_1['default'].SEARCH.REPORT_RHP,
     SCREENS_1['default'].SEARCH.TRANSACTION_HOLD_REASON_RHP,
     SCREENS_1['default'].SEARCH.ADVANCED_FILTERS_RHP,

@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.openRouteInDesktopApp =
     exports.isChromeIOS =
@@ -10,37 +10,37 @@ exports.openRouteInDesktopApp =
     exports.isMobile =
     exports.getBrowser =
         void 0;
-var getBrowser = function () {
+const getBrowser = function () {
     return '';
 };
 exports.getBrowser = getBrowser;
-var isMobile = function () {
+const isMobile = function () {
     return false;
 };
 exports.isMobile = isMobile;
-var isMobileSafari = function () {
+const isMobileSafari = function () {
     return false;
 };
 exports.isMobileSafari = isMobileSafari;
-var isMobileChrome = function () {
+const isMobileChrome = function () {
     return false;
 };
 exports.isMobileChrome = isMobileChrome;
-var isMobileWebKit = function () {
+const isMobileWebKit = function () {
     return false;
 };
 exports.isMobileWebKit = isMobileWebKit;
-var isChromeIOS = function () {
+const isChromeIOS = function () {
     return false;
 };
 exports.isChromeIOS = isChromeIOS;
-var isSafari = function () {
+const isSafari = function () {
     return false;
 };
 exports.isSafari = isSafari;
-var isModernSafari = function () {
+const isModernSafari = function () {
     return false;
 };
 exports.isModernSafari = isModernSafari;
-var openRouteInDesktopApp = function () {};
+const openRouteInDesktopApp = function () {};
 exports.openRouteInDesktopApp = openRouteInDesktopApp;

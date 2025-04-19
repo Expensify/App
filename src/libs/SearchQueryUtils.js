@@ -1,23 +1,23 @@
-'use strict';
-var __rest =
+
+const __rest =
     (this && this.__rest) ||
     function (s, e) {
-        var t = {};
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
+        const t = {};
+        for (var p in s) {if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) {t[p] = s[p];}}
         if (s != null && typeof Object.getOwnPropertySymbols === 'function')
-            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
-            }
+            {for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) {t[p[i]] = s[p[i]];}
+            }}
         return t;
     };
-var __spreadArrays =
+const __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
         return r;
     };
-var _a;
+let _a;
 exports.__esModule = true;
 exports.isDefaultExpensesQueryWithPolicyIDCheck =
     exports.shouldHighlight =
@@ -38,27 +38,27 @@ exports.isDefaultExpensesQueryWithPolicyIDCheck =
     exports.buildSearchQueryString =
     exports.buildSearchQueryJSON =
         void 0;
-var cloneDeep_1 = require('lodash/cloneDeep');
-var CONST_1 = require('@src/CONST');
-var NAVIGATORS_1 = require('@src/NAVIGATORS');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var SCREENS_1 = require('@src/SCREENS');
-var SearchAdvancedFiltersForm_1 = require('@src/types/form/SearchAdvancedFiltersForm');
-var CardFeedUtils_1 = require('./CardFeedUtils');
-var CardUtils_1 = require('./CardUtils');
-var CurrencyUtils_1 = require('./CurrencyUtils');
-var LocaleCompare_1 = require('./LocaleCompare');
-var Log_1 = require('./Log');
-var MoneyRequestUtils_1 = require('./MoneyRequestUtils');
-var navigationRef_1 = require('./Navigation/navigationRef');
-var PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
-var PolicyUtils_1 = require('./PolicyUtils');
-var ReportUtils_1 = require('./ReportUtils');
-var searchParser_1 = require('./SearchParser/searchParser');
-var UserUtils_1 = require('./UserUtils');
-var ValidationUtils_1 = require('./ValidationUtils');
+const cloneDeep_1 = require('lodash/cloneDeep');
+const CONST_1 = require('@src/CONST');
+const NAVIGATORS_1 = require('@src/NAVIGATORS');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+const SCREENS_1 = require('@src/SCREENS');
+const SearchAdvancedFiltersForm_1 = require('@src/types/form/SearchAdvancedFiltersForm');
+const CardFeedUtils_1 = require('./CardFeedUtils');
+const CardUtils_1 = require('./CardUtils');
+const CurrencyUtils_1 = require('./CurrencyUtils');
+const LocaleCompare_1 = require('./LocaleCompare');
+const Log_1 = require('./Log');
+const MoneyRequestUtils_1 = require('./MoneyRequestUtils');
+const navigationRef_1 = require('./Navigation/navigationRef');
+const PersonalDetailsUtils_1 = require('./PersonalDetailsUtils');
+const PolicyUtils_1 = require('./PolicyUtils');
+const ReportUtils_1 = require('./ReportUtils');
+const searchParser_1 = require('./SearchParser/searchParser');
+const UserUtils_1 = require('./UserUtils');
+const ValidationUtils_1 = require('./ValidationUtils');
 // This map contains chars that match each operator
-var operatorToCharMap =
+const operatorToCharMap =
     ((_a = {}),
     (_a[CONST_1['default'].SEARCH.SYNTAX_OPERATORS.EQUAL_TO] = ':'),
     (_a[CONST_1['default'].SEARCH.SYNTAX_OPERATORS.LOWER_THAN] = '<'),
@@ -72,7 +72,7 @@ var operatorToCharMap =
 /**
  * A mapping object that maps filter names from the internal codebase format to user-friendly names.
  */
-var UserFriendlyKeyMap = {
+const UserFriendlyKeyMap = {
     type: 'type',
     status: 'status',
     sortBy: 'sort-by',
@@ -109,7 +109,7 @@ var UserFriendlyKeyMap = {
  */
 function sanitizeSearchValue(str) {
     if (str.includes(' ') || str.includes('\u00A0')) {
-        return '"' + str + '"';
+        return `"${  str  }"`;
     }
     return str;
 }
@@ -119,17 +119,17 @@ exports.sanitizeSearchValue = sanitizeSearchValue;
  * Returns date filter value for QueryString.
  */
 function buildDateFilterQuery(filterValues, filterKey) {
-    var dateBefore = filterValues['' + filterKey + CONST_1['default'].SEARCH.DATE_MODIFIERS.BEFORE];
-    var dateAfter = filterValues['' + filterKey + CONST_1['default'].SEARCH.DATE_MODIFIERS.AFTER];
-    var dateFilter = '';
+    const dateBefore = filterValues[`${  filterKey  }${CONST_1['default'].SEARCH.DATE_MODIFIERS.BEFORE}`];
+    const dateAfter = filterValues[`${  filterKey  }${CONST_1['default'].SEARCH.DATE_MODIFIERS.AFTER}`];
+    let dateFilter = '';
     if (dateBefore) {
-        dateFilter += filterKey + '<' + dateBefore;
+        dateFilter += `${filterKey  }<${  dateBefore}`;
     }
     if (dateBefore && dateAfter) {
         dateFilter += ' ';
     }
     if (dateAfter) {
-        dateFilter += filterKey + '>' + dateAfter;
+        dateFilter += `${filterKey  }>${  dateAfter}`;
     }
     return dateFilter;
 }
@@ -138,17 +138,17 @@ function buildDateFilterQuery(filterValues, filterKey) {
  * Returns amount filter value for QueryString.
  */
 function buildAmountFilterQuery(filterValues) {
-    var lessThan = filterValues[SearchAdvancedFiltersForm_1['default'].LESS_THAN];
-    var greaterThan = filterValues[SearchAdvancedFiltersForm_1['default'].GREATER_THAN];
-    var amountFilter = '';
+    const lessThan = filterValues[SearchAdvancedFiltersForm_1['default'].LESS_THAN];
+    const greaterThan = filterValues[SearchAdvancedFiltersForm_1['default'].GREATER_THAN];
+    let amountFilter = '';
     if (greaterThan) {
-        amountFilter += CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.AMOUNT + '>' + greaterThan;
+        amountFilter += `${CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.AMOUNT  }>${  greaterThan}`;
     }
     if (lessThan && greaterThan) {
         amountFilter += ' ';
     }
     if (lessThan) {
-        amountFilter += CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.AMOUNT + '<' + lessThan;
+        amountFilter += `${CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.AMOUNT  }<${  lessThan}`;
     }
     return amountFilter;
 }
@@ -157,10 +157,10 @@ function buildAmountFilterQuery(filterValues) {
  * Returns string of correctly formatted filter values from QueryFilters object.
  */
 function buildFilterValuesString(filterName, queryFilters) {
-    var delimiter = filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
-    var filterValueString = '';
+    const delimiter = filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.KEYWORD ? ' ' : ',';
+    let filterValueString = '';
     queryFilters.forEach(function (queryFilter, index) {
-        var _a, _b;
+        let _a; let _b;
         // If the previous queryFilter has the same operator (this rule applies only to eq and neq operators) then append the current value
         if (
             index !== 0 &&
@@ -168,11 +168,11 @@ function buildFilterValuesString(filterName, queryFilters) {
                 ((_a = queryFilters === null || queryFilters === void 0 ? void 0 : queryFilters.at(index - 1)) === null || _a === void 0 ? void 0 : _a.operator) === 'eq') ||
                 (queryFilter.operator === 'neq' && ((_b = queryFilters.at(index - 1)) === null || _b === void 0 ? void 0 : _b.operator) === 'neq'))
         ) {
-            filterValueString += '' + delimiter + sanitizeSearchValue(queryFilter.value.toString());
+            filterValueString += `${  delimiter  }${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.KEYWORD) {
-            filterValueString += '' + delimiter + sanitizeSearchValue(queryFilter.value.toString());
+            filterValueString += `${  delimiter  }${sanitizeSearchValue(queryFilter.value.toString())}`;
         } else {
-            filterValueString += ' ' + filterName + operatorToCharMap[queryFilter.operator] + sanitizeSearchValue(queryFilter.value.toString());
+            filterValueString += ` ${  filterName  }${operatorToCharMap[queryFilter.operator]  }${sanitizeSearchValue(queryFilter.value.toString())}`;
         }
     });
     return filterValueString;
@@ -182,8 +182,8 @@ function buildFilterValuesString(filterName, queryFilters) {
  * Traverses the AST and returns filters as a QueryFilters object.
  */
 function getFilters(queryJSON) {
-    var filters = [];
-    var filterKeys = Object.values(CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS);
+    const filters = [];
+    const filterKeys = Object.values(CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS);
     function traverse(node) {
         if (!node.operator) {
             return;
@@ -194,11 +194,11 @@ function getFilters(queryJSON) {
         if (typeof node.right === 'object' && node.right && !Array.isArray(node.right)) {
             traverse(node.right);
         }
-        var nodeKey = node.left;
+        const nodeKey = node.left;
         if (!filterKeys.includes(nodeKey)) {
             return;
         }
-        var filterArray = [];
+        const filterArray = [];
         if (!Array.isArray(node.right)) {
             filterArray.push({
                 operator: node.operator,
@@ -226,7 +226,7 @@ function getFilters(queryJSON) {
  * - for personal filters it tries to substitute any user emails with accountIDs
  */
 function getUpdatedFilterValue(filterName, filterValue) {
-    var _a, _b;
+    let _a; let _b;
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TO) {
         if (typeof filterValue === 'string') {
             return (_b = (_a = PersonalDetailsUtils_1.getPersonalDetailByEmail(filterValue)) === null || _a === void 0 ? void 0 : _a.accountID.toString()) !== null && _b !== void 0
@@ -234,17 +234,17 @@ function getUpdatedFilterValue(filterName, filterValue) {
                 : filterValue;
         }
         return filterValue.map(function (email) {
-            var _a, _b;
+            let _a; let _b;
             return (_b = (_a = PersonalDetailsUtils_1.getPersonalDetailByEmail(email)) === null || _a === void 0 ? void 0 : _a.accountID.toString()) !== null && _b !== void 0 ? _b : email;
         });
     }
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
         if (typeof filterValue === 'string') {
-            var backendAmount = CurrencyUtils_1.convertToBackendAmount(Number(filterValue));
+            const backendAmount = CurrencyUtils_1.convertToBackendAmount(Number(filterValue));
             return Number.isNaN(backendAmount) ? filterValue : backendAmount.toString();
         }
         return filterValue.map(function (amount) {
-            var backendAmount = CurrencyUtils_1.convertToBackendAmount(Number(amount));
+            const backendAmount = CurrencyUtils_1.convertToBackendAmount(Number(amount));
             return Number.isNaN(backendAmount) ? amount : backendAmount.toString();
         });
     }
@@ -256,12 +256,12 @@ function getUpdatedFilterValue(filterName, filterValue) {
  * Sorts the query keys and values to ensure that hashes stay consistent.
  */
 function getQueryHashes(query) {
-    var orderedQuery = '';
-    orderedQuery += CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.TYPE + ':' + query.type;
-    orderedQuery += ' ' + CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.STATUS + ':' + (Array.isArray(query.status) ? query.status.join(',') : query.status);
+    let orderedQuery = '';
+    orderedQuery += `${CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.TYPE  }:${  query.type}`;
+    orderedQuery += ` ${  CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.STATUS  }:${  Array.isArray(query.status) ? query.status.join(',') : query.status}`;
     query.flatFilters
         .map(function (filter) {
-            var filters = cloneDeep_1['default'](filter.filters);
+            const filters = cloneDeep_1['default'](filter.filters);
             filters.sort(function (a, b) {
                 return LocaleCompare_1['default'](a.value.toString(), b.value.toString());
             });
@@ -269,16 +269,16 @@ function getQueryHashes(query) {
         })
         .sort()
         .forEach(function (filterString) {
-            return (orderedQuery += ' ' + filterString);
+            return (orderedQuery += ` ${  filterString}`);
         });
-    var recentSearchHash = UserUtils_1.hashText(orderedQuery, Math.pow(2, 32));
-    orderedQuery += ' ' + CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_BY + ':' + query.sortBy;
-    orderedQuery += ' ' + CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER + ':' + query.sortOrder;
+    const recentSearchHash = UserUtils_1.hashText(orderedQuery, 2**32);
+    orderedQuery += ` ${  CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_BY  }:${  query.sortBy}`;
+    orderedQuery += ` ${  CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER  }:${  query.sortOrder}`;
     if (query.policyID) {
-        orderedQuery += ' ' + CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID + ':' + query.policyID + ' ';
+        orderedQuery += ` ${  CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID  }:${  query.policyID  } `;
     }
-    var primaryHash = UserUtils_1.hashText(orderedQuery, Math.pow(2, 32));
-    return {primaryHash: primaryHash, recentSearchHash: recentSearchHash};
+    const primaryHash = UserUtils_1.hashText(orderedQuery, 2**32);
+    return {primaryHash, recentSearchHash};
 }
 /**
  * Parses a given search query string into a structured `SearchQueryJSON` format.
@@ -288,19 +288,19 @@ function getQueryHashes(query) {
  */
 function buildSearchQueryJSON(query) {
     try {
-        var result = searchParser_1.parse(query);
-        var flatFilters = getFilters(result);
+        const result = searchParser_1.parse(query);
+        const flatFilters = getFilters(result);
         // Add the full input and hash to the results
         result.inputQuery = query;
         result.flatFilters = flatFilters;
-        var _a = getQueryHashes(result),
-            primaryHash = _a.primaryHash,
-            recentSearchHash = _a.recentSearchHash;
+        const _a = getQueryHashes(result);
+            const primaryHash = _a.primaryHash;
+            const recentSearchHash = _a.recentSearchHash;
         result.hash = primaryHash;
         result.recentSearchHash = recentSearchHash;
         return result;
     } catch (e) {
-        console.error('Error when parsing SearchQuery: "' + query + '"', e);
+        console.error(`Error when parsing SearchQuery: "${  query  }"`, e);
     }
 }
 exports.buildSearchQueryJSON = buildSearchQueryJSON;
@@ -311,32 +311,32 @@ exports.buildSearchQueryJSON = buildSearchQueryJSON;
  * In a way this is the reverse of buildSearchQueryJSON()
  */
 function buildSearchQueryString(queryJSON) {
-    var queryParts = [];
-    var defaultQueryJSON = buildSearchQueryJSON('');
-    for (var _i = 0, _a = Object.entries(CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS); _i < _a.length; _i++) {
-        var _b = _a[_i],
-            key = _b[1];
-        var existingFieldValue = queryJSON === null || queryJSON === void 0 ? void 0 : queryJSON[key];
-        var queryFieldValue =
+    const queryParts = [];
+    const defaultQueryJSON = buildSearchQueryJSON('');
+    for (let _i = 0, _a = Object.entries(CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS); _i < _a.length; _i++) {
+        const _b = _a[_i];
+            const key = _b[1];
+        const existingFieldValue = queryJSON === null || queryJSON === void 0 ? void 0 : queryJSON[key];
+        const queryFieldValue =
             existingFieldValue !== null && existingFieldValue !== void 0 ? existingFieldValue : defaultQueryJSON === null || defaultQueryJSON === void 0 ? void 0 : defaultQueryJSON[key];
         if (queryFieldValue) {
             if (Array.isArray(queryFieldValue)) {
-                queryParts.push(key + ':' + queryFieldValue.join(','));
+                queryParts.push(`${key  }:${  queryFieldValue.join(',')}`);
             } else {
-                queryParts.push(key + ':' + queryFieldValue);
+                queryParts.push(`${key  }:${  queryFieldValue}`);
             }
         }
     }
     if (queryJSON === null || queryJSON === void 0 ? void 0 : queryJSON.policyID) {
-        queryParts.push(CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID + ':' + queryJSON.policyID);
+        queryParts.push(`${CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID  }:${  queryJSON.policyID}`);
     }
     if (!queryJSON) {
         return queryParts.join(' ');
     }
-    var filters = queryJSON.flatFilters;
-    for (var _c = 0, filters_1 = filters; _c < filters_1.length; _c++) {
-        var filter = filters_1[_c];
-        var filterValueString = buildFilterValuesString(filter.key, filter.filters);
+    const filters = queryJSON.flatFilters;
+    for (let _c = 0, filters_1 = filters; _c < filters_1.length; _c++) {
+        const filter = filters_1[_c];
+        const filterValueString = buildFilterValuesString(filter.key, filter.filters);
         queryParts.push(filterValueString.trim());
     }
     return queryParts.join(' ');
@@ -350,29 +350,29 @@ exports.buildSearchQueryString = buildSearchQueryString;
  */
 function buildQueryStringFromFilterFormValues(filterValues) {
     // We separate type and status filters from other filters to maintain hashes consistency for saved searches
-    var type = filterValues.type,
-        status = filterValues.status,
-        policyID = filterValues.policyID,
-        otherFilters = __rest(filterValues, ['type', 'status', 'policyID']);
-    var filtersString = [];
-    filtersString.push(CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_BY + ':' + CONST_1['default'].SEARCH.TABLE_COLUMNS.DATE);
-    filtersString.push(CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER + ':' + CONST_1['default'].SEARCH.SORT_ORDER.DESC);
+    const type = filterValues.type;
+        const status = filterValues.status;
+        const policyID = filterValues.policyID;
+        const otherFilters = __rest(filterValues, ['type', 'status', 'policyID']);
+    const filtersString = [];
+    filtersString.push(`${CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_BY  }:${  CONST_1['default'].SEARCH.TABLE_COLUMNS.DATE}`);
+    filtersString.push(`${CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER  }:${  CONST_1['default'].SEARCH.SORT_ORDER.DESC}`);
     if (type) {
-        var sanitizedType = sanitizeSearchValue(type);
-        filtersString.push(CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.TYPE + ':' + sanitizedType);
+        const sanitizedType = sanitizeSearchValue(type);
+        filtersString.push(`${CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.TYPE  }:${  sanitizedType}`);
     }
     if (status) {
-        var sanitizedStatus = sanitizeSearchValue(status);
-        filtersString.push(CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.STATUS + ':' + sanitizedStatus);
+        const sanitizedStatus = sanitizeSearchValue(status);
+        filtersString.push(`${CONST_1['default'].SEARCH.SYNTAX_ROOT_KEYS.STATUS  }:${  sanitizedStatus}`);
     }
     if (policyID) {
-        var sanitizedPolicyID = sanitizeSearchValue(policyID);
-        filtersString.push(CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID + ':' + sanitizedPolicyID);
+        const sanitizedPolicyID = sanitizeSearchValue(policyID);
+        filtersString.push(`${CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID  }:${  sanitizedPolicyID}`);
     }
-    var mappedFilters = Object.entries(otherFilters)
+    const mappedFilters = Object.entries(otherFilters)
         .map(function (_a) {
-            var filterKey = _a[0],
-                filterValue = _a[1];
+            const filterKey = _a[0];
+                const filterValue = _a[1];
             if (
                 (filterKey === SearchAdvancedFiltersForm_1['default'].MERCHANT ||
                     filterKey === SearchAdvancedFiltersForm_1['default'].DESCRIPTION ||
@@ -385,12 +385,12 @@ function buildQueryStringFromFilterFormValues(filterValues) {
                     return CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey;
                 });
                 if (keyInCorrectForm) {
-                    return CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm] + ':' + sanitizeSearchValue(filterValue);
+                    return `${CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]  }:${  sanitizeSearchValue(filterValue)}`;
                 }
             }
             if (filterKey === SearchAdvancedFiltersForm_1['default'].KEYWORD && filterValue) {
-                var value = filterValue.split(' ').map(sanitizeSearchValue).join(' ');
-                return '' + value;
+                const value = filterValue.split(' ').map(sanitizeSearchValue).join(' ');
+                return `${  value}`;
             }
             if (
                 (filterKey === SearchAdvancedFiltersForm_1['default'].CATEGORY ||
@@ -406,12 +406,12 @@ function buildQueryStringFromFilterFormValues(filterValues) {
                 Array.isArray(filterValue) &&
                 filterValue.length > 0
             ) {
-                var filterValueArray = __spreadArrays(new Set(filterValue));
+                const filterValueArray = __spreadArrays(new Set(filterValue));
                 var keyInCorrectForm = Object.keys(CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS).find(function (key) {
                     return CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey;
                 });
                 if (keyInCorrectForm) {
-                    return CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm] + ':' + filterValueArray.map(sanitizeSearchValue).join(',');
+                    return `${CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]  }:${  filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
             }
             return undefined;
@@ -421,10 +421,10 @@ function buildQueryStringFromFilterFormValues(filterValues) {
         });
     filtersString.push.apply(filtersString, mappedFilters);
     SearchAdvancedFiltersForm_1.DATE_FILTER_KEYS.forEach(function (dateKey) {
-        var dateFilter = buildDateFilterQuery(filterValues, dateKey);
+        const dateFilter = buildDateFilterQuery(filterValues, dateKey);
         filtersString.push(dateFilter);
     });
-    var amountFilter = buildAmountFilterQuery(filterValues);
+    const amountFilter = buildAmountFilterQuery(filterValues);
     filtersString.push(amountFilter);
     return filtersString.filter(Boolean).join(' ').trim();
 }
@@ -436,14 +436,14 @@ exports.buildQueryStringFromFilterFormValues = buildQueryStringFromFilterFormVal
  * Reverse operation of buildQueryStringFromFilterFormValues()
  */
 function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags, currencyList, personalDetails, cardList, reports, taxRates) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-    var filters = queryJSON.flatFilters;
-    var filtersForm = {};
-    var policyID = queryJSON.policyID;
-    var _loop_1 = function (queryFilter) {
-        var filterKey = queryFilter.key;
-        var filterList = queryFilter.filters;
-        var filterValues = filterList.map(function (item) {
+    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m;
+    const filters = queryJSON.flatFilters;
+    const filtersForm = {};
+    const policyID = queryJSON.policyID;
+    const _loop_1 = function (queryFilter) {
+        const filterKey = queryFilter.key;
+        const filterList = queryFilter.filters;
+        const filterValues = filterList.map(function (item) {
             return item.value.toString();
         });
         if (
@@ -454,7 +454,7 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
             filtersForm[filterKey] = filterValues.at(0);
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.EXPENSE_TYPE) {
-            var validExpenseTypes_1 = new Set(Object.values(CONST_1['default'].SEARCH.TRANSACTION_TYPE));
+            const validExpenseTypes_1 = new Set(Object.values(CONST_1['default'].SEARCH.TRANSACTION_TYPE));
             filtersForm[filterKey] = filterValues.filter(function (expenseType) {
                 return validExpenseTypes_1.has(expenseType);
             });
@@ -470,15 +470,15 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
             });
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            var allTaxRates_1 = new Set(Object.values(taxRates).flat());
+            const allTaxRates_1 = new Set(Object.values(taxRates).flat());
             filtersForm[filterKey] = filterValues.filter(function (tax) {
                 return allTaxRates_1.has(tax);
             });
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.IN) {
             filtersForm[filterKey] = filterValues.filter(function (id) {
-                var _a;
-                return (_a = reports === null || reports === void 0 ? void 0 : reports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + id]) === null || _a === void 0 ? void 0 : _a.reportID;
+                let _a;
+                return (_a = reports === null || reports === void 0 ? void 0 : reports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${id}`]) === null || _a === void 0 ? void 0 : _a.reportID;
             });
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.FROM || filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TO) {
@@ -487,15 +487,15 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
             });
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.CURRENCY) {
-            var validCurrency_1 = new Set(Object.keys(currencyList));
+            const validCurrency_1 = new Set(Object.keys(currencyList));
             filtersForm[filterKey] = filterValues.filter(function (currency) {
                 return validCurrency_1.has(currency);
             });
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TAG) {
-            var tags = policyID
+            const tags = policyID
                 ? PolicyUtils_1.getTagNamesFromTagsLists(
-                      (_a = policyTags === null || policyTags === void 0 ? void 0 : policyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _a !== void 0
+                      (_a = policyTags === null || policyTags === void 0 ? void 0 : policyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _a !== void 0
                           ? _a
                           : {},
                   )
@@ -507,16 +507,16 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
                           return PolicyUtils_1.getTagNamesFromTagsLists(tagList !== null && tagList !== void 0 ? tagList : {});
                       })
                       .flat();
-            var uniqueTags_1 = new Set(tags);
+            const uniqueTags_1 = new Set(tags);
             uniqueTags_1.add(CONST_1['default'].SEARCH.EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter(function (name) {
                 return uniqueTags_1.has(name);
             });
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) {
-            var categories = policyID
+            const categories = policyID
                 ? Object.values(
-                      (_b = policyCategories === null || policyCategories === void 0 ? void 0 : policyCategories['' + ONYXKEYS_1['default'].COLLECTION.POLICY_CATEGORIES + policyID]) !==
+                      (_b = policyCategories === null || policyCategories === void 0 ? void 0 : policyCategories[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_CATEGORIES  }${policyID}`]) !==
                           null && _b !== void 0
                           ? _b
                           : {},
@@ -530,7 +530,7 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
                           });
                       })
                       .flat();
-            var uniqueCategories_1 = new Set(categories);
+            const uniqueCategories_1 = new Set(categories);
             uniqueCategories_1.add(CONST_1['default'].SEARCH.EMPTY_VALUE);
             filtersForm[filterKey] = filterValues.filter(function (name) {
                 return uniqueCategories_1.has(name);
@@ -543,15 +543,15 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
                     : filterValues
                           .map(function (filter) {
                               if (filter.includes(' ')) {
-                                  return '"' + filter + '"';
+                                  return `"${  filter  }"`;
                               }
                               return filter;
                           })
                           .join(' ');
         }
         if (SearchAdvancedFiltersForm_1.DATE_FILTER_KEYS.includes(filterKey)) {
-            var beforeKey = '' + filterKey + CONST_1['default'].SEARCH.DATE_MODIFIERS.BEFORE;
-            var afterKey = '' + filterKey + CONST_1['default'].SEARCH.DATE_MODIFIERS.AFTER;
+            const beforeKey = `${  filterKey  }${CONST_1['default'].SEARCH.DATE_MODIFIERS.BEFORE}`;
+            const afterKey = `${  filterKey  }${CONST_1['default'].SEARCH.DATE_MODIFIERS.AFTER}`;
             filtersForm[beforeKey] =
                 (_d =
                     (_c = filterList.find(function (filter) {
@@ -593,30 +593,30 @@ function buildFilterFormValuesFromQuery(queryJSON, policyCategories, policyTags,
                     : filtersForm[SearchAdvancedFiltersForm_1['default'].GREATER_THAN];
         }
         if (filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
-            var validBooleanTypes = Object.values(CONST_1['default'].SEARCH.BOOLEAN);
+            const validBooleanTypes = Object.values(CONST_1['default'].SEARCH.BOOLEAN);
             filtersForm[filterKey] = validBooleanTypes.find(function (value) {
                 return filterValues.at(0) === value;
             });
         }
     };
-    for (var _i = 0, filters_2 = filters; _i < filters_2.length; _i++) {
-        var queryFilter = filters_2[_i];
+    for (let _i = 0, filters_2 = filters; _i < filters_2.length; _i++) {
+        const queryFilter = filters_2[_i];
         _loop_1(queryFilter);
     }
-    var _o =
+    const _o =
             (_l = Object.entries(CONST_1['default'].SEARCH.DATA_TYPES).find(function (_a) {
-                var value = _a[1];
+                const value = _a[1];
                 return value === queryJSON.type;
             })) !== null && _l !== void 0
                 ? _l
-                : [],
-        _p = _o[0],
-        typeKey = _p === void 0 ? '' : _p,
-        typeValue = _o[1];
+                : [];
+        const _p = _o[0];
+        const typeKey = _p === void 0 ? '' : _p;
+        const typeValue = _o[1];
     filtersForm[SearchAdvancedFiltersForm_1['default'].TYPE] = typeValue ? queryJSON.type : CONST_1['default'].SEARCH.DATA_TYPES.EXPENSE;
-    var statusKey = (
+    const statusKey = (
         (_m = Object.entries(CONST_1['default'].SEARCH.STATUS).find(function (_a) {
-            var value = _a[1];
+            const value = _a[1];
             return Array.isArray(queryJSON.status)
                 ? queryJSON.status.some(function (status) {
                       return Object.values(value).includes(status);
@@ -645,12 +645,12 @@ exports.buildFilterFormValuesFromQuery = buildFilterFormValuesFromQuery;
  * however there are several places in the app (related to WorkspaceSwitcher) that will accept only a single policyID.
  */
 function getPolicyIDFromSearchQuery(queryJSON) {
-    var policyIDFilter = queryJSON.policyID;
+    const policyIDFilter = queryJSON.policyID;
     if (!policyIDFilter) {
         return;
     }
     // policyID is a comma-separated value
-    var policyID = policyIDFilter.split(',')[0];
+    const policyID = policyIDFilter.split(',')[0];
     return policyID;
 }
 exports.getPolicyIDFromSearchQuery = getPolicyIDFromSearchQuery;
@@ -658,33 +658,33 @@ exports.getPolicyIDFromSearchQuery = getPolicyIDFromSearchQuery;
  * Returns the human-readable "pretty" string for a specified filter value.
  */
 function getFilterDisplayValue(filterName, filterValue, personalDetails, reports, cardList, cardFeedNamesWithType) {
-    var _a;
+    let _a;
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.FROM || filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TO) {
         // login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         return ((_a = personalDetails === null || personalDetails === void 0 ? void 0 : personalDetails[filterValue]) === null || _a === void 0 ? void 0 : _a.displayName) || filterValue;
     }
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.CARD_ID) {
-        var cardID = parseInt(filterValue, 10);
+        const cardID = parseInt(filterValue, 10);
         if (Number.isNaN(cardID)) {
             return filterValue;
         }
         return CardUtils_1.getCardDescription(cardID, cardList) || filterValue;
     }
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.IN) {
-        return ReportUtils_1.getReportName(reports === null || reports === void 0 ? void 0 : reports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + filterValue]) || filterValue;
+        return ReportUtils_1.getReportName(reports === null || reports === void 0 ? void 0 : reports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${filterValue}`]) || filterValue;
     }
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.AMOUNT) {
-        var frontendAmount = CurrencyUtils_1.convertToFrontendAmountAsInteger(Number(filterValue));
+        const frontendAmount = CurrencyUtils_1.convertToFrontendAmountAsInteger(Number(filterValue));
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
     }
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TAG) {
         return PolicyUtils_1.getCleanedTagName(filterValue);
     }
     if (filterName === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.FEED) {
-        var workspaceFeedKey = CardFeedUtils_1.getWorkspaceCardFeedKey(filterValue);
-        var workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
-        var domainValue = cardFeedNamesWithType[filterValue];
+        const workspaceFeedKey = CardFeedUtils_1.getWorkspaceCardFeedKey(filterValue);
+        const workspaceValue = cardFeedNamesWithType[workspaceFeedKey];
+        const domainValue = cardFeedNamesWithType[filterValue];
         if (workspaceValue && workspaceValue.type === 'workspace') {
             return workspaceValue.name;
         }
@@ -704,50 +704,50 @@ exports.getFilterDisplayValue = getFilterDisplayValue;
  * So: user IDs get turned into emails, report ids into report names etc.
  */
 function buildUserReadableQueryStringWithPolicyID(queryJSON, PersonalDetails, reports, taxRates, cardList, cardFeedNamesWithType, policies) {
-    var _a, _b;
-    var type = queryJSON.type,
-        status = queryJSON.status,
-        groupBy = queryJSON.groupBy,
-        policyID = queryJSON.policyID;
-    var filters = queryJSON.flatFilters;
-    var title = 'type:' + type + ' status:' + (Array.isArray(status) ? status.join(',') : status);
+    let _a; let _b;
+    const type = queryJSON.type;
+        const status = queryJSON.status;
+        const groupBy = queryJSON.groupBy;
+        const policyID = queryJSON.policyID;
+    const filters = queryJSON.flatFilters;
+    let title = `type:${  type  } status:${  Array.isArray(status) ? status.join(',') : status}`;
     if (groupBy) {
-        title += ' group-by:' + groupBy;
+        title += ` group-by:${  groupBy}`;
     }
     if (policyID) {
-        var workspace =
+        const workspace =
             (_b =
-                (_a = policies === null || policies === void 0 ? void 0 : policies['' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID]) === null || _a === void 0 ? void 0 : _a.name) !==
+                (_a = policies === null || policies === void 0 ? void 0 : policies[`${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`]) === null || _a === void 0 ? void 0 : _a.name) !==
                 null && _b !== void 0
                 ? _b
                 : policyID;
-        title += ' workspace:' + sanitizeSearchValue(workspace);
+        title += ` workspace:${  sanitizeSearchValue(workspace)}`;
     }
-    var _loop_2 = function (filterObject) {
-        var key = filterObject.key;
-        var queryFilter = filterObject.filters;
-        var displayQueryFilters = [];
+    const _loop_2 = function (filterObject) {
+        const key = filterObject.key;
+        const queryFilter = filterObject.filters;
+        let displayQueryFilters = [];
         if (key === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            var taxRateIDs = queryFilter.map(function (filter) {
+            const taxRateIDs = queryFilter.map(function (filter) {
                 return filter.value.toString();
             });
-            var taxRateNames = taxRateIDs
+            const taxRateNames = taxRateIDs
                 .map(function (id) {
-                    var taxRate = Object.entries(taxRates)
+                    const taxRate = Object.entries(taxRates)
                         .filter(function (_a) {
-                            var IDs = _a[1];
+                            const IDs = _a[1];
                             return IDs.includes(id);
                         })
                         .map(function (_a) {
-                            var name = _a[0];
+                            const name = _a[0];
                             return name;
                         });
                     return taxRate.length > 0 ? taxRate : id;
                 })
                 .flat();
-            var uniqueTaxRateNames = __spreadArrays(new Set(taxRateNames));
+            const uniqueTaxRateNames = __spreadArrays(new Set(taxRateNames));
             displayQueryFilters = uniqueTaxRateNames.map(function (taxRate) {
-                var _a, _b;
+                let _a; let _b;
                 return {
                     operator:
                         (_b = (_a = queryFilter.at(0)) === null || _a === void 0 ? void 0 : _a.operator) !== null && _b !== void 0 ? _b : CONST_1['default'].SEARCH.SYNTAX_OPERATORS.AND,
@@ -764,8 +764,8 @@ function buildUserReadableQueryStringWithPolicyID(queryJSON, PersonalDetails, re
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     };
-    for (var _i = 0, filters_3 = filters; _i < filters_3.length; _i++) {
-        var filterObject = filters_3[_i];
+    for (let _i = 0, filters_3 = filters; _i < filters_3.length; _i++) {
+        const filterObject = filters_3[_i];
         _loop_2(filterObject);
     }
     return title;
@@ -778,39 +778,39 @@ exports.buildUserReadableQueryStringWithPolicyID = buildUserReadableQueryStringW
  * So: user IDs get turned into emails, report ids into report names etc.
  */
 function buildUserReadableQueryString(queryJSON, PersonalDetails, reports, taxRates, cardList, cardFeedNamesWithType) {
-    var type = queryJSON.type,
-        status = queryJSON.status,
-        groupBy = queryJSON.groupBy;
-    var filters = queryJSON.flatFilters;
-    var title = 'type:' + type + ' status:' + (Array.isArray(status) ? status.join(',') : status);
+    const type = queryJSON.type;
+        const status = queryJSON.status;
+        const groupBy = queryJSON.groupBy;
+    const filters = queryJSON.flatFilters;
+    let title = `type:${  type  } status:${  Array.isArray(status) ? status.join(',') : status}`;
     if (groupBy) {
-        title += ' group-by:' + groupBy;
+        title += ` group-by:${  groupBy}`;
     }
-    var _loop_3 = function (filterObject) {
-        var key = filterObject.key;
-        var queryFilter = filterObject.filters;
-        var displayQueryFilters = [];
+    const _loop_3 = function (filterObject) {
+        const key = filterObject.key;
+        const queryFilter = filterObject.filters;
+        let displayQueryFilters = [];
         if (key === CONST_1['default'].SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE) {
-            var taxRateIDs = queryFilter.map(function (filter) {
+            const taxRateIDs = queryFilter.map(function (filter) {
                 return filter.value.toString();
             });
-            var taxRateNames = taxRateIDs
+            const taxRateNames = taxRateIDs
                 .map(function (id) {
-                    var taxRate = Object.entries(taxRates)
+                    const taxRate = Object.entries(taxRates)
                         .filter(function (_a) {
-                            var IDs = _a[1];
+                            const IDs = _a[1];
                             return IDs.includes(id);
                         })
                         .map(function (_a) {
-                            var name = _a[0];
+                            const name = _a[0];
                             return name;
                         });
                     return taxRate.length > 0 ? taxRate : id;
                 })
                 .flat();
-            var uniqueTaxRateNames = __spreadArrays(new Set(taxRateNames));
+            const uniqueTaxRateNames = __spreadArrays(new Set(taxRateNames));
             displayQueryFilters = uniqueTaxRateNames.map(function (taxRate) {
-                var _a, _b;
+                let _a; let _b;
                 return {
                     operator:
                         (_b = (_a = queryFilter.at(0)) === null || _a === void 0 ? void 0 : _a.operator) !== null && _b !== void 0 ? _b : CONST_1['default'].SEARCH.SYNTAX_OPERATORS.AND,
@@ -827,8 +827,8 @@ function buildUserReadableQueryString(queryJSON, PersonalDetails, reports, taxRa
         }
         title += buildFilterValuesString(getUserFriendlyKey(key), displayQueryFilters);
     };
-    for (var _i = 0, filters_4 = filters; _i < filters_4.length; _i++) {
-        var filterObject = filters_4[_i];
+    for (let _i = 0, filters_4 = filters; _i < filters_4.length; _i++) {
+        const filterObject = filters_4[_i];
         _loop_3(filterObject);
     }
     return title;
@@ -838,26 +838,26 @@ exports.buildUserReadableQueryString = buildUserReadableQueryString;
  * Returns properly built QueryString for a canned query, with the optional policyID.
  */
 function buildCannedSearchQuery(_a) {
-    var _b = _a === void 0 ? {} : _a,
-        _c = _b.type,
-        type = _c === void 0 ? CONST_1['default'].SEARCH.DATA_TYPES.EXPENSE : _c,
-        _d = _b.status,
-        status = _d === void 0 ? CONST_1['default'].SEARCH.STATUS.EXPENSE.ALL : _d,
-        policyID = _b.policyID,
-        cardID = _b.cardID,
-        groupBy = _b.groupBy;
-    var queryString = 'type:' + type + ' status:' + (Array.isArray(status) ? status.join(',') : status);
+    const _b = _a === void 0 ? {} : _a;
+        const _c = _b.type;
+        const type = _c === void 0 ? CONST_1['default'].SEARCH.DATA_TYPES.EXPENSE : _c;
+        const _d = _b.status;
+        const status = _d === void 0 ? CONST_1['default'].SEARCH.STATUS.EXPENSE.ALL : _d;
+        const policyID = _b.policyID;
+        const cardID = _b.cardID;
+        const groupBy = _b.groupBy;
+    let queryString = `type:${  type  } status:${  Array.isArray(status) ? status.join(',') : status}`;
     if (groupBy) {
-        queryString += ' group-by:' + groupBy;
+        queryString += ` group-by:${  groupBy}`;
     }
     if (policyID) {
-        queryString += ' policyID:' + policyID;
+        queryString += ` policyID:${  policyID}`;
     }
     if (cardID) {
-        queryString += ' expense-type:card card:' + cardID;
+        queryString += ` expense-type:card card:${  cardID}`;
     }
     // Parse the query to fill all default query fields with values
-    var normalizedQueryJSON = buildSearchQueryJSON(queryString);
+    const normalizedQueryJSON = buildSearchQueryJSON(queryString);
     return buildSearchQueryString(normalizedQueryJSON);
 }
 exports.buildCannedSearchQuery = buildCannedSearchQuery;
@@ -908,9 +908,9 @@ exports.isDefaultExpensesQuery = isDefaultExpensesQuery;
  *  Given a search query, this function will standardize the query by replacing display values with their corresponding IDs.
  */
 function traverseAndUpdatedQuery(queryJSON, computeNodeValue) {
-    var standardQuery = cloneDeep_1['default'](queryJSON);
-    var filters = standardQuery.filters;
-    var traverse = function (node) {
+    const standardQuery = cloneDeep_1['default'](queryJSON);
+    const filters = standardQuery.filters;
+    const traverse = function (node) {
         if (!node.operator) {
             return;
         }
@@ -936,22 +936,22 @@ function traverseAndUpdatedQuery(queryJSON, computeNodeValue) {
  * If there are any personal emails, it will try to substitute them with accountIDs
  */
 function getQueryWithUpdatedValues(query, policyID) {
-    var queryJSON = buildSearchQueryJSON(query);
+    const queryJSON = buildSearchQueryJSON(query);
     if (!queryJSON) {
-        Log_1['default'].alert(CONST_1['default'].ERROR.ENSURE_BUGBOT + ' user query failed to parse', {}, false);
+        Log_1['default'].alert(`${CONST_1['default'].ERROR.ENSURE_BUGBOT  } user query failed to parse`, {}, false);
         return;
     }
     if (policyID) {
         queryJSON.policyID = policyID;
     }
-    var standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
+    const standardizedQuery = traverseAndUpdatedQuery(queryJSON, getUpdatedFilterValue);
     return buildSearchQueryString(standardizedQuery);
 }
 exports.getQueryWithUpdatedValues = getQueryWithUpdatedValues;
 function getCurrentSearchQueryJSON() {
-    var _a, _b;
-    var rootState = navigationRef_1['default'].getRootState();
-    var lastPolicyRoute =
+    let _a; let _b;
+    const rootState = navigationRef_1['default'].getRootState();
+    const lastPolicyRoute =
         (_a = rootState === null || rootState === void 0 ? void 0 : rootState.routes) === null || _a === void 0
             ? void 0
             : _a.findLast(function (route) {
@@ -960,7 +960,7 @@ function getCurrentSearchQueryJSON() {
     if (!lastPolicyRoute) {
         return;
     }
-    var lastSearchRoute =
+    const lastSearchRoute =
         (_b = lastPolicyRoute.state) === null || _b === void 0
             ? void 0
             : _b.routes.findLast(function (route) {
@@ -969,8 +969,8 @@ function getCurrentSearchQueryJSON() {
     if (!lastSearchRoute || !lastSearchRoute.params) {
         return;
     }
-    var searchParams = lastSearchRoute.params.q;
-    var queryJSON = buildSearchQueryJSON(searchParams);
+    const searchParams = lastSearchRoute.params.q;
+    const queryJSON = buildSearchQueryJSON(searchParams);
     if (!queryJSON) {
         return;
     }
@@ -996,11 +996,11 @@ function shouldHighlight(referenceText, searchText) {
     if (!referenceText || !searchText) {
         return false;
     }
-    var escapedText = searchText
+    const escapedText = searchText
         .toLowerCase()
         .trim()
         .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    var pattern = new RegExp('(^|\\s)' + escapedText + '(?=\\s|$)', 'i');
+    const pattern = new RegExp(`(^|\\s)${  escapedText  }(?=\\s|$)`, 'i');
     return pattern.test(referenceText.toLowerCase());
 }
 exports.shouldHighlight = shouldHighlight;

@@ -1,14 +1,15 @@
-'use strict';
+
 exports.__esModule = true;
-var NAVIGATORS_1 = require('@src/NAVIGATORS');
-var SCREENS_1 = require('@src/SCREENS');
-var isReportOpenInRHP = function (state) {
-    var _a, _b, _c;
-    var lastRoute = (_a = state === null || state === void 0 ? void 0 : state.routes) === null || _a === void 0 ? void 0 : _a.at(-1);
+const NAVIGATORS_1 = require('@src/NAVIGATORS');
+const SCREENS_1 = require('@src/SCREENS');
+
+const isReportOpenInRHP = function (state) {
+    let _a; let _b; let _c;
+    const lastRoute = (_a = state === null || state === void 0 ? void 0 : state.routes) === null || _a === void 0 ? void 0 : _a.at(-1);
     if (!lastRoute) {
         return false;
     }
-    var params = lastRoute.params;
+    const params = lastRoute.params;
     if (params && 'screen' in params && typeof params.screen === 'string' && params.screen === SCREENS_1['default'].RIGHT_MODAL.SEARCH_REPORT) {
         return true;
     }

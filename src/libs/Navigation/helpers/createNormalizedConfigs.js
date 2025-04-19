@@ -1,17 +1,17 @@
-'use strict';
+
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
-var __spreadArrays =
+const __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
         return r;
     };
 exports.__esModule = true;
-var joinPaths = function () {
-    var _a;
-    var paths = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
+const joinPaths = function () {
+    let _a;
+    const paths = [];
+    for (let _i = 0; _i < arguments.length; _i++) {
         paths[_i] = arguments[_i];
     }
     return (_a = []).concat
@@ -24,49 +24,49 @@ var joinPaths = function () {
         .filter(Boolean)
         .join('/');
 };
-var createConfigItem = function (screen, routeNames, pattern, path, parse) {
+const createConfigItem = function (screen, routeNames, pattern, path, parse) {
     // Normalize pattern to remove any leading, trailing slashes, duplicate slashes etc.
     pattern = pattern.split('/').filter(Boolean).join('/');
-    var regex = pattern
+    const regex = pattern
         ? new RegExp(
-              '^(' +
+              `^(${ 
                   pattern
                       .split('/')
                       .map(function (it) {
                           if (it.startsWith(':')) {
-                              return '(([^/]+\\/)' + (it.endsWith('?') ? '?' : '') + ')';
+                              return `(([^/]+\\/)${  it.endsWith('?') ? '?' : ''  })`;
                           }
-                          return (it === '*' ? '.*' : escape(it)) + '\\/';
+                          return `${it === '*' ? '.*' : escape(it)  }\\/`;
                       })
-                      .join('') +
-                  ')',
+                      .join('') 
+                  })`,
           )
         : undefined;
     return {
-        screen: screen,
-        regex: regex,
-        pattern: pattern,
-        path: path,
+        screen,
+        regex,
+        pattern,
+        path,
         // The routeNames array is mutated, so copy it to keep the current state
         routeNames: __spreadArrays(routeNames),
-        parse: parse,
+        parse,
     };
 };
-var createNormalizedConfigs = function (screen, routeConfig, routeNames, initials, parentScreens, parentPattern) {
+const createNormalizedConfigs = function (screen, routeConfig, routeNames, initials, parentScreens, parentPattern) {
     if (routeNames === void 0) {
         routeNames = [];
     }
-    var configs = [];
+    const configs = [];
     routeNames.push(screen);
     parentScreens.push(screen);
     // @ts-expect-error: we can't strongly typecheck this for now
-    var config = routeConfig[screen];
+    const config = routeConfig[screen];
     if (typeof config === 'string') {
         // If a string is specified as the value of the key(e.g. Foo: '/path'), use it as the pattern
-        var pattern = parentPattern ? joinPaths(parentPattern, config) : config;
+        const pattern = parentPattern ? joinPaths(parentPattern, config) : config;
         configs.push(createConfigItem(screen, routeNames, pattern, config));
     } else if (typeof config === 'object') {
-        var pattern_1;
+        let pattern_1;
         // if an object is specified as the value (e.g. Foo: { ... }),
         // it can have `path` property and
         // it could have `screens` prop which has nested configs
@@ -82,11 +82,11 @@ var createNormalizedConfigs = function (screen, routeConfig, routeNames, initial
             if (config.initialRouteName) {
                 initials.push({
                     initialRouteName: config.initialRouteName,
-                    parentScreens: parentScreens,
+                    parentScreens,
                 });
             }
             Object.keys(config.screens).forEach(function (nestedConfig) {
-                var result = createNormalizedConfigs(
+                const result = createNormalizedConfigs(
                     nestedConfig,
                     config.screens,
                     routeNames,
