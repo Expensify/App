@@ -98,7 +98,6 @@ import {
     getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
