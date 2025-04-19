@@ -58,7 +58,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
-import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
+import {getAccountingIntegrationData, getConnectionMessage, getSynchronizationErrorMessage} from './utils';
 
 type RouteParams = {
     newConnectionName?: ConnectionName;
@@ -67,9 +67,9 @@ type RouteParams = {
 };
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: false});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: false});
+    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: false});
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
@@ -81,7 +81,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const [datetimeToRelative, setDateTimeToRelative] = useState('');
     const threeDotsMenuContainerRef = useRef<View>(null);
     const {startIntegrationFlow, popoverAnchorRefs} = useAccountingContext();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const {isLargeScreenWidth} = useResponsiveLayout();
     const route = useRoute();
     const params = route.params as RouteParams | undefined;
@@ -332,6 +332,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
+        const connectionMessage = getConnectionMessage(isSyncInProgress, connectionSyncProgress?.stageInProgress, datetimeToRelative, shouldHideConfigurationOptions, translate);
 
         const configurationOptions = [
             {
@@ -391,12 +392,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 errorText: synchronizationError,
                 errorTextStyle: [styles.mt5],
                 shouldShowRedDotIndicator: true,
-                description:
-                    isSyncInProgress && connectionSyncProgress?.stageInProgress
-                        ? translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress.stageInProgress})
-                        : shouldHideConfigurationOptions
-                        ? translate('workspace.accounting.notSync')
-                        : translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative}),
+                description: connectionMessage,
                 rightComponent: isSyncInProgress ? (
                     <ActivityIndicator
                         style={[styles.popoverMenuIcon]}
