@@ -129,8 +129,8 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         accountingIcon = Expensicons.IntacctSquare;
                         break;
                     }
-                    case CONST.POLICY.CONNECTIONS.NAME.MS_DYNAMICS: {
-                        text = translate('workspace.accounting.msDynamics');
+                    case CONST.POLICY.CONNECTIONS.NAME.MICROSOFT_DYNAMICS: {
+                        text = translate('workspace.accounting.microsoftDynamics');
                         accountingIcon = Expensicons.IntacctSquare;
                         break;
                     }

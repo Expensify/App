@@ -4318,7 +4318,7 @@ const translations = {
                         return 'SAP';
                     case CONST.POLICY.CONNECTIONS.NAME.ORACLE:
                         return 'Oracle';
-                    case CONST.POLICY.CONNECTIONS.NAME.MS_DYNAMICS:
+                    case CONST.POLICY.CONNECTIONS.NAME.MICROSOFT_DYNAMICS:
                         return 'Microsoft Dynamics';
                     case CONST.POLICY.CONNECTIONS.NAME.OTHER:
                         return 'Other';

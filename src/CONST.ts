@@ -2941,7 +2941,7 @@ const CONST = {
                 SAGE_INTACCT: 'intacct',
                 SAP: 'sap',
                 ORACLE: 'oracle',
-                MS_DYNAMICS: 'msDynamics',
+                MICROSOFT_DYNAMICS: 'Microsoft Dynamics',
                 OTHER: 'other',
             },
             ROUTE: {
