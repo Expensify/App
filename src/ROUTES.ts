@@ -93,14 +93,15 @@ const ROUTES = {
 
             const queryParams = [];
 
-            // When we are opening a transaction thread but don't have the transaction report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
-            if (moneyRequestReportActionID && transactionID) {
-                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
+            // When we are opening a transaction thread but don't have the transaction thread report created yet we need to pass the moneyRequestReportActionID and transactionID so we can send those to the OpenReport call and create the transaction report
+            if (transactionID) {
                 queryParams.push(`transactionID=${transactionID}`);
+            }
+            if (moneyRequestReportActionID) {
+                queryParams.push(`moneyRequestReportActionID=${moneyRequestReportActionID}`);
             }
 
             const queryString = queryParams.length > 0 ? (`${baseRoute}?${queryParams.join('&')}` as const) : baseRoute;
-
             return getUrlWithBackToParam(queryString, backTo);
         },
     },
@@ -1329,6 +1330,10 @@ const ROUTES = {
         getRoute: (policyID?: string, backTo?: string) =>
             getUrlWithBackToParam(policyID ? (`settings/workspaces/${policyID}/downgrade/` as const) : (`settings/workspaces/downgrade` as const), backTo),
     },
+    WORKSPACE_PAY_AND_DOWNGRADE: {
+        route: 'settings/workspaces/pay-and-downgrade/',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`settings/workspaces/pay-and-downgrade` as const, backTo),
+    },
     WORKSPACE_CATEGORIES_SETTINGS: {
         route: 'settings/workspaces/:policyID/categories/settings',
         getRoute: (policyID: string) => `settings/workspaces/${policyID}/categories/settings` as const,
@@ -1877,6 +1882,14 @@ const ROUTES = {
     ONBOARDING_WORKSPACES: {
         route: 'onboarding/join-workspaces',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/join-workspaces`, backTo),
+    },
+    ONBOARDING_WORK_EMAIL: {
+        route: 'onboarding/work-email',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email`, backTo),
+    },
+    ONBOARDING_WORK_EMAIL_VALIDATION: {
+        route: 'onboarding/work-email-validation',
+        getRoute: (backTo?: string) => getUrlWithBackToParam(`onboarding/work-email-validation`, backTo),
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
