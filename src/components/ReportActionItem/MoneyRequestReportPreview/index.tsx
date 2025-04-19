@@ -34,25 +34,34 @@ function MoneyRequestReportPreview({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
     const [invoiceReceiverPolicy] = useOnyx(
         `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+        {canBeMissing: false},
     );
     const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails) =>
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
+        canBeMissing: false,
     });
-    const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
+    const [iouReport, transactions, violations, deletedTransactions] = useReportWithTransactionsAndViolations(iouReportID);
+    const transactionsOrDeleted = useMemo(() => {
+        if (!deletedTransactions) {
+            return transactions;
+        }
+        const transactionIDs = transactions.map((transaction) => transaction.transactionID);
+        return [...transactions, ...deletedTransactions.filter((transaction) => !transactionIDs.includes(transaction.transactionID))];
+    }, [transactions, deletedTransactions]);
     const policy = usePolicy(policyID);
-    const lastTransaction = transactions?.at(0);
+    const lastTransaction = transactionsOrDeleted?.at(0);
     const lastTransactionViolations = useTransactionViolations(lastTransaction?.transactionID);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
     const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
     const [currentWidth, setCurrentWidth] = useState(256);
     const reportPreviewStyles = useMemo(
-        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, transactions.length === 1),
-        [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
+        () => StyleUtils.getMoneyRequestReportPreviewStyle(shouldUseNarrowLayout, currentWidth, transactionsOrDeleted.length === 1),
+        [StyleUtils, currentWidth, shouldUseNarrowLayout, transactionsOrDeleted.length],
     );
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
@@ -87,7 +96,7 @@ function MoneyRequestReportPreview({
             iouReportID={iouReportID}
             policyID={undefined}
             iouReport={iouReport}
-            transactions={transactions}
+            transactions={transactionsOrDeleted}
             violations={violations}
             chatReport={chatReport}
             policy={policy}
