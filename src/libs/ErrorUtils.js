@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.isReceiptError =
     exports.getMicroSecondOnyxErrorObject =
@@ -15,10 +15,11 @@ exports.isReceiptError =
     exports.getAuthenticateErrorMessage =
     exports.addErrorMessage =
         void 0;
-var mapValues_1 = require('lodash/mapValues');
-var CONST_1 = require('@src/CONST');
-var DateUtils_1 = require('./DateUtils');
-var Localize = require('./Localize');
+const mapValues_1 = require('lodash/mapValues');
+const CONST_1 = require('@src/CONST');
+const DateUtils_1 = require('./DateUtils');
+const Localize = require('./Localize');
+
 function getAuthenticateErrorMessage(response) {
     switch (response.jsonCode) {
         case CONST_1['default'].JSON_CODE.UNABLE_TO_RETRY:
@@ -53,7 +54,7 @@ exports.getAuthenticateErrorMessage = getAuthenticateErrorMessage;
  * @param error - The translation key for the error message.
  */
 function getMicroSecondOnyxErrorWithTranslationKey(error, errorKey) {
-    var _a;
+    let _a;
     return (_a = {}), (_a[errorKey !== null && errorKey !== void 0 ? errorKey : DateUtils_1['default'].getMicroseconds()] = Localize.translateLocal(error)), _a;
 }
 exports.getMicroSecondOnyxErrorWithTranslationKey = getMicroSecondOnyxErrorWithTranslationKey;
@@ -62,7 +63,7 @@ exports.getMicroSecondOnyxErrorWithTranslationKey = getMicroSecondOnyxErrorWithT
  * @param error - The error message.
  */
 function getMicroSecondOnyxErrorWithMessage(error, errorKey) {
-    var _a;
+    let _a;
     return (_a = {}), (_a[errorKey !== null && errorKey !== void 0 ? errorKey : DateUtils_1['default'].getMicroseconds()] = error), _a;
 }
 exports.getMicroSecondOnyxErrorWithMessage = getMicroSecondOnyxErrorWithMessage;
@@ -71,7 +72,7 @@ exports.getMicroSecondOnyxErrorWithMessage = getMicroSecondOnyxErrorWithMessage;
  * @param error - error key or message to be saved
  */
 function getMicroSecondOnyxErrorObject(error, errorKey) {
-    var _a;
+    let _a;
     return (_a = {}), (_a[errorKey !== null && errorKey !== void 0 ? errorKey : DateUtils_1['default'].getMicroseconds()] = error), _a;
 }
 exports.getMicroSecondOnyxErrorObject = getMicroSecondOnyxErrorObject;
@@ -81,46 +82,46 @@ function getErrorMessageWithTranslationData(error) {
 }
 exports.getErrorMessageWithTranslationData = getErrorMessageWithTranslationData;
 function getLatestErrorMessage(onyxData) {
-    var _a, _b, _c;
-    var errors = (_a = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errors) !== null && _a !== void 0 ? _a : {};
+    let _a; let _b; let _c;
+    const errors = (_a = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errors) !== null && _a !== void 0 ? _a : {};
     if (Object.keys(errors).length === 0) {
         return '';
     }
-    var key = (_b = Object.keys(errors).sort().reverse().at(0)) !== null && _b !== void 0 ? _b : '';
+    const key = (_b = Object.keys(errors).sort().reverse().at(0)) !== null && _b !== void 0 ? _b : '';
     return getErrorMessageWithTranslationData((_c = errors[key]) !== null && _c !== void 0 ? _c : '');
 }
 exports.getLatestErrorMessage = getLatestErrorMessage;
 function getLatestErrorMessageField(onyxData) {
-    var _a, _b;
-    var errors = (_a = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errors) !== null && _a !== void 0 ? _a : {};
+    let _a; let _b;
+    const errors = (_a = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errors) !== null && _a !== void 0 ? _a : {};
     if (Object.keys(errors).length === 0) {
         return {};
     }
-    var key = (_b = Object.keys(errors).sort().reverse().at(0)) !== null && _b !== void 0 ? _b : '';
+    const key = (_b = Object.keys(errors).sort().reverse().at(0)) !== null && _b !== void 0 ? _b : '';
     return {key: errors[key]};
 }
 exports.getLatestErrorMessageField = getLatestErrorMessageField;
 function getLatestErrorField(onyxData, fieldName) {
-    var _a;
-    var _b, _c, _d;
-    var errorsForField =
+    let _a;
+    let _b; let _c; let _d;
+    const errorsForField =
         (_c = (_b = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errorFields) === null || _b === void 0 ? void 0 : _b[fieldName]) !== null && _c !== void 0 ? _c : {};
     if (Object.keys(errorsForField).length === 0) {
         return {};
     }
-    var key = (_d = Object.keys(errorsForField).sort().reverse().at(0)) !== null && _d !== void 0 ? _d : '';
+    const key = (_d = Object.keys(errorsForField).sort().reverse().at(0)) !== null && _d !== void 0 ? _d : '';
     return (_a = {}), (_a[key] = getErrorMessageWithTranslationData(errorsForField[key])), _a;
 }
 exports.getLatestErrorField = getLatestErrorField;
 function getEarliestErrorField(onyxData, fieldName) {
-    var _a;
-    var _b, _c, _d;
-    var errorsForField =
+    let _a;
+    let _b; let _c; let _d;
+    const errorsForField =
         (_c = (_b = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errorFields) === null || _b === void 0 ? void 0 : _b[fieldName]) !== null && _c !== void 0 ? _c : {};
     if (Object.keys(errorsForField).length === 0) {
         return {};
     }
-    var key = (_d = Object.keys(errorsForField).sort().at(0)) !== null && _d !== void 0 ? _d : '';
+    const key = (_d = Object.keys(errorsForField).sort().at(0)) !== null && _d !== void 0 ? _d : '';
     return (_a = {}), (_a[key] = getErrorMessageWithTranslationData(errorsForField[key])), _a;
 }
 exports.getEarliestErrorField = getEarliestErrorField;
@@ -128,13 +129,13 @@ exports.getEarliestErrorField = getEarliestErrorField;
  * Method used to get the latest error field for any field
  */
 function getLatestErrorFieldForAnyField(onyxData) {
-    var _a;
-    var errorFields = (_a = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errorFields) !== null && _a !== void 0 ? _a : {};
+    let _a;
+    const errorFields = (_a = onyxData === null || onyxData === void 0 ? void 0 : onyxData.errorFields) !== null && _a !== void 0 ? _a : {};
     if (Object.keys(errorFields).length === 0) {
         return {};
     }
-    var fieldNames = Object.keys(errorFields);
-    var latestErrorFields = fieldNames.map(function (fieldName) {
+    const fieldNames = Object.keys(errorFields);
+    const latestErrorFields = fieldNames.map(function (fieldName) {
         return getLatestErrorField(onyxData, fieldName);
     });
     return latestErrorFields.reduce(function (acc, error) {
@@ -143,12 +144,12 @@ function getLatestErrorFieldForAnyField(onyxData) {
 }
 exports.getLatestErrorFieldForAnyField = getLatestErrorFieldForAnyField;
 function getLatestError(errors) {
-    var _a;
-    var _b;
+    let _a;
+    let _b;
     if (!errors || Object.keys(errors).length === 0) {
         return {};
     }
-    var key = (_b = Object.keys(errors).sort().reverse().at(0)) !== null && _b !== void 0 ? _b : '';
+    const key = (_b = Object.keys(errors).sort().reverse().at(0)) !== null && _b !== void 0 ? _b : '';
     return (_a = {}), (_a[key] = getErrorMessageWithTranslationData(errors[key])), _a;
 }
 exports.getLatestError = getLatestError;
@@ -177,12 +178,12 @@ function addErrorMessage(errors, inputID, message) {
     if (!message || !inputID) {
         return;
     }
-    var errorList = errors;
-    var error = errorList[inputID];
+    const errorList = errors;
+    const error = errorList[inputID];
     if (!error) {
         errorList[inputID] = message;
     } else if (typeof error === 'string') {
-        errorList[inputID] = error + '\n' + message;
+        errorList[inputID] = `${error  }\n${  message}`;
     }
 }
 exports.addErrorMessage = addErrorMessage;
@@ -190,7 +191,7 @@ exports.addErrorMessage = addErrorMessage;
  * Check if the error includes a receipt.
  */
 function isReceiptError(message) {
-    var _a, _b;
+    let _a; let _b;
     if (typeof message === 'string') {
         return false;
     }

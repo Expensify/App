@@ -1,4 +1,4 @@
-'use strict';
+
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,7 +7,7 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
                 }
                 return t;
             };
@@ -21,16 +21,17 @@ exports.updateCategoryInMccGroup =
     exports.formatRequireReceiptsOverText =
     exports.formatDefaultTaxRateText =
         void 0;
-var CONST_1 = require('@src/CONST');
-var CurrencyUtils = require('./CurrencyUtils');
+const CONST_1 = require('@src/CONST');
+const CurrencyUtils = require('./CurrencyUtils');
+
 function formatDefaultTaxRateText(translate, taxID, taxRate, policyTaxRates) {
-    var taxRateText = taxRate.name + ' ' + CONST_1['default'].DOT_SEPARATOR + ' ' + taxRate.value;
+    const taxRateText = `${taxRate.name  } ${  CONST_1['default'].DOT_SEPARATOR  } ${  taxRate.value}`;
     if (!policyTaxRates) {
         return taxRateText;
     }
-    var defaultExternalID = policyTaxRates.defaultExternalID,
-        foreignTaxDefault = policyTaxRates.foreignTaxDefault;
-    var suffix;
+    const defaultExternalID = policyTaxRates.defaultExternalID;
+        const foreignTaxDefault = policyTaxRates.foreignTaxDefault;
+    let suffix;
     if (taxID === defaultExternalID && taxID === foreignTaxDefault) {
         suffix = translate('common.default');
     } else if (taxID === defaultExternalID) {
@@ -38,20 +39,20 @@ function formatDefaultTaxRateText(translate, taxID, taxRate, policyTaxRates) {
     } else if (taxID === foreignTaxDefault) {
         suffix = translate('workspace.taxes.foreignDefault');
     }
-    return '' + taxRateText + (suffix ? ' ' + CONST_1['default'].DOT_SEPARATOR + ' ' + suffix : '');
+    return `${  taxRateText  }${suffix ? ` ${  CONST_1['default'].DOT_SEPARATOR  } ${  suffix}` : ''}`;
 }
 exports.formatDefaultTaxRateText = formatDefaultTaxRateText;
 function formatRequireReceiptsOverText(translate, policy, categoryMaxAmountNoReceipt) {
-    var _a;
-    var isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
-    var isNeverSelected = categoryMaxAmountNoReceipt === CONST_1['default'].DISABLED_MAX_EXPENSE_VALUE;
+    let _a;
+    const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
+    const isNeverSelected = categoryMaxAmountNoReceipt === CONST_1['default'].DISABLED_MAX_EXPENSE_VALUE;
     if (isAlwaysSelected) {
         return translate('workspace.rules.categoryRules.requireReceiptsOverList.always');
     }
     if (isNeverSelected) {
         return translate('workspace.rules.categoryRules.requireReceiptsOverList.never');
     }
-    var maxExpenseAmountToDisplay =
+    const maxExpenseAmountToDisplay =
         (policy === null || policy === void 0 ? void 0 : policy.maxExpenseAmountNoReceipt) === CONST_1['default'].DISABLED_MAX_EXPENSE_VALUE
             ? 0
             : policy === null || policy === void 0
@@ -66,14 +67,14 @@ function formatRequireReceiptsOverText(translate, policy, categoryMaxAmountNoRec
 }
 exports.formatRequireReceiptsOverText = formatRequireReceiptsOverText;
 function getCategoryApproverRule(approvalRules, categoryName) {
-    var approverRule =
+    const approverRule =
         approvalRules === null || approvalRules === void 0
             ? void 0
             : approvalRules.find(function (rule) {
                   return rule.applyWhen.find(function (_a) {
-                      var condition = _a.condition,
-                          field = _a.field,
-                          value = _a.value;
+                      const condition = _a.condition;
+                          const field = _a.field;
+                          const value = _a.value;
                       return condition === CONST_1['default'].POLICY.RULE_CONDITIONS.MATCHES && field === CONST_1['default'].POLICY.FIELDS.CATEGORY && value === categoryName;
                   });
               });
@@ -81,14 +82,14 @@ function getCategoryApproverRule(approvalRules, categoryName) {
 }
 exports.getCategoryApproverRule = getCategoryApproverRule;
 function getCategoryExpenseRule(expenseRules, categoryName) {
-    var expenseRule =
+    const expenseRule =
         expenseRules === null || expenseRules === void 0
             ? void 0
             : expenseRules.find(function (rule) {
                   return rule.applyWhen.find(function (_a) {
-                      var condition = _a.condition,
-                          field = _a.field,
-                          value = _a.value;
+                      const condition = _a.condition;
+                          const field = _a.field;
+                          const value = _a.value;
                       return condition === CONST_1['default'].POLICY.RULE_CONDITIONS.MATCHES && field === CONST_1['default'].POLICY.FIELDS.CATEGORY && value === categoryName;
                   });
               });
@@ -96,8 +97,8 @@ function getCategoryExpenseRule(expenseRules, categoryName) {
 }
 exports.getCategoryExpenseRule = getCategoryExpenseRule;
 function getCategoryDefaultTaxRate(expenseRules, categoryName, defaultTaxRate) {
-    var _a, _b, _c;
-    var categoryDefaultTaxRate =
+    let _a; let _b; let _c;
+    const categoryDefaultTaxRate =
         (_c =
             (_b =
                 (_a =
@@ -125,14 +126,14 @@ function updateCategoryInMccGroup(mccGroups, oldCategoryName, newCategoryName, s
     if (oldCategoryName === newCategoryName) {
         return mccGroups;
     }
-    var updatedGroups = {};
-    for (var _i = 0, _a = Object.entries(mccGroups || {}); _i < _a.length; _i++) {
-        var _b = _a[_i],
-            key = _b[0],
-            group = _b[1];
+    const updatedGroups = {};
+    for (let _i = 0, _a = Object.entries(mccGroups || {}); _i < _a.length; _i++) {
+        const _b = _a[_i];
+            const key = _b[0];
+            const group = _b[1];
         updatedGroups[key] =
             group.category === oldCategoryName
-                ? __assign(__assign({}, group), {category: newCategoryName, pendingAction: shouldClearPendingAction ? null : CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE})
+                ? ({...group, category: newCategoryName, pendingAction: shouldClearPendingAction ? null : CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE})
                 : group;
     }
     return updatedGroups;

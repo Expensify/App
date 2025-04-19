@@ -1,6 +1,6 @@
-'use strict';
+
 exports.__esModule = true;
-var INPUT_IDS = {
+const INPUT_IDS = {
     CURRENCY: 'currency',
     SECURITY_CODE: 'securityCode',
 };

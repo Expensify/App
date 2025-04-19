@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.InvoiceBlue =
     exports.CreditCardsNewGreen =
@@ -160,315 +160,471 @@ exports.ReportReceipt =
     exports.VisaCompanyCardDetailLarge =
     exports.StripeCompanyCardDetailLarge =
         void 0;
-var amex_svg_1 = require('@assets/images/companyCards/amex.svg');
+const amex_svg_1 = require('@assets/images/companyCards/amex.svg');
+
 exports.AmexCompanyCards = amex_svg_1['default'];
-var card_amex_svg_1 = require('@assets/images/companyCards/card-amex.svg');
+const card_amex_svg_1 = require('@assets/images/companyCards/card-amex.svg');
+
 exports.AmexCardCompanyCardDetail = card_amex_svg_1['default'];
-var card_bofa_svg_1 = require('@assets/images/companyCards/card-bofa.svg');
+const card_bofa_svg_1 = require('@assets/images/companyCards/card-bofa.svg');
+
 exports.BankOfAmericaCompanyCardDetail = card_bofa_svg_1['default'];
-var card_brex_svg_1 = require('@assets/images/companyCards/card-brex.svg');
+const card_brex_svg_1 = require('@assets/images/companyCards/card-brex.svg');
+
 exports.BrexCompanyCardDetail = card_brex_svg_1['default'];
-var card_capitalone_svg_1 = require('@assets/images/companyCards/card-capitalone.svg');
+const card_capitalone_svg_1 = require('@assets/images/companyCards/card-capitalone.svg');
+
 exports.CapitalOneCompanyCardDetail = card_capitalone_svg_1['default'];
-var card_chase_svg_1 = require('@assets/images/companyCards/card-chase.svg');
+const card_chase_svg_1 = require('@assets/images/companyCards/card-chase.svg');
+
 exports.ChaseCompanyCardDetail = card_chase_svg_1['default'];
-var card_citi_svg_1 = require('@assets/images/companyCards/card-citi.svg');
+const card_citi_svg_1 = require('@assets/images/companyCards/card-citi.svg');
+
 exports.CitibankCompanyCardDetail = card_citi_svg_1['default'];
-var card_mastercard_svg_1 = require('@assets/images/companyCards/card-mastercard.svg');
+const card_mastercard_svg_1 = require('@assets/images/companyCards/card-mastercard.svg');
+
 exports.MasterCardCompanyCardDetail = card_mastercard_svg_1['default'];
-var card_stripe_svg_1 = require('@assets/images/companyCards/card-stripe.svg');
+const card_stripe_svg_1 = require('@assets/images/companyCards/card-stripe.svg');
+
 exports.StripeCompanyCardDetail = card_stripe_svg_1['default'];
-var card_visa_svg_1 = require('@assets/images/companyCards/card-visa.svg');
+const card_visa_svg_1 = require('@assets/images/companyCards/card-visa.svg');
+
 exports.VisaCompanyCardDetail = card_visa_svg_1['default'];
-var card_wellsfargo_svg_1 = require('@assets/images/companyCards/card-wellsfargo.svg');
+const card_wellsfargo_svg_1 = require('@assets/images/companyCards/card-wellsfargo.svg');
+
 exports.WellsFargoCompanyCardDetail = card_wellsfargo_svg_1['default'];
-var emptystate__card_pos_svg_1 = require('@assets/images/companyCards/emptystate__card-pos.svg');
+const emptystate__card_pos_svg_1 = require('@assets/images/companyCards/emptystate__card-pos.svg');
+
 exports.CompanyCardsEmptyState = emptystate__card_pos_svg_1['default'];
-var card_amex_large_svg_1 = require('@assets/images/companyCards/large/card-amex-large.svg');
+const card_amex_large_svg_1 = require('@assets/images/companyCards/large/card-amex-large.svg');
+
 exports.AmexCardCompanyCardDetailLarge = card_amex_large_svg_1['default'];
-var card_bofa_large_svg_1 = require('@assets/images/companyCards/large/card-bofa-large.svg');
+const card_bofa_large_svg_1 = require('@assets/images/companyCards/large/card-bofa-large.svg');
+
 exports.BankOfAmericaCompanyCardDetailLarge = card_bofa_large_svg_1['default'];
-var card_brex_large_svg_1 = require('@assets/images/companyCards/large/card-brex-large.svg');
+const card_brex_large_svg_1 = require('@assets/images/companyCards/large/card-brex-large.svg');
+
 exports.BrexCompanyCardDetailLarge = card_brex_large_svg_1['default'];
-var card_capital_one_large_svg_1 = require('@assets/images/companyCards/large/card-capital_one-large.svg');
+const card_capital_one_large_svg_1 = require('@assets/images/companyCards/large/card-capital_one-large.svg');
+
 exports.CapitalOneCompanyCardDetailLarge = card_capital_one_large_svg_1['default'];
-var card_chase_large_svg_1 = require('@assets/images/companyCards/large/card-chase-large.svg');
+const card_chase_large_svg_1 = require('@assets/images/companyCards/large/card-chase-large.svg');
+
 exports.ChaseCompanyCardDetailLarge = card_chase_large_svg_1['default'];
-var card_citi_large_svg_1 = require('@assets/images/companyCards/large/card-citi-large.svg');
+const card_citi_large_svg_1 = require('@assets/images/companyCards/large/card-citi-large.svg');
+
 exports.CitibankCompanyCardDetailLarge = card_citi_large_svg_1['default'];
-var card_mastercard_large_svg_1 = require('@assets/images/companyCards/large/card-mastercard-large.svg');
+const card_mastercard_large_svg_1 = require('@assets/images/companyCards/large/card-mastercard-large.svg');
+
 exports.MasterCardCompanyCardDetailLarge = card_mastercard_large_svg_1['default'];
-var card_stripe_large_svg_1 = require('@assets/images/companyCards/large/card-stripe-large.svg');
+const card_stripe_large_svg_1 = require('@assets/images/companyCards/large/card-stripe-large.svg');
+
 exports.StripeCompanyCardDetailLarge = card_stripe_large_svg_1['default'];
-var card_visa_large_svg_1 = require('@assets/images/companyCards/large/card-visa-large.svg');
+const card_visa_large_svg_1 = require('@assets/images/companyCards/large/card-visa-large.svg');
+
 exports.VisaCompanyCardDetailLarge = card_visa_large_svg_1['default'];
-var card_wellsfargo_large_svg_1 = require('@assets/images/companyCards/large/card-wellsfargo-large.svg');
+const card_wellsfargo_large_svg_1 = require('@assets/images/companyCards/large/card-wellsfargo-large.svg');
+
 exports.WellsFargoCompanyCardDetailLarge = card_wellsfargo_large_svg_1['default'];
-var mastercard_svg_1 = require('@assets/images/companyCards/mastercard.svg');
+const mastercard_svg_1 = require('@assets/images/companyCards/mastercard.svg');
+
 exports.MasterCardCompanyCards = mastercard_svg_1['default'];
-var pending_bank_svg_1 = require('@assets/images/companyCards/pending-bank.svg');
+const pending_bank_svg_1 = require('@assets/images/companyCards/pending-bank.svg');
+
 exports.PendingBank = pending_bank_svg_1['default'];
-var pendingstate_laptop_with_hourglass_and_cards_svg_1 = require('@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg');
+const pendingstate_laptop_with_hourglass_and_cards_svg_1 = require('@assets/images/companyCards/pendingstate_laptop-with-hourglass-and-cards.svg');
+
 exports.CompanyCardsPendingState = pendingstate_laptop_with_hourglass_and_cards_svg_1['default'];
-var visa_svg_1 = require('@assets/images/companyCards/visa.svg');
+const visa_svg_1 = require('@assets/images/companyCards/visa.svg');
+
 exports.VisaCompanyCards = visa_svg_1['default'];
-var emptystate__expensifycard_svg_1 = require('@assets/images/emptystate__expensifycard.svg');
+const emptystate__expensifycard_svg_1 = require('@assets/images/emptystate__expensifycard.svg');
+
 exports.EmptyCardState = emptystate__expensifycard_svg_1['default'];
-var cardIllustration_svg_1 = require('@assets/images/expensifyCard/cardIllustration.svg');
+const cardIllustration_svg_1 = require('@assets/images/expensifyCard/cardIllustration.svg');
+
 exports.ExpensifyCardIllustration = cardIllustration_svg_1['default'];
-var LaptopwithSecondScreenandHourglass_svg_1 = require('@assets/images/LaptopwithSecondScreenandHourglass.svg');
+const LaptopwithSecondScreenandHourglass_svg_1 = require('@assets/images/LaptopwithSecondScreenandHourglass.svg');
+
 exports.LaptopwithSecondScreenandHourglass = LaptopwithSecondScreenandHourglass_svg_1['default'];
-var abracadabra_svg_1 = require('@assets/images/product-illustrations/abracadabra.svg');
+const abracadabra_svg_1 = require('@assets/images/product-illustrations/abracadabra.svg');
+
 exports.Abracadabra = abracadabra_svg_1['default'];
-var bank_arrow__pink_svg_1 = require('@assets/images/product-illustrations/bank-arrow--pink.svg');
+const bank_arrow__pink_svg_1 = require('@assets/images/product-illustrations/bank-arrow--pink.svg');
+
 exports.BankArrowPink = bank_arrow__pink_svg_1['default'];
-var bank_mouse__green_svg_1 = require('@assets/images/product-illustrations/bank-mouse--green.svg');
+const bank_mouse__green_svg_1 = require('@assets/images/product-illustrations/bank-mouse--green.svg');
+
 exports.BankMouseGreen = bank_mouse__green_svg_1['default'];
-var bank_user__green_svg_1 = require('@assets/images/product-illustrations/bank-user--green.svg');
+const bank_user__green_svg_1 = require('@assets/images/product-illustrations/bank-user--green.svg');
+
 exports.BankUserGreen = bank_user__green_svg_1['default'];
-var broken_magnifying_glass_svg_1 = require('@assets/images/product-illustrations/broken-magnifying-glass.svg');
+const broken_magnifying_glass_svg_1 = require('@assets/images/product-illustrations/broken-magnifying-glass.svg');
+
 exports.BrokenMagnifyingGlass = broken_magnifying_glass_svg_1['default'];
-var concierge__blue_svg_1 = require('@assets/images/product-illustrations/concierge--blue.svg');
+const concierge__blue_svg_1 = require('@assets/images/product-illustrations/concierge--blue.svg');
+
 exports.ConciergeBlue = concierge__blue_svg_1['default'];
-var concierge__exclamation_svg_1 = require('@assets/images/product-illustrations/concierge--exclamation.svg');
+const concierge__exclamation_svg_1 = require('@assets/images/product-illustrations/concierge--exclamation.svg');
+
 exports.ConciergeExclamation = concierge__exclamation_svg_1['default'];
-var credit_cards__blue_svg_1 = require('@assets/images/product-illustrations/credit-cards--blue.svg');
+const credit_cards__blue_svg_1 = require('@assets/images/product-illustrations/credit-cards--blue.svg');
+
 exports.CreditCardsBlue = credit_cards__blue_svg_1['default'];
-var emptystate__expenses_svg_1 = require('@assets/images/product-illustrations/emptystate__expenses.svg');
+const emptystate__expenses_svg_1 = require('@assets/images/product-illustrations/emptystate__expenses.svg');
+
 exports.EmptyStateExpenses = emptystate__expenses_svg_1['default'];
-var emptystate__holdexpense_svg_1 = require('@assets/images/product-illustrations/emptystate__holdexpense.svg');
+const emptystate__holdexpense_svg_1 = require('@assets/images/product-illustrations/emptystate__holdexpense.svg');
+
 exports.HoldExpense = emptystate__holdexpense_svg_1['default'];
-var emptystate__receiptfairy_svg_1 = require('@assets/images/product-illustrations/emptystate__receiptfairy.svg');
+const emptystate__receiptfairy_svg_1 = require('@assets/images/product-illustrations/emptystate__receiptfairy.svg');
+
 exports.ReceiptFairy = emptystate__receiptfairy_svg_1['default'];
-var emptystate__travel_svg_1 = require('@assets/images/product-illustrations/emptystate__travel.svg');
+const emptystate__travel_svg_1 = require('@assets/images/product-illustrations/emptystate__travel.svg');
+
 exports.EmptyStateTravel = emptystate__travel_svg_1['default'];
-var folder_with_papers_svg_1 = require('@assets/images/product-illustrations/folder-with-papers.svg');
+const folder_with_papers_svg_1 = require('@assets/images/product-illustrations/folder-with-papers.svg');
+
 exports.FolderWithPapers = folder_with_papers_svg_1['default'];
-var gps_track__orange_svg_1 = require('@assets/images/product-illustrations/gps-track--orange.svg');
+const gps_track__orange_svg_1 = require('@assets/images/product-illustrations/gps-track--orange.svg');
+
 exports.GpsTrackOrange = gps_track__orange_svg_1['default'];
-var home_illustration_hands_svg_1 = require('@assets/images/product-illustrations/home-illustration-hands.svg');
+const home_illustration_hands_svg_1 = require('@assets/images/product-illustrations/home-illustration-hands.svg');
+
 exports.Hands = home_illustration_hands_svg_1['default'];
-var invoice__orange_svg_1 = require('@assets/images/product-illustrations/invoice--orange.svg');
+const invoice__orange_svg_1 = require('@assets/images/product-illustrations/invoice--orange.svg');
+
 exports.InvoiceOrange = invoice__orange_svg_1['default'];
-var jewel_box__blue_svg_1 = require('@assets/images/product-illustrations/jewel-box--blue.svg');
+const jewel_box__blue_svg_1 = require('@assets/images/product-illustrations/jewel-box--blue.svg');
+
 exports.JewelBoxBlue = jewel_box__blue_svg_1['default'];
-var jewel_box__green_svg_1 = require('@assets/images/product-illustrations/jewel-box--green.svg');
+const jewel_box__green_svg_1 = require('@assets/images/product-illustrations/jewel-box--green.svg');
+
 exports.JewelBoxGreen = jewel_box__green_svg_1['default'];
-var jewel_box__pink_svg_1 = require('@assets/images/product-illustrations/jewel-box--pink.svg');
+const jewel_box__pink_svg_1 = require('@assets/images/product-illustrations/jewel-box--pink.svg');
+
 exports.JewelBoxPink = jewel_box__pink_svg_1['default'];
-var jewel_box__yellow_svg_1 = require('@assets/images/product-illustrations/jewel-box--yellow.svg');
+const jewel_box__yellow_svg_1 = require('@assets/images/product-illustrations/jewel-box--yellow.svg');
+
 exports.JewelBoxYellow = jewel_box__yellow_svg_1['default'];
-var magic_code_svg_1 = require('@assets/images/product-illustrations/magic-code.svg');
+const magic_code_svg_1 = require('@assets/images/product-illustrations/magic-code.svg');
+
 exports.MagicCode = magic_code_svg_1['default'];
-var money_envelope__blue_svg_1 = require('@assets/images/product-illustrations/money-envelope--blue.svg');
+const money_envelope__blue_svg_1 = require('@assets/images/product-illustrations/money-envelope--blue.svg');
+
 exports.MoneyEnvelopeBlue = money_envelope__blue_svg_1['default'];
-var money_mouse__pink_svg_1 = require('@assets/images/product-illustrations/money-mouse--pink.svg');
+const money_mouse__pink_svg_1 = require('@assets/images/product-illustrations/money-mouse--pink.svg');
+
 exports.MoneyMousePink = money_mouse__pink_svg_1['default'];
-var mushroom_top_hat_svg_1 = require('@assets/images/product-illustrations/mushroom-top-hat.svg');
+const mushroom_top_hat_svg_1 = require('@assets/images/product-illustrations/mushroom-top-hat.svg');
+
 exports.MushroomTopHat = mushroom_top_hat_svg_1['default'];
-var payment_hands_svg_1 = require('@assets/images/product-illustrations/payment-hands.svg');
+const payment_hands_svg_1 = require('@assets/images/product-illustrations/payment-hands.svg');
+
 exports.PaymentHands = payment_hands_svg_1['default'];
-var receipt__yellow_svg_1 = require('@assets/images/product-illustrations/receipt--yellow.svg');
+const receipt__yellow_svg_1 = require('@assets/images/product-illustrations/receipt--yellow.svg');
+
 exports.ReceiptYellow = receipt__yellow_svg_1['default'];
-var receipts_search__yellow_svg_1 = require('@assets/images/product-illustrations/receipts-search--yellow.svg');
+const receipts_search__yellow_svg_1 = require('@assets/images/product-illustrations/receipts-search--yellow.svg');
+
 exports.ReceiptsSearchYellow = receipts_search__yellow_svg_1['default'];
-var rocket__blue_svg_1 = require('@assets/images/product-illustrations/rocket--blue.svg');
+const rocket__blue_svg_1 = require('@assets/images/product-illustrations/rocket--blue.svg');
+
 exports.RocketBlue = rocket__blue_svg_1['default'];
-var rocket__orange_svg_1 = require('@assets/images/product-illustrations/rocket--orange.svg');
+const rocket__orange_svg_1 = require('@assets/images/product-illustrations/rocket--orange.svg');
+
 exports.RocketOrange = rocket__orange_svg_1['default'];
-var rocket_dude_svg_1 = require('@assets/images/product-illustrations/rocket-dude.svg');
+const rocket_dude_svg_1 = require('@assets/images/product-illustrations/rocket-dude.svg');
+
 exports.RocketDude = rocket_dude_svg_1['default'];
-var safe_svg_1 = require('@assets/images/product-illustrations/safe.svg');
+const safe_svg_1 = require('@assets/images/product-illustrations/safe.svg');
+
 exports.SafeBlue = safe_svg_1['default'];
-var simple_illustration__smartscan_svg_1 = require('@assets/images/product-illustrations/simple-illustration__smartscan.svg');
+const simple_illustration__smartscan_svg_1 = require('@assets/images/product-illustrations/simple-illustration__smartscan.svg');
+
 exports.SmartScan = simple_illustration__smartscan_svg_1['default'];
-var tada__blue_svg_1 = require('@assets/images/product-illustrations/tada--blue.svg');
+const tada__blue_svg_1 = require('@assets/images/product-illustrations/tada--blue.svg');
+
 exports.TadaBlue = tada__blue_svg_1['default'];
-var tada__yellow_svg_1 = require('@assets/images/product-illustrations/tada--yellow.svg');
+const tada__yellow_svg_1 = require('@assets/images/product-illustrations/tada--yellow.svg');
+
 exports.TadaYellow = tada__yellow_svg_1['default'];
-var telescope_svg_1 = require('@assets/images/product-illustrations/telescope.svg');
+const telescope_svg_1 = require('@assets/images/product-illustrations/telescope.svg');
+
 exports.TeleScope = telescope_svg_1['default'];
-var three_legged_laptop_woman_svg_1 = require('@assets/images/product-illustrations/three_legged_laptop_woman.svg');
+const three_legged_laptop_woman_svg_1 = require('@assets/images/product-illustrations/three_legged_laptop_woman.svg');
+
 exports.ThreeLeggedLaptopWoman = three_legged_laptop_woman_svg_1['default'];
-var todd_behind_cloud_svg_1 = require('@assets/images/product-illustrations/todd-behind-cloud.svg');
+const todd_behind_cloud_svg_1 = require('@assets/images/product-illustrations/todd-behind-cloud.svg');
+
 exports.ToddBehindCloud = todd_behind_cloud_svg_1['default'];
-var todd_with_phones_svg_1 = require('@assets/images/product-illustrations/todd-with-phones.svg');
+const todd_with_phones_svg_1 = require('@assets/images/product-illustrations/todd-with-phones.svg');
+
 exports.ToddWithPhones = todd_with_phones_svg_1['default'];
-var running_turtle_svg_1 = require('@assets/images/running-turtle.svg');
+const running_turtle_svg_1 = require('@assets/images/running-turtle.svg');
+
 exports.RunningTurtle = running_turtle_svg_1['default'];
-var simple_illustration__report_receipt_svg_1 = require('@assets/images/simple-illustration__report-receipt.svg');
+const simple_illustration__report_receipt_svg_1 = require('@assets/images/simple-illustration__report-receipt.svg');
+
 exports.ReportReceipt = simple_illustration__report_receipt_svg_1['default'];
-var emptystate__big_vault_svg_1 = require('@assets/images/simple-illustrations/emptystate__big-vault.svg');
+const emptystate__big_vault_svg_1 = require('@assets/images/simple-illustrations/emptystate__big-vault.svg');
+
 exports.BigVault = emptystate__big_vault_svg_1['default'];
-var emptystate__puzzlepieces_svg_1 = require('@assets/images/simple-illustrations/emptystate__puzzlepieces.svg');
+const emptystate__puzzlepieces_svg_1 = require('@assets/images/simple-illustrations/emptystate__puzzlepieces.svg');
+
 exports.Puzzle = emptystate__puzzlepieces_svg_1['default'];
-var simple_illustration__abacus_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__abacus.svg');
+const simple_illustration__abacus_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__abacus.svg');
+
 exports.Abacus = simple_illustration__abacus_svg_1['default'];
-var simple_illustration__accounting_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__accounting.svg');
+const simple_illustration__accounting_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__accounting.svg');
+
 exports.Accounting = simple_illustration__accounting_svg_1['default'];
-var simple_illustration__alert_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__alert.svg');
+const simple_illustration__alert_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__alert.svg');
+
 exports.Alert = simple_illustration__alert_svg_1['default'];
-var simple_illustration__approval_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__approval.svg');
+const simple_illustration__approval_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__approval.svg');
+
 exports.Approval = simple_illustration__approval_svg_1['default'];
-var simple_illustration__bank_arrow_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg');
+const simple_illustration__bank_arrow_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__bank-arrow.svg');
+
 exports.BankArrow = simple_illustration__bank_arrow_svg_1['default'];
-var simple_illustration__bigrocket_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__bigrocket.svg');
+const simple_illustration__bigrocket_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__bigrocket.svg');
+
 exports.BigRocket = simple_illustration__bigrocket_svg_1['default'];
-var simple_illustration__bill_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__bill.svg');
+const simple_illustration__bill_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__bill.svg');
+
 exports.PinkBill = simple_illustration__bill_svg_1['default'];
-var simple_illustration__binoculars_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__binoculars.svg');
+const simple_illustration__binoculars_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__binoculars.svg');
+
 exports.Binoculars = simple_illustration__binoculars_svg_1['default'];
-var simple_illustration__building_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__building.svg');
+const simple_illustration__building_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__building.svg');
+
 exports.Building = simple_illustration__building_svg_1['default'];
-var simple_illustration__buildings_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__buildings.svg');
+const simple_illustration__buildings_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__buildings.svg');
+
 exports.Buildings = simple_illustration__buildings_svg_1['default'];
-var simple_illustration__car_ice_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__car-ice.svg');
+const simple_illustration__car_ice_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__car-ice.svg');
+
 exports.CarIce = simple_illustration__car_ice_svg_1['default'];
-var simple_illustration__car_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__car.svg');
+const simple_illustration__car_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__car.svg');
+
 exports.Car = simple_illustration__car_svg_1['default'];
-var simple_illustration__chatbubbles_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg');
+const simple_illustration__chatbubbles_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg');
+
 exports.ChatBubbles = simple_illustration__chatbubbles_svg_1['default'];
-var simple_illustration__checkmarkcircle_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg');
+const simple_illustration__checkmarkcircle_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg');
+
 exports.CheckmarkCircle = simple_illustration__checkmarkcircle_svg_1['default'];
-var simple_illustration__coffeemug_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__coffeemug.svg');
+const simple_illustration__coffeemug_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__coffeemug.svg');
+
 exports.CoffeeMug = simple_illustration__coffeemug_svg_1['default'];
-var simple_illustration__coins_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__coins.svg');
+const simple_illustration__coins_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__coins.svg');
+
 exports.Coins = simple_illustration__coins_svg_1['default'];
-var simple_illustration__commentbubbles_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg');
+const simple_illustration__commentbubbles_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__commentbubbles.svg');
+
 exports.CommentBubbles = simple_illustration__commentbubbles_svg_1['default'];
-var simple_illustration__commentbubbles_blue_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__commentbubbles_blue.svg');
+const simple_illustration__commentbubbles_blue_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__commentbubbles_blue.svg');
+
 exports.CommentBubblesBlue = simple_illustration__commentbubbles_blue_svg_1['default'];
-var simple_illustration__concierge_bubble_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg');
+const simple_illustration__concierge_bubble_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__concierge-bubble.svg');
+
 exports.ConciergeBubble = simple_illustration__concierge_bubble_svg_1['default'];
-var simple_illustration__concierge_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__concierge.svg');
+const simple_illustration__concierge_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__concierge.svg');
+
 exports.ConciergeNew = simple_illustration__concierge_svg_1['default'];
-var simple_illustration__credit_cards_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__credit-cards.svg');
+const simple_illustration__credit_cards_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__credit-cards.svg');
+
 exports.CreditCardsNew = simple_illustration__credit_cards_svg_1['default'];
-var simple_illustration__creditcardeyes_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg');
+const simple_illustration__creditcardeyes_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__creditcardeyes.svg');
+
 exports.CreditCardEyes = simple_illustration__creditcardeyes_svg_1['default'];
-var simple_illustration__creditcards__green_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg');
+const simple_illustration__creditcards__green_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg');
+
 exports.CreditCardsNewGreen = simple_illustration__creditcards__green_svg_1['default'];
-var simple_illustration__email_address_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__email-address.svg');
+const simple_illustration__email_address_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__email-address.svg');
+
 exports.EmailAddress = simple_illustration__email_address_svg_1['default'];
-var simple_illustration__empty_state_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__empty-state.svg');
+const simple_illustration__empty_state_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__empty-state.svg');
+
 exports.EmptyState = simple_illustration__empty_state_svg_1['default'];
-var simple_illustration__encryption_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__encryption.svg');
+const simple_illustration__encryption_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__encryption.svg');
+
 exports.Encryption = simple_illustration__encryption_svg_1['default'];
-var simple_illustration__envelopereceipt_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg');
+const simple_illustration__envelopereceipt_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg');
+
 exports.EnvelopeReceipt = simple_illustration__envelopereceipt_svg_1['default'];
-var simple_illustration__filters_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__filters.svg');
+const simple_illustration__filters_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__filters.svg');
+
 exports.Filters = simple_illustration__filters_svg_1['default'];
-var simple_illustration__flash_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__flash.svg');
+const simple_illustration__flash_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__flash.svg');
+
 exports.Flash = simple_illustration__flash_svg_1['default'];
-var simple_illustration__folder_open_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__folder-open.svg');
+const simple_illustration__folder_open_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__folder-open.svg');
+
 exports.FolderOpen = simple_illustration__folder_open_svg_1['default'];
-var simple_illustration__gears_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__gears.svg');
+const simple_illustration__gears_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__gears.svg');
+
 exports.Gears = simple_illustration__gears_svg_1['default'];
-var simple_illustration__handcard_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__handcard.svg');
+const simple_illustration__handcard_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__handcard.svg');
+
 exports.HandCard = simple_illustration__handcard_svg_1['default'];
-var simple_illustration__handearth_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__handearth.svg');
+const simple_illustration__handearth_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__handearth.svg');
+
 exports.HandEarth = simple_illustration__handearth_svg_1['default'];
-var simple_illustration__hotdogstand_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg');
+const simple_illustration__hotdogstand_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__hotdogstand.svg');
+
 exports.HotDogStand = simple_illustration__hotdogstand_svg_1['default'];
-var simple_illustration__hourglass_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__hourglass.svg');
+const simple_illustration__hourglass_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__hourglass.svg');
+
 exports.Hourglass = simple_illustration__hourglass_svg_1['default'];
-var simple_illustration__house_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__house.svg');
+const simple_illustration__house_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__house.svg');
+
 exports.House = simple_illustration__house_svg_1['default'];
-var simple_illustration__invoice_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__invoice.svg');
+const simple_illustration__invoice_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__invoice.svg');
+
 exports.InvoiceBlue = simple_illustration__invoice_svg_1['default'];
-var simple_illustration__lightbulb_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lightbulb.svg');
+const simple_illustration__lightbulb_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lightbulb.svg');
+
 exports.Lightbulb = simple_illustration__lightbulb_svg_1['default'];
-var simple_illustration__lockclosed_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lockclosed.svg');
+const simple_illustration__lockclosed_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lockclosed.svg');
+
 exports.LockClosed = simple_illustration__lockclosed_svg_1['default'];
-var simple_illustration__lockclosed_orange_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg');
+const simple_illustration__lockclosed_orange_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lockclosed_orange.svg');
+
 exports.LockClosedOrange = simple_illustration__lockclosed_orange_svg_1['default'];
-var simple_illustration__lockopen_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lockopen.svg');
+const simple_illustration__lockopen_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__lockopen.svg');
+
 exports.LockOpen = simple_illustration__lockopen_svg_1['default'];
-var simple_illustration__luggage_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__luggage.svg');
+const simple_illustration__luggage_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__luggage.svg');
+
 exports.Luggage = simple_illustration__luggage_svg_1['default'];
-var simple_illustration__magnifyingglass_money_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg');
+const simple_illustration__magnifyingglass_money_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__magnifyingglass-money.svg');
+
 exports.MagnifyingGlassMoney = simple_illustration__magnifyingglass_money_svg_1['default'];
-var simple_illustration__mailbox_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__mailbox.svg');
+const simple_illustration__mailbox_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__mailbox.svg');
+
 exports.Mailbox = simple_illustration__mailbox_svg_1['default'];
-var simple_illustration__mobileapp_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__mobileapp.svg');
+const simple_illustration__mobileapp_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__mobileapp.svg');
+
 exports.ExpensifyMobileApp = simple_illustration__mobileapp_svg_1['default'];
-var simple_illustration__money_receipts_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__money-receipts.svg');
+const simple_illustration__money_receipts_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__money-receipts.svg');
+
 exports.MoneyReceipts = simple_illustration__money_receipts_svg_1['default'];
-var simple_illustration__moneybadge_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__moneybadge.svg');
+const simple_illustration__moneybadge_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__moneybadge.svg');
+
 exports.MoneyBadge = simple_illustration__moneybadge_svg_1['default'];
-var simple_illustration__moneyintowallet_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg');
+const simple_illustration__moneyintowallet_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__moneyintowallet.svg');
+
 exports.MoneyIntoWallet = simple_illustration__moneyintowallet_svg_1['default'];
-var simple_illustration__moneywings_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__moneywings.svg');
+const simple_illustration__moneywings_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__moneywings.svg');
+
 exports.MoneyWings = simple_illustration__moneywings_svg_1['default'];
-var simple_illustration__opensafe_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__opensafe.svg');
+const simple_illustration__opensafe_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__opensafe.svg');
+
 exports.OpenSafe = simple_illustration__opensafe_svg_1['default'];
-var simple_illustration__palmtree_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__palmtree.svg');
+const simple_illustration__palmtree_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__palmtree.svg');
+
 exports.PalmTree = simple_illustration__palmtree_svg_1['default'];
-var simple_illustration__pencil_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__pencil.svg');
+const simple_illustration__pencil_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__pencil.svg');
+
 exports.Pencil = simple_illustration__pencil_svg_1['default'];
-var simple_illustration__perdiem_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__perdiem.svg');
+const simple_illustration__perdiem_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__perdiem.svg');
+
 exports.PerDiem = simple_illustration__perdiem_svg_1['default'];
-var simple_illustration__piggybank_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__piggybank.svg');
+const simple_illustration__piggybank_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__piggybank.svg');
+
 exports.PiggyBank = simple_illustration__piggybank_svg_1['default'];
-var simple_illustration__pillow_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__pillow.svg');
+const simple_illustration__pillow_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__pillow.svg');
+
 exports.Pillow = simple_illustration__pillow_svg_1['default'];
-var simple_illustration__profile_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__profile.svg');
+const simple_illustration__profile_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__profile.svg');
+
 exports.Profile = simple_illustration__profile_svg_1['default'];
-var simple_illustration__qr_code_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__qr-code.svg');
+const simple_illustration__qr_code_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__qr-code.svg');
+
 exports.QRCode = simple_illustration__qr_code_svg_1['default'];
-var simple_illustration__realtimereports_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__realtimereports.svg');
+const simple_illustration__realtimereports_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__realtimereports.svg');
+
 exports.RealtimeReport = simple_illustration__realtimereports_svg_1['default'];
-var simple_illustration__receipt_envelope_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg');
+const simple_illustration__receipt_envelope_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receipt-envelope.svg');
+
 exports.ReceiptEnvelope = simple_illustration__receipt_envelope_svg_1['default'];
-var simple_illustration__receipt_location_marker_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg');
+const simple_illustration__receipt_location_marker_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receipt-location-marker.svg');
+
 exports.ReceiptLocationMarker = simple_illustration__receipt_location_marker_svg_1['default'];
-var simple_illustration__receipt_wrangler_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg');
+const simple_illustration__receipt_wrangler_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receipt-wrangler.svg');
+
 exports.ReceiptWrangler = simple_illustration__receipt_wrangler_svg_1['default'];
-var simple_illustration__receiptupload_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receiptupload.svg');
+const simple_illustration__receiptupload_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__receiptupload.svg');
+
 exports.ReceiptUpload = simple_illustration__receiptupload_svg_1['default'];
-var simple_illustration__rules_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__rules.svg');
+const simple_illustration__rules_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__rules.svg');
+
 exports.Rules = simple_illustration__rules_svg_1['default'];
-var simple_illustration__sanfrancisco_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg');
+const simple_illustration__sanfrancisco_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__sanfrancisco.svg');
+
 exports.SanFrancisco = simple_illustration__sanfrancisco_svg_1['default'];
-var simple_illustration__sendmoney_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__sendmoney.svg');
+const simple_illustration__sendmoney_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__sendmoney.svg');
+
 exports.SendMoney = simple_illustration__sendmoney_svg_1['default'];
-var simple_illustration__shield_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__shield.svg');
+const simple_illustration__shield_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__shield.svg');
+
 exports.ShieldYellow = simple_illustration__shield_svg_1['default'];
-var simple_illustration__smallrocket_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__smallrocket.svg');
+const simple_illustration__smallrocket_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__smallrocket.svg');
+
 exports.SmallRocket = simple_illustration__smallrocket_svg_1['default'];
-var simple_illustration__splitbill_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__splitbill.svg');
+const simple_illustration__splitbill_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__splitbill.svg');
+
 exports.SplitBill = simple_illustration__splitbill_svg_1['default'];
-var simple_illustration__stopwatch_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__stopwatch.svg');
+const simple_illustration__stopwatch_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__stopwatch.svg');
+
 exports.Stopwatch = simple_illustration__stopwatch_svg_1['default'];
-var simple_illustration__subscription_annual_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg');
+const simple_illustration__subscription_annual_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__subscription-annual.svg');
+
 exports.SubscriptionAnnual = simple_illustration__subscription_annual_svg_1['default'];
-var simple_illustration__subscription_ppu_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg');
+const simple_illustration__subscription_ppu_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__subscription-ppu.svg');
+
 exports.SubscriptionPPU = simple_illustration__subscription_ppu_svg_1['default'];
-var simple_illustration__tag_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__tag.svg');
+const simple_illustration__tag_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__tag.svg');
+
 exports.Tag = simple_illustration__tag_svg_1['default'];
-var simple_illustration__teachers_unite_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg');
+const simple_illustration__teachers_unite_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__teachers-unite.svg');
+
 exports.TeachersUnite = simple_illustration__teachers_unite_svg_1['default'];
-var simple_illustration__thumbsupstars_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg');
+const simple_illustration__thumbsupstars_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__thumbsupstars.svg');
+
 exports.ThumbsUpStars = simple_illustration__thumbsupstars_svg_1['default'];
-var simple_illustration__tire_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__tire.svg');
+const simple_illustration__tire_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__tire.svg');
+
 exports.Tire = simple_illustration__tire_svg_1['default'];
-var simple_illustration__track_shoe_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__track-shoe.svg');
+const simple_illustration__track_shoe_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__track-shoe.svg');
+
 exports.TrackShoe = simple_illustration__track_shoe_svg_1['default'];
-var simple_illustration__trashcan_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__trashcan.svg');
+const simple_illustration__trashcan_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__trashcan.svg');
+
 exports.TrashCan = simple_illustration__trashcan_svg_1['default'];
-var simple_illustration__treasurechest_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__treasurechest.svg');
+const simple_illustration__treasurechest_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__treasurechest.svg');
+
 exports.TreasureChest = simple_illustration__treasurechest_svg_1['default'];
-var simple_illustration__twocards_horizontal_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg');
+const simple_illustration__twocards_horizontal_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__twocards-horizontal.svg');
+
 exports.CompanyCard = simple_illustration__twocards_horizontal_svg_1['default'];
-var simple_illustration__virtualcard_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__virtualcard.svg');
+const simple_illustration__virtualcard_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__virtualcard.svg');
+
 exports.VirtualCard = simple_illustration__virtualcard_svg_1['default'];
-var simple_illustration__wallet_alt_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg');
+const simple_illustration__wallet_alt_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__wallet-alt.svg');
+
 exports.WalletAlt = simple_illustration__wallet_alt_svg_1['default'];
-var simple_illustration__workflows_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__workflows.svg');
+const simple_illustration__workflows_svg_1 = require('@assets/images/simple-illustrations/simple-illustration__workflows.svg');
+
 exports.Workflows = simple_illustration__workflows_svg_1['default'];
-var subscription_details__approvedlogo__light_svg_1 = require('@assets/images/subscription-details__approvedlogo--light.svg');
+const subscription_details__approvedlogo__light_svg_1 = require('@assets/images/subscription-details__approvedlogo--light.svg');
+
 exports.ExpensifyApprovedLogoLight = subscription_details__approvedlogo__light_svg_1['default'];
-var subscription_details__approvedlogo_svg_1 = require('@assets/images/subscription-details__approvedlogo.svg');
+const subscription_details__approvedlogo_svg_1 = require('@assets/images/subscription-details__approvedlogo.svg');
+
 exports.ExpensifyApprovedLogo = subscription_details__approvedlogo_svg_1['default'];
-var turtle_in_shell_svg_1 = require('@assets/images/turtle-in-shell.svg');
+const turtle_in_shell_svg_1 = require('@assets/images/turtle-in-shell.svg');
+
 exports.TurtleInShell = turtle_in_shell_svg_1['default'];

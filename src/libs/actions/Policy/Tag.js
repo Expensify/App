@@ -1,4 +1,4 @@
-'use strict';
+
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,17 +7,17 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
                 }
                 return t;
             };
         return __assign.apply(this, arguments);
     };
-var __spreadArrays =
+const __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
         return r;
     };
 exports.__esModule = true;
@@ -40,29 +40,30 @@ exports.getPolicyTagsData =
     exports.setPolicyRequiresTag =
     exports.buildOptimisticPolicyRecentlyUsedTags =
         void 0;
-var cloneDeep_1 = require('lodash/cloneDeep');
-var react_native_onyx_1 = require('react-native-onyx');
-var API = require('@libs/API');
-var types_1 = require('@libs/API/types');
-var ApiUtils = require('@libs/ApiUtils');
-var ErrorUtils = require('@libs/ErrorUtils');
-var fileDownload_1 = require('@libs/fileDownload');
-var getIsNarrowLayout_1 = require('@libs/getIsNarrowLayout');
-var Localize_1 = require('@libs/Localize');
-var Log_1 = require('@libs/Log');
-var enhanceParameters_1 = require('@libs/Network/enhanceParameters');
-var OptionsListUtils = require('@libs/OptionsListUtils');
-var PolicyUtils = require('@libs/PolicyUtils');
-var PolicyUtils_1 = require('@libs/PolicyUtils');
-var ReportUtils = require('@libs/ReportUtils');
-var TransactionUtils_1 = require('@libs/TransactionUtils');
-var RequestConflictUtils_1 = require('@userActions/RequestConflictUtils');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var allPolicies = {};
+const cloneDeep_1 = require('lodash/cloneDeep');
+const react_native_onyx_1 = require('react-native-onyx');
+const API = require('@libs/API');
+const types_1 = require('@libs/API/types');
+const ApiUtils = require('@libs/ApiUtils');
+const ErrorUtils = require('@libs/ErrorUtils');
+const fileDownload_1 = require('@libs/fileDownload');
+const getIsNarrowLayout_1 = require('@libs/getIsNarrowLayout');
+const Localize_1 = require('@libs/Localize');
+const Log_1 = require('@libs/Log');
+const enhanceParameters_1 = require('@libs/Network/enhanceParameters');
+const OptionsListUtils = require('@libs/OptionsListUtils');
+const PolicyUtils = require('@libs/PolicyUtils');
+const PolicyUtils_1 = require('@libs/PolicyUtils');
+const ReportUtils = require('@libs/ReportUtils');
+const TransactionUtils_1 = require('@libs/TransactionUtils');
+const RequestConflictUtils_1 = require('@userActions/RequestConflictUtils');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+
+const allPolicies = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.POLICY,
-    callback: function (val, key) {
+    callback (val, key) {
         if (!key) {
             return;
         }
@@ -70,17 +71,17 @@ react_native_onyx_1['default'].connect({
             // If we are deleting a policy, we have to check every report linked to that policy
             // and unset the draft indicator (pencil icon) alongside removing any draft comments. Clearing these values will keep the newly archived chats from being displayed in the LHN.
             // More info: https://github.com/Expensify/App/issues/14260
-            var policyID = key.replace(ONYXKEYS_1['default'].COLLECTION.POLICY, '');
-            var policyReports = ReportUtils.getAllPolicyReports(policyID);
-            var cleanUpMergeQueries = {};
-            var cleanUpSetQueries_1 = {};
+            const policyID = key.replace(ONYXKEYS_1['default'].COLLECTION.POLICY, '');
+            const policyReports = ReportUtils.getAllPolicyReports(policyID);
+            const cleanUpMergeQueries = {};
+            const cleanUpSetQueries_1 = {};
             policyReports.forEach(function (policyReport) {
                 if (!policyReport) {
                     return;
                 }
-                var reportID = policyReport.reportID;
-                cleanUpSetQueries_1['' + ONYXKEYS_1['default'].COLLECTION.REPORT_DRAFT_COMMENT + reportID] = null;
-                cleanUpSetQueries_1['' + ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS_DRAFTS + reportID] = null;
+                const reportID = policyReport.reportID;
+                cleanUpSetQueries_1[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_DRAFT_COMMENT  }${reportID}`] = null;
+                cleanUpSetQueries_1[`${  ONYXKEYS_1['default'].COLLECTION.REPORT_ACTIONS_DRAFTS  }${reportID}`] = null;
             });
             react_native_onyx_1['default'].mergeCollection(ONYXKEYS_1['default'].COLLECTION.REPORT, cleanUpMergeQueries);
             react_native_onyx_1['default'].multiSet(cleanUpSetQueries_1);
@@ -90,11 +91,11 @@ react_native_onyx_1['default'].connect({
         allPolicies[key] = val;
     },
 });
-var allPolicyTags = {};
+let allPolicyTags = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS,
     waitForCollectionCallback: true,
-    callback: function (value) {
+    callback (value) {
         if (!value) {
             allPolicyTags = {};
             return;
@@ -102,52 +103,52 @@ react_native_onyx_1['default'].connect({
         allPolicyTags = value;
     },
 });
-var allRecentlyUsedTags = {};
+let allRecentlyUsedTags = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.POLICY_RECENTLY_USED_TAGS,
     waitForCollectionCallback: true,
-    callback: function (val) {
+    callback (val) {
         return (allRecentlyUsedTags = val);
     },
 });
 function openPolicyTagsPage(policyID) {
     if (!policyID) {
-        Log_1['default'].warn('openPolicyTasgPage invalid params', {policyID: policyID});
+        Log_1['default'].warn('openPolicyTasgPage invalid params', {policyID});
         return;
     }
-    var params = {
-        policyID: policyID,
+    const params = {
+        policyID,
     };
     API.read(types_1.READ_COMMANDS.OPEN_POLICY_TAGS_PAGE, params);
 }
 exports.openPolicyTagsPage = openPolicyTagsPage;
 function buildOptimisticPolicyRecentlyUsedTags(policyID, transactionTags) {
-    var _a, _b;
+    let _a; let _b;
     if (!policyID || !transactionTags) {
         return {};
     }
-    var policyTags =
-        (_a = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _a !== void 0 ? _a : {};
-    var policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
-    var policyRecentlyUsedTags =
-        (_b = allRecentlyUsedTags === null || allRecentlyUsedTags === void 0 ? void 0 : allRecentlyUsedTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_RECENTLY_USED_TAGS + policyID]) !==
+    const policyTags =
+        (_a = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _a !== void 0 ? _a : {};
+    const policyTagKeys = PolicyUtils.getSortedTagKeys(policyTags);
+    const policyRecentlyUsedTags =
+        (_b = allRecentlyUsedTags === null || allRecentlyUsedTags === void 0 ? void 0 : allRecentlyUsedTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_RECENTLY_USED_TAGS  }${policyID}`]) !==
             null && _b !== void 0
             ? _b
             : {};
-    var newOptimisticPolicyRecentlyUsedTags = {};
+    const newOptimisticPolicyRecentlyUsedTags = {};
     TransactionUtils_1.getTagArrayFromName(transactionTags).forEach(function (tag, index) {
-        var _a, _b;
+        let _a; let _b;
         if (!tag) {
             return;
         }
-        var tagListKey = (_a = policyTagKeys.at(index)) !== null && _a !== void 0 ? _a : '';
+        const tagListKey = (_a = policyTagKeys.at(index)) !== null && _a !== void 0 ? _a : '';
         newOptimisticPolicyRecentlyUsedTags[tagListKey] = __spreadArrays(new Set(__spreadArrays([tag], (_b = policyRecentlyUsedTags[tagListKey]) !== null && _b !== void 0 ? _b : [])));
     });
     return newOptimisticPolicyRecentlyUsedTags;
 }
 exports.buildOptimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags;
 function updateImportSpreadsheetData(tagsLength) {
-    var onyxData = {
+    const onyxData = {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
@@ -175,12 +176,12 @@ function updateImportSpreadsheetData(tagsLength) {
     return onyxData;
 }
 function createPolicyTag(policyID, tagName) {
-    var _a, _b, _c, _d, _e, _f;
-    var _g, _h, _j;
-    var policyTag =
+    let _a; let _b; let _c; let _d; let _e; let _f;
+    let _g; let _h; let _j;
+    const policyTag =
         (_j =
             (_h = PolicyUtils.getTagLists(
-                (_g = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _g !== void 0
+                (_g = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _g !== void 0
                     ? _g
                     : {},
             )) === null || _h === void 0
@@ -188,12 +189,12 @@ function createPolicyTag(policyID, tagName) {
                 : _h.at(0)) !== null && _j !== void 0
             ? _j
             : {};
-    var newTagName = PolicyUtils.escapeTagName(tagName);
-    var onyxData = {
+    const newTagName = PolicyUtils.escapeTagName(tagName);
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
                     (_a[policyTag.name] = {
@@ -213,7 +214,7 @@ function createPolicyTag(policyID, tagName) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
                     (_c[policyTag.name] = {
@@ -231,7 +232,7 @@ function createPolicyTag(policyID, tagName) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_e = {}),
                     (_e[policyTag.name] = {
@@ -246,17 +247,17 @@ function createPolicyTag(policyID, tagName) {
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
+    const parameters = {
+        policyID,
         tags: JSON.stringify([{name: newTagName}]),
     };
     API.write(types_1.WRITE_COMMANDS.CREATE_POLICY_TAG, parameters, onyxData);
 }
 exports.createPolicyTag = createPolicyTag;
 function importPolicyTags(policyID, tags) {
-    var onyxData = updateImportSpreadsheetData(tags.length);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = updateImportSpreadsheetData(tags.length);
+    const parameters = {
+        policyID,
         // eslint-disable-next-line @typescript-eslint/naming-convention
         tags: JSON.stringify(
             tags.map(function (tag) {
@@ -268,11 +269,11 @@ function importPolicyTags(policyID, tags) {
 }
 exports.importPolicyTags = importPolicyTags;
 function setWorkspaceTagEnabled(policyID, tagsToUpdate, tagListIndex) {
-    var _a, _b, _c;
-    var _d, _e;
-    var policyTag =
+    let _a; let _b; let _c;
+    let _d; let _e;
+    const policyTag =
         (_e = PolicyUtils.getTagLists(
-            (_d = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _d !== void 0
+            (_d = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _d !== void 0
                 ? _d
                 : {},
         )) === null || _e === void 0
@@ -281,98 +282,86 @@ function setWorkspaceTagEnabled(policyID, tagsToUpdate, tagListIndex) {
     if (!policyTag || tagListIndex === -1) {
         return;
     }
-    var optimisticPolicyTagsData = __assign(
-        {},
-        Object.keys(tagsToUpdate).reduce(function (acc, key) {
-            var _a;
-            acc[key] = __assign(__assign(__assign({}, policyTag.tags[key]), tagsToUpdate[key]), {
-                errors: null,
-                pendingFields: __assign(__assign({}, (_a = policyTag.tags[key]) === null || _a === void 0 ? void 0 : _a.pendingFields), {
-                    enabled: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                }),
-                pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-            });
+    const optimisticPolicyTagsData = {
+        
+        ...Object.keys(tagsToUpdate).reduce(function (acc, key) {
+            let _a;
+            acc[key] = {...policyTag.tags[key], ...tagsToUpdate[key], errors: null,
+                pendingFields: {...((_a = policyTag.tags[key]) === null || _a === void 0 ? void 0 : _a.pendingFields), enabled: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,},
+                pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,};
             return acc;
         }, {}),
-    );
-    var shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions(__assign(__assign({}, policyTag.tags), optimisticPolicyTagsData));
-    var onyxData = {
+    };
+    const shouldDisableRequiredTag = !OptionsListUtils.hasEnabledOptions({...policyTag.tags, ...optimisticPolicyTagsData});
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
-                    (_a[policyTag.name] = __assign(
-                        __assign({}, shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
-                        {tags: optimisticPolicyTagsData},
-                    )),
+                    (_a[policyTag.name] = {
+                        ...(shouldDisableRequiredTag ? {required: false, pendingFields: {required: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE}} : {}),
+                        tags: optimisticPolicyTagsData,
+                    }),
                     _a),
             },
         ],
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_b = {}),
-                    (_b[policyTag.name] = __assign(__assign({}, shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}), {
-                        tags: __assign(
-                            {},
-                            Object.keys(tagsToUpdate).reduce(function (acc, key) {
-                                acc[key] = __assign(__assign(__assign({}, policyTag.tags[key]), tagsToUpdate[key]), {
-                                    errors: null,
-                                    pendingFields: __assign(__assign({}, policyTag.tags[key].pendingFields), {enabled: null}),
-                                    pendingAction: null,
-                                });
+                    (_b[policyTag.name] = {...(shouldDisableRequiredTag ? {pendingFields: {required: null}} : {}), tags: {
+                            
+                            ...Object.keys(tagsToUpdate).reduce(function (acc, key) {
+                                acc[key] = {...policyTag.tags[key], ...tagsToUpdate[key], errors: null,
+                                    pendingFields: {...policyTag.tags[key].pendingFields, enabled: null},
+                                    pendingAction: null,};
                                 return acc;
                             }, {}),
-                        ),
-                    })),
+                        },}),
                     _b),
             },
         ],
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
-                    (_c[policyTag.name] = __assign(__assign({}, shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}), {
-                        tags: __assign(
-                            {},
-                            Object.keys(tagsToUpdate).reduce(function (acc, key) {
-                                acc[key] = __assign(__assign(__assign({}, policyTag.tags[key]), tagsToUpdate[key]), {
-                                    errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                                    pendingFields: __assign(__assign({}, policyTag.tags[key].pendingFields), {enabled: null}),
-                                    pendingAction: null,
-                                });
+                    (_c[policyTag.name] = {...(shouldDisableRequiredTag ? {pendingFields: {required: null}, required: policyTag.required} : {}), tags: {
+                            
+                            ...Object.keys(tagsToUpdate).reduce(function (acc, key) {
+                                acc[key] = {...policyTag.tags[key], ...tagsToUpdate[key], errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
+                                    pendingFields: {...policyTag.tags[key].pendingFields, enabled: null},
+                                    pendingAction: null,};
                                 return acc;
                             }, {}),
-                        ),
-                    })),
+                        },}),
                     _c),
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
+    const parameters = {
+        policyID,
         tags: JSON.stringify(
             Object.keys(tagsToUpdate).map(function (key) {
                 return tagsToUpdate[key];
             }),
         ),
-        tagListIndex: tagListIndex,
+        tagListIndex,
     };
     API.write(types_1.WRITE_COMMANDS.SET_POLICY_TAGS_ENABLED, parameters, onyxData);
 }
 exports.setWorkspaceTagEnabled = setWorkspaceTagEnabled;
 function deletePolicyTags(policyID, tagsToDelete) {
-    var _a, _b, _c;
-    var _d, _e;
-    var policyTag =
+    let _a; let _b; let _c;
+    let _d; let _e;
+    const policyTag =
         (_e = PolicyUtils.getTagLists(
-            (_d = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _d !== void 0
+            (_d = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _d !== void 0
                 ? _d
                 : {},
         )) === null || _e === void 0
@@ -381,21 +370,21 @@ function deletePolicyTags(policyID, tagsToDelete) {
     if (!policyTag) {
         return;
     }
-    var onyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
                     (_a[policyTag.name] = {
-                        tags: __assign(
-                            {},
-                            tagsToDelete.reduce(function (acc, tagName) {
+                        tags: {
+                            
+                            ...tagsToDelete.reduce(function (acc, tagName) {
                                 acc[tagName] = {pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE, enabled: false};
                                 return acc;
                             }, {}),
-                        ),
+                        },
                     }),
                     _a),
             },
@@ -403,17 +392,17 @@ function deletePolicyTags(policyID, tagsToDelete) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_b = {}),
                     (_b[policyTag.name] = {
-                        tags: __assign(
-                            {},
-                            tagsToDelete.reduce(function (acc, tagName) {
+                        tags: {
+                            
+                            ...tagsToDelete.reduce(function (acc, tagName) {
                                 acc[tagName] = null;
                                 return acc;
                             }, {}),
-                        ),
+                        },
                     }),
                     _b),
             },
@@ -421,14 +410,14 @@ function deletePolicyTags(policyID, tagsToDelete) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
                     (_c[policyTag.name] = {
-                        tags: __assign(
-                            {},
-                            tagsToDelete.reduce(function (acc, tagName) {
-                                var _a;
+                        tags: {
+                            
+                            ...tagsToDelete.reduce(function (acc, tagName) {
+                                let _a;
                                 acc[tagName] = {
                                     pendingAction: null,
                                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.deleteFailureMessage'),
@@ -436,29 +425,29 @@ function deletePolicyTags(policyID, tagsToDelete) {
                                 };
                                 return acc;
                             }, {}),
-                        ),
+                        },
                     }),
                     _c),
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
+    const parameters = {
+        policyID,
         tags: JSON.stringify(tagsToDelete),
     };
     API.write(types_1.WRITE_COMMANDS.DELETE_POLICY_TAGS, parameters, onyxData);
 }
 exports.deletePolicyTags = deletePolicyTags;
 function clearPolicyTagErrors(policyID, tagName, tagListIndex) {
-    var _a, _b, _c, _d;
-    var _e, _f;
-    var tagListName = PolicyUtils.getTagListName(
-        allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID],
+    let _a; let _b; let _c; let _d;
+    let _e; let _f;
+    const tagListName = PolicyUtils.getTagListName(
+        allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`],
         tagListIndex,
     );
-    var tag =
+    const tag =
         (_f =
-            (_e = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) === null || _e === void 0
+            (_e = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) === null || _e === void 0
                 ? void 0
                 : _e[tagListName].tags) === null || _f === void 0
             ? void 0
@@ -468,7 +457,7 @@ function clearPolicyTagErrors(policyID, tagName, tagListIndex) {
     }
     if (tag.pendingAction === CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.ADD) {
         react_native_onyx_1['default'].merge(
-            '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+            `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
             ((_a = {}),
             (_a[tagListName] = {
                 tags: ((_b = {}), (_b[tagName] = null), _b),
@@ -478,7 +467,7 @@ function clearPolicyTagErrors(policyID, tagName, tagListIndex) {
         return;
     }
     react_native_onyx_1['default'].merge(
-        '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+        `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
         ((_c = {}),
         (_c[tagListName] = {
             tags:
@@ -494,11 +483,11 @@ function clearPolicyTagErrors(policyID, tagName, tagListIndex) {
 }
 exports.clearPolicyTagErrors = clearPolicyTagErrors;
 function clearPolicyTagListErrorField(policyID, tagListIndex, errorField) {
-    var _a, _b;
-    var _c, _d;
-    var policyTag =
+    let _a; let _b;
+    let _c; let _d;
+    const policyTag =
         (_d = PolicyUtils.getTagLists(
-            (_c = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _c !== void 0
+            (_c = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _c !== void 0
                 ? _c
                 : {},
         )) === null || _d === void 0
@@ -511,7 +500,7 @@ function clearPolicyTagListErrorField(policyID, tagListIndex, errorField) {
         return;
     }
     react_native_onyx_1['default'].merge(
-        '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+        `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
         ((_a = {}),
         (_a[policyTag.name] = {
             errorFields: ((_b = {}), (_b[errorField] = null), _b),
@@ -521,11 +510,11 @@ function clearPolicyTagListErrorField(policyID, tagListIndex, errorField) {
 }
 exports.clearPolicyTagListErrorField = clearPolicyTagListErrorField;
 function clearPolicyTagListErrors(policyID, tagListIndex) {
-    var _a;
-    var _b, _c;
-    var policyTag =
+    let _a;
+    let _b; let _c;
+    const policyTag =
         (_c = PolicyUtils.getTagLists(
-            (_b = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _b !== void 0
+            (_b = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _b !== void 0
                 ? _b
                 : {},
         )) === null || _c === void 0
@@ -538,7 +527,7 @@ function clearPolicyTagListErrors(policyID, tagListIndex) {
         return;
     }
     react_native_onyx_1['default'].merge(
-        '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+        `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
         ((_a = {}),
         (_a[policyTag.name] = {
             errors: null,
@@ -548,12 +537,12 @@ function clearPolicyTagListErrors(policyID, tagListIndex) {
 }
 exports.clearPolicyTagListErrors = clearPolicyTagListErrors;
 function renamePolicyTag(policyID, policyTag, tagListIndex) {
-    var _a, _b, _c, _d, _e, _f;
-    var _g, _h, _j, _k, _l;
-    var policy = PolicyUtils.getPolicy(policyID);
-    var tagList =
+    let _a; let _b; let _c; let _d; let _e; let _f;
+    let _g; let _h; let _j; let _k; let _l;
+    const policy = PolicyUtils.getPolicy(policyID);
+    const tagList =
         (_h = PolicyUtils.getTagLists(
-            (_g = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _g !== void 0
+            (_g = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _g !== void 0
                 ? _g
                 : {},
         )) === null || _h === void 0
@@ -562,53 +551,51 @@ function renamePolicyTag(policyID, policyTag, tagListIndex) {
     if (!tagList) {
         return;
     }
-    var tag = (_j = tagList.tags) === null || _j === void 0 ? void 0 : _j[policyTag.oldName];
-    var oldTagName = policyTag.oldName;
-    var newTagName = PolicyUtils.escapeTagName(policyTag.newName);
-    var policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
-    var approvalRules = (_l = (_k = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _k === void 0 ? void 0 : _k.approvalRules) !== null && _l !== void 0 ? _l : [];
-    var updatedApprovalRules = cloneDeep_1['default'](approvalRules);
+    const tag = (_j = tagList.tags) === null || _j === void 0 ? void 0 : _j[policyTag.oldName];
+    const oldTagName = policyTag.oldName;
+    const newTagName = PolicyUtils.escapeTagName(policyTag.newName);
+    const policyTagRule = PolicyUtils.getTagApproverRule(policyID, oldTagName);
+    const approvalRules = (_l = (_k = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _k === void 0 ? void 0 : _k.approvalRules) !== null && _l !== void 0 ? _l : [];
+    const updatedApprovalRules = cloneDeep_1['default'](approvalRules);
     // Its related by name, so the corresponding rule has to be updated to handle offline scenario
     if (policyTagRule) {
-        var indexToUpdate = updatedApprovalRules.findIndex(function (rule) {
+        const indexToUpdate = updatedApprovalRules.findIndex(function (rule) {
             return rule.id === policyTagRule.id;
         });
         policyTagRule.applyWhen = policyTagRule.applyWhen.map(function (ruleCondition) {
-            var value = ruleCondition.value,
-                field = ruleCondition.field,
-                condition = ruleCondition.condition;
+            const value = ruleCondition.value;
+                const field = ruleCondition.field;
+                const condition = ruleCondition.condition;
             if (value === policyTag.oldName && field === CONST_1['default'].POLICY.FIELDS.TAG && condition === CONST_1['default'].POLICY.RULE_CONDITIONS.MATCHES) {
-                return __assign(__assign({}, ruleCondition), {value: policyTag.newName});
+                return {...ruleCondition, value: policyTag.newName};
             }
             return ruleCondition;
         });
         updatedApprovalRules[indexToUpdate] = policyTagRule;
     }
-    var onyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
                     (_a[tagList === null || tagList === void 0 ? void 0 : tagList.name] = {
                         tags:
                             ((_b = {}),
                             (_b[oldTagName] = null),
-                            (_b[newTagName] = __assign(__assign({}, tag), {
-                                name: newTagName,
+                            (_b[newTagName] = {...tag, name: newTagName,
                                 pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                                pendingFields: __assign(__assign({}, tag.pendingFields), {name: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                                pendingFields: {...tag.pendingFields, name: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
                                 previousTagName: oldTagName,
-                                errors: null,
-                            })),
+                                errors: null,}),
                             _b),
                     }),
                     _a),
             },
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     rules: {
                         approvalRules: updatedApprovalRules,
@@ -619,7 +606,7 @@ function renamePolicyTag(policyID, policyTag, tagListIndex) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
                     (_c[tagList.name] = {
@@ -627,7 +614,7 @@ function renamePolicyTag(policyID, policyTag, tagListIndex) {
                             ((_d = {}),
                             (_d[newTagName] = {
                                 pendingAction: null,
-                                pendingFields: __assign(__assign({}, tag.pendingFields), {name: null}),
+                                pendingFields: {...tag.pendingFields, name: null},
                             }),
                             _d),
                     }),
@@ -637,41 +624,39 @@ function renamePolicyTag(policyID, policyTag, tagListIndex) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_e = {}),
                     (_e[tagList.name] = {
                         tags:
                             ((_f = {}),
                             (_f[newTagName] = null),
-                            (_f[oldTagName] = __assign(__assign({}, tag), {
-                                pendingAction: null,
-                                pendingFields: __assign(__assign({}, tag.pendingFields), {name: null}),
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                            })),
+                            (_f[oldTagName] = {...tag, pendingAction: null,
+                                pendingFields: {...tag.pendingFields, name: null},
+                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),}),
                             _f),
                     }),
                     _e),
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
+    const parameters = {
+        policyID,
         oldName: oldTagName,
         newName: newTagName,
-        tagListIndex: tagListIndex,
+        tagListIndex,
     };
     API.write(types_1.WRITE_COMMANDS.RENAME_POLICY_TAG, parameters, onyxData);
 }
 exports.renamePolicyTag = renamePolicyTag;
 function enablePolicyTags(policyID, enabled) {
-    var _a;
-    var _b, _c, _d;
-    var onyxData = {
+    let _a;
+    let _b; let _c; let _d;
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     areTagsEnabled: enabled,
                     pendingFields: {
@@ -683,7 +668,7 @@ function enablePolicyTags(policyID, enabled) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     pendingFields: {
                         areTagsEnabled: null,
@@ -694,7 +679,7 @@ function enablePolicyTags(policyID, enabled) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     areTagsEnabled: !enabled,
                     pendingFields: {
@@ -704,9 +689,9 @@ function enablePolicyTags(policyID, enabled) {
             },
         ],
     };
-    var policyTagList = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID];
+    const policyTagList = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`];
     if (!policyTagList) {
-        var defaultTagList = {
+        const defaultTagList = {
             Tag: {
                 name: 'Tag',
                 orderWeight: 0,
@@ -718,18 +703,18 @@ function enablePolicyTags(policyID, enabled) {
             ? void 0
             : _b.push({
                   onyxMethod: react_native_onyx_1['default'].METHOD.SET,
-                  key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                  key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                   value: defaultTagList,
               });
         (_c = onyxData.failureData) === null || _c === void 0
             ? void 0
             : _c.push({
                   onyxMethod: react_native_onyx_1['default'].METHOD.SET,
-                  key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                  key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                   value: null,
               });
     } else if (!enabled) {
-        var policyTag = PolicyUtils.getTagLists(policyTagList).at(0);
+        const policyTag = PolicyUtils.getTagLists(policyTagList).at(0);
         if (!policyTag) {
             return;
         }
@@ -738,7 +723,7 @@ function enablePolicyTags(policyID, enabled) {
             : _d.push(
                   {
                       onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                      key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                      key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                       value:
                           ((_a = {}),
                           (_a[policyTag.name] = {
@@ -757,16 +742,16 @@ function enablePolicyTags(policyID, enabled) {
                   },
                   {
                       onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                      key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                      key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                       value: {
                           requiresTag: false,
                       },
                   },
               );
     }
-    var parameters = {policyID: policyID, enabled: enabled};
+    const parameters = {policyID, enabled};
     API.write(types_1.WRITE_COMMANDS.ENABLE_POLICY_TAGS, parameters, onyxData, {
-        checkAndFixConflictingRequest: function (persistedRequests) {
+        checkAndFixConflictingRequest (persistedRequests) {
             return RequestConflictUtils_1.resolveEnableFeatureConflicts(types_1.WRITE_COMMANDS.ENABLE_POLICY_TAGS, persistedRequests, parameters);
         },
     });
@@ -776,19 +761,19 @@ function enablePolicyTags(policyID, enabled) {
 }
 exports.enablePolicyTags = enablePolicyTags;
 function renamePolicyTaglist(policyID, policyTagListName, policyTags, tagListIndex) {
-    var _a, _b, _c;
-    var _d;
-    var newName = policyTagListName.newName;
-    var oldName = policyTagListName.oldName;
-    var oldPolicyTags = (_d = policyTags === null || policyTags === void 0 ? void 0 : policyTags[oldName]) !== null && _d !== void 0 ? _d : {};
-    var onyxData = {
+    let _a; let _b; let _c;
+    let _d;
+    const newName = policyTagListName.newName;
+    const oldName = policyTagListName.oldName;
+    const oldPolicyTags = (_d = policyTags === null || policyTags === void 0 ? void 0 : policyTags[oldName]) !== null && _d !== void 0 ? _d : {};
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
-                    (_a[newName] = __assign(__assign({}, oldPolicyTags), {name: newName, pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null})),
+                    (_a[newName] = {...oldPolicyTags, name: newName, pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.ADD, errors: null}),
                     (_a[oldName] = null),
                     _a),
             },
@@ -796,46 +781,44 @@ function renamePolicyTaglist(policyID, policyTagListName, policyTags, tagListInd
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value: ((_b = {}), (_b[newName] = {pendingAction: null}), (_b[oldName] = null), _b),
             },
         ],
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
                     (_c[newName] = null),
-                    (_c[oldName] = __assign(__assign({}, oldPolicyTags), {
-                        pendingAction: null,
-                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
-                    })),
+                    (_c[oldName] = {...oldPolicyTags, pendingAction: null,
+                        errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),}),
                     _c),
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
-        oldName: oldName,
-        newName: newName,
-        tagListIndex: tagListIndex,
+    const parameters = {
+        policyID,
+        oldName,
+        newName,
+        tagListIndex,
     };
     API.write(types_1.WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
 exports.renamePolicyTaglist = renamePolicyTaglist;
 function setPolicyRequiresTag(policyID, requiresTag) {
-    var _a, _b, _c, _d;
-    var policyTags =
-        (_a = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _a !== void 0 ? _a : {};
-    var isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
-    var onyxData = {
+    let _a; let _b; let _c; let _d;
+    const policyTags =
+        (_a = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _a !== void 0 ? _a : {};
+    const isMultiLevelTags = PolicyUtils.isMultiLevelTags(policyTags);
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
-                    requiresTag: requiresTag,
+                    requiresTag,
                     errors: {requiresTag: null},
                     pendingFields: {
                         requiresTag: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -846,7 +829,7 @@ function setPolicyRequiresTag(policyID, requiresTag) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     errors: {
                         requiresTag: null,
@@ -860,7 +843,7 @@ function setPolicyRequiresTag(policyID, requiresTag) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     requiresTag: !requiresTag,
                     errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage'),
@@ -872,36 +855,36 @@ function setPolicyRequiresTag(policyID, requiresTag) {
         ],
     };
     if (isMultiLevelTags) {
-        var getUpdatedTagsData = function (required) {
+        const getUpdatedTagsData = function (required) {
             return {
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                value: __assign(
-                    {},
-                    Object.keys(policyTags).reduce(function (acc, key) {
-                        acc[key] = __assign(__assign({}, acc[key]), {required: required});
+                value: {
+                    
+                    ...Object.keys(policyTags).reduce(function (acc, key) {
+                        acc[key] = {...acc[key], required};
                         return acc;
                     }, {}),
-                ),
+                },
             };
         };
         (_b = onyxData.optimisticData) === null || _b === void 0 ? void 0 : _b.push(getUpdatedTagsData(requiresTag));
         (_c = onyxData.failureData) === null || _c === void 0 ? void 0 : _c.push(getUpdatedTagsData(!requiresTag));
         (_d = onyxData.successData) === null || _d === void 0 ? void 0 : _d.push(getUpdatedTagsData(requiresTag));
     }
-    var parameters = {
-        policyID: policyID,
-        requiresTag: requiresTag,
+    const parameters = {
+        policyID,
+        requiresTag,
     };
     API.write(types_1.WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG, parameters, onyxData);
 }
 exports.setPolicyRequiresTag = setPolicyRequiresTag;
 function setPolicyTagsRequired(policyID, requiresTag, tagListIndex) {
-    var _a, _b, _c;
-    var _d, _e;
-    var policyTag =
+    let _a; let _b; let _c;
+    let _d; let _e;
+    const policyTag =
         (_e = PolicyUtils.getTagLists(
-            (_d = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _d !== void 0
+            (_d = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _d !== void 0
                 ? _d
                 : {},
         )) === null || _e === void 0
@@ -913,11 +896,11 @@ function setPolicyTagsRequired(policyID, requiresTag, tagListIndex) {
     if (!policyTag.name) {
         return;
     }
-    var onyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
                     (_a[policyTag.name] = {
@@ -931,7 +914,7 @@ function setPolicyTagsRequired(policyID, requiresTag, tagListIndex) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_b = {}),
                     (_b[policyTag.name] = {
@@ -943,7 +926,7 @@ function setPolicyTagsRequired(policyID, requiresTag, tagListIndex) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
                     (_c[policyTag.name] = {
@@ -957,26 +940,26 @@ function setPolicyTagsRequired(policyID, requiresTag, tagListIndex) {
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
-        tagListIndex: tagListIndex,
+    const parameters = {
+        policyID,
+        tagListIndex,
         requireTagList: requiresTag,
     };
     API.write(types_1.WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 exports.setPolicyTagsRequired = setPolicyTagsRequired;
 function setPolicyTagGLCode(policyID, tagName, tagListIndex, glCode) {
-    var _a, _b, _c, _d, _e, _f;
-    var _g, _h, _j, _k;
-    var tagListName = PolicyUtils.getTagListName(
-        allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID],
+    let _a; let _b; let _c; let _d; let _e; let _f;
+    let _g; let _h; let _j; let _k;
+    const tagListName = PolicyUtils.getTagListName(
+        allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`],
         tagListIndex,
     );
-    var policyTagToUpdate =
+    const policyTagToUpdate =
         (_k =
             (_j =
                 (_h =
-                    (_g = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) === null || _g === void 0
+                    (_g = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) === null || _g === void 0
                         ? void 0
                         : _g[tagListName]) === null || _h === void 0
                     ? void 0
@@ -985,25 +968,23 @@ function setPolicyTagGLCode(policyID, tagName, tagListIndex, glCode) {
                 : _j[tagName]) !== null && _k !== void 0
             ? _k
             : {};
-    var onyxData = {
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_a = {}),
                     (_a[tagListName] = {
                         tags:
                             ((_b = {}),
-                            (_b[tagName] = __assign(__assign({}, policyTagToUpdate), {
-                                pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                            (_b[tagName] = {...policyTagToUpdate, pendingAction: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 pendingFields: {
                                     // eslint-disable-next-line @typescript-eslint/naming-convention
                                     'GL Code': CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                                 },
                                 // eslint-disable-next-line @typescript-eslint/naming-convention
-                                'GL Code': glCode,
-                            })),
+                                'GL Code': glCode,}),
                             _b),
                     }),
                     _a),
@@ -1012,7 +993,7 @@ function setPolicyTagGLCode(policyID, tagName, tagListIndex, glCode) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_c = {}),
                     (_c[tagListName] = {
@@ -1034,45 +1015,43 @@ function setPolicyTagGLCode(policyID, tagName, tagListIndex, glCode) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`,
                 value:
                     ((_e = {}),
                     (_e[tagListName] = {
                         tags:
                             ((_f = {}),
-                            (_f[tagName] = __assign(__assign({}, policyTagToUpdate), {
-                                errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),
-                            })),
+                            (_f[tagName] = {...policyTagToUpdate, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.updateGLCodeFailureMessage'),}),
                             _f),
                     }),
                     _e),
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
-        tagName: tagName,
-        tagListName: tagListName,
-        tagListIndex: tagListIndex,
-        glCode: glCode,
+    const parameters = {
+        policyID,
+        tagName,
+        tagListName,
+        tagListIndex,
+        glCode,
     };
     API.write(types_1.WRITE_COMMANDS.UPDATE_POLICY_TAG_GL_CODE, parameters, onyxData);
 }
 exports.setPolicyTagGLCode = setPolicyTagGLCode;
 function setPolicyTagApprover(policyID, tag, approver) {
-    var _a, _b;
-    var policy = PolicyUtils.getPolicy(policyID);
-    var prevApprovalRules =
+    let _a; let _b;
+    const policy = PolicyUtils.getPolicy(policyID);
+    const prevApprovalRules =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _a === void 0 ? void 0 : _a.approvalRules) !== null && _b !== void 0 ? _b : [];
-    var approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
-    var filteredApprovalRules = approverRuleToUpdate
+    const approverRuleToUpdate = PolicyUtils.getTagApproverRule(policyID, tag);
+    const filteredApprovalRules = approverRuleToUpdate
         ? prevApprovalRules.filter(function (rule) {
               return rule.id !== approverRuleToUpdate.id;
           })
         : prevApprovalRules;
-    var toBeUnselected = (approverRuleToUpdate === null || approverRuleToUpdate === void 0 ? void 0 : approverRuleToUpdate.approver) === approver;
-    var updatedApproverRule = approverRuleToUpdate
-        ? __assign(__assign({}, approverRuleToUpdate), {approver: approver})
+    const toBeUnselected = (approverRuleToUpdate === null || approverRuleToUpdate === void 0 ? void 0 : approverRuleToUpdate.approver) === approver;
+    const updatedApproverRule = approverRuleToUpdate
+        ? ({...approverRuleToUpdate, approver})
         : {
               applyWhen: [
                   {
@@ -1081,15 +1060,15 @@ function setPolicyTagApprover(policyID, tag, approver) {
                       value: tag,
                   },
               ],
-              approver: approver,
+              approver,
               id: '-1',
           };
-    var updatedApprovalRules = toBeUnselected ? filteredApprovalRules : __spreadArrays(filteredApprovalRules, [updatedApproverRule]);
-    var onyxData = {
+    const updatedApprovalRules = toBeUnselected ? filteredApprovalRules : __spreadArrays(filteredApprovalRules, [updatedApproverRule]);
+    const onyxData = {
         optimisticData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     rules: {
                         approvalRules: updatedApprovalRules,
@@ -1100,7 +1079,7 @@ function setPolicyTagApprover(policyID, tag, approver) {
         successData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     rules: {
                         approvalRules: updatedApprovalRules,
@@ -1111,7 +1090,7 @@ function setPolicyTagApprover(policyID, tag, approver) {
         failureData: [
             {
                 onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-                key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+                key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
                 value: {
                     rules: {
                         approvalRules: prevApprovalRules,
@@ -1120,8 +1099,8 @@ function setPolicyTagApprover(policyID, tag, approver) {
             },
         ],
     };
-    var parameters = {
-        policyID: policyID,
+    const parameters = {
+        policyID,
         tagName: tag,
         approver: toBeUnselected ? null : approver,
     };
@@ -1129,14 +1108,14 @@ function setPolicyTagApprover(policyID, tag, approver) {
 }
 exports.setPolicyTagApprover = setPolicyTagApprover;
 function downloadTagsCSV(policyID, onDownloadFailed) {
-    var finalParameters = enhanceParameters_1['default'](types_1.WRITE_COMMANDS.EXPORT_TAGS_CSV, {
-        policyID: policyID,
+    const finalParameters = enhanceParameters_1['default'](types_1.WRITE_COMMANDS.EXPORT_TAGS_CSV, {
+        policyID,
     });
-    var fileName = 'Tags.csv';
-    var formData = new FormData();
+    const fileName = 'Tags.csv';
+    const formData = new FormData();
     Object.entries(finalParameters).forEach(function (_a) {
-        var key = _a[0],
-            value = _a[1];
+        const key = _a[0];
+            const value = _a[1];
         formData.append(key, String(value));
     });
     fileDownload_1['default'](
@@ -1151,8 +1130,8 @@ function downloadTagsCSV(policyID, onDownloadFailed) {
 }
 exports.downloadTagsCSV = downloadTagsCSV;
 function getPolicyTagsData(policyID) {
-    var _a;
-    return (_a = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags['' + ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS + policyID]) !== null && _a !== void 0
+    let _a;
+    return (_a = allPolicyTags === null || allPolicyTags === void 0 ? void 0 : allPolicyTags[`${  ONYXKEYS_1['default'].COLLECTION.POLICY_TAGS  }${policyID}`]) !== null && _a !== void 0
         ? _a
         : {};
 }

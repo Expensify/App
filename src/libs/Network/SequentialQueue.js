@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.sequentialQueueRequestThrottle =
     exports.resetQueue =
@@ -12,36 +12,37 @@ exports.sequentialQueueRequestThrottle =
     exports.getCurrentRequest =
     exports.flush =
         void 0;
-var react_native_onyx_1 = require('react-native-onyx');
-var PersistedRequests_1 = require('@libs/actions/PersistedRequests');
-var QueuedOnyxUpdates_1 = require('@libs/actions/QueuedOnyxUpdates');
-var ActiveClientManager_1 = require('@libs/ActiveClientManager');
-var Log_1 = require('@libs/Log');
-var Request_1 = require('@libs/Request');
-var RequestThrottle_1 = require('@libs/RequestThrottle');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var NetworkStore_1 = require('./NetworkStore');
-var shouldFailAllRequests;
+const react_native_onyx_1 = require('react-native-onyx');
+const PersistedRequests_1 = require('@libs/actions/PersistedRequests');
+const QueuedOnyxUpdates_1 = require('@libs/actions/QueuedOnyxUpdates');
+const ActiveClientManager_1 = require('@libs/ActiveClientManager');
+const Log_1 = require('@libs/Log');
+const Request_1 = require('@libs/Request');
+const RequestThrottle_1 = require('@libs/RequestThrottle');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+const NetworkStore_1 = require('./NetworkStore');
+
+let shouldFailAllRequests;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NETWORK,
-    callback: function (network) {
+    callback (network) {
         if (!network) {
             return;
         }
         shouldFailAllRequests = !!network.shouldFailAllRequests;
     },
 });
-var resolveIsReadyPromise;
-var isReadyPromise = new Promise(function (resolve) {
+let resolveIsReadyPromise;
+let isReadyPromise = new Promise(function (resolve) {
     resolveIsReadyPromise = resolve;
 });
 // Resolve the isReadyPromise immediately so that the queue starts working as soon as the page loads
 resolveIsReadyPromise === null || resolveIsReadyPromise === void 0 ? void 0 : resolveIsReadyPromise();
-var isSequentialQueueRunning = false;
-var currentRequestPromise = null;
-var isQueuePaused = false;
-var sequentialQueueRequestThrottle = new RequestThrottle_1['default']('SequentialQueue');
+let isSequentialQueueRunning = false;
+let currentRequestPromise = null;
+let isQueuePaused = false;
+const sequentialQueueRequestThrottle = new RequestThrottle_1['default']('SequentialQueue');
 exports.sequentialQueueRequestThrottle = sequentialQueueRequestThrottle;
 /**
  * Puts the queue into a paused state so that no requests will be processed
@@ -85,12 +86,12 @@ function process() {
         Log_1['default'].info('[SequentialQueue] Unable to process. We are offline.');
         return Promise.resolve();
     }
-    var persistedRequests = PersistedRequests_1.getAll();
+    const persistedRequests = PersistedRequests_1.getAll();
     if (persistedRequests.length === 0) {
         Log_1['default'].info('[SequentialQueue] Unable to process. No requests to process.');
         return Promise.resolve();
     }
-    var requestToProcess = PersistedRequests_1.processNextRequest();
+    const requestToProcess = PersistedRequests_1.processNextRequest();
     if (!requestToProcess) {
         Log_1['default'].info('[SequentialQueue] Unable to process. No next request to handle.');
         return Promise.resolve();
@@ -110,14 +111,14 @@ function process() {
             return process();
         })
         ['catch'](function (error) {
-            var _a;
+            let _a;
             // On sign out we cancel any in flight requests from the user. Since that user is no longer signed in their requests should not be retried.
             // Duplicate records don't need to be retried as they just mean the record already exists on the server
             if (error.name === CONST_1['default'].ERROR.REQUEST_CANCELLED || error.message === CONST_1['default'].ERROR.DUPLICATE_RECORD || shouldFailAllRequests) {
                 if (shouldFailAllRequests) {
                     react_native_onyx_1['default'].update((_a = requestToProcess.failureData) !== null && _a !== void 0 ? _a : []);
                 }
-                Log_1['default'].info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error: error, request: requestToProcess});
+                Log_1['default'].info("[SequentialQueue] Removing persisted request because it failed and doesn't need to be retried.", false, {error, request: requestToProcess});
                 PersistedRequests_1.endRequestAndRemoveFromQueue(requestToProcess);
                 sequentialQueueRequestThrottle.clear();
                 return process();
@@ -127,9 +128,9 @@ function process() {
                 .sleep(error, requestToProcess.command)
                 .then(process)
                 ['catch'](function () {
-                    var _a;
+                    let _a;
                     react_native_onyx_1['default'].update((_a = requestToProcess.failureData) !== null && _a !== void 0 ? _a : []);
-                    Log_1['default'].info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error: error, request: requestToProcess});
+                    Log_1['default'].info('[SequentialQueue] Removing persisted request because it failed too many times.', false, {error, request: requestToProcess});
                     PersistedRequests_1.endRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();
                     return process();
@@ -180,7 +181,7 @@ function flush(shouldResetPromise) {
         // We exceptionally opt out of reusing the connection here to avoid extra callback calls due to
         // an existing connection already made in PersistedRequests.ts.
         reuseConnection: false,
-        callback: function () {
+        callback () {
             react_native_onyx_1['default'].disconnect(connection);
             process()['finally'](function () {
                 Log_1['default'].info('[SequentialQueue] Finished processing queue.');
@@ -206,8 +207,8 @@ function unpause() {
         Log_1['default'].info('[SequentialQueue] Unable to unpause queue. We are already processing.');
         return;
     }
-    var numberOfPersistedRequests = PersistedRequests_1.getAll().length || 0;
-    Log_1['default'].info('[SequentialQueue] Unpausing the queue and flushing ' + numberOfPersistedRequests + ' requests');
+    const numberOfPersistedRequests = PersistedRequests_1.getAll().length || 0;
+    Log_1['default'].info(`[SequentialQueue] Unpausing the queue and flushing ${  numberOfPersistedRequests  } requests`);
     isQueuePaused = false;
     // When the queue is paused and then unpaused, we call flush which by defaults recreates the isReadyPromise.
     // After all the WRITE requests are done, the isReadyPromise is resolved, but since it's a new instance of promise,
@@ -227,7 +228,7 @@ exports.isPaused = isPaused;
 // Flush the queue when the connection resumes
 NetworkStore_1.onReconnection(flush);
 function handleConflictActions(conflictAction, newRequest) {
-    var _a;
+    let _a;
     if (conflictAction.type === 'push') {
         PersistedRequests_1.save(newRequest);
     } else if (conflictAction.type === 'replace') {
@@ -241,15 +242,15 @@ function handleConflictActions(conflictAction, newRequest) {
             handleConflictActions(conflictAction.nextAction, newRequest);
         }
     } else {
-        Log_1['default'].info('[SequentialQueue] No action performed to command ' + newRequest.command + ' and it will be ignored.');
+        Log_1['default'].info(`[SequentialQueue] No action performed to command ${  newRequest.command  } and it will be ignored.`);
     }
 }
 function push(newRequest) {
-    var checkAndFixConflictingRequest = newRequest.checkAndFixConflictingRequest;
+    const checkAndFixConflictingRequest = newRequest.checkAndFixConflictingRequest;
     if (checkAndFixConflictingRequest) {
-        var requests = PersistedRequests_1.getAll();
-        var conflictAction = checkAndFixConflictingRequest(requests).conflictAction;
-        Log_1['default'].info('[SequentialQueue] Conflict action for command ' + newRequest.command + ' - ' + conflictAction.type + ':');
+        const requests = PersistedRequests_1.getAll();
+        const conflictAction = checkAndFixConflictingRequest(requests).conflictAction;
+        Log_1['default'].info(`[SequentialQueue] Conflict action for command ${  newRequest.command  } - ${  conflictAction.type  }:`);
         // don't try to serialize a function.
         // eslint-disable-next-line no-param-reassign
         delete newRequest.checkAndFixConflictingRequest;

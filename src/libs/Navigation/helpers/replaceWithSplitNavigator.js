@@ -1,9 +1,10 @@
-'use strict';
+
 exports.__esModule = true;
-var navigationRef_1 = require('@libs/Navigation/navigationRef');
-var CONST_1 = require('@src/CONST');
+const navigationRef_1 = require('@libs/Navigation/navigationRef');
+const CONST_1 = require('@src/CONST');
+
 function replaceWithSplitNavigator(splitNavigatorState) {
-    var _a;
+    let _a;
     (_a = navigationRef_1['default'].current) === null || _a === void 0
         ? void 0
         : _a.dispatch({

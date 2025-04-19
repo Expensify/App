@@ -1,4 +1,4 @@
-'use strict';
+
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,28 +7,28 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
                 }
                 return t;
             };
         return __assign.apply(this, arguments);
     };
-var __rest =
+const __rest =
     (this && this.__rest) ||
     function (s, e) {
-        var t = {};
-        for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) t[p] = s[p];
+        const t = {};
+        for (var p in s) {if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0) {t[p] = s[p];}}
         if (s != null && typeof Object.getOwnPropertySymbols === 'function')
-            for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) t[p[i]] = s[p[i]];
-            }
+            {for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+                if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i])) {t[p[i]] = s[p[i]];}
+            }}
         return t;
     };
-var __spreadArrays =
+const __spreadArrays =
     (this && this.__spreadArrays) ||
     function () {
-        for (var s = 0, i = 0, il = arguments.length; i < il; i++) s += arguments[i].length;
-        for (var r = Array(s), k = 0, i = 0; i < il; i++) for (var a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) r[k] = a[j];
+        for (var s = 0, i = 0, il = arguments.length; i < il; i++) {s += arguments[i].length;}
+        for (var r = Array(s), k = 0, i = 0; i < il; i++) {for (let a = arguments[i], j = 0, jl = a.length; j < jl; j++, k++) {r[k] = a[j];}}
         return r;
     };
 exports.__esModule = true;
@@ -129,90 +129,91 @@ exports.isPendingCardOrScanningTransaction =
     exports.getWaypoints =
     exports.isOnHoldByTransactionID =
         void 0;
-var date_fns_1 = require('date-fns');
-var cloneDeep_1 = require('lodash/cloneDeep');
-var has_1 = require('lodash/has');
-var isEqual_1 = require('lodash/isEqual');
-var set_1 = require('lodash/set');
-var react_native_onyx_1 = require('react-native-onyx');
-var Category_1 = require('@libs/actions/Policy/Category');
-var Tag_1 = require('@libs/actions/Policy/Tag');
-var CategoryUtils_1 = require('@libs/CategoryUtils');
-var CurrencyUtils_1 = require('@libs/CurrencyUtils');
-var DateUtils_1 = require('@libs/DateUtils');
-var DistanceRequestUtils_1 = require('@libs/DistanceRequestUtils');
-var LocaleDigitUtils_1 = require('@libs/LocaleDigitUtils');
-var Localize = require('@libs/Localize');
-var NumberUtils = require('@libs/NumberUtils');
-var PolicyUtils_1 = require('@libs/PolicyUtils');
-var ReportActionsUtils_1 = require('@libs/ReportActionsUtils');
-var ReportUtils_1 = require('@libs/ReportUtils');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var EmptyObject_1 = require('@src/types/utils/EmptyObject');
-var getDistanceInMeters_1 = require('./getDistanceInMeters');
+const date_fns_1 = require('date-fns');
+const cloneDeep_1 = require('lodash/cloneDeep');
+const has_1 = require('lodash/has');
+const isEqual_1 = require('lodash/isEqual');
+const set_1 = require('lodash/set');
+const react_native_onyx_1 = require('react-native-onyx');
+const Category_1 = require('@libs/actions/Policy/Category');
+const Tag_1 = require('@libs/actions/Policy/Tag');
+const CategoryUtils_1 = require('@libs/CategoryUtils');
+const CurrencyUtils_1 = require('@libs/CurrencyUtils');
+const DateUtils_1 = require('@libs/DateUtils');
+const DistanceRequestUtils_1 = require('@libs/DistanceRequestUtils');
+const LocaleDigitUtils_1 = require('@libs/LocaleDigitUtils');
+const Localize = require('@libs/Localize');
+const NumberUtils = require('@libs/NumberUtils');
+const PolicyUtils_1 = require('@libs/PolicyUtils');
+const ReportActionsUtils_1 = require('@libs/ReportActionsUtils');
+const ReportUtils_1 = require('@libs/ReportUtils');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+const EmptyObject_1 = require('@src/types/utils/EmptyObject');
+const getDistanceInMeters_1 = require('./getDistanceInMeters');
+
 exports.getDistanceInMeters = getDistanceInMeters_1['default'];
-var allTransactions = {};
+let allTransactions = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.TRANSACTION,
     waitForCollectionCallback: true,
-    callback: function (value) {
+    callback (value) {
         if (!value) {
             return;
         }
         allTransactions = Object.fromEntries(
             Object.entries(value).filter(function (_a) {
-                var transaction = _a[1];
+                const transaction = _a[1];
                 return !!transaction;
             }),
         );
     },
 });
-var allReports = {};
+let allReports = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.REPORT,
     waitForCollectionCallback: true,
-    callback: function (value) {
+    callback (value) {
         allReports = value;
     },
 });
-var allTransactionViolations = {};
+let allTransactionViolations = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS,
     waitForCollectionCallback: true,
-    callback: function (value) {
+    callback (value) {
         return (allTransactionViolations = value);
     },
 });
-var preferredLocale = CONST_1['default'].LOCALES.DEFAULT;
+let preferredLocale = CONST_1['default'].LOCALES.DEFAULT;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NVP_PREFERRED_LOCALE,
-    callback: function (value) {
+    callback (value) {
         if (!value) {
             return;
         }
         preferredLocale = value;
     },
 });
-var currentUserEmail = '';
-var currentUserAccountID = -1;
+let currentUserEmail = '';
+let currentUserAccountID = -1;
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].SESSION,
-    callback: function (val) {
-        var _a, _b;
+    callback (val) {
+        let _a; let _b;
         currentUserEmail = (_a = val === null || val === void 0 ? void 0 : val.email) !== null && _a !== void 0 ? _a : '';
         currentUserAccountID = (_b = val === null || val === void 0 ? void 0 : val.accountID) !== null && _b !== void 0 ? _b : CONST_1['default'].DEFAULT_NUMBER_ID;
     },
 });
 function isDistanceRequest(transaction) {
-    var _a, _b, _c;
+    let _a; let _b; let _c;
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (has_1['default'](transaction, 'iouRequestType')) {
         return (transaction === null || transaction === void 0 ? void 0 : transaction.iouRequestType) === CONST_1['default'].IOU.REQUEST_TYPE.DISTANCE;
     }
     // This is the case for transaction objects once they have been saved to the server
-    var type = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.type;
-    var customUnitName =
+    const type = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.type;
+    const customUnitName =
         (_c = (_b = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _b === void 0 ? void 0 : _b.customUnit) === null || _c === void 0
             ? void 0
             : _c.name;
@@ -220,7 +221,7 @@ function isDistanceRequest(transaction) {
 }
 exports.isDistanceRequest = isDistanceRequest;
 function isScanRequest(transaction) {
-    var _a;
+    let _a;
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (has_1['default'](transaction, 'iouRequestType')) {
         return (transaction === null || transaction === void 0 ? void 0 : transaction.iouRequestType) === CONST_1['default'].IOU.REQUEST_TYPE.SCAN;
@@ -232,14 +233,14 @@ function isScanRequest(transaction) {
 }
 exports.isScanRequest = isScanRequest;
 function isPerDiemRequest(transaction) {
-    var _a, _b, _c;
+    let _a; let _b; let _c;
     // This is used during the expense creation flow before the transaction has been saved to the server
     if (has_1['default'](transaction, 'iouRequestType')) {
         return (transaction === null || transaction === void 0 ? void 0 : transaction.iouRequestType) === CONST_1['default'].IOU.REQUEST_TYPE.PER_DIEM;
     }
     // This is the case for transaction objects once they have been saved to the server
-    var type = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.type;
-    var customUnitName =
+    const type = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.type;
+    const customUnitName =
         (_c = (_b = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _b === void 0 ? void 0 : _b.customUnit) === null || _c === void 0
             ? void 0
             : _c.name;
@@ -284,7 +285,7 @@ function isManualRequest(transaction) {
 }
 exports.isManualRequest = isManualRequest;
 function isPartialTransaction(transaction) {
-    var merchant = getMerchant(transaction);
+    const merchant = getMerchant(transaction);
     if (!merchant || isPartialMerchant(merchant)) {
         return true;
     }
@@ -306,68 +307,67 @@ exports.isPendingCardOrScanningTransaction = isPendingCardOrScanningTransaction;
  * it's transactionID match what was already generated.
  */
 function buildOptimisticTransaction(params) {
-    var _a, _b;
-    var _c = params.originalTransactionID,
-        originalTransactionID = _c === void 0 ? '' : _c,
-        existingTransactionID = params.existingTransactionID,
-        existingTransaction = params.existingTransaction,
-        policy = params.policy,
-        transactionParams = params.transactionParams;
-    var amount = transactionParams.amount,
-        currency = transactionParams.currency,
-        reportID = transactionParams.reportID,
-        _d = transactionParams.comment,
-        comment = _d === void 0 ? '' : _d,
-        _e = transactionParams.attendees,
-        attendees = _e === void 0 ? [] : _e,
-        _f = transactionParams.created,
-        created = _f === void 0 ? '' : _f,
-        _g = transactionParams.merchant,
-        merchant = _g === void 0 ? '' : _g,
-        receipt = transactionParams.receipt,
-        _h = transactionParams.category,
-        category = _h === void 0 ? '' : _h,
-        _j = transactionParams.tag,
-        tag = _j === void 0 ? '' : _j,
-        _k = transactionParams.taxCode,
-        taxCode = _k === void 0 ? '' : _k,
-        _l = transactionParams.taxAmount,
-        taxAmount = _l === void 0 ? 0 : _l,
-        _m = transactionParams.billable,
-        billable = _m === void 0 ? false : _m,
-        pendingFields = transactionParams.pendingFields,
-        _o = transactionParams.reimbursable,
-        reimbursable = _o === void 0 ? true : _o,
-        _p = transactionParams.source,
-        source = _p === void 0 ? '' : _p,
-        _q = transactionParams.filename,
-        filename = _q === void 0 ? '' : _q,
-        customUnit = transactionParams.customUnit;
+    let _a; let _b;
+    const _c = params.originalTransactionID;
+        const originalTransactionID = _c === void 0 ? '' : _c;
+        const existingTransactionID = params.existingTransactionID;
+        const existingTransaction = params.existingTransaction;
+        const policy = params.policy;
+        const transactionParams = params.transactionParams;
+    const amount = transactionParams.amount;
+        const currency = transactionParams.currency;
+        const reportID = transactionParams.reportID;
+        const _d = transactionParams.comment;
+        const comment = _d === void 0 ? '' : _d;
+        const _e = transactionParams.attendees;
+        const attendees = _e === void 0 ? [] : _e;
+        const _f = transactionParams.created;
+        const created = _f === void 0 ? '' : _f;
+        const _g = transactionParams.merchant;
+        const merchant = _g === void 0 ? '' : _g;
+        const receipt = transactionParams.receipt;
+        const _h = transactionParams.category;
+        const category = _h === void 0 ? '' : _h;
+        const _j = transactionParams.tag;
+        const tag = _j === void 0 ? '' : _j;
+        const _k = transactionParams.taxCode;
+        const taxCode = _k === void 0 ? '' : _k;
+        const _l = transactionParams.taxAmount;
+        const taxAmount = _l === void 0 ? 0 : _l;
+        const _m = transactionParams.billable;
+        const billable = _m === void 0 ? false : _m;
+        const pendingFields = transactionParams.pendingFields;
+        const _o = transactionParams.reimbursable;
+        const reimbursable = _o === void 0 ? true : _o;
+        const _p = transactionParams.source;
+        const source = _p === void 0 ? '' : _p;
+        const _q = transactionParams.filename;
+        const filename = _q === void 0 ? '' : _q;
+        const customUnit = transactionParams.customUnit;
     // transactionIDs are random, positive, 64-bit numeric strings.
     // Because JS can only handle 53-bit numbers, transactionIDs are strings in the front-end (just like reportActionID)
-    var transactionID = existingTransactionID !== null && existingTransactionID !== void 0 ? existingTransactionID : NumberUtils.rand64();
-    var commentJSON = {comment: comment, attendees: attendees};
+    const transactionID = existingTransactionID !== null && existingTransactionID !== void 0 ? existingTransactionID : NumberUtils.rand64();
+    const commentJSON = {comment, attendees};
     if (source) {
         commentJSON.source = source;
     }
     if (originalTransactionID) {
         commentJSON.originalTransactionID = originalTransactionID;
     }
-    var isDistanceTransaction = !!(pendingFields === null || pendingFields === void 0 ? void 0 : pendingFields.waypoints);
+    const isDistanceTransaction = !!(pendingFields === null || pendingFields === void 0 ? void 0 : pendingFields.waypoints);
     if (isDistanceTransaction) {
         // Set the distance unit, which comes from the policy distance unit or the P2P rate data
-        set_1['default'](commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils_1['default'].getUpdatedDistanceUnit({transaction: existingTransaction, policy: policy}));
+        set_1['default'](commentJSON, 'customUnit.distanceUnit', DistanceRequestUtils_1['default'].getUpdatedDistanceUnit({transaction: existingTransaction, policy}));
     }
-    var isPerDiemTransaction = !!(pendingFields === null || pendingFields === void 0 ? void 0 : pendingFields.subRates);
+    const isPerDiemTransaction = !!(pendingFields === null || pendingFields === void 0 ? void 0 : pendingFields.subRates);
     if (isPerDiemTransaction) {
         // Set the custom unit, which comes from the policy per diem rate data
         set_1['default'](commentJSON, 'customUnit', customUnit);
     }
-    return __assign(__assign({}, !EmptyObject_1.isEmptyObject(pendingFields) ? {pendingFields: pendingFields} : {}), {
-        transactionID: transactionID,
-        amount: amount,
-        currency: currency,
-        reportID: reportID,
+    return {...(!EmptyObject_1.isEmptyObject(pendingFields) ? {pendingFields} : {}), transactionID,
+        amount,
+        currency,
+        reportID,
         comment: commentJSON,
         merchant: merchant || CONST_1['default'].TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
         created: created || DateUtils_1['default'].getDBTime(),
@@ -381,14 +381,13 @@ function buildOptimisticTransaction(params) {
                 : filename
             : filename
         ).toString(),
-        category: category,
-        tag: tag,
-        taxCode: taxCode,
-        taxAmount: taxAmount,
-        billable: billable,
-        reimbursable: reimbursable,
-        inserted: DateUtils_1['default'].getDBTime(),
-    });
+        category,
+        tag,
+        taxCode,
+        taxAmount,
+        billable,
+        reimbursable,
+        inserted: DateUtils_1['default'].getDBTime(),};
 }
 exports.buildOptimisticTransaction = buildOptimisticTransaction;
 /**
@@ -399,13 +398,13 @@ function hasEReceipt(transaction) {
 }
 exports.hasEReceipt = hasEReceipt;
 function hasReceipt(transaction) {
-    var _a;
+    let _a;
     return !!((_a = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _a === void 0 ? void 0 : _a.state) || hasEReceipt(transaction);
 }
 exports.hasReceipt = hasReceipt;
 /** Check if the receipt has the source file */
 function hasReceiptSource(transaction) {
-    var _a;
+    let _a;
     return !!((_a = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _a === void 0 ? void 0 : _a.source);
 }
 exports.hasReceiptSource = hasReceiptSource;
@@ -413,7 +412,7 @@ function isMerchantMissing(transaction) {
     if ((transaction === null || transaction === void 0 ? void 0 : transaction.modifiedMerchant) && transaction.modifiedMerchant !== '') {
         return transaction.modifiedMerchant === CONST_1['default'].TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
     }
-    var isMerchantEmpty =
+    const isMerchantEmpty =
         (transaction === null || transaction === void 0 ? void 0 : transaction.merchant) === CONST_1['default'].TRANSACTION.PARTIAL_TRANSACTION_MERCHANT ||
         (transaction === null || transaction === void 0 ? void 0 : transaction.merchant) === '';
     return isMerchantEmpty;
@@ -448,23 +447,23 @@ function isCreatedMissing(transaction) {
 }
 exports.isCreatedMissing = isCreatedMissing;
 function areRequiredFieldsEmpty(transaction) {
-    var _a, _b;
-    var parentReport =
+    let _a; let _b;
+    const parentReport =
         allReports === null || allReports === void 0
             ? void 0
-            : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + (transaction === null || transaction === void 0 ? void 0 : transaction.reportID)];
-    var isFromExpenseReport = (parentReport === null || parentReport === void 0 ? void 0 : parentReport.type) === CONST_1['default'].REPORT.TYPE.EXPENSE;
-    var isSplitPolicyExpenseChat = !!((_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.splits) === null ||
+            : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${transaction === null || transaction === void 0 ? void 0 : transaction.reportID}`];
+    const isFromExpenseReport = (parentReport === null || parentReport === void 0 ? void 0 : parentReport.type) === CONST_1['default'].REPORT.TYPE.EXPENSE;
+    const isSplitPolicyExpenseChat = !!((_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.splits) === null ||
     _b === void 0
         ? void 0
         : _b.some(function (participant) {
-              var _a;
-              return (_a = allReports === null || allReports === void 0 ? void 0 : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + participant.chatReportID]) === null ||
+              let _a;
+              return (_a = allReports === null || allReports === void 0 ? void 0 : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${participant.chatReportID}`]) === null ||
                   _a === void 0
                   ? void 0
                   : _a.isOwnPolicyExpenseChat;
           }));
-    var isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
+    const isMerchantRequired = isFromExpenseReport || isSplitPolicyExpenseChat;
     return (isMerchantRequired && isMerchantMissing(transaction)) || isAmountMissing(transaction) || isCreatedMissing(transaction);
 }
 exports.areRequiredFieldsEmpty = areRequiredFieldsEmpty;
@@ -472,20 +471,20 @@ exports.areRequiredFieldsEmpty = areRequiredFieldsEmpty;
  * Given the edit made to the expense, return an updated transaction object.
  */
 function getUpdatedTransaction(_a) {
-    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-    var transaction = _a.transaction,
-        transactionChanges = _a.transactionChanges,
-        isFromExpenseReport = _a.isFromExpenseReport,
-        _o = _a.shouldUpdateReceiptState,
-        shouldUpdateReceiptState = _o === void 0 ? true : _o,
-        _p = _a.policy,
-        policy = _p === void 0 ? undefined : _p;
+    let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m;
+    const transaction = _a.transaction;
+        const transactionChanges = _a.transactionChanges;
+        const isFromExpenseReport = _a.isFromExpenseReport;
+        const _o = _a.shouldUpdateReceiptState;
+        const shouldUpdateReceiptState = _o === void 0 ? true : _o;
+        const _p = _a.policy;
+        const policy = _p === void 0 ? undefined : _p;
     // Only changing the first level fields so no need for deep clone now
-    var updatedTransaction = cloneDeep_1['default'](transaction);
-    var shouldStopSmartscan = false;
+    const updatedTransaction = cloneDeep_1['default'](transaction);
+    let shouldStopSmartscan = false;
     // The comment property does not have its modifiedComment counterpart
     if (Object.hasOwn(transactionChanges, 'comment')) {
-        updatedTransaction.comment = __assign(__assign({}, updatedTransaction.comment), {comment: transactionChanges.comment});
+        updatedTransaction.comment = {...updatedTransaction.comment, comment: transactionChanges.comment};
     }
     if (Object.hasOwn(transactionChanges, 'created')) {
         updatedTransaction.modifiedCreated = transactionChanges.created;
@@ -517,9 +516,9 @@ function getUpdatedTransaction(_a) {
             updatedTransaction.modifiedAmount = CONST_1['default'].IOU.DEFAULT_AMOUNT;
             updatedTransaction.modifiedMerchant = Localize.translateLocal('iou.fieldPending');
         } else {
-            var mileageRate = DistanceRequestUtils_1['default'].getRate({transaction: updatedTransaction, policy: policy});
-            var unit = mileageRate.unit,
-                rate = mileageRate.rate;
+            const mileageRate = DistanceRequestUtils_1['default'].getRate({transaction: updatedTransaction, policy});
+            var unit = mileageRate.unit;
+                var rate = mileageRate.rate;
             var distanceInMeters = getDistanceInMeters_1['default'](transaction, unit);
             var amount = DistanceRequestUtils_1['default'].getDistanceRequestAmount(distanceInMeters, unit, rate !== null && rate !== void 0 ? rate : 0);
             var updatedAmount = isFromExpenseReport ? -amount : amount;
@@ -535,20 +534,20 @@ function getUpdatedTransaction(_a) {
         set_1['default'](updatedTransaction, 'comment.customUnit.customUnitRateID', transactionChanges.customUnitRateID);
         set_1['default'](updatedTransaction, 'comment.customUnit.defaultP2PRate', null);
         shouldStopSmartscan = true;
-        var existingDistanceUnit =
+        const existingDistanceUnit =
             (_f = (_e = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _e === void 0 ? void 0 : _e.customUnit) === null || _f === void 0
                 ? void 0
                 : _f.distanceUnit;
         // Get the new distance unit from the rate's unit
-        var newDistanceUnit = DistanceRequestUtils_1['default'].getUpdatedDistanceUnit({transaction: updatedTransaction, policy: policy});
+        const newDistanceUnit = DistanceRequestUtils_1['default'].getUpdatedDistanceUnit({transaction: updatedTransaction, policy});
         set_1['default'](updatedTransaction, 'comment.customUnit.distanceUnit', newDistanceUnit);
         // If the distanceUnit is set and the rate is changed to one that has a different unit, convert the distance to the new unit
         if (existingDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
-            var conversionFactor =
+            const conversionFactor =
                 existingDistanceUnit === CONST_1['default'].CUSTOM_UNITS.DISTANCE_UNIT_MILES
                     ? CONST_1['default'].CUSTOM_UNITS.MILES_TO_KILOMETERS
                     : CONST_1['default'].CUSTOM_UNITS.KILOMETERS_TO_MILES;
-            var distance = NumberUtils.roundToTwoDecimalPlaces(
+            const distance = NumberUtils.roundToTwoDecimalPlaces(
                 ((_j =
                     (_h = (_g = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _g === void 0 ? void 0 : _g.customUnit) === null || _h === void 0
                         ? void 0
@@ -561,14 +560,14 @@ function getUpdatedTransaction(_a) {
         if (!isFetchingWaypointsFromServer(transaction)) {
             // When the waypoints are being fetched from the server, we have no information about the distance, and cannot recalculate the updated amount.
             // Otherwise, recalculate the fields based on the new rate.
-            var oldMileageRate = DistanceRequestUtils_1['default'].getRate({transaction: transaction, policy: policy});
-            var updatedMileageRate = DistanceRequestUtils_1['default'].getRate({transaction: updatedTransaction, policy: policy, useTransactionDistanceUnit: false});
-            var unit = updatedMileageRate.unit,
-                rate = updatedMileageRate.rate;
+            const oldMileageRate = DistanceRequestUtils_1['default'].getRate({transaction, policy});
+            const updatedMileageRate = DistanceRequestUtils_1['default'].getRate({transaction: updatedTransaction, policy, useTransactionDistanceUnit: false});
+            var unit = updatedMileageRate.unit;
+                var rate = updatedMileageRate.rate;
             var distanceInMeters = getDistanceInMeters_1['default'](transaction, oldMileageRate === null || oldMileageRate === void 0 ? void 0 : oldMileageRate.unit);
             var amount = DistanceRequestUtils_1['default'].getDistanceRequestAmount(distanceInMeters, unit, rate !== null && rate !== void 0 ? rate : 0);
             var updatedAmount = isFromExpenseReport ? -amount : amount;
-            var updatedCurrency = (_k = updatedMileageRate.currency) !== null && _k !== void 0 ? _k : CONST_1['default'].CURRENCY.USD;
+            const updatedCurrency = (_k = updatedMileageRate.currency) !== null && _k !== void 0 ? _k : CONST_1['default'].CURRENCY.USD;
             var updatedMerchant = DistanceRequestUtils_1['default'].getDistanceMerchant(true, distanceInMeters, unit, rate, updatedCurrency, Localize.translateLocal, function (digit) {
                 return LocaleDigitUtils_1.toLocaleDigit(preferredLocale, digit);
             });
@@ -589,9 +588,9 @@ function getUpdatedTransaction(_a) {
     }
     if (Object.hasOwn(transactionChanges, 'category') && typeof transactionChanges.category === 'string') {
         updatedTransaction.category = transactionChanges.category;
-        var _q = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy),
-            categoryTaxCode = _q.categoryTaxCode,
-            categoryTaxAmount = _q.categoryTaxAmount;
+        const _q = getCategoryTaxCodeAndAmount(transactionChanges.category, transaction, policy);
+            const categoryTaxCode = _q.categoryTaxCode;
+            const categoryTaxAmount = _q.categoryTaxAmount;
         if (categoryTaxCode && categoryTaxAmount !== undefined) {
             updatedTransaction.taxCode = categoryTaxCode;
             updatedTransaction.taxAmount = categoryTaxAmount;
@@ -616,40 +615,21 @@ function getUpdatedTransaction(_a) {
     updatedTransaction.pendingFields = __assign(
         __assign(
             __assign(
-                __assign(
-                    __assign(
-                        __assign(
-                            __assign(
-                                __assign(
-                                    __assign(
-                                        __assign(
-                                            __assign(
-                                                __assign(
-                                                    __assign(
-                                                        {},
-                                                        (_m = updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.pendingFields) !== null &&
+                {
+                    ...((_m = updatedTransaction === null || updatedTransaction === void 0 ? void 0 : updatedTransaction.pendingFields) !== null &&
                                                             _m !== void 0
                                                             ? _m
-                                                            : {},
-                                                    ),
-                                                    Object.hasOwn(transactionChanges, 'comment') && {comment: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                                ),
-                                                Object.hasOwn(transactionChanges, 'created') && {created: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                            ),
-                                            Object.hasOwn(transactionChanges, 'amount') && {amount: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                        ),
-                                        Object.hasOwn(transactionChanges, 'currency') && {currency: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                    ),
-                                    Object.hasOwn(transactionChanges, 'merchant') && {merchant: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                                ),
-                                Object.hasOwn(transactionChanges, 'waypoints') && {waypoints: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                            ),
-                            Object.hasOwn(transactionChanges, 'billable') && {billable: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                        ),
-                        Object.hasOwn(transactionChanges, 'category') && {category: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                    ),
-                    Object.hasOwn(transactionChanges, 'tag') && {tag: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
-                ),
+                                                            : {}),
+                                                    ...Object.hasOwn(transactionChanges, 'comment') && {comment: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                                ...Object.hasOwn(transactionChanges, 'created') && {created: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                            ...Object.hasOwn(transactionChanges, 'amount') && {amount: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                        ...Object.hasOwn(transactionChanges, 'currency') && {currency: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                    ...Object.hasOwn(transactionChanges, 'merchant') && {merchant: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                                ...Object.hasOwn(transactionChanges, 'waypoints') && {waypoints: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                            ...Object.hasOwn(transactionChanges, 'billable') && {billable: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                        ...Object.hasOwn(transactionChanges, 'category') && {category: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                    ...Object.hasOwn(transactionChanges, 'tag') && {tag: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                },
                 Object.hasOwn(transactionChanges, 'taxAmount') && {taxAmount: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             ),
             Object.hasOwn(transactionChanges, 'taxCode') && {taxCode: CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
@@ -664,7 +644,7 @@ exports.getUpdatedTransaction = getUpdatedTransaction;
  * The comment does not have its modifiedComment counterpart.
  */
 function getDescription(transaction) {
-    var _a, _b, _c;
+    let _a; let _b; let _c;
     // Casting the description to string to avoid wrong data types (e.g. number) being returned from the API
     return (_c =
         (_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.comment) === null || _b === void 0
@@ -678,7 +658,7 @@ exports.getDescription = getDescription;
  * Return the amount field from the transaction, return the modifiedAmount if present.
  */
 function getAmount(transaction, isFromExpenseReport, isFromTrackedExpense) {
-    var _a, _b, _c, _d;
+    let _a; let _b; let _c; let _d;
     if (isFromExpenseReport === void 0) {
         isFromExpenseReport = false;
     }
@@ -687,7 +667,7 @@ function getAmount(transaction, isFromExpenseReport, isFromTrackedExpense) {
     }
     // IOU requests cannot have negative values, but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport || isFromTrackedExpense) {
-        var amount_1 = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedAmount) !== null && _a !== void 0 ? _a : 0;
+        const amount_1 = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedAmount) !== null && _a !== void 0 ? _a : 0;
         if (amount_1) {
             return Math.abs(amount_1);
         }
@@ -696,7 +676,7 @@ function getAmount(transaction, isFromExpenseReport, isFromTrackedExpense) {
     // Expense report case:
     // The amounts are stored using an opposite sign and negative values can be set,
     // we need to return an opposite sign than is saved in the transaction object
-    var amount = (_c = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedAmount) !== null && _c !== void 0 ? _c : 0;
+    let amount = (_c = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedAmount) !== null && _c !== void 0 ? _c : 0;
     if (amount) {
         return -amount;
     }
@@ -709,13 +689,13 @@ exports.getAmount = getAmount;
  * Return the tax amount field from the transaction.
  */
 function getTaxAmount(transaction, isFromExpenseReport) {
-    var _a, _b;
+    let _a; let _b;
     // IOU requests cannot have negative values but they can be stored as negative values, let's return absolute value
     if (!isFromExpenseReport) {
         return Math.abs((_a = transaction === null || transaction === void 0 ? void 0 : transaction.taxAmount) !== null && _a !== void 0 ? _a : 0);
     }
     // To avoid -0 being shown, lets only change the sign if the value is other than 0.
-    var amount = (_b = transaction === null || transaction === void 0 ? void 0 : transaction.taxAmount) !== null && _b !== void 0 ? _b : 0;
+    const amount = (_b = transaction === null || transaction === void 0 ? void 0 : transaction.taxAmount) !== null && _b !== void 0 ? _b : 0;
     return amount ? -amount : 0;
 }
 exports.getTaxAmount = getTaxAmount;
@@ -723,7 +703,7 @@ exports.getTaxAmount = getTaxAmount;
  * Return the tax code from the transaction.
  */
 function getTaxCode(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.taxCode) !== null && _a !== void 0 ? _a : '';
 }
 exports.getTaxCode = getTaxCode;
@@ -731,7 +711,7 @@ exports.getTaxCode = getTaxCode;
  * Return the posted date from the transaction.
  */
 function getPostedDate(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.posted) !== null && _a !== void 0 ? _a : '';
 }
 /**
@@ -741,8 +721,8 @@ function getFormattedPostedDate(transaction, dateFormat) {
     if (dateFormat === void 0) {
         dateFormat = CONST_1['default'].DATE.FNS_FORMAT_STRING;
     }
-    var postedDate = getPostedDate(transaction);
-    var parsedDate = date_fns_1.parse(postedDate, 'yyyyMMdd', new Date());
+    const postedDate = getPostedDate(transaction);
+    const parsedDate = date_fns_1.parse(postedDate, 'yyyyMMdd', new Date());
     if (date_fns_1.isValid(parsedDate)) {
         return DateUtils_1['default'].formatWithUTCTimeZone(date_fns_1.format(parsedDate, 'yyyy-MM-dd'), dateFormat);
     }
@@ -753,8 +733,8 @@ exports.getFormattedPostedDate = getFormattedPostedDate;
  * Return the currency field from the transaction, return the modifiedCurrency if present.
  */
 function getCurrency(transaction) {
-    var _a, _b;
-    var currency = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedCurrency) !== null && _a !== void 0 ? _a : '';
+    let _a; let _b;
+    const currency = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedCurrency) !== null && _a !== void 0 ? _a : '';
     if (currency) {
         return currency;
     }
@@ -765,7 +745,7 @@ exports.getCurrency = getCurrency;
  * Return the original currency field from the transaction.
  */
 function getOriginalCurrency(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.originalCurrency) !== null && _a !== void 0 ? _a : '';
 }
 exports.getOriginalCurrency = getOriginalCurrency;
@@ -773,8 +753,8 @@ exports.getOriginalCurrency = getOriginalCurrency;
  * Return the absolute value of the original amount field from the transaction.
  */
 function getOriginalAmount(transaction) {
-    var _a;
-    var amount = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.originalAmount) !== null && _a !== void 0 ? _a : 0;
+    let _a;
+    const amount = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.originalAmount) !== null && _a !== void 0 ? _a : 0;
     return Math.abs(amount);
 }
 exports.getOriginalAmount = getOriginalAmount;
@@ -782,7 +762,7 @@ exports.getOriginalAmount = getOriginalAmount;
  * Verify if the transaction is expecting the distance to be calculated on the server
  */
 function isFetchingWaypointsFromServer(transaction) {
-    var _a;
+    let _a;
     return !!((_a = transaction === null || transaction === void 0 ? void 0 : transaction.pendingFields) === null || _a === void 0 ? void 0 : _a.waypoints);
 }
 exports.isFetchingWaypointsFromServer = isFetchingWaypointsFromServer;
@@ -790,14 +770,14 @@ exports.isFetchingWaypointsFromServer = isFetchingWaypointsFromServer;
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction) {
-    var _a;
+    let _a;
     if (transaction && isDistanceRequest(transaction)) {
-        var report = ReportUtils_1.getReportOrDraftReport(transaction.reportID);
-        var policy = PolicyUtils_1.getPolicy(report === null || report === void 0 ? void 0 : report.policyID);
-        var mileageRate = DistanceRequestUtils_1['default'].getRate({transaction: transaction, policy: policy});
-        var unit = mileageRate.unit,
-            rate = mileageRate.rate;
-        var distanceInMeters = getDistanceInMeters_1['default'](transaction, unit);
+        const report = ReportUtils_1.getReportOrDraftReport(transaction.reportID);
+        const policy = PolicyUtils_1.getPolicy(report === null || report === void 0 ? void 0 : report.policyID);
+        const mileageRate = DistanceRequestUtils_1['default'].getRate({transaction, policy});
+        const unit = mileageRate.unit;
+            const rate = mileageRate.rate;
+        const distanceInMeters = getDistanceInMeters_1['default'](transaction, unit);
         return DistanceRequestUtils_1['default'].getDistanceMerchant(true, distanceInMeters, unit, rate, transaction.currency, Localize.translateLocal, function (digit) {
             return LocaleDigitUtils_1.toLocaleDigit(preferredLocale, digit);
         });
@@ -817,7 +797,7 @@ exports.getMerchantOrDescription = getMerchantOrDescription;
  * Return the list of modified attendees if present otherwise list of attendees
  */
 function getAttendees(transaction) {
-    var _a, _b;
+    let _a; let _b;
     return (transaction === null || transaction === void 0 ? void 0 : transaction.modifiedAttendees)
         ? transaction.modifiedAttendees
         : (_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.attendees) !== null && _b !== void 0
@@ -829,18 +809,18 @@ exports.getAttendees = getAttendees;
  * Return the list of attendees as a string and modified list of attendees as a string if present.
  */
 function getFormattedAttendees(modifiedAttendees, attendees) {
-    var oldAttendees = modifiedAttendees !== null && modifiedAttendees !== void 0 ? modifiedAttendees : [];
-    var newAttendees = attendees !== null && attendees !== void 0 ? attendees : [];
+    const oldAttendees = modifiedAttendees !== null && modifiedAttendees !== void 0 ? modifiedAttendees : [];
+    const newAttendees = attendees !== null && attendees !== void 0 ? attendees : [];
     return [
         oldAttendees
             .map(function (item) {
-                var _a;
+                let _a;
                 return (_a = item.displayName) !== null && _a !== void 0 ? _a : item.login;
             })
             .join(', '),
         newAttendees
             .map(function (item) {
-                var _a;
+                let _a;
                 return (_a = item.displayName) !== null && _a !== void 0 ? _a : item.login;
             })
             .join(', '),
@@ -851,7 +831,7 @@ exports.getFormattedAttendees = getFormattedAttendees;
  * Return the reimbursable value. Defaults to true to match BE logic.
  */
 function getReimbursable(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.reimbursable) !== null && _a !== void 0 ? _a : true;
 }
 exports.getReimbursable = getReimbursable;
@@ -870,7 +850,7 @@ exports.getMCCGroup = getMCCGroup;
  * Return the waypoints field from the transaction, return the modifiedWaypoints if present.
  */
 function getWaypoints(transaction) {
-    var _a, _b;
+    let _a; let _b;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.modifiedWaypoints) !== null && _a !== void 0
         ? _a
         : (_b = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _b === void 0
@@ -882,7 +862,7 @@ exports.getWaypoints = getWaypoints;
  * Return the category from the transaction. This "category" field has no "modified" complement.
  */
 function getCategory(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.category) !== null && _a !== void 0 ? _a : '';
 }
 exports.getCategory = getCategory;
@@ -890,7 +870,7 @@ exports.getCategory = getCategory;
  * Return the cardID from the transaction.
  */
 function getCardID(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.cardID) !== null && _a !== void 0 ? _a : CONST_1['default'].DEFAULT_NUMBER_ID;
 }
 exports.getCardID = getCardID;
@@ -898,7 +878,7 @@ exports.getCardID = getCardID;
  * Return the billable field from the transaction. This "billable" field has no "modified" complement.
  */
 function getBillable(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.billable) !== null && _a !== void 0 ? _a : false;
 }
 exports.getBillable = getBillable;
@@ -912,15 +892,15 @@ function getTagArrayFromName(tagName) {
     // and not have it interfere with splitting on a colon (:).
     // So, let's replace it with something absurd to begin with, do our split, and
     // then replace the double backslashes in the end.
-    var tagWithoutDoubleSlashes = tagName.replace(/\\\\/g, '☠');
-    var tagWithoutEscapedColons = tagWithoutDoubleSlashes.replace(/\\:/g, '☢');
+    const tagWithoutDoubleSlashes = tagName.replace(/\\\\/g, '☠');
+    const tagWithoutEscapedColons = tagWithoutDoubleSlashes.replace(/\\:/g, '☢');
     // Do our split
-    var matches = tagWithoutEscapedColons.split(':');
-    var newMatches = [];
-    for (var _i = 0, matches_1 = matches; _i < matches_1.length; _i++) {
-        var item = matches_1[_i];
-        var tagWithEscapedColons = item.replace(/☢/g, '\\:');
-        var tagWithDoubleSlashes = tagWithEscapedColons.replace(/☠/g, '\\\\');
+    const matches = tagWithoutEscapedColons.split(':');
+    const newMatches = [];
+    for (let _i = 0, matches_1 = matches; _i < matches_1.length; _i++) {
+        const item = matches_1[_i];
+        const tagWithEscapedColons = item.replace(/☢/g, '\\:');
+        const tagWithDoubleSlashes = tagWithEscapedColons.replace(/☠/g, '\\\\');
         newMatches.push(tagWithDoubleSlashes);
     }
     return newMatches;
@@ -931,9 +911,9 @@ exports.getTagArrayFromName = getTagArrayFromName;
  * This "tag" field has no "modified" complement.
  */
 function getTag(transaction, tagIndex) {
-    var _a, _b, _c;
+    let _a; let _b; let _c;
     if (tagIndex !== undefined) {
-        var tagsArray = getTagArrayFromName((_a = transaction === null || transaction === void 0 ? void 0 : transaction.tag) !== null && _a !== void 0 ? _a : '');
+        const tagsArray = getTagArrayFromName((_a = transaction === null || transaction === void 0 ? void 0 : transaction.tag) !== null && _a !== void 0 ? _a : '');
         return (_b = tagsArray.at(tagIndex)) !== null && _b !== void 0 ? _b : '';
     }
     return (_c = transaction === null || transaction === void 0 ? void 0 : transaction.tag) !== null && _c !== void 0 ? _c : '';
@@ -957,7 +937,7 @@ function getFormattedCreated(transaction, dateFormat) {
     if (dateFormat === void 0) {
         dateFormat = CONST_1['default'].DATE.FNS_FORMAT_STRING;
     }
-    var created = getCreated(transaction);
+    const created = getCreated(transaction);
     return DateUtils_1['default'].formatWithUTCTimeZone(created, dateFormat);
 }
 exports.getFormattedCreated = getFormattedCreated;
@@ -976,7 +956,7 @@ function isCardTransaction(transaction) {
 }
 exports.isCardTransaction = isCardTransaction;
 function getCardName(transaction) {
-    var _a;
+    let _a;
     return (_a = transaction === null || transaction === void 0 ? void 0 : transaction.cardName) !== null && _a !== void 0 ? _a : '';
 }
 exports.getCardName = getCardName;
@@ -1002,14 +982,14 @@ function isPosted(transaction) {
 exports.isPosted = isPosted;
 function isReceiptBeingScanned(transaction) {
     return [CONST_1['default'].IOU.RECEIPT_STATE.SCANREADY, CONST_1['default'].IOU.RECEIPT_STATE.SCANNING].some(function (value) {
-        var _a;
+        let _a;
         return value === ((_a = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _a === void 0 ? void 0 : _a.state);
     });
 }
 exports.isReceiptBeingScanned = isReceiptBeingScanned;
 function didReceiptScanSucceed(transaction) {
     return [CONST_1['default'].IOU.RECEIPT_STATE.SCANCOMPLETE].some(function (value) {
-        var _a;
+        let _a;
         return value === ((_a = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _a === void 0 ? void 0 : _a.state);
     });
 }
@@ -1025,8 +1005,8 @@ exports.hasMissingSmartscanFields = hasMissingSmartscanFields;
  * Get all transaction violations of the transaction with given tranactionID.
  */
 function getTransactionViolations(transactionID, transactionViolations) {
-    var _a;
-    var transaction = getTransaction(transactionID);
+    let _a;
+    const transaction = getTransaction(transactionID);
     if (!transactionID || !transactionViolations) {
         return undefined;
     }
@@ -1046,7 +1026,7 @@ function hasPendingRTERViolation(transactionViolations) {
     return !!(transactionViolations === null || transactionViolations === void 0
         ? void 0
         : transactionViolations.some(function (transactionViolation) {
-              var _a, _b, _c;
+              let _a; let _b; let _c;
               return (
                   transactionViolation.name === CONST_1['default'].VIOLATIONS.RTER &&
                   ((_a = transactionViolation.data) === null || _a === void 0 ? void 0 : _a.pendingPattern) &&
@@ -1060,7 +1040,7 @@ exports.hasPendingRTERViolation = hasPendingRTERViolation;
  * Check if there is broken connection violation.
  */
 function hasBrokenConnectionViolation(transactionID, transactionViolations) {
-    var violations = getTransactionViolations(transactionID, transactionViolations);
+    const violations = getTransactionViolations(transactionID, transactionViolations);
     return !!(violations === null || violations === void 0
         ? void 0
         : violations.find(function (violation) {
@@ -1069,7 +1049,7 @@ function hasBrokenConnectionViolation(transactionID, transactionViolations) {
 }
 exports.hasBrokenConnectionViolation = hasBrokenConnectionViolation;
 function isBrokenConnectionViolation(violation) {
-    var _a, _b;
+    let _a; let _b;
     return (
         violation.name === CONST_1['default'].VIOLATIONS.RTER &&
         (((_a = violation.data) === null || _a === void 0 ? void 0 : _a.rterType) === CONST_1['default'].RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
@@ -1093,7 +1073,7 @@ function shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations,
  * Check if user should see broken connection violation warning based on violations list.
  */
 function shouldShowBrokenConnectionViolation(report, policy, transactionViolations) {
-    var brokenConnectionViolations = transactionViolations.filter(function (violation) {
+    const brokenConnectionViolations = transactionViolations.filter(function (violation) {
         return isBrokenConnectionViolation(violation);
     });
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
@@ -1103,15 +1083,15 @@ exports.shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolatio
  * Check if user should see broken connection violation warning based on selected transactions.
  */
 function shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, transactionViolations) {
-    var violations = transactionIDs.flatMap(function (id) {
-        var _a;
+    const violations = transactionIDs.flatMap(function (id) {
+        let _a;
         return (_a =
-            transactionViolations === null || transactionViolations === void 0 ? void 0 : transactionViolations['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS + id]) !==
+            transactionViolations === null || transactionViolations === void 0 ? void 0 : transactionViolations[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS  }${id}`]) !==
             null && _a !== void 0
             ? _a
             : [];
     });
-    var brokenConnectionViolations = violations.filter(function (violation) {
+    const brokenConnectionViolations = violations.filter(function (violation) {
         return isBrokenConnectionViolation(violation);
     });
     return shouldShowBrokenConnectionViolationInternal(brokenConnectionViolations, report, policy);
@@ -1124,7 +1104,7 @@ function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation, shouldDispl
     return (
         shouldDisplayBrokenConnectionViolation &&
         (!PolicyUtils_1.isPolicyAdmin(policy) || ReportUtils_1.isCurrentUserSubmitter(report === null || report === void 0 ? void 0 : report.reportID)) &&
-        !ReportUtils_1.isReportApproved({report: report}) &&
+        !ReportUtils_1.isReportApproved({report}) &&
         !ReportUtils_1.isReportManuallyReimbursed(report)
     );
 }
@@ -1133,8 +1113,8 @@ exports.checkIfShouldShowMarkAsCashButton = checkIfShouldShowMarkAsCashButton;
  * Check if there is pending rter violation in all transactionViolations with given transactionIDs.
  */
 function allHavePendingRTERViolation(transactionIds, transactionViolations) {
-    var transactionsWithRTERViolations = transactionIds.map(function (transactionId) {
-        var filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
+    const transactionsWithRTERViolations = transactionIds.map(function (transactionId) {
+        const filteredTransactionViolations = getTransactionViolations(transactionId, transactionViolations);
         return hasPendingRTERViolation(filteredTransactionViolations);
     });
     return (
@@ -1168,7 +1148,7 @@ exports.hasPendingUI = hasPendingUI;
  * Check if the transaction has a defined route
  */
 function hasRoute(transaction, isDistanceRequestType) {
-    var _a, _b, _c, _d, _e;
+    let _a; let _b; let _c; let _d; let _e;
     return (
         !!((_c =
             (_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.routes) === null || _a === void 0 ? void 0 : _a.route0) === null || _b === void 0
@@ -1184,7 +1164,7 @@ function hasRoute(transaction, isDistanceRequestType) {
 }
 exports.hasRoute = hasRoute;
 function waypointHasValidAddress(waypoint) {
-    var _a;
+    let _a;
     return !!((_a = waypoint === null || waypoint === void 0 ? void 0 : waypoint.address) === null || _a === void 0 ? void 0 : _a.trim());
 }
 exports.waypointHasValidAddress = waypointHasValidAddress;
@@ -1205,25 +1185,25 @@ function getValidWaypoints(waypoints, reArrangeIndexes) {
     if (!waypoints) {
         return {};
     }
-    var sortedIndexes = Object.keys(waypoints)
+    const sortedIndexes = Object.keys(waypoints)
         .map(getWaypointIndex)
         .sort(function (a, b) {
             return a - b;
         });
-    var waypointValues = sortedIndexes.map(function (index) {
-        return waypoints['waypoint' + index];
+    const waypointValues = sortedIndexes.map(function (index) {
+        return waypoints[`waypoint${  index}`];
     });
     // Ensure the number of waypoints is between 2 and 25
     if (waypointValues.length < 2 || waypointValues.length > 25) {
         return {};
     }
-    var lastWaypointIndex = -1;
-    var waypointIndex = -1;
+    let lastWaypointIndex = -1;
+    let waypointIndex = -1;
     return waypointValues.reduce(function (acc, currentWaypoint, index) {
         // Array.at(-1) returns the last element of the array
         // If a user does a round trip, the last waypoint will be the same as the first waypoint
         // We want to avoid comparing them as this will result in an incorrect duplicate waypoint error.
-        var previousWaypoint = lastWaypointIndex !== -1 ? waypointValues.at(lastWaypointIndex) : undefined;
+        const previousWaypoint = lastWaypointIndex !== -1 ? waypointValues.at(lastWaypointIndex) : undefined;
         // Check if the waypoint has a valid address
         if (!waypointHasValidAddress(currentWaypoint)) {
             return acc;
@@ -1232,7 +1212,7 @@ function getValidWaypoints(waypoints, reArrangeIndexes) {
         if (previousWaypoint && (currentWaypoint === null || currentWaypoint === void 0 ? void 0 : currentWaypoint.address) === previousWaypoint.address) {
             return acc;
         }
-        acc['waypoint' + (reArrangeIndexes ? waypointIndex + 1 : index)] = currentWaypoint;
+        acc[`waypoint${  reArrangeIndexes ? waypointIndex + 1 : index}`] = currentWaypoint;
         lastWaypointIndex = index;
         waypointIndex += 1;
         return acc;
@@ -1259,28 +1239,28 @@ exports.getRecentTransactions = getRecentTransactions;
  * @param checkDismissed - whether to check if the violation has already been dismissed as well
  */
 function isDuplicate(transactionID, checkDismissed) {
-    var _a;
+    let _a;
     if (checkDismissed === void 0) {
         checkDismissed = false;
     }
-    var transaction = getTransaction(transactionID);
+    const transaction = getTransaction(transactionID);
     if (!transaction) {
         return false;
     }
-    var duplicateViolation =
+    const duplicateViolation =
         (_a =
             allTransactionViolations === null || allTransactionViolations === void 0
                 ? void 0
-                : allTransactionViolations['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS + transactionID]) === null || _a === void 0
+                : allTransactionViolations[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS  }${transactionID}`]) === null || _a === void 0
             ? void 0
             : _a.find(function (violation) {
                   return violation.name === CONST_1['default'].VIOLATIONS.DUPLICATED_TRANSACTION;
               });
-    var hasDuplicatedViolation = !!duplicateViolation;
+    const hasDuplicatedViolation = !!duplicateViolation;
     if (!checkDismissed) {
         return hasDuplicatedViolation;
     }
-    var didDismissedViolation = isViolationDismissed(transaction, duplicateViolation);
+    const didDismissedViolation = isViolationDismissed(transaction, duplicateViolation);
     return hasDuplicatedViolation && !didDismissedViolation;
 }
 exports.isDuplicate = isDuplicate;
@@ -1288,7 +1268,7 @@ exports.isDuplicate = isDuplicate;
  * Check if transaction is on hold
  */
 function isOnHold(transaction) {
-    var _a;
+    let _a;
     if (!transaction) {
         return false;
     }
@@ -1302,14 +1282,14 @@ function isOnHoldByTransactionID(transactionID) {
     if (!transactionID) {
         return false;
     }
-    return isOnHold(allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION + transactionID]);
+    return isOnHold(allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION  }${transactionID}`]);
 }
 exports.isOnHoldByTransactionID = isOnHoldByTransactionID;
 /**
  * Checks if a violation is dismissed for the given transaction
  */
 function isViolationDismissed(transaction, violation) {
-    var _a, _b, _c;
+    let _a; let _b; let _c;
     if (!transaction || !violation) {
         return false;
     }
@@ -1320,7 +1300,7 @@ function isViolationDismissed(transaction, violation) {
                 : _b[violation.name]) === null || _c === void 0
             ? void 0
             : _c[currentUserEmail]) ===
-        '' + currentUserAccountID
+        `${  currentUserAccountID}`
     );
 }
 exports.isViolationDismissed = isViolationDismissed;
@@ -1343,7 +1323,7 @@ function hasViolation(transaction, transactionViolations, showInReview) {
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    var violations = Array.isArray(transactionViolations)
+    const violations = Array.isArray(transactionViolations)
         ? transactionViolations
         : transactionViolations === null || transactionViolations === void 0
         ? void 0
@@ -1351,7 +1331,7 @@ function hasViolation(transaction, transactionViolations, showInReview) {
     return !!(violations === null || violations === void 0
         ? void 0
         : violations.some(function (violation) {
-              var _a;
+              let _a;
               return (
                   violation.type === CONST_1['default'].VIOLATION_TYPES.VIOLATION &&
                   (showInReview === undefined || showInReview === ((_a = violation.showInReview) !== null && _a !== void 0 ? _a : false)) &&
@@ -1361,8 +1341,8 @@ function hasViolation(transaction, transactionViolations, showInReview) {
 }
 exports.hasViolation = hasViolation;
 function hasDuplicateTransactions(iouReportID, allReportTransactions) {
-    var transactionsByIouReportID = ReportUtils_1.getReportTransactions(iouReportID);
-    var reportTransactions = allReportTransactions !== null && allReportTransactions !== void 0 ? allReportTransactions : transactionsByIouReportID;
+    const transactionsByIouReportID = ReportUtils_1.getReportTransactions(iouReportID);
+    const reportTransactions = allReportTransactions !== null && allReportTransactions !== void 0 ? allReportTransactions : transactionsByIouReportID;
     return (
         reportTransactions.length > 0 &&
         reportTransactions.some(function (transaction) {
@@ -1375,11 +1355,11 @@ exports.hasDuplicateTransactions = hasDuplicateTransactions;
  * Checks if any violations for the provided transaction are of type 'notice'
  */
 function hasNoticeTypeViolation(transactionID, transactionViolations, showInReview) {
-    var transaction = getTransaction(transactionID);
+    const transaction = getTransaction(transactionID);
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    var violations = Array.isArray(transactionViolations)
+    const violations = Array.isArray(transactionViolations)
         ? transactionViolations
         : transactionViolations === null || transactionViolations === void 0
         ? void 0
@@ -1387,7 +1367,7 @@ function hasNoticeTypeViolation(transactionID, transactionViolations, showInRevi
     return !!(violations === null || violations === void 0
         ? void 0
         : violations.some(function (violation) {
-              var _a;
+              let _a;
               return (
                   violation.type === CONST_1['default'].VIOLATION_TYPES.NOTICE &&
                   (showInReview === undefined || showInReview === ((_a = violation.showInReview) !== null && _a !== void 0 ? _a : false)) &&
@@ -1400,22 +1380,22 @@ exports.hasNoticeTypeViolation = hasNoticeTypeViolation;
  * Checks if any violations for the provided transaction are of type 'warning'
  */
 function hasWarningTypeViolation(transactionID, transactionViolations, showInReview) {
-    var _a;
-    var transaction = getTransaction(transactionID);
+    let _a;
+    const transaction = getTransaction(transactionID);
     if (!doesTransactionSupportViolations(transaction)) {
         return false;
     }
-    var violations = Array.isArray(transactionViolations)
+    const violations = Array.isArray(transactionViolations)
         ? transactionViolations
         : transactionViolations === null || transactionViolations === void 0
         ? void 0
         : transactionViolations[ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS + transactionID];
-    var warningTypeViolations =
+    const warningTypeViolations =
         (_a =
             violations === null || violations === void 0
                 ? void 0
                 : violations.filter(function (violation) {
-                      var _a;
+                      let _a;
                       return (
                           violation.type === CONST_1['default'].VIOLATION_TYPES.WARNING &&
                           (showInReview === undefined || showInReview === ((_a = violation.showInReview) !== null && _a !== void 0 ? _a : false)) &&
@@ -1434,9 +1414,9 @@ function calculateTaxAmount(percentage, amount, currency) {
     if (!percentage) {
         return 0;
     }
-    var divisor = Number(percentage.slice(0, -1)) / 100 + 1;
-    var taxAmount = (amount - amount / divisor) / 100;
-    var decimals = CurrencyUtils_1.getCurrencyDecimals(currency);
+    const divisor = Number(percentage.slice(0, -1)) / 100 + 1;
+    const taxAmount = (amount - amount / divisor) / 100;
+    const decimals = CurrencyUtils_1.getCurrencyDecimals(currency);
     return parseFloat(taxAmount.toFixed(decimals));
 }
 exports.calculateTaxAmount = calculateTaxAmount;
@@ -1453,7 +1433,7 @@ exports.getEnabledTaxRateCount = getEnabledTaxRateCount;
  * Check if the customUnitRateID has a value default for P2P distance requests
  */
 function isCustomUnitRateIDForP2P(transaction) {
-    var _a, _b;
+    let _a; let _b;
     return (
         ((_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.customUnit) === null || _b === void 0
             ? void 0
@@ -1462,7 +1442,7 @@ function isCustomUnitRateIDForP2P(transaction) {
 }
 exports.isCustomUnitRateIDForP2P = isCustomUnitRateIDForP2P;
 function hasReservationList(transaction) {
-    var _a, _b;
+    let _a; let _b;
     return (
         !!((_a = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _a === void 0 ? void 0 : _a.reservationList) &&
         ((_b = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _b === void 0 ? void 0 : _b.reservationList.length) > 0
@@ -1473,7 +1453,7 @@ exports.hasReservationList = hasReservationList;
  * Whether an expense is going to be paid later, either at checkout for hotels or drop off for car rental
  */
 function isPayAtEndExpense(transaction) {
-    var _a, _b;
+    let _a; let _b;
     return !!((_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.receipt) === null || _a === void 0 ? void 0 : _a.reservationList) === null || _b === void 0
         ? void 0
         : _b.some(function (reservation) {
@@ -1485,7 +1465,7 @@ exports.isPayAtEndExpense = isPayAtEndExpense;
  * Get custom unit rate (distance rate) ID from the transaction object
  */
 function getRateID(transaction) {
-    var _a, _b, _c;
+    let _a; let _b; let _c;
     return (_c =
         (_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.comment) === null || _a === void 0 ? void 0 : _a.customUnit) === null || _b === void 0
             ? void 0
@@ -1500,14 +1480,14 @@ exports.getRateID = getRateID;
  * Else returns policy default tax rate if transaction is in policy default currency, otherwise foreign default tax rate
  */
 function getDefaultTaxCode(policy, transaction, currency) {
-    var _a, _b, _c, _d;
+    let _a; let _b; let _c; let _d;
     if (isDistanceRequest(transaction)) {
-        var customUnitRateID = (_a = getRateID(transaction)) !== null && _a !== void 0 ? _a : '';
-        var customUnitRate = PolicyUtils_1.getDistanceRateCustomUnitRate(policy, customUnitRateID);
+        const customUnitRateID = (_a = getRateID(transaction)) !== null && _a !== void 0 ? _a : '';
+        const customUnitRate = PolicyUtils_1.getDistanceRateCustomUnitRate(policy, customUnitRateID);
         return (_b = customUnitRate === null || customUnitRate === void 0 ? void 0 : customUnitRate.attributes) === null || _b === void 0 ? void 0 : _b.taxRateExternalID;
     }
-    var defaultExternalID = (_c = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _c === void 0 ? void 0 : _c.defaultExternalID;
-    var foreignTaxDefault = (_d = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _d === void 0 ? void 0 : _d.foreignTaxDefault;
+    const defaultExternalID = (_c = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _c === void 0 ? void 0 : _c.defaultExternalID;
+    const foreignTaxDefault = (_d = policy === null || policy === void 0 ? void 0 : policy.taxRates) === null || _d === void 0 ? void 0 : _d.foreignTaxDefault;
     return (policy === null || policy === void 0 ? void 0 : policy.outputCurrency) === (currency !== null && currency !== void 0 ? currency : getCurrency(transaction))
         ? defaultExternalID
         : foreignTaxDefault;
@@ -1520,23 +1500,23 @@ exports.getDefaultTaxCode = getDefaultTaxCode;
  * @returns The transformed tax rates object.g
  */
 function transformedTaxRates(policy, transaction) {
-    var _a;
-    var taxRates = policy === null || policy === void 0 ? void 0 : policy.taxRates;
-    var defaultExternalID = taxRates === null || taxRates === void 0 ? void 0 : taxRates.defaultExternalID;
-    var defaultTaxCode = function () {
+    let _a;
+    const taxRates = policy === null || policy === void 0 ? void 0 : policy.taxRates;
+    const defaultExternalID = taxRates === null || taxRates === void 0 ? void 0 : taxRates.defaultExternalID;
+    const defaultTaxCode = function () {
         if (!transaction) {
             return defaultExternalID;
         }
         return policy && getDefaultTaxCode(policy, transaction);
     };
-    var getModifiedName = function (data, code) {
-        return data.name + ' (' + data.value + ')' + (defaultTaxCode() === code ? ' ' + CONST_1['default'].DOT_SEPARATOR + ' ' + Localize.translateLocal('common.default') : '');
+    const getModifiedName = function (data, code) {
+        return `${data.name  } (${  data.value  })${  defaultTaxCode() === code ? ` ${  CONST_1['default'].DOT_SEPARATOR  } ${  Localize.translateLocal('common.default')}` : ''}`;
     };
-    var taxes = Object.fromEntries(
+    const taxes = Object.fromEntries(
         Object.entries((_a = taxRates === null || taxRates === void 0 ? void 0 : taxRates.taxes) !== null && _a !== void 0 ? _a : {}).map(function (_a) {
-            var code = _a[0],
-                data = _a[1];
-            return [code, __assign(__assign({}, data), {code: code, modifiedName: getModifiedName(data, code), name: data.name})];
+            const code = _a[0];
+                const data = _a[1];
+            return [code, {...data, code, modifiedName: getModifiedName(data, code), name: data.name}];
         }),
     );
     return taxes;
@@ -1546,7 +1526,7 @@ exports.transformedTaxRates = transformedTaxRates;
  * Gets the tax value of a selected tax
  */
 function getTaxValue(policy, transaction, taxCode) {
-    var _a;
+    let _a;
     return (_a = Object.values(transformedTaxRates(policy, transaction)).find(function (taxRate) {
         return taxRate.code === taxCode;
     })) === null || _a === void 0
@@ -1558,7 +1538,7 @@ exports.getTaxValue = getTaxValue;
  * Gets the tax name for Workspace Taxes Settings
  */
 function getWorkspaceTaxesSettingsName(policy, taxCode) {
-    var _a;
+    let _a;
     return (_a = Object.values(transformedTaxRates(policy)).find(function (taxRate) {
         return taxRate.code === taxCode;
     })) === null || _a === void 0
@@ -1570,10 +1550,10 @@ exports.getWorkspaceTaxesSettingsName = getWorkspaceTaxesSettingsName;
  * Gets the name corresponding to the taxCode that is displayed to the user
  */
 function getTaxName(policy, transaction) {
-    var _a;
-    var defaultTaxCode = getDefaultTaxCode(policy, transaction);
+    let _a;
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     return (_a = Object.values(transformedTaxRates(policy, transaction)).find(function (taxRate) {
-        var _a;
+        let _a;
         return taxRate.code === ((_a = transaction === null || transaction === void 0 ? void 0 : transaction.taxCode) !== null && _a !== void 0 ? _a : defaultTaxCode);
     })) === null || _a === void 0
         ? void 0
@@ -1581,21 +1561,21 @@ function getTaxName(policy, transaction) {
 }
 exports.getTaxName = getTaxName;
 function getTransaction(transactionID) {
-    return allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION + transactionID];
+    return allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION  }${transactionID}`];
 }
 exports.getTransaction = getTransaction;
 function removeSettledAndApprovedTransactions(transactionIDs) {
     return transactionIDs.filter(function (transactionID) {
-        var _a, _b;
+        let _a; let _b;
         return (
             !ReportUtils_1.isSettled(
-                (_a = allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION + transactionID]) === null ||
+                (_a = allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION  }${transactionID}`]) === null ||
                     _a === void 0
                     ? void 0
                     : _a.reportID,
             ) &&
             !ReportUtils_1.isReportIDApproved(
-                (_b = allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION + transactionID]) === null ||
+                (_b = allTransactions === null || allTransactions === void 0 ? void 0 : allTransactions[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION  }${transactionID}`]) === null ||
                     _b === void 0
                     ? void 0
                     : _b.reportID,
@@ -1622,22 +1602,22 @@ exports.removeSettledAndApprovedTransactions = removeSettledAndApprovedTransacti
  * 6. It returns the 'keep' and 'change' objects.
  */
 function compareDuplicateTransactionFields(reviewingTransactionID, reportID, selectedTransactionID) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m; let _o; let _p;
     if (!reviewingTransactionID || !reportID) {
         return {change: {}, keep: {}};
     }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    var keep = {};
+    const keep = {};
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    var change = {};
+    const change = {};
     if (!reviewingTransactionID || !reportID) {
-        return {keep: keep, change: change};
+        return {keep, change};
     }
-    var transactionViolations =
+    const transactionViolations =
         allTransactionViolations === null || allTransactionViolations === void 0
             ? void 0
-            : allTransactionViolations['' + ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS + reviewingTransactionID];
-    var duplicates =
+            : allTransactionViolations[`${  ONYXKEYS_1['default'].COLLECTION.TRANSACTION_VIOLATIONS  }${reviewingTransactionID}`];
+    const duplicates =
         (_c =
             (_b =
                 (_a =
@@ -1652,10 +1632,10 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
                 : _b.duplicates) !== null && _c !== void 0
             ? _c
             : [];
-    var transactions = removeSettledAndApprovedTransactions(__spreadArrays([reviewingTransactionID], duplicates)).map(function (item) {
+    const transactions = removeSettledAndApprovedTransactions(__spreadArrays([reviewingTransactionID], duplicates)).map(function (item) {
         return getTransaction(item);
     });
-    var fieldsToCompare = {
+    const fieldsToCompare = {
         merchant: ['modifiedMerchant', 'merchant'],
         category: ['category'],
         tag: ['tag'],
@@ -1691,14 +1671,14 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
     }
     // Helper function to check if all fields are equal for a given key
     function areAllFieldsEqual(items, keyExtractor) {
-        var firstTransaction = transactions.at(0);
+        const firstTransaction = transactions.at(0);
         return items.every(function (item) {
             return keyExtractor(item) === keyExtractor(firstTransaction);
         });
     }
     // Helper function to process changes
     function processChanges(fieldName, items, keys) {
-        var differentValues = getDifferentValues(items, keys);
+        const differentValues = getDifferentValues(items, keys);
         if (differentValues.length > 0) {
             change[fieldName] = differentValues;
         }
@@ -1707,21 +1687,21 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
     // It contains details such as 'customUnit' and 'waypoints,' which remain unchanged during the review steps
     // but are essential for displaying complete information on the confirmation page.
     if (selectedTransactionID) {
-        var selectedTransaction = transactions.find(function (t) {
+        const selectedTransaction = transactions.find(function (t) {
             return (t === null || t === void 0 ? void 0 : t.transactionID) === selectedTransactionID;
         });
         keep.comment = (_d = selectedTransaction === null || selectedTransaction === void 0 ? void 0 : selectedTransaction.comment) !== null && _d !== void 0 ? _d : {};
     }
-    var _loop_1 = function (fieldName) {
+    const _loop_1 = function (fieldName) {
         if (Object.prototype.hasOwnProperty.call(fieldsToCompare, fieldName)) {
-            var keys_1 = fieldsToCompare[fieldName];
-            var firstTransaction = transactions.at(0);
-            var isFirstTransactionCommentEmptyObject =
+            const keys_1 = fieldsToCompare[fieldName];
+            const firstTransaction = transactions.at(0);
+            const isFirstTransactionCommentEmptyObject =
                 typeof (firstTransaction === null || firstTransaction === void 0 ? void 0 : firstTransaction.comment) === 'object' &&
                 ((_e = firstTransaction === null || firstTransaction === void 0 ? void 0 : firstTransaction.comment) === null || _e === void 0 ? void 0 : _e.comment) === '';
-            var report = allReports === null || allReports === void 0 ? void 0 : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + reportID];
-            var policy_1 = PolicyUtils_1.getPolicy(report === null || report === void 0 ? void 0 : report.policyID);
-            var areAllFieldsEqualForKey = areAllFieldsEqual(transactions, function (item) {
+            const report = allReports === null || allReports === void 0 ? void 0 : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${reportID}`];
+            const policy_1 = PolicyUtils_1.getPolicy(report === null || report === void 0 ? void 0 : report.policyID);
+            const areAllFieldsEqualForKey = areAllFieldsEqual(transactions, function (item) {
                 return keys_1
                     .map(function (key) {
                         return item === null || item === void 0 ? void 0 : item[key];
@@ -1729,8 +1709,8 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
                     .join('|');
             });
             if (fieldName === 'description') {
-                var allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
-                var allCommentsAreEmpty =
+                const allCommentsAreEqual = areAllCommentsEqual(transactions, firstTransaction);
+                const allCommentsAreEmpty =
                     isFirstTransactionCommentEmptyObject &&
                     transactions.every(function (item) {
                         return getDescription(item) === '';
@@ -1753,13 +1733,13 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
                     processChanges(fieldName, transactions, keys_1);
                 }
             } else if (fieldName === 'taxCode') {
-                var differentValues = getDifferentValues(transactions, keys_1);
-                var validTaxes =
+                const differentValues = getDifferentValues(transactions, keys_1);
+                const validTaxes =
                     differentValues === null || differentValues === void 0
                         ? void 0
                         : differentValues.filter(function (taxID) {
-                              var _a;
-                              var tax = PolicyUtils_1.getTaxByID(policy_1, (_a = taxID) !== null && _a !== void 0 ? _a : '');
+                              let _a;
+                              const tax = PolicyUtils_1.getTaxByID(policy_1, (_a = taxID) !== null && _a !== void 0 ? _a : '');
                               return (tax === null || tax === void 0 ? void 0 : tax.name) && !tax.isDisabled && tax.pendingAction !== CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                           });
                 if (!areAllFieldsEqualForKey && validTaxes.length > 1) {
@@ -1773,9 +1753,9 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
                             : firstTransaction[keys_1[1]];
                 }
             } else if (fieldName === 'category') {
-                var differentValues_1 = getDifferentValues(transactions, keys_1);
-                var policyCategories = (report === null || report === void 0 ? void 0 : report.policyID) ? Category_1.getPolicyCategoriesData(report.policyID) : {};
-                var availableCategories = Object.values(policyCategories)
+                const differentValues_1 = getDifferentValues(transactions, keys_1);
+                const policyCategories = (report === null || report === void 0 ? void 0 : report.policyID) ? Category_1.getPolicyCategoriesData(report.policyID) : {};
+                const availableCategories = Object.values(policyCategories)
                     .filter(function (category) {
                         return differentValues_1.includes(category.name) && category.enabled && category.pendingAction !== CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                     })
@@ -1797,10 +1777,10 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
                             : firstTransaction[keys_1[1]];
                 }
             } else if (fieldName === 'tag') {
-                var policyTags = (report === null || report === void 0 ? void 0 : report.policyID)
+                const policyTags = (report === null || report === void 0 ? void 0 : report.policyID)
                     ? Tag_1.getPolicyTagsData(report === null || report === void 0 ? void 0 : report.policyID)
                     : {};
-                var isMultiLevelTags = PolicyUtils_1.isMultiLevelTags(policyTags);
+                const isMultiLevelTags = PolicyUtils_1.isMultiLevelTags(policyTags);
                 if (isMultiLevelTags) {
                     if (areAllFieldsEqualForKey || !(policy_1 === null || policy_1 === void 0 ? void 0 : policy_1.areTagsEnabled)) {
                         keep[fieldName] =
@@ -1813,9 +1793,9 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
                         processChanges(fieldName, transactions, keys_1);
                     }
                 } else {
-                    var differentValues_2 = getDifferentValues(transactions, keys_1);
-                    var policyTagsObj = Object.values((_m = (_l = Object.values(policyTags).at(0)) === null || _l === void 0 ? void 0 : _l.tags) !== null && _m !== void 0 ? _m : {});
-                    var availableTags = policyTagsObj
+                    const differentValues_2 = getDifferentValues(transactions, keys_1);
+                    const policyTagsObj = Object.values((_m = (_l = Object.values(policyTags).at(0)) === null || _l === void 0 ? void 0 : _l.tags) !== null && _m !== void 0 ? _m : {});
+                    const availableTags = policyTagsObj
                         .filter(function (tag) {
                             return differentValues_2.includes(tag.name) && tag.enabled && tag.pendingAction !== CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.DELETE;
                         })
@@ -1849,20 +1829,20 @@ function compareDuplicateTransactionFields(reviewingTransactionID, reportID, sel
             }
         }
     };
-    for (var fieldName in fieldsToCompare) {
+    for (const fieldName in fieldsToCompare) {
         _loop_1(fieldName);
     }
-    return {keep: keep, change: change};
+    return {keep, change};
 }
 exports.compareDuplicateTransactionFields = compareDuplicateTransactionFields;
 function getTransactionID(threadReportID) {
-    var _a;
+    let _a;
     if (!threadReportID) {
         return;
     }
-    var report = allReports === null || allReports === void 0 ? void 0 : allReports['' + ONYXKEYS_1['default'].COLLECTION.REPORT + threadReportID];
-    var parentReportAction = ReportUtils_1.isThread(report) ? ReportActionsUtils_1.getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
-    var IOUTransactionID = ReportActionsUtils_1.isMoneyRequestAction(parentReportAction)
+    const report = allReports === null || allReports === void 0 ? void 0 : allReports[`${  ONYXKEYS_1['default'].COLLECTION.REPORT  }${threadReportID}`];
+    const parentReportAction = ReportUtils_1.isThread(report) ? ReportActionsUtils_1.getReportAction(report.parentReportID, report.parentReportActionID) : undefined;
+    const IOUTransactionID = ReportActionsUtils_1.isMoneyRequestAction(parentReportAction)
         ? (_a = ReportActionsUtils_1.getOriginalMessage(parentReportAction)) === null || _a === void 0
             ? void 0
             : _a.IOUTransactionID
@@ -1871,32 +1851,28 @@ function getTransactionID(threadReportID) {
 }
 exports.getTransactionID = getTransactionID;
 function buildNewTransactionAfterReviewingDuplicates(reviewDuplicateTransaction) {
-    var _a;
-    var originalTransaction =
+    let _a;
+    const originalTransaction =
         (_a =
             allTransactions === null || allTransactions === void 0
                 ? void 0
                 : allTransactions[
-                      '' +
-                          ONYXKEYS_1['default'].COLLECTION.TRANSACTION +
-                          (reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.transactionID)
+                      `${ 
+                          ONYXKEYS_1['default'].COLLECTION.TRANSACTION 
+                          }${reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.transactionID}`
                   ]) !== null && _a !== void 0
             ? _a
             : undefined;
-    var _b = reviewDuplicateTransaction !== null && reviewDuplicateTransaction !== void 0 ? reviewDuplicateTransaction : {},
-        duplicates = _b.duplicates,
-        restReviewDuplicateTransaction = __rest(_b, ['duplicates']);
-    return __assign(__assign(__assign({}, originalTransaction), restReviewDuplicateTransaction), {
-        modifiedMerchant: reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.merchant,
+    const _b = reviewDuplicateTransaction !== null && reviewDuplicateTransaction !== void 0 ? reviewDuplicateTransaction : {};
+        const duplicates = _b.duplicates;
+        const restReviewDuplicateTransaction = __rest(_b, ['duplicates']);
+    return {...originalTransaction, ...restReviewDuplicateTransaction, modifiedMerchant: reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.merchant,
         merchant: reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.merchant,
-        comment: __assign(__assign({}, reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.comment), {
-            comment: reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.description,
-        }),
-    });
+        comment: {...(reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.comment), comment: reviewDuplicateTransaction === null || reviewDuplicateTransaction === void 0 ? void 0 : reviewDuplicateTransaction.description,},};
 }
 exports.buildNewTransactionAfterReviewingDuplicates = buildNewTransactionAfterReviewingDuplicates;
 function buildMergeDuplicatesParams(reviewDuplicates, originalTransaction) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j;
+    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j;
     return {
         amount: -getAmount(originalTransaction, true),
         reportID: originalTransaction === null || originalTransaction === void 0 ? void 0 : originalTransaction.reportID,
@@ -1921,8 +1897,8 @@ function buildMergeDuplicatesParams(reviewDuplicates, originalTransaction) {
 }
 exports.buildMergeDuplicatesParams = buildMergeDuplicatesParams;
 function getCategoryTaxCodeAndAmount(category, transaction, policy) {
-    var _a, _b;
-    var taxRules =
+    let _a; let _b;
+    const taxRules =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.rules) === null || _a === void 0 ? void 0 : _a.expenseRules) === null || _b === void 0
             ? void 0
             : _b.filter(function (rule) {
@@ -1931,14 +1907,14 @@ function getCategoryTaxCodeAndAmount(category, transaction, policy) {
     if (!taxRules || (taxRules === null || taxRules === void 0 ? void 0 : taxRules.length) === 0 || isDistanceRequest(transaction)) {
         return {categoryTaxCode: undefined, categoryTaxAmount: undefined};
     }
-    var defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
-    var categoryTaxCode = CategoryUtils_1.getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
-    var categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode !== null && categoryTaxCode !== void 0 ? categoryTaxCode : '');
-    var categoryTaxAmount;
+    const defaultTaxCode = getDefaultTaxCode(policy, transaction, getCurrency(transaction));
+    const categoryTaxCode = CategoryUtils_1.getCategoryDefaultTaxRate(taxRules, category, defaultTaxCode);
+    const categoryTaxPercentage = getTaxValue(policy, transaction, categoryTaxCode !== null && categoryTaxCode !== void 0 ? categoryTaxCode : '');
+    let categoryTaxAmount;
     if (categoryTaxPercentage) {
         categoryTaxAmount = CurrencyUtils_1.convertToBackendAmount(calculateTaxAmount(categoryTaxPercentage, getAmount(transaction), getCurrency(transaction)));
     }
-    return {categoryTaxCode: categoryTaxCode, categoryTaxAmount: categoryTaxAmount};
+    return {categoryTaxCode, categoryTaxAmount};
 }
 exports.getCategoryTaxCodeAndAmount = getCategoryTaxCodeAndAmount;
 /**
@@ -1946,7 +1922,7 @@ exports.getCategoryTaxCodeAndAmount = getCategoryTaxCodeAndAmount;
  */
 function getAllSortedTransactions(iouReportID) {
     return ReportUtils_1.getReportTransactions(iouReportID).sort(function (transA, transB) {
-        var _a, _b;
+        let _a; let _b;
         if (transA.created < transB.created) {
             return -1;
         }
@@ -1958,7 +1934,7 @@ function getAllSortedTransactions(iouReportID) {
 }
 exports.getAllSortedTransactions = getAllSortedTransactions;
 function shouldShowRTERViolationMessage(transactions) {
-    var _a;
+    let _a;
     return (
         (transactions === null || transactions === void 0 ? void 0 : transactions.length) === 1 &&
         hasPendingUI(

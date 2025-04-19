@@ -1,6 +1,6 @@
-'use strict';
+
 exports.__esModule = true;
-var INPUT_IDS = {
+const INPUT_IDS = {
     TITLE: 'title',
     DESCRIPTION: 'description',
 };

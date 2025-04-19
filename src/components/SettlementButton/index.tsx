@@ -90,7 +90,7 @@ function SettlementButton({
             if (typeof paymentMethod?.[policyIDKey] === 'string') {
                 return paymentMethod?.[policyIDKey];
             }
-            return (paymentMethod?.[policyIDKey] as LastPaymentMethodType)?.lastUsed;
+            return (paymentMethod?.[policyIDKey]!)?.lastUsed;
         },
     });
 

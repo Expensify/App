@@ -1,13 +1,14 @@
-'use strict';
+
 exports.__esModule = true;
-var react_native_onyx_1 = require('react-native-onyx');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var COLLATOR_OPTIONS = {usage: 'sort', sensitivity: 'base'};
-var collator = new Intl.Collator(CONST_1['default'].LOCALES.DEFAULT, COLLATOR_OPTIONS);
+const react_native_onyx_1 = require('react-native-onyx');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+
+const COLLATOR_OPTIONS = {usage: 'sort', sensitivity: 'base'};
+let collator = new Intl.Collator(CONST_1['default'].LOCALES.DEFAULT, COLLATOR_OPTIONS);
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].NVP_PREFERRED_LOCALE,
-    callback: function (locale) {
+    callback (locale) {
         collator = new Intl.Collator(locale !== null && locale !== void 0 ? locale : CONST_1['default'].LOCALES.DEFAULT, COLLATOR_OPTIONS);
     },
 });

@@ -1,6 +1,6 @@
-'use strict';
+
 exports.__esModule = true;
-var INPUT_IDS = {
+const INPUT_IDS = {
     ADDRESS_LINE_1: 'addressLine1',
     ADDRESS_LINE_2: 'addressLine2',
     COUNTRY: 'country',

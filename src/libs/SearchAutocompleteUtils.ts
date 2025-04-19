@@ -29,7 +29,7 @@ function getAutocompleteTags(allPoliciesTagsLists: OnyxCollection<PolicyTagLists
     const singlePolicyTagsList: PolicyTagLists | undefined = allPoliciesTagsLists?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     if (!singlePolicyTagsList) {
         const uniqueTagNames = new Set<string>();
-        const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item) as PolicyTagLists[];
+        const tagListsUnpacked = Object.values(allPoliciesTagsLists ?? {}).filter((item) => !!item);
         tagListsUnpacked
             .map(getTagNamesFromTagsLists)
             .flat()

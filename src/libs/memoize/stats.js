@@ -1,13 +1,13 @@
-'use strict';
+
 exports.__esModule = true;
 exports.MemoizeStats = void 0;
-var Log_1 = require('@libs/Log');
+const Log_1 = require('@libs/Log');
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function isMemoizeStatsEntry(entry) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     return entry.didHit !== undefined && entry.processingTime !== undefined;
 }
-var MemoizeStats = /** @class */ (function () {
+const MemoizeStats = /** @class */ (function () {
     function MemoizeStats(enabled) {
         /**
          * Number of calls to the memoized function. Both cache hits and misses are counted.
@@ -34,7 +34,7 @@ var MemoizeStats = /** @class */ (function () {
     }
     // See https://en.wikipedia.org/wiki/Moving_average#Cumulative_average
     MemoizeStats.prototype.calculateCumulativeAvg = function (avg, length, value) {
-        var result = (avg * (length - 1) + value) / length;
+        const result = (avg * (length - 1) + value) / length;
         // If the length is 0, we return the average. For example, when calculating average cache retrieval time, hits may be 0, and in that case we want to return the current average cache retrieval time
         return Number.isFinite(result) ? result : avg;
     };
@@ -59,31 +59,31 @@ var MemoizeStats = /** @class */ (function () {
         return this.cumulateEntry(entry);
     };
     MemoizeStats.prototype.createEntry = function () {
-        var _this = this;
+        const _this = this;
         // If monitoring is disabled, return a dummy object that does nothing
         if (!this.isEnabled) {
             return {
-                track: function () {},
-                get: function () {},
-                save: function () {},
-                trackTime: function () {},
+                track () {},
+                get () {},
+                save () {},
+                trackTime () {},
             };
         }
-        var entry = {};
+        const entry = {};
         return {
-            track: function (cacheProp, value) {
+            track (cacheProp, value) {
                 entry[cacheProp] = value;
             },
-            trackTime: function (cacheProp, startTime, endTime) {
+            trackTime (cacheProp, startTime, endTime) {
                 if (endTime === void 0) {
                     endTime = performance.now();
                 }
                 entry[cacheProp] = endTime - startTime;
             },
-            get: function (cacheProp) {
+            get (cacheProp) {
                 return entry[cacheProp];
             },
-            save: function () {
+            save () {
                 return _this.saveEntry(entry);
             },
         };

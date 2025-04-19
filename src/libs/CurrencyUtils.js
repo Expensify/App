@@ -1,4 +1,4 @@
-'use strict';
+
 exports.__esModule = true;
 exports.sanitizeCurrencyCode =
     exports.getCurrency =
@@ -16,15 +16,16 @@ exports.sanitizeCurrencyCode =
     exports.getCurrencyUnit =
     exports.getCurrencyDecimals =
         void 0;
-var react_native_onyx_1 = require('react-native-onyx');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
-var BaseLocaleListener_1 = require('./Localize/LocaleListener/BaseLocaleListener');
-var NumberFormatUtils_1 = require('./NumberFormatUtils');
-var currencyList = {};
+const react_native_onyx_1 = require('react-native-onyx');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+const BaseLocaleListener_1 = require('./Localize/LocaleListener/BaseLocaleListener');
+const NumberFormatUtils_1 = require('./NumberFormatUtils');
+
+let currencyList = {};
 react_native_onyx_1['default'].connect({
     key: ONYXKEYS_1['default'].CURRENCY_LIST,
-    callback: function (val) {
+    callback (val) {
         if (!val || Object.keys(val).length === 0) {
             return;
         }
@@ -39,11 +40,11 @@ react_native_onyx_1['default'].connect({
  * @param currency - IOU currency
  */
 function getCurrencyDecimals(currency) {
-    var _a;
+    let _a;
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var decimals = (_a = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currency]) === null || _a === void 0 ? void 0 : _a.decimals;
+    const decimals = (_a = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currency]) === null || _a === void 0 ? void 0 : _a.decimals;
     return decimals !== null && decimals !== void 0 ? decimals : 2;
 }
 exports.getCurrencyDecimals = getCurrencyDecimals;
@@ -51,7 +52,7 @@ function getCurrency(currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var currencyItem = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currency];
+    const currencyItem = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currency];
     return currencyItem;
 }
 exports.getCurrency = getCurrency;
@@ -65,15 +66,15 @@ function getCurrencyUnit(currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    return Math.pow(10, getCurrencyDecimals(currency));
+    return 10**getCurrencyDecimals(currency);
 }
 exports.getCurrencyUnit = getCurrencyUnit;
 /**
  * Get localized currency symbol for currency(ISO 4217) Code
  */
 function getLocalizedCurrencySymbol(currencyCode) {
-    var _a;
-    var parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), 0, {
+    let _a;
+    const parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -88,7 +89,7 @@ exports.getLocalizedCurrencySymbol = getLocalizedCurrencySymbol;
  * Get the currency symbol for a currency(ISO 4217) Code
  */
 function getCurrencySymbol(currencyCode) {
-    var _a;
+    let _a;
     return (_a = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currencyCode]) === null || _a === void 0 ? void 0 : _a.symbol;
 }
 exports.getCurrencySymbol = getCurrencySymbol;
@@ -96,8 +97,8 @@ exports.getCurrencySymbol = getCurrencySymbol;
  * Whether the currency symbol is left-to-right.
  */
 function isCurrencySymbolLTR(currencyCode) {
-    var _a;
-    var parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), 0, {
+    let _a;
+    const parts = NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), 0, {
         style: 'currency',
         currency: currencyCode,
     });
@@ -125,7 +126,7 @@ function convertToFrontendAmountAsInteger(amountAsInt, currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var decimals = getCurrencyDecimals(currency);
+    const decimals = getCurrencyDecimals(currency);
     return Number((Math.trunc(amountAsInt) / 100.0).toFixed(decimals));
 }
 exports.convertToFrontendAmountAsInteger = convertToFrontendAmountAsInteger;
@@ -144,7 +145,7 @@ function convertToFrontendAmountAsString(amountAsInt, currency, withDecimals) {
     if (amountAsInt === null || amountAsInt === undefined) {
         return '';
     }
-    var decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
+    const decimals = withDecimals ? getCurrencyDecimals(currency) : 0;
     return convertToFrontendAmountAsInteger(amountAsInt, currency).toFixed(decimals);
 }
 exports.convertToFrontendAmountAsString = convertToFrontendAmountAsString;
@@ -162,11 +163,11 @@ function convertToDisplayString(amountInCents, currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     /**
      * Fallback currency to USD if it empty string or undefined
      */
-    var currencyWithFallback = currency;
+    let currencyWithFallback = currency;
     if (!currency) {
         currencyWithFallback = CONST_1['default'].CURRENCY.USD;
     }
@@ -195,10 +196,10 @@ function convertToShortDisplayString(amountInCents, currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     return NumberFormatUtils_1.format(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
-        currency: currency,
+        currency,
         // There will be no decimals displayed (e.g. $9)
         minimumFractionDigits: 0,
         maximumFractionDigits: 0,
@@ -218,10 +219,10 @@ function convertAmountToDisplayString(amount, currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var convertedAmount = amount / 100.0;
+    const convertedAmount = amount / 100.0;
     return NumberFormatUtils_1.format(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
-        currency: currency,
+        currency,
         minimumFractionDigits: CONST_1['default'].MIN_TAX_RATE_DECIMAL_PLACES,
         maximumFractionDigits: CONST_1['default'].MAX_TAX_RATE_DECIMAL_PLACES,
     });
@@ -234,10 +235,10 @@ function convertToDisplayStringWithoutCurrency(amountInCents, currency) {
     if (currency === void 0) {
         currency = CONST_1['default'].CURRENCY.USD;
     }
-    var convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
+    const convertedAmount = convertToFrontendAmountAsInteger(amountInCents, currency);
     return NumberFormatUtils_1.formatToParts(BaseLocaleListener_1['default'].getPreferredLocale(), convertedAmount, {
         style: 'currency',
-        currency: currency,
+        currency,
         // We are forcing the number of decimals because we override the default number of decimals in the backend for some currencies
         // See: https://github.com/Expensify/PHP-Libs/pull/834
         minimumFractionDigits: getCurrencyDecimals(currency),
@@ -260,7 +261,7 @@ exports.convertToDisplayStringWithoutCurrency = convertToDisplayStringWithoutCur
  * Checks if passed currency code is a valid currency based on currency list
  */
 function isValidCurrencyCode(currencyCode) {
-    var currency = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currencyCode];
+    const currency = currencyList === null || currencyList === void 0 ? void 0 : currencyList[currencyCode];
     return !!currency;
 }
 exports.isValidCurrencyCode = isValidCurrencyCode;

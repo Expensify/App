@@ -1,6 +1,7 @@
-'use strict';
+
 exports.__esModule = true;
-var CONST_1 = require('@src/CONST');
+const CONST_1 = require('@src/CONST');
+
 function canUseAllBetas(betas) {
     return !!(betas === null || betas === void 0 ? void 0 : betas.includes(CONST_1['default'].BETAS.ALL));
 }
@@ -51,18 +52,18 @@ function canUseInAppProvisioning(betas) {
     return !!(betas === null || betas === void 0 ? void 0 : betas.includes(CONST_1['default'].BETAS.WALLET)) || canUseAllBetas(betas);
 }
 exports['default'] = {
-    canUseDefaultRooms: canUseDefaultRooms,
-    canUseLinkPreviews: canUseLinkPreviews,
-    canUseSpotnanaTravel: canUseSpotnanaTravel,
-    isBlockedFromSpotnanaTravel: isBlockedFromSpotnanaTravel,
-    canUseNetSuiteUSATax: canUseNetSuiteUSATax,
-    canUsePDFExport: canUsePDFExport,
-    canUseMergeAccounts: canUseMergeAccounts,
-    canUseManagerMcTest: canUseManagerMcTest,
-    canUseCustomRules: canUseCustomRules,
-    canUseTableReportView: canUseTableReportView,
-    canUseTalkToAISales: canUseTalkToAISales,
-    canUseProhibitedExpenses: canUseProhibitedExpenses,
-    canUseLeftHandBar: canUseLeftHandBar,
-    canUseInAppProvisioning: canUseInAppProvisioning,
+    canUseDefaultRooms,
+    canUseLinkPreviews,
+    canUseSpotnanaTravel,
+    isBlockedFromSpotnanaTravel,
+    canUseNetSuiteUSATax,
+    canUsePDFExport,
+    canUseMergeAccounts,
+    canUseManagerMcTest,
+    canUseCustomRules,
+    canUseTableReportView,
+    canUseTalkToAISales,
+    canUseProhibitedExpenses,
+    canUseLeftHandBar,
+    canUseInAppProvisioning,
 };

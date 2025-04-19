@@ -1,65 +1,65 @@
-'use strict';
-var _a,
-    _b,
-    _c,
-    _d,
-    _e,
-    _f,
-    _g,
-    _h,
-    _j,
-    _k,
-    _l,
-    _m,
-    _o,
-    _p,
-    _q,
-    _r,
-    _s,
-    _t,
-    _u,
-    _v,
-    _w,
-    _x,
-    _y,
-    _z,
-    _0,
-    _1,
-    _2,
-    _3,
-    _4,
-    _5,
-    _6,
-    _7,
-    _8,
-    _9,
-    _10,
-    _11,
-    _12,
-    _13,
-    _14,
-    _15,
-    _16,
-    _17,
-    _18,
-    _19,
-    _20,
-    _21,
-    _22,
-    _23,
-    _24,
-    _25,
-    _26,
-    _27,
-    _28;
+
+let _a;
+    let _b;
+    let _c;
+    let _d;
+    let _e;
+    let _f;
+    let _g;
+    let _h;
+    let _j;
+    let _k;
+    let _l;
+    let _m;
+    let _o;
+    let _p;
+    let _q;
+    let _r;
+    let _s;
+    let _t;
+    let _u;
+    let _v;
+    let _w;
+    let _x;
+    let _y;
+    let _z;
+    let _0;
+    let _1;
+    let _2;
+    let _3;
+    let _4;
+    let _5;
+    let _6;
+    let _7;
+    let _8;
+    let _9;
+    let _10;
+    let _11;
+    let _12;
+    let _13;
+    let _14;
+    let _15;
+    let _16;
+    let _17;
+    let _18;
+    let _19;
+    let _20;
+    let _21;
+    let _22;
+    let _23;
+    let _24;
+    let _25;
+    let _26;
+    let _27;
+    let _28;
 exports.__esModule = true;
 exports.config = exports.normalizedConfigs = void 0;
-var createNormalizedConfigs_1 = require('@libs/Navigation/helpers/createNormalizedConfigs');
-var NAVIGATORS_1 = require('@src/NAVIGATORS');
-var ROUTES_1 = require('@src/ROUTES');
-var SCREENS_1 = require('@src/SCREENS');
+const createNormalizedConfigs_1 = require('@libs/Navigation/helpers/createNormalizedConfigs');
+const NAVIGATORS_1 = require('@src/NAVIGATORS');
+const ROUTES_1 = require('@src/ROUTES');
+const SCREENS_1 = require('@src/SCREENS');
 // Moved to a separate file to avoid cyclic dependencies.
-var config = {
+const config = {
     screens:
         ((_a = {}),
         // Main Routes
@@ -236,7 +236,7 @@ var config = {
                         (_l[SCREENS_1['default'].SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE] = {
                             path: ROUTES_1['default'].SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.route,
                             parse: {
-                                login: function (login) {
+                                login (login) {
                                     return decodeURIComponent(login);
                                 },
                             },
@@ -244,7 +244,7 @@ var config = {
                         (_l[SCREENS_1['default'].SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT] = {
                             path: ROUTES_1['default'].SETTINGS_MERGE_ACCOUNTS_RESULT.route,
                             parse: {
-                                login: function (login) {
+                                login (login) {
                                     return decodeURIComponent(login);
                                 },
                             },
@@ -368,7 +368,7 @@ var config = {
                         (_l[SCREENS_1['default'].SETTINGS.DELEGATE.DELEGATE_ROLE] = {
                             path: ROUTES_1['default'].SETTINGS_DELEGATE_ROLE.route,
                             parse: {
-                                login: function (login) {
+                                login (login) {
                                     return decodeURIComponent(login);
                                 },
                             },
@@ -376,7 +376,7 @@ var config = {
                         (_l[SCREENS_1['default'].SETTINGS.DELEGATE.UPDATE_DELEGATE_ROLE] = {
                             path: ROUTES_1['default'].SETTINGS_UPDATE_DELEGATE_ROLE.route,
                             parse: {
-                                login: function (login) {
+                                login (login) {
                                     return decodeURIComponent(login);
                                 },
                             },
@@ -384,7 +384,7 @@ var config = {
                         (_l[SCREENS_1['default'].SETTINGS.DELEGATE.DELEGATE_CONFIRM] = {
                             path: ROUTES_1['default'].SETTINGS_DELEGATE_CONFIRM.route,
                             parse: {
-                                login: function (login) {
+                                login (login) {
                                     return decodeURIComponent(login);
                                 },
                             },
@@ -792,7 +792,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.WORKFLOWS_APPROVALS_EDIT] = {
                             path: ROUTES_1['default'].WORKSPACE_WORKFLOWS_APPROVALS_EDIT.route,
                             parse: {
-                                firstApproverEmail: function (firstApproverEmail) {
+                                firstApproverEmail (firstApproverEmail) {
                                     return decodeURIComponent(firstApproverEmail);
                                 },
                             },
@@ -809,7 +809,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_SETTINGS] = {
                             path: ROUTES_1['default'].WORKSPACE_CATEGORY_SETTINGS.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -817,7 +817,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.UPGRADE] = {
                             path: ROUTES_1['default'].WORKSPACE_UPGRADE.route,
                             parse: {
-                                featureName: function (featureName) {
+                                featureName (featureName) {
                                     return decodeURIComponent(featureName);
                                 },
                             },
@@ -861,7 +861,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_EDIT] = {
                             path: ROUTES_1['default'].WORKSPACE_CATEGORY_EDIT.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -869,7 +869,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_PAYROLL_CODE] = {
                             path: ROUTES_1['default'].WORKSPACE_CATEGORY_PAYROLL_CODE.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -877,7 +877,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_GL_CODE] = {
                             path: ROUTES_1['default'].WORKSPACE_CATEGORY_GL_CODE.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -885,7 +885,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_DEFAULT_TAX_RATE] = {
                             path: ROUTES_1['default'].WORSKPACE_CATEGORY_DEFAULT_TAX_RATE.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -893,7 +893,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_FLAG_AMOUNTS_OVER] = {
                             path: ROUTES_1['default'].WORSKPACE_CATEGORY_FLAG_AMOUNTS_OVER.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -901,7 +901,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_DESCRIPTION_HINT] = {
                             path: ROUTES_1['default'].WORSKPACE_CATEGORY_DESCRIPTION_HINT.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -909,7 +909,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_APPROVER] = {
                             path: ROUTES_1['default'].WORSKPACE_CATEGORY_APPROVER.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -917,7 +917,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.CATEGORY_REQUIRE_RECEIPTS_OVER] = {
                             path: ROUTES_1['default'].WORSKPACE_CATEGORY_REQUIRE_RECEIPTS_OVER.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -962,7 +962,7 @@ var config = {
                             path: ROUTES_1['default'].WORKSPACE_TAG_EDIT.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -971,7 +971,7 @@ var config = {
                             path: ROUTES_1['default'].WORKSPACE_TAG_APPROVER.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -980,7 +980,7 @@ var config = {
                             path: ROUTES_1['default'].WORKSPACE_TAG_GL_CODE.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -989,7 +989,7 @@ var config = {
                             path: ROUTES_1['default'].WORKSPACE_TAG_SETTINGS.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -1018,7 +1018,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.REPORT_FIELDS_LIST_VALUES] = {
                             path: ROUTES_1['default'].WORKSPACE_REPORT_FIELDS_LIST_VALUES.route,
                             parse: {
-                                reportFieldID: function (reportFieldID) {
+                                reportFieldID (reportFieldID) {
                                     return decodeURIComponent(reportFieldID);
                                 },
                             },
@@ -1026,7 +1026,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.REPORT_FIELDS_ADD_VALUE] = {
                             path: ROUTES_1['default'].WORKSPACE_REPORT_FIELDS_ADD_VALUE.route,
                             parse: {
-                                reportFieldID: function (reportFieldID) {
+                                reportFieldID (reportFieldID) {
                                     return decodeURIComponent(reportFieldID);
                                 },
                             },
@@ -1034,7 +1034,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.REPORT_FIELDS_VALUE_SETTINGS] = {
                             path: ROUTES_1['default'].WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.route,
                             parse: {
-                                reportFieldID: function (reportFieldID) {
+                                reportFieldID (reportFieldID) {
                                     return decodeURIComponent(reportFieldID);
                                 },
                             },
@@ -1045,7 +1045,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.REPORT_FIELDS_SETTINGS] = {
                             path: ROUTES_1['default'].WORKSPACE_REPORT_FIELDS_SETTINGS.route,
                             parse: {
-                                reportFieldID: function (reportFieldID) {
+                                reportFieldID (reportFieldID) {
                                     return decodeURIComponent(reportFieldID);
                                 },
                             },
@@ -1053,7 +1053,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.REPORT_FIELDS_EDIT_INITIAL_VALUE] = {
                             path: ROUTES_1['default'].WORKSPACE_EDIT_REPORT_FIELDS_INITIAL_VALUE.route,
                             parse: {
-                                reportFieldID: function (reportFieldID) {
+                                reportFieldID (reportFieldID) {
                                     return decodeURIComponent(reportFieldID);
                                 },
                             },
@@ -1087,7 +1087,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.TAX_EDIT] = {
                             path: ROUTES_1['default'].WORKSPACE_TAX_EDIT.route,
                             parse: {
-                                taxID: function (taxID) {
+                                taxID (taxID) {
                                     return decodeURIComponent(taxID);
                                 },
                             },
@@ -1095,7 +1095,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.TAX_CODE] = {
                             path: ROUTES_1['default'].WORKSPACE_TAX_CODE.route,
                             parse: {
-                                taxID: function (taxID) {
+                                taxID (taxID) {
                                     return decodeURIComponent(taxID);
                                 },
                             },
@@ -1103,7 +1103,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.TAX_NAME] = {
                             path: ROUTES_1['default'].WORKSPACE_TAX_NAME.route,
                             parse: {
-                                taxID: function (taxID) {
+                                taxID (taxID) {
                                     return decodeURIComponent(taxID);
                                 },
                             },
@@ -1111,7 +1111,7 @@ var config = {
                         (_l[SCREENS_1['default'].WORKSPACE.TAX_VALUE] = {
                             path: ROUTES_1['default'].WORKSPACE_TAX_VALUE.route,
                             parse: {
-                                taxID: function (taxID) {
+                                taxID (taxID) {
                                     return decodeURIComponent(taxID);
                                 },
                             },
@@ -1244,7 +1244,7 @@ var config = {
                         (_t[SCREENS_1['default'].SETTINGS_CATEGORIES.SETTINGS_CATEGORY_SETTINGS] = {
                             path: ROUTES_1['default'].SETTINGS_CATEGORY_SETTINGS.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -1258,7 +1258,7 @@ var config = {
                         (_t[SCREENS_1['default'].SETTINGS_CATEGORIES.SETTINGS_CATEGORY_EDIT] = {
                             path: ROUTES_1['default'].SETTINGS_CATEGORY_EDIT.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -1272,7 +1272,7 @@ var config = {
                         (_t[SCREENS_1['default'].SETTINGS_CATEGORIES.SETTINGS_CATEGORY_PAYROLL_CODE] = {
                             path: ROUTES_1['default'].SETTINGS_CATEGORY_PAYROLL_CODE.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -1280,7 +1280,7 @@ var config = {
                         (_t[SCREENS_1['default'].SETTINGS_CATEGORIES.SETTINGS_CATEGORY_GL_CODE] = {
                             path: ROUTES_1['default'].SETTINGS_CATEGORY_GL_CODE.route,
                             parse: {
-                                categoryName: function (categoryName) {
+                                categoryName (categoryName) {
                                     return decodeURIComponent(categoryName);
                                 },
                             },
@@ -1306,7 +1306,7 @@ var config = {
                             path: ROUTES_1['default'].SETTINGS_TAG_EDIT.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -1315,7 +1315,7 @@ var config = {
                             path: ROUTES_1['default'].SETTINGS_TAG_SETTINGS.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -1324,7 +1324,7 @@ var config = {
                             path: ROUTES_1['default'].SETTINGS_TAG_APPROVER.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -1339,7 +1339,7 @@ var config = {
                             path: ROUTES_1['default'].SETTINGS_TAG_GL_CODE.route,
                             parse: {
                                 orderWeight: Number,
-                                tagName: function (tagName) {
+                                tagName (tagName) {
                                     return decodeURIComponent(tagName);
                                 },
                             },
@@ -1588,7 +1588,7 @@ var config = {
                         (_14[SCREENS_1['default'].EDIT_REQUEST.REPORT_FIELD] = {
                             path: ROUTES_1['default'].EDIT_REPORT_FIELD_REQUEST.route,
                             parse: {
-                                fieldID: function (fieldID) {
+                                fieldID (fieldID) {
                                     return decodeURIComponent(fieldID);
                                 },
                             },
@@ -1611,7 +1611,7 @@ var config = {
                         (_17[SCREENS_1['default'].TRAVEL.TRIP_DETAILS] = {
                             path: ROUTES_1['default'].TRAVEL_TRIP_DETAILS.route,
                             parse: {
-                                reservationIndex: function (reservationIndex) {
+                                reservationIndex (reservationIndex) {
                                     return parseInt(reservationIndex, 10);
                                 },
                             },
@@ -1897,7 +1897,7 @@ var config = {
         _a),
 };
 exports.config = config;
-var normalizedConfigs = Object.keys(config.screens)
+const normalizedConfigs = Object.keys(config.screens)
     .map(function (key) {
         return createNormalizedConfigs_1['default'](
             key,

@@ -1,7 +1,8 @@
-'use strict';
+
 exports.__esModule = true;
-var CONST_1 = require('@src/CONST');
-var prefixes = [
+const CONST_1 = require('@src/CONST');
+
+const prefixes = [
     'app://-/',
     'new-expensify://',
     'https://www.expensify.cash',

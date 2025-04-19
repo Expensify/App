@@ -1,4 +1,4 @@
-'use strict';
+
 var __assign =
     (this && this.__assign) ||
     function () {
@@ -7,7 +7,7 @@ var __assign =
             function (t) {
                 for (var s, i = 1, n = arguments.length; i < n; i++) {
                     s = arguments[i];
-                    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+                    for (const p in s) {if (Object.prototype.hasOwnProperty.call(s, p)) {t[p] = s[p];}}
                 }
                 return t;
             };
@@ -34,17 +34,18 @@ exports.updateQuickbooksOnlineAccountingMethod =
     exports.getQuickbooksOnlineSetupLink =
     exports.shouldShowQBOReimbursableExportDestinationAccountError =
         void 0;
-var react_native_onyx_1 = require('react-native-onyx');
-var API = require('@libs/API');
-var types_1 = require('@libs/API/types');
-var ApiUtils_1 = require('@libs/ApiUtils');
-var ErrorUtils = require('@libs/ErrorUtils');
-var PolicyUtils_1 = require('@libs/PolicyUtils');
-var CONST_1 = require('@src/CONST');
-var ONYXKEYS_1 = require('@src/ONYXKEYS');
+const react_native_onyx_1 = require('react-native-onyx');
+const API = require('@libs/API');
+const types_1 = require('@libs/API/types');
+const ApiUtils_1 = require('@libs/ApiUtils');
+const ErrorUtils = require('@libs/ErrorUtils');
+const PolicyUtils_1 = require('@libs/PolicyUtils');
+const CONST_1 = require('@src/CONST');
+const ONYXKEYS_1 = require('@src/ONYXKEYS');
+
 function getQuickbooksOnlineSetupLink(policyID) {
-    var params = {policyID: policyID};
-    var commandURL = ApiUtils_1.getCommandURL({
+    const params = {policyID};
+    const commandURL = ApiUtils_1.getCommandURL({
         command: types_1.READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
         shouldSkipWebProxy: true,
     });
@@ -52,8 +53,8 @@ function getQuickbooksOnlineSetupLink(policyID) {
 }
 exports.getQuickbooksOnlineSetupLink = getQuickbooksOnlineSetupLink;
 function shouldShowQBOReimbursableExportDestinationAccountError(policy) {
-    var _a, _b;
-    var qboConfig =
+    let _a; let _b;
+    const qboConfig =
         (_b = (_a = policy === null || policy === void 0 ? void 0 : policy.connections) === null || _a === void 0 ? void 0 : _a.quickbooksOnline) === null || _b === void 0
             ? void 0
             : _b.config;
@@ -65,17 +66,16 @@ function shouldShowQBOReimbursableExportDestinationAccountError(policy) {
 }
 exports.shouldShowQBOReimbursableExportDestinationAccountError = shouldShowQBOReimbursableExportDestinationAccountError;
 function buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate, configCurrentData) {
-    var _a, _b, _c;
-    var optimisticData = [
+    let _a; let _b; let _c;
+    const optimisticData = [
         {
             onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-            key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+            key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
             value: {
                 connections:
                     ((_a = {}),
                     (_a[CONST_1['default'].POLICY.CONNECTIONS.NAME.QBO] = {
-                        config: __assign(__assign({}, configUpdate), {
-                            pendingFields: Object.fromEntries(
+                        config: {...configUpdate, pendingFields: Object.fromEntries(
                                 Object.keys(configUpdate).map(function (settingName) {
                                     return [settingName, CONST_1['default'].RED_BRICK_ROAD_PENDING_ACTION.UPDATE];
                                 }),
@@ -84,23 +84,21 @@ function buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate
                                 Object.keys(configUpdate).map(function (settingName) {
                                     return [settingName, null];
                                 }),
-                            ),
-                        }),
+                            ),},
                     }),
                     _a),
             },
         },
     ];
-    var failureData = [
+    const failureData = [
         {
             onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-            key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+            key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
             value: {
                 connections:
                     ((_b = {}),
                     (_b[CONST_1['default'].POLICY.CONNECTIONS.NAME.QBO] = {
-                        config: __assign(__assign({}, configCurrentData), {
-                            pendingFields: Object.fromEntries(
+                        config: {...configCurrentData, pendingFields: Object.fromEntries(
                                 Object.keys(configUpdate).map(function (settingName) {
                                     return [settingName, null];
                                 }),
@@ -109,17 +107,16 @@ function buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate
                                 Object.keys(configUpdate).map(function (settingName) {
                                     return [settingName, ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')];
                                 }),
-                            ),
-                        }),
+                            ),},
                     }),
                     _b),
             },
         },
     ];
-    var successData = [
+    const successData = [
         {
             onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-            key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+            key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
             value: {
                 connections:
                     ((_c = {}),
@@ -142,17 +139,17 @@ function buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate
         },
     ];
     return {
-        optimisticData: optimisticData,
-        failureData: failureData,
-        successData: successData,
+        optimisticData,
+        failureData,
+        successData,
     };
 }
 function buildOnyxDataForQuickbooksConfiguration(policyID, settingName, settingValue, oldSettingValue) {
-    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-    var optimisticData = [
+    let _a; let _b; let _c; let _d; let _e; let _f; let _g; let _h; let _j; let _k; let _l; let _m;
+    const optimisticData = [
         {
             onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-            key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+            key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
             value: {
                 connections:
                     ((_a = {}),
@@ -168,10 +165,10 @@ function buildOnyxDataForQuickbooksConfiguration(policyID, settingName, settingV
             },
         },
     ];
-    var failureData = [
+    const failureData = [
         {
             onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-            key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+            key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
             value: {
                 connections:
                     ((_e = {}),
@@ -187,10 +184,10 @@ function buildOnyxDataForQuickbooksConfiguration(policyID, settingName, settingV
             },
         },
     ];
-    var successData = [
+    const successData = [
         {
             onyxMethod: react_native_onyx_1['default'].METHOD.MERGE,
-            key: '' + ONYXKEYS_1['default'].COLLECTION.POLICY + policyID,
+            key: `${  ONYXKEYS_1['default'].COLLECTION.POLICY  }${policyID}`,
             value: {
                 connections:
                     ((_j = {}),
@@ -207,18 +204,18 @@ function buildOnyxDataForQuickbooksConfiguration(policyID, settingName, settingV
         },
     ];
     return {
-        optimisticData: optimisticData,
-        failureData: failureData,
-        successData: successData,
+        optimisticData,
+        failureData,
+        successData,
     };
 }
 function updateQuickbooksOnlineAutoSync(policyID, settingValue) {
     if (!policyID) {
         return;
     }
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.AUTO_SYNC, {enabled: settingValue}, {enabled: !settingValue});
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.AUTO_SYNC, {enabled: settingValue}, {enabled: !settingValue});
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.AUTO_SYNC),
     };
@@ -226,9 +223,9 @@ function updateQuickbooksOnlineAutoSync(policyID, settingValue) {
 }
 exports.updateQuickbooksOnlineAutoSync = updateQuickbooksOnlineAutoSync;
 function updateQuickbooksOnlineEnableNewCategories(policyID, settingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES, settingValue, !settingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES, settingValue, !settingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.ENABLE_NEW_CATEGORIES),
     };
@@ -239,9 +236,9 @@ function updateQuickbooksOnlineAutoCreateVendor(policyID, configUpdate, configCu
     if (!policyID) {
         return;
     }
-    var onyxData = buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate, configCurrentData);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForMultipleQuickbooksConfigurations(policyID, configUpdate, configCurrentData);
+    const parameters = {
+        policyID,
         autoCreateVendor: JSON.stringify(configUpdate.autoCreateVendor),
         nonReimbursableBillDefaultVendor: JSON.stringify(configUpdate.nonReimbursableBillDefaultVendor),
         idempotencyKey: CONST_1['default'].QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR,
@@ -253,9 +250,9 @@ function updateQuickbooksOnlineSyncPeople(policyID, settingValue) {
     if (!policyID) {
         return;
     }
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_PEOPLE, settingValue, !settingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_PEOPLE, settingValue, !settingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_PEOPLE),
     };
@@ -263,9 +260,9 @@ function updateQuickbooksOnlineSyncPeople(policyID, settingValue) {
 }
 exports.updateQuickbooksOnlineSyncPeople = updateQuickbooksOnlineSyncPeople;
 function updateQuickbooksOnlineReimbursableExpensesAccount(policyID, settingValue, oldSettingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.REIMBURSABLE_EXPENSES_ACCOUNT),
     };
@@ -273,9 +270,9 @@ function updateQuickbooksOnlineReimbursableExpensesAccount(policyID, settingValu
 }
 exports.updateQuickbooksOnlineReimbursableExpensesAccount = updateQuickbooksOnlineReimbursableExpensesAccount;
 function updateQuickbooksOnlineSyncLocations(policyID, settingValue, oldSettingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_LOCATIONS, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_LOCATIONS, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_LOCATIONS),
     };
@@ -283,9 +280,9 @@ function updateQuickbooksOnlineSyncLocations(policyID, settingValue, oldSettingV
 }
 exports.updateQuickbooksOnlineSyncLocations = updateQuickbooksOnlineSyncLocations;
 function updateQuickbooksOnlineSyncCustomers(policyID, settingValue, oldSettingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_CUSTOMERS, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_CUSTOMERS, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_CUSTOMERS),
     };
@@ -293,9 +290,9 @@ function updateQuickbooksOnlineSyncCustomers(policyID, settingValue, oldSettingV
 }
 exports.updateQuickbooksOnlineSyncCustomers = updateQuickbooksOnlineSyncCustomers;
 function updateQuickbooksOnlineSyncClasses(policyID, settingValue, oldSettingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_CLASSES, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_CLASSES, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_CLASSES),
     };
@@ -303,9 +300,9 @@ function updateQuickbooksOnlineSyncClasses(policyID, settingValue, oldSettingVal
 }
 exports.updateQuickbooksOnlineSyncClasses = updateQuickbooksOnlineSyncClasses;
 function updateQuickbooksOnlineNonReimbursableBillDefaultVendor(policyID, settingValue, oldSettingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.NON_REIMBURSABLE_BILL_DEFAULT_VENDOR),
     };
@@ -316,45 +313,45 @@ function updateQuickbooksOnlineReceivableAccount(policyID, settingValue, oldSett
     if (!policyID) {
         return;
     }
-    var _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT, settingValue, oldSettingValue),
-        optimisticData = _a.optimisticData,
-        failureData = _a.failureData,
-        successData = _a.successData;
-    var parameters = {
-        policyID: policyID,
+    const _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT, settingValue, oldSettingValue);
+        const optimisticData = _a.optimisticData;
+        const failureData = _a.failureData;
+        const successData = _a.successData;
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT),
     };
-    API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT, parameters, {optimisticData: optimisticData, failureData: failureData, successData: successData});
+    API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_RECEIVABLE_ACCOUNT, parameters, {optimisticData, failureData, successData});
 }
 exports.updateQuickbooksOnlineReceivableAccount = updateQuickbooksOnlineReceivableAccount;
 function updateQuickbooksOnlineExportDate(policyID, settingValue, oldSettingValue) {
-    var _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.EXPORT_DATE, settingValue, oldSettingValue),
-        optimisticData = _a.optimisticData,
-        failureData = _a.failureData,
-        successData = _a.successData;
-    var parameters = {
-        policyID: policyID,
+    const _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.EXPORT_DATE, settingValue, oldSettingValue);
+        const optimisticData = _a.optimisticData;
+        const failureData = _a.failureData;
+        const successData = _a.successData;
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.EXPORT_DATE),
     };
-    API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE, parameters, {optimisticData: optimisticData, failureData: failureData, successData: successData});
+    API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_EXPORT_DATE, parameters, {optimisticData, failureData, successData});
 }
 exports.updateQuickbooksOnlineExportDate = updateQuickbooksOnlineExportDate;
 function updateQuickbooksOnlineNonReimbursableExpensesAccount(policyID, settingValue, oldSettingValue) {
-    var _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, settingValue, oldSettingValue),
-        optimisticData = _a.optimisticData,
-        failureData = _a.failureData,
-        successData = _a.successData;
-    var parameters = {
-        policyID: policyID,
+    const _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT, settingValue, oldSettingValue);
+        const optimisticData = _a.optimisticData;
+        const failureData = _a.failureData;
+        const successData = _a.successData;
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_ACCOUNT),
     };
     API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_NON_REIMBURSABLE_EXPENSES_ACCOUNT, parameters, {
-        optimisticData: optimisticData,
-        failureData: failureData,
-        successData: successData,
+        optimisticData,
+        failureData,
+        successData,
     });
 }
 exports.updateQuickbooksOnlineNonReimbursableExpensesAccount = updateQuickbooksOnlineNonReimbursableExpensesAccount;
@@ -362,34 +359,34 @@ function updateQuickbooksOnlineCollectionAccountID(policyID, settingValue, oldSe
     if (settingValue === oldSettingValue || !policyID) {
         return;
     }
-    var _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, settingValue, oldSettingValue),
-        optimisticData = _a.optimisticData,
-        failureData = _a.failureData,
-        successData = _a.successData;
-    var parameters = {
-        policyID: policyID,
+    const _a = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, settingValue, oldSettingValue);
+        const optimisticData = _a.optimisticData;
+        const failureData = _a.failureData;
+        const successData = _a.successData;
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID),
     };
-    API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData: optimisticData, failureData: failureData, successData: successData});
+    API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_COLLECTION_ACCOUNT_ID, parameters, {optimisticData, failureData, successData});
 }
 exports.updateQuickbooksOnlineCollectionAccountID = updateQuickbooksOnlineCollectionAccountID;
 function updateQuickbooksOnlineAccountingMethod(policyID, accountingMethod, oldAccountingMethod) {
     if (!policyID) {
         return;
     }
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
-    var parameters = {
-        policyID: policyID,
-        accountingMethod: accountingMethod,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.ACCOUNTING_METHOD, accountingMethod, oldAccountingMethod);
+    const parameters = {
+        policyID,
+        accountingMethod,
     };
     API.write(types_1.WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_ACCOUNTING_METHOD, parameters, onyxData);
 }
 exports.updateQuickbooksOnlineAccountingMethod = updateQuickbooksOnlineAccountingMethod;
 function updateQuickbooksOnlineSyncTax(policyID, settingValue) {
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_TAX, settingValue, !settingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_TAX, settingValue, !settingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.SYNC_TAX),
     };
@@ -400,9 +397,9 @@ function updateQuickbooksOnlineReimbursementAccountID(policyID, settingValue, ol
     if (settingValue === oldSettingValue) {
         return;
     }
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: JSON.stringify(settingValue),
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.REIMBURSEMENT_ACCOUNT_ID),
     };
@@ -413,9 +410,9 @@ function updateQuickbooksOnlinePreferredExporter(policyID, settingValue, oldSett
     if (!policyID) {
         return;
     }
-    var onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.EXPORT, settingValue, oldSettingValue);
-    var parameters = {
-        policyID: policyID,
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST_1['default'].QUICKBOOKS_CONFIG.EXPORT, settingValue, oldSettingValue);
+    const parameters = {
+        policyID,
         settingValue: settingValue.exporter,
         idempotencyKey: String(CONST_1['default'].QUICKBOOKS_CONFIG.EXPORT),
     };

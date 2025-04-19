@@ -1,10 +1,10 @@
-'use strict';
+
 exports.__esModule = true;
-var DistanceRequestUtils_1 = require('@libs/DistanceRequestUtils');
+const DistanceRequestUtils_1 = require('@libs/DistanceRequestUtils');
 // Get the distance in meters from the transaction.
 // This function is placed in a separate file to avoid circular dependencies.
 function getDistanceInMeters(transaction, unit) {
-    var _a, _b, _c, _d;
+    let _a; let _b; let _c; let _d;
     // If we are creating a new distance request, the distance is available in routes.route0.distance and it's already in meters.
     if (
         (_b = (_a = transaction === null || transaction === void 0 ? void 0 : transaction.routes) === null || _a === void 0 ? void 0 : _a.route0) === null || _b === void 0

@@ -1,8 +1,9 @@
-'use strict';
+
 exports.__esModule = true;
-var react_native_1 = require('react-native');
-var Log_1 = require('@libs/Log');
-var asyncOpenURL = function (promise, url) {
+const react_native_1 = require('react-native');
+const Log_1 = require('@libs/Log');
+
+const asyncOpenURL = function (promise, url) {
     if (!url) {
         return;
     }
@@ -11,7 +12,7 @@ var asyncOpenURL = function (promise, url) {
             react_native_1.Linking.openURL(typeof url === 'string' ? url : url(params));
         })
         ['catch'](function () {
-            Log_1['default'].warn('[asyncOpenURL] error occured while opening URL', {url: url});
+            Log_1['default'].warn('[asyncOpenURL] error occured while opening URL', {url});
         });
 };
 exports['default'] = asyncOpenURL;
