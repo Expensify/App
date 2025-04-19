@@ -8,10 +8,10 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFileName} from '@libs/fileDownload/FileUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
+import {hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
 import type {Transaction} from '@src/types/onyx';
-import { hasReceiptSource } from '@libs/TransactionUtils';
 
 function ReceiptCell({transactionItem, isSelected}: {transactionItem: Transaction; isSelected: boolean}) {
     const theme = useTheme();

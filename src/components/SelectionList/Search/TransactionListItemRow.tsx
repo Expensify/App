@@ -29,10 +29,10 @@ import {
     getCurrency as getTransactionCurrency,
     getDescription as getTransactionDescription,
     hasReceipt,
+    hasReceiptSource,
     isExpensifyCardTransaction,
     isPending,
     isReceiptBeingScanned,
-    hasReceiptSource,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import variables from '@styles/variables';
