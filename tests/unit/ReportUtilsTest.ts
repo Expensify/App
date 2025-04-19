@@ -1911,7 +1911,7 @@ describe('ReportUtils', () => {
                 amount: 1200,
                 currency: 'INR',
                 comment: '',
-                participants: [{login: 'dev.krishna.react@gmail.com'}],
+                participants: [{login: 'email1@test.com'}],
                 transactionID: '8749701985416635400',
                 iouReportID: '8698041594589716',
                 isPersonalTrackingExpense: true,
