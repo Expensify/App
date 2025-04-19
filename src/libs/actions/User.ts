@@ -21,7 +21,6 @@ import type {
     UpdatePreferredEmojiSkinToneParams,
     UpdateStatusParams,
     UpdateThemeParams,
-    ValidateLoginParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -563,38 +562,6 @@ function requestValidateCodeAction() {
     ];
 
     API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
-}
-
-/**
- * Validates a login given an accountID and validation code
- */
-function validateLogin(accountID: number, validateCode: string) {
-    Onyx.merge(ONYXKEYS.ACCOUNT, {...CONST.DEFAULT_ACCOUNT_DATA, isLoading: true});
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const finallyData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const parameters: ValidateLoginParams = {accountID, validateCode};
-
-    API.write(WRITE_COMMANDS.VALIDATE_LOGIN, parameters, {optimisticData, finallyData});
-    Navigation.navigate(ROUTES.HOME);
 }
 
 /**
@@ -1149,10 +1116,6 @@ function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
 }
 
-function clearUserErrorMessage() {
-    Onyx.merge(ONYXKEYS.USER, {error: ''});
-}
-
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
     const newMutedPlatforms = mutedPlatforms?.[platform]
         ? {...mutedPlatforms, [platform]: undefined} // Remove platform if it's muted
@@ -1531,14 +1494,12 @@ export {
     clearContactMethodErrors,
     clearContactMethod,
     addNewContactMethod,
-    validateLogin,
     validateSecondaryLogin,
     isBlockedFromConcierge,
     subscribeToUserEvents,
     updatePreferredSkinTone,
     setShouldUseStagingServer,
     togglePlatformMute,
-    clearUserErrorMessage,
     joinScreenShare,
     clearScreenShareRequest,
     generateStatementPDF,
