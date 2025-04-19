@@ -10,4 +10,6 @@ on:
 jobs:
   CLA:
     uses: Expensify/GitHub-Actions/.github/workflows/cla.yml@main
-    secrets: inherit
+    secrets:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
