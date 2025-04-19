@@ -7,8 +7,8 @@ import DecisionModal from '@components/DecisionModal';
 import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -22,6 +22,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -64,6 +65,7 @@ function SearchPage({route}: SearchPageProps) {
     const {selectedTransactions, clearSelectedTransactions, selectedReports, lastSearchType, setLastSearchType, isExportMode, setExportMode} = useSearchContext();
     const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const [lastPaymentMethods = {}] = useOnyx(ONYXKEYS.NVP_LAST_PAYMENT_METHOD, {canBeMissing: true});
+    const {canUseLeftHandBar} = usePermissions();
 
     const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -442,7 +444,7 @@ function SearchPage({route}: SearchPageProps) {
         <ScreenWrapper
             testID={Search.displayName}
             shouldEnableMaxHeight
-            headerGapStyles={styles.searchHeaderGap}
+            headerGapStyles={[styles.searchHeaderGap, canUseLeftHandBar && styles.h0]}
         >
             <FullPageNotFoundView
                 shouldForceFullScreen
@@ -451,8 +453,8 @@ function SearchPage({route}: SearchPageProps) {
                 shouldShowLink={false}
             >
                 {!!queryJSON && (
-                    <View style={styles.searchSplitContainer}>
-                        <View style={styles.searchSidebar}>
+                    <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
+                        <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             {queryJSON ? (
                                 <View style={styles.flex1}>
                                     <HeaderGap />
@@ -474,7 +476,7 @@ function SearchPage({route}: SearchPageProps) {
                                     }}
                                 />
                             )}
-                            <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />
+                            <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>
                         <ScreenWrapper
                             testID={Search.displayName}

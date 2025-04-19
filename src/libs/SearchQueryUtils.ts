@@ -3,7 +3,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -15,6 +17,8 @@ import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './Curren
 import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
+import navigationRef from './Navigation/navigationRef';
+import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
@@ -792,7 +796,6 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * A copy of `isDefaultExpensesQuery` handling the policy ID, used if you have access to the leftHandBar beta.
  * When this beta is no longer needed, this method will be renamed to `isDefaultExpensesQuery` and will replace the old method.
- *
  */
 function isDefaultExpensesQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
@@ -853,6 +856,28 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
     return buildSearchQueryString(standardizedQuery);
 }
 
+function getCurrentSearchQueryJSON() {
+    const rootState = navigationRef.getRootState();
+    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+
+    if (!lastPolicyRoute) {
+        return;
+    }
+
+    const lastSearchRoute = lastPolicyRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+    if (!lastSearchRoute || !lastSearchRoute.params) {
+        return;
+    }
+
+    const {q: searchParams} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    const queryJSON = buildSearchQueryJSON(searchParams);
+    if (!queryJSON) {
+        return;
+    }
+
+    return queryJSON;
+}
+
 /**
  * Converts a filter key from old naming (camelCase) to user friendly naming (kebab-case).
  *
@@ -896,6 +921,7 @@ export {
     isCannedSearchQueryWithPolicyIDCheck,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getCurrentSearchQueryJSON,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
     shouldHighlight,
