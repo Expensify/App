@@ -142,7 +142,7 @@ function AccountValidatePage() {
             <ValidateCodeActionForm
                 descriptionPrimary={<Text style={[styles.textStrong]}>{translate('mergeAccountsPage.accountValidate.confirmMerge')}</Text>}
                 descriptionSecondary={
-                    <View>
+                    <View style={[styles.w100]}>
                         <Text style={[styles.mb3]}>
                             {translate('mergeAccountsPage.accountValidate.lossOfUnsubmittedData')}
                             <Text style={styles.textStrong}>{email}</Text>.
