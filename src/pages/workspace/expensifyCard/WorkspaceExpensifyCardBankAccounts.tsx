@@ -38,14 +38,14 @@ type WorkspaceExpensifyCardBankAccountsProps = PlatformStackScreenProps<Settings
 function WorkspaceExpensifyCardBankAccounts({route}: WorkspaceExpensifyCardBankAccountsProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [bankAccountsList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
 
     const policyID = route?.params?.policyID;
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`);
-    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
+    const [cardBankAccountMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.EXPENSIFY_CARD_BANK_ACCOUNT_METADATA}${workspaceAccountID}`, {canBeMissing: false});
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: false});
 
     const getVerificationState = () => {
         if (cardOnWaitlist) {
