@@ -1157,9 +1157,6 @@ const styles = (theme: ThemeColors) =>
         searchHeaderGap: {
             zIndex: variables.searchTopBarZIndex + 2,
             backgroundColor: theme.appBG,
-            width: variables.sideBarWidth,
-            borderRightWidth: 1,
-            borderColor: theme.border,
         },
 
         reportOptions: {
