@@ -9989,11 +9989,18 @@ function prepareOnboardingOnyxData(
     }
 
     if (userReportedIntegration) {
+        const requiresCorporatPlan: OnboardingAccounting[] = [CONST.POLICY.CONNECTIONS.NAME.NETSUITE, CONST.POLICY.CONNECTIONS.NAME.QBD, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT];
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.POLICY}${onboardingPolicyID}`,
             value: {
                 areConnectionsEnabled: true,
+                ...(requiresCorporatPlan.includes(userReportedIntegration)
+                    ? {
+                          type: CONST.POLICY.TYPE.CORPORATE,
+                      }
+                    : {}),
                 pendingFields: {
                     areConnectionsEnabled: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
