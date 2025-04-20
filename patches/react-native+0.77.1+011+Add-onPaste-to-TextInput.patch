@@ -1,37 +1,3 @@
-diff --git a/node_modules/react-native/.project b/node_modules/react-native/.project
-new file mode 100644
-index 0000000..7c5b305
---- /dev/null
-+++ b/node_modules/react-native/.project
-@@ -0,0 +1,28 @@
-+<?xml version="1.0" encoding="UTF-8"?>
-+<projectDescription>
-+	<name>react-native-build-from-source-react-native</name>
-+	<comment>Project react-native-build-from-source-react-native created by Buildship.</comment>
-+	<projects>
-+	</projects>
-+	<buildSpec>
-+		<buildCommand>
-+			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
-+			<arguments>
-+			</arguments>
-+		</buildCommand>
-+	</buildSpec>
-+	<natures>
-+		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
-+	</natures>
-+	<filteredResources>
-+		<filter>
-+			<id>1745005165151</id>
-+			<name></name>
-+			<type>30</type>
-+			<matcher>
-+				<id>org.eclipse.core.resources.regexFilterMatcher</id>
-+				<arguments>node_modules|\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
-+			</matcher>
-+		</filter>
-+	</filteredResources>
-+</projectDescription>
 diff --git a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js b/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
 index 6c4bbb2..770dfee 100644
 --- a/node_modules/react-native/Libraries/Components/TextInput/AndroidTextInputNativeComponent.js
@@ -218,7 +184,7 @@ index d5e2e22..065a819 100644
  @implementation RCTUITextView {
    UILabel *_placeholderView;
    UITextView *_detachedTextView;
-@@ -172,7 +176,31 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -172,7 +176,31 @@ - (void)scrollRangeToVisible:(NSRange)range
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -251,7 +217,7 @@ index d5e2e22..065a819 100644
  }
  
  // Turn off scroll animation to fix flaky scrolling.
-@@ -264,6 +292,10 @@ static UIColor *defaultPlaceholderColor(void)
+@@ -264,6 +292,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -299,7 +265,7 @@ diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInp
 index ac8e464..2b91802 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegateAdapter.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBackedTextInputDelegateAdapter.mm
-@@ -147,6 +147,11 @@ static void *TextFieldSelectionObservingContext = &TextFieldSelectionObservingCo
+@@ -147,6 +147,11 @@ - (void)selectedTextRangeWasSet
    [self textFieldProbablyDidChangeSelection];
  }
  
@@ -311,7 +277,7 @@ index ac8e464..2b91802 100644
  #pragma mark - Generalization
  
  - (void)textFieldProbablyDidChangeSelection
-@@ -292,6 +297,11 @@ static void *TextFieldSelectionObservingContext = &TextFieldSelectionObservingCo
+@@ -292,6 +297,11 @@ - (void)skipNextTextInputDidChangeSelectionEventWithTextRange:(UITextRange *)tex
    _previousSelectedTextRange = textRange;
  }
  
@@ -336,10 +302,10 @@ index 4804624..90b7081 100644
  @property (nonatomic, assign) NSInteger mostRecentEventCount;
  @property (nonatomic, assign, readonly) NSInteger nativeEventCount;
 diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-index 6deea73..4d82c72 100644
+index 95edfd5..5111bda 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputView.mm
-@@ -574,6 +574,26 @@ RCT_NOT_IMPLEMENTED(-(instancetype)initWithFrame : (CGRect)frame)
+@@ -574,6 +574,26 @@ - (void)textInputDidChangeSelection
    });
  }
  
@@ -370,7 +336,7 @@ diff --git a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInput
 index db7c519..ec05595 100644
 --- a/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
 +++ b/node_modules/react-native/Libraries/Text/TextInput/RCTBaseTextInputViewManager.mm
-@@ -67,6 +67,7 @@ RCT_EXPORT_VIEW_PROPERTY(onClear, RCTDirectEventBlock)
+@@ -67,6 +67,7 @@ @implementation RCTBaseTextInputViewManager {
  RCT_EXPORT_VIEW_PROPERTY(onChangeSync, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onSelectionChange, RCTDirectEventBlock)
  RCT_EXPORT_VIEW_PROPERTY(onScroll, RCTDirectEventBlock)
@@ -393,7 +359,7 @@ index 0318671..667e646 100644
  @implementation RCTUITextField {
    RCTBackedTextFieldDelegateAdapter *_textInputDelegateAdapter;
    NSDictionary<NSAttributedStringKey, id> *_defaultTextAttributes;
-@@ -139,6 +143,10 @@
+@@ -139,6 +143,10 @@ - (BOOL)canPerformAction:(SEL)action withSender:(id)sender
      return NO;
    }
  
@@ -404,7 +370,7 @@ index 0318671..667e646 100644
    return [super canPerformAction:action withSender:sender];
  }
  
-@@ -222,7 +230,31 @@
+@@ -222,7 +230,31 @@ - (void)scrollRangeToVisible:(NSRange)range
  - (void)paste:(id)sender
  {
    _textWasPasted = YES;
@@ -441,7 +407,7 @@ diff --git a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/Text
 index f8358ed..91aff1a 100644
 --- a/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
 +++ b/node_modules/react-native/React/Fabric/Mounting/ComponentViews/TextInput/RCTTextInputComponentView.mm
-@@ -481,6 +481,13 @@ static NSSet<NSNumber *> *returnKeyTypesSet;
+@@ -481,6 +481,13 @@ - (void)textInputDidChangeSelection
    }
  }
  
@@ -455,86 +421,6 @@ index f8358ed..91aff1a 100644
  #pragma mark - RCTBackedTextInputDelegate (UIScrollViewDelegate)
  
  - (void)scrollViewDidScroll:(UIScrollView *)scrollView
-diff --git a/node_modules/react-native/ReactAndroid/.project b/node_modules/react-native/ReactAndroid/.project
-new file mode 100644
-index 0000000..533e383
---- /dev/null
-+++ b/node_modules/react-native/ReactAndroid/.project
-@@ -0,0 +1,34 @@
-+<?xml version="1.0" encoding="UTF-8"?>
-+<projectDescription>
-+	<name>ReactAndroid</name>
-+	<comment>Project ReactAndroid created by Buildship.</comment>
-+	<projects>
-+	</projects>
-+	<buildSpec>
-+		<buildCommand>
-+			<name>org.eclipse.jdt.core.javabuilder</name>
-+			<arguments>
-+			</arguments>
-+		</buildCommand>
-+		<buildCommand>
-+			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
-+			<arguments>
-+			</arguments>
-+		</buildCommand>
-+	</buildSpec>
-+	<natures>
-+		<nature>org.eclipse.jdt.core.javanature</nature>
-+		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
-+	</natures>
-+	<filteredResources>
-+		<filter>
-+			<id>1745005165095</id>
-+			<name></name>
-+			<type>30</type>
-+			<matcher>
-+				<id>org.eclipse.core.resources.regexFilterMatcher</id>
-+				<arguments>node_modules|\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
-+			</matcher>
-+		</filter>
-+	</filteredResources>
-+</projectDescription>
-diff --git a/node_modules/react-native/ReactAndroid/hermes-engine/.project b/node_modules/react-native/ReactAndroid/hermes-engine/.project
-new file mode 100644
-index 0000000..f3e5c2d
---- /dev/null
-+++ b/node_modules/react-native/ReactAndroid/hermes-engine/.project
-@@ -0,0 +1,34 @@
-+<?xml version="1.0" encoding="UTF-8"?>
-+<projectDescription>
-+	<name>hermes-engine</name>
-+	<comment>Project hermes-engine created by Buildship.</comment>
-+	<projects>
-+	</projects>
-+	<buildSpec>
-+		<buildCommand>
-+			<name>org.eclipse.jdt.core.javabuilder</name>
-+			<arguments>
-+			</arguments>
-+		</buildCommand>
-+		<buildCommand>
-+			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
-+			<arguments>
-+			</arguments>
-+		</buildCommand>
-+	</buildSpec>
-+	<natures>
-+		<nature>org.eclipse.jdt.core.javanature</nature>
-+		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
-+	</natures>
-+	<filteredResources>
-+		<filter>
-+			<id>1745005165138</id>
-+			<name></name>
-+			<type>30</type>
-+			<matcher>
-+				<id>org.eclipse.core.resources.regexFilterMatcher</id>
-+				<arguments>node_modules|\.git|__CREATED_BY_JAVA_LANGUAGE_SERVER__</arguments>
-+			</matcher>
-+		</filter>
-+	</filteredResources>
-+</projectDescription>
 diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/PasteWatcher.java b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/PasteWatcher.java
 new file mode 100644
 index 0000000..bfb5819
