@@ -49,6 +49,26 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         return data.slice(Math.max(0, currentDataIndex - (isInitialData ? 0 : CONST.PAGINATION_SIZE)));
     }, [currentDataIndex, data, isInitialData]);
 
+    const listRef = useRef<RNFlatList | null>(null);
+
+    // If the unread message is within the first pagination items, we need to manually scroll to the top,
+    // because otherwise the content would shift up by new messages loading and filling up the page.
+    const [shouldInitiallyScrollToFirstMessage, setShouldInitiallyScrollToFirstMessage] = useState(
+        () => data.length >= CONST.PAGINATION_SIZE && currentDataIndex >= Math.max(0, data.length - CONST.PAGINATION_SIZE),
+    );
+    useEffect(() => {
+        // Scroll to the end once the first page of items or the whole list is loaded.
+        if (!shouldInitiallyScrollToFirstMessage || (displayedData.length !== data.length && displayedData.length < CONST.PAGINATION_SIZE)) {
+            return;
+        }
+
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToEnd();
+        });
+
+        setShouldInitiallyScrollToFirstMessage(false);
+    }, [data.length, displayedData.length, shouldInitiallyScrollToFirstMessage]);
+
     const isLoadingData = data.length > displayedData.length;
     const wasLoadingData = usePrevious(isLoadingData);
     const dataIndexDifference = data.length - displayedData.length;
@@ -98,7 +118,6 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
         return config;
     }, [shouldEnableAutoScrollToTopThreshold, isLoadingData, wasLoadingData]);
 
-    const listRef = useRef<RNFlatList | null>(null);
     useImperativeHandle(ref, () => {
         // If we're trying to scroll at the start of the list we need to make sure to
         // render all items.
