@@ -36,7 +36,11 @@ function useModalStackScreenOptions(getScreenOptions?: GetModalStackScreenOption
         [cardStyleInterpolator, styles.navigationScreenCardStyle],
     );
 
-    return getScreenOptions?.(styles) ?? defaultSubRouteOptions;
+    if (!getScreenOptions) {
+        return defaultSubRouteOptions;
+    }
+
+    return {...defaultSubRouteOptions, ...getScreenOptions(styles)};
 }
 
 export default useModalStackScreenOptions;

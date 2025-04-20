@@ -37,8 +37,11 @@ Your personal assistant, **Concierge**, is available on your Expensify Home page
 ## Set Up Your Individual Workspace
 1. Go to **Settings** > **Workspaces**.
 2. Click the **Individual** tab on the left.
-3. Select the workspace type that fits your needs.
-4. Configure your workspace details (e.g., workspace name, categories, tags, etc).
+3. Click the workspace name to set up your Individual Workspace.
+4. Go to Plan on the workspace menu to select the workspace type that fits your needs.
+5. Configure your workspace details (e.g., workspace name, categories, tags, etc).
+
+Note: The Individual Workspace is an underlying component of Expensify Classic. It cannot be deleted, and you can't add additional Individual Workspaces. Only additional Group Workspaces can be added manually (see below). Individual workspaces don't connect directly to accounting software or have the ability to add users.
 
 ## Create a Group Workspace
 1. Go to **Settings** > **Workspaces**.

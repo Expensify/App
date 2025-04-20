@@ -10,6 +10,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
+import {parsePhoneNumber} from './PhoneNumber';
 import {generateAccountID} from './UserUtils';
 
 type FirstAndLastName = {
@@ -413,6 +414,22 @@ function getDefaultCountry() {
     return defaultCountry;
 }
 
+/**
+ * Gets the phone number to display for SMS logins
+ */
+const getPhoneNumber = (details: OnyxEntry<PersonalDetails>): string | undefined => {
+    const {login = '', displayName = ''} = details ?? {};
+    // If the user hasn't set a displayName, it is set to their phone number
+    const parsedPhoneNumber = parsePhoneNumber(displayName);
+
+    if (parsedPhoneNumber.possible) {
+        return parsedPhoneNumber?.number?.e164;
+    }
+
+    // If the user has set a displayName, get the phone number from the SMS login
+    return login ? Str.removeSMSDomain(login) : '';
+};
+
 export {
     isPersonalDetailsEmpty,
     getDisplayNameOrDefault,
@@ -434,4 +451,5 @@ export {
     getShortMentionIfFound,
     getDefaultCountry,
     getLoginByAccountID,
+    getPhoneNumber,
 };

@@ -11,7 +11,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetSuiteImportAddCustomSegmentFormSubmit from '@hooks/useNetSuiteImportAddCustomSegmentForm';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Parser from '@libs/Parser';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import type {CustomFieldSubStepWithPolicy} from '@pages/workspace/accounting/netsuite/types';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -36,7 +36,7 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> => {
             const errors: FormInputErrors<typeof ONYXKEYS.FORMS.NETSUITE_CUSTOM_SEGMENT_ADD_FORM> = {};
 
-            if (!ValidationUtils.isRequiredFulfilled(values[INPUT_IDS.SCRIPT_ID])) {
+            if (!isRequiredFulfilled(values[INPUT_IDS.SCRIPT_ID])) {
                 errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.requiredFieldError', {fieldName: fieldLabel});
             } else if (customSegments?.find((customSegment) => customSegment.scriptID.toLowerCase() === values[INPUT_IDS.SCRIPT_ID].toLowerCase())) {
                 errors[INPUT_IDS.SCRIPT_ID] = translate('workspace.netsuite.import.importCustomFields.customSegments.errors.uniqueFieldError', {fieldName: fieldLabel});
@@ -63,6 +63,8 @@ function CustomSegmentScriptIdStep({customSegmentType, onNext, isEditing, custom
             enabledWhenOffline
             submitFlexEnabled
             shouldUseScrollView
+            shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <View style={styles.ph5}>
                 <Text style={[styles.mb3, styles.textHeadlineLineHeightXXL]}>

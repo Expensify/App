@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import useDeleteSavedSearch from '@hooks/useDeleteSavedSearch';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearAllFilters} from '@libs/actions/Search';
@@ -24,7 +25,13 @@ import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildUserReadableQueryString,
+    buildUserReadableQueryStringWithPolicyID,
+    isCannedSearchQuery,
+    isCannedSearchQueryWithPolicyIDCheck,
+} from '@libs/SearchQueryUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import type {SavedSearchMenuItem, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -36,14 +43,15 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
 
 type SearchTypeMenuProps = {
-    queryJSON: SearchQueryJSON;
+    queryJSON: SearchQueryJSON | undefined;
 };
 
 function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
-    const {type, hash} = queryJSON;
+    const {type, groupBy, hash} = queryJSON ?? {};
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
+    const {canUseLeftHandBar} = usePermissions();
     const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
@@ -74,10 +82,16 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+                if (canUseLeftHandBar) {
+                    title = buildUserReadableQueryStringWithPolicyID(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                } else {
+                    title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
+                }
             }
 
-            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, hash);
+            const isItemFocused = Number(key) === hash;
+            const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
+
             return {
                 ...baseMenuItem,
                 onPress: () => {
@@ -119,6 +133,8 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             hideProductTrainingTooltip,
             renderProductTrainingTooltip,
             cardFeedNamesWithType,
+            allPolicies,
+            canUseLeftHandBar,
         ],
     );
 
@@ -168,10 +184,19 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [styles],
     );
 
-    const isCannedQuery = isCannedSearchQuery(queryJSON);
+    let isCannedQuery = false;
+
+    if (queryJSON) {
+        if (canUseLeftHandBar) {
+            isCannedQuery = isCannedSearchQueryWithPolicyIDCheck(queryJSON);
+        } else {
+            isCannedQuery = isCannedSearchQuery(queryJSON);
+        }
+    }
+
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {
-              if (queryJSON.groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+              if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
                   return item.translationPath === 'common.expenseReports' && item.type === type;
               }
               return item.type === type;
@@ -189,7 +214,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     const onPress = singleExecution(() => {
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON.policyID));
+                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
                     });
 
                     return (

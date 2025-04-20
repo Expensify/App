@@ -54,7 +54,10 @@ function ManageTrips() {
                                 style={[styles.w100, styles.mb3]}
                                 large
                             />
-                            <BookTravelButton text={translate('travel.bookTravel')} />
+                            <BookTravelButton
+                                text={translate('travel.bookTravel')}
+                                shouldRenderErrorMessageBelowButton
+                            />
                         </>
                     }
                 />

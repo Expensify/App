@@ -1,11 +1,14 @@
 import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigationState} from '@react-navigation/native';
 import {StackActions} from '@react-navigation/native';
 import type {ParamListBase, Router} from '@react-navigation/routers';
+import Onyx from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import Log from '@libs/Log';
 import getPolicyIDFromState from '@libs/Navigation/helpers/getPolicyIDFromState';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import * as SearchQueryUtils from '@libs/SearchQueryUtils';
 import NAVIGATORS from '@src/NAVIGATORS';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {OpenWorkspaceSplitActionType, PushActionType, ReplaceActionType, SwitchPolicyIdActionType} from './types';
 
@@ -16,6 +19,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
+    NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.ATTACHMENTS,
     SCREENS.TRANSACTION_RECEIPT,
@@ -27,6 +31,12 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
 
 const workspaceSplitsWithoutEnteringAnimation = new Set();
 const reportsSplitsWithEnteringAnimation = new Set();
+
+let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.LAST_ACCESSED_WORKSPACE_SWITCHER_ID,
+    callback: (value) => (lastAccessedWorkspaceSwitcherID = value),
+});
 
 /**
  * Handles the OPEN_WORKSPACE_SPLIT action.
@@ -45,7 +55,7 @@ function handleOpenWorkspaceSplitAction(
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: SCREENS.WORKSPACE.INITIAL,
+        screen: action.payload.screenName,
         params: {
             policyID: action.payload.policyID,
         },
@@ -153,11 +163,16 @@ function handlePushReportSplitAction(
     const haveParamsPolicyID = action.payload.params && 'policyID' in action.payload.params;
     let policyID;
 
+    const policyIDFromState = getPolicyIDFromState(state as State<RootNavigatorParamList>);
+
     if (haveParamsPolicyID) {
         policyID = (action.payload.params as Record<string, string | undefined>)?.policyID;
         setActiveWorkspaceID(policyID);
+    } else if (policyIDFromState) {
+        policyID = policyIDFromState;
     } else {
-        policyID = getPolicyIDFromState(state as State<RootNavigatorParamList>);
+        policyID = lastAccessedWorkspaceSwitcherID;
+        setActiveWorkspaceID(policyID);
     }
 
     const modifiedAction = {

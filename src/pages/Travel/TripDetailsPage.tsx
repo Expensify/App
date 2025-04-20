@@ -107,7 +107,6 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     <MenuItem
                         title={translate('travel.modifyTrip')}
                         icon={Expensicons.Pencil}
-                        iconFill={theme.iconSuccessFill}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {
@@ -123,7 +122,6 @@ function TripDetailsPage({route}: TripDetailsPageProps) {
                     <MenuItem
                         title={translate('travel.tripSupport')}
                         icon={Expensicons.Phone}
-                        iconFill={theme.iconSuccessFill}
                         iconRight={Expensicons.NewWindow}
                         shouldShowRightIcon
                         onPress={() => {

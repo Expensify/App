@@ -1,7 +1,6 @@
 import React from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import ConnectToNetSuiteFlow from '@components/ConnectToNetSuiteFlow';
-import ConnectToNSQSFlow from '@components/ConnectToNSQSFlow';
 import ConnectToQuickbooksDesktopFlow from '@components/ConnectToQuickbooksDesktopFlow';
 import ConnectToQuickbooksOnlineFlow from '@components/ConnectToQuickbooksOnlineFlow';
 import ConnectToSageIntacctFlow from '@components/ConnectToSageIntacctFlow';
@@ -224,26 +223,6 @@ function getAccountingIntegrationData(
                 },
                 pendingFields: {...netsuiteConfig?.pendingFields, ...policy?.connections?.netsuite?.config?.pendingFields, ...policy?.connections?.netsuite?.options?.config?.pendingFields},
                 errorFields: {...netsuiteConfig?.errorFields, ...policy?.connections?.netsuite?.config?.errorFields, ...policy?.connections?.netsuite?.options?.config?.errorFields},
-            };
-        case CONST.POLICY.CONNECTIONS.NAME.NSQS:
-            return {
-                title: translate('workspace.accounting.nsqs'),
-                icon: Expensicons.NSQSSquare,
-                setupConnectionFlow: (
-                    <ConnectToNSQSFlow
-                        policyID={policyID}
-                        key={key}
-                    />
-                ),
-                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_IMPORT.getRoute(policyID)),
-                subscribedImportSettings: [CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.CUSTOMERS, CONST.NSQS_CONFIG.SYNC_OPTIONS.MAPPING.PROJECTS],
-                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_EXPORT.getRoute(policyID)),
-                subscribedExportSettings: [CONST.NSQS_CONFIG.EXPORTER, CONST.NSQS_CONFIG.EXPORT_DATE, CONST.NSQS_CONFIG.PAYMENT_ACCOUNT],
-                onAdvancedPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_NSQS_ADVANCED.getRoute(policyID)),
-                subscribedAdvancedSettings: [CONST.NSQS_CONFIG.AUTO_SYNC],
-                onCardReconciliationPagePress: () => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, CONST.POLICY.CONNECTIONS.ROUTE.NSQS)),
-                pendingFields: policy?.connections?.netsuiteQuickStart?.config?.pendingFields,
-                errorFields: policy?.connections?.netsuiteQuickStart?.config?.errorFields,
             };
         case CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT:
             return {
