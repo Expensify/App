@@ -120,6 +120,7 @@ function AccountDetailsPage() {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountDetailsPage.displayName}
         >
