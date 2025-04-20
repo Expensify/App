@@ -21,6 +21,7 @@ import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
 import useTheme from '@hooks/useTheme';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
 import {getRoom} from '@libs/ReportUtils';
@@ -60,6 +61,7 @@ function SubscriptionSettings() {
     const subscriptionPlan = useSubscriptionPlan();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const preferredCurrency = usePreferredCurrency();
+    const illustrations = useThemeIllustrations();
     const possibleCostSavings = useSubscriptionPossibleCostSavings();
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
@@ -189,7 +191,7 @@ function SubscriptionSettings() {
                 {!!account?.isApprovedAccountant || !!account?.isApprovedAccountantClient ? (
                     <View style={[styles.borderedContentCard, styles.p5, styles.mt5]}>
                         <Icon
-                            src={Illustrations.ExpensifyApprovedLogo}
+                            src={illustrations.ExpensifyApprovedLogo}
                             width={variables.modalTopIconWidth}
                             height={variables.menuIconSize}
                         />
