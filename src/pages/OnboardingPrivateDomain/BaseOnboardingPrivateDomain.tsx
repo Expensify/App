@@ -5,6 +5,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import OfflineIndicator from '@components/OfflineIndicator';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 import useLocalize from '@hooks/useLocalize';
@@ -63,6 +64,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
@@ -72,26 +74,32 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 progressBarPercentage={40}
                 onBackButtonPress={Navigation.goBack}
             />
-            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
-                <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
-                <ValidateCodeForm
-                    validateCodeAction={validateCodeAction}
-                    handleSubmitForm={(code) => {
-                        getAccessiblePolicies(code);
-                        setHasMagicCodeBeenSent(false);
-                    }}
-                    sendValidateCode={() => {
-                        sendValidateCode();
-                        setHasMagicCodeBeenSent(true);
-                    }}
-                    clearError={() => clearGetAccessiblePoliciesErrors()}
-                    hideSubmitButton
-                    validateError={getAccessiblePoliciesAction?.errors}
-                    hasMagicCodeBeenSent={hasMagicCodeBeenSent}
-                    allowResubmit
-                />
-                <View style={[styles.flex2, styles.justifyContentEnd]}>
+            <ScrollView
+                style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
+                contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}
+                keyboardShouldPersistTaps="handled"
+            >
+                <View>
+                    <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
+                    <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
+                    <ValidateCodeForm
+                        validateCodeAction={validateCodeAction}
+                        handleSubmitForm={(code) => {
+                            getAccessiblePolicies(code);
+                            setHasMagicCodeBeenSent(false);
+                        }}
+                        sendValidateCode={() => {
+                            sendValidateCode();
+                            setHasMagicCodeBeenSent(true);
+                        }}
+                        clearError={() => clearGetAccessiblePoliciesErrors()}
+                        hideSubmitButton
+                        validateError={getAccessiblePoliciesAction?.errors}
+                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        allowResubmit
+                    />
+                </View>
+                <View>
                     <Button
                         success={false}
                         large
@@ -102,7 +110,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                     />
                     {shouldUseNarrowLayout && <OfflineIndicator />}
                 </View>
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }
