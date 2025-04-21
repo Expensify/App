@@ -14,7 +14,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {addErrorMessage} from '@libs/ErrorUtils';
 import type {CustomSubStepProps} from '@pages/settings/Wallet/InternationalDepositAccount/types';
 import {getValidationErrors} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 import {fetchCorpayFields} from '@userActions/BankAccounts';
@@ -47,13 +46,6 @@ function BankAccountDetails({isEditing, onNext, resetScreenIndex, formValues, fi
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM> => {
-            console.log('values', values);
-            const errors = {};
-            if (values.accountNumber === values.swiftBicCode) {
-                console.log('run here');
-                addErrorMessage(errors, translate('common.error.fieldRequired'));
-                return errors;
-            }
             return getValidationErrors(values, fieldsMap[CONST.CORPAY_FIELDS.STEPS_NAME.BANK_ACCOUNT_DETAILS], translate);
         },
         [fieldsMap, translate],

@@ -8682,7 +8682,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`;
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
