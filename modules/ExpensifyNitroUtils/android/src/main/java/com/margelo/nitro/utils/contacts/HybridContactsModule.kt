@@ -46,33 +46,12 @@ class HybridContactsModule : HybridContactsModuleSpec() {
             }
 
             context.contentResolver?.let { resolver ->
-                val projection = arrayOf(
-                    ContactsContract.Data.MIMETYPE,
-                    ContactsContract.Data.CONTACT_ID,
-                    ContactsContract.Data.DISPLAY_NAME,
-                    ContactsContract.Contacts.PHOTO_URI,
-                    ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
-                    ContactsContract.Data.DATA1,
-                    ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
-                    ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
-                    ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME
-                )
-
-                val selection = "${ContactsContract.Data.MIMETYPE} IN (?, ?, ?)"
-                val selectionArgs = arrayOf(
-                    ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
-                    ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
-                    ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
-                )
-
-                val sortOrder = "${ContactsContract.Data.CONTACT_ID} ASC"
-
                 resolver.query(
                     ContactsContract.Data.CONTENT_URI,
-                    projection,
-                    selection,
-                    selectionArgs,
-                    sortOrder
+                    CONTACT_PROJECTION,
+                    CONTACT_SELECTION,
+                    CONTACT_SELECTION_ARGS,
+                    CONTACT_SORT_ORDER
                 )?.use { cursor ->
                     val mimeTypeIndex = cursor.getColumnIndex(ContactsContract.Data.MIMETYPE)
                     val contactIdIndex = cursor.getColumnIndex(ContactsContract.Data.CONTACT_ID)
@@ -162,6 +141,28 @@ class HybridContactsModule : HybridContactsModuleSpec() {
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
-         const val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.READ_CONTACTS)
+        const val REQUIRED_PERMISSION = Manifest.permission.READ_CONTACTS
+        
+        private val CONTACT_PROJECTION = arrayOf(
+            ContactsContract.Data.MIMETYPE,
+            ContactsContract.Data.CONTACT_ID,
+            ContactsContract.Data.DISPLAY_NAME,
+            ContactsContract.Contacts.PHOTO_URI,
+            ContactsContract.Contacts.PHOTO_THUMBNAIL_URI,
+            ContactsContract.Data.DATA1,
+            ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME,
+            ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME,
+            ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME
+        )
+        
+        private const val CONTACT_SELECTION = "${ContactsContract.Data.MIMETYPE} IN (?, ?, ?)"
+        
+        private val CONTACT_SELECTION_ARGS = arrayOf(
+            ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE,
+            ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE,
+            ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE
+        )
+        
+        private const val CONTACT_SORT_ORDER = "${ContactsContract.Data.CONTACT_ID} ASC"
     }
 }
