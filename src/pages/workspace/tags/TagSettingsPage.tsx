@@ -17,6 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {
     getCleanedTagName,
@@ -55,7 +56,8 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     const approver = getPersonalDetailByEmail(tagApprover);
     const approverText = approver?.displayName ?? tagApprover;
     const currentPolicyTag = policyTag.tags[tagName] ?? Object.values(policyTag.tags ?? {}).find((tag) => tag.previousTagName === tagName);
-    const shouldPreventDisable = policy?.requiresTag && getCountOfEnabledTagsOfList(policyTag?.tags) === 1;
+    const countOfEnabledTagLists = getCountOfEnabledTagsOfList(policyTag?.tags);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledTag(policy, [currentPolicyTag], countOfEnabledTagLists);
 
     useEffect(() => {
         if (currentPolicyTag?.name === tagName || !currentPolicyTag) {
@@ -75,7 +77,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
     };
 
     const updateWorkspaceTagEnabled = (value: boolean) => {
-        if (shouldPreventDisable && !value) {
+        if (shouldPreventDisableOrDelete && !value) {
             setIsCannotDisableLastTagModalVisible(true);
             return;
         }
@@ -184,7 +186,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                                     isOn={currentPolicyTag.enabled}
                                     accessibilityLabel={translate('workspace.tags.enableTag')}
                                     onToggle={updateWorkspaceTagEnabled}
-                                    showLockIcon={shouldPreventDisable && currentPolicyTag?.enabled}
+                                    showLockIcon={shouldPreventDisableOrDelete && currentPolicyTag?.enabled}
                                 />
                             </View>
                         </View>
@@ -240,7 +242,7 @@ function TagSettingsPage({route, navigation}: TagSettingsPageProps) {
                             icon={Expensicons.Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
-                                if (shouldPreventDisable && currentPolicyTag?.enabled) {
+                                if (shouldPreventDisableOrDelete && currentPolicyTag?.enabled) {
                                     setIsCannotDeleteLastEnabledTagModalVisible(true);
                                     return;
                                 }

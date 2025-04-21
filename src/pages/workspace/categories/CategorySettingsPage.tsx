@@ -20,7 +20,7 @@ import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getEnabledCategoriesCount} from '@libs/OptionsListUtils';
+import {getEnabledCategoriesCount, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getWorkflowApprovalsUnavailable, isControlPolicy} from '@libs/PolicyUtils';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -58,9 +58,11 @@ function CategorySettingsPage({
 
     const [isCannotDisableLastCategoryModalVisible, setIsCannotDisableLastCategoryModalVisible] = useState(false);
     const [isCannotDeleteLastTagModalVisible, setIsCannotDeleteLastTagModalVisible] = useState(false);
+
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+    const shouldPreventDisableOrDelete = isDisablingOrDeletingLastEnabledCategory(policy, [policyCategory], enabledCategoriesCount);
     const areCommentsRequired = policyCategory?.areCommentsRequired ?? false;
     const isQuickSettingsFlow = !!backTo;
-    const shouldPreventDisable = policy?.requiresCategory && getEnabledCategoriesCount(policyCategories) === 1;
 
     const navigateBack = () => {
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
@@ -117,7 +119,7 @@ function CategorySettingsPage({
     }
 
     const updateWorkspaceCategoryEnabled = (value: boolean) => {
-        if (shouldPreventDisable && !value) {
+        if (shouldPreventDisableOrDelete && !value) {
             setIsCannotDisableLastCategoryModalVisible(true);
             return;
         }
@@ -200,7 +202,7 @@ function CategorySettingsPage({
                                     isOn={policyCategory.enabled}
                                     accessibilityLabel={translate('workspace.categories.enableCategory')}
                                     onToggle={updateWorkspaceCategoryEnabled}
-                                    showLockIcon={policyCategory?.enabled && shouldPreventDisable}
+                                    showLockIcon={policyCategory?.enabled && shouldPreventDisableOrDelete}
                                 />
                             </View>
                         </View>
@@ -357,7 +359,7 @@ function CategorySettingsPage({
                             icon={Trashcan}
                             title={translate('common.delete')}
                             onPress={() => {
-                                if (policyCategory?.enabled && shouldPreventDisable) {
+                                if (policyCategory?.enabled && shouldPreventDisableOrDelete) {
                                     setIsCannotDeleteLastTagModalVisible(true);
                                     return;
                                 }

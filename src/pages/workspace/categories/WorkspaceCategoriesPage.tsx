@@ -90,7 +90,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
     const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
-    const shouldPreventDisable = policy?.requiresCategory && enabledCategoriesCount === 1;
+
     const {canUseLeftHandBar} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -163,20 +163,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         disabled={isDisabled}
                         accessibilityLabel={translate('workspace.categories.enableCategory')}
                         onToggle={(newValue: boolean) => {
-                            if (shouldPreventDisable && !newValue) {
+                            if (isDisablingOrDeletingLastEnabledCategory(policy, [value], enabledCategoriesCount) && !newValue) {
                                 setIsCannotDisableLastCategoryModalVisible(true);
                                 return;
                             }
                             updateWorkspaceCategoryEnabled(newValue, value.name);
                         }}
-                        showLockIcon={shouldPreventDisable && value.enabled}
+                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, [value], enabledCategoriesCount) && value.enabled}
                     />
                 ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, shouldPreventDisable]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, enabledCategoriesCount, policy]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 

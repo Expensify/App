@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import type {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1084,6 +1085,13 @@ function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, se
 
 function isDisablingOrDeletingLastEnabledTag(policy: Policy | undefined, selectedTagArray: Array<PolicyTag | undefined>, enabledTagsCount: number): boolean {
     if (policy?.requiresTag && selectedTagArray.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
+        return true;
+    }
+    return false;
+}
+
+function isMakingLastRequiredTagListOptional(policy: Policy | undefined, selectedTagListArray: Array<PolicyTagList | undefined>, requiredTagsCount: number): boolean {
+    if (policy?.requiresTag && selectedTagListArray.filter((selectedTag) => selectedTag?.required).length === requiredTagsCount) {
         return true;
     }
     return false;
@@ -2369,6 +2377,7 @@ export {
     shouldShowLastActorDisplayName,
     isDisablingOrDeletingLastEnabledCategory,
     isDisablingOrDeletingLastEnabledTag,
+    isMakingLastRequiredTagListOptional,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};

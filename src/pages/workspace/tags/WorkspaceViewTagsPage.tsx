@@ -36,6 +36,7 @@ import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import localeCompare from '@libs/LocaleCompare';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {isDisablingOrDeletingLastEnabledTag, isMakingLastRequiredTagListOptional} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -132,17 +133,17 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             accessibilityLabel={translate('workspace.tags.enableTag')}
                             onToggle={(newValue: boolean) => {
-                                if (countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled && currentPolicyTag?.required) {
+                                if (isDisablingOrDeletingLastEnabledTag(policy, [tag], countOfEnabledTagsOfList) && tag.enabled && currentPolicyTag?.required) {
                                     setIsCannotDisableLastTagModalVisible(true);
                                     return;
                                 }
                                 updateWorkspaceTagEnabled(newValue, tag.name);
                             }}
-                            showLockIcon={countOfRequiredTagLists === 1 && getCountOfEnabledTagsOfList(currentPolicyTag?.tags) === 1 && tag.enabled && currentPolicyTag?.required}
+                            showLockIcon={isDisablingOrDeletingLastEnabledTag(policy, [tag], countOfEnabledTagsOfList) && currentPolicyTag?.required}
                         />
                     ),
                 })),
-        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, countOfRequiredTagLists, currentPolicyTag?.required],
+        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, currentPolicyTag?.required, policy, countOfEnabledTagsOfList],
     );
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
@@ -341,7 +342,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             switchAccessibilityLabel={translate('common.required')}
                             isActive={!!currentPolicyTag?.required}
                             onToggle={(on) => {
-                                if (countOfRequiredTagLists === 1 && policy?.requiresTag && currentPolicyTag?.required) {
+                                if (isMakingLastRequiredTagListOptional(policy, [currentPolicyTag], countOfRequiredTagLists) && currentPolicyTag?.required) {
                                     setIsCannotMakeAllTagsOptionalModalVisible(true);
                                     return;
                                 }
@@ -352,7 +353,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             errors={currentPolicyTag?.errorFields?.required ?? undefined}
                             onCloseError={() => clearPolicyTagListErrorField(policyID, route.params.orderWeight, 'required')}
                             disabled={!currentPolicyTag?.required && !Object.values(currentPolicyTag?.tags ?? {}).some((tag) => tag.enabled)}
-                            showLockIcon={countOfRequiredTagLists === 1 && policy?.requiresTag && currentPolicyTag?.required}
+                            showLockIcon={isMakingLastRequiredTagListOptional(policy, [currentPolicyTag], countOfRequiredTagLists) && currentPolicyTag?.required}
                         />
                     </View>
                 )}
