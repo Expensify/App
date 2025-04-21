@@ -4,6 +4,14 @@ type StringHolder = {
     value: string;
 };
 
+export const CONTACT_FIELDS = {
+  FIRST_NAME: 'FIRST_NAME',
+  LAST_NAME: 'LAST_NAME',
+  PHONE_NUMBERS: 'PHONE_NUMBERS',
+  EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
+  IMAGE_DATA: 'IMAGE_DATA',
+} as const;
+
 export type Contact = {
     firstName?: string;
     lastName?: string;

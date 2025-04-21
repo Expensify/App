@@ -6816,14 +6816,6 @@ const CONST = {
         },
     },
 
-    DEVICE_CONTACT: {
-        FIRST_NAME: 'FIRST_NAME',
-        LAST_NAME: 'LAST_NAME',
-        PHONE_NUMBERS: 'PHONE_NUMBERS',
-        EMAIL_ADDRESSES: 'EMAIL_ADDRESSES',
-        IMAGE_DATA: 'IMAGE_DATA',
-    },
-
     CORPAY_FIELDS: {
         EXCLUDED_COUNTRIES: ['IR', 'CU', 'SY', 'UA', 'KP', 'RU'] as string[],
         EXCLUDED_CURRENCIES: ['IRR', 'CUP', 'SYP', 'UAH', 'KPW', 'RUB'] as string[],
