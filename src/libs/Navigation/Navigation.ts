@@ -74,23 +74,26 @@ function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
     shouldPopAllStateOnUP = shouldPopAllStateFlag;
 }
 
+type CanNavigateParams = {
+    route?: Route;
+    backToRoute?: Route;
+};
+
 /**
  * Checks if the navigationRef is ready to perform a method, and blocks navigation if the user is required to enable 2FA.
  * If a navigation method is called while 2FA is required, and the target route is not the 2FA page, navigation is blocked.
  */
-function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
-    // Block navigation if 2FA is required and the target is not the 2FA page
-    const targetRoute = params.route || params.backToRoute;
-
-    // Allow navigation to only these routes to enable 2fa
-    const allowed2FARoutes = [
+function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
+    // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
+    const targetRoute = params.route ?? params.backToRoute;
+    const allowed2FARoutes: Route[] = [
         ROUTES.REQUIRE_TWO_FACTOR_AUTH,
         ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
         ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
         ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
     ];
 
-    if (shouldShowRequire2FAPage() && !allowed2FARoutes.includes(targetRoute)) {
+    if (shouldShowRequire2FAPage() && targetRoute && !allowed2FARoutes.includes(targetRoute)) {
         Log.info(`[Navigation] Blocked navigation due to active 2FA requirement for route ${targetRoute}`);
         return false;
     }
