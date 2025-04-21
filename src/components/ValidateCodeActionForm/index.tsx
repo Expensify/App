@@ -11,6 +11,8 @@ import type {ValidateCodeActionFormProps} from './type';
 function ValidateCodeActionForm({
     descriptionPrimary,
     descriptionSecondary,
+    descriptionPrimaryStyles,
+    descriptionSecondaryStyles,
     validatePendingAction,
     validateError,
     handleSubmitForm,
@@ -50,8 +52,8 @@ function ValidateCodeActionForm({
 
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-            <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-            {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+            <Text style={[themeStyles.mb6, descriptionPrimaryStyles]}>{descriptionPrimary}</Text>
+            {!!descriptionSecondary && <Text style={[themeStyles.mb6, descriptionSecondaryStyles]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
                 validateCodeAction={validateCodeAction}

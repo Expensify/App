@@ -130,6 +130,7 @@ function AccountDetailsPage() {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountDetailsPage.displayName}
         >
@@ -151,10 +152,12 @@ function AccountDetailsPage() {
                 ref={formRef}
             >
                 <View style={[styles.flexGrow1, styles.mt3]}>
-                    <Text>
-                        {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
-                        <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
-                    </Text>
+                    <View>
+                        <Text>
+                            {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
+                            <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
+                        </Text>
+                    </View>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PHONE_OR_EMAIL}
@@ -162,13 +165,13 @@ function AccountDetailsPage() {
                         label={translate('loginForm.phoneOrEmail')}
                         aria-label={translate('loginForm.phoneOrEmail')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
+                        containerStyles={[styles.mt8]}
                         autoCorrect={false}
                         onChangeText={setEmail}
                         value={email}
                     />
                     <InputWrapper
-                        style={[styles.mt6]}
+                        style={[styles.mt8]}
                         InputComponent={CheckboxWithLabel}
                         inputID={INPUT_IDS.CONSENT}
                         label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
