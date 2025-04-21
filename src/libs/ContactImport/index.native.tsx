@@ -12,16 +12,17 @@ function contactImport(): Promise<ContactImportResult> {
     return requestContactPermission()
         .then((response: PermissionStatus) => {
             permissionStatus = response;
-            if (response === RESULTS.GRANTED) {
-                return ContactsNitroModule.getAll([
-                    CONTACT_FIELDS.FIRST_NAME,
-                    CONTACT_FIELDS.LAST_NAME,
-                    CONTACT_FIELDS.PHONE_NUMBERS,
-                    CONTACT_FIELDS.EMAIL_ADDRESSES,
-                    CONTACT_FIELDS.IMAGE_DATA,
-                ]);
+            if (response !== RESULTS.GRANTED) {
+                return [] as Contact[];
             }
-            return [] as Contact[];
+            
+            return ContactsNitroModule.getAll([
+                CONTACT_FIELDS.FIRST_NAME,
+                CONTACT_FIELDS.LAST_NAME,
+                CONTACT_FIELDS.PHONE_NUMBERS,
+                CONTACT_FIELDS.EMAIL_ADDRESSES,
+                CONTACT_FIELDS.IMAGE_DATA,
+            ]);
         })
         .then((deviceContacts) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
