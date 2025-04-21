@@ -58,7 +58,7 @@ import type {ConnectionName} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {AccountingContextProvider, useAccountingContext} from './AccountingContext';
 import type {MenuItemData, PolicyAccountingPageProps} from './types';
-import {getAccountingIntegrationData, getConnectionMessage, getSynchronizationErrorMessage} from './utils';
+import {getAccountingIntegrationData, getSynchronizationErrorMessage} from './utils';
 
 type RouteParams = {
     newConnectionName?: ConnectionName;
@@ -68,9 +68,9 @@ type RouteParams = {
 
 function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: false});
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: false});
-    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: false});
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
+    const [conciergeChatReportID] = useOnyx(ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID, {canBeMissing: true});
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate, datetimeToRelative: getDatetimeToRelative} = useLocalize();
@@ -333,7 +333,15 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const shouldHideConfigurationOptions = isConnectionUnverified(policy, connectedIntegration);
         const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
-        const connectionMessage = getConnectionMessage(isSyncInProgress, connectionSyncProgress?.stageInProgress, datetimeToRelative, shouldHideConfigurationOptions, translate);
+
+        let connectionMessage = '';
+        if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
+            connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
+        } else if (shouldHideConfigurationOptions) {
+            connectionMessage = translate('workspace.accounting.notSync');
+        } else {
+            connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
+        }
 
         const configurationOptions = [
             {

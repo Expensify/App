@@ -19,15 +19,7 @@ import {getTrackingCategories} from '@userActions/connections/Xero';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Policy} from '@src/types/onyx';
-import type {
-    Account,
-    ConnectionName,
-    Connections,
-    PolicyConnectionName,
-    PolicyConnectionSyncStage,
-    QBDNonReimbursableExportAccountType,
-    QBDReimbursableExportAccountType,
-} from '@src/types/onyx/Policy';
+import type {Account, ConnectionName, Connections, PolicyConnectionName, QBDNonReimbursableExportAccountType, QBDReimbursableExportAccountType} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {
     getImportCustomFieldsSettings,
@@ -379,22 +371,4 @@ function getQBDReimbursableAccounts(
     return accounts;
 }
 
-function getConnectionMessage(
-    isSyncInProgress: boolean,
-    stageInProgress: PolicyConnectionSyncStage | undefined,
-    datetimeToRelative: string,
-    isConnectionUnverified: boolean,
-    translate: LocaleContextProps['translate'],
-): string {
-    if (isSyncInProgress && stageInProgress) {
-        return translate('workspace.accounting.connections.syncStageName', {stage: stageInProgress});
-    }
-
-    if (isConnectionUnverified) {
-        return translate('workspace.accounting.notSync');
-    }
-
-    return translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
-}
-
-export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts, getConnectionMessage};
+export {getAccountingIntegrationData, getSynchronizationErrorMessage, getQBDReimbursableAccounts};
