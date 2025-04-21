@@ -10,7 +10,7 @@
 #include "HybridContactsModuleSpec.hpp"
 
 // Forward declaration of `HybridContactsModuleSpec_cxx` to properly resolve imports.
-namespace UtilsModule { class HybridContactsModuleSpec_cxx; }
+namespace ExpensifyNitroUtils { class HybridContactsModuleSpec_cxx; }
 
 // Forward declaration of `Contact` to properly resolve imports.
 namespace margelo::nitro::utils { struct Contact; }
@@ -27,7 +27,7 @@ namespace margelo::nitro::utils { enum class ContactFields; }
 #include "StringHolder.hpp"
 #include "ContactFields.hpp"
 
-#include "UtilsModule-Swift-Cxx-Umbrella.hpp"
+#include "ExpensifyNitroUtils-Swift-Cxx-Umbrella.hpp"
 
 namespace margelo::nitro::utils {
 
@@ -44,13 +44,13 @@ namespace margelo::nitro::utils {
   class HybridContactsModuleSpecSwift: public virtual HybridContactsModuleSpec {
   public:
     // Constructor from a Swift instance
-    explicit HybridContactsModuleSpecSwift(const UtilsModule::HybridContactsModuleSpec_cxx& swiftPart):
+    explicit HybridContactsModuleSpecSwift(const ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& swiftPart):
       HybridObject(HybridContactsModuleSpec::TAG),
       _swiftPart(swiftPart) { }
 
   public:
     // Get the Swift part
-    inline UtilsModule::HybridContactsModuleSpec_cxx& getSwiftPart() noexcept {
+    inline ExpensifyNitroUtils::HybridContactsModuleSpec_cxx& getSwiftPart() noexcept {
       return _swiftPart;
     }
 
@@ -76,7 +76,7 @@ namespace margelo::nitro::utils {
     }
 
   private:
-    UtilsModule::HybridContactsModuleSpec_cxx _swiftPart;
+    ExpensifyNitroUtils::HybridContactsModuleSpec_cxx _swiftPart;
   };
 
 } // namespace margelo::nitro::utils

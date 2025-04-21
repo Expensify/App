@@ -13,7 +13,7 @@ import com.margelo.nitro.core.HybridObject;
 import java.util.HashMap;
 import java.util.function.Supplier;
 
-public class UtilsModulePackage extends TurboReactPackage {
+public class ExpensifyNitroUtilsPackage extends TurboReactPackage {
   @Nullable
   @Override
   public NativeModule getModule(String name, ReactApplicationContext reactContext) {
@@ -28,6 +28,6 @@ public class UtilsModulePackage extends TurboReactPackage {
   }
 
   static {
-    UtilsModuleOnLoad.initializeNative();
+    ExpensifyNitroUtilsOnLoad.initializeNative();
   }
 }

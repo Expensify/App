@@ -20,7 +20,7 @@ import NitroModules
 public class HybridContactsModuleSpec_cxx {
   /**
    * The Swift <> C++ bridge's namespace (`margelo::nitro::utils::bridge::swift`)
-   * from `UtilsModule-Swift-Cxx-Bridge.hpp`.
+   * from `ExpensifyNitroUtils-Swift-Cxx-Bridge.hpp`.
    * This contains specialized C++ templates, and C++ helper functions that can be accessed from Swift.
    */
   public typealias bridge = margelo.nitro.utils.bridge.swift

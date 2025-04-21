@@ -1,11 +1,11 @@
 {
     "cxxNamespace": ["utils"],
     "ios": {
-        "iosModuleName": "UtilsModule"
+        "iosModuleName": "ExpensifyNitroUtils"
     },
     "android": {
         "androidNamespace": ["utils"],
-        "androidCxxLibName": "UtilsModule"
+        "androidCxxLibName": "ExpensifyNitroUtils"
     },
     "autolinking": {
         "ContactsModule": {

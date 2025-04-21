@@ -1,5 +1,5 @@
 #include <jni.h>
-#include "UtilsModuleOnLoad.hpp"
+#include "ExpensifyNitroUtilsOnLoad.hpp"
 
 JNIEXPORT jint JNICALL JNI_OnLoad(JavaVM* vm, void*) {
   return margelo::nitro::utils::initialize(vm);
