@@ -81,8 +81,17 @@ function setShouldPopAllStateOnUP(shouldPopAllStateFlag: boolean) {
 function canNavigate(methodName: string, params: Record<string, unknown> = {}): boolean {
     // Block navigation if 2FA is required and the target is not the 2FA page
     const targetRoute = params.route || params.backToRoute;
-    if (shouldShowRequire2FAPage() && targetRoute !== ROUTES.REQUIRE_TWO_FACTOR_AUTH) {
-        Log.info(`[Navigation] Blocked navigation due to active 2FA requirement:`, targetRoute);
+
+    // Allow navigation to only these routes to enable 2fa
+    const allowed2FARoutes = [
+        ROUTES.REQUIRE_TWO_FACTOR_AUTH,
+        ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+        ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+        ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+    ];
+
+    if (shouldShowRequire2FAPage() && !allowed2FARoutes.includes(targetRoute)) {
+        Log.info(`[Navigation] Blocked navigation due to active 2FA requirement for route ${targetRoute}`);
         return false;
     }
     if (navigationRef.isReady()) {
