@@ -42,7 +42,7 @@ import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFro
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {isDeletingLastEnabledTag} from '@libs/OptionsListUtils';
+import {isDisablingOrDeletingLastEnabledTag} from '@libs/OptionsListUtils';
 import {
     getCleanedTagName,
     getCountOfEnabledTagsOfList,
@@ -99,7 +99,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     }, [policyID]);
     const isQuickSettingsFlow = !!backTo;
     const countOfRequiredTagLists = getCountOfRequiredTagLists(policyTags);
-    const shouldPreventDisable = policy?.requiresTag && getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags) === 1;
+    const countOfEnabledTagLists = getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags);
+    const shouldPreventDisable = policy?.requiresTag && countOfEnabledTagLists === 1;
 
     const {isOffline} = useNetwork({onReconnect: fetchTags});
 
@@ -162,6 +163,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         },
         [policyID],
     );
+    const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
             return policyTagLists.map((policyTagList) => {
@@ -200,7 +203,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 };
             });
         }
-        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
+
         return sortedTags.map((tag) => ({
             value: tag.name,
             text: getCleanedTagName(tag.name),
@@ -300,6 +303,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setIsDeleteTagsConfirmModalVisible(false);
     };
 
+    const selectedTagsObject = selectedTagsArray.map((key) => sortedTags.find((tag) => tag.name === key));
+
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
@@ -335,7 +340,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 text: translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 onSelected: () => {
-                    if (shouldPreventDisable && isDeletingLastEnabledTag(policyTagLists.at(0)?.tags, selectedTagsArray)) {
+                    if (isDisablingOrDeletingLastEnabledTag(policy, selectedTagsObject, countOfEnabledTagLists)) {
                         setIsCannotDeleteLastEnabledTagModalVisible(true);
                         return;
                     }
@@ -367,13 +372,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         if (enabledTagCount > 0) {
             const tagsToDisableCount = Object.keys(tagsToDisable).length;
-            const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagLists.at(0)?.tags);
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 onSelected: () => {
-                    if (tagsToDisableCount === enabledTagsCount && policy?.requiresTag) {
+                    if (isDisablingOrDeletingLastEnabledTag(policy, selectedTagsObject, countOfEnabledTagLists)) {
                         setIsCannotDisableLastTagModalVisible(true);
                         return;
                     }

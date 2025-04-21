@@ -7,6 +7,7 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
+import {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -1075,32 +1076,19 @@ function getEnabledCategoriesCount(PolicyCategories: PolicyCategories | undefine
     return Object.values(PolicyCategories).filter((PolicyCategory) => PolicyCategory.enabled).length;
 }
 
-function isDeletingLastEnabledCategory(PolicyCategories: PolicyCategories | undefined, selectedCategoryArray: string[]): boolean {
-    if (!PolicyCategories) {
-        return false;
+function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, selectedCategoriesObject: (PolicyCategory | undefined)[], enabledCategoriesCount: number): boolean {
+    if (policy?.requiresCategory && selectedCategoriesObject.filter((selectedCategories) => selectedCategories?.enabled).length === enabledCategoriesCount) {
+        return true;
     }
-    // Since we will only have one enabled category
-    const enabledCategoryName = Object.keys(PolicyCategories).find((categoryName) => PolicyCategories[categoryName].enabled);
 
-    const isUserDeletingLastEnabledCategory = selectedCategoryArray.some((categoryName) => {
-        return categoryName === enabledCategoryName;
-    });
-
-    return isUserDeletingLastEnabledCategory;
+    return false;
 }
 
-function isDeletingLastEnabledTag(PolicyTags: PolicyTags | undefined, selectedTagArray: string[]): boolean {
-    if (!PolicyTags) {
-        return false;
+function isDisablingOrDeletingLastEnabledTag(policy: Policy | undefined, selectedTagArray: (PolicyTag | undefined)[], enabledTagsCount: number): boolean {
+    if (policy?.requiresTag && selectedTagArray.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
+        return true;
     }
-    // Since we will only have one enabled tag
-    const enabledTagName = Object.values(PolicyTags).find((tag) => tag.enabled)?.name;
-
-    const isUserDeletingLastEnabledTag = selectedTagArray.some((tagName) => {
-        return tagName === enabledTagName;
-    });
-
-    return isUserDeletingLastEnabledTag;
+    return false;
 }
 
 function getSearchValueForPhoneOrEmail(searchTerm: string) {
@@ -2381,8 +2369,8 @@ export {
     getIsUserSubmittedExpenseOrScannedReceipt,
     getManagerMcTestParticipant,
     shouldShowLastActorDisplayName,
-    isDeletingLastEnabledCategory,
-    isDeletingLastEnabledTag,
+    isDisablingOrDeletingLastEnabledCategory,
+    isDisablingOrDeletingLastEnabledTag,
 };
 
 export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
