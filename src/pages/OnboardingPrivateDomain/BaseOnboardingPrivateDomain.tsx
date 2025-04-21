@@ -65,6 +65,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
+            shouldShowOfflineIndicator={false}
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
@@ -74,11 +75,7 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                 progressBarPercentage={40}
                 onBackButtonPress={Navigation.goBack}
             />
-            <ScrollView
-                style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
-                contentContainerStyle={[styles.flexGrow1, styles.justifyContentBetween]}
-                keyboardShouldPersistTaps="handled"
-            >
+            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5, styles.justifyContentBetween]}>
                 <View>
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.peopleYouMayKnow')}</Text>
                     <Text style={[styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workspaceYouMayJoin', {domain, email})}</Text>
@@ -99,18 +96,17 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         allowResubmit
                     />
                 </View>
-                <View>
+                <View style={[styles.mb5]}>
                     <Button
                         success={false}
                         large
-                        style={[styles.mb5]}
                         text={translate('common.skip')}
                         isLoading={getAccessiblePoliciesAction?.loading}
                         onPress={() => Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo))}
                     />
                     {shouldUseNarrowLayout && <OfflineIndicator />}
                 </View>
-            </ScrollView>
+            </View>
         </ScreenWrapper>
     );
 }
