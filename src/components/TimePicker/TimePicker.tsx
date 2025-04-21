@@ -728,12 +728,44 @@ function TimePicker(
         }
     };
 
+    const renderedAmPmButtons = useMemo(
+        () => (
+            <View style={styles.timePickerSwitcherContainer}>
+                <Button
+                    shouldEnableHapticFeedback
+                    innerStyles={styleForAM}
+                    small
+                    text={translate('common.am')}
+                    onLongPress={() => {}}
+                    onPress={() => {
+                        setAmPmValue(CONST.TIME_PERIOD.AM);
+                    }}
+                    onPressOut={() => {}}
+                    onMouseDown={(e) => e.preventDefault()}
+                />
+                <Button
+                    shouldEnableHapticFeedback
+                    innerStyles={[styleForPM, styles.ml1]}
+                    small
+                    text={translate('common.pm')}
+                    onLongPress={() => {}}
+                    onPress={() => {
+                        setAmPmValue(CONST.TIME_PERIOD.PM);
+                    }}
+                    onPressOut={() => {}}
+                    onMouseDown={(e) => e.preventDefault()}
+                />
+            </View>
+        ),
+        [styles, styleForAM, styleForPM, translate, setAmPmValue],
+    );
+
     return (
         <View style={styles.flex1}>
             <View style={[styles.flex1, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <View
                     nativeID={AMOUNT_VIEW_ID}
-                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb8]}
+                    style={[styles.flexRow, styles.w100, styles.justifyContentCenter, styles.timePickerInputsContainer, styles.mb2]}
                 >
                     <AmountTextInput
                         placeholder={numberFormat(0)}
@@ -829,44 +861,18 @@ function TimePicker(
                         </>
                     )}
                 </View>
-                <View style={styles.timePickerSwitcherContainer}>
-                    <Button
-                        shouldEnableHapticFeedback
-                        innerStyles={styleForAM}
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        text={translate('common.am')}
-                        onLongPress={() => {}}
-                        onPress={() => {
-                            setAmPmValue(CONST.TIME_PERIOD.AM);
-                        }}
-                        onPressOut={() => {}}
-                        onMouseDown={(e) => e.preventDefault()}
-                    />
-                    <Button
-                        shouldEnableHapticFeedback
-                        innerStyles={[styleForPM, styles.ml1]}
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
-                        text={translate('common.pm')}
-                        onLongPress={() => {}}
-                        onPress={() => {
-                            setAmPmValue(CONST.TIME_PERIOD.PM);
-                        }}
-                        onPressOut={() => {}}
-                        onMouseDown={(e) => e.preventDefault()}
-                    />
-                </View>
+                {!canUseTouchScreen && renderedAmPmButtons}
             </View>
             {isError ? (
                 <FormHelpMessage
                     isError={isError}
                     message={errorMessage}
-                    style={[styles.ph5]}
+                    style={[styles.ph5, styles.formHelperMessage, canUseTouchScreen && styles.mb5]}
                 />
             ) : (
-                <View style={styles.formHelperMessage} />
+                <View style={[styles.formHelperMessage, canUseTouchScreen && styles.mb5]} />
             )}
+            {canUseTouchScreen && renderedAmPmButtons}
             <View
                 style={[styles.numberPadWrapper, styles.pb4]}
                 nativeID={NUM_PAD_CONTAINER_VIEW_ID}
