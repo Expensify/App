@@ -458,20 +458,21 @@ You can only build HybridApp if you have been granted access to [`Mobile-Expensi
 ## Getting started with HybridApp
 
 1. If you haven't, please follow [these instructions](https://github.com/Expensify/App?tab=readme-ov-file#getting-started) to setup the NewDot local environment.
-2. Run `git submodule update --init --progress --depth 100` to download the `Mobile-Expensify` sourcecode.
-- If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
+2. In the root directory, run `git submodule init`
+3. Run `git submodule update`
+    - If this takes too long, try `git submodule update --init --progress --depth 100` (Note: this makes it difficult to checkout remote branches in the submodule)
+    - If you have access to `Mobile-Expensify` and the command fails, add this to your `~/.gitconfig` file:
 
     ```
     [url "https://github.com/"]
         insteadOf = ssh://git@github.com/
     ```
-- To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config`:
+    - To prevent `Mobile-Expensify` submodule commit hash changes from appearing in `git status`, configure Git to ignore them by adding this to your local `.git/config` (This ensures that submodule changes are ignored unless you deliberately update them):
     ```
     [submodule "Mobile-Expensify"]
         ignore = all
     ```
-    This ensures that submodule changes are ignored unless you deliberately update them.
-3. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
+4. Run `git config --global submodule.recurse true` in order to have the submodule updated when you pull App
 
 
 > [!Note]  
