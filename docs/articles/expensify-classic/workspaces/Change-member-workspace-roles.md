@@ -1,7 +1,7 @@
 ---
 title: Update workspace member roles
 description: Learn how to update a member's role and permissions in a workspace.
-keywords: workspace roles, permissions, workspace admin, approval settings
+keywords: [Expensify Classic, workspace roles, permissions, workspace admin, approval settings]
 ---
 <div id="expensify-classic" markdown="1">
 
