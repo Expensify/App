@@ -54,6 +54,7 @@ import {
     getOriginalMessage,
     getReportActionMessageText,
     getSortedReportActions,
+    getUpdateRoomDescriptionMessage,
     isActionableAddPaymentCard,
     isActionOfType,
     isClosedAction,
@@ -780,6 +781,8 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.RESOLVED_DUPLICATES) {
         lastMessageTextFromReport = translateLocal('violations.resolvedDuplicates');
+    } else if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION)) {
+        lastMessageTextFromReport = getUpdateRoomDescriptionMessage(lastReportAction);
     }
 
     // we do not want to show report closed in LHN for non archived report so use getReportLastMessage as fallback instead of lastMessageText from report
@@ -886,12 +889,15 @@ function createOption(
         hasMultipleParticipants = personalDetailList.length > 1 || result.isChatRoom || result.isPolicyExpenseChat || reportUtilsIsGroupChat(report);
         subtitle = getChatRoomSubtitle(report, {isCreateExpenseFlow: true});
 
-        const lastActorDetails = report.lastActorAccountID ? personalDetails?.[report.lastActorAccountID] ?? null : null;
+        const lastAction = lastVisibleReportActions[report.reportID];
+        // lastActorAccountID can be an empty string
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        const lastActorAccountID = report.lastActorAccountID || lastAction?.actorAccountID;
+        const lastActorDetails = lastActorAccountID ? personalDetails?.[lastActorAccountID] ?? null : null;
         const lastActorDisplayName = getLastActorDisplayName(lastActorDetails);
         const lastMessageTextFromReport = getLastMessageTextForReport(report, lastActorDetails, undefined, reportNameValuePairs);
         let lastMessageText = lastMessageTextFromReport;
 
-        const lastAction = lastVisibleReportActions[report.reportID];
         const shouldDisplayLastActorName =
             lastAction &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
