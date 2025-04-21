@@ -4182,8 +4182,7 @@ function getReportPreviewMessage(
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
         if (isForListPreview && report?.parentReportID != null) {
-            const parentReportSearchAll = getReport(report?.parentReportID, allReports);
-            const payerText = isDM(parentReportSearchAll) && translatePhraseKey === 'iou.payerPaidAmount' ? '' : payerDisplayName;
+            const payerText = isDM(parentReport) && translatePhraseKey === 'iou.payerPaidAmount' ? '' : payerDisplayName;
             return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerText});
         }
 
