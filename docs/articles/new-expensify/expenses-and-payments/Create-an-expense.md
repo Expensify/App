@@ -157,6 +157,7 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 
 - Expenses submitted to a workspace are automatically added to a report and checked for violations or inconsistencies.
 - You can view the details and status of the expense on the **Search** tab.
+- If you need to add additional supporting documents or images to the report, tap **+ > Add Attachment** within the report.
 - Workspace settings determine the frequency of report submission. However, if the report is ready for early submission, you can manually submit a report for approval.
 - Once a report is submitted, your approver will get an email or text to review and pay the expense.
 - If changes are required, you will receive a notification to fix the expense and resubmit.
@@ -164,6 +165,13 @@ You can also forward receipts to receipts@expensify.com using your primary or se
 - Make sure to [connect your personal bank account](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Connect-a-Personal-Bank-Account) to receive payment. 
 
 {% include faq-begin.md %}
+
+**Can I add multiple receipts to a newly created expense?**
+
+Each expense can only have one receipt image attached. If you have multiple receipts:
+- Combine them into a single PDF before uploading.
+- Or, add the extra receipts to the report itself as attachments.
+
 **Can I divide a payment between multiple people?**
 
 Yes, you can [split an expense](https://help.expensify.com/articles/new-expensify/expenses-and-payments/Split-an-expense) in a group chat.  

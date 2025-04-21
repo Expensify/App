@@ -1,0 +1,49 @@
+name: Remote Build iOS
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [staging, production]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  build:
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'macos-15-xlarge' || 'macos-15' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project_root: ./
+            scheme: 'New Expensify Dev'
+            configuration: 'DebugDevelopment'
+
+          - project_root: Mobile-Expensify/
+            is_hybrid_build: true
+            scheme: 'Expensify Dev'
+            configuration: 'Debug'
+    steps:
+      - name: Checkout
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: ${{ matrix.is_hybrid_build || false }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Setup Node
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid_build && 'true' || 'false' }}
+
+      - name: RNEF Remote Build - iOS
+        uses: callstackincubator/ios@f8aeffabe13be32e9aa69b86726de67bff5a694e
+        env:
+          PROJECT_ROOT_PATH: ${{ matrix.project_root }}
+        with:
+          destination: simulator
+          scheme: ${{ matrix.scheme }}
+          configuration: ${{ matrix.configuration }}
+          github-token: ${{ github.token }}
+          comment-bot: false

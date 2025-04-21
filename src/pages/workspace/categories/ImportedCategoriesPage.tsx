@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -20,17 +20,21 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 type ImportedCategoriesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+
+    const isClosing = useRef(false);
+
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const isQuickSettingsFlow = !!backTo;
@@ -116,16 +120,18 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    if (hasAccountingConnections) {
-        return <NotFoundPage />;
-    }
-
-    const spreadsheetColumns = spreadsheet?.data;
-    if (!spreadsheetColumns) {
+    if (isClosing.current || (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata))) {
         return;
     }
 
+    const spreadsheetColumns = spreadsheet?.data;
+
+    if (hasAccountingConnections || !spreadsheetColumns) {
+        return <NotFoundPage />;
+    }
+
     const closeImportPageAndModal = () => {
+        isClosing.current = true;
         setIsImportingCategories(false);
         closeImportPage();
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
@@ -134,7 +140,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     return (
         <ScreenWrapper
             testID={ImportedCategoriesPage.displayName}
-            includeSafeAreaPaddingBottom
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <HeaderWithBackButton
                 title={translate('workspace.categories.importCategories')}
@@ -160,6 +166,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
                 onCancel={closeImportPageAndModal}
                 confirmText={translate('common.buttonConfirm')}
                 shouldShowCancelButton={false}
+                shouldHandleNavigationBack
             />
         </ScreenWrapper>
     );

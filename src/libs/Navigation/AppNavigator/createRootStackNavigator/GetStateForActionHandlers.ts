@@ -19,6 +19,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
+    NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.ATTACHMENTS,
     SCREENS.TRANSACTION_RECEIPT,
@@ -54,7 +55,7 @@ function handleOpenWorkspaceSplitAction(
     });
 
     const actionToPushWorkspaceSplitNavigator = StackActions.push(NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR, {
-        screen: SCREENS.WORKSPACE.INITIAL,
+        screen: action.payload.screenName,
         params: {
             policyID: action.payload.policyID,
         },
