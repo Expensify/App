@@ -77,7 +77,7 @@ function getOnboardingInitialPath(isPrivateDomain?: boolean): string {
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.PERSONAL_SPEND, CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.CHAT_SPLIT]);
     }
-    if (isUserFromPublicDomain && !onboardingInitialPath) {
+    if (isUserFromPublicDomain && !onboardingValues?.isMergeAccountStepCompleted) {
         return `/${ROUTES.ONBOARDING_WORK_EMAIL.route}`;
     }
     if (isVsb) {
