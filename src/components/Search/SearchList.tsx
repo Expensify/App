@@ -163,17 +163,19 @@ function SearchList(
         [],
     );
 
-    const handleLongPressRow = useCallback(
-        (item: SearchListItem) => {
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
-                return;
-            }
-            setLongPressedItem(item);
-            setIsModalVisible(true);
-        },
-        [isFocused, isSmallScreenWidth, shouldPreventLongPressRow],
-    );
+    const handleLongPressRow = (item: SearchListItem) => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (shouldPreventLongPressRow || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || !isFocused) {
+            return;
+        }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            onCheckboxPress?.(item);
+            return;
+        }
+
+        setLongPressedItem(item);
+        setIsModalVisible(true);
+    };
 
     const turnOnSelectionMode = useCallback(() => {
         turnOnMobileSelectionMode();

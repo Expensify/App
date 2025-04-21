@@ -82,6 +82,11 @@ function SelectionListWithModal<TItem extends ListItem>(
         if (!turnOnSelectionModeOnLongPress || !isSmallScreenWidth || item?.isDisabled || item?.isDisabledCheckbox || (!isFocused && !isScreenFocused)) {
             return;
         }
+        if (isSmallScreenWidth && selectionMode?.isEnabled) {
+            rest?.onCheckboxPress?.(item);
+            return;
+        }
+
         setLongPressedItem(item);
         setIsModalVisible(true);
 
