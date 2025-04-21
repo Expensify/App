@@ -13,9 +13,7 @@ When your workspace is connected to an [integration](https://help.expensify.com/
 # Assign a Technical Contact  
 
 To assign a Technical Contact:  
-1. Go to **Settings > Workspace**.  
-2. Select the **workspace name**.  
-3. Click the **Connections** tab.  
-4. In the **Technical Contact** field, you can enter the email address of the person you want to assign.  
+1. Go to **Settings > Workspace > [Workspace Name] > Accounting**. 
+2. In the **Technical Contact** field, you can enter the email address of the person you want to assign.  
 
 </div>
