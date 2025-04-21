@@ -1,9 +1,7 @@
 import throttle from 'lodash/throttle';
-import Onyx from 'react-native-onyx';
 import {getBrowser, isChromeIOS} from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 /**
@@ -12,7 +10,7 @@ import ROUTES from '@src/ROUTES';
  */
 const throttledToggle = throttle(
     () => {
-        let currentRoute = Navigation.getActiveRoute().replace(/^\//, '');
+        const currentRoute = Navigation.getActiveRoute().replace(/^\//, '');
         if (currentRoute === ROUTES.TEST_TOOLS_MODAL) {
             Navigation.goBack();
         } else {

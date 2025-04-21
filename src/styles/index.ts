@@ -1865,7 +1865,8 @@ const styles = (theme: ThemeColors) =>
 
         TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
             const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
-            const height = isAuthenticated ? (shouldUseNarrowLayout ? '78%' : '75%') : '55%';
+            const defaultHeight = shouldUseNarrowLayout ? '78%' : '75%';
+            const height = isAuthenticated ? defaultHeight : '55%';
 
             return {
                 width: shouldUseNarrowLayout ? '100%' : '91%',
