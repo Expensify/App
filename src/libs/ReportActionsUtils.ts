@@ -19,7 +19,7 @@ import type {Message, OldDotReportAction, OriginalMessage, ReportActions} from '
 import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import {isCardPendingActivate, isCardPendingIssue, isCardPendingReplace} from './CardUtils';
+import {isCardPendingActivate, isCardPendingIssue, isCardPendingReplace, isVirtualCardReplaced} from './CardUtils';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
@@ -2306,8 +2306,9 @@ function getCardIssuedMessage({
     const isPolicyAdmin = isPolicyAdminPolicyUtils(getPolicy(policyID));
     const assignee = shouldRenderHTML ? `<mention-user accountID="${assigneeAccountID}"/>` : Parser.htmlToText(`<mention-user accountID="${assigneeAccountID}"/>`);
     const navigateRoute = isPolicyAdmin ? ROUTES.EXPENSIFY_CARD_DETAILS.getRoute(policyID, String(cardID)) : ROUTES.SETTINGS_DOMAINCARD_DETAIL.getRoute(String(cardID));
-    const expensifyCardLink =
-        shouldRenderHTML && !!card ? `<a href='${environmentURL}/${navigateRoute}'>${translateLocal('cardPage.expensifyCard')}</a>` : translateLocal('cardPage.expensifyCard');
+    const isCardVirtualAndReplaced = isVirtualCardReplaced(card);
+    const expensifyCardLinkText = isCardVirtualAndReplaced ? translateLocal('workspace.expensifyCard.theNewCard') : translateLocal('cardPage.expensifyCard');
+    const expensifyCardLink = shouldRenderHTML && !!card ? `<a href='${environmentURL}/${navigateRoute}'>${expensifyCardLinkText}</a>` : expensifyCardLinkText;
     const companyCardLink = shouldRenderHTML
         ? `<a href='${environmentURL}/${ROUTES.SETTINGS_WALLET}'>${translateLocal('workspace.companyCards.companyCard')}</a>`
         : translateLocal('workspace.companyCards.companyCard');
@@ -2321,6 +2322,9 @@ function getCardIssuedMessage({
             }
             return translateLocal('workspace.expensifyCard.issuedCard', {assignee});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED_VIRTUAL:
+            if (isCardVirtualAndReplaced) {
+                return translateLocal('workspace.expensifyCard.replacedVirtualCard', {assignee, link: expensifyCardLink});
+            }
             return translateLocal('workspace.expensifyCard.issuedCardVirtual', {assignee, link: expensifyCardLink});
         case CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED:
             return translateLocal('workspace.companyCards.assignedCard', {assignee, link: companyCardLink});

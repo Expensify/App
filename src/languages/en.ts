@@ -3867,6 +3867,8 @@ const translations = {
             issuedCardVirtual: ({assignee, link}: IssueVirtualCardParams) => `issued ${assignee} a virtual ${link}! The card can be used right away.`,
             addedShippingDetails: ({assignee}: AssigneeParams) => `${assignee} added shipping details. Expensify Card will arrive in 2-3 business days.`,
             replacedCard: ({assignee}: AssigneeParams) => `${assignee} replaced their Expensify Card. The new card will arrive in 2-3 business days.`,
+            replacedVirtualCard: ({assignee, link}: IssueVirtualCardParams) => `${assignee} replaced their virtual Expensify Card! You can start using ${link} right away.`,
+            theNewCard: 'the new card',
             verifyingHeader: 'Verifying',
             bankAccountVerifiedHeader: 'Bank account verified',
             verifyingBankAccount: 'Verifying bank account...',

@@ -600,6 +600,10 @@ function isCardPendingReplace(card?: Card) {
     );
 }
 
+function isVirtualCardReplaced(card?: Card) {
+    return card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.statusChanges?.at(-1)?.status === CONST.EXPENSIFY_CARD.STATE.OPEN;
+}
+
 function isExpensifyCardPendingAction(card?: Card) {
     return (
         card?.bank === CONST.EXPENSIFY_CARD.BANK &&
@@ -668,4 +672,5 @@ export {
     isExpensifyCardPendingAction,
     getFundIdFromSettingsKey,
     isCardPendingReplace,
+    isVirtualCardReplaced,
 };
