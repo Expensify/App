@@ -51,6 +51,7 @@ import type {
     ConnectionNameParams,
     ConnectionParams,
     CurrencyCodeParams,
+    CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
     CustomUnitRateParams,
     DateParams,
@@ -2687,7 +2688,6 @@ const translations = {
         letsDoubleCheck: 'Let’s double check that everything looks fine.',
         thisBankAccount: 'This bank account will be used for business payments on your workspace',
         accountNumber: 'Account number',
-        bankStatement: 'Bank statement',
         chooseFile: 'Choose file',
         uploadYourLatest: 'Upload your latest statement',
         pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Please upload the most recent monthly statement for your business bank account ending in ${lastFourDigits}.`,
@@ -4636,7 +4636,8 @@ const translations = {
             nameIsRequiredError: "You'll need to give your workspace a name",
             currencyInputLabel: 'Default currency',
             currencyInputHelpText: 'All expenses on this workspace will be converted to this currency.',
-            currencyInputDisabledText: "The default currency can't be changed because this workspace is linked to a USD bank account.",
+            currencyInputDisabledText: ({currency}: CurrencyInputDisabledTextParams) =>
+                `The default currency can't be changed because this workspace is linked to a ${currency} bank account.`,
             save: 'Save',
             genericFailureMessage: 'An error occurred while updating the workspace. Please try again.',
             avatarUploadFailureMessage: 'An error occurred uploading the avatar. Please try again.',
@@ -4665,6 +4666,10 @@ const translations = {
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateToUSD: 'Update to USD',
+            updateWorkspaceCurrency: 'Update workspace currency',
+            workspaceCurrencyNotSupported: 'Workspace currency not supported',
+            yourWorkspace: 'Your workspace is set to an unsupported currency. View the',
+            listOfSupportedCurrencies: 'list of supported currencies',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transfer owner',
@@ -6240,6 +6245,14 @@ const translations = {
         getHelp: 'Get help',
         talkToConcierge: 'Talk to Concierge',
         hangUp: 'Hang up',
+    },
+    testDrive: {
+        modal: {
+            title: 'Take us for a test drive',
+            description: 'Take a quick product tour to get up to speed fast. No pit stops required!',
+            confirmText: 'Start test drive',
+            helpText: 'Skip',
+        },
     },
 };
 
