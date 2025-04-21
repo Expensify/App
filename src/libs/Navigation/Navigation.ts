@@ -37,6 +37,14 @@ import {linkingConfig} from './linkingConfig';
 import navigationRef from './navigationRef';
 import type {NavigationPartialRoute, NavigationRoute, NavigationStateRoute, RootNavigatorParamList, State} from './types';
 
+// Routes which are part of the flow to set up 2FA
+const SET_UP_2FA_ROUTES: Route[] = [
+    ROUTES.REQUIRE_TWO_FACTOR_AUTH,
+    ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+    ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+    ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
+];
+
 let allReports: OnyxCollection<Report>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
@@ -85,14 +93,7 @@ type CanNavigateParams = {
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
     // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
     const targetRoute = params.route ?? params.backToRoute;
-    const allowed2FARoutes: Route[] = [
-        ROUTES.REQUIRE_TWO_FACTOR_AUTH,
-        ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-        ROUTES.SETTINGS_2FA_VERIFY.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-        ROUTES.SETTINGS_2FA_SUCCESS.getRoute(ROUTES.REQUIRE_TWO_FACTOR_AUTH),
-    ];
-
-    if (shouldShowRequire2FAPage() && targetRoute && !allowed2FARoutes.includes(targetRoute)) {
+    if (shouldShowRequire2FAPage() && targetRoute && !SET_UP_2FA_ROUTES.includes(targetRoute)) {
         Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
         return false;
     }
