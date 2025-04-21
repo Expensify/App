@@ -32,6 +32,7 @@ import {
     hasReceiptError,
     isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
+    prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
     shouldReportBeInOptionList,
@@ -39,6 +40,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -2301,6 +2303,64 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+    describe('prepareOnboardingOnyxData', () => {
+        it('provides test drive url to task title', () => {
+            const title = jest.fn();
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: 'test',
+                            title,
+                            description: () => '',
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                '1',
+            );
+
+            expect(title).toBeCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    testDriveURL: expect.any(String),
+                }),
+            );
+        });
+        it('provides test drive url to task description', () => {
+            const description = jest.fn();
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: 'test',
+                            title: () => '',
+                            description,
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                '1',
+            );
+
+            expect(description).toBeCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    testDriveURL: expect.any(String),
+                }),
+            );
         });
     });
 });
