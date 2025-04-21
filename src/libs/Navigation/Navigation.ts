@@ -80,8 +80,7 @@ type CanNavigateParams = {
 };
 
 /**
- * Checks if the navigationRef is ready to perform a method, and blocks navigation if the user is required to enable 2FA.
- * If a navigation method is called while 2FA is required, and the target route is not the 2FA page, navigation is blocked.
+ * Checks if the route can be navigated to based on whether the navigation ref is ready and if 2FA is required to be set up.
  */
 function canNavigate(methodName: string, params: CanNavigateParams = {}): boolean {
     // Block navigation if 2FA is required and the targetRoute is not part of the flow to enable 2FA
@@ -94,7 +93,7 @@ function canNavigate(methodName: string, params: CanNavigateParams = {}): boolea
     ];
 
     if (shouldShowRequire2FAPage() && targetRoute && !allowed2FARoutes.includes(targetRoute)) {
-        Log.info(`[Navigation] Blocked navigation due to active 2FA requirement for route ${targetRoute}`);
+        Log.info(`[Navigation] Blocked navigation because 2FA is required to be set up to access route: ${targetRoute}`);
         return false;
     }
     if (navigationRef.isReady()) {
@@ -289,7 +288,7 @@ const defaultGoBackOptions: Required<GoBackOptions> = {
  * @param options - Optional configuration that affects navigation logic, such as parameter comparison.
  */
 function goUp(backToRoute: Route, options?: GoBackOptions) {
-    if (!canNavigate('goUp') || !navigationRef.current) {
+    if (!canNavigate('goUp', {backToRoute}) || !navigationRef.current) {
         Log.hmmm(`[Navigation] Unable to go up. Can't navigate.`);
         return;
     }
