@@ -7,7 +7,6 @@ import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SetNonNullable} from 'type-fest';
 import {FallbackAvatar} from '@components/Icon/Expensicons';
-import {PolicyTagList} from '@pages/workspace/tags/types';
 import type {IOUAction} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -22,7 +21,6 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
-    PolicyTags,
     Report,
     ReportAction,
     ReportActions,
@@ -1076,7 +1074,7 @@ function getEnabledCategoriesCount(PolicyCategories: PolicyCategories | undefine
     return Object.values(PolicyCategories).filter((PolicyCategory) => PolicyCategory.enabled).length;
 }
 
-function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, selectedCategoriesObject: (PolicyCategory | undefined)[], enabledCategoriesCount: number): boolean {
+function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, selectedCategoriesObject: Array<PolicyCategory | undefined>, enabledCategoriesCount: number): boolean {
     if (policy?.requiresCategory && selectedCategoriesObject.filter((selectedCategories) => selectedCategories?.enabled).length === enabledCategoriesCount) {
         return true;
     }
@@ -1084,7 +1082,7 @@ function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, se
     return false;
 }
 
-function isDisablingOrDeletingLastEnabledTag(policy: Policy | undefined, selectedTagArray: (PolicyTag | undefined)[], enabledTagsCount: number): boolean {
+function isDisablingOrDeletingLastEnabledTag(policy: Policy | undefined, selectedTagArray: Array<PolicyTag | undefined>, enabledTagsCount: number): boolean {
     if (policy?.requiresTag && selectedTagArray.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
         return true;
     }

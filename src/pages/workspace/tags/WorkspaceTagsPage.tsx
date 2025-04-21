@@ -240,6 +240,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policy?.requiresTag,
         countOfRequiredTagLists,
         shouldPreventDisable,
+        sortedTags,
     ]);
 
     const tagListKeyedByName = useMemo(
@@ -371,7 +372,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         }
 
         if (enabledTagCount > 0) {
-            const tagsToDisableCount = Object.keys(tagsToDisable).length;
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
