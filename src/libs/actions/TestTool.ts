@@ -10,17 +10,20 @@ import ROUTES from '@src/ROUTES';
  * Toggle the test tools modal open or closed.
  * Throttle the toggle to make the modal stay open if you accidentally tap an extra time, which is easy to do.
  */
-function toggleTestToolsModal() {
-    const throttledToggle = throttle(() => {
-        let currentRoute = Navigation.getActiveRoute();
-        currentRoute = currentRoute.startsWith('/') ? currentRoute.slice(1) : currentRoute;
+const throttledToggle = throttle(
+    () => {
+        let currentRoute = Navigation.getActiveRoute().replace(/^\//, '');
         if (currentRoute === ROUTES.TEST_TOOLS_MODAL) {
             Navigation.goBack();
         } else {
             Navigation.navigate(ROUTES.TEST_TOOLS_MODAL);
         }
-    }, CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME);
+    },
+    CONST.TIMING.TEST_TOOLS_MODAL_THROTTLE_TIME,
+    {leading: true, trailing: false},
+);
 
+function toggleTestToolsModal() {
     throttledToggle();
 }
 
@@ -34,13 +37,5 @@ function shouldShowProfileTool() {
     return true;
 }
 
-function openTestToolsModal() {
-    Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, true);
-}
-
-function closeTestToolsModal() {
-    Onyx.set(ONYXKEYS.IS_TEST_TOOLS_MODAL_OPEN, false);
-}
-
-export {shouldShowProfileTool, openTestToolsModal, closeTestToolsModal};
+export {shouldShowProfileTool};
 export default toggleTestToolsModal;

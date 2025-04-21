@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import TestToolsModalPage from '@components/TestToolsModalPage';
+import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -19,6 +20,7 @@ function TestToolsModalNavigator() {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const outerViewRef = useRef<View>(null);
+    const isAuthenticated = useIsAuthenticated();
 
     const handleOuterClick = useCallback(() => {
         toggleTestToolsModal();
@@ -37,7 +39,7 @@ function TestToolsModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout)}
+                        style={styles.TestToolsNavigatorInnerView(shouldUseNarrowLayout, isAuthenticated)}
                     >
                         <Stack.Navigator screenOptions={{headerShown: false}}>
                             <Stack.Screen

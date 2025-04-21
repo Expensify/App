@@ -15,6 +15,7 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 import defaultScreenOptions from './defaultScreenOptions';
 import PublicRightModalNavigator from './Navigators/PublicRightModalNavigator';
+import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
 import useRootNavigatorScreenOptions from './useRootNavigatorScreenOptions';
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
@@ -66,6 +67,11 @@ function PublicScreens() {
                 name={NAVIGATORS.PUBLIC_RIGHT_MODAL_NAVIGATOR}
                 component={PublicRightModalNavigator}
                 options={rootNavigatorScreenOptions.rightModalNavigator}
+            />
+            <RootStack.Screen
+                name={NAVIGATORS.TEST_TOOLS_MODAL_NAVIGATOR}
+                options={rootNavigatorScreenOptions.basicModalNavigator}
+                component={TestToolsModalNavigator}
             />
         </RootStack.Navigator>
     );

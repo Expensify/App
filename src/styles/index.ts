@@ -1863,13 +1863,19 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         }),
 
-        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean) => ({
-            width: shouldUseNarrowLayout ? '100%' : '91%',
-            height: shouldUseNarrowLayout ? '78%' : '75%',
-            borderRadius: variables.componentBorderRadiusLarge,
-            backgroundColor: theme.appBG,
-            overflow: 'hidden',
-        }),
+        TestToolsNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAuthenticated: boolean) => {
+            const borderBottomRadius = shouldUseNarrowLayout ? 0 : variables.componentBorderRadiusLarge;
+            const height = isAuthenticated ? (shouldUseNarrowLayout ? '78%' : '75%') : '55%';
+
+            return {
+                width: shouldUseNarrowLayout ? '100%' : '91%',
+                height,
+                borderRadius: variables.componentBorderRadiusLarge,
+                borderBottomRightRadius: borderBottomRadius,
+                borderBottomLeftRadius: borderBottomRadius,
+                overflow: 'hidden',
+            };
+        },
 
         onlyEmojisText: {
             fontSize: variables.fontSizeOnlyEmojis,
