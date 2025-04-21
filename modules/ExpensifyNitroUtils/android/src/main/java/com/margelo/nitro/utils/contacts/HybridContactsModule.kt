@@ -20,19 +20,21 @@ class HybridContactsModule : HybridContactsModuleSpec() {
 
     private fun requestContactPermission(): Boolean {
         val currentActivity = context.currentActivity
-        return if (currentActivity != null) {
-            ActivityCompat.requestPermissions(
-                currentActivity, arrayOf(REQUIRED_PERMISSION), PERMISSION_REQUEST_CODE
-            )
-            true
-        } else {
-            false
+        if (currentActivity == null) {
+            return false
         }
+
+        // Request permissions
+        ActivityCompat.requestPermissions(
+            currentActivity, 
+            REQUIRED_PERMISSIONS, 
+            PERMISSION_REQUEST_CODE
+        )
+        return true
     }
 
     private fun hasPhoneContactsPermission(): Boolean {
-        val result = ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
-        return result
+        return ContextCompat.checkSelfPermission(context, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED
     }
 
     override fun getAll(keys: Array<ContactFields>): Promise<Array<Contact>> {
@@ -160,6 +162,6 @@ class HybridContactsModule : HybridContactsModuleSpec() {
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
-        const val REQUIRED_PERMISSION = Manifest.permission.READ_CONTACTS
+         const val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.READ_CONTACTS)
     }
 }
