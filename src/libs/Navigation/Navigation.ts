@@ -190,10 +190,12 @@ function isActiveRoute(routePath: Route): boolean {
  */
 function navigate(route: Route, options?: LinkToOptions) {
     if (!canNavigate('navigate', {route})) {
-        // Store intended route if the navigator is not yet available,
-        // we will try again after the NavigationContainer is ready
-        Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
-        pendingRoute = route;
+        if (!navigationRef.isReady()) {
+            // Store intended route if the navigator is not yet available,
+            // we will try again after the NavigationContainer is ready
+            Log.hmmm(`[Navigation] Container not yet ready, storing route as pending: ${route}`);
+            pendingRoute = route;
+        }
         return;
     }
 
