@@ -336,6 +336,9 @@ type PureReportActionItemProps = {
 
     /** Policies */
     policies?: OnyxCollection<OnyxTypes.Policy>;
+
+    /** Whether to show border for MoneyRequestReportPreviewContent */
+    shouldShowBorder?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -396,6 +399,7 @@ function PureReportActionItem({
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
     policies,
+    shouldShowBorder,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -850,6 +854,7 @@ function PureReportActionItem({
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    shouldShowBorder={shouldShowBorder}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {

@@ -55,6 +55,8 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether the report is an invoice preview */
     isInvoice?: boolean;
+
+    shouldShowBorder?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {

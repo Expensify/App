@@ -28,7 +28,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {
@@ -111,6 +110,7 @@ function MoneyRequestReportPreviewContent({
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
     isInvoice,
+    shouldShowBorder = false,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -120,7 +120,6 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const isSearchFullscreen = isSearchTopmostFullScreenRoute();
 
     const [doesReportNameOverflow, setDoesReportNameOverflow] = useState(false);
 
@@ -466,7 +465,7 @@ function MoneyRequestReportPreviewContent({
                             styles.flexRow,
                             styles.justifyContentBetween,
                             StyleUtils.getBackgroundColorStyle(theme.cardBG),
-                            isSearchFullscreen ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                            shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
                         ]}
                         role={getButtonRole(true)}
                         isNested
