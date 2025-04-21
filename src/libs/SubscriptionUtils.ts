@@ -94,11 +94,11 @@ Onyx.connect({
     },
 });
 
-let hasManualTeamPricing2025: OnyxEntry<string>;
+let hasManualTeam2025Pricing: OnyxEntry<string>;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025,
+    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
     callback: (value) => {
-        hasManualTeamPricing2025 = value;
+        hasManualTeam2025Pricing = value;
     },
 });
 
@@ -588,7 +588,7 @@ function shouldCalculateBillNewDot(): boolean {
 }
 
 function checkIfHasTeam2025Pricing() {
-    if (hasManualTeamPricing2025) {
+    if (hasManualTeam2025Pricing) {
         return true;
     }
 
