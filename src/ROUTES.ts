@@ -247,7 +247,7 @@ const ROUTES = {
     },
     SETTINGS_REPORT_FRAUD: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud',
-        getRoute: (cardID: string) => `settings/wallet/card/${cardID}/report-virtual-fraud` as const,
+        getRoute: (cardID: string, backTo?: string) => getUrlWithBackToParam(`settings/wallet/card/${cardID}/report-virtual-fraud`, backTo),
     },
     SETTINGS_REPORT_FRAUD_CONFIRMATION: {
         route: 'settings/wallet/card/:cardID/report-virtual-fraud-confirm',
@@ -1893,6 +1893,7 @@ const ROUTES = {
     },
     WELCOME_VIDEO_ROOT: 'onboarding/welcome-video',
     EXPLANATION_MODAL_ROOT: 'onboarding/explanation',
+    TEST_DRIVE_MODAL_ROOT: 'onboarding/test-drive',
     WORKSPACE_CONFIRMATION: {
         route: 'workspace/confirmation',
         getRoute: (backTo?: string) => getUrlWithBackToParam(`workspace/confirmation`, backTo),
