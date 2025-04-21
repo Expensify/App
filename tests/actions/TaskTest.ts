@@ -2,8 +2,10 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
+// eslint-disable-next-line no-restricted-syntax
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+// eslint-disable-next-line no-restricted-syntax
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
