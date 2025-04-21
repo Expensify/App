@@ -853,6 +853,8 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation        
         const reportNameValuePairs = getReportNameValuePairs(report.reportID);
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
