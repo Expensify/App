@@ -653,6 +653,7 @@ const ONYXKEYS = {
         PROFILE_SETTINGS_FORM_DRAFT: 'profileSettingsFormDraft',
         DISPLAY_NAME_FORM: 'displayNameForm',
         DISPLAY_NAME_FORM_DRAFT: 'displayNameFormDraft',
+        CLEAR_STATUS_FORM: 'clearStatusForm',
         ONBOARDING_PERSONAL_DETAILS_FORM: 'onboardingPersonalDetailsForm',
         ONBOARDING_PERSONAL_DETAILS_FORM_DRAFT: 'onboardingPersonalDetailsFormDraft',
         ROOM_NAME_FORM: 'roomNameForm',
