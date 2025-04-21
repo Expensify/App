@@ -30,7 +30,7 @@ import navigateAfterInteraction from '@libs/Navigation/navigateAfterInteraction'
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Performance from '@libs/Performance';
-import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isSelectedManagerMcTest} from '@libs/ReportUtils';
+import {generateReportID, getBankAccountRoute, getReportOrDraftReport, isProcessingReport, isReportOutstanding, isSelectedManagerMcTest} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {getDefaultTaxCode, getRateID, getRequestType, getValidWaypoints} from '@libs/TransactionUtils';
 import ReceiptDropUI from '@pages/iou/ReceiptDropUI';
@@ -96,7 +96,8 @@ function IOURequestStepConfirmation({
      * Also if the report was submitted and delayed submittion is on, then we should use an initial report
      */
     const transactionReport = getReportOrDraftReport(transaction?.reportID);
-    const shouldUseTransactionReport = transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled);
+    const shouldUseTransactionReport =
+        transactionReport && !(isProcessingReport(transactionReport) && !policyReal?.harvesting?.enabled) && isReportOutstanding(transactionReport, policyReal?.id);
     const report = shouldUseTransactionReport ? transactionReport : reportReal ?? reportDraft;
     const policy = policyReal ?? policyDraft;
     const isDraftPolicy = policy === policyDraft;
