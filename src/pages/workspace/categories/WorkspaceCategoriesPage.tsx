@@ -169,7 +169,15 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         }, []);
     }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceRequiresCategory]);
 
-    useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
+    const filteredCategoryList = useMemo(() => {
+        if (!inputValue.trim()) {
+            return categoryList;
+        }
+        const lowerQuery = inputValue.trim().toLowerCase();
+        return categoryList.filter((cat) => cat.text?.toLowerCase().includes(lowerQuery));
+    }, [inputValue, categoryList]);
+
+    useAutoTurnSelectionModeOffWhenHasNoActiveOption(filteredCategoryList);
 
     const toggleCategory = useCallback((category: PolicyOption) => {
         setSelectedCategories((prev) => {
@@ -182,7 +190,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, []);
 
     const toggleAllCategories = () => {
-        const availableCategories = categoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableCategories = filteredCategoryList.filter((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         const someSelected = availableCategories.some((category) => selectedCategories[category.keyForList]);
         setSelectedCategories(someSelected ? {} : Object.fromEntries(availableCategories.map((item) => [item.keyForList, true])));
     };
@@ -334,14 +342,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
         setSelectedCategories({});
     }, [setSelectedCategories, selectionMode?.isEnabled]);
-
-    const filteredCategoryList = useMemo(() => {
-        if (!inputValue.trim()) {
-            return categoryList;
-        }
-        const lowerQuery = inputValue.trim().toLowerCase();
-        return categoryList.filter((cat) => cat.text?.toLowerCase().includes(lowerQuery));
-    }, [inputValue, categoryList]);
 
     const hasVisibleCategories = categoryList.some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
     const getHeaderText = () => (
