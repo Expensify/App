@@ -1795,7 +1795,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
             url: '',
         });
     }
-    if (!isPending) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length) {
         result.push({
             text: translateLocal('report.actions.type.exportedToIntegration.automaticActionThree'),
             url: '',
