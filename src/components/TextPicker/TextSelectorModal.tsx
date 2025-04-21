@@ -102,10 +102,11 @@ function TextSelectorModal({
             hideModalContentWhileAnimating
             useNativeDriver
             shouldUseModalPaddingStyle={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
                 includePaddingTop
-                includeSafeAreaPaddingBottom
                 testID={TextSelectorModal.displayName}
                 shouldEnableMaxHeight
             >
@@ -124,6 +125,7 @@ function TextSelectorModal({
                     style={[styles.mh5, styles.flex1]}
                     enabledWhenOffline
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.pb4}>{!!subtitle && <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{subtitle}</Text>}</View>
                     <InputWrapper

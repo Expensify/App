@@ -30,6 +30,7 @@ import {
     getSortedSections,
     isReportActionListItemType,
     isReportListItemType,
+    isSearchDataLoaded,
     isSearchResultsEmpty as isSearchResultsEmptyUtil,
     isTransactionListItemType,
     shouldShowEmptyState,
@@ -201,10 +202,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
     // we also need to check that the searchResults matches the type and status of the current search
-    const isDataLoaded =
-        searchResults?.data !== undefined && searchResults?.search?.type === type && Array.isArray(status)
-            ? searchResults?.search?.status === status.join(',')
-            : searchResults?.search?.status === status;
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
 
     const shouldShowLoadingState = !isOffline && !isDataLoaded;
     const shouldShowLoadingMoreItems = !shouldShowLoadingState && searchResults?.search?.isLoading && searchResults?.search?.offset > 0;
@@ -315,7 +313,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             }
 
             // If we're trying to open a legacy transaction without a transaction thread, let's create the thread and navigate the user
-            if (isTransactionItem && reportID === '0' && item.moneyRequestReportActionID) {
+            if (isTransactionItem && reportID === CONST.REPORT.UNREPORTED_REPORTID) {
                 reportID = generateReportID();
                 updateSearchResultsWithTransactionThreadReportID(hash, item.transactionID, reportID);
                 Navigation.navigate(

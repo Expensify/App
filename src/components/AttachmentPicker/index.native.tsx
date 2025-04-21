@@ -1,5 +1,5 @@
 import {Str} from 'expensify-common';
-import {ImageManipulator, SaveFormat} from 'expo-image-manipulator';
+import {manipulateAsync, SaveFormat} from 'expo-image-manipulator';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {Alert, View} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
@@ -19,7 +19,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {cleanFileName, showCameraPermissionsAlert, verifyFileFormat} from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -85,7 +85,7 @@ const getDocumentPickerOptions = (type: string, fileLimit: number): DocumentPick
 const getDataForUpload = (fileData: FileResponse): Promise<FileObject> => {
     const fileName = fileData.name || 'chat_attachment';
     const fileResult: FileObject = {
-        name: cleanFileName(fileName),
+        name: FileUtils.cleanFileName(fileName),
         type: fileData.type,
         width: fileData.width,
         height: fileData.height,
@@ -122,6 +122,7 @@ function AttachmentPicker({
     const [isVisible, setIsVisible] = useState(false);
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
+
     const completeAttachmentSelection = useRef<(data: FileObject[]) => void>(() => {});
     const onModalHide = useRef<() => void>();
     const onCanceled = useRef<() => void>(() => {});
@@ -157,7 +158,7 @@ function AttachmentPicker({
                     if (response.errorCode) {
                         switch (response.errorCode) {
                             case 'permission':
-                                showCameraPermissionsAlert();
+                                FileUtils.showCameraPermissionsAlert();
                                 return resolve();
                             default:
                                 showGeneralAlert();
@@ -175,41 +176,30 @@ function AttachmentPicker({
                     }
 
                     if (targetAsset?.type?.startsWith('image')) {
-                        verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
+                        FileUtils.verifyFileFormat({fileUri: targetAssetUri, formatSignatures: CONST.HEIC_SIGNATURES})
                             .then((isHEIC) => {
                                 // react-native-image-picker incorrectly changes file extension without transcoding the HEIC file, so we are doing it manually if we detect HEIC signature
                                 if (isHEIC && targetAssetUri) {
-                                    const manipulateContext = ImageManipulator.manipulate(targetAssetUri);
+                                    manipulateAsync(targetAssetUri, [], {format: SaveFormat.JPEG})
+                                        .then((manipResult) => {
+                                            const uri = manipResult.uri;
+                                            const convertedAsset = {
+                                                uri,
+                                                name: uri
+                                                    .substring(uri.lastIndexOf('/') + 1)
+                                                    .split('?')
+                                                    .at(0),
+                                                type: 'image/jpeg',
+                                                width: manipResult.width,
+                                                height: manipResult.height,
+                                            };
 
-                                    manipulateContext.renderAsync().then((image) =>
-                                        image
-                                            .saveAsync({format: SaveFormat.JPEG})
-                                            .then((result) => {
-                                                manipulateContext.release();
-                                                image.release();
-                                                return result;
-                                            })
-                                            .then((manipResult) => {
-                                                const uri = manipResult.uri;
-                                                const convertedAsset = {
-                                                    uri,
-                                                    name: uri
-                                                        .substring(uri.lastIndexOf('/') + 1)
-                                                        .split('?')
-                                                        .at(0),
-                                                    type: 'image/jpeg',
-                                                    width: manipResult.width,
-                                                    height: manipResult.height,
-                                                };
-                                                return resolve([convertedAsset]);
-                                            })
-                                            .catch(() => {
-                                                manipulateContext?.release();
-                                                resolve(response.assets ?? []);
-                                            }),
-                                    );
+                                            return resolve([convertedAsset]);
+                                        })
+                                        .catch((err) => reject(err));
+                                } else {
+                                    return resolve(response.assets);
                                 }
-                                return resolve(response.assets);
                             })
                             .catch((err) => reject(err));
                     } else {

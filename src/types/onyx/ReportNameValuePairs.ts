@@ -69,6 +69,9 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Guides Call schedule */
     calendlySchedule?: Record<GuideAccountID, GuideCalendlySchedule>;
+
+    /** The time the report export failed */
+    exportFailedTime?: string;
 }>;
 
 /** Collection of reportNameValuePairs, indexed by reportNameValuePairs_{reportID} */
