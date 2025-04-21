@@ -558,8 +558,14 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 /**
  * Should show the last actor display name from last actor details.
  */
-function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null) {
-    if (!lastActorDetails || reportUtilsIsSelfDM(report) || (isDM(report) && lastActorDetails.accountID !== currentUserAccountID)) {
+function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>) {
+    if (
+        !lastActorDetails ||
+        reportUtilsIsSelfDM(report) ||
+        (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
+        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW
+    ) {
         return false;
     }
 
@@ -903,7 +909,7 @@ function createOption(
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
             !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
-            shouldShowLastActorDisplayName(report, lastActorDetails);
+            shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }

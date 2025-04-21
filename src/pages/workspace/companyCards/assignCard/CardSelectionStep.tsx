@@ -169,6 +169,7 @@ function CardSelectionStep({feed, policyID}: CardSelectionStepProps) {
                     shouldShowHeaderMessageAfterHeader
                     addBottomSafeAreaPadding
                     shouldShowListEmptyContent={false}
+                    shouldScrollToFocusedIndex={false}
                     shouldUpdateFocusedIndex
                     footerContent={
                         <FormAlertWithSubmitButton
