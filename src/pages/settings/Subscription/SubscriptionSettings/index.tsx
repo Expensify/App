@@ -17,6 +17,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useSubscriptionPossibleCostSavings from '@hooks/useSubscriptionPossibleCostSavings';
@@ -24,7 +25,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {getRoom} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -58,6 +59,8 @@ function SubscriptionSettings() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const activePolicy = usePolicy(activePolicyID);
+    const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
     const preferredCurrency = usePreferredCurrency();
@@ -72,7 +75,7 @@ function SubscriptionSettings() {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
-    const adminsRoomReport = activePolicyID ? getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID) : undefined;
+    const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
 
     const onOptionSelected = (option: SubscriptionType) => {
         if (privateSubscription?.type !== option && isActingAsDelegate) {
@@ -158,7 +161,7 @@ function SubscriptionSettings() {
     );
 
     const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsRoomReport?.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
     };
 
     if (!subscriptionPlan || (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM)) {
@@ -180,7 +183,7 @@ function SubscriptionSettings() {
                     {translate('subscription.subscriptionSettings.learnMore.part1')}
                     <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
                     {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsRoomReport ? (
+                    {adminsChatReportID ? (
                         <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
                     ) : (
                         translate('subscription.subscriptionSettings.learnMore.adminsRoom')

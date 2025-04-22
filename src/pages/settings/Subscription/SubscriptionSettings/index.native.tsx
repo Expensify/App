@@ -11,12 +11,13 @@ import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {getRoom} from '@libs/ReportUtils';
+import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getSubscriptionPrice} from '@libs/SubscriptionUtils';
 import Navigation from '@navigation/Navigation';
 import variables from '@styles/variables';
@@ -30,6 +31,8 @@ function SubscriptionSettings() {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
+    const activePolicy = usePolicy(activePolicyID);
+    const isActivePolicyAdmin = isPolicyAdmin(activePolicy);
     const subscriptionPlan = useSubscriptionPlan();
     const preferredCurrency = usePreferredCurrency();
     const illustrations = useThemeIllustrations();
@@ -39,10 +42,10 @@ function SubscriptionSettings() {
         lower: convertToShortDisplayString(subscriptionPrice, preferredCurrency),
         upper: convertToShortDisplayString(subscriptionPrice * CONST.SUBSCRIPTION_PRICE_FACTOR, preferredCurrency),
     });
-    const adminsRoomReport = activePolicyID ? getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, activePolicyID) : undefined;
+    const adminsChatReportID = isActivePolicyAdmin && activePolicy?.chatReportIDAdmins ? activePolicy.chatReportIDAdmins.toString() : undefined;
 
     const openAdminsRoom = () => {
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsRoomReport?.reportID));
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminsChatReportID));
     };
 
     const subscriptionSizeSection =
@@ -71,7 +74,7 @@ function SubscriptionSettings() {
                     {translate('subscription.subscriptionSettings.learnMore.part1')}
                     <TextLink href={CONST.PRICING}>{translate('subscription.subscriptionSettings.learnMore.pricingPage')}</TextLink>
                     {translate('subscription.subscriptionSettings.learnMore.part2')}
-                    {adminsRoomReport ? (
+                    {adminsChatReportID ? (
                         <TextLink onPress={openAdminsRoom}>{translate('subscription.subscriptionSettings.learnMore.adminsRoom')}</TextLink>
                     ) : (
                         translate('subscription.subscriptionSettings.learnMore.adminsRoom')
