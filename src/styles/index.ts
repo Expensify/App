@@ -1389,7 +1389,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 17,
+            paddingTop: 9,
             paddingBottom: 8,
         },
 
