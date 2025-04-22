@@ -49,8 +49,8 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
     const {translate} = useLocalize();
     const loginInputRef = useRef<AnimatedTextInputRef>(null);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
-    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [pendingContactAction] = useOnyx(ONYXKEYS.PENDING_CONTACT_ACTION, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const loginData = loginList?.[pendingContactAction?.contactMethod ?? contactMethod];
     const validateLoginError = getLatestErrorField(loginData, 'addedLogin');
     const isUserValidated = useAccountValidation();

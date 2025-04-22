@@ -20,8 +20,8 @@ type VerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamLis
 
 function VerifyAccountPage({route}: VerifyAccountPageProps) {
     const styles = useThemeStyles();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
     const contactMethod = account?.primaryLogin ?? '';
     const {translate} = useLocalize();
     const loginData = loginList?.[contactMethod];

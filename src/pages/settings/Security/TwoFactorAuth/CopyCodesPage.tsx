@@ -42,8 +42,8 @@ function CopyCodesPage({route}: TwoFactorAuthPageProps) {
     const {isExtraSmallScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const [error, setError] = useState('');
 
-    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
+    const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: true});
 
     const isUserValidated = useAccountValidation();
     const contactMethod = account?.primaryLogin ?? '';

@@ -40,7 +40,7 @@ function ValidateCodeActionModal({
     const validateCodeFormRef = useRef<ValidateCodeFormHandle>(null);
     const styles = useThemeStyles();
     const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffset);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
 
     const hide = useCallback(() => {
         clearError();

@@ -23,8 +23,8 @@ type DelegateMagicCodeModalProps = {
 
 function DelegateMagicCodeModal({login, role, onClose, isValidateCodeActionModalVisible, shouldHandleNavigationBack, disableAnimation}: DelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const addDelegateErrors = account?.delegatedAccess?.errorFields?.addDelegate?.[login];
     const validateLoginError = getLatestError(addDelegateErrors);
