@@ -13,8 +13,8 @@ import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndB
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
@@ -27,6 +27,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -94,6 +95,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [tryNewDot] = useOnyx(ONYXKEYS.NVP_TRYNEWDOT);
     const [allCards] = useOnyx(`${ONYXKEYS.CARD_LIST}`);
 
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const network = useNetwork();
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -105,6 +107,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const [allConnectionSyncProgresses] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}`);
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {canUseLeftHandBar} = usePermissions();
+    const shouldDisplayLHB = canUseLeftHandBar && !shouldUseNarrowLayout;
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION);
     const subscriptionPlan = useSubscriptionPlan();
@@ -443,7 +446,8 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
-            bottomContent={<BottomTabBar selectedTab={BOTTOM_TABS.SETTINGS} />}
+            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            extraContentStyles={shouldDisplayLHB && styles.leftNavigationTabBarPosition}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}

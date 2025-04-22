@@ -5,6 +5,7 @@ import {useOnyx} from 'react-native-onyx';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -48,6 +49,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const [user] = useOnyx(ONYXKEYS.USER);
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
+    const {canUseLeftHandBar} = usePermissions();
 
     const [shouldShowDelegatorMenu, setShouldShowDelegatorMenu] = useState(false);
     const [shouldShowOfflineModal, setShouldShowOfflineModal] = useState(false);
@@ -56,6 +58,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
     const processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName);
+    const accountSwitcherPopoverStyle = canUseLeftHandBar ? styles.accountSwitcherPopoverWithLHB : styles.accountSwitcherPopover;
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip, hideProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
@@ -74,7 +77,7 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             avatarID: personalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID,
             icon: personalDetails?.avatar ?? '',
             iconType: CONST.ICON_TYPE_AVATAR,
-            outerWrapperStyle: shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover,
+            outerWrapperStyle: shouldUseNarrowLayout ? {} : accountSwitcherPopoverStyle,
             numberOfLinesDescription: 1,
             errorText: error ?? '',
             shouldShowRedDotIndicator: !!error,
