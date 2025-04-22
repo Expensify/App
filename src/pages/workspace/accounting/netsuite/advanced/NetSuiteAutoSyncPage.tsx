@@ -8,15 +8,15 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Connections from '@libs/actions/connections/NetSuiteCommands';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {updateNetSuiteAutoSync} from '@libs/actions/connections/NetSuiteCommands';
+import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {settingsPendingAction} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
-import * as Policy from '@userActions/Policy/Policy';
+import {clearNetSuiteAutoSyncErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
@@ -26,7 +26,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
-    const policyID = route.params.policyID ?? '-1';
+    const policyID = route.params.policyID;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
@@ -56,10 +56,10 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
                     wrapperStyle={[styles.pv2, styles.mh5]}
                     switchAccessibilityLabel={translate('workspace.netsuite.advancedConfig.autoSyncDescription')}
                     shouldPlaceSubtitleBelowSwitch
-                    onCloseError={() => Policy.clearNetSuiteAutoSyncErrorField(policyID)}
-                    onToggle={(isEnabled) => Connections.updateNetSuiteAutoSync(policyID, isEnabled)}
+                    onCloseError={() => clearNetSuiteAutoSyncErrorField(policyID)}
+                    onToggle={(isEnabled) => updateNetSuiteAutoSync(policyID, isEnabled)}
                     pendingAction={pendingAction}
-                    errors={ErrorUtils.getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
+                    errors={getLatestErrorField(autoSyncConfig, CONST.NETSUITE_CONFIG.AUTO_SYNC)}
                 />
 
                 <Accordion
