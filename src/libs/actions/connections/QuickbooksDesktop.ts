@@ -347,14 +347,14 @@ function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends 
 }
 
 function updateQuickbooksCompanyCardExpenseAccount<
-    TConfigUpdate extends {nonReimbursable: QBDNonReimbursableExportAccountType; nonReimbursableAccount: string; nonReimbursableBillDefaultVendor: string},
+    TConfigUpdate extends {nonReimbursable: QBDNonReimbursableExportAccountType; nonReimbursableAccount: string | undefined; nonReimbursableBillDefaultVendor: string},
 >(policyID: string, configUpdate: TConfigUpdate, configCurrentData: Partial<TConfigUpdate>) {
     const onyxData = buildOnyxDataForMultipleQuickbooksExportConfigurations(policyID, configUpdate, configCurrentData);
 
     const parameters: UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams = {
         policyID,
         nonReimbursableExpensesExportDestination: configUpdate.nonReimbursable,
-        nonReimbursableExpensesAccount: configUpdate.nonReimbursableAccount,
+        nonReimbursableExpensesAccount: configUpdate?.nonReimbursableAccount,
         nonReimbursableBillDefaultVendor: configUpdate.nonReimbursableBillDefaultVendor,
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
     };

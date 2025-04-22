@@ -75,7 +75,7 @@ function QuickbooksDesktopCompanyCardExpenseAccountSelectCardPage({policy}: With
     const selectExportCompanyCard = useCallback(
         (row: MenuItem) => {
             const account = row.accounts.at(0)?.id;
-            if (row.value !== nonReimbursable && policyID && account) {
+            if (row.value !== nonReimbursable && policyID) {
                 updateQuickbooksCompanyCardExpenseAccount(
                     policyID,
                     {
