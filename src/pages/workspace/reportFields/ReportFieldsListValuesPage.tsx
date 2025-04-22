@@ -179,8 +179,6 @@ function ReportFieldsListValuesPage({
         }
 
         Navigation.navigate(ROUTES.WORKSPACE_REPORT_FIELDS_VALUE_SETTINGS.getRoute(policyID, valueItem.index, reportFieldID));
-
-        setSelectedValues({});
     };
 
     const getCustomListHeader = () => {

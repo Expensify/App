@@ -86,7 +86,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
     const {canUseLeftHandBar} = usePermissions();
-    const [selectedCategories, setSelectedCategories] = usePersistSelection(policyCategories);
+    const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
+
+    const [selectedCategories, setSelectedCategories] = usePersistSelection(policyCategories, filterCategories);
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 

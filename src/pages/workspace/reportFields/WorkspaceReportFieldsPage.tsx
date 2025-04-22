@@ -105,7 +105,11 @@ function WorkspaceReportFieldsPage({
         }, {});
     }, [filteredPolicyFieldList]);
 
-    const [selectedReportFields, setSelectedReportFields] = usePersistSelection(selectionFieldList);
+    const filterReportFields = useCallback((reportField: OnyxValueWithOfflineFeedback<PolicyReportField> | undefined) => {
+        return !!reportField && reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    }, []);
+
+    const [selectedReportFields, setSelectedReportFields] = usePersistSelection(selectionFieldList, filterReportFields);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);

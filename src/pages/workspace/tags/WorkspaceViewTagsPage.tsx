@@ -46,6 +46,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyTag} from '@src/types/onyx';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import type {TagListItem} from './types';
 
@@ -69,7 +70,11 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const currentTagListName = useMemo(() => getTagListName(policyTags, route.params.orderWeight), [policyTags, route.params.orderWeight]);
     const currentPolicyTag = policyTags?.[currentTagListName];
     const isQuickSettingsFlow = !!backTo;
-    const [selectedTags, setSelectedTags] = usePersistSelection(currentPolicyTag?.tags);
+
+    // We can't delete multi level tag in ND for now
+    const filterFunction = useCallback((tag: PolicyTag | undefined) => !!tag, []);
+
+    const [selectedTags, setSelectedTags] = usePersistSelection(currentPolicyTag?.tags, filterFunction);
 
     const fetchTags = useCallback(() => {
         openPolicyTagsPage(policyID);
