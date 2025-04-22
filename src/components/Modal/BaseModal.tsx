@@ -309,7 +309,7 @@ function BaseModal(
                             shouldPreventScroll={shouldPreventScrollOnFocus}
                         >
                             <View
-                                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}
                             >
                                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
