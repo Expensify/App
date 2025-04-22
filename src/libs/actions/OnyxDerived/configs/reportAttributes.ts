@@ -7,7 +7,6 @@ let isFullyComputed = false;
 
 /**
  * This derived value is used to get the report attributes for the report.
- * It's dependent on all collections that are used to generate the report attributes under the hood.
  */
 
 export default createOnyxDerivedValueConfig({
@@ -20,25 +19,29 @@ export default createOnyxDerivedValueConfig({
         }
         const [reports] = dependencies;
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
+
+        // if we already computed the report attributes and there is no new reports data, return the current value
         if ((isFullyComputed && reportUpdates === undefined) || !reports) {
             return currentValue ?? {};
         }
 
         const dataToIterate = isFullyComputed && reportUpdates !== undefined ? reportUpdates : reports ?? {};
         const attributes = Object.keys(dataToIterate).reduce<Record<string, ReportAttributes>>((acc, reportID) => {
+            // source value sends partial data, so we need an entire report object to do computations
             const report = reports[reportID];
+
             if (!report || !isValidReport(report)) {
                 return acc;
             }
 
-            const reportName = generateReportName(report);
             acc[reportID] = {
-                reportName,
+                reportName: generateReportName(report),
             };
 
             return acc;
         }, currentValue ?? {});
 
+        // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
         if (reportUpdates === undefined && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }
