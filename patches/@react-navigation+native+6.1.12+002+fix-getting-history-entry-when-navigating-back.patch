@@ -1,0 +1,13 @@
+diff --git a/node_modules/@react-navigation/native/lib/module/useLinking.js b/node_modules/@react-navigation/native/lib/module/useLinking.js
+index 95a0e32..adb25a0 100644
+--- a/node_modules/@react-navigation/native/lib/module/useLinking.js
++++ b/node_modules/@react-navigation/native/lib/module/useLinking.js
+@@ -294,7 +294,7 @@ export default function useLinking(ref, _ref) {
+           try {
+             if (nextIndex !== -1 && nextIndex < currentIndex &&
+             // We should only go back if the entry exists and it's less than current index
+-            history.get(nextIndex - currentIndex)) {
++            history.get(nextIndex)) {
+               // An existing entry for this path exists and it's less than current index, go back to that
+               await history.go(nextIndex - currentIndex);
+               history.replace({
