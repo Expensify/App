@@ -124,7 +124,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
-        canBeMissing: false,
+        canBeMissing: true,
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -196,7 +196,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         report={report}
                         policy={policy}
                         reportActions={reportActions}
-                        transactionThreadReportID={undefined}
+                        transactionThreadReportID={transactionThreadReportID}
                         shouldDisplayBackButton
                         onBackButtonPress={() => {
                             if (!backToRoute) {

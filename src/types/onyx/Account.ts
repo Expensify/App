@@ -183,6 +183,9 @@ type Account = {
         /** Whether the user validation code was sent */
         validateCodeSent?: boolean;
 
+        /** Whether the user validation code was re-sent */
+        validateCodeResent?: boolean;
+
         /** Errors while requesting the validation code */
         errors: OnyxCommon.Errors;
     };
@@ -198,6 +201,36 @@ type Account = {
         /** Errors while merging the account */
         errors: OnyxCommon.Errors;
     };
+
+    /// All of the fields/attributes after this comment are currently being migrated from the User model into this Account model
+    /// Please do not use any of it until the list of action tasks in the table at https://github.com/Expensify/App/issues/59277#issuecomment-2818283478 is fully completed
+
+    /** Whether or not the user is subscribed to news updates */
+    isSubscribedToNewsletter?: boolean;
+
+    /** Whether we should use the staging version of the secure API server */
+    shouldUseStagingServer?: boolean;
+
+    /** Whether or not the user is on a public domain email account or not */
+    isFromPublicDomain?: boolean;
+
+    /** Whether or not the user uses expensify card */
+    isUsingExpensifyCard?: boolean;
+
+    /** Whether Expensify Card approval flow is ongoing - checking loginList for private domains */
+    isCheckingDomain?: boolean;
+
+    /** Whether or not the user has lounge access */
+    hasLoungeAccess?: boolean;
+
+    /** error associated with adding a secondary login */
+    error?: string;
+
+    /** Whether the user is an Expensify Guide */
+    isGuide?: boolean;
+
+    /** Whether the debug mode is currently enabled */
+    isDebugModeEnabled?: boolean;
 };
 
 export default Account;
