@@ -76,7 +76,7 @@ type DismissedProductTraining = {
     /**
      * When user dismisses the expenseReportsFilter product training tooltip, we store the timestamp here.
      */
-    [EXPENSE_REPORTS_FILTER]: string;
+    [EXPENSE_REPORTS_FILTER]: DismissedProductTrainingElement;
 
     /**
      * When user dismisses the ChangeReportPolicy feature training modal, we store the timestamp here.
