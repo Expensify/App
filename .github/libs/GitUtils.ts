@@ -158,6 +158,9 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
     });
 }
 
+/**
+ * Get commits between two tags via the GitHub API
+ */
 async function getCommitHistory(fromTag: string, toTag: string): Promise<CommitType[]> {
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     
@@ -169,6 +172,7 @@ async function getCommitHistory(fromTag: string, toTag: string): Promise<CommitT
             head: toTag,
         });
 
+        // Map API response to our CommitType format
         return comparison.commits.map(commit => ({
             commit: commit.sha,
             subject: commit.commit.message,
