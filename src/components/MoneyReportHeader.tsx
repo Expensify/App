@@ -124,12 +124,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    const moneyRequestReportChatID = moneyRequestReport?.chatReportID ?? CONST.DEFAULT_NUMBER_ID;
-    const moneyRequestReportID = moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportChatID}`, {canBeMissing: false});
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReportID}`, {canBeMissing: false});
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: false});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID}`, {canBeMissing: true});
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`, {canBeMissing: true});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const requestParentReportAction = useMemo(() => {
         if (!reportActions || !transactionThreadReport?.parentReportActionID) {
             return null;
@@ -139,12 +139,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
         initialValue: [],
-        canBeMissing: false,
+        canBeMissing: true,
     });
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`, {
-        canBeMissing: false,
+        canBeMissing: true,
     });
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {canBeMissing: true, initialValue: true});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
@@ -174,7 +174,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
-    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const violations = useMemo(
         () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
         [allViolations, transactionIDs],
@@ -186,8 +186,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(moneyRequestReport?.reportID);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isArchivedReport = isArchivedReportWithID(moneyRequestReport?.reportID);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {canBeMissing: false, selector: getArchiveReason});
-
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason, canBeMissing: true});
     const getCanIOUBePaid = useCallback(
         (onlyShowPayElsewhere = false, shouldCheckApprovedState = true) =>
             canIOUBePaidAction(moneyRequestReport, chatReport, policy, transaction ? [transaction] : undefined, onlyShowPayElsewhere, undefined, undefined, shouldCheckApprovedState),
@@ -307,7 +306,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return options;
     }, [moneyRequestReport, reportActions, selectedTransactionsID, session?.accountID, setSelectedTransactionsID, translate]);
 
-    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length;
+    const shouldShowSelectedTransactionsButton = !!selectedTransactionsOptions.length && !transactionThreadReportID;
 
     const canIOUBePaid = useMemo(() => getCanIOUBePaid(), [getCanIOUBePaid]);
     const canIOUBePaidAndApproved = useMemo(() => getCanIOUBePaid(false, false), [getCanIOUBePaid]);
@@ -515,6 +514,16 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
         setIsDeleteRequestModalVisible(false);
     }, [canDeleteRequest]);
+
+    useEffect(() => {
+        if (!transactionThreadReportID) {
+            return;
+        }
+        setSelectedTransactionsID([]);
+        // We don't need to run the effect on change of setSelectedTransactionsID since it can cause the infinite loop.
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactionThreadReportID]);
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 

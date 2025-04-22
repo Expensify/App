@@ -561,7 +561,7 @@ If you'd like to add HybridApp-specific patches, use the `--patch-dir` flag:
 
 ### Additional information and troubleshooting
 
-If you seek some addtional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
+If you seek some additional information you can always refer to the [extended version](contributingGuides/HYBRID_APP.md) of the docs for HybridApp. You can find there extended explanation of some of the concepts, pro tips, and most common errors.
 
 ----
 
