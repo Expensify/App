@@ -46,7 +46,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}

@@ -42,7 +42,7 @@ function QuickbooksAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_ADVANCED.getRoute(policyID))}
+                    onBackButtonPress={() => Navigation.goBack()}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
