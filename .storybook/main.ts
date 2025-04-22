@@ -14,9 +14,7 @@ const main: StorybookConfig = {
         name: '@storybook/react-webpack5',
         options: {},
     },
-    docs: {
-        autodocs: false,
-    },
+    docs: {},
 };
 
 export default main;

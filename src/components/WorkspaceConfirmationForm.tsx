@@ -13,6 +13,7 @@ import {isRequiredFulfilled} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WorkspaceConfirmationForm';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import Avatar from './Avatar';
 import AvatarWithImagePicker from './AvatarWithImagePicker';
 import CurrencyPicker from './CurrencyPicker';
@@ -81,11 +82,11 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
     );
 
     const policyID = useMemo(() => generatePolicyID(), []);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session, metadata] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
-    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail);
+    const defaultWorkspaceName = generateDefaultWorkspaceName(policyOwnerEmail || session?.email);
     const [workspaceNameFirstCharacter, setWorkspaceNameFirstCharacter] = useState(defaultWorkspaceName ?? '');
 
     const userCurrency = allPersonalDetails?.[session?.accountID ?? CONST.DEFAULT_NUMBER_ID]?.localCurrencyCode ?? CONST.CURRENCY.USD;
@@ -167,24 +168,27 @@ function WorkspaceConfirmationForm({onSubmit, policyOwnerEmail = '', onBackButto
                         })
                     }
                     enabledWhenOffline
+                    addBottomSafeAreaPadding
                 >
                     <View style={styles.mb4}>
-                        <InputWrapper
-                            InputComponent={TextInput}
-                            role={CONST.ROLE.PRESENTATION}
-                            inputID={INPUT_IDS.NAME}
-                            label={translate('workspace.common.workspaceName')}
-                            accessibilityLabel={translate('workspace.common.workspaceName')}
-                            spellCheck={false}
-                            defaultValue={defaultWorkspaceName}
-                            onChangeText={(str) => {
-                                if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
-                                    return;
-                                }
-                                setWorkspaceNameFirstCharacter(str);
-                            }}
-                            ref={inputCallbackRef}
-                        />
+                        {!isLoadingOnyxValue(metadata) && (
+                            <InputWrapper
+                                InputComponent={TextInput}
+                                role={CONST.ROLE.PRESENTATION}
+                                inputID={INPUT_IDS.NAME}
+                                label={translate('workspace.common.workspaceName')}
+                                accessibilityLabel={translate('workspace.common.workspaceName')}
+                                spellCheck={false}
+                                defaultValue={defaultWorkspaceName}
+                                onChangeText={(str) => {
+                                    if (getFirstAlphaNumericCharacter(str) === getFirstAlphaNumericCharacter(workspaceNameFirstCharacter)) {
+                                        return;
+                                    }
+                                    setWorkspaceNameFirstCharacter(str);
+                                }}
+                                ref={inputCallbackRef}
+                            />
+                        )}
 
                         <View style={[styles.mhn5, styles.mt4]}>
                             <InputWrapper
