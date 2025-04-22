@@ -161,7 +161,7 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
 /**
  * Get commits between two tags via the GitHub API
  */
-async function getCommitHistory(fromTag: string, toTag: string): Promise<CommitType[]> {
+async function getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
     
     try {
@@ -179,7 +179,7 @@ async function getCommitHistory(fromTag: string, toTag: string): Promise<CommitT
             authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
         }));
     } catch (error) {
-        console.error('GitHub API error when getting commit history:', error);
+        console.error('Error getting commit history from GitHub API:', error);
         throw error;
     }
 }
