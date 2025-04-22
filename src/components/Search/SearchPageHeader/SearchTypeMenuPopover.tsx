@@ -56,13 +56,13 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const {translate} = useLocalize();
     const {hash, policyID, groupBy} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const personalDetails = usePersonalDetails();
-    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const {unmodifiedPaddings} = useSafeAreaPaddings();
     const {canUseLeftHandBar} = usePermissions();
@@ -102,7 +102,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
         [closeMenu, showDeleteModal],
     );
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const createSavedSearchMenuItem = useCallback(
         (item: SaveSearchItem, key: string, index: number) => {
             let savedSearchTitle = item.name;
