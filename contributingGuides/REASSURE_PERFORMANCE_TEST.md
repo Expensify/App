@@ -65,7 +65,7 @@ We use Reassure for monitoring performance regression. It helps us check if our 
 
     - Investigate the code changes that might be causing this and address them to maintain a stable render count. More info [here](https://github.com/Expensify/App/blob/fe9e9e3e31bae27c2398678aa632e808af2690b5/tests/perf-test/README.md?plain=1#L32).
     - It is important to run Reassure tests locally and see if our changes caused a regression.
-    - One of the potential factors that may influence variation in the number of renders is adding unnecesary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
+    - One of the potential factors that may influence variation in the number of renders is adding unnecessary providers to the component we want to test using ```<ComposeProviders>``` . Ensure that all providers are necessary for running the test.
 
 ## What can be tested (scenarios)
 

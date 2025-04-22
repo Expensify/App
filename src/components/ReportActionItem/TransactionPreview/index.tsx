@@ -21,7 +21,12 @@ import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
 
 const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>) => {
-    const {originalTransactionID, source} = transaction?.comment ?? {};
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    // If splits property is defined in the transaction, it is actually an original transaction
+    if (splits && splits.length > 0) {
+        return {isSplit: true, originalTransaction: transaction};
+    }
 
     if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return {isSplit: false, originalTransaction: transaction};
@@ -35,7 +40,7 @@ const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>
 function TransactionPreview(props: TransactionPreviewProps) {
     const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID, transactionID: transactionIDFromProps} = props;
 
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: false});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: false});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
@@ -46,7 +51,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const violations = useTransactionViolations(transactionOrDeleted?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: false});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
@@ -90,6 +95,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
+            reportPreviewAction={props.reportPreviewAction}
         />
     );
 }
