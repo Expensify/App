@@ -58,6 +58,7 @@ function AverageReimbursement({onNext, isEditing}: AverageReimbursementProps) {
             validate={validate}
             style={[styles.flexGrow1]}
             submitButtonStyles={[styles.mh5]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mh5, styles.mb3]}>{translate('businessInfoStep.whatsYourExpectedAverageReimbursements')}</Text>
             <InputWrapper

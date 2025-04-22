@@ -49,14 +49,12 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
   end
 end
 
-def __modify_react_native_settings_for_debug_build(installer)
-  installer.pods_project.targets.each do |target|
-    if target.name.include?('React')
-      target.build_configurations.each do |config|
-        if config.name.downcase.include?("debug")
-          config.build_settings['GCC_PREPROCESSOR_DEFINITIONS'] ||= '$(inherited) DEBUG=1'
-        end
-      end
+# Pods does not derive :debug type from NewExpensify's debug configurations so we need to set it manually before react-native-post-install. 
+# Based on this value react-native-post-install will set the correct GCC_PREPROCESSOR_DEFINITIONS e.g. ENABLE_HERMES_DEBUGGER
+def __set_debug_type_for_debug_configurations(installer)
+  installer.pods_project.build_configurations.each do |config|
+    if config.name.downcase.include?("debug")
+      installer.pods_project.add_build_configuration(config.name, :debug)
     end
   end
 end
@@ -86,7 +84,7 @@ target 'NewExpensify' do
     'ReleaseProduction' => :release,
     'Debug' => :debug
 
-  config = use_native_modules!
+  config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
 
   # Flags change depending on the env values.
   flags = get_default_flags()
@@ -105,6 +103,7 @@ target 'NewExpensify' do
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
 
+    __set_debug_type_for_debug_configurations(installer)
     # https://github.com/facebook/react-native/blob/main/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
@@ -113,7 +112,6 @@ target 'NewExpensify' do
       # :ccache_enabled => true
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
-    __modify_react_native_settings_for_debug_build(installer)
 
     installer.pods_project.targets.each do |target|
       if target.respond_to?(:product_type) and target.product_type == "com.apple.product-type.bundle"

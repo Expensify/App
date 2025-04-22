@@ -1,7 +1,6 @@
 import lodashIsEqual from 'lodash/isEqual';
 import React, {memo, useMemo} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import RenderHTML from '@components/RenderHTML';
@@ -13,6 +12,7 @@ import type {ShowContextMenuContextProps} from '@components/ShowContextMenuConte
 import SpacerView from '@components/SpacerView';
 import UnreadActionIndicator from '@components/UnreadActionIndicator';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {isMessageDeleted, isReversedTransaction as isReversedTransactionReportActionsUtils, isTransactionThread} from '@libs/ReportActionsUtils';
@@ -139,7 +139,10 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
             <View style={[styles.pRelative]}>
                 <AnimatedEmptyStateBackground />
                 <View>
-                    <TaskView report={report} />
+                    <TaskView
+                        report={report}
+                        action={action}
+                    />
                     {renderThreadDivider}
                 </View>
             </View>

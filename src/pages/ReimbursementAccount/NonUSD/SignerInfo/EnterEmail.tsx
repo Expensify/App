@@ -7,6 +7,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
+import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import CONST from '@src/CONST';
@@ -29,7 +30,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? '';
     const shouldGatherBothEmails = currency === CONST.CURRENCY.AUD && !isUserDirector;
 
@@ -40,7 +41,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
-            if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(values[SECOND_SIGNER_EMAIL])) {
+            if (shouldGatherBothEmails && values[SECOND_SIGNER_EMAIL] && !Str.isValidEmail(String(values[SECOND_SIGNER_EMAIL]))) {
                 errors[SECOND_SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
 
@@ -56,6 +57,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
             onSubmit={onSubmit}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldHideFixErrorsAlert={!shouldGatherBothEmails}
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail')}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}

@@ -18,25 +18,28 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-import convertToLTR from '@libs/convertToLTR';
 import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAvatarsForAccountIDs, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTaskReport, isOpenTaskReport} from '@libs/ReportUtils';
+import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportAction} from '@src/types/onyx';
 
 type TaskViewProps = {
     /** The report currently being looked at */
     report: OnyxEntry<Report>;
+
+    /** The task report action */
+    action: OnyxEntry<ReportAction>;
 };
 
-function TaskView({report}: TaskViewProps) {
+function TaskView({report, action}: TaskViewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -45,8 +48,11 @@ function TaskView({report}: TaskViewProps) {
     useEffect(() => {
         setTaskReport(report);
     }, [report]);
-    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(report?.reportName ?? ''), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
-    const taskTitle = `<task-title>${convertToLTR(titleWithoutImage)}</task-title>`;
+
+    const taskTitleWithoutPre = StringUtils.removePreCodeBlock(report?.reportName);
+    const titleWithoutImage = Parser.replace(Parser.htmlToMarkdown(taskTitleWithoutPre), {disabledRules: [...CONST.TASK_TITLE_DISABLED_RULES]});
+    const taskTitle = `<task-title>${titleWithoutImage}</task-title>`;
+
     const assigneeTooltipDetails = getDisplayNamesWithTooltips(getPersonalDetailsForAccountIDs(report?.managerID ? [report?.managerID] : [], personalDetails), false);
 
     const isOpen = isOpenTaskReport(report);
@@ -63,12 +69,13 @@ function TaskView({report}: TaskViewProps) {
             anchor: null,
             report,
             reportNameValuePairs: undefined,
-            action: undefined,
+            action,
             transactionThreadReport: undefined,
             checkIfContextMenuActive: () => {},
             isDisabled: true,
+            shouldDisplayContextMenu: false,
         }),
-        [report],
+        [report, action],
     );
 
     const attachmentContextValue = useMemo(() => ({type: CONST.ATTACHMENT_TYPE.ONBOARDING, accountID}), [accountID]);

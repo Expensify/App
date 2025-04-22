@@ -537,6 +537,7 @@ function IOURequestStepDistance({
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
             testID={IOURequestStepDistance.displayName}
+            shouldShowNotFoundPage={isEditing && !transaction?.comment?.waypoints}
             shouldShowWrapper={!isCreatingNewRequest}
         >
             <>

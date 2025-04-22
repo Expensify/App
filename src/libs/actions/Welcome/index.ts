@@ -5,9 +5,11 @@ import * as API from '@libs/API';
 import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import Log from '@libs/Log';
+import Navigation from '@libs/Navigation/Navigation';
 import CONFIG from '@src/CONFIG';
 import type {OnboardingCompanySize} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
 import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
@@ -94,10 +96,6 @@ function checkOnboardingDataReady() {
     resolveOnboardingFlowStatus();
 }
 
-function setOnboardingCustomChoices(value: OnboardingPurpose[]) {
-    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
-}
-
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
 }
@@ -122,6 +120,19 @@ function updateOnboardingLastVisitedPath(path: string) {
     Onyx.merge(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH, path);
 }
 
+function updateOnboardingValuesAndNavigation(onboardingValues: Onboarding | undefined) {
+    Onyx.set(ONYXKEYS.NVP_ONBOARDING, {...onboardingValues, shouldValidate: undefined});
+
+    // We need to have the Onyx values updated before navigating back
+    // Because we navigate based no useEffect logic and we need to clear `shouldValidate` value before going back
+    Navigation.setNavigationActionToMicrotaskQueue(() => {
+        Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+    });
+}
+
+function setOnboardingMergeAccountStepValue(value: boolean) {
+    Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergeAccountStepCompleted: value});
+}
 function completeHybridAppOnboarding() {
     if (!CONFIG.IS_HYBRID_APP) {
         return;
@@ -207,25 +218,28 @@ function setSelfTourViewed(shouldUpdateOnyxDataOnlyLocally = false) {
     API.write(WRITE_COMMANDS.SELF_TOUR_VIEWED, null, {optimisticData});
 }
 
-function dismissProductTraining(elementName: string) {
+function dismissProductTraining(elementName: string, isDismissedUsingCloseButton = false) {
     const date = new Date();
+    const dismissedMethod = isDismissedUsingCloseButton ? 'x' : 'click';
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING,
             value: {
-                [elementName]: DateUtils.getDBTime(date.valueOf()),
+                [elementName]: {
+                    timestamp: DateUtils.getDBTime(date.valueOf()),
+                    dismissedMethod,
+                },
             },
         },
     ];
-    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName}, {optimisticData});
+    API.write(WRITE_COMMANDS.DISMISS_PRODUCT_TRAINING, {name: elementName, dismissedMethod}, {optimisticData});
 }
 
 export {
     onServerDataReady,
     isOnboardingFlowCompleted,
     dismissProductTraining,
-    setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
@@ -236,4 +250,6 @@ export {
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,
+    setOnboardingMergeAccountStepValue,
+    updateOnboardingValuesAndNavigation,
 };

@@ -3,15 +3,17 @@ import Airship, {EventType} from '@ua/react-native-airship';
 import Log from '@libs/Log';
 import ShortcutManager from '@libs/ShortcutManager';
 import ForegroundNotifications from './ForegroundNotifications';
-import type {PushNotificationData} from './NotificationType';
+import type {NotificationDataMap, NotificationTypes} from './NotificationType';
 import NotificationType from './NotificationType';
 import parsePushNotificationPayload from './parsePushNotificationPayload';
 import type {ClearNotifications, Deregister, Init, OnReceived, OnSelected, Register} from './types';
 import type PushNotificationType from './types';
 
-type NotificationEventActionCallback = (data: PushNotificationData) => Promise<void>;
+type NotificationEventHandler<T extends NotificationTypes> = (data: NotificationDataMap[T]) => Promise<void>;
 
-type NotificationEventActionMap = Partial<Record<EventType, Record<string, NotificationEventActionCallback>>>;
+type NotificationEventHandlerMap<T extends NotificationTypes> = Partial<Record<T, NotificationEventHandler<T>>>;
+
+type NotificationEventActionMap = Partial<Record<EventType, NotificationEventHandlerMap<NotificationTypes>>>;
 
 const notificationEventActionMap: NotificationEventActionMap = {};
 
@@ -124,8 +126,8 @@ const deregister: Deregister = () => {
  *
  * @param triggerEvent - The event that should trigger this callback. Should be one of UrbanAirship.EventType
  */
-function bind(notificationType: string, callback: NotificationEventActionCallback, triggerEvent: EventType) {
-    let actionMap = notificationEventActionMap[triggerEvent];
+function bind<T extends NotificationTypes>(triggerEvent: EventType, notificationType: T, callback: NotificationEventHandler<T>) {
+    let actionMap = notificationEventActionMap[triggerEvent] as NotificationEventHandlerMap<T> | undefined;
 
     if (!actionMap) {
         actionMap = {};
@@ -139,14 +141,14 @@ function bind(notificationType: string, callback: NotificationEventActionCallbac
  * Bind a callback to be executed when a push notification of a given type is received.
  */
 const onReceived: OnReceived = (notificationType, callback) => {
-    bind(notificationType, callback, EventType.PushReceived);
+    bind(EventType.PushReceived, notificationType, callback);
 };
 
 /**
  * Bind a callback to be executed when a push notification of a given type is tapped by the user.
  */
 const onSelected: OnSelected = (notificationType, callback) => {
-    bind(notificationType, callback, EventType.NotificationResponse);
+    bind(EventType.NotificationResponse, notificationType, callback);
 };
 
 /**

@@ -59,6 +59,7 @@ type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
 type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus>;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
+type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 
 type SearchContext = {
     currentSearchHash: number;
@@ -72,6 +73,11 @@ type SearchContext = {
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    shouldShowExportModeOption: boolean;
+    setShouldShowExportModeOption: (shouldShow: boolean) => void;
+    isExportMode: boolean;
+    setExportMode: (on: boolean) => void;
+    isOnSearch: boolean;
 };
 
 type ASTNode = {
@@ -85,6 +91,8 @@ type QueryFilter = {
     value: string | number;
 };
 
+type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
+
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.SUBMITTED
@@ -97,7 +105,7 @@ type SearchFilterKey =
     | ValueOf<typeof CONST.SEARCH.SYNTAX_FILTER_KEYS>
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS
-    | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.POLICY_ID
+    | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID
     | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY;
 
 type UserFriendlyKey = ValueOf<typeof CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS>;
@@ -143,6 +151,7 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchStatus,
     SearchQueryAST,
@@ -162,4 +171,5 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    TableColumnSize,
 };
