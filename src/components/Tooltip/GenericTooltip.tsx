@@ -42,13 +42,14 @@ function GenericTooltip({
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-
+    
     // Is tooltip already rendered on the page's body? happens once.
     const ref = useRef<RNView>(null);
     const [isRendered, setIsRendered] = useState(false);
-
+    
     // Is the tooltip currently visible?
     const [isVisible, setIsVisible] = useState(false);
+    
 
     // The distance between the left side of the wrapper view and the left side of the window
     const [xOffset, setXOffset] = useState(0);
@@ -59,6 +60,7 @@ function GenericTooltip({
     // The width and height of the wrapper view
     const [wrapperWidth, setWrapperWidth] = useState(0);
     const [wrapperHeight, setWrapperHeight] = useState(0);
+
     // Transparent overlay should disappear once user taps it
     const [shouldUseOverlay, setShouldUseOverlay] = useState(shouldUseOverlayProp);
 
@@ -74,13 +76,16 @@ function GenericTooltip({
         }
         Log.warn('Developer error: Cannot use both text and renderTooltipContent props at the same time in <TooltipRenderedOnPageBody />!');
     }, [text, renderTooltipContent]);
+
     /**
      * Display the tooltip in an animation.
      */
     const showTooltip = useCallback(() => {
         setIsRendered(true);
         setIsVisible(true);
+
         cancelAnimation(animation);
+
         // When TooltipSense is active, immediately show the tooltip
         if (TooltipSense.isActive() && !shouldForceAnimate) {
             animation.set(1);
@@ -89,31 +94,53 @@ function GenericTooltip({
             animation.set(
                 withDelay(
                     500,
-                    withTiming(1, {duration: 140}, (finished) => {
-                        isAnimationCanceled.set(!finished);
-                    }),
+                    withTiming(
+                        1,
+                        {
+                            duration: 140,
+                        },
+                        (finished) => {
+                            isAnimationCanceled.set(!finished);
+                        },
+                    ),
                 ),
             );
         }
-
         TooltipSense.activate();
     }, [animation, isAnimationCanceled, isTooltipSenseInitiator, shouldForceAnimate]);
 
+    // eslint-disable-next-line rulesdir/prefer-early-return
     useEffect(() => {
         if (isVisible && isAnimationCanceled.get() && text && prevText !== text) {
             isAnimationCanceled.set(false);
             showTooltip();
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
-
+    
+    const updateTargetBounds = (bounds: LayoutRectangle) => {
+        if (bounds.width === 0) {
+            setIsRendered(false);
+        }
+        setWrapperWidth(bounds.width);
+        setWrapperHeight(bounds.height);
+        setXOffset(bounds.x);
+        setYOffset(bounds.y);
+    };
+    
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
-        isTooltipSenseInitiator.set(false);
-        animation.set(0);
+    
+        if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
+            animation.set(0);
+        } else {
+            isTooltipSenseInitiator.set(false);
+            animation.set(0);
+        }
+    
         TooltipSense.deactivate();
         setIsVisible(false);
     }, [animation, isTooltipSenseInitiator]);
-
+    
     const onPressOverlay = useCallback(() => {
         if (!shouldUseOverlay) {
             return;
@@ -121,12 +148,11 @@ function GenericTooltip({
         setShouldUseOverlay(false);
         hideTooltip();
     }, [shouldUseOverlay, hideTooltip]);
-
+    
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
-        // eslint-disable-next-line react-compiler/react-compiler
         return <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}</View>;
     }
-
+    
     return (
         <>
             {shouldRender && isRendered && (
@@ -154,9 +180,10 @@ function GenericTooltip({
                     onTooltipPress={onTooltipPress}
                 />
             )}
-            <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}</View>
+            <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}</View>
         </>
     );
+    
 }
 
 GenericTooltip.displayName = 'GenericTooltip';
