@@ -1314,6 +1314,7 @@ const styles = (theme: ThemeColors) =>
             return {
                 transform: [{translateY: translateY.get()}],
                 fontSize: interpolate(scale.get(), [0, ACTIVE_LABEL_SCALE], [0, variables.fontSizeLabel]),
+                transition: 'ease',
             } satisfies TextStyle;
         },
 
