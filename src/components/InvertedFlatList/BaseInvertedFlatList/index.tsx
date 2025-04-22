@@ -6,6 +6,10 @@ import usePrevious from '@hooks/usePrevious';
 import CONST from '@src/CONST';
 import RenderTaskQueue from './RenderTaskQueue';
 
+// For new reports, we only want to scroll to the top if the unread message is within the first 2 items.
+// The first action within a report is usually a "CREATED" action, while the second item is the first message/action.
+const FIRST_MESSAGE_SCROLL_THRESHOLD = 2;
+
 // Adapted from https://github.com/facebook/react-native/blob/29a0d7c3b201318a873db0d1b62923f4ce720049/packages/virtualized-lists/Lists/VirtualizeUtils.js#L237
 function defaultKeyExtractor<T>(item: T | {key: string} | {id: string}, index: number): string {
     if (item != null) {
@@ -53,18 +57,18 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     // If the unread message is within the first pagination items, we need to manually scroll to the top,
     // because otherwise the content would shift up by new messages loading and filling up the page.
-    const isUnreadMessageOnFirstPage = useCallback(
-        () => data.length >= CONST.PAGINATION_SIZE && currentDataIndex >= Math.max(0, data.length - CONST.PAGINATION_SIZE),
+    const isFirstMessageUnread = useCallback(
+        () => data.length >= FIRST_MESSAGE_SCROLL_THRESHOLD && currentDataIndex >= Math.max(0, data.length - FIRST_MESSAGE_SCROLL_THRESHOLD),
         [data.length, currentDataIndex],
     );
 
-    const [shouldInitiallyScrollToFirstMessage, setShouldInitiallyScrollToFirstMessage] = useState(isUnreadMessageOnFirstPage);
+    const [shouldInitiallyScrollToFirstMessage, setShouldInitiallyScrollToFirstMessage] = useState(isFirstMessageUnread);
     useEffect(() => {
-        if (shouldInitiallyScrollToFirstMessage !== undefined || !isUnreadMessageOnFirstPage) {
+        if (shouldInitiallyScrollToFirstMessage !== undefined || !isFirstMessageUnread) {
             return;
         }
         setShouldInitiallyScrollToFirstMessage(true);
-    }, [currentDataIndex, isUnreadMessageOnFirstPage, shouldInitiallyScrollToFirstMessage]);
+    }, [currentDataIndex, isFirstMessageUnread, shouldInitiallyScrollToFirstMessage]);
 
     useEffect(() => {
         // Scroll to the end once the first page of items or the whole list is loaded, if there not that many items.
