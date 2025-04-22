@@ -6,16 +6,16 @@ import Badge from '@components/Badge';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import {useSession} from '@components/OnyxProvider';
 import type {TaskListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
-import {completeTask} from '@libs/actions/Task';
+import {canActionTask, completeTask} from '@libs/actions/Task';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import AvatarWithTextCell from './AvatarWithTextCell';
@@ -66,9 +66,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-
+    const session = useSession();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
 
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
@@ -101,7 +100,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             success
             text={translate('task.action')}
             style={[styles.w100]}
-            isDisabled={isOffline}
+            isDisabled={!canActionTask(taskItem.report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem, taskItem.reportID);
             })}

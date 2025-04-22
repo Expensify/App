@@ -16,7 +16,7 @@ function AvatarWithTextCell({reportName, icon}: AvatarWithTextCellProps) {
     const styles = useThemeStyles();
     const {isLargeScreenWidth} = useResponsiveLayout();
 
-    if (!reportName && !icon) {
+    if (!reportName || !icon) {
         return null;
     }
 

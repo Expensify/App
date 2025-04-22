@@ -453,6 +453,9 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
             const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
 
+            const report = getReportOrDraftReport(taskItem.reportID);
+            const parentReport = getReportOrDraftReport(taskItem.parentReportID);
+
             const doesDataContainAPastYearTransaction = shouldShowYear(data);
             const reportName = Parser.replace(Parser.htmlToText(taskItem.reportName));
             const description = Parser.replace(Parser.htmlToText(taskItem.description)).replaceAll('<br />', ' ');
@@ -469,8 +472,6 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
                 shouldShowYear: doesDataContainAPastYearTransaction,
             };
 
-            const parentReport = getReportOrDraftReport(taskItem.parentReportID);
-
             if (parentReport && personalDetails) {
                 const policy = getPolicy(parentReport.policyID);
                 const parentReportName = getReportName(parentReport, policy, undefined, undefined);
@@ -479,6 +480,10 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
 
                 result.parentReportName = parentReportName;
                 result.parentReportIcon = parentReportIcon;
+            }
+
+            if (report) {
+                result.report = report;
             }
 
             return result;

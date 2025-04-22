@@ -20,7 +20,7 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
@@ -292,6 +292,9 @@ type TaskListItemType = ListItem &
 
         /** The icon of the parent  report room */
         parentReportIcon?: Icon;
+
+        /** The report details of the task */
+        report?: Report;
 
         /** Key used internally by React */
         keyForList: string;
