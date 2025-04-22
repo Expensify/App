@@ -744,7 +744,7 @@ type OptionData = {
     displayName?: string;
     firstName?: string;
     lastName?: string;
-    avatar?: string;
+    avatar?: AvatarSource | string;
 } & Report &
     ReportNameValuePairs;
 

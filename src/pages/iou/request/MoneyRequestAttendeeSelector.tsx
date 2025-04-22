@@ -242,6 +242,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
             } else {
                 const iconSource = option.icons?.[0]?.source;
                 const icon = typeof iconSource === 'function' ? '' : iconSource?.toString() ?? '';
+                const avatarUrl = typeof option.avatar === 'string' ? option.avatar : (option.avatarUrl ?? icon);
                 newSelectedOptions = [
                     ...attendees,
                     {
@@ -253,7 +254,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                         displayName: option.text ?? '',
                         selected: true,
                         searchText: option.searchText,
-                        avatarUrl: option.avatarUrl ?? icon,
+                        avatarUrl,
                         iouType,
                     },
                 ];
