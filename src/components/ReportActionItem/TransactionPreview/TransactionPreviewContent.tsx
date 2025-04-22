@@ -46,6 +46,8 @@ function TransactionPreviewContent({
     areThereDuplicates,
     sessionAccountID,
     walletTermsErrors,
+    routeName,
+    reportPreviewAction,
     shouldHideOnDelete = true,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
@@ -53,8 +55,8 @@ function TransactionPreviewContent({
     const {translate} = useLocalize();
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
-    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
-    const ownerAccountID = iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
+    const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
 
@@ -106,7 +108,7 @@ function TransactionPreviewContent({
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
-    const iouData = getIOUData(managerID, ownerAccountID, iouReport, personalDetails, (transaction && transaction.amount) ?? 0);
+    const iouData = getIOUData(managerID, ownerAccountID, personalDetails);
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
@@ -186,9 +188,9 @@ function TransactionPreviewContent({
                                         <UserInfoCellsWithArrow
                                             shouldDisplayArrowIcon
                                             participantFrom={from}
-                                            participantFromDisplayName={from.displayName ?? from.login ?? ''}
+                                            participantFromDisplayName={from.displayName ?? from.login ?? translate('common.hidden')}
+                                            participantToDisplayName={to.displayName ?? to.login ?? translate('common.hidden')}
                                             participantTo={to}
-                                            participantToDisplayName={to.displayName ?? to.login ?? ''}
                                             avatarSize="mid-subscript"
                                             infoCellsTextStyle={{...styles.textMicroBold, lineHeight: 14}}
                                             infoCellsAvatarStyle={styles.pr1}

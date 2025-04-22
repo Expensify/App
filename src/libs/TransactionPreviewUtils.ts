@@ -11,7 +11,7 @@ import DateUtils from './DateUtils';
 import type {PlatformStackRouteProp} from './Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from './Navigation/types';
 import {getOriginalMessage, getReportAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
-import {isIOUReport, isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
+import {isPaidGroupPolicy, isPaidGroupPolicyExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import type {TransactionDetails} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -42,19 +42,11 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-const chooseIDBasedOnAmount = (amount: number, negativeId: number, positiveId: number) => (amount < 0 ? negativeId : positiveId);
+function getIOUData(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined) {
+    const fromID = managerID;
+    const toID = ownerAccountID;
 
-function getIOUData(
-    managerID: number,
-    ownerAccountID: number,
-    reportOrID: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | string | undefined,
-    personalDetails: OnyxTypes.PersonalDetailsList | undefined,
-    amount: number,
-) {
-    const fromID = chooseIDBasedOnAmount(amount, managerID, ownerAccountID);
-    const toID = chooseIDBasedOnAmount(amount, ownerAccountID, managerID);
-
-    return reportOrID && isIOUReport(reportOrID)
+    return fromID && toID
         ? {
               from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
               to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,

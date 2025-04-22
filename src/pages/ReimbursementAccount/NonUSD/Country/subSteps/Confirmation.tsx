@@ -29,10 +29,10 @@ type ConfirmationStepProps = {
 function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
 
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
 
     const shouldAllowChange = currency === CONST.CURRENCY.EUR;
@@ -101,7 +101,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             </Text>
             <InputWrapper
                 InputComponent={PushRowWithModal}
-                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_COUNTRIES : CONST.ALL_COUNTRIES}
+                optionsList={shouldAllowChange ? CONST.ALL_EUROPEAN_UNION_COUNTRIES : CONST.ALL_COUNTRIES}
                 onValueChange={(value) => setSelectedCountry(value as string)}
                 description={translate('common.country')}
                 modalHeaderTitle={translate('countryStep.selectCountry')}
