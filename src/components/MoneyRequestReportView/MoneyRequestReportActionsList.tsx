@@ -240,7 +240,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
         }
 
         return null;
-    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime, lastVisibleActionCreated]);
+    }, [currentUserAccountID, earliestReceivedOfflineMessageIndex, prevVisibleActionsMap, visibleReportActions, unreadMarkerTime]);
     prevUnreadMarkerReportActionID.current = unreadMarkerReportActionID;
 
     /**
