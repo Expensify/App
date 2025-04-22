@@ -16,8 +16,6 @@ jobs:
     strategy:
       matrix:
         is_hybrid: [true, false]
-    env:
-      PATCHES_PATHS: ${{ matrix.is_hybrid && 'Mobile-Expensify/patches' || 'patches' }}
     steps:
       # v4
       - name: Checkout
