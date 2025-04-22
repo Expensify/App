@@ -1,15 +1,12 @@
 'use strict';
 exports.__esModule = true;
-
-const React = require('react');
-const Config = require('react-native-config');
-
-const useWDYR = Config?.default?.USE_WDYR === 'true';
-
+var react_1 = require('react');
+var react_native_config_1 = require('react-native-config');
+var useWDYR = (react_native_config_1['default'] === null || react_native_config_1['default'] === void 0 ? void 0 : react_native_config_1['default'].USE_WDYR) === 'true';
 if (useWDYR) {
-    const whyDidYouRender = require('@welldone-software/why-did-you-render');
-
-    whyDidYouRender(React.default, {
+    var whyDidYouRender = require('@welldone-software/why-did-you-render');
+    whyDidYouRender(react_1['default'], {
+        // Enable tracking in all pure components by default
         trackAllPureComponents: true,
         include: [
             // /.*/,
@@ -18,6 +15,7 @@ if (useWDYR) {
             // /^ReportActionItemSingle/,
         ],
         exclude: [
+            // Uncomment to enable tracking in all components
             // /^Screen/
         ],
     });
