@@ -515,6 +515,11 @@ function getCombinedReportActions(
     return getSortedReportActions(filteredReportActions, true);
 }
 
+const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
+
+// Get all IOU report actions for the report.
+const iouRequestTypesSet = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([...iouRequestTypes, CONST.IOU.REPORT_ACTION_TYPE.PAY]);
+
 /**
  * Finds most recent IOU request action ID.
  */
@@ -522,11 +527,6 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
     if (!Array.isArray(reportActions)) {
         return null;
     }
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-    ];
     const iouRequestActions =
         reportActions?.filter((action) => {
             if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU)) {
@@ -745,6 +745,10 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
+
+        // We're temporarily deprecating the actions below since the feature is still WIP and these actions are being shown as duplicated
+        CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+        CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
@@ -859,10 +863,6 @@ function shouldReportActionBeVisible(reportAction: OnyxEntry<ReportAction>, key:
 
     // If action is actionable whisper and resolved by user, then we don't want to render anything
     if (isActionableWhisper(reportAction) && isResolvedActionableWhisper(reportAction)) {
-        return false;
-    }
-
-    if (isConciergeCategoryOptions(reportAction) && isResolvedConciergeCategoryOptions(reportAction)) {
         return false;
     }
 
@@ -1160,6 +1160,11 @@ function isSplitBillAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
+function isIOURequestReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    const type = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type;
+    return !!type && iouRequestTypes.includes(type);
+}
+
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
@@ -1193,14 +1198,6 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
-// Get all IOU report actions for the report.
-const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
-    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-    CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-    CONST.IOU.REPORT_ACTION_TYPE.PAY,
-    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-]);
-
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
@@ -1232,7 +1229,7 @@ function getOneTransactionThreadReportID(
         const actionType = originalMessage?.type;
         if (
             actionType &&
-            iouRequestTypes.has(actionType) &&
+            iouRequestTypesSet.has(actionType) &&
             action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
@@ -2229,9 +2226,10 @@ function getRemovedConnectionMessage(reportAction: OnyxEntry<ReportAction>): str
     return connectionName ? translateLocal('report.actions.type.removedConnection', {connectionName}) : '';
 }
 
-function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>) {
+function getRenamedAction(reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.RENAMED>>, actorName?: string) {
     const originalMessage = getOriginalMessage(reportAction);
     return translateLocal('newRoomPage.renamedRoomAction', {
+        actorName,
         oldName: originalMessage?.oldName ?? '',
         newName: originalMessage?.newName ?? '',
     });
@@ -2417,6 +2415,7 @@ export {
     isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
+    isIOURequestReportAction,
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,

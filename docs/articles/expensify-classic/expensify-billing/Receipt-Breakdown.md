@@ -1,56 +1,70 @@
 ---
-title: Receipts Breakdown
-description: This article goes over the Expensify receipt for billing owners.
+title: receipts-breakdown.md
+description: This article explains how to read your Expensify receipt, including billing charges, discounts, and activity by workspace.
+keywords: billing receipt, receipt breakdown, billing history, expensify invoice, billing owner, discounts, expensify card, activity breakdown
+---
+<div id="expensify-classic" markdown="1">
+
+This article explains how to understand your monthly Expensify receipt as a billing owner—including what you’re being charged for, where discounts are applied, and how to identify savings.
+
+# Receipt Sections
+
+Your receipt includes the following:
+
+- **High-level summary** – Total cost and per-member pricing.
+- **Savings opportunities** – Discounts and cash back from using the Expensify Card.
+- **Billing breakdown** – Line-by-line charges, discounts, and activity.
+- **Workspace activity** – Billing details by workspace.
+
 ---
 
-Your Expensify receipt clearly shows your total bill, member activity, and any applicable discounts. This guide explains each section to help you understand your charges and identify potential savings.
+# High-Level Summary
 
-## Receipt Sections  
+- Shows the **total amount paid** across all workspaces under your billing ownership.
+- Displays the **price per member**, based on total active members.
+- Lists which members generated **billable activity** for the month.
 
-Your receipt includes the following details:  
+---
 
-- **High-level summary** – Total Expensify bill and per-member pricing.  
-- **Ways to reduce costs** – Potential savings with the Expensify Card.  
-- **Billing breakdown** – Detailed charges, discounts, and member activity.  
-- **Activity breakdown** – Workspace-specific billing details.  
+# Save Money & Earn Cash Back
 
----  
+Use the **Expensify Card** and an **annual subscription** to lower your costs and earn rewards.
 
-## High-Level Summary  
+This section of your receipt highlights:
+- **Estimated savings** from using the Expensify Card.
+- A button to **Get started**, which connects you with Concierge or your account manager for help setting up.
 
-- Displays the **total amount paid** for all Expensify Workspaces under your billing ownership.  
-- Shows the **price per member**, calculated based on the total number of members across your workspaces.  
-- Provides a **member activity breakdown** to show which members generated billable activity.  
+**Note:** [Expensify Cards](https://use.expensify.com/company-credit-card) are only available to companies with a **US business bank account**.
 
----  
+---
 
-## Reduce Your Bill & Get Paid to Use Expensify  
+# Billing Breakdown
 
-- Expensify Card users may qualify for **cash back** and **discounts** on their bill.  
-- This section shows **potential savings** if you use the Expensify Card for business expenses.  
-- Click **Get started** to connect with your account manager or Concierge for setup assistance.  
+This section outlines all charges and credits applied to your account:
 
-**Note:** [Expensify Cards]([url](https://use.expensify.com/company-credit-card)) are currently available to companies with **US business bank accounts**.  
-
----  
-
-## Billing Breakdown  
-
-Your receipt provides a **line-by-line breakdown** of charges and discounts:  
-
-- **Inactive workspace members @ $0.00** – Users who did not generate billable activity.  
-- **Chat-only members @ $0.00** – Users who only used Expensify Chat. [Learn more](https://help.expensify.com/new-expensify/hubs/chat/).  
-- **Annual Control members @ $18.00** – Members covered under an annual **Control** plan subscription.  
-- **Pay-per-use Control members @ $36.00** – Additional **Control** plan members billed at a per-use rate.  
-- **Annual Collect members @ $10.00** – Members covered under an annual **Collect** plan subscription.  
-- **Pay-per-use Collect members @ $20.00** – Additional **Collect** plan members billed at a per-use rate.  
+- **Inactive workspace members @ $0.00** – Users who didn’t generate billable activity.
+- **Chat-only members @ $0.00** – Users who only used Expensify Chat.  
+  [Learn more](https://help.expensify.com/new-expensify/hubs/chat/)
+- **Annual Control members @ $18.00** – Members on an annual Control Plan.
+- **Pay-per-use Control members @ $36.00** – Extra Control members billed individually.
+- **Annual Collect members @ $10.00** – Members on an annual Collect Plan.
+- **Pay-per-use Collect members @ $5.00** – Intro rate for new users; conditions apply. 
+- **Pay-per-use Collect members @ $20.00** – Extra Collect members billed individually.
 - **X% Expensify Card discount with $Y spend** – Discount applied for total settled US purchases.  
 - **X% Expensify Card cash back credit for $Y spend** – Cash back earned on total settled US purchases.  
-- **50% ExpensifyApproved! partner discount** – Discount for approved **accounting firms**. [Learn more](https://use.expensify.com/accountants-program).  
-- **Total** – The final amount after applying all charges and discounts.  
+- **ExpensifyApproved! discount** – 50% off for approved accounting firms.  
+  [Learn more](https://use.expensify.com/accountants-program)
+- **Total** – Final amount after all charges and credits.
 
----  
+---
 
-## Activity Breakdown  
+# Workspace Activity Breakdown
 
-This section displays a detailed list of workspaces with their unique IDs and shows billing details for each workspace. 
+This section lists each **workspace name** with its **unique ID**, along with billing details such as:
+
+- Number of billable members
+- Total amount charged for that workspace
+- Plan type (Collect or Control)
+- Any applied discounts
+
+</div>

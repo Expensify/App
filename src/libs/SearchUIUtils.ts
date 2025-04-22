@@ -252,13 +252,6 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
     const payerPersonalDetails = reportItem.managerID ? data.personalDetailsList?.[reportItem.managerID] : emptyPersonalDetails;
     const payerName = payerPersonalDetails?.displayName ?? payerPersonalDetails?.login ?? translateLocal('common.hidden');
     const formattedAmount = convertToDisplayString(reportItem.total ?? 0, reportItem.currency ?? CONST.CURRENCY.USD);
-    if (reportItem.action === CONST.SEARCH.ACTION_TYPES.VIEW || reportItem.action === CONST.SEARCH.ACTION_TYPES.PAY) {
-        return translateLocal('iou.payerOwesAmount', {
-            payer: payerName,
-            amount: formattedAmount,
-        });
-    }
-
     if (reportItem.action === CONST.SEARCH.ACTION_TYPES.PAID) {
         return translateLocal('iou.payerPaidAmount', {
             payer: payerName,
@@ -266,7 +259,10 @@ function getIOUReportName(data: OnyxTypes.SearchResults['data'], reportItem: Sea
         });
     }
 
-    return reportItem.reportName;
+    return translateLocal('iou.payerOwesAmount', {
+        payer: payerName,
+        amount: formattedAmount,
+    });
 }
 
 /**
@@ -394,6 +390,11 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
     // We check for isAllowedToApproveExpenseReport because if the policy has preventSelfApprovals enabled, we disable the Submit action and in that case we want to show the View action instead
     if (canSubmitReport(report, policy, allReportTransactions, allViolations) && isAllowedToApproveExpenseReport) {
         return CONST.SEARCH.ACTION_TYPES.SUBMIT;
+    }
+
+    const reportRNVP = data[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`] ?? undefined;
+    if (reportRNVP?.exportFailedTime) {
+        return CONST.SEARCH.ACTION_TYPES.REVIEW;
     }
 
     return CONST.SEARCH.ACTION_TYPES.VIEW;

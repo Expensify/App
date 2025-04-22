@@ -100,6 +100,9 @@ type AttachmentModalProps = {
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
 
+    /** The ID of the current report */
+    reportID?: string;
+
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
 
@@ -162,6 +165,7 @@ function AttachmentModal({
     allowDownload = false,
     isTrackExpenseAction = false,
     report,
+    reportID,
     onModalShow = () => {},
     onModalHide = () => {},
     onCarouselAttachmentChange = () => {},
@@ -623,7 +627,7 @@ function AttachmentModal({
                                             isUsedInAttachmentModal
                                             transactionID={transaction?.transactionID}
                                             isUploaded={!isEmptyObject(report)}
-                                            reportID={!isEmptyObject(report) ? report.reportID : undefined}
+                                            reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                                         />
                                     </AttachmentCarouselPagerContext.Provider>
                                 )

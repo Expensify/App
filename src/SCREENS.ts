@@ -386,6 +386,8 @@ const SCREENS = {
             QUICKBOOKS_ONLINE_CLASSES_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Classes_Displayed_As',
             QUICKBOOKS_ONLINE_CUSTOMERS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Customers_Displayed_As',
             QUICKBOOKS_ONLINE_LOCATIONS_DISPLAYED_AS: 'Policy_Accounting_Quickbooks_Online_Import_Locations_Displayed_As',
+            QUICKBOOKS_ONLINE_AUTO_SYNC: 'Policy_Accounting_Quickbooks_Online_Auto_Sync',
+            QUICKBOOKS_ONLINE_ACCOUNTING_METHOD: 'Policy_Accounting_Quickbooks_Online_Accounting_Method',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Account_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense_Select',
             QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: 'Workspace_Accounting_Quickbooks_Desktop_Export_Company_Card_Expense',
@@ -505,6 +507,7 @@ const SCREENS = {
         EXPENSIFY_CARD_LIMIT: 'Workspace_ExpensifyCard_Limit',
         EXPENSIFY_CARD_ISSUE_NEW: 'Workspace_ExpensifyCard_New',
         EXPENSIFY_CARD_NAME: 'Workspace_ExpensifyCard_Name',
+        EXPENSIFY_CARD_SELECT_FEED: 'Workspace_ExpensifyCard_Select_Feed',
         EXPENSIFY_CARD_LIMIT_TYPE: 'Workspace_ExpensifyCard_LimitType',
         EXPENSIFY_CARD_BANK_ACCOUNT: 'Workspace_ExpensifyCard_BankAccount',
         EXPENSIFY_CARD_SETTINGS: 'Workspace_ExpensifyCard_Settings',
@@ -590,6 +593,7 @@ const SCREENS = {
         DISTANCE_RATE_TAX_RATE_EDIT: 'Distance_Rate_Tax_Rate_Edit',
         UPGRADE: 'Workspace_Upgrade',
         DOWNGRADE: 'Workspace_Downgrade',
+        PAY_AND_DOWNGRADE: 'Workspace_Pay_And_Downgrade',
         RULES: 'Policy_Rules',
         RULES_CUSTOM_NAME: 'Rules_Custom_Name',
         RULES_AUTO_APPROVE_REPORTS_UNDER: 'Rules_Auto_Approve_Reports_Under',
@@ -638,6 +642,8 @@ const SCREENS = {
         EMPLOYEES: 'Onboarding_Employees',
         ACCOUNTING: 'Onboarding_Accounting',
         WORKSPACES: 'Onboarding_Workspaces',
+        WORK_EMAIL: 'Onboarding_Work_Email',
+        WORK_EMAIL_VALIDATION: 'Onboarding_Work_Email_Validation',
     },
 
     WELCOME_VIDEO: {
@@ -650,6 +656,10 @@ const SCREENS = {
 
     MIGRATED_USER_WELCOME_MODAL: {
         ROOT: 'MigratedUserWelcomeModal_Root',
+    },
+
+    TEST_DRIVE_MODAL: {
+        ROOT: 'TestDrive_Modal_Root',
     },
 
     I_KNOW_A_TEACHER: 'I_Know_A_Teacher',

@@ -4,6 +4,7 @@ import type {NativeEventSubscription} from 'react-native';
 import {AppState, Linking, Platform} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx, {useOnyx} from 'react-native-onyx';
+import alert from './components/Alert';
 import ConfirmModal from './components/ConfirmModal';
 import DeeplinkWrapper from './components/DeeplinkWrapper';
 import EmojiPicker from './components/EmojiPicker/EmojiPicker';
@@ -24,6 +25,7 @@ import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
+import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
 import Log from './libs/Log';
@@ -45,14 +47,21 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
-Onyx.registerLogger(({level, message}) => {
+Onyx.registerLogger(({level, message, parameters}) => {
     if (level === 'alert') {
-        Log.alert(message);
+        Log.alert(message, parameters);
         console.error(message);
+
+        // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
+        // when they don't return data.
+        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
+        if (Environment.isDevelopment() && shouldShowAlert) {
+            alert(`${message} Key: ${parameters.key as string}`);
+        }
     } else if (level === 'hmmm') {
-        Log.hmmm(message);
+        Log.hmmm(message, parameters);
     } else {
-        Log.info(message);
+        Log.info(message, undefined, parameters);
     }
 });
 
@@ -85,17 +94,17 @@ function Expensify() {
     const {splashScreenState, setSplashScreenState} = useContext(SplashScreenStateContext);
     const [hasAttemptedToOpenPublicRoom, setAttemptedToOpenPublicRoom] = useState(false);
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE);
-    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA);
-    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false});
-    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false});
-    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false});
-    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED);
-    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST);
-    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false});
-    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [lastRoute] = useOnyx(ONYXKEYS.LAST_ROUTE, {canBeMissing: true});
+    const [userMetadata] = useOnyx(ONYXKEYS.USER_METADATA, {canBeMissing: true});
+    const [isCheckingPublicRoom] = useOnyx(ONYXKEYS.IS_CHECKING_PUBLIC_ROOM, {initWithStoredValues: false, canBeMissing: false});
+    const [updateAvailable] = useOnyx(ONYXKEYS.UPDATE_AVAILABLE, {initWithStoredValues: false, canBeMissing: false});
+    const [updateRequired] = useOnyx(ONYXKEYS.UPDATE_REQUIRED, {initWithStoredValues: false, canBeMissing: false});
+    const [isSidebarLoaded] = useOnyx(ONYXKEYS.IS_SIDEBAR_LOADED, {canBeMissing: false});
+    const [screenShareRequest] = useOnyx(ONYXKEYS.SCREEN_SHARE_REQUEST, {canBeMissing: true});
+    const [focusModeNotification] = useOnyx(ONYXKEYS.FOCUS_MODE_NOTIFICATION, {initWithStoredValues: false, canBeMissing: false});
+    const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH, {canBeMissing: false});
 
     useDebugShortcut();
 
