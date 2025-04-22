@@ -1,9 +1,9 @@
 import React, {createContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {Linking} from 'react-native';
-import Navigation from '@navigation/Navigation';
 import {useOnyx} from 'react-native-onyx';
 import {setupNewDotAfterTransitionFromOldDot} from '@libs/actions/Session';
+import Navigation from '@navigation/Navigation';
 import type {AppProps} from '@src/App';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,7 +49,18 @@ function InitialURLContextProvider({children, url, hybridAppSettings, timestamp}
                     }
                     setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
                 });
+                return;
             }
+            setInitialURL(url);
+            Navigation.isNavigationReady().then(() => {
+                Navigation.navigate(url);
+            });
+
+            if (splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN) {
+                return;
+            }
+            setSplashScreenState(CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN);
+
             return;
         }
         Linking.getInitialURL().then((initURL) => {
