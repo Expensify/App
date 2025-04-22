@@ -1,6 +1,7 @@
 import React, {memo, useCallback, useContext, useEffect} from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Navigation from '@libs/Navigation/Navigation';
+import type {OnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import type AttachmentModalContainerProps from './types';
@@ -9,11 +10,21 @@ function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: A
     const attachmentsContext = useContext(AttachmentModalContext);
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
-    const closeScreen = useCallback(() => {
-        onClose?.();
-        attachmentsContext.setCurrentAttachment(undefined);
-        Navigation.goBack(contentProps.fallbackRoute);
-    }, [attachmentsContext, contentProps.fallbackRoute, onClose]);
+    const closeScreen = useCallback(
+        ({navigate}: OnCloseOptions) => {
+            onClose?.();
+            attachmentsContext.setCurrentAttachment(undefined);
+
+            // If a custom navigation callback is provided, call it instead of navigating back
+            if (navigate) {
+                navigate();
+                return;
+            }
+
+            Navigation.goBack(contentProps.fallbackRoute);
+        },
+        [attachmentsContext, contentProps.fallbackRoute, onClose],
+    );
 
     useEffect(() => {
         onShow?.();

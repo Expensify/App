@@ -1,6 +1,6 @@
 import type {RefObject} from 'react';
 import React, {memo, useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {InteractionManager, Keyboard, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -46,6 +46,11 @@ import type {FileObject} from './types';
 
 type OnValidateFileCallback = (file: FileObject | undefined, setFile: (file: FileObject | undefined) => void) => void;
 
+type OnCloseOptions = {
+    shouldCallDirectly?: boolean;
+    navigate?: () => void;
+};
+
 type AttachmentModalBaseContentProps = {
     /** Optional source (URL, SVG function) for the image shown. If not passed in via props must be specified when modal is opened. */
     source?: AvatarSource;
@@ -76,6 +81,9 @@ type AttachmentModalBaseContentProps = {
 
     /** The report that has this attachment */
     report?: OnyxEntry<OnyxTypes.Report>;
+
+    /** The ID of the current report */
+    reportID?: string;
 
     /** The type of the attachment */
     type?: ValueOf<typeof CONST.ATTACHMENT_TYPE>;
@@ -144,7 +152,7 @@ type AttachmentModalBaseContentProps = {
     onConfirm?: (file: FileObject) => void;
 
     /** Callback triggered when the modal is closed */
-    onClose?: (shouldCallDirectly?: boolean) => void;
+    onClose?: (options?: OnCloseOptions) => void;
 
     /** Callback triggered when the confirm modal is closed */
     onConfirmModalClose?: () => void;
@@ -180,6 +188,7 @@ function AttachmentModalBaseContent({
     allowDownload = false,
     isTrackExpenseAction = false,
     report,
+    reportID,
     isReceiptAttachment = false,
     isWorkspaceAvatar = false,
     canEditReceipt = false,
@@ -332,8 +341,7 @@ function AttachmentModalBaseContent({
                 icon: Expensicons.Camera,
                 text: translate('common.replace'),
                 onSelected: () => {
-                    onClose?.(true);
-                    InteractionManager.runAfterInteractions(() => {
+                    const navigate = () => {
                         Navigation.navigate(
                             ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(
                                 iouAction ?? CONST.IOU.ACTION.EDIT,
@@ -343,7 +351,9 @@ function AttachmentModalBaseContent({
                                 Navigation.getActiveRouteWithoutParams(),
                             ),
                         );
-                    });
+                    };
+
+                    onClose?.({shouldCallDirectly: true, navigate});
                 },
             });
         }
@@ -493,6 +503,7 @@ function AttachmentModalBaseContent({
                                         isUsedInAttachmentModal
                                         transactionID={transaction?.transactionID}
                                         isUploaded={!isEmptyObject(report)}
+                                        reportID={reportID ?? (!isEmptyObject(report) ? report.reportID : undefined)}
                                     />
                                 </AttachmentCarouselPagerContext.Provider>
                             )
@@ -556,4 +567,4 @@ function AttachmentModalBaseContent({
 
 export default memo(AttachmentModalBaseContent);
 
-export type {AttachmentModalBaseContentProps, OnValidateFileCallback};
+export type {AttachmentModalBaseContentProps, OnValidateFileCallback, OnCloseOptions};

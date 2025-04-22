@@ -164,6 +164,8 @@ type FormProps<TFormID extends OnyxFormKey = OnyxFormKey> = {
     /** Disable press on enter for submit button */
     disablePressOnEnter?: boolean;
 
+    /** Render extra button above submit button */
+    shouldRenderFooterAboveSubmit?: boolean;
     /**
      * Determines whether the form should automatically scroll to the end upon rendering or when the value changes.
      * If `true`, the form will smoothly scroll to the bottom after interactions have completed.

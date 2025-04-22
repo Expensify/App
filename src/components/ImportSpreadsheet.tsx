@@ -207,6 +207,7 @@ function ImportSpreadsheet({backTo, goTo}: ImportSpreedsheetProps) {
                                 prompt={attachmentInvalidReason ? translate(attachmentInvalidReason) : ''}
                                 confirmText={translate('common.close')}
                                 shouldShowCancelButton={false}
+                                shouldHandleNavigationBack
                             />
                         </View>
                     </View>

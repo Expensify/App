@@ -165,6 +165,7 @@ function SearchAutocompleteList(
     const groupByAutocompleteList = Object.values(CONST.SEARCH.GROUP_BY);
     const statusAutocompleteList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP});
     const expenseTypes = Object.values(CONST.SEARCH.TRANSACTION_TYPE);
+    const booleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
 
     const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
@@ -393,6 +394,15 @@ function SearchAutocompleteList(
                     mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID,
                 }));
             }
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+            case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE: {
+                const filteredValues = booleanTypes.filter((value) => value.includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(value)).sort();
+
+                return filteredValues.map((value) => ({
+                    filterKey: autocompleteKey,
+                    text: value,
+                }));
+            }
             default: {
                 return [];
             }
@@ -416,6 +426,7 @@ function SearchAutocompleteList(
         cardAutocompleteList,
         allCards,
         groupByAutocompleteList,
+        booleanTypes,
     ]);
 
     const sortedRecentSearches = useMemo(() => {
@@ -530,31 +541,35 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, onHighlightFirstItem, normalizedReferenceText]);
 
     return (
-        <SelectionList<OptionData | SearchQueryItem>
-            showLoadingPlaceholder={!areOptionsInitialized}
-            fixedNumItemsForLoader={4}
-            loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-            sections={sections}
-            onSelectRow={onListItemPress}
-            ListItem={SearchRouterItem}
-            containerStyle={[styles.mh100]}
-            sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
-            listItemWrapperStyle={[styles.pr0, styles.pl0]}
-            getItemHeight={getItemHeight}
-            onLayout={() => {
-                setPerformanceTimersEnd();
-                setIsInitialRender(false);
-            }}
-            showScrollIndicator={!shouldUseNarrowLayout}
-            sectionTitleStyles={styles.mhn2}
-            shouldSingleExecuteRowSelect
-            onArrowFocus={onArrowFocus}
-            ref={ref}
-            initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
-            shouldScrollToFocusedIndex={!isInitialRender}
-            shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
-            disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
-        />
+        // On page refresh, when the list is rendered before options are initialized the auto-focusing on initiallyFocusedOptionKey
+        // will fail because the list will be empty on first render so we only render after options are initialized.
+        areOptionsInitialized && (
+            <SelectionList<OptionData | SearchQueryItem>
+                showLoadingPlaceholder={!areOptionsInitialized}
+                fixedNumItemsForLoader={4}
+                loaderSpeed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
+                sections={sections}
+                onSelectRow={onListItemPress}
+                ListItem={SearchRouterItem}
+                containerStyle={[styles.mh100]}
+                sectionListStyle={[styles.ph2, styles.pb2, styles.overscrollBehaviorContain]}
+                listItemWrapperStyle={[styles.pr0, styles.pl0]}
+                getItemHeight={getItemHeight}
+                onLayout={() => {
+                    setPerformanceTimersEnd();
+                    setIsInitialRender(false);
+                }}
+                showScrollIndicator={!shouldUseNarrowLayout}
+                sectionTitleStyles={styles.mhn2}
+                shouldSingleExecuteRowSelect
+                onArrowFocus={onArrowFocus}
+                ref={ref}
+                initiallyFocusedOptionKey={!shouldUseNarrowLayout ? styledRecentReports.at(0)?.keyForList : undefined}
+                shouldScrollToFocusedIndex={!isInitialRender}
+                shouldSubscribeToArrowKeyEvents={shouldSubscribeToArrowKeyEvents}
+                disableKeyboardShortcuts={!shouldSubscribeToArrowKeyEvents}
+            />
+        )
     );
 }
 

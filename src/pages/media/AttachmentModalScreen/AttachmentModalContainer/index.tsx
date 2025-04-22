@@ -4,6 +4,7 @@ import Modal from '@components/Modal';
 import attachmentModalHandler from '@libs/AttachmentModalHandler';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Navigation from '@libs/Navigation/Navigation';
+import type {OnCloseOptions} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalBaseContent from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent';
 import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
 import CONST from '@src/CONST';
@@ -14,6 +15,8 @@ const onCloseNoop = () => {};
 function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: AttachmentModalContainerProps) {
     const attachmentsContext = useContext(AttachmentModalContext);
     const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
+
+    const [isReplaceReceipt, navigateToReplaceReceipt] = useNavigateToReplaceReceipt();
     /**
      * Closes the modal.
      * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
@@ -22,7 +25,7 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
      * This ensures smooth modal closing behavior without causing delays in closing.
      */
     const closeModal = useCallback(
-        (shouldCallDirectly?: boolean) => {
+        ({shouldCallDirectly, navigate}: OnCloseOptions) => {
             if (typeof onClose === 'function') {
                 if (shouldCallDirectly) {
                     onClose();
@@ -32,6 +35,13 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
             }
 
             attachmentsContext.setCurrentAttachment(undefined);
+
+            // If a custom navigation callback is provided, call it instead of navigating back
+            if (navigate) {
+                navigate();
+                return;
+            }
+
             Navigation.goBack(contentProps.fallbackRoute);
         },
         [attachmentsContext, contentProps.fallbackRoute, onClose],
