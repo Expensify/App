@@ -343,7 +343,7 @@ function ReportFieldsListValuesPage({
                 <View style={[styles.ph5, styles.pv4]}>
                     <Text style={[styles.sidebarLinkText, styles.optionAlternateText]}>{translate('workspace.reportFields.listInputSubtitle')}</Text>
                 </View>
-                {(listValuesSections.at(0)?.data?.length ?? 0) > 1 && (
+                {(listValuesSections.at(0)?.data?.length ?? 0) > 15 && (
                     <SearchBar
                         label={translate('workspace.reportFields.findReportField')}
                         inputValue={inputValue}
