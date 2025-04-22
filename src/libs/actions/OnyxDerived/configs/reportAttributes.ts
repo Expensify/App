@@ -1,7 +1,9 @@
-import {generateReportName} from '@libs/ReportUtils';
+import {generateReportName, isValidReport} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributes} from '@src/types/onyx';
+
+let isFullyComputed = false;
 
 /**
  * This derived value is used to get the report attributes for the report.
@@ -10,34 +12,37 @@ import type {ReportAttributes} from '@src/types/onyx';
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    dependencies: [
-        ONYXKEYS.COLLECTION.REPORT,
-        ONYXKEYS.PERSONAL_DETAILS_LIST,
-        ONYXKEYS.COLLECTION.TRANSACTION,
-        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
-        ONYXKEYS.COLLECTION.POLICY,
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        ONYXKEYS.NVP_PREFERRED_LOCALE,
-    ],
+    dependencies: [ONYXKEYS.COLLECTION.REPORT],
     compute: (dependencies, {currentValue, sourceValues}) => {
-        const areAllDependenciesSet = dependencies.every((dependency) => dependency !== undefined);
+        const areAllDependenciesSet = [...dependencies].every((dependency) => dependency !== undefined);
         if (!areAllDependenciesSet) {
             return {};
         }
-
         const [reports] = dependencies;
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
+        if ((isFullyComputed && reportUpdates === undefined) || !reports) {
+            return currentValue ?? {};
+        }
 
-        return Object.values(reportUpdates ?? reports ?? {}).reduce<Record<string, ReportAttributes>>((acc, report) => {
-            if (!report) {
+        const dataToIterate = isFullyComputed && reportUpdates !== undefined ? reportUpdates : reports ?? {};
+        const attributes = Object.keys(dataToIterate).reduce<Record<string, ReportAttributes>>((acc, reportID) => {
+            const report = reports[reportID];
+            if (!report || !isValidReport(report)) {
                 return acc;
             }
 
-            acc[report.reportID] = {
-                reportName: generateReportName(report),
+            const reportName = generateReportName(report);
+            acc[reportID] = {
+                reportName,
             };
 
             return acc;
         }, currentValue ?? {});
+
+        if (reportUpdates === undefined && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
+            isFullyComputed = true;
+        }
+
+        return attributes;
     },
 });
