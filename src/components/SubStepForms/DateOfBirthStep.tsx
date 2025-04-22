@@ -84,6 +84,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
             style={[styles.mh5, styles.flexGrow2, styles.justifyContentBetween]}
             submitButtonStyles={[styles.mb0]}
             enabledWhenOffline
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{formTitle}</Text>
             <InputWrapper
@@ -95,6 +96,7 @@ function DateOfBirthStep<TFormID extends keyof OnyxFormValuesMapping>({
                 minDate={minDate}
                 maxDate={maxDate}
                 shouldSaveDraft={!isEditing}
+                autoFocus
             />
             {footerComponent}
         </FormProvider>

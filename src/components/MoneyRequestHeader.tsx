@@ -108,7 +108,7 @@ function MoneyRequestHeader({report, parentReportAction, policy, onBackButtonPre
         }
 
         if (isDuplicate) {
-            return {icon: getStatusIcon(Expensicons.Exclamation), description: translate('iou.expenseDuplicate')};
+            return {icon: getStatusIcon(Expensicons.Flag), description: translate('iou.expenseDuplicate')};
         }
 
         if (isExpensifyCardTransaction(transaction) && isPending(transaction)) {

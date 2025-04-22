@@ -47,8 +47,8 @@ jobs:
 
       # Set up Ruby and run bundle install inside the /help directory
       - name: Set up Ruby
-        # v1
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
           working-directory: ./help

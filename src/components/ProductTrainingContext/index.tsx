@@ -8,10 +8,11 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useSidePane from '@hooks/useSidePane';
+import useSidePanel from '@hooks/useSidePanel';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {parseFSAttributes} from '@libs/Fullstory';
+import getPlatform from '@libs/getPlatform';
 import {hasCompletedGuidedSetupFlowSelector} from '@libs/onboardingSelectors';
 import isProductTrainingElementDismissed from '@libs/TooltipUtils';
 import variables from '@styles/variables';
@@ -179,7 +180,7 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const context = useContext(ProductTrainingContext);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {shouldHideToolTip} = useSidePane();
+    const {shouldHideToolTip} = useSidePanel();
     const {translate} = useLocalize();
 
     if (!context) {
@@ -189,9 +190,10 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
     const {shouldRenderTooltip, registerTooltip, unregisterTooltip} = context;
 
     useEffect(() => {
-        if (shouldShow) {
-            registerTooltip(tooltipName);
+        if (!shouldShow) {
+            return;
         }
+        registerTooltip(tooltipName);
         return () => {
             unregisterTooltip(tooltipName);
         };
@@ -260,9 +262,23 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                     </Text>
                     {!tooltip?.shouldRenderActionButtons && (
                         <PressableWithoutFeedback
-                            onPress={() => {
-                                hideTooltip(true);
-                            }}
+                            // On some Samsung devices, `onPress` is never triggered.
+                            // So, we use `onPressIn` for Android to ensure the button is pressable.
+                            onPressIn={
+                                getPlatform() === CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          hideTooltip(true);
+                                      }
+                                    : undefined
+                            }
+                            // For other platforms, we stick with `onPress`.
+                            onPress={
+                                getPlatform() !== CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          hideTooltip(true);
+                                      }
+                                    : undefined
+                            }
                             shouldUseAutoHitSlop
                             accessibilityLabel={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             role={CONST.ROLE.BUTTON}

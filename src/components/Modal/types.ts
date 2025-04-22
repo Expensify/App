@@ -119,10 +119,10 @@ type BaseModalProps = Partial<ReactNativeModalProps> &
         enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 
         /**
-         * Whether the modal should apply the side pane offset.
-         * This is used to adjust the modal position when the side pane is open.
+         * Whether the modal should apply the Side Panel offset.
+         * This is used to adjust the modal position when the Side Panel is open.
          */
-        shouldApplySidePaneOffset?: boolean;
+        shouldApplySidePanelOffset?: boolean;
     };
 
 export default BaseModalProps;

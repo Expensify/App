@@ -418,6 +418,7 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
+                            reportID={reportID}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -425,6 +426,7 @@ function ReportActionCompose({
                                         displayFileInModal={displayFileInModal}
                                         reportID={reportID}
                                         report={report}
+                                        currentUserPersonalDetails={currentUserPersonalDetails}
                                         reportParticipantIDs={reportParticipantIDs}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}

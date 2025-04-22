@@ -1,4 +1,4 @@
-name: Prepare production deploy
+name: Finish release cycle
 
 on:
   issues:
@@ -88,11 +88,12 @@ jobs:
     steps:
       - run: |
           gh issue list \
+            --repo 'Expensify/App' \
             --state all \
             --label DeployBlockerCash \
             --json number \
             --jq '.[].number' \
-            | xargs -L1 --max-procs=4 gh issue edit "$1" --remove-label DeployBlockerCash
+            | xargs -L1 -I {} --max-procs=4 gh issue edit {} --repo 'Expensify/App' --remove-label DeployBlockerCash
         env:
           GITHUB_TOKEN: ${{ github.token }}
 

@@ -40,7 +40,7 @@ function SearchRouterModal() {
             onClose={closeSearchRouter}
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
-            shouldApplySidePaneOffset={!shouldUseNarrowLayout}
+            shouldApplySidePanelOffset={!shouldUseNarrowLayout}
         >
             <KeyboardAvoidingView
                 behavior="padding"

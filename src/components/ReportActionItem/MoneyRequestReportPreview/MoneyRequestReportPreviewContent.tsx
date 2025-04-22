@@ -28,7 +28,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
 import {
     areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
     canBeExported,
@@ -61,20 +63,14 @@ import {
     isTripRoom as isTripRoomReportUtils,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
 } from '@libs/ReportUtils';
-import {
-    getMerchant,
-    hasPendingUI,
-    isCardTransaction,
-    isPartialMerchant,
-    isPending,
-    isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolationForMultipleTransactions,
-} from '@libs/TransactionUtils';
+import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
+import navigationRef from '@navigation/navigationRef';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
 import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -89,7 +85,7 @@ const checkIfReportNameOverflows = <T extends LayoutChangeEvent>({nativeEvent}: 
     'target' in nativeEvent ? (nativeEvent as WebLayoutNativeEvent).target.scrollHeight > variables.h70 : false;
 
 // Do not remove this empty view, it is a workaround for the icon padding at the end of the preview text
-const FixIconPadding = <View />;
+const FixIconPadding = <View style={{height: variables.iconSizeNormal}} />;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
@@ -115,6 +111,8 @@ function MoneyRequestReportPreviewContent({
     renderItem,
     getCurrentWidth,
     reportPreviewStyles,
+    shouldDisplayContextMenu = true,
+    isInvoice,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -124,6 +122,8 @@ function MoneyRequestReportPreviewContent({
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
+    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+    const isSearchFullscreen = rootState?.routes.at(-1)?.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR;
 
     const [doesReportNameOverflow, setDoesReportNameOverflow] = useState(false);
 
@@ -181,7 +181,6 @@ function MoneyRequestReportPreviewContent({
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
-    const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
 
     const hasReceipts = transactionsWithReceipts.length > 0;
@@ -334,12 +333,10 @@ function MoneyRequestReportPreviewContent({
         }
         return {
             supportText: translate('iou.expenseCount', {
-                scanningReceipts: numberOfScanningReceipts,
-                pendingReceipts: numberOfPendingRequests,
                 count: numberOfRequests,
             }),
         };
-    }, [translate, numberOfRequests, numberOfScanningReceipts, numberOfPendingRequests]);
+    }, [translate, numberOfRequests]);
 
     /*
      * Manual export
@@ -428,14 +425,22 @@ function MoneyRequestReportPreviewContent({
 
     const approvedOrSettledicon = (iouSettled || isApproved) && (
         <ImageSVG
-            src={isApproved ? Expensicons.Checkmark : Expensicons.ThumbsUp}
-            fill={isApproved ? theme.iconSuccessFill : theme.icon}
-            width={20}
-            height={20}
+            src={isApproved ? Expensicons.ThumbsUp : Expensicons.Checkmark}
+            fill={isApproved ? theme.icon : theme.iconSuccessFill}
+            width={variables.iconSizeNormal}
+            height={variables.iconSizeNormal}
             style={{transform: 'translateY(4px)'}}
             contentFit="cover"
         />
     );
+
+    const getPreviewName = () => {
+        if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage && translate('iou.invoiceReportName', originalMessage);
+        }
+        return action.childReportName;
+    };
 
     return (
         transactions.length > 0 && (
@@ -453,9 +458,19 @@ function MoneyRequestReportPreviewContent({
                         onPress={() => {}}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
-                        onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                        onLongPress={(event) => {
+                            if (!shouldDisplayContextMenu) {
+                                return;
+                            }
+                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                        }}
                         shouldUseHapticsOnLongPress
-                        style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG), styles.reportContainerBorderRadius]}
+                        style={[
+                            styles.flexRow,
+                            styles.justifyContentBetween,
+                            StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                            isSearchFullscreen ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                        ]}
                         role={getButtonRole(true)}
                         isNested
                         accessibilityLabel={translate('iou.viewDetails')}
@@ -471,8 +486,8 @@ function MoneyRequestReportPreviewContent({
                             <View style={[reportPreviewStyles.wrapperStyle]}>
                                 <View style={[reportPreviewStyles.contentContainerStyle]}>
                                     <View style={[styles.expenseAndReportPreviewTextContainer, styles.overflowHidden]}>
-                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3]}>
-                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1, (isApproved || iouSettled) && styles.mtn1]}>
+                                        <View style={[styles.flexRow, styles.justifyContentBetween, styles.gap3, StyleUtils.getMinimumHeight(variables.h28)]}>
+                                            <View style={[styles.flexRow, styles.mw100, styles.flexShrink1]}>
                                                 <Animated.View style={[styles.flexRow, styles.alignItemsCenter, previewMessageStyle, styles.flexShrink1]}>
                                                     <Text
                                                         onLayout={onTextLayoutChange}
@@ -484,7 +499,7 @@ function MoneyRequestReportPreviewContent({
                                                             style={[styles.headerText]}
                                                             testID="MoneyRequestReportPreview-reportName"
                                                         >
-                                                            {action.childReportName}
+                                                            {getPreviewName()}
                                                         </Text>
                                                         {!doesReportNameOverflow && <>&nbsp;{approvedOrSettledicon}</>}
                                                     </Text>
@@ -533,17 +548,6 @@ function MoneyRequestReportPreviewContent({
                                                 </View>
                                             )}
                                         </View>
-                                        {shouldShowRBR && (
-                                            <View style={[styles.flexRow, styles.alignItemsCenter]}>
-                                                <Icon
-                                                    src={Expensicons.DotIndicator}
-                                                    fill={theme.danger}
-                                                />
-                                                <Text style={[styles.textDanger, styles.fontSizeLabel, styles.textLineHeightNormal, styles.ml2]}>
-                                                    {translate('violations.reviewRequired')}
-                                                </Text>
-                                            </View>
-                                        )}
                                     </View>
                                     <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
                                         <FlatList
@@ -554,8 +558,8 @@ function MoneyRequestReportPreviewContent({
                                             data={transactions.slice(0, 11)}
                                             ref={carouselRef}
                                             nestedScrollEnabled
-                                            scrollEnabled={transactions.length > 1}
-                                            keyExtractor={(item) => item.transactionID}
+                                            bounces={false}
+                                            keyExtractor={(item) => `${item.transactionID}_${reportPreviewStyles.transactionPreviewStyle.width}`}
                                             contentContainerStyle={[styles.gap2]}
                                             style={reportPreviewStyles.flatListStyle}
                                             showsHorizontalScrollIndicator={false}
@@ -613,7 +617,7 @@ function MoneyRequestReportPreviewContent({
                                             isLoading={!isOffline && !canAllowSettlement}
                                         />
                                     )}
-                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && shouldShowRBR && (
+                                    {!!shouldShowExportIntegrationButton && !shouldShowSettlementButton && !shouldShowRBR && (
                                         <ExportWithDropdownMenu
                                             policy={policy}
                                             report={iouReport}
@@ -638,7 +642,7 @@ function MoneyRequestReportPreviewContent({
                                     {shouldShowSubmitButton && (
                                         <Button
                                             success={isWaitingForSubmissionFromCurrentUser}
-                                            text={translate('common.submit')}
+                                            text={translate('iou.submitAmount', {amount: getSettlementAmount()})}
                                             style={buttonMaxWidth}
                                             onPress={() => iouReport && submitReport(iouReport)}
                                             isDisabled={shouldDisableSubmitButton}

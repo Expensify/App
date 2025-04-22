@@ -54,11 +54,14 @@ const buildDetailsTable = (entries: Entry[], numberOfTables = 1) => {
         return [''];
     }
 
-    const entriesPerTable = Math.floor(entries.length / numberOfTables);
+    // We always need at least one table
+    const safeNumberOfTables = numberOfTables === 0 ? 1 : numberOfTables;
+
+    const entriesPerTable = Math.floor(entries.length / safeNumberOfTables);
     const tables: string[] = [];
-    for (let i = 0; i < numberOfTables; i++) {
+    for (let i = 0; i < safeNumberOfTables; i++) {
         const start = i * entriesPerTable;
-        const end = i === numberOfTables - 1 ? entries.length : start + entriesPerTable;
+        const end = i === safeNumberOfTables - 1 ? entries.length : start + entriesPerTable;
         const tableEntries = entries.slice(start, end);
 
         const rows = tableEntries.map((entry) => [entry.name, buildDurationDetailsEntry(entry)]);
@@ -119,14 +122,16 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
     }
 
     if (skippedTests.length > 0) {
-        mainFile += `⚠️ Some tests did not pass successfully, so some results are omitted from final report: ${skippedTests.join(', ')}`;
+        mainFile += `\n\n⚠️ Some tests did not pass successfully, so some results are omitted from final report: ${skippedTests.join(', ')}`;
     }
 
     mainFile += '\n\n### Significant Changes To Duration';
     mainFile += `\n${buildSummaryTable(data.significance)}`;
     mainFile += `\n${buildDetailsTable(data.significance, 1).at(0)}`;
 
-    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, nExtraFiles);
+    // We always need at least one table
+    const numberOfMeaninglessDetailsTables = nExtraFiles === 0 ? 1 : nExtraFiles;
+    const meaninglessDetailsTables = buildDetailsTable(data.meaningless, numberOfMeaninglessDetailsTables);
 
     if (nExtraFiles === 0) {
         mainFile += '\n\n### Meaningless Changes To Duration';
@@ -139,10 +144,10 @@ const buildMarkdown = (data: Data, skippedTests: string[], numberOfExtraFiles?: 
     const extraFiles: string[] = [];
     for (let i = 0; i < nExtraFiles; i++) {
         let extraFile = '## Performance Comparison Report 📊';
-        extraFile += nExtraFiles > 0 ? ` (${i + 2}/${nExtraFiles + 1})` : '';
+        extraFile += ` (${i + 2}/${nExtraFiles + 1})`;
 
         extraFile += '\n\n### Meaningless Changes To Duration';
-        extraFile += nExtraFiles > 0 ? ` (${i + 1}/${nExtraFiles + 1})` : '';
+        extraFile += nExtraFiles >= 2 ? ` (${i + 1}/${nExtraFiles})` : '';
 
         extraFile += `\n${buildSummaryTable(data.meaningless, true)}`;
         extraFile += `\n${meaninglessDetailsTables.at(i)}`;
@@ -179,7 +184,7 @@ const writeToMarkdown = (outputDir: string, data: Data, skippedTests: string[]) 
 
     return Promise.all(
         markdownFiles.map((file, index) => {
-            const filePath = `${outputDir}/output-${index + 1}.md`;
+            const filePath = `${outputDir}/output${index + 1}.md`;
             return writeToFile(filePath, file).catch((error) => {
                 console.error(error);
                 throw error;

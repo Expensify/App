@@ -26,7 +26,7 @@ import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidePaneDisplayStatus} from '@hooks/useSidePane';
+import {useSidePanelDisplayStatus} from '@hooks/useSidePanel';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -241,7 +241,7 @@ function ComposerWithSuggestions(
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {preferredLocale} = useLocalize();
-    const {isSidePaneHiddenOrLargeScreen} = useSidePaneDisplayStatus();
+    const {isSidePanelHiddenOrLargeScreen} = useSidePanelDisplayStatus();
     const isFocused = useIsFocused();
     const navigation = useNavigation();
     const emojisPresentBefore = useRef<Emoji[]>([]);
@@ -567,14 +567,14 @@ function ComposerWithSuggestions(
     const setUpComposeFocusManager = useCallback(
         (shouldTakeOverFocus = false) => {
             ReportActionComposeFocusManager.onComposerFocus((shouldFocusForNonBlurInputOnTapOutside = false) => {
-                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePaneHiddenOrLargeScreen) {
+                if ((!willBlurTextInputOnTapOutside && !shouldFocusForNonBlurInputOnTapOutside) || !isFocused || !isSidePanelHiddenOrLargeScreen) {
                     return;
                 }
 
                 focus(true);
             }, shouldTakeOverFocus);
         },
-        [focus, isFocused, isSidePaneHiddenOrLargeScreen],
+        [focus, isFocused, isSidePanelHiddenOrLargeScreen],
     );
 
     /**
@@ -594,8 +594,8 @@ function ComposerWithSuggestions(
                 return;
             }
 
-            // Do not focus the composer if the side pane is visible
-            if (!isSidePaneHiddenOrLargeScreen) {
+            // Do not focus the composer if the Side Panel is visible
+            if (!isSidePanelHiddenOrLargeScreen) {
                 return;
             }
 
@@ -610,7 +610,7 @@ function ComposerWithSuggestions(
 
             focus();
         },
-        [checkComposerVisibility, focus, isSidePaneHiddenOrLargeScreen],
+        [checkComposerVisibility, focus, isSidePanelHiddenOrLargeScreen],
     );
 
     const blur = useCallback(() => {
@@ -649,7 +649,7 @@ function ComposerWithSuggestions(
             unsubscribeNavigationBlur();
             unsubscribeNavigationFocus();
         };
-    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePaneHiddenOrLargeScreen]);
+    }, [focusComposerOnKeyPress, navigation, setUpComposeFocusManager, isSidePanelHiddenOrLargeScreen]);
 
     const prevIsModalVisible = usePrevious(modal?.isVisible);
     const prevIsFocused = usePrevious(isFocused);
@@ -667,8 +667,8 @@ function ComposerWithSuggestions(
             return;
         }
 
-        // Do not focus the composer if the side pane is visible
-        if (!isSidePaneHiddenOrLargeScreen) {
+        // Do not focus the composer if the Side Panel is visible
+        if (!isSidePanelHiddenOrLargeScreen) {
             return;
         }
 
@@ -684,7 +684,7 @@ function ComposerWithSuggestions(
             return;
         }
         focus(true);
-    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePaneHiddenOrLargeScreen]);
+    }, [focus, prevIsFocused, editFocused, prevIsModalVisible, isFocused, modal?.isVisible, isNextModalWillOpenRef, shouldAutoFocus, isSidePanelHiddenOrLargeScreen]);
 
     useEffect(() => {
         // Scrolls the composer to the bottom and sets the selection to the end, so that longer drafts are easier to edit

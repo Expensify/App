@@ -106,7 +106,19 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.PREFERENCES.LANGUAGE]: undefined;
     [SCREENS.SETTINGS.PREFERENCES.THEME]: undefined;
     [SCREENS.SETTINGS.CLOSE]: undefined;
-    [SCREENS.SETTINGS.APP_DOWNLOAD_LINKS]: undefined;
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS]: {
+        email?: string;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_VALIDATE]: {
+        login: string;
+        backTo?: Routes;
+        forwardTo?: Routes;
+    };
+    [SCREENS.SETTINGS.MERGE_ACCOUNTS.MERGE_RESULT]: {
+        backTo?: Routes;
+        result: ValueOf<typeof CONST.MERGE_ACCOUNT_RESULTS>;
+        login: string;
+    };
     [SCREENS.SETTINGS.CONSOLE]: {
         backTo: Routes;
     };
@@ -123,6 +135,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
         /** cardID of selected card */
@@ -225,6 +238,9 @@ type SettingsNavigatorParamList = {
         policyID?: string;
         backTo?: Routes;
     };
+    [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: {
+        policyID?: string;
+    };
     [SCREENS.WORKSPACE.CATEGORIES_SETTINGS]: {
         policyID: string;
         backTo?: Routes;
@@ -303,10 +319,12 @@ type SettingsNavigatorParamList = {
         tagName: string;
         backTo?: Routes;
     };
+    [SCREENS.SETTINGS.PROFILE.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.ROOT]: {backTo?: Routes};
     [SCREENS.SETTINGS.SUBSCRIPTION.SIZE]: {
         canChangeSize: 0 | 1;
     };
+    [SCREENS.SETTINGS.SUBSCRIPTION.SETTINGS_DETAILS]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.ADD_PAYMENT_CARD]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_BILLING_CURRENCY]: undefined;
     [SCREENS.SETTINGS.SUBSCRIPTION.CHANGE_PAYMENT_CURRENCY]: undefined;
@@ -696,6 +714,9 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_MAPPING_TYPE]: {
         policyID: string;
         mapping: SageIntacctMappingName;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_IMPORT_TAX]: {
+        policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADD_USER_DIMENSION]: {
         policyID: string;
@@ -1112,6 +1133,13 @@ type RoomMembersNavigatorParamList = {
 
 type MoneyRequestNavigatorParamList = {
     [SCREENS.MONEY_REQUEST.STEP_SEND_FROM]: {
+        iouType: IOUType;
+        transactionID: string;
+        reportID: string;
+        backTo: Routes;
+    };
+    [SCREENS.MONEY_REQUEST.STEP_REPORT]: {
+        action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
@@ -1580,6 +1608,7 @@ type ReportsSplitNavigatorParamList = {
         reportID: string;
         openOnAdminRoom?: boolean;
         referrer?: string;
+        backTo?: Routes;
         moneyRequestReportActionID?: string;
         transactionID?: string;
     };
@@ -1730,6 +1759,12 @@ type OnboardingModalNavigatorParamList = {
     [SCREENS.ONBOARDING.ACCOUNTING]: {
         backTo?: string;
     };
+    [SCREENS.ONBOARDING.WORK_EMAIL]: {
+        backTo?: string;
+    };
+    [SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION]: {
+        backTo?: string;
+    };
 };
 
 type WelcomeVideoModalNavigatorParamList = {
@@ -1744,6 +1779,10 @@ type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
 };
 
+type TestDriveModalNavigatorParamList = {
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
+};
+
 type SharedScreensParamList = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
@@ -1756,6 +1795,7 @@ type SharedScreensParamList = {
         exitTo?: Routes | HybridAppRoute;
         shouldForceLogin: string;
         domain?: Routes;
+        delegatorEmail?: string;
     };
     [SCREENS.VALIDATE_LOGIN]: {
         accountID: string;
@@ -1796,6 +1836,7 @@ type AuthScreensParamList = SharedScreensParamList & {
         isAuthTokenRequired?: string;
         fileName?: string;
         attachmentLink?: string;
+        hashKey?: number;
     };
     [SCREENS.PROFILE_AVATAR]: {
         accountID: string;
@@ -1823,6 +1864,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
     [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+    [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
@@ -1855,6 +1897,12 @@ type SearchReportParamList = {
 
         /** Hash that includes info about what is searched for */
         searchHash?: number;
+    };
+    [SCREENS.SEARCH.MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS]: {
+        /** Link to previous page */
+        backTo: Routes;
+        /** Selected transactions' report ID  */
+        reportID: string;
     };
 };
 
@@ -1933,6 +1981,10 @@ type SearchFullscreenNavigatorName = typeof NAVIGATORS.SEARCH_FULLSCREEN_NAVIGAT
 
 type FullScreenName = SplitNavigatorName | SearchFullscreenNavigatorName;
 
+type SettingsTabScreenName = typeof NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR | typeof NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR;
+
+type WorkspaceScreenName = keyof WorkspaceSplitNavigatorParamList;
+
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace
     namespace ReactNavigation {
@@ -2008,4 +2060,7 @@ export type {
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
+    TestDriveModalNavigatorParamList,
+    WorkspaceScreenName,
+    SettingsTabScreenName,
 };

@@ -51,8 +51,25 @@ jobs:
     steps:
       - name: Comment on forks
         run: |
-          gh pr comment ${{github.event.pull_request.html_url }} --body \
-          ":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
+          PR_URL="${{ github.event.pull_request.html_url }}"
+          COMMENT=":warning: This PR is possibly changing native code and/or updating libraries, it may cause problems with HybridApp. \
+          Please check if any patch updates are required in the HybridApp repo and run an AdHoc build to verify that HybridApp will not break. \
+          Ask Contributor Plus for help if you are not sure how to handle this. :warning:"
+
+          # Fetch existing comments from author github-actions
+          EXISTING_COMMENTS="$(\
+            gh pr view "$PR_URL" \
+              --comments \
+              --json comments \
+              --jq '.comments[] | select(.author = "github-actions") | .body' \
+          )"
+
+          # Leave the comment only if it's not already present
+          if grep -q "$COMMENT" <(echo "$EXISTING_COMMENTS"); then
+            echo "Comment already exists, not posting again."
+          else
+            gh pr comment "$PR_URL" --body "$COMMENT"
+          fi
         env:
           GITHUB_TOKEN: ${{ github.token }}
   verify_android:
@@ -79,8 +96,8 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        # v1.204.0
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
@@ -116,8 +133,8 @@ jobs:
           IS_HYBRID_BUILD: 'true'
 
       - name: Setup Ruby
-        # v1.204.0
-        uses: ruby/setup-ruby@a6e6f86333f0a2523ece813039b8b4be04560854
+        # v1.229.0
+        uses: ruby/setup-ruby@354a1ad156761f5ee2b7b13fa8e09943a5e8d252
         with:
           bundler-cache: true
 
