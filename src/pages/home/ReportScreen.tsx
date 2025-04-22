@@ -80,15 +80,17 @@ import {
 } from '@userActions/Report';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import HeaderView from './HeaderView';
+import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionsView from './report/ReportActionsView';
 import ReportFooter from './report/ReportFooter';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from './ReportScreenContext';
-import {ActionListContext, ReactionListContext} from './ReportScreenContext';
+import type {ActionListContextType, ScrollPosition} from './ReportScreenContext';
+import {ActionListContext} from './ReportScreenContext';
 
 type ReportScreenNavigationProps = PlatformStackScreenProps<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>;
 
@@ -138,24 +140,24 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
     const {canUseDefaultRooms} = usePermissions();
-    const reactionListRef = useRef<ReactionListRef>(null);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
     const currentReportIDValue = useCurrentReportID();
 
-    const [modal] = useOnyx(ONYXKEYS.MODAL);
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false});
-    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID);
-    const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`);
-    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false});
-    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
-    const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: false});
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
+    const [accountManagerReportID] = useOnyx(ONYXKEYS.ACCOUNT_MANAGER_REPORT_ID, {canBeMissing: true});
+    const [accountManagerReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(accountManagerReportID)}`, {canBeMissing: true});
+    const [userLeavingStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_USER_IS_LEAVING_ROOM}${reportIDFromRoute}`, {initialValue: false, canBeMissing: true});
+    const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const [reportNameValuePairsOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportOnyx?.parentReportID)}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, reportOnyx?.parentReportActionID),
+        canBeMissing: true,
     });
     const deletedParentAction = isDeletedParentAction(parentReportAction);
     const prevDeletedParentAction = usePrevious(deletedParentAction);
@@ -185,7 +187,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         navigation.setParams({reportID: lastAccessedReportID});
     }, [activeWorkspaceID, canUseDefaultRooms, navigation, route]);
 
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const chatWithAccountManagerText = useMemo(() => {
         if (accountManagerReportID) {
             const participants = getParticipantsAccountIDsForDisplay(accountManagerReport, false, true);
@@ -260,9 +262,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const lastReportIDFromRoute = usePrevious(reportIDFromRoute);
     const [isLinkingToMessage, setIsLinkingToMessage] = useState(!!reportActionIDFromRoute);
 
-    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID});
-    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email});
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [currentUserAccountID = -1] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.accountID, canBeMissing: false});
+    const [currentUserEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (value) => value?.email, canBeMissing: false});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {reportActions, linkedAction, sortedAllReportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID, reportActionIDFromRoute);
 
     const [isBannerVisible, setIsBannerVisible] = useState(true);
@@ -291,7 +293,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const isLinkedMessagePageReady = isLinkedMessageAvailable && (reportActions.length - indexOfLinkedMessage >= CONST.REPORT.MIN_INITIAL_REPORT_ACTION_COUNT || doesCreatedActionExists());
 
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
-    const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`);
+    const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
     const combinedReportActions = getCombinedReportActions(reportActions, transactionThreadReportID ?? null, Object.values(transactionThreadReportActions));
     const lastReportAction = [...combinedReportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
     const isSingleTransactionView = isMoneyRequest(report) || isTrackExpenseReport(report);
@@ -318,6 +320,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const onBackButtonPress = useCallback(() => {
         if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
+            return;
+        }
+        if (backTo) {
+            Navigation.goBack(backTo as Route, {shouldPopToTop: true});
             return;
         }
         Navigation.goBack(undefined, {shouldPopToTop: true});
@@ -348,8 +354,8 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         if (!transactionThreadReportID || !route?.params?.reportActionID || !isOneTransactionThread(linkedAction?.childReportID, reportID, linkedAction)) {
             return;
         }
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(route?.params?.reportID));
-    }, [transactionThreadReportID, route?.params?.reportActionID, route?.params?.reportID, linkedAction, reportID]);
+        navigation.setParams({reportActionID: ''});
+    }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation]);
 
     if (isMoneyRequestReport(report) || isInvoiceReport(report)) {
         headerView = (
@@ -381,7 +387,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         () => !!linkedAction && isWhisperAction(linkedAction) && !(linkedAction?.whisperedToAccountIDs ?? []).includes(currentUserAccountID),
         [currentUserAccountID, linkedAction],
     );
-    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
+    const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL, {canBeMissing: true});
 
     useEffect(() => {
         if (!isFocused || !deleteTransactionNavigateBackUrl) {
@@ -434,10 +440,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         const moneyRequestReportActionID: string | undefined = route.params?.moneyRequestReportActionID;
         const transactionID: string | undefined = route.params?.transactionID;
 
-        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the trasaction thread created yet
+        // When we get here with a moneyRequestReportActionID and a transactionID from the route it means we don't have the transaction thread created yet
         // so we have to call OpenReport in a way that the transaction thread will be created and attached to the parentReportAction
-        if (moneyRequestReportActionID && transactionID && currentUserEmail) {
-            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID);
+        if (transactionID && currentUserEmail) {
+            openReport(reportIDFromRoute, '', [currentUserEmail], undefined, moneyRequestReportActionID, false, [], undefined, undefined, transactionID);
             return;
         }
         openReport(reportIDFromRoute, reportActionIDFromRoute);
@@ -511,7 +517,10 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const prevReportActions = usePrevious(reportActions);
     useEffect(() => {
-        if (prevReportActions.length !== 0 || reportActions.length === 0) {
+        // This function is only triggered when a user is invited to a room after opening the link.
+        // When a user opens a room they are not a member of, and the admin then invites them, only the INVITETOROOM action is available, so the background will be empty and room description is not available.
+        // See https://github.com/Expensify/App/issues/57769 for more details
+        if (prevReportActions.length !== 0 || reportActions.length !== 1 || reportActions.at(0)?.actionName !== CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM) {
             return;
         }
         fetchReport();
@@ -712,7 +721,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
+            <ReactionListWrapper>
                 <ScreenWrapper
                     navigation={navigation}
                     style={screenWrapperStyle}
@@ -785,7 +794,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                         </DragAndDropProvider>
                     </FullPageNotFoundView>
                 </ScreenWrapper>
-            </ReactionListContext.Provider>
+            </ReactionListWrapper>
         </ActionListContext.Provider>
     );
 }

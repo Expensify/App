@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxProvider';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useOnyx from '@hooks/useOnyx';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -51,7 +52,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- This is needed to prevent the app from crashing when the app is using imported state.
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID || undefined}`);
 
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const isUserValidated = useAccountValidation();
     // The app would crash due to subscribing to the entire report collection if parentReportID is an empty string. So we should have a fallback ID here.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${report?.parentReportID || undefined}`);

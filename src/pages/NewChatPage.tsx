@@ -4,9 +4,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
-import ImportedStateIndicator from '@components/ImportedStateIndicator';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
-import OfflineIndicator from '@components/OfflineIndicator';
 import {useOptionsList} from '@components/OptionListContextProvider';
 import {PressableWithFeedback} from '@components/Pressable';
 import ReferralProgramCTA from '@components/ReferralProgramCTA';
@@ -20,9 +17,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useDismissedReferralBanners from '@hooks/useDismissedReferralBanners';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
-import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {navigateToAndOpenReport, searchInServer, setGroupDraft} from '@libs/actions/Report';
@@ -144,11 +139,9 @@ function NewChatPage() {
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const personalData = useCurrentUserPersonalDetails();
     const {top} = useSafeAreaInsets();
-    const {insets, safeAreaPaddingBottomStyle} = useSafeAreaPaddings();
     const [isSearchingForReports] = useOnyx(ONYXKEYS.IS_SEARCHING_FOR_REPORTS, {initWithStoredValues: false});
     const selectionListRef = useRef<SelectionListHandle>(null);
 
@@ -339,50 +332,35 @@ function NewChatPage() {
 
     return (
         <ScreenWrapper
-            shouldEnableKeyboardAvoidingView={false}
-            includeSafeAreaPaddingBottom
-            shouldShowOfflineIndicator={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             includePaddingTop={false}
             shouldEnablePickerAvoiding={false}
-            testID={NewChatPage.displayName}
+            keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
             // Disable the focus trap of this page to activate the parent focus trap in `NewChatSelectorPage`.
             focusTrapSettings={{active: false}}
+            testID={NewChatPage.displayName}
         >
-            <KeyboardAvoidingView
-                style={styles.flex1}
-                behavior="padding"
-                // Offset is needed as KeyboardAvoidingView in nested inside of TabNavigator instead of wrapping whole screen.
-                // This is because when wrapping whole screen the screen was freezing when changing Tabs.
-                keyboardVerticalOffset={variables.contentHeaderHeight + top + variables.tabSelectorButtonHeight + variables.tabSelectorButtonPadding}
-            >
-                <SelectionList<Option & ListItem>
-                    ref={selectionListRef}
-                    ListItem={UserListItem}
-                    sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
-                    textInputValue={searchTerm}
-                    textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
-                    onChangeText={setSearchTerm}
-                    textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
-                    headerMessage={headerMessage}
-                    onSelectRow={selectOption}
-                    shouldSingleExecuteRowSelect
-                    onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
-                    rightHandSideComponent={itemRightSideComponent}
-                    footerContent={footerContent}
-                    showLoadingPlaceholder={!areOptionsInitialized}
-                    shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                    isLoadingNewOptions={!!isSearchingForReports}
-                    initiallyFocusedOptionKey={firstKeyForList}
-                    shouldTextInputInterceptSwipe
-                    confirmButtonStyles={insets.bottom ? [safeAreaPaddingBottomStyle, styles.mb5] : undefined}
-                />
-                {isSmallScreenWidth && (
-                    <>
-                        <OfflineIndicator />
-                        <ImportedStateIndicator />
-                    </>
-                )}
-            </KeyboardAvoidingView>
+            <SelectionList<Option & ListItem>
+                ref={selectionListRef}
+                ListItem={UserListItem}
+                sections={areOptionsInitialized ? sections : CONST.EMPTY_ARRAY}
+                textInputValue={searchTerm}
+                textInputHint={isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : ''}
+                onChangeText={setSearchTerm}
+                textInputLabel={translate('selectionList.nameEmailOrPhoneNumber')}
+                headerMessage={headerMessage}
+                onSelectRow={selectOption}
+                shouldSingleExecuteRowSelect
+                onConfirm={(e, option) => (selectedOptions.length > 0 ? createGroup() : selectOption(option))}
+                rightHandSideComponent={itemRightSideComponent}
+                footerContent={footerContent}
+                showLoadingPlaceholder={!areOptionsInitialized}
+                shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                isLoadingNewOptions={!!isSearchingForReports}
+                initiallyFocusedOptionKey={firstKeyForList}
+                shouldTextInputInterceptSwipe
+                addBottomSafeAreaPadding
+            />
         </ScreenWrapper>
     );
 }
