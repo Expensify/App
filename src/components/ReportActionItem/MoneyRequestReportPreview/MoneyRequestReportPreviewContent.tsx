@@ -394,7 +394,7 @@ function MoneyRequestReportPreviewContent({
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);
         }
-        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item) => item !== null);
+        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => item !== null);
         setCurrentVisible(viewableItemsIndexes);
     }).current;
 
