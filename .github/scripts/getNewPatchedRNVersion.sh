@@ -1,15 +1,17 @@
 #!/bin/bash
 
-if [ -z "$VERSION" ]; then
-    echo "VERSION env variable is not set"
+if [ -z "$GITHUB_TOKEN" ]; then
+    echo "GITHUB_TOKEN env variable is not set"
     exit 1
 fi
 
 if [[ "$IS_HYBRID_BUILD" == "true" ]]; then
-    PACKAGE="react-hybrid"
+    readonly PACKAGE="react-hybrid"
 else
-    PACKAGE="react-standalone"
+    readonly PACKAGE="react-standalone"
 fi
+
+readonly VERSION="$(jq -r '.dependencies["react-native"]' package.json)"
 
 MAVEN_METADATA_URL="https://maven.pkg.github.com/Expensify/App/com/example/${PACKAGE}/react-android/maven-metadata.xml"
 
