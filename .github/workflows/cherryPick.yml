@@ -22,7 +22,7 @@ jobs:
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: true
+          submodules: false
 
       - name: Extract PR information
         id: getPRInfo
