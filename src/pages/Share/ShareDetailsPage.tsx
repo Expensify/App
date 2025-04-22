@@ -44,8 +44,8 @@ function ShareDetailsPage({
 }: ShareDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS);
-    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE);
+    const [unknownUserDetails] = useOnyx(ONYXKEYS.SHARE_UNKNOWN_USER_DETAILS, {canBeMissing: true});
+    const [currentAttachment] = useOnyx(ONYXKEYS.SHARE_TEMP_FILE, {canBeMissing: true});
     const isTextShared = currentAttachment?.mimeType === 'txt';
     const [message, setMessage] = useState(isTextShared ? currentAttachment?.content ?? '' : '');
     const [errorTitle, setErrorTitle] = useState<string | undefined>(undefined);
