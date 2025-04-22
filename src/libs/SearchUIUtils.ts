@@ -56,6 +56,7 @@ import {
     isSettled,
 } from './ReportUtils';
 import {buildCannedSearchQuery} from './SearchQueryUtils';
+import StringUtils from './StringUtils';
 import {getAmount as getTransactionAmount, getCreated as getTransactionCreatedDate, getMerchant as getTransactionMerchant, isPendingCardOrScanningTransaction} from './TransactionUtils';
 import shouldShowTransactionYear from './TransactionUtils/shouldShowTransactionYear';
 
@@ -457,8 +458,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
             const doesDataContainAPastYearTransaction = shouldShowYear(data);
-            const reportName = Parser.replace(Parser.htmlToText(taskItem.reportName));
-            const description = Parser.replace(Parser.htmlToText(taskItem.description)).replaceAll('<br />', ' ');
+            const reportName = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.reportName));
+            const description = StringUtils.lineBreaksToSpaces(Parser.htmlToText(taskItem.description));
 
             const result: TaskListItemType = {
                 ...taskItem,
