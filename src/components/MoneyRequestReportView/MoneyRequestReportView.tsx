@@ -102,8 +102,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false, canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
     const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
@@ -111,12 +111,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
+        canBeMissing: true,
     });
     const shouldUseSingleTransactionView = transactions.length === 1;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
+        canBeMissing: true,
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -175,7 +177,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     report={report}
                     policy={policy}
                     reportActions={reportActions}
-                    transactionThreadReportID={undefined}
+                    transactionThreadReportID={transactionThreadReportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
@@ -185,36 +187,38 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         Navigation.goBack(backToRoute);
                     }}
                 />
-                {shouldUseSingleTransactionView ? (
-                    // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
-                    <ReportActionsView
-                        report={report}
-                        reportActions={reportActions}
-                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                        hasNewerActions={hasNewerActions}
-                        hasOlderActions={hasOlderActions}
-                        parentReportAction={parentReportAction}
-                        transactionThreadReportID={transactionThreadReportID}
-                    />
-                ) : (
-                    <MoneyRequestReportActionsList
-                        report={report}
-                        transactions={transactions}
-                        reportActions={reportActions}
-                        hasOlderActions={hasOlderActions}
-                        hasNewerActions={hasNewerActions}
-                    />
-                )}
-                {shouldDisplayReportFooter ? (
-                    <ReportFooter
-                        report={report}
-                        reportMetadata={reportMetadata}
-                        policy={policy}
-                        pendingAction={reportPendingAction}
-                        isComposerFullSize={!!isComposerFullSize}
-                        lastReportAction={lastReportAction}
-                    />
-                ) : null}
+                <View style={[styles.overflowHidden, styles.flex1]}>
+                    {shouldUseSingleTransactionView ? (
+                        // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
+                        <ReportActionsView
+                            report={report}
+                            reportActions={reportActions}
+                            isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                            hasNewerActions={hasNewerActions}
+                            hasOlderActions={hasOlderActions}
+                            parentReportAction={parentReportAction}
+                            transactionThreadReportID={transactionThreadReportID}
+                        />
+                    ) : (
+                        <MoneyRequestReportActionsList
+                            report={report}
+                            transactions={transactions}
+                            reportActions={reportActions}
+                            hasOlderActions={hasOlderActions}
+                            hasNewerActions={hasNewerActions}
+                        />
+                    )}
+                    {shouldDisplayReportFooter ? (
+                        <ReportFooter
+                            report={report}
+                            reportMetadata={reportMetadata}
+                            policy={policy}
+                            pendingAction={reportPendingAction}
+                            isComposerFullSize={!!isComposerFullSize}
+                            lastReportAction={lastReportAction}
+                        />
+                    ) : null}
+                </View>
             </OfflineWithFeedback>
         </View>
     );

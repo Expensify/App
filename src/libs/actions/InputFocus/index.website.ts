@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import Onyx from 'react-native-onyx';
 import * as Browser from '@libs/Browser';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
@@ -19,7 +20,10 @@ function composerFocusKeepFocusOn(ref: HTMLElement, isFocused: boolean, modal: M
     }
     if (!isFocused && !onyxFocused && !modal.willAlertModalBecomeVisible && !modal.isVisible && refSave) {
         if (!ReportActionComposeFocusManager.isFocused()) {
-            refSave.focus();
+            // Focusing will fail when it is called immediately after closing modal so we call it after interaction.
+            InteractionManager.runAfterInteractions(() => {
+                refSave?.focus();
+            });
         } else {
             refSave = undefined;
         }

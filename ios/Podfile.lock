@@ -1,24 +1,24 @@
 PODS:
-  - Airship (18.7.2):
-    - Airship/Automation (= 18.7.2)
-    - Airship/Basement (= 18.7.2)
-    - Airship/Core (= 18.7.2)
-    - Airship/FeatureFlags (= 18.7.2)
-    - Airship/MessageCenter (= 18.7.2)
-    - Airship/PreferenceCenter (= 18.7.2)
-  - Airship/Automation (18.7.2):
+  - Airship (19.2.0):
+    - Airship/Automation (= 19.2.0)
+    - Airship/Basement (= 19.2.0)
+    - Airship/Core (= 19.2.0)
+    - Airship/FeatureFlags (= 19.2.0)
+    - Airship/MessageCenter (= 19.2.0)
+    - Airship/PreferenceCenter (= 19.2.0)
+  - Airship/Automation (19.2.0):
     - Airship/Core
-  - Airship/Basement (18.7.2)
-  - Airship/Core (18.7.2):
+  - Airship/Basement (19.2.0)
+  - Airship/Core (19.2.0):
     - Airship/Basement
-  - Airship/FeatureFlags (18.7.2):
+  - Airship/FeatureFlags (19.2.0):
     - Airship/Core
-  - Airship/MessageCenter (18.7.2):
+  - Airship/MessageCenter (19.2.0):
     - Airship/Core
-  - Airship/PreferenceCenter (18.7.2):
+  - Airship/PreferenceCenter (19.2.0):
     - Airship/Core
-  - AirshipFrameworkProxy (7.1.2):
-    - Airship (= 18.7.2)
+  - AirshipFrameworkProxy (14.1.0):
+    - Airship (= 19.2.0)
   - AirshipServiceExtension (18.7.2)
   - AppAuth (1.7.5):
     - AppAuth/Core (= 1.7.5)
@@ -1606,8 +1606,8 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-airship (19.2.1):
-    - AirshipFrameworkProxy (= 7.1.2)
+  - react-native-airship (21.4.1):
+    - AirshipFrameworkProxy (= 14.1.0)
     - DoubleConversion
     - glog
     - hermes-engine
@@ -1714,7 +1714,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - react-native-document-picker (9.3.1):
+  - react-native-document-picker (10.1.1):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -2991,7 +2991,7 @@ DEPENDENCIES:
   - react-native-blob-util (from `../node_modules/react-native-blob-util`)
   - "react-native-cameraroll (from `../node_modules/@react-native-camera-roll/camera-roll`)"
   - react-native-config (from `../node_modules/react-native-config`)
-  - react-native-document-picker (from `../node_modules/react-native-document-picker`)
+  - "react-native-document-picker (from `../node_modules/@react-native-documents/picker`)"
   - "react-native-geolocation (from `../node_modules/@react-native-community/geolocation`)"
   - react-native-image-picker (from `../node_modules/react-native-image-picker`)
   - react-native-key-command (from `../node_modules/react-native-key-command`)
@@ -3227,7 +3227,7 @@ EXTERNAL SOURCES:
   react-native-config:
     :path: "../node_modules/react-native-config"
   react-native-document-picker:
-    :path: "../node_modules/react-native-document-picker"
+    :path: "../node_modules/@react-native-documents/picker"
   react-native-geolocation:
     :path: "../node_modules/@react-native-community/geolocation"
   react-native-image-picker:
@@ -3376,8 +3376,8 @@ CHECKOUT OPTIONS:
     :http: https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz
 
 SPEC CHECKSUMS:
-  Airship: bb32ff2c5a811352da074480357d9f02dbb8f327
-  AirshipFrameworkProxy: dbd862dc6fb21b13e8b196458d626123e2a43a50
+  Airship: 4f4dc8dc616703787bdf73869437ccd0a52c6db7
+  AirshipFrameworkProxy: 6b6bee0ef983258931a67f701f1171e9ded2d8c5
   AirshipServiceExtension: 9c73369f426396d9fb9ff222d86d842fac76ba46
   AppAuth: 501c04eda8a8d11f179dbe8637b7a91bb7e5d2fa
   AppLogs: 3bc4e9b141dbf265b9464409caaa40416a9ee0e0
@@ -3464,12 +3464,12 @@ SPEC CHECKSUMS:
   React-Mapbuffer: 212171f037e3b22e6c2df839aa826806da480b85
   React-microtasksnativemodule: 72564d5469003687d39bfc4efad281df8efc0684
   react-native-advanced-input-mask: 7783a35343e2f0ec4b726d526bda4665e8fc11c9
-  react-native-airship: 8debc21d80534128d87269cb309164e2941b068a
+  react-native-airship: 2ff893d451520832e447fcce7f3f5ed9d3645f6a
   react-native-app-logs: 70fb83d2fe260d3911e5bb222496ef1f7a2bfef9
   react-native-blob-util: d65692a2acce17b7a836805114828142a3634033
   react-native-cameraroll: 78710a5d35b0c6f41899a193e714564d8fd648b0
   react-native-config: 5b9e180ca7beb5748ba473b257bb9a7d10e2a957
-  react-native-document-picker: da64a39fd71a84a9d3f7f58c8b0623c393e9991c
+  react-native-document-picker: 5cb1c6615796389f4f1b7fe2e4f103e38e4d6398
   react-native-geolocation: cd91e4fd914de585933c836fd71f6bdb3c97a410
   react-native-image-picker: 9e419813377d42566b0168121ab9483614488db5
   react-native-key-command: 96c9dfb09bc89ecd1d58348c0d3ed84d0255648b
