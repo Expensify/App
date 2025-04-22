@@ -32,7 +32,7 @@ const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>
 
     // If splits property is defined in the transaction, it is actually an original transaction
     if (splits && splits.length > 0) {
-        return {isSplit: true, originalTransaction: transaction};
+        return {isBillSplit: true, originalTransaction: transaction};
     }
 
     if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {

@@ -46,7 +46,6 @@ function TransactionPreviewContent({
     areThereDuplicates,
     sessionAccountID,
     walletTermsErrors,
-    routeName,
     reportPreviewAction,
     shouldHideOnDelete = true,
 }: TransactionPreviewContentProps) {
