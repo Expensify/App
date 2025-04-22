@@ -5109,7 +5109,7 @@ const translations = {
         deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
             `eliminó a ${approverName} (${approverEmail}) como aprobador para el campo ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) =>
-            `actualizó el aprobador para el campo ${field} "${name}" de ${oldApproverName} (${oldApproverEmail}) a ${newApproverName} (${newApproverEmail})`,
+            `actualizó el aprobador para el campo ${field} "${name}" a ${newApproverName} (${newApproverEmail}) (previamente ${oldApproverName} (${oldApproverEmail}))`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
@@ -5118,18 +5118,18 @@ const translations = {
                 return `actualizó la categoría "${categoryName}" añadiendo un Código de Nómina de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el Código de Nómina que anteriormente era ${oldValue}`;
+                return `actualizó la categoría "${categoryName}" eliminando el código de nómina (previamente ${oldValue})`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el Código de Nómina de ${oldValue} a ${newValue}`;
+            return `actualizó la categoría "${categoryName}" cambiando el código de nómina a ${newValue} (previamente ${oldValue})`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
-                return `actualizó la categoría "${categoryName}" agregando un código GL de "${newValue}"`;
+                return `actualizó la categoría "${categoryName}" añadiendo un código GL de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código GL que anteriormente era "${oldValue}"`;
+                return `actualizó la categoría "${categoryName}" eliminando el código GL (previamente ${oldValue})`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el código GL de "${oldValue}" a "${newValue}"`;
+            return `actualizó la categoría "${categoryName}" cambiando el código GL a ${newValue} (previamente ${oldValue})`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
             return `actualizó la categoría "${categoryName}" cambiando la descripción de "${!oldValue ? 'No requerida' : 'Requerida'}" a "${!oldValue ? 'Requerida' : 'No requerida'}"`;

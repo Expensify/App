@@ -5055,7 +5055,7 @@ const translations = {
         deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
             `removed ${approverName} (${approverEmail}) as an approver for the ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) =>
-            `updated the approver for the ${field} "${name}" from ${oldApproverName} (${oldApproverEmail}) to ${newApproverName} (${newApproverEmail})`,
+            `updated the approver for the ${field} "${name}" to ${newApproverName} (${newApproverEmail}) (previously ${oldApproverName} (${oldApproverEmail}))`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `added the category "${categoryName}"`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `removed the category "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'disabled' : 'enabled'} the category "${categoryName}"`,
@@ -5064,18 +5064,18 @@ const translations = {
                 return `updated the category "${categoryName}" by adding a Payroll Code of ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `updated the category "${categoryName}" by removing the Payroll Code which was previously ${oldValue}`;
+                return `updated the category "${categoryName}" by removing the Payroll Code (previously ${oldValue})`;
             }
-            return `updated the category "${categoryName}" by changing the Payroll Code from ${oldValue} to ${newValue}`;
+            return `updated the category "${categoryName}" by changing the Payroll Code to ${newValue} (previously ${oldValue})`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
                 return `updated the category "${categoryName}" by adding a GL Code of "${newValue}"`;
             }
             if (!newValue && oldValue) {
-                return `updated the category "${categoryName}" by removing the GL Code which was previously "${oldValue}"`;
+                return `updated the category "${categoryName}" by removing the GL Code (previously "${oldValue}")`;
             }
-            return `updated the category "${categoryName}" by changing the GL Code from "${oldValue}" to "${newValue}"`;
+            return `updated the category "${categoryName}" by changing the GL Code to "${newValue}" (previously "${oldValue}")`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
             return `updated the category "${categoryName}" by changing the Description from ${!oldValue ? 'Not Required' : 'Required'} to ${!oldValue ? 'Required' : 'Not Required'}`;
