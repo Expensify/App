@@ -428,19 +428,19 @@ function AdvancedSearchFilters() {
     const styles = useThemeStyles();
     const {singleExecution} = useSingleExecution();
     const waitForNavigate = useWaitForNavigation();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: false});
-    const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: false});
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
+    const [searchAdvancedFilters = {} as SearchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const policyID = searchAdvancedFilters.policyID;
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: false});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList, true), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const personalDetails = usePersonalDetails();
     const {canUseLeftHandBar} = usePermissions();
 
-    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const [allPolicyCategories = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES, {
         selector: (policyCategories) =>
             Object.fromEntries(
@@ -452,14 +452,14 @@ function AdvancedSearchFilters() {
         canBeMissing: false,
     });
     const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
-    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
+    const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: true});
     const singlePolicyTagLists = allPolicyTagLists[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`];
     const tagListsUnpacked = Object.values(allPolicyTagLists ?? {})
         .filter((item): item is NonNullable<PolicyTagLists> => !!item)
         .map(getTagNamesFromTagsLists)
         .flat();
 
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
 
     const {sections: workspaces} = useWorkspaceList({
         policies,

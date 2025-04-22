@@ -214,7 +214,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     const onPress = singleExecution(() => {
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
+                        Navigation.navigate(item.getRoute());
                     });
 
                     return (

@@ -170,7 +170,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 text: translate(item.translationPath),
                 onSelected: singleExecution(() => {
                     clearAllFilters();
-                    Navigation.navigate(item.getRoute(policyID));
+                    Navigation.navigate(item.getRoute());
                 }),
                 isSelected,
                 icon: item.icon,
