@@ -75,6 +75,12 @@ type ValidateCodeFormProps = {
 
     /** Whether the form is loading or not */
     isLoading?: boolean;
+
+    /** Whether to show skip button */
+    shouldShowSkipButton?: boolean;
+
+    /** Function to call when skip button is pressed */
+    handleSkipButtonPress?: () => void;
 };
 
 function BaseValidateCodeForm({
@@ -91,6 +97,8 @@ function BaseValidateCodeForm({
     hideSubmitButton,
     submitButtonText,
     isLoading,
+    shouldShowSkipButton = false,
+    handleSkipButtonPress,
 }: ValidateCodeFormProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
@@ -100,7 +108,9 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT, {
+        canBeMissing: true,
+    });
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -277,14 +287,23 @@ function BaseValidateCodeForm({
                     messages={{0: translate('validateCodeModal.successfulNewCodeRequest')}}
                 />
             )}
+
             <OfflineWithFeedback
                 shouldDisplayErrorAbove
                 pendingAction={validatePendingAction}
                 errors={canShowError ? validateError : undefined}
-                errorRowStyles={[styles.mt2]}
+                errorRowStyles={[styles.mt2, styles.textWrap]}
                 onClose={() => clearError()}
                 style={buttonStyles}
             >
+                {shouldShowSkipButton && (
+                    <Button
+                        text={translate('common.skip')}
+                        onPress={handleSkipButtonPress}
+                        success={false}
+                        large
+                    />
+                )}
                 {!hideSubmitButton && (
                     <Button
                         isDisabled={isOffline}
