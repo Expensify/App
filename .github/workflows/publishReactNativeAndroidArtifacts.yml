@@ -1,4 +1,4 @@
-name: Build and publish React Native artifacts
+name: Publish React Native Android Artifacts
 
 on:
   push:
