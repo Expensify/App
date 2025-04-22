@@ -16,15 +16,6 @@ jobs:
     needs: createNewVersion
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout staging branch
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: true
-          fetch-depth: 0
-
       - name: Extract PR information
         id: getPRInfo
         run: |
@@ -41,6 +32,15 @@ jobs:
       - name: Set conflict branch name
         id: getBranchName
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-staging-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout staging branch
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+          fetch-depth: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify-Test-Fork' && 0 || '' }}
 
       # This command is necessary to fetch any branch other than main in the submodule.
       # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
