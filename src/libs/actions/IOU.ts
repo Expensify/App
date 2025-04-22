@@ -8512,7 +8512,6 @@ function getPayMoneyRequestParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    pendingAction: null,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
@@ -8803,6 +8802,9 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).find((action) => {
+        if (!action) {
+            return false;
+        }
         const iouReport = getReportOrDraftReport(action.childReportID);
         const policy = getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
@@ -9071,6 +9073,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
+            isCancelledIOU: false,
         },
     };
 
@@ -9117,6 +9120,16 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+                isCancelledIOU: true,
+            },
         },
     ];
 
@@ -9330,6 +9343,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
                 stateNum,
                 statusNum,
+                isCancelledIOU: true,
             },
         },
     ];
@@ -9358,7 +9372,6 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
                 [optimisticReportAction.reportActionID]: {
-                    pendingAction: null,
                     errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
@@ -9369,6 +9382,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                isCancelledIOU: false,
             },
         },
     ];
