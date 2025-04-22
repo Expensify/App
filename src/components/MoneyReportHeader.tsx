@@ -124,10 +124,10 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
     const route = useRoute();
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReport?.chatReportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: false});
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: false});
+    const moneyRequestReportChatID = moneyRequestReport?.chatReportID ?? CONST.DEFAULT_NUMBER_ID;
+    const moneyRequestReportID = moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportChatID}`, {canBeMissing: false});    
+    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReportID}`, {canBeMissing: false});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const requestParentReportAction = useMemo(() => {
