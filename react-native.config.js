@@ -1,6 +1,7 @@
-const projectRootPath = process.env.IS_HYBRID_APP === 'true' ? './Mobile-Expensify/' : './';
-const iosSourceDir = projectRootPath + 'ios';
-const androidSourceDir = projectRootPath + 'android';
+const isHybrid = process.env.IS_HYBRID_APP === 'true';
+const projectRootPath = isHybrid ? './Mobile-Expensify/' : './';
+const iosSourceDir = projectRootPath + (isHybrid ? 'iOS' : 'ios');
+const androidSourceDir = projectRootPath + (isHybrid ? 'Android' : 'android');
 
 module.exports = {
     project: {
