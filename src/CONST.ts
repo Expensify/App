@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {add as dateAdd} from 'date-fns';
-import {sub as dateSubtract} from 'date-fns/sub';
+import { add as dateAdd } from 'date-fns';
+import { sub as dateSubtract } from 'date-fns/sub';
 import Config from 'react-native-config';
 import * as KeyCommand from 'react-native-key-command';
-import type {ValueOf} from 'type-fest';
+import type { ValueOf } from 'type-fest';
 import type ResponsiveLayoutResult from './hooks/useResponsiveLayout/types';
-import type {Video} from './libs/actions/Report';
-import type {MileageRate} from './libs/DistanceRequestUtils';
+import type { Video } from './libs/actions/Report';
+import type { MileageRate } from './libs/DistanceRequestUtils';
 import BankAccount from './libs/models/BankAccount';
-import {addTrailingForwardSlash} from './libs/Url';
+import { addTrailingForwardSlash } from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
 import SCREENS from './SCREENS';
 import type PlaidBankAccount from './types/onyx/PlaidBankAccount';
@@ -29,8 +29,8 @@ const PLATFORM_IOS = 'iOS';
 const ANDROID_PACKAGE_NAME = 'org.me.mobiexpensifyg';
 const CURRENT_YEAR = new Date().getFullYear();
 const PULL_REQUEST_NUMBER = Config?.PULL_REQUEST_NUMBER ?? '';
-const MAX_DATE = dateAdd(new Date(), {years: 1});
-const MIN_DATE = dateSubtract(new Date(), {years: 20});
+const MAX_DATE = dateAdd(new Date(), { years: 1 });
+const MIN_DATE = dateSubtract(new Date(), { years: 20 });
 const EXPENSIFY_POLICY_DOMAIN = 'expensify-policy';
 const EXPENSIFY_POLICY_DOMAIN_EXTENSION = '.exfy';
 
@@ -117,16 +117,16 @@ const selfGuidedTourTask: OnboardingTask = {
     type: 'viewTour',
     autoCompleted: false,
     mediaAttributes: {},
-    title: ({navatticURL}) => `Take a [2-minute tour](${navatticURL})`,
-    description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
+    title: ({ navatticURL }) => `Take a [2-minute tour](${navatticURL})`,
+    description: ({ navatticURL }) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
 };
 
 const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
     autoCompleted: true,
     mediaAttributes: {},
-    title: ({workspaceSettingsLink}) => `Create a [workspace](${workspaceSettingsLink})`,
-    description: ({workspaceSettingsLink}) =>
+    title: ({ workspaceSettingsLink }) => `Create a [workspace](${workspaceSettingsLink})`,
+    description: ({ workspaceSettingsLink }) =>
         '*Create a workspace* to track expenses, scan receipts, chat, and more.\n' +
         '\n' +
         'Here’s how to create a workspace:\n' +
@@ -143,8 +143,8 @@ const setupCategoriesTask: OnboardingTask = {
     mediaAttributes: {
         [`${CLOUDFRONT_URL}/videos/walkthrough-categories-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-categories.png" data-expensify-width="1920" data-expensify-height="1080"`,
     },
-    title: ({workspaceCategoriesLink}) => `Set up [categories](${workspaceCategoriesLink})`,
-    description: ({workspaceCategoriesLink}) =>
+    title: ({ workspaceCategoriesLink }) => `Set up [categories](${workspaceCategoriesLink})`,
+    description: ({ workspaceCategoriesLink }) =>
         '*Set up categories* so your team can code expenses for easy reporting.\n' +
         '\n' +
         'Here’s how to set up categories:\n' +
@@ -857,9 +857,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'k', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'k', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'k', modifierFlags: keyModifierCommand },
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
@@ -868,9 +868,9 @@ const CONST = {
             shortcutKey: 'K',
             modifiers: ['CTRL', 'SHIFT'],
             trigger: {
-                DEFAULT: {input: 'k', modifierFlags: keyModifierShiftControl},
-                [PLATFORM_OS_MACOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
-                [PLATFORM_IOS]: {input: 'k', modifierFlags: keyModifierShiftCommand},
+                DEFAULT: { input: 'k', modifierFlags: keyModifierShiftControl },
+                [PLATFORM_OS_MACOS]: { input: 'k', modifierFlags: keyModifierShiftCommand },
+                [PLATFORM_IOS]: { input: 'k', modifierFlags: keyModifierShiftCommand },
             },
             type: KEYBOARD_SHORTCUT_NAVIGATION_TYPE,
         },
@@ -879,9 +879,9 @@ const CONST = {
             shortcutKey: 'J',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'j', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'j', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'j', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'j', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'j', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'j', modifierFlags: keyModifierCommand },
             },
         },
         ESCAPE: {
@@ -889,9 +889,9 @@ const CONST = {
             shortcutKey: 'Escape',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputEscape},
-                [PLATFORM_OS_MACOS]: {input: keyInputEscape},
-                [PLATFORM_IOS]: {input: keyInputEscape},
+                DEFAULT: { input: keyInputEscape },
+                [PLATFORM_OS_MACOS]: { input: keyInputEscape },
+                [PLATFORM_IOS]: { input: keyInputEscape },
             },
         },
         ENTER: {
@@ -899,9 +899,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputEnter},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter},
-                [PLATFORM_IOS]: {input: keyInputEnter},
+                DEFAULT: { input: keyInputEnter },
+                [PLATFORM_OS_MACOS]: { input: keyInputEnter },
+                [PLATFORM_IOS]: { input: keyInputEnter },
             },
         },
         CTRL_ENTER: {
@@ -909,9 +909,9 @@ const CONST = {
             shortcutKey: 'Enter',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: keyInputEnter, modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: keyInputEnter, modifierFlags: keyModifierCommand},
+                DEFAULT: { input: keyInputEnter, modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: keyInputEnter, modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: keyInputEnter, modifierFlags: keyModifierCommand },
             },
         },
         COPY: {
@@ -919,9 +919,9 @@ const CONST = {
             shortcutKey: 'C',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'c', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'c', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'c', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'c', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'c', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'c', modifierFlags: keyModifierCommand },
             },
         },
         ARROW_UP: {
@@ -929,9 +929,9 @@ const CONST = {
             shortcutKey: 'ArrowUp',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputUpArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputUpArrow},
-                [PLATFORM_IOS]: {input: keyInputUpArrow},
+                DEFAULT: { input: keyInputUpArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputUpArrow },
+                [PLATFORM_IOS]: { input: keyInputUpArrow },
             },
         },
         ARROW_DOWN: {
@@ -939,9 +939,9 @@ const CONST = {
             shortcutKey: 'ArrowDown',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputDownArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputDownArrow},
-                [PLATFORM_IOS]: {input: keyInputDownArrow},
+                DEFAULT: { input: keyInputDownArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputDownArrow },
+                [PLATFORM_IOS]: { input: keyInputDownArrow },
             },
         },
         ARROW_LEFT: {
@@ -949,9 +949,9 @@ const CONST = {
             shortcutKey: 'ArrowLeft',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputLeftArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputLeftArrow},
-                [PLATFORM_IOS]: {input: keyInputLeftArrow},
+                DEFAULT: { input: keyInputLeftArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputLeftArrow },
+                [PLATFORM_IOS]: { input: keyInputLeftArrow },
             },
         },
         ARROW_RIGHT: {
@@ -959,9 +959,9 @@ const CONST = {
             shortcutKey: 'ArrowRight',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputRightArrow},
-                [PLATFORM_OS_MACOS]: {input: keyInputRightArrow},
-                [PLATFORM_IOS]: {input: keyInputRightArrow},
+                DEFAULT: { input: keyInputRightArrow },
+                [PLATFORM_OS_MACOS]: { input: keyInputRightArrow },
+                [PLATFORM_IOS]: { input: keyInputRightArrow },
             },
         },
         TAB: {
@@ -974,9 +974,9 @@ const CONST = {
             shortcutKey: 'D',
             modifiers: ['CTRL'],
             trigger: {
-                DEFAULT: {input: 'd', modifierFlags: keyModifierControl},
-                [PLATFORM_OS_MACOS]: {input: 'd', modifierFlags: keyModifierCommand},
-                [PLATFORM_IOS]: {input: 'd', modifierFlags: keyModifierCommand},
+                DEFAULT: { input: 'd', modifierFlags: keyModifierControl },
+                [PLATFORM_OS_MACOS]: { input: 'd', modifierFlags: keyModifierCommand },
+                [PLATFORM_IOS]: { input: 'd', modifierFlags: keyModifierCommand },
             },
         },
         BACKSPACE: {
@@ -989,7 +989,7 @@ const CONST = {
             shortcutKey: 'Space',
             modifiers: [],
             trigger: {
-                DEFAULT: {input: keyInputSpace},
+                DEFAULT: { input: keyInputSpace },
             },
         },
     },
@@ -1084,8 +1084,7 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
-    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
-    CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1705,10 +1704,10 @@ const CONST = {
     // The number of milliseconds for an idle session to expire
     SESSION_EXPIRATION_TIME_MS: 2 * 3600 * 1000, // 2 hours
     WEEK_STARTS_ON: 1, // Monday
-    DEFAULT_TIME_ZONE: {automatic: true, selected: 'America/Los_Angeles'},
-    DEFAULT_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_CLOSE_ACCOUNT_DATA: {errors: null, success: '', isLoading: false},
-    DEFAULT_NETWORK_DATA: {isOffline: false},
+    DEFAULT_TIME_ZONE: { automatic: true, selected: 'America/Los_Angeles' },
+    DEFAULT_ACCOUNT_DATA: { errors: null, success: '', isLoading: false },
+    DEFAULT_CLOSE_ACCOUNT_DATA: { errors: null, success: '', isLoading: false },
+    DEFAULT_NETWORK_DATA: { isOffline: false },
     FORMS: {
         LOGIN_FORM: 'LoginForm',
         VALIDATE_CODE_FORM: 'ValidateCodeForm',
@@ -5315,7 +5314,7 @@ const CONST = {
             NATIVE: 32,
             NORMAL: 8,
         },
-        DEFAULT_VIDEO_DIMENSIONS: {width: 1900, height: 1400},
+        DEFAULT_VIDEO_DIMENSIONS: { width: 1900, height: 1400 },
     },
 
     INTRO_CHOICES: {
@@ -5341,12 +5340,12 @@ const CONST = {
 
     WELCOME_VIDEO_URL: `${CLOUDFRONT_URL}/videos/intro-1280.mp4`,
 
-    ONBOARDING_CHOICES: {...onboardingChoices},
-    SELECTABLE_ONBOARDING_CHOICES: {...selectableOnboardingChoices},
-    CREATE_EXPENSE_ONBOARDING_CHOICES: {...createExpenseOnboardingChoices},
-    ONBOARDING_SIGNUP_QUALIFIERS: {...signupQualifiers},
-    ONBOARDING_INVITE_TYPES: {...onboardingInviteTypes},
-    ONBOARDING_COMPANY_SIZE: {...onboardingCompanySize},
+    ONBOARDING_CHOICES: { ...onboardingChoices },
+    SELECTABLE_ONBOARDING_CHOICES: { ...selectableOnboardingChoices },
+    CREATE_EXPENSE_ONBOARDING_CHOICES: { ...createExpenseOnboardingChoices },
+    ONBOARDING_SIGNUP_QUALIFIERS: { ...signupQualifiers },
+    ONBOARDING_INVITE_TYPES: { ...onboardingInviteTypes },
+    ONBOARDING_COMPANY_SIZE: { ...onboardingCompanySize },
     ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE: 'What would you like to do with this expense?',
     ONBOARDING_ACCOUNTING_MAPPING,
     ONBOARDING_MESSAGES: {
@@ -5361,8 +5360,8 @@ const CONST = {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: ({workspaceCategoriesLink, workspaceMoreFeaturesLink}) => `Set up [categories](${workspaceCategoriesLink}) and [tags](${workspaceMoreFeaturesLink})`,
-                    description: ({workspaceCategoriesLink, workspaceAccountingLink}) =>
+                    title: ({ workspaceCategoriesLink, workspaceMoreFeaturesLink }) => `Set up [categories](${workspaceCategoriesLink}) and [tags](${workspaceMoreFeaturesLink})`,
+                    description: ({ workspaceCategoriesLink, workspaceAccountingLink }) =>
                         '*Set up categories and tags* so your team can code expenses for easy reporting.\n' +
                         '\n' +
                         `Import them automatically by [connecting your accounting software](${workspaceAccountingLink}), or set them up manually in your [workspace settings](${workspaceCategoriesLink}).`,
@@ -5371,11 +5370,11 @@ const CONST = {
                 {
                     type: 'setupTags',
                     autoCompleted: false,
-                    title: ({workspaceMoreFeaturesLink}) => `Set up [tags](${workspaceMoreFeaturesLink})`,
+                    title: ({ workspaceMoreFeaturesLink }) => `Set up [tags](${workspaceMoreFeaturesLink})`,
                     mediaAttributes: {
                         [`${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-tags.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    description: ({workspaceMoreFeaturesLink}) =>
+                    description: ({ workspaceMoreFeaturesLink }) =>
                         'Tags can be used if you want more details with every expense. Use tags for projects, clients, locations, departments, and more. If you need multiple levels of tags, you can upgrade to the Control plan.\n' +
                         '\n' +
                         '*Here’s how to set up tags:*\n' +
@@ -5398,8 +5397,8 @@ const CONST = {
                     mediaAttributes: {
                         [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
+                    title: ({ workspaceMembersLink }) => `Invite [your team](${workspaceMembersLink})`,
+                    description: ({ workspaceMembersLink }) =>
                         '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
                         '\n' +
                         'Here’s how to invite your team:\n' +
@@ -5419,18 +5418,15 @@ const CONST = {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
                     mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
+                            }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
+                            }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
+                            }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
                     },
-                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
-                    description: ({integrationName, workspaceAccountingLink}) =>
+                    title: ({ integrationName, workspaceAccountingLink }) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
+                    description: ({ integrationName, workspaceAccountingLink }) =>
                         `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
                         '\n' +
                         `Here’s how to connect to ${integrationName}:\n` +
@@ -5442,10 +5438,9 @@ const CONST = {
                         `5. Find ${integrationName}.\n` +
                         '6. Click *Connect*.\n' +
                         '\n' +
-                        `${
-                            integrationName && connectionsVideoPaths[integrationName]
-                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
-                                : `[Take me to accounting](${workspaceAccountingLink}).`
+                        `${integrationName && connectionsVideoPaths[integrationName]
+                            ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                            : `[Take me to accounting](${workspaceAccountingLink}).`
                         }`,
                 },
             ],
@@ -5466,8 +5461,8 @@ const CONST = {
                     type: 'inviteAccountant',
                     autoCompleted: false,
                     mediaAttributes: {},
-                    title: ({workspaceMembersLink}) => `Invite your [accountant](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
+                    title: ({ workspaceMembersLink }) => `Invite your [accountant](${workspaceMembersLink})`,
+                    description: ({ workspaceMembersLink }) =>
                         '*Invite your accountant* to Expensify and share your expenses with them to make tax time easier.\n' +
                         '\n' +
                         'Here’s how to invite your accountant:\n' +
@@ -6930,7 +6925,7 @@ const CONST = {
     SMART_BANNER_HEIGHT: 152,
 
     NAVIGATION_TESTS: {
-        DEFAULT_PARENT_ROUTE: {key: 'parentRouteKey', name: 'ParentNavigator'},
+        DEFAULT_PARENT_ROUTE: { key: 'parentRouteKey', name: 'ParentNavigator' },
         DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE: {
             shouldUseNarrowLayout: true,
             isSmallScreenWidth: true,

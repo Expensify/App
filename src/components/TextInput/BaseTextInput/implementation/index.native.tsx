@@ -265,7 +265,6 @@ function BaseTextInput(
 
     // Height fix is needed only for Text single line inputs
     const shouldApplyHeight = !isMultiline && !isMarkdownEnabled;
-
     return (
         <>
             <View style={[containerStyles]}>
@@ -384,6 +383,7 @@ function BaseTextInput(
                                 keyboardType={inputProps.keyboardType}
                                 inputMode={!disableKeyboard ? inputProps.inputMode : CONST.INPUT_MODE.NONE}
                                 value={uncontrolled ? undefined : value}
+                                selection={inputProps.selection}
                                 readOnly={isReadOnly}
                                 defaultValue={defaultValue}
                                 markdownStyle={markdownStyle}

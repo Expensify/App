@@ -26,7 +26,6 @@ import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
 import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
-import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -176,19 +175,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
 
                     if (!onboardingPurposeSelected || !onboardingCompanySize) {
                         return;
-                    }
-
-                    const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
-                    // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
-                    // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-                    const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                        ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize)
-                        : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
-
-                    if (shouldCreateWorkspace) {
-                        setOnboardingAdminsChatReportID(adminsChatReportID);
-                        setOnboardingPolicyID(policyID);
                     }
 
                     completeOnboarding({

@@ -81,33 +81,34 @@ function FilePicker({children}: FilePickerProps) {
      *
      * @param files The array of DocumentPickerResponse
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
-    const pickFile = async (): Promise<LocalCopy> => {
-        const [file] = await pick({
-            type: [types.allFiles],
-        });
+    const pickFile = useCallback(
+        (files: DocumentPickerResponse[] | void = []): Promise<void> | undefined => {
+            if (!files || files.length === 0) {
+                onCanceled.current();
+                return Promise.resolve();
+            }
+            const fileData = files.at(0);
 
-        const [localCopy] = await keepLocalCopy({
-            files: [
-                {
-                    uri: file.uri,
-                    fileName: file.name ?? 'spreadsheet',
-                },
-            ],
-            destination: 'cachesDirectory',
-        });
+            if (!fileData) {
+                onCanceled.current();
+                return Promise.resolve();
+            }
 
-        if (localCopy.status !== 'success') {
-            throw new Error("Couldn't create local file copy");
-        }
-
-        return {
-            name: cleanFileName(file.name ?? 'spreadsheet'),
-            type: file.type,
-            uri: localCopy.localUri,
-            size: file.size,
-        };
-    };
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const fileDataUri = fileData.fileCopyUri ?? '';
+            const fileDataName = getFileDataName(fileData);
+            const fileDataObject: DocumentPickerResponse = {
+                name: fileDataName,
+                uri: fileDataUri,
+                type: fileData.type ?? '',
+                fileCopyUri: fileDataUri,
+                size: fileData.size ?? 0,
+            };
+            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+            validateAndCompleteFileSelection(fileDataObject);
+        },
+        [validateAndCompleteFileSelection],
+    );
 
     /**
      * Opens the file picker

@@ -38,14 +38,7 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
-
-    const isOnPrivateDomainAndHasAccessiblePolicies = !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
-
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
-        selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
-        canBeMissing: false,
-    });
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID, canBeMissing: true});
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
