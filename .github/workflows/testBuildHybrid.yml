@@ -125,7 +125,7 @@ jobs:
           script: |
             if ('${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER}}') return '${{ github.event.inputs.HYBRIDAPP_PULL_REQUEST_NUMBER}}';
 
-            if (!'${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}' || !'${{ inputs.APP_PR_NUMBER }}') return '';
+            if (!'${{ github.event.inputs.APP_PULL_REQUEST_NUMBER }}' && !'${{ inputs.APP_PR_NUMBER }}') return '';
 
             const pullRequest = await github.rest.pulls.get({
               owner: context.repo.owner,
