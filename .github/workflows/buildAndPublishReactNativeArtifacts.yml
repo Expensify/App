@@ -26,9 +26,14 @@ jobs:
           submodules: ${{ matrix.is_hybrid }}
           ref: ${{ github.event.before }}
 
-      - name: Get previous commit hash
-        id: getOldHash
-        run: echo "HASH=$(git rev-parse ${{ matrix.is_hybrid == 'true' && ':Mobile-Expensify' || 'HEAD' }})" >> "$GITHUB_OUTPUT"
+      - name: Get previous App commit hash
+        id: getOldAppHash
+        run: echo "HASH=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Get previous Mobile-Expensify commit hash
+        if: ${{ matrix.is_hybrid == 'true' }}
+        id: getOldMobileExpensifyHash
+        run: echo "HASH=$(git rev-parse :Mobile-Expensify) >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         id: getOldVersion
@@ -40,9 +45,14 @@ jobs:
           git checkout ${{ github.event.after }}
           git submodule update
 
-      - name: Get new commit hash
-        id: getNewHash
-        run: echo "HASH=$(git rev-parse ${{ matrix.is_hybrid == 'true' && ':Mobile-Expensify' || 'HEAD' }})" >> "$GITHUB_OUTPUT"
+      - name: Get new App commit hash
+        id: getNewAppHash
+        run: echo "HASH=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Get new Mobile-Expensify commit hash
+        if: ${{ matrix.is_hybrid == 'true' }}
+        id: getNewMobileExpensifyHash
+        run: echo "HASH=$(git rev-parse :Mobile-Expensify)" >> "$GITHUB_OUTPUT"
 
       - name: Get new react-native version
         id: getNewVersion
@@ -60,12 +70,21 @@ jobs:
       - name: Check if patches changed
         id: didPatchesChange
         run: |
-          if git ${{ matrix.is_hybrid == 'true' && '-C Mobile-Expensify' }} diff --exit-code --name-only ${{ steps.getOldHash.outputs.HASH }}..${{ steps.getNewHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
-            echo "::notice::Detected changes in NewDot patches"
+          if git diff --exit-code --name-only ${{ steps.getOldAppHash.outputs.HASH }}..${{ steps.getNewAppHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
+            echo "::notice::Detected changes in patches"
             echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "DID_PATCHES_CHANGE=false" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
+
+          if [[ '${{ matrix.is_hybrid }}' == 'true' ]]; then
+            if git -C Mobile-Expensify diff --exit-code --name-only ${{ steps.getOldMobileExpensifyHash.outputs.HASH }}..${{ steps.getNewMobileExpensifyHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
+              echo "::notice::Detected changes in patches"
+              echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "DID_PATCHES_CHANGE=false" >> "$GITHUB_OUTPUT"
 
       - name: Check if we should build and publish the package
         id: shouldPublish
