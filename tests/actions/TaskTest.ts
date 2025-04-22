@@ -17,8 +17,8 @@ describe('actions/Task', () => {
     });
 
     describe('canModifyTask', () => {
-        const managerAccountID = 3;
-        const employeeAccountID = 4;
+        const managerAccountID = 1;
+        const employeeAccountID = 2;
 
         // Report with a normal parent
         const report = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
