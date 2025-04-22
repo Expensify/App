@@ -37,6 +37,7 @@ import type {Policy, PolicyCategories, PolicyCategory, RecentlyUsedCategories, R
 import type {ApprovalRule, ExpenseRule, MccGroup} from '@src/types/onyx/Policy';
 import type {PolicyCategoryExpenseLimitType} from '@src/types/onyx/PolicyCategory';
 import type {OnyxData} from '@src/types/onyx/Request';
+import {getFinishOnboardingTaskOnyxData} from '@userActions/Task';
 
 const allPolicies: OnyxCollection<Policy> = {};
 Onyx.connect({
@@ -359,6 +360,10 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
+    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
+    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -591,7 +596,10 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
 
 function createPolicyCategory(policyID: string, categoryName: string) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
-
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
+    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
+    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
@@ -999,6 +1007,10 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
+    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
+    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,

@@ -24,6 +24,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
@@ -86,6 +87,12 @@ Onyx.connect({
     callback: (value) => {
         allReports = value;
     },
+});
+
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
 });
 
 /**
@@ -371,11 +378,11 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
-        return;
+        return {};
     }
 
     const message = `marked as complete`;
@@ -456,6 +463,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    return {optimisticData, successData, failureData};
 }
 
 /**
@@ -1275,6 +1283,20 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
+function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
+    const taskReportID = introSelected?.[taskName];
+    if (taskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+        if (taskReport) {
+            if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+                return completeTask(taskReport);
+            }
+        }
+    }
+
+    return {};
+}
+
 export {
     createTaskAndNavigate,
     editTask,
@@ -1300,6 +1322,7 @@ export {
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
     canActionTask,
+    getFinishOnboardingTaskOnyxData,
 };
 
 export type {PolicyValue, Assignee, ShareDestination};
