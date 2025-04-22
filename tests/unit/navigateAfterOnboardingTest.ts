@@ -36,6 +36,7 @@ jest.mock('@libs/ReportUtils', () => ({
     isThread: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isThread,
     generateReportName: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').generateReportName,
     getAllPolicyReports: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').getAllPolicyReports,
+    isValidReport: jest.requireActual<typeof ReportUtils>('@libs/ReportUtils').isValidReport,
 }));
 
 jest.mock('@libs/Navigation/helpers/shouldOpenOnAdminRoom', () => ({
