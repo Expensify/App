@@ -1,7 +1,6 @@
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type ONYXKEYS from '@src/ONYXKEYS';
-import type {AvatarSource} from '@libs/UserUtils';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
 import type * as OnyxCommon from './OnyxCommon';
 import type {PolicyReportField} from './Policy';
@@ -34,9 +33,6 @@ type Participant = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Permissions granted to the participant */
     permissions?: Array<ValueOf<typeof CONST.REPORT.PERMISSIONS>>;
-
-    /** The avatar of the participant */
-    avatar?: AvatarSource | string;
 }>;
 
 /** Types of invoice receivers in a report */

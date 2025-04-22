@@ -1,4 +1,5 @@
 import type {ValueOf} from 'type-fest';
+import {AvatarSource} from '@libs/UserUtils';
 import type CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import type {Icon} from './OnyxCommon';
@@ -79,7 +80,7 @@ type Participant = {
     item?: Report;
 
     /** The avatar of the IOU participant */
-    avatar?: string;
+    avatar?: AvatarSource;
 };
 
 /** Model of IOU split */
