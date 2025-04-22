@@ -21,7 +21,12 @@ import TransactionPreviewContent from './TransactionPreviewContent';
 import type {TransactionPreviewProps} from './types';
 
 const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>) => {
-    const {originalTransactionID, source} = transaction?.comment ?? {};
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    // If splits property is defined in the transaction, it is actually an original transaction
+    if (splits && splits.length > 0) {
+        return {isSplit: true, originalTransaction: transaction};
+    }
 
     if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
         return {isSplit: false, originalTransaction: transaction};
@@ -40,7 +45,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
