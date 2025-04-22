@@ -47,24 +47,6 @@ import type {Route} from './ROUTES';
 import SplashScreenStateContext from './SplashScreenStateContext';
 import type {ScreenShareRequest} from './types/onyx';
 
-Onyx.registerLogger(({level, message, parameters}) => {
-    if (level === 'alert') {
-        Log.alert(message, parameters);
-        console.error(message);
-
-        // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
-        // when they don't return data.
-        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
-        if (Environment.isDevelopment() && shouldShowAlert) {
-            alert(`${message} Key: ${parameters.key as string}`);
-        }
-    } else if (level === 'hmmm') {
-        Log.hmmm(message, parameters);
-    } else {
-        Log.info(message, undefined, parameters);
-    }
-});
-
 type ExpensifyProps = {
     /** Whether the app is waiting for the server's response to determine if a room is public */
     isCheckingPublicRoom: OnyxEntry<boolean>;
@@ -87,6 +69,24 @@ type ExpensifyProps = {
     /** Last visited path in the app */
     lastVisitedPath: OnyxEntry<string | undefined>;
 };
+
+Onyx.registerLogger(({level, message, parameters}) => {
+    if (level === 'alert') {
+        Log.alert(message, parameters);
+        console.error(message);
+
+        // useOnyx() calls with "canBeMissing" config set to false will display a visual alert in dev environment
+        // when they don't return data.
+        const shouldShowAlert = typeof parameters === 'object' && !Array.isArray(parameters) && 'showAlert' in parameters && 'key' in parameters;
+        if (Environment.isDevelopment() && shouldShowAlert) {
+            alert(`${message} Key: ${parameters.key as string}`);
+        }
+    } else if (level === 'hmmm') {
+        Log.hmmm(message, parameters);
+    } else {
+        Log.info(message, undefined, parameters);
+    }
+});
 function Expensify() {
     const appStateChangeListener = useRef<NativeEventSubscription | null>(null);
     const [isNavigationReady, setIsNavigationReady] = useState(false);
