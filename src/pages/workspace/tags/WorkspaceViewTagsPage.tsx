@@ -134,7 +134,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                         />
                     ),
                 })),
-        [currentPolicyTag?.tags, selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, currentPolicyTag?.required, policy, currentPolicyTag],
+        [selectedTags, canSelectMultiple, translate, updateWorkspaceTagEnabled, currentPolicyTag],
     );
 
     const hasDependentTags = useMemo(() => hasDependentTagsPolicyUtils(policy, policyTags), [policy, policyTags]);
