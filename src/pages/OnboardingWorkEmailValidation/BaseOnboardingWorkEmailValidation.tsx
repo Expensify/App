@@ -45,7 +45,7 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
         if (onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
-
+        setOnboardingErrorMessage('');
         if (onboardingValues?.shouldRedirectToClassicAfterMerge) {
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;

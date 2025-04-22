@@ -12,6 +12,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Illustrations from '@components/Icon/Illustrations';
 import OfflineIndicator from '@components/OfflineIndicator';
+import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -45,6 +46,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
+    const [onboardingErrorMessage] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
     // We need to use isSmallScreenWidth, see navigateAfterOnboarding function comment
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -64,6 +66,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         if (onboardingValues?.shouldValidate === undefined && onboardingValues?.isMergeAccountStepCompleted === undefined) {
             return;
         }
+        setOnboardingErrorMessage('');
 
         if (onboardingValues?.shouldValidate) {
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
@@ -129,7 +132,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
             <HeaderWithBackButton
-                progressBarPercentage={1}
+                progressBarPercentage={0}
                 shouldShowBackButton={false}
             />
             <FormProvider
@@ -145,23 +148,30 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                 shouldTrimValues={false}
                 footerContent={
                     <View style={styles.mb2}>
-                        <Button
-                            large
-                            text={translate('common.skip')}
-                            testID="onboardingPrivateEmailSkipButton"
-                            onPress={() => {
-                                setOnboardingErrorMessage('');
+                        <OfflineWithFeedback
+                            shouldDisplayErrorAbove
+                            errors={onboardingErrorMessage ? {addWorkEmailError: onboardingErrorMessage} : undefined}
+                            errorRowStyles={[styles.mt2, styles.textWrap]}
+                            onClose={() => setOnboardingErrorMessage('')}
+                        >
+                            <Button
+                                large
+                                text={translate('common.skip')}
+                                testID="onboardingPrivateEmailSkipButton"
+                                onPress={() => {
+                                    setOnboardingErrorMessage('');
 
-                                setOnboardingMergeAccountStepValue(true);
-                                // Once we skip the private email step, we need to force replace the screen
-                                // so that we don't navigate back on back button press
-                                if (isVsb) {
-                                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
-                                    return;
-                                }
-                                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
-                            }}
-                        />
+                                    setOnboardingMergeAccountStepValue(true);
+                                    // Once we skip the private email step, we need to force replace the screen
+                                    // so that we don't navigate back on back button press
+                                    if (isVsb) {
+                                        Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
+                                        return;
+                                    }
+                                    Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
+                                }}
+                            />
+                        </OfflineWithFeedback>
                     </View>
                 }
                 shouldRenderFooterAboveSubmit
