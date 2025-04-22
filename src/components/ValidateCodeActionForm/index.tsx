@@ -9,6 +9,8 @@ import type {ValidateCodeActionFormProps} from './type';
 function ValidateCodeActionForm({
     descriptionPrimary,
     descriptionSecondary,
+    descriptionPrimaryStyles,
+    descriptionSecondaryStyles,
     validatePendingAction,
     validateError,
     hasMagicCodeBeenSent,
@@ -21,7 +23,6 @@ function ValidateCodeActionForm({
     shouldSkipInitialValidation,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
-
     const isUnmounted = useRef(false);
 
     useEffect(() => {
@@ -46,8 +47,8 @@ function ValidateCodeActionForm({
 
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-            <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-            {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+            <Text style={[themeStyles.mb6, descriptionPrimaryStyles]}>{descriptionPrimary}</Text>
+            {!!descriptionSecondary && <Text style={[themeStyles.mb6, descriptionSecondaryStyles]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}

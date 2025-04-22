@@ -67,8 +67,8 @@ function ExpensifyCardPage({
         params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -255,7 +255,7 @@ function ExpensifyCardPage({
                                         titleStyle={styles.walletCardMenuItem}
                                         icon={Expensicons.Flag}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                     />
                                 )}
                             </>
@@ -300,7 +300,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                         />
                                     )}
                                 </>

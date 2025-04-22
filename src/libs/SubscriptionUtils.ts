@@ -3,6 +3,7 @@ import {fromZonedTime} from 'date-fns-tz';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
+import type {ValueOf} from 'type-fest';
 import * as Illustrations from '@components/Icon/Illustrations';
 import type {PreferredCurrency} from '@hooks/usePreferredCurrency';
 import type {PersonalPolicyTypeExludedProps} from '@pages/settings/Subscription/SubscriptionPlan/SubscriptionPlanCard';
@@ -93,11 +94,11 @@ Onyx.connect({
     },
 });
 
-let hasManualTeamPricing2025: OnyxEntry<string>;
+let hasManualTeam2025Pricing: OnyxEntry<string>;
 Onyx.connect({
-    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025,
+    key: ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING,
     callback: (value) => {
-        hasManualTeamPricing2025 = value;
+        hasManualTeam2025Pricing = value;
     },
 });
 
@@ -284,7 +285,7 @@ function hasCardExpiringSoon(): boolean {
     return isExpiringThisMonth || isExpiringNextMonth;
 }
 
-function shouldShowDiscountBanner(): boolean {
+function shouldShowDiscountBanner(hasTeam2025Pricing: boolean, subscriptionPlan: ValueOf<typeof CONST.POLICY.TYPE> | null): boolean {
     if (!getOwnedPaidPolicies(allPolicies, currentUserAccountID)?.length) {
         return false;
     }
@@ -294,6 +295,10 @@ function shouldShowDiscountBanner(): boolean {
     }
 
     if (doesUserHavePaymentCardAdded()) {
+        return false;
+    }
+
+    if (hasTeam2025Pricing && subscriptionPlan === CONST.POLICY.TYPE.TEAM) {
         return false;
     }
 
@@ -583,7 +588,7 @@ function shouldCalculateBillNewDot(): boolean {
 }
 
 function checkIfHasTeam2025Pricing() {
-    if (hasManualTeamPricing2025) {
+    if (hasManualTeam2025Pricing) {
         return true;
     }
 

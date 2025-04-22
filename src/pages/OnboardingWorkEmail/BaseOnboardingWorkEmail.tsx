@@ -69,13 +69,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             Navigation.navigate(ROUTES.ONBOARDING_WORK_EMAIL_VALIDATION.getRoute());
             return;
         }
-
+        // Once we verify that shouldValidate is false, we need to force replace the screen
+        // so that we don't navigate back on back button press
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues?.shouldValidate, isVsb, isFocused, onboardingValues?.isMergeAccountStepCompleted]);
 
     const submitWorkEmail = useCallback((values: FormOnyxValues<typeof ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM>) => {
@@ -152,11 +153,13 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                 setOnboardingErrorMessage('');
 
                                 setOnboardingMergeAccountStepValue(true);
+                                // Once we skip the private email step, we need to force replace the screen
+                                // so that we don't navigate back on back button press
                                 if (isVsb) {
-                                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
                                     return;
                                 }
-                                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+                                Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
                             }}
                         />
                     </View>
@@ -214,7 +217,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                         role={CONST.ROLE.PRESENTATION}
                         defaultValue={workEmail ?? ''}
                         shouldSaveDraft
-                        maxLength={CONST.DISPLAY_NAME.MAX_LENGTH}
+                        maxLength={CONST.LOGIN_CHARACTER_LIMIT}
                         spellCheck={false}
                     />
                 </View>
