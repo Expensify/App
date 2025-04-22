@@ -4,9 +4,10 @@ import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActio
 import type {PersonalDetailsList, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 
+// string type union is here for percentage values
 type TransactionPreviewStyleType = {
-    width: number;
-    maxWidth?: number;
+    width: number | string;
+    maxWidth?: number | string;
 };
 
 type TransactionPreviewProps = {
@@ -20,7 +21,7 @@ type TransactionPreviewProps = {
     reportID: string | undefined;
 
     /** Callback for the preview pressed */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent) => void;
+    onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** All the data of the action, used for showing context menu */
     action: OnyxEntry<ReportAction>;
@@ -35,7 +36,7 @@ type TransactionPreviewProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyles: TransactionPreviewStyleType;
+    wrapperStyle: TransactionPreviewStyleType;
 
     /** True if this IOU has a type of split */
     isBillSplit: boolean;
@@ -59,6 +60,9 @@ type TransactionPreviewProps = {
 
     /** In the case where we have access to the transactionID in the parent */
     transactionID?: string;
+
+    /** The action to be displayed in the preview */
+    reportPreviewAction?: ReportAction;
 };
 
 type TransactionPreviewContentProps = {
@@ -72,7 +76,7 @@ type TransactionPreviewContentProps = {
     navigateToReviewFields: () => void;
 
     /** General callback for handling presses on the preview component, can also handle keyboard events. */
-    onPreviewPressed: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
+    onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     /** Whether the transaction is whisper. */
     isWhisper?: boolean;
@@ -84,7 +88,7 @@ type TransactionPreviewContentProps = {
     containerStyles?: StyleProp<ViewStyle>;
 
     /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyles: TransactionPreviewStyleType;
+    wrapperStyle: TransactionPreviewStyleType;
 
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
@@ -121,6 +125,9 @@ type TransactionPreviewContentProps = {
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
+
+    /** The action to be displayed in the preview */
+    reportPreviewAction?: ReportAction;
 };
 
 export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};

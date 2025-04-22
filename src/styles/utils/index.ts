@@ -14,6 +14,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
@@ -31,8 +32,8 @@ import getSafeAreaInsets from './getSafeAreaInsets';
 import getSignInBgStyles from './getSignInBgStyles';
 import {compactContentContainerStyles} from './optionRowStyles';
 import positioning from './positioning';
-import getSearchBottomTabHeaderStyles from './searchBottomTabHeaderStyles.ts';
 import searchHeaderDefaultOffset from './searchHeaderDefaultOffset';
+import getSearchPageNarrowHeaderStyles from './searchPageNarrowHeaderStyles';
 import type {
     AllStyles,
     AvatarSize,
@@ -1248,7 +1249,7 @@ const staticStyleUtils = {
     getFileExtensionColorCode,
     getNavigationModalCardStyle,
     getCardStyles,
-    getSearchBottomTabHeaderStyles,
+    getSearchPageNarrowHeaderStyles,
     getOpacityStyle,
     getMultiGestureCanvasContainerStyle,
     getSignInBgStyles,
@@ -1449,8 +1450,8 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         const computedStyleForPM: ViewStyle = amPmValue !== CONST.TIME_PERIOD.PM ? {backgroundColor: theme.componentBG} : {};
 
         return {
-            styleForAM: [styles.timePickerWidth100, computedStyleForAM],
-            styleForPM: [styles.timePickerWidth100, computedStyleForPM],
+            styleForAM: [styles.timePickerWidth72, computedStyleForAM],
+            styleForPM: [styles.timePickerWidth72, computedStyleForPM],
         };
     },
 
@@ -1766,6 +1767,13 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
         isTaskCompleted ? [styles.textSupporting, styles.textLineThrough] : [],
         {marginTop: (iconHeight - variables.fontSizeNormalHeight) / 2},
     ],
+
+    getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
+        keys.reduce((styleobj: Nullable<K>, key) => {
+            // eslint-disable-next-line no-param-reassign
+            styleobj[key] = null;
+            return styleobj;
+        }, {} as Nullable<K>) as K,
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;
