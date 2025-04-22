@@ -448,8 +448,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             const taskItem = data[key] as SearchTask;
             const personalDetails = data.personalDetailsList;
 
-            const assignee = taskItem.managerID ? personalDetails?.[taskItem.managerID] : emptyPersonalDetails;
-            const createdBy = taskItem.accountID ? personalDetails?.[taskItem.accountID] : emptyPersonalDetails;
+            const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
+            const createdBy = personalDetails?.[taskItem.accountID] ?? emptyPersonalDetails;
             const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
             const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
 
