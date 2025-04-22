@@ -95,6 +95,7 @@ import {
     isCreatedTaskReportAction,
     isDeletedAction,
     isDeletedParentAction as isDeletedParentActionUtils,
+    isIOURequestReportAction,
     isMessageDeleted,
     isMoneyRequestAction,
     isPendingRemove,
@@ -343,12 +344,6 @@ type PureReportActionItemProps = {
 // If we render an empty component/fragment, this does not apply
 const emptyHTML = <RenderHTML html="" />;
 const isEmptyHTML = <T extends React.JSX.Element>({props: {html}}: T): boolean => typeof html === 'string' && html.length === 0;
-
-const simpleMoneyRequestActions: ReadonlyArray<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
-    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-    CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-];
 
 /**
  * This is a pure version of ReportActionItem, used in ReportActionList and Search result chat list items.
@@ -781,11 +776,7 @@ function PureReportActionItem({
         const moneyRequestActionType = moneyRequestOriginalMessage?.type;
 
         // Show the MoneyRequestPreview for when expense is present
-        if (
-            // For the pay flow, we only want to show MoneyRequestAction when sending money. When paying, we display a regular system message
-            !!moneyRequestActionType &&
-            simpleMoneyRequestActions.includes(moneyRequestActionType)
-        ) {
+        if (isIOURequestReportAction(action)) {
             const isSplitInGroupChat = moneyRequestActionType === CONST.IOU.REPORT_ACTION_TYPE.SPLIT && report?.chatType === CONST.REPORT.CHAT_TYPE.GROUP;
             const chatReportID = moneyRequestOriginalMessage?.IOUReportID ? report?.chatReportID : reportID;
             // There is no single iouReport for bill splits, so only 1:1 requests require an iouReportID
