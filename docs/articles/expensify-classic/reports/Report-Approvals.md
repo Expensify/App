@@ -173,5 +173,3 @@ Use the **Reconciliation tool** to find missing expenses:
 ## Can admins delete expenses on behalf of members?
 
 No, admins cannot delete expenses for other members. Each member is responsible for managing their own expenses.
-
-</div>
