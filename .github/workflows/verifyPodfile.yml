@@ -15,11 +15,20 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        uses: actions/checkout@v4
 
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
+      - name: Install required CLI tools (jq, yq, cocoapods)
+        run: |
+          brew install jq yq
+          sudo gem install cocoapods
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
       - name: Verify podfile
-        run: ./.github/scripts/verifyPodfile.sh
+        run: |
+          set -euxo pipefail
+          ./.github/scripts/verifyPodfile.sh
