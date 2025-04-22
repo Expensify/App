@@ -12,6 +12,7 @@ import TransactionItemRow from '@components/TransactionItemRow';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
+import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -44,6 +45,11 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
+};
+
+type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
+    /** Whether the transaction should be highlighted, when it is added to the report */
+    shouldHighlight?: boolean;
 };
 
 const sortableColumnNames = [
@@ -96,6 +102,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         }, [setSelectedTransactionsID]),
     );
 
+    const prevTransactions = usePrevious(transactions);
+
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
@@ -109,9 +117,28 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
     const {sortBy, sortOrder} = sortConfig;
 
-    const sortedTransactions = useMemo(() => {
-        return [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy));
-    }, [sortBy, sortOrder, transactions]);
+    const newTransactionsIDs = useMemo(() => {
+        if (!prevTransactions || transactions.length === prevTransactions.length) {
+            return CONST.EMPTY_ARRAY as unknown as string[];
+        }
+        return transactions
+            .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
+            .map((trans) => trans.transactionID);
+    }, [prevTransactions, transactions]);
+
+    const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
+        return [...transactions]
+            .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
+            .map((transaction) => {
+                if (newTransactionsIDs.includes(transaction.transactionID)) {
+                    return {
+                        ...transaction,
+                        shouldHighlight: true,
+                    };
+                }
+                return transaction;
+            });
+    }, [newTransactionsIDs, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -197,6 +224,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             key={transaction.transactionID}
                         >
                             <TransactionItemRow
+                                shouldHighlight={transaction.shouldHighlight}
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 shouldShowTooltip
