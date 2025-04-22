@@ -46,19 +46,19 @@ describe('actions/Task', () => {
         it('returns false if the user modifying the task is not the author', () => {
             // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            expect(canModifyTask(report, employeeAccountID, undefined, isReportArchived.current)).toBe(false);
+            expect(canModifyTask(report, employeeAccountID, isReportArchived.current)).toBe(false);
         });
         it('returns false if the parent report is archived', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedReport?.reportID));
-            expect(canModifyTask(archivedReport, managerAccountID, undefined, isReportArchived.current)).toBe(false);
+            expect(canModifyTask(archivedReport, managerAccountID, isReportArchived.current)).toBe(false);
         });
         it('returns false if the report is a cancelled task report', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(cancelledTaskReport?.reportID));
-            expect(canModifyTask(cancelledTaskReport, managerAccountID, undefined, isReportArchived.current)).toBe(false);
+            expect(canModifyTask(cancelledTaskReport, managerAccountID, isReportArchived.current)).toBe(false);
         });
         it('returns true if the user modifying the task is the author and the parent report is not archived or cancelled', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
-            expect(canModifyTask(report, managerAccountID, undefined, isReportArchived.current)).toBe(true);
+            expect(canModifyTask(report, managerAccountID, isReportArchived.current)).toBe(true);
         });
     });
 });

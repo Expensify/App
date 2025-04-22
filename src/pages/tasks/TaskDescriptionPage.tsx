@@ -74,7 +74,7 @@ function TaskDescriptionPage({report, currentUserPersonalDetails}: TaskDescripti
 
     const isOpen = isOpenTaskReport(report);
     const isReportArchived = useReportIsArchived(report?.reportID);
-    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, undefined, isReportArchived);
+    const canActuallyModifyTask = canModifyTask(report, currentUserPersonalDetails.accountID, isReportArchived);
     const isTaskNonEditable = isTaskReport(report) && (!canActuallyModifyTask || !isOpen);
 
     useFocusEffect(
