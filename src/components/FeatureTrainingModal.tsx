@@ -219,20 +219,23 @@ function FeatureTrainingModal({
                     (!!videoURL || !!image) && {aspectRatio},
                 ]}
             >
-                {!!image && shouldRenderSVG ? (
-                    <ImageSVG
-                        src={image}
-                        contentFit={contentFitImage}
-                        width={imageWidth}
-                        height={imageHeight}
-                    />
-                ) : (
-                    <Image
-                        source={image as ImageSourcePropType}
-                        resizeMode={contentFitImage as ImageResizeMode}
-                        style={styles.featureTrainingModalImage}
-                    />
-                )}
+                {!!image &&
+                    (shouldRenderSVG ? (
+                        <ImageSVG
+                            src={image}
+                            contentFit={contentFitImage}
+                            width={imageWidth}
+                            height={imageHeight}
+                            testID={CONST.IMAGE_SVG_TEST_ID}
+                        />
+                    ) : (
+                        <Image
+                            source={image as ImageSourcePropType}
+                            resizeMode={contentFitImage as ImageResizeMode}
+                            style={styles.featureTrainingModalImage}
+                            testID={CONST.IMAGE_TEST_ID}
+                        />
+                    ))}
                 {!!videoURL && videoStatus === 'video' && (
                     <GestureHandlerRootView>
                         <VideoPlayer
