@@ -8706,7 +8706,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = iouReport?.reportID ? allReportNameValuePair?.[iouReport.reportID] : null;
+    const reportNameValuePairs = allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
@@ -8741,7 +8741,7 @@ function canIOUBePaid(
     shouldCheckApprovedState = true,
 ) {
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
-    const reportNameValuePairs = chatReportRNVP && chatReport?.reportID ? allReportNameValuePair?.[chatReport.reportID] : null;
+    const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePair?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
     const iouSettled = isSettled(iouReport);
 
