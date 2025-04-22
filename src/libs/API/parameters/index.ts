@@ -230,7 +230,6 @@ export type {default as SetPolicyForeignCurrencyDefaultParams} from './SetPolicy
 export type {default as SetPolicyCurrencyDefaultParams} from './SetPolicyCurrencyDefaultParams';
 export type {default as UpdateQuickbooksOnlineGenericTypeParams} from './UpdateQuickbooksOnlineGenericTypeParams';
 export type {default as UpdateQuickbooksDesktopGenericTypeParams} from './UpdateQuickbooksDesktopGenericTypeParams';
-export type {default as UpdatePolicyConnectionConfigParams} from './UpdatePolicyConnectionConfigParams';
 export type {default as UpdateManyPolicyConnectionConfigurationsParams} from './UpdateManyPolicyConnectionConfigurationsParams';
 export type {default as RemovePolicyConnectionParams} from './RemovePolicyConnectionParams';
 export type {default as RenamePolicyTaxParams} from './RenamePolicyTaxParams';
@@ -367,6 +366,8 @@ export type {default as ExportPerDiemCSVParams} from './ExportPerDiemCSVParams';
 export type {default as ExportReportPDFParams} from './ExportReportPDFParams';
 export type {default as UpdateWorkspaceCustomUnitParams} from './UpdateWorkspaceCustomUnitParams';
 export type {default as DismissProductTrainingParams} from './DismissProductTraining';
+export type {default as AddWorkEmailParams} from './AddWorkEmailParams';
+export type {default as MergeIntoAccountAndLogInParams} from './MergeIntoAccountAndLogInParams';
 export type {default as GetValidateCodeForAccountMergeParams} from './GetValidateCodeForAccountMerge';
 export type {default as MergeWithValidateCodeParams} from './MergeWithValidateCode';
 export type {default as OpenWorkspacePlanPageParams} from './OpenWorkspacePlanPage';

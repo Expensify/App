@@ -39,13 +39,21 @@ Each statement includes the following details:
 
 # Exporting Statements
 
-To download a statement:
+To download a traditional statement:
 1. Log in to Expensify.
 2. Go to **Settings > Domains > Company Cards**.
 3. Click the **Reconciliation** tab and select **Settlements**.
 4. Enter the start and end dates.
 5. Click **Search** to view the statement.
-6. Click **Download** to export it as a CSV file.
+6. Click **Download PDF** to export it as a CSV file. 
+
+To download a CSV statement:
+1. Log in to Expensify.
+2. Go to **Settings > Domains > Company Cards**.
+3. Click the **Reconciliation** tab and select **Settlements**.
+4. Enter the start and end dates.
+5. Click **Search** to view the statement.
+6. Click **Download CSV** to export it as a CSV file.
 
 ![Click the Download CSV button in the middle of the page to export your card settlements.](https://help.expensify.com/assets/images/ExpensifyHelp_SettlementExport.png){:width="100%"}
 
