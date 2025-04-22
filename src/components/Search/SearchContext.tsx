@@ -6,7 +6,7 @@ import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type {SearchContext, SelectedTransactions} from './types';
 
-const defaultSearchContext = {
+const defaultSearchContext: SearchContext = {
     currentSearchHash: -1,
     shouldTurnOffSelectionMode: false,
     selectedTransactions: {},
@@ -18,6 +18,11 @@ const defaultSearchContext = {
     setShouldShowStatusBarLoading: () => {},
     lastSearchType: undefined,
     setLastSearchType: () => {},
+    shouldShowExportModeOption: false,
+    setShouldShowExportModeOption: () => {},
+    isExportMode: false,
+    setExportMode: () => {},
+    isOnSearch: false,
 };
 
 const Context = React.createContext<SearchContext>(defaultSearchContext);
@@ -56,11 +61,17 @@ function getReportsFromSelectedTransactions(data: TransactionListItemType[] | Re
 }
 
 function SearchContextProvider({children}: ChildrenProps) {
-    const [searchContextData, setSearchContextData] = useState<Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports'>>({
+    const [shouldShowExportModeOption, setShouldShowExportModeOption] = useState(false);
+    const [isExportMode, setExportMode] = useState(false);
+
+    const [searchContextData, setSearchContextData] = useState<
+        Pick<SearchContext, 'currentSearchHash' | 'selectedTransactions' | 'shouldTurnOffSelectionMode' | 'selectedReports' | 'isOnSearch'>
+    >({
         currentSearchHash: defaultSearchContext.currentSearchHash,
         selectedTransactions: defaultSearchContext.selectedTransactions,
         shouldTurnOffSelectionMode: false,
         selectedReports: defaultSearchContext.selectedReports,
+        isOnSearch: false,
     });
 
     const setCurrentSearchHash = useCallback((searchHash: number) => {
@@ -93,6 +104,8 @@ function SearchContextProvider({children}: ChildrenProps) {
                 selectedTransactions: {},
                 selectedReports: [],
             }));
+            setShouldShowExportModeOption(false);
+            setExportMode(false);
         },
         [searchContextData.currentSearchHash],
     );
@@ -110,8 +123,23 @@ function SearchContextProvider({children}: ChildrenProps) {
             setShouldShowStatusBarLoading,
             lastSearchType,
             setLastSearchType,
+            shouldShowExportModeOption,
+            setShouldShowExportModeOption,
+            isExportMode,
+            setExportMode,
         }),
-        [searchContextData, setCurrentSearchHash, setSelectedTransactions, clearSelectedTransactions, shouldShowStatusBarLoading, lastSearchType, setLastSearchType],
+        [
+            searchContextData,
+            setCurrentSearchHash,
+            setSelectedTransactions,
+            clearSelectedTransactions,
+            shouldShowStatusBarLoading,
+            lastSearchType,
+            shouldShowExportModeOption,
+            setShouldShowExportModeOption,
+            isExportMode,
+            setExportMode,
+        ],
     );
 
     return <Context.Provider value={searchContext}>{children}</Context.Provider>;
@@ -123,4 +151,4 @@ function useSearchContext() {
 
 SearchContextProvider.displayName = 'SearchContextProvider';
 
-export {SearchContextProvider, useSearchContext};
+export {SearchContextProvider, useSearchContext, Context};

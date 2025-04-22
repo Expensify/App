@@ -7,7 +7,7 @@ import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
 import usePrevious from './usePrevious';
-import useSidePane from './useSidePane';
+import useSidePanel from './useSidePanel';
 
 type UseAutoFocusInput = {
     inputCallbackRef: (ref: TextInput | null) => void;
@@ -55,16 +55,16 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         }, []),
     );
 
-    // Trigger focus when side pane transition ends
-    const {isSidePaneTransitionEnded, shouldHideSidePane} = useSidePane();
-    const prevShouldHideSidePane = usePrevious(shouldHideSidePane);
+    // Trigger focus when Side Panel transition ends
+    const {isSidePanelTransitionEnded, shouldHideSidePanel} = useSidePanel();
+    const prevShouldHideSidePanel = usePrevious(shouldHideSidePanel);
     useEffect(() => {
-        if (!shouldHideSidePane || prevShouldHideSidePane) {
+        if (!shouldHideSidePanel || prevShouldHideSidePanel) {
             return;
         }
 
-        setIsScreenTransitionEnded(isSidePaneTransitionEnded);
-    }, [isSidePaneTransitionEnded, shouldHideSidePane, prevShouldHideSidePane]);
+        setIsScreenTransitionEnded(isSidePanelTransitionEnded);
+    }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
         inputRef.current = ref;

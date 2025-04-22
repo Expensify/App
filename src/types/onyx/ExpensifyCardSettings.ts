@@ -25,6 +25,18 @@ type ExpensifyCardSettings = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Error message */
     errors?: OnyxCommon.Errors;
+
+    /** Whether the request was successful */
+    isSuccess?: boolean;
+
+    /** The preferred policy for the domain card */
+    preferredPolicy?: string;
+
+    /** The Marqeta business token */
+    marqetaBusinessToken?: number;
+
+    /** Name of the domain card was issued for */
+    domainName?: string;
 }>;
 
 export default ExpensifyCardSettings;

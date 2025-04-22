@@ -156,14 +156,14 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     /** Add or remove all users passed from the selectedMembers list */
     const toggleAllUsers = (memberList: ListItem[]) => {
         const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
-        const everyoneSelected = enabledAccounts.every((member) => {
+        const someSelected = enabledAccounts.some((member) => {
             if (!member.accountID) {
                 return false;
             }
             return selectedMembers.includes(member.accountID);
         });
 
-        if (everyoneSelected) {
+        if (someSelected) {
             setSelectedMembers([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID).filter((accountID): accountID is number => !!accountID);

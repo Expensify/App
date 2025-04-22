@@ -1,8 +1,10 @@
+import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
+import Checkbox from '@components/Checkbox';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
@@ -11,17 +13,22 @@ import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 import {getMoneyRequestSpendBreakdown} from '@libs/ReportUtils';
 import {compareValues} from '@libs/SearchUIUtils';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 import Navigation from '@navigation/Navigation';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTableHeader from './MoneyRequestReportTableHeader';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import {setActiveTransactionReportIDs} from './TransactionReportIDRepository';
@@ -50,7 +57,6 @@ const sortableColumnNames = [
 type SortableColumnName = TupleToUnion<typeof sortableColumnNames>;
 
 type SortedTransactions = {
-    transactions: OnyxTypes.Transaction[];
     sortBy: SortableColumnName;
     sortOrder: SortOrder;
 };
@@ -62,18 +68,9 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-const areTransactionValuesEqual = (transactions: OnyxTypes.Transaction[], key: SortableColumnName) => {
-    const firstValidTransaction = transactions.find((transaction) => transaction !== undefined);
-    if (!firstValidTransaction) {
-        return true;
-    }
-
-    const keyOfFirstValidTransaction = getTransactionKey(firstValidTransaction, key);
-    return transactions.every((transaction) => transaction[getTransactionKey(transaction, key)] === firstValidTransaction[keyOfFirstValidTransaction]);
-};
-
 function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -86,29 +83,34 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {bind} = useHover();
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
+    const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext();
+
+    useFocusEffect(
+        useCallback(() => {
+            return () => {
+                if (navigationRef?.getRootState()?.routes.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
+                    return;
+                }
+                setSelectedTransactionsID([]);
+            };
+        }, [setSelectedTransactionsID]),
+    );
+
     const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
         bind.onMouseLeave();
         e.stopPropagation();
         setMouseUp();
     };
 
-    const [sortedData, setSortedData] = useState<SortedTransactions>({
-        transactions,
+    const [sortConfig, setSortConfig] = useState<SortedTransactions>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
     });
 
-    const {sortBy, sortOrder} = sortedData;
+    const {sortBy, sortOrder} = sortConfig;
 
-    useEffect(() => {
-        if (areTransactionValuesEqual(transactions, sortBy)) {
-            return;
-        }
-
-        setSortedData((prevState) => ({
-            ...prevState,
-            transactions: [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy)),
-        }));
+    const sortedTransactions = useMemo(() => {
+        return [...transactions].sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy));
     }, [sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
@@ -123,12 +125,12 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
             // Single transaction report will open in RHP, and we need to find every other report ID for the rest of transactions
             // to display prev/next arrows in RHP for navigating between transactions
-            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedData.transactions);
+            const sortedSiblingTransactionReportIDs = getThreadReportIDsForTransactions(reportActions, sortedTransactions);
             setActiveTransactionReportIDs(sortedSiblingTransactionReportIDs);
 
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: reportIDToNavigate, backTo}));
         },
-        [reportActions, sortedData.transactions],
+        [reportActions, sortedTransactions],
     );
 
     const dateColumnSize = useMemo(() => {
@@ -143,22 +145,37 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
-                <MoneyRequestReportTableHeader
-                    shouldShowSorting
-                    sortBy={sortBy}
-                    sortOrder={sortOrder}
-                    dateColumnSize={dateColumnSize}
-                    onSortPress={(selectedSortBy, selectedSortOrder) => {
-                        if (!isSortableColumnName(selectedSortBy)) {
-                            return;
-                        }
+                <View style={[styles.dFlex, styles.flexRow, styles.pl5, styles.pr8, styles.pv3, StyleUtils.getPaddingBottom(6), styles.justifyContentCenter, styles.alignItemsCenter]}>
+                    <View style={[styles.pv2, styles.pr4, StyleUtils.getPaddingLeft(variables.w12)]}>
+                        <Checkbox
+                            onPress={() => {
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isChecked={selectedTransactionsID.length === transactions.length}
+                        />
+                    </View>
+                    <MoneyRequestReportTableHeader
+                        shouldShowSorting
+                        sortBy={sortBy}
+                        sortOrder={sortOrder}
+                        dateColumnSize={dateColumnSize}
+                        onSortPress={(selectedSortBy, selectedSortOrder) => {
+                            if (!isSortableColumnName(selectedSortBy)) {
+                                return;
+                            }
 
-                        setSortedData((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
-                    }}
-                />
+                            setSortConfig((prevState) => ({...prevState, sortBy: selectedSortBy, sortOrder: selectedSortOrder}));
+                        }}
+                    />
+                </View>
             )}
             <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && styles.pt4]}>
-                {sortedData.transactions.map((transaction) => {
+                {sortedTransactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
                             onPress={(e) => {
@@ -177,14 +194,16 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
+                            key={transaction.transactionID}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
-                                isSelected={false}
+                                isSelected={isTransactionSelected(transaction.transactionID)}
                                 shouldShowTooltip
                                 dateColumnSize={dateColumnSize}
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
+                                onCheckboxPress={toggleTransaction}
                             />
                         </PressableWithFeedback>
                     );
@@ -230,4 +249,4 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 
 MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
-export default MoneyRequestReportTransactionList;
+export default memo(MoneyRequestReportTransactionList);

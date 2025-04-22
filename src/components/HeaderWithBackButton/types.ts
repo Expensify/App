@@ -138,7 +138,7 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
 
-    /** Whether we should display the button that opens the help pane */
+    /** Whether we should display the button that opens the Help Panel */
     shouldDisplayHelpButton?: boolean;
 
     /** Whether we should display the button that opens new SearchRouter */
