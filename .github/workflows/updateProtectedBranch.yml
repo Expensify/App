@@ -33,7 +33,7 @@ jobs:
         with:
           ref: ${{ steps.getSourceBranch.outputs.SOURCE_BRANCH }}
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: false
+          submodules: true
 
       - name: Setup git for OSBotify
         uses: Expensify/GitHub-Actions/setupGitForOSBotify@main
