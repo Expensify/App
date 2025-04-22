@@ -4,4 +4,5 @@ type BootSplashModule = {
     hide: () => Promise<void>;
 };
 
-export default BootSplashModule;
+// eslint-disable-next-line import/prefer-default-export
+export type {BootSplashModule};
