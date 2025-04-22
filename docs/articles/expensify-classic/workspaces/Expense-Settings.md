@@ -1,13 +1,13 @@
 ---
-title: Expensify Workspace Expense Settings
+title: Expense Rules
 description: Customize and manage expense settings at the workspace level, including violations, reimbursable preferences, billable expenses, and mileage rates.
-keywords: [Expensify Classic, expenses, violations, reimbursable, billable, mileage, eReceipts, tax, Concierge Receipt Audit]
+keywords: [Expensify Classic, expenses, violations, reimbursable, billable, mileage, eReceipts, taxes, Concierge Receipt Audit, expense rules]
 ---
 <div id="expensify-classic" markdown="1">
 
-Expensify offers multiple ways to customize how expenses are created and managed at the workspace level. Whether you’re using an individual workspace or managing expenses in a group workspace, there are various settings you can configure to suit your needs.
+Expensify offers multiple ways to customize how expenses are created and managed at the workspace level. Whether you’re using an individual workspace or managing expenses in a group workspace, you can configure various settings to suit your needs.
 
-You can manage expense settings under **Settings** > **Workspaces** > **Individual** or **Group** > [_Workspace Name_] > **Expenses**. From here, you can customize the following expense-level settings:
+You can manage expense settings under **Settings > Workspace > [Workspace Name] > Rules**. From here, you can customize the following expense-level settings:
 
 - **Violations**: Flags employee expenses that fall outside of workspace preferences.
 - **Preferences**: Configure reimbursable and billable settings for submitted expenses.
@@ -18,7 +18,7 @@ You can manage expense settings under **Settings** > **Workspaces** > **Individu
 
 # Expense Violations
 
-A **Workspace Admin** can customize the following parameters at the expense level:
+A **Workspace Admin** can customize the following rules at the expense level:
 - **Max Expense Age (Days)**
 - **Max Expense Amount**
 - **Receipt Required Amount**
@@ -31,7 +31,7 @@ More details on violations can be found [here](https://help.expensify.com/articl
 
 # Expense Preferences
 
-A **cash expense** refers to any manually created expense or a receipt uploaded for SmartScan—it does not indicate payment with physical cash. The most common alternative is **credit card expenses**, which are imported from a connected card or bank.
+A **cash expense** refers to any manually created expense or receipt uploaded for SmartScan—it does not indicate payment with physical cash. The most common alternative is credit card expenses, which are imported from a connected card or bank.
 
 ## Reimbursable Expenses
 
@@ -43,8 +43,8 @@ There are four options for cash expenses:
 
 ## Billable Expenses
 
-Billable expenses refer to costs that must be re-billed to a client or vendor. To configure billable expense settings:
-1. Go to **Settings** > **Workspaces** > **Individual** or **Group** > [_Workspace Name_] > **Expenses**
+Billable expenses refer to costs that must be rebilled to a client or vendor. To configure billable expense settings:
+1. Go to **Settings > Workspace > [Workspace Name] > Rules > Preferences**
 2. Choose the best setting:
 - **Disabled** – Expenses cannot be marked as billable.
 - **Default to billable** – Expenses are billable by default but can be marked as non-billable.
@@ -71,6 +71,7 @@ You can control receipt visibility under **Public Receipt Visibility**:
 ---
 
 # Distance Expenses
+
 To configure distance-based expenses:
 
 1. Select whether you want to track **miles** or **kilometers**.
@@ -83,10 +84,9 @@ To configure distance-based expenses:
 ---
 
 # Track Tax on Mileage Expenses
-If tracking tax in Expensify, you can enable tax tracking for distance expenses under **Settings** > **Workspaces** > **Individual** or **Group** > [_Workspace Name_] > **Tax**.
+If tracking tax in Expensify, you can enable tax tracking for distance expenses under **Settings > Workspace > [Workspace Name] > Taxes**.
 
 Once tax is enabled, you will see a **Track Tax** toggle in the Distance section. When enabled, you must enter:
-
 - **Tax Reclaimable On** (what portion of the expense is taxable)
 - **Tax Rate** (percentage of tax applied)
 
@@ -95,9 +95,10 @@ Once tax is enabled, you will see a **Track Tax** toggle in the Distance section
 ---
 
 # Time Expenses
-Track time-based expenses for billing clients or processing employee stipends. To enable time tracking:
+Track time-based expenses for billing clients or processing employee stipends. 
 
-1. Navigate to the **Time** section in the workspace settings.
+To enable time tracking:
+1. Navigate to the **Settings > Workspace > [Workspace Name] > Time**.
 2. Click the toggle to enable time-based expenses.
 3. Set a default hourly rate.
 
