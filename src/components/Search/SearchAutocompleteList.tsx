@@ -224,9 +224,13 @@ function SearchAutocompleteList(
     const [policies = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
 
-    const workspaceList = Object.values(policies)
-        .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
-        .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''}));
+    const workspaceList = useMemo(
+        () =>
+            Object.values(policies)
+                .filter((singlePolicy) => !!singlePolicy && shouldShowPolicy(singlePolicy, false, currentUserLogin) && !singlePolicy?.isJoinRequestPending)
+                .map((singlePolicy) => ({id: singlePolicy?.id, name: singlePolicy?.name ?? ''})),
+        [policies, currentUserLogin],
+    );
 
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST, {canBeMissing: false});
     const currencyAutocompleteList = Object.keys(currencyList ?? {}).filter((currency) => !currencyList?.[currency]?.retired);
@@ -413,19 +417,20 @@ function SearchAutocompleteList(
                 }));
             }
             case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID: {
+                if (!canUseLeftHandBar) {
+                    return [];
+                }
                 const filteredPolicies = workspaceList
                     .filter((workspace) => workspace.name.toLowerCase().includes(autocompleteValue.toLowerCase()) && !alreadyAutocompletedKeys.includes(workspace.name.toLowerCase()))
                     .sort()
                     .slice(0, 10);
 
-                return canUseLeftHandBar
-                    ? filteredPolicies.map((workspace) => ({
-                          filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID,
-                          text: workspace.name,
-                          autocompleteID: workspace.id,
-                          mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
-                      }))
-                    : [];
+                return filteredPolicies.map((workspace) => ({
+                    filterKey: CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS.POLICY_ID,
+                    text: workspace.name,
+                    autocompleteID: workspace.id,
+                    mapKey: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                }));
             }
             default: {
                 return [];
