@@ -20,8 +20,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnboardingRefManager from '@libs/OnboardingRefManager';
 import type {TOnboardingRef} from '@libs/OnboardingRefManager';
 import variables from '@styles/variables';
-import * as Session from '@userActions/Session';
-import * as Welcome from '@userActions/Welcome';
+import {isUserOnPrivateDomain} from '@userActions/Session';
+import {setOnboardingErrorMessage, setOnboardingPurposeSelected} from '@userActions/Welcome';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -53,19 +53,19 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
 
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
+    const isPrivateDomain = isUserOnPrivateDomain();
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
 
     const theme = useTheme();
-    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE);
+    const [onboardingErrorMessage, onboardingErrorMessageResult] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, {canBeMissing: false});
 
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const paddingHorizontal = onboardingIsMediumOrLargerScreenWidth ? styles.ph8 : styles.ph5;
 
-    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES);
+    const [customChoices = []] = useOnyx(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, {canBeMissing: false});
 
     const onboardingChoices = getOnboardingChoices(customChoices);
 
@@ -82,8 +82,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             wrapperStyle: [styles.purposeMenuItem],
             numberOfLinesTitle: 0,
             onPress: () => {
-                Welcome.setOnboardingPurposeSelected(choice);
-                Welcome.setOnboardingErrorMessage('');
+                setOnboardingPurposeSelected(choice);
+                setOnboardingErrorMessage('');
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
@@ -95,7 +95,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const isFocused = useIsFocused();
 
     const handleOuterClick = useCallback(() => {
-        Welcome.setOnboardingErrorMessage(translate('onboarding.errorSelection'));
+        setOnboardingErrorMessage(translate('onboarding.errorSelection'));
     }, [translate]);
 
     const onboardingLocalRef = useRef<TOnboardingRef>(null);

@@ -46,7 +46,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubStepProp
     const styles = useThemeStyles();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
-    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS);
+    const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {canBeMissing: false});
     const {isOffline} = useNetwork();
 
     const getTitle = (field: CorpayFormField, fieldName: string) => {
