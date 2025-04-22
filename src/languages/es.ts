@@ -5132,22 +5132,24 @@ const translations = {
             return `actualizó la categoría "${categoryName}" cambiando el código GL a ${newValue} (previamente ${oldValue})`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
-            return `actualizó la categoría "${categoryName}" cambiando la descripción de "${!oldValue ? 'No requerida' : 'Requerida'}" a "${!oldValue ? 'Requerida' : 'No requerida'}"`;
+            return `actualizó la categoría "${categoryName}" cambiando la descripción a ${!oldValue ? 'Obligatoria' : 'No obligatoria'} (previamente ${
+                !oldValue ? 'No obligatoria' : 'Obligatoria'
+            })`;
         },
         updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
             if (newAmount && !oldAmount) {
-                return `actualizó la categoría "${categoryName}" añadiendo un Monto Máximo de ${newAmount}`;
+                return `actualizó la categoría "${categoryName}" añadiendo un importe máximo de ${newAmount}`;
             }
             if (oldAmount && !newAmount) {
-                return `actualizó la categoría "${categoryName}" eliminando el Monto Máximo que anteriormente era de ${oldAmount}`;
+                return `actualizó la categoría "${categoryName}" eliminando el importe máximo (previamente ${oldAmount})`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el Monto Máximo de ${oldAmount} a ${newAmount}`;
+            return `actualizó la categoría "${categoryName}" cambiando el importe máximo a ${newAmount} (previamente ${oldAmount})`;
         },
         updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" añadiendo un Tipo de Límite de ${newValue}`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el Tipo de Límite de ${oldValue} a ${newValue}`;
+            return `actualizó la categoría "${categoryName}" cambiando el Tipo de Límite a ${newValue} (previamente ${oldValue})`;
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {

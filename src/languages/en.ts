@@ -5078,22 +5078,22 @@ const translations = {
             return `updated the category "${categoryName}" by changing the GL Code to "${newValue}" (previously "${oldValue}")`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
-            return `updated the category "${categoryName}" by changing the Description from ${!oldValue ? 'Not Required' : 'Required'} to ${!oldValue ? 'Required' : 'Not Required'}`;
+            return `updated the category "${categoryName}" by changing the Description to ${!oldValue ? 'Required' : 'Not Required'} (previously ${!oldValue ? 'Not Required' : 'Required'})`;
         },
         updateCategoryMaxExpenseAmount: ({categoryName, oldAmount, newAmount}: UpdatedPolicyCategoryMaxExpenseAmountParams) => {
             if (newAmount && !oldAmount) {
                 return `updated the category "${categoryName}" by adding a Max Amount of ${newAmount}`;
             }
             if (oldAmount && !newAmount) {
-                return `updated the category "${categoryName}" by removing the Max Amount which was previously ${oldAmount}`;
+                return `updated the category "${categoryName}" by removing the Max Amount (previously ${oldAmount})`;
             }
-            return `updated the category "${categoryName}" by changing the Max Amount from ${oldAmount} to ${newAmount}`;
+            return `updated the category "${categoryName}" by changing the Max Amount to ${newAmount} (previously ${oldAmount})`;
         },
         updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
             if (!oldValue) {
                 return `updated the category "${categoryName}" by adding a Limit Type of ${newValue}`;
             }
-            return `updated the category "${categoryName}" by changing the Limit Type from ${oldValue} to ${newValue}`;
+            return `updated the category "${categoryName}" by changing the Limit Type to ${newValue} (previously ${oldValue})`;
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
