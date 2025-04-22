@@ -43,7 +43,7 @@ import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFro
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
-import {getEnabledCategoriesCount, isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
+import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getCurrentConnectionName, hasAccountingConnections, shouldShowSyncError} from '@libs/PolicyUtils';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import {close} from '@userActions/Modal';
@@ -89,7 +89,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentConnectionName(policy);
     const isQuickSettingsFlow = !!backTo;
-    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
 
     const {canUseLeftHandBar} = usePermissions();
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
@@ -163,20 +162,20 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                         disabled={isDisabled}
                         accessibilityLabel={translate('workspace.categories.enableCategory')}
                         onToggle={(newValue: boolean) => {
-                            if (isDisablingOrDeletingLastEnabledCategory(policy, [value], enabledCategoriesCount) && !newValue) {
+                            if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])) {
                                 setIsCannotDisableLastCategoryModalVisible(true);
                                 return;
                             }
                             updateWorkspaceCategoryEnabled(newValue, value.name);
                         }}
-                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, [value], enabledCategoriesCount) && value.enabled}
+                        showLockIcon={isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, [value])}
                     />
                 ),
             });
 
             return acc;
         }, []);
-    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, enabledCategoriesCount, policy]);
+    }, [policyCategories, isOffline, selectedCategories, canSelectMultiple, translate, updateWorkspaceCategoryEnabled, policy]);
 
     useAutoTurnSelectionModeOffWhenHasNoActiveOption(categoryList);
 
@@ -238,11 +237,10 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         setDeleteCategoriesConfirmModalVisible(false);
     };
 
-    const selectedCategoriesObject = selectedCategoriesArray.map((key) => policyCategories && policyCategories[key]);
-
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
+        const selectedCategoriesObject = selectedCategoriesArray.map((key) => policyCategories && policyCategories[key]);
 
         if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
             if (!isThereAnyAccountingConnection) {
@@ -251,7 +249,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(selectedCategoriesArray.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, selectedCategoriesObject, enabledCategoriesCount)) {
+                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
                             setIsCannotDeleteLastEnabledCategoryModalVisible(true);
                             return;
                         }
@@ -277,7 +275,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                     onSelected: () => {
-                        if (isDisablingOrDeletingLastEnabledCategory(policy, selectedCategoriesObject, enabledCategoriesCount)) {
+                        if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
                             setIsCannotDisableLastCategoryModalVisible(true);
                             return;
                         }

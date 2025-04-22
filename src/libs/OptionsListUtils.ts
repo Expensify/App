@@ -22,6 +22,7 @@ import type {
     PolicyCategories,
     PolicyCategory,
     PolicyTag,
+    PolicyTagLists,
     Report,
     ReportAction,
     ReportActions,
@@ -45,7 +46,7 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -1083,7 +1084,13 @@ function getEnabledCategoriesCount(PolicyCategories: PolicyCategories | undefine
     return Object.values(PolicyCategories).filter((PolicyCategory) => PolicyCategory.enabled).length;
 }
 
-function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, selectedCategoriesObject: Array<PolicyCategory | undefined>, enabledCategoriesCount: number): boolean {
+function isDisablingOrDeletingLastEnabledCategory(
+    policy: Policy | undefined,
+    policyCategories: PolicyCategories | undefined,
+    selectedCategoriesObject: Array<PolicyCategory | undefined>,
+): boolean {
+    const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
+
     if (policy?.requiresCategory && selectedCategoriesObject.filter((selectedCategories) => selectedCategories?.enabled).length === enabledCategoriesCount) {
         return true;
     }
@@ -1091,14 +1098,18 @@ function isDisablingOrDeletingLastEnabledCategory(policy: Policy | undefined, se
     return false;
 }
 
-function isDisablingOrDeletingLastEnabledTag(policy: Policy | undefined, selectedTagArray: Array<PolicyTag | undefined>, enabledTagsCount: number): boolean {
-    if (policy?.requiresTag && selectedTagArray.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
+function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTagArray: Array<PolicyTag | undefined>): boolean {
+    const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
+
+    if (policyTagList?.required && selectedTagArray.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
         return true;
     }
     return false;
 }
 
-function isMakingLastRequiredTagListOptional(policy: Policy | undefined, selectedTagListArray: Array<PolicyTagList | undefined>, requiredTagsCount: number): boolean {
+function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagListArray: Array<PolicyTagList | undefined>): boolean {
+    const requiredTagsCount = getCountOfRequiredTagLists(policyTags);
+
     if (policy?.requiresTag && selectedTagListArray.filter((selectedTag) => selectedTag?.required).length === requiredTagsCount) {
         return true;
     }
