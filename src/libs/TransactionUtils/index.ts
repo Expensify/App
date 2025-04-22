@@ -902,6 +902,15 @@ function allHavePendingRTERViolation(transactionIds: string[], transactionViolat
     return transactionsWithRTERViolations.length > 0 && transactionsWithRTERViolations.every((value) => value === true);
 }
 
+function checkIfShouldShowMarkAsCashButton(hasRTERVPendingViolation: boolean, shouldDisplayBrokenConnectionViolation: boolean, report: OnyxEntry<Report>, policy: OnyxEntry<Policy>) {
+    if (hasRTERVPendingViolation) {
+        return true;
+    }
+    return (
+        shouldDisplayBrokenConnectionViolation && (!isPolicyAdmin(policy) || isCurrentUserSubmitter(report?.reportID)) && !isReportApproved({report}) && !isReportManuallyReimbursed(report)
+    );
+}
+
 /**
  * Check if there is any transaction without RTER violation within the given transactionIDs.
  */
@@ -1602,6 +1611,7 @@ export {
     shouldShowRTERViolationMessage,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
+    checkIfShouldShowMarkAsCashButton,
 };
 
 export type {TransactionChanges};
