@@ -275,6 +275,7 @@ describe('ReportUtils', () => {
                 }),
             );
         });
+
         it('provides test drive url to task description', () => {
             const description = jest.fn();
 

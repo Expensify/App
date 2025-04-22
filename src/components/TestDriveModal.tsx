@@ -2,6 +2,7 @@ import React from 'react';
 import FastTrack from '@assets/images/fast-track-cover.jpg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -16,9 +17,9 @@ function TestDriveModal() {
     };
 
     const navigateTestDriveDemo = () => {
-        setTimeout(() => {
+        setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
-        }, 1000);
+        });
     };
 
     return (

@@ -1,6 +1,7 @@
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
+import setNavigationActionToMicrotaskQueue from './Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
@@ -17,9 +18,7 @@ const navigateAfterOnboarding = (
     Navigation.dismissModal();
 
     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-        setTimeout(() => {
-            Navigation.isNavigationReady().then(() => Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT));
-        }, 0);
+        setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT));
         return;
     }
 

@@ -2,10 +2,10 @@ import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import {canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
-// eslint-disable-next-line no-restricted-syntax
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-// eslint-disable-next-line no-restricted-syntax
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
 import CONST from '@src/CONST';
@@ -113,6 +113,7 @@ describe('actions/Task', () => {
 
             expect(getChatUsedForOnboardingSpy).toHaveReturnedWith(conciergeChatReport);
         });
+
         it('Completes test drive task', () => {
             const writeSpy = jest.spyOn(API, 'write');
 
