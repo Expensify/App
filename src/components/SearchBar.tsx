@@ -24,7 +24,6 @@ function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeTe
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
-    const [isTextInputFocused, setIsTextInputFocused] = useState(false);
 
     return (
         <>
@@ -38,11 +37,11 @@ function SearchBar({label, style, icon = MagnifyingGlass, inputValue, onChangeTe
                     inputMode={CONST.INPUT_MODE.TEXT}
                     selectTextOnFocus
                     spellCheck={false}
-                    icon={inputValue?.length && isTextInputFocused ? undefined : icon}
+                    icon={inputValue?.length ? undefined : icon}
+                    iconContainerStyle={styles.p0}
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
-                    onFocus={() => setIsTextInputFocused(true)}
-                    onBlur={() => setIsTextInputFocused(false)}
+                    shouldHideClearButton={!inputValue?.length}
                 />
             </View>
             {!!shouldShowEmptyState && inputValue.length !== 0 && (
