@@ -93,7 +93,7 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
     });
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
-    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false) ?? CONST.DEFAULT_NUMBER_ID;
+    const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
