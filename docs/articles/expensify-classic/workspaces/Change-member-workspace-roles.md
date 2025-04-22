@@ -27,7 +27,7 @@ Workspace admins may need to update a member's role to adjust their permissions,
 
 To change the roles and permissions for members of your workspace:
 1. Go to **Settings > Workspaces > [Workspace Name] > Members**.
-2. Click the **Settings** icon next to the desired member.
+2. Click the **Settings** icon next to the member.
 3. Select a new role for the member.
 4. Click **Save**.
 
