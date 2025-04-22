@@ -94,13 +94,13 @@ function IOURequestStepScan({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const [fileResize, setFileResize] = useState<null | FileObject>(null);
     const [fileSource, setFileSource] = useState('');
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
@@ -822,22 +822,20 @@ function IOURequestStepScan({
                             height={CONST.RECEIPT.SHUTTER_SIZE}
                         />
                     </PressableWithFeedback>
-                    {hasFlash && (
-                        <PressableWithFeedback
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('receipt.flash')}
-                            style={[styles.alignItemsEnd]}
-                            disabled={cameraPermissionStatus !== RESULTS.GRANTED}
-                            onPress={() => setFlash((prevFlash) => !prevFlash)}
-                        >
-                            <Icon
-                                height={32}
-                                width={32}
-                                src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
-                                fill={theme.textSupporting}
-                            />
-                        </PressableWithFeedback>
-                    )}
+                    <PressableWithFeedback
+                        role={CONST.ROLE.BUTTON}
+                        accessibilityLabel={translate('receipt.flash')}
+                        style={[styles.alignItemsEnd, !hasFlash && styles.opacity0]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                        onPress={() => setFlash((prevFlash) => !prevFlash)}
+                    >
+                        <Icon
+                            height={32}
+                            width={32}
+                            src={flash ? Expensicons.Bolt : Expensicons.boltSlash}
+                            fill={theme.textSupporting}
+                        />
+                    </PressableWithFeedback>
                 </View>
                 {startLocationPermissionFlow && !!fileResize && (
                     <LocationPermissionModal
