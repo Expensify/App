@@ -1,69 +1,63 @@
-import {getMoneyRequestReportButtonType, getTotalAmountOfButton, IOU_PREVIEW_BUTTON} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportButtonUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as CurrencyUtils from '@libs/CurrencyUtils';
-// eslint-disable-next-line no-restricted-syntax
-import * as ReportUtils from '@libs/ReportUtils';
+import Onyx from 'react-native-onyx';
+import {getIOUReportPreviewButtonType, getTotalAmountForIOUReportPreviewButton, IOU_REPORT_PREVIEW_BUTTON} from '@libs/MoneyRequestReportUtils';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {policy420A as mockPolicy} from '../../__mocks__/reportData/policies';
 import {iouReportR14932 as mockReport} from '../../__mocks__/reportData/reports';
+import * as TestHelper from '../utils/TestHelper';
 
-const TOTAL = 100;
-const NON_HELD_VALUE = 50;
+const mockedReportID = mockReport.reportID;
 
 jest.mock('@libs/ReportUtils', () => ({
-    getNonHeldAndFullAmount: jest.fn(),
-    hasOnlyHeldExpenses: jest.fn(),
-    hasUpdatedTotal: jest.fn(),
-    getMoneyRequestSpendBreakdown: jest.fn(),
-    hasHeldExpenses: jest.fn(),
+    getNonHeldAndFullAmount: jest.fn().mockReturnValue({nonHeldAmount: `$${50}.00`, hasValidNonHeldAmount: true, fullAmount: `$100.00`, currency: 'USD'}),
+    hasOnlyHeldExpenses: jest.fn().mockReturnValue(false),
+    hasUpdatedTotal: jest.fn().mockReturnValue(true),
+    getMoneyRequestSpendBreakdown: jest.fn().mockReturnValue({
+        nonReimbursableSpend: 50,
+        reimbursableSpend: 50,
+        totalDisplaySpend: 100,
+    }),
+    hasHeldExpenses: jest.fn().mockReturnValue(false),
+    parseReportRouteParams: jest.fn().mockReturnValue({
+        reportID: mockedReportID,
+        isSubReportPageRoute: false,
+    }),
 }));
 
 jest.mock('@libs/CurrencyUtils', () => ({
-    convertToDisplayString: jest.fn(),
+    convertToDisplayString: jest.fn().mockImplementation((amountInCents = 0): string => `$${amountInCents}.00`),
 }));
 
-const nonHeldDetails = {nonHeldAmount: `$${NON_HELD_VALUE}.00`, hasValidNonHeldAmount: true, fullAmount: `$${TOTAL}.00`, currency: 'USD'};
-const spendBreakdown = {
-    nonReimbursableSpend: NON_HELD_VALUE,
-    reimbursableSpend: NON_HELD_VALUE,
-    totalDisplaySpend: TOTAL,
-};
-
-const mockConvertToDisplayString = (amountInCents = 0): string => `$${amountInCents}.00`;
-
-const mockReportUtilsMethods = () => {
-    jest.spyOn(ReportUtils, 'hasOnlyHeldExpenses').mockReturnValue(false);
-    jest.spyOn(ReportUtils, 'hasHeldExpenses').mockReturnValue(true);
-    jest.spyOn(ReportUtils, 'hasUpdatedTotal').mockReturnValue(true);
-    jest.spyOn(ReportUtils, 'getNonHeldAndFullAmount').mockReturnValue(nonHeldDetails);
-    jest.spyOn(ReportUtils, 'getMoneyRequestSpendBreakdown').mockReturnValue(spendBreakdown);
-    jest.spyOn(CurrencyUtils, 'convertToDisplayString').mockImplementation(mockConvertToDisplayString);
-};
-
 describe('ReportButtonUtils', () => {
-    describe('getTotalAmountOfButton', () => {
-        beforeEach(() => {
+    describe('getTotalAmountForIOUReportPreviewButton', () => {
+        beforeAll(async () => {
+            Onyx.init({
+                keys: ONYXKEYS,
+            });
+
+            await TestHelper.signInWithTestUser();
+        });
+
+        afterAll(() => {
             jest.clearAllMocks();
         });
 
         it('returns empty string for NONE and EXPORT button types', () => {
-            expect(getTotalAmountOfButton(mockReport, mockPolicy, IOU_PREVIEW_BUTTON.NONE)).toBe('');
-            expect(getTotalAmountOfButton(mockReport, mockPolicy, IOU_PREVIEW_BUTTON.EXPORT)).toBe('');
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.NONE)).toBe('');
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.EXPORT)).toBe('');
         });
 
         it('returns nonHeldValue for PAY & total value for other buttons', () => {
-            mockReportUtilsMethods();
-
-            expect(getTotalAmountOfButton(mockReport, mockPolicy, IOU_PREVIEW_BUTTON.PAY)).toBe(`$${NON_HELD_VALUE}.00`);
-            expect(getTotalAmountOfButton(mockReport, mockPolicy, IOU_PREVIEW_BUTTON.REVIEW)).toBe(`$${TOTAL}.00`);
-            expect(getTotalAmountOfButton(mockReport, mockPolicy, IOU_PREVIEW_BUTTON.APPROVE)).toBe(`$${TOTAL}.00`);
-            expect(getTotalAmountOfButton(mockReport, mockPolicy, IOU_PREVIEW_BUTTON.SUBMIT)).toBe(`$${TOTAL}.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.PAY)).toBe(`$50.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.REVIEW)).toBe(`$100.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.APPROVE)).toBe(`$100.00`);
+            expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.SUBMIT)).toBe(`$100.00`);
         });
     });
 
-    describe('getMoneyRequestReportButtonType', () => {
+    describe('getIOUReportPreviewButtonType', () => {
         it('returns review button type if there are errors and can show settlement button', () => {
             expect(
-                getMoneyRequestReportButtonType({
+                getIOUReportPreviewButtonType({
                     shouldShowSubmitButton: false,
                     shouldShowExportIntegrationButton: true,
                     shouldShowApproveButton: false,
@@ -71,12 +65,12 @@ describe('ReportButtonUtils', () => {
                     shouldShowPayButton: false,
                     shouldShowRBR: true,
                 }),
-            ).toBe(IOU_PREVIEW_BUTTON.REVIEW);
+            ).toBe(IOU_REPORT_PREVIEW_BUTTON.REVIEW);
         });
 
         it('returns export button type when export integrations can be shown', () => {
             expect(
-                getMoneyRequestReportButtonType({
+                getIOUReportPreviewButtonType({
                     shouldShowSubmitButton: false,
                     shouldShowExportIntegrationButton: true,
                     shouldShowApproveButton: false,
@@ -84,12 +78,12 @@ describe('ReportButtonUtils', () => {
                     shouldShowPayButton: false,
                     shouldShowRBR: false,
                 }),
-            ).toBe(IOU_PREVIEW_BUTTON.EXPORT);
+            ).toBe(IOU_REPORT_PREVIEW_BUTTON.EXPORT);
         });
 
         it('returns pay button type when settlement and pay options are shown', () => {
             expect(
-                getMoneyRequestReportButtonType({
+                getIOUReportPreviewButtonType({
                     shouldShowSubmitButton: false,
                     shouldShowExportIntegrationButton: false,
                     shouldShowApproveButton: false,
@@ -97,12 +91,12 @@ describe('ReportButtonUtils', () => {
                     shouldShowPayButton: true,
                     shouldShowRBR: false,
                 }),
-            ).toBe(IOU_PREVIEW_BUTTON.PAY);
+            ).toBe(IOU_REPORT_PREVIEW_BUTTON.PAY);
         });
 
         it('returns approve button type when settlement & approve is allowed without RBR', () => {
             expect(
-                getMoneyRequestReportButtonType({
+                getIOUReportPreviewButtonType({
                     shouldShowSubmitButton: false,
                     shouldShowExportIntegrationButton: false,
                     shouldShowApproveButton: true,
@@ -110,12 +104,12 @@ describe('ReportButtonUtils', () => {
                     shouldShowPayButton: false,
                     shouldShowRBR: false,
                 }),
-            ).toBe(IOU_PREVIEW_BUTTON.APPROVE);
+            ).toBe(IOU_REPORT_PREVIEW_BUTTON.APPROVE);
         });
 
         it('returns submit button type if user can submit even if other buttons can be shown', () => {
             expect(
-                getMoneyRequestReportButtonType({
+                getIOUReportPreviewButtonType({
                     shouldShowSubmitButton: true,
                     shouldShowExportIntegrationButton: false,
                     shouldShowApproveButton: false,
@@ -123,7 +117,7 @@ describe('ReportButtonUtils', () => {
                     shouldShowPayButton: true,
                     shouldShowRBR: true,
                 }),
-            ).toBe(IOU_PREVIEW_BUTTON.SUBMIT);
+            ).toBe(IOU_REPORT_PREVIEW_BUTTON.SUBMIT);
         });
     });
 });

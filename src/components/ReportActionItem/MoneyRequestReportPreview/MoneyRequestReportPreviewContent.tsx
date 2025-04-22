@@ -27,6 +27,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getIOUReportPreviewButtonType, getTotalAmountForIOUReportPreviewButton, IOU_REPORT_PREVIEW_BUTTON} from '@libs/MoneyRequestReportUtils';
 import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
 import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
@@ -73,7 +74,6 @@ import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
-import {getMoneyRequestReportButtonType, getTotalAmountOfButton, IOU_PREVIEW_BUTTON} from './MoneyRequestReportButtonUtils';
 import type {MoneyRequestReportPreviewContentProps} from './types';
 
 type WebLayoutNativeEvent = {
@@ -247,7 +247,7 @@ function MoneyRequestReportPreviewContent({
     const shouldShowRBR = hasErrors && !iouSettled;
     const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && !!connectedIntegration && isAdmin && canBeExported(iouReport);
 
-    const buttonType = getMoneyRequestReportButtonType({
+    const buttonType = getIOUReportPreviewButtonType({
         shouldShowPayButton,
         shouldShowApproveButton,
         shouldShowSubmitButton,
@@ -575,14 +575,14 @@ function MoneyRequestReportPreviewContent({
                                             ))}
                                         </View>
                                     )}
-                                    {(buttonType === IOU_PREVIEW_BUTTON.PAY || buttonType === IOU_PREVIEW_BUTTON.APPROVE) && (
+                                    {(buttonType === IOU_REPORT_PREVIEW_BUTTON.PAY || buttonType === IOU_REPORT_PREVIEW_BUTTON.APPROVE) && (
                                         <AnimatedSettlementButton
                                             onlyShowPayElsewhere={shouldShowOnlyPayElsewhere}
                                             isPaidAnimationRunning={isPaidAnimationRunning}
                                             isApprovedAnimationRunning={isApprovedAnimationRunning}
                                             canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                             onAnimationFinish={stopAnimation}
-                                            formattedAmount={getTotalAmountOfButton(iouReport, policy, buttonType)}
+                                            formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, buttonType)}
                                             currency={iouReport?.currency}
                                             policyID={policyID}
                                             chatReportID={chatReportID}
@@ -594,8 +594,8 @@ function MoneyRequestReportPreviewContent({
                                             confirmApproval={confirmApproval}
                                             enablePaymentsRoute={ROUTES.ENABLE_PAYMENTS}
                                             addBankAccountRoute={bankAccountRoute}
-                                            shouldHidePaymentOptions={buttonType !== IOU_PREVIEW_BUTTON.PAY}
-                                            shouldShowApproveButton={buttonType === IOU_PREVIEW_BUTTON.APPROVE}
+                                            shouldHidePaymentOptions={buttonType !== IOU_REPORT_PREVIEW_BUTTON.PAY}
+                                            shouldShowApproveButton={buttonType === IOU_REPORT_PREVIEW_BUTTON.APPROVE}
                                             shouldDisableApproveButton={shouldDisableApproveButton}
                                             kycWallAnchorAlignment={{
                                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
@@ -609,7 +609,7 @@ function MoneyRequestReportPreviewContent({
                                             isLoading={!isOffline && !canAllowSettlement}
                                         />
                                     )}
-                                    {buttonType === IOU_PREVIEW_BUTTON.EXPORT && !!connectedIntegration && (
+                                    {buttonType === IOU_REPORT_PREVIEW_BUTTON.EXPORT && !!connectedIntegration && (
                                         <ExportWithDropdownMenu
                                             policy={policy}
                                             report={iouReport}
@@ -621,20 +621,22 @@ function MoneyRequestReportPreviewContent({
                                             }}
                                         />
                                     )}
-                                    {buttonType === IOU_PREVIEW_BUTTON.REVIEW && (
+                                    {buttonType === IOU_REPORT_PREVIEW_BUTTON.REVIEW && (
                                         <Button
                                             icon={Expensicons.DotIndicator}
                                             iconFill={theme.danger}
                                             iconHoverFill={theme.danger}
-                                            text={translate('common.review', {amount: shouldShowSettlementButton ? getTotalAmountOfButton(iouReport, policy, buttonType) : ''})}
+                                            text={translate('common.review', {
+                                                amount: shouldShowSettlementButton ? getTotalAmountForIOUReportPreviewButton(iouReport, policy, buttonType) : '',
+                                            })}
                                             onPress={() => {}}
                                             style={buttonMaxWidth}
                                         />
                                     )}
-                                    {buttonType === IOU_PREVIEW_BUTTON.SUBMIT && (
+                                    {buttonType === IOU_REPORT_PREVIEW_BUTTON.SUBMIT && (
                                         <Button
                                             success={isWaitingForSubmissionFromCurrentUser}
-                                            text={translate('iou.submitAmount', {amount: getTotalAmountOfButton(iouReport, policy, buttonType)})}
+                                            text={translate('iou.submitAmount', {amount: getTotalAmountForIOUReportPreviewButton(iouReport, policy, buttonType)})}
                                             style={buttonMaxWidth}
                                             onPress={() => iouReport && submitReport(iouReport)}
                                             isDisabled={shouldDisableSubmitButton}
