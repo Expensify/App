@@ -436,6 +436,15 @@ Onyx.connect({
     callback: (value) => (nvpDismissedProductTraining = value),
 });
 
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
@@ -519,6 +528,7 @@ function getParticipantsOption(participant: OptionData | Participant, personalDe
         alternateText: formatPhoneNumber(login) || displayName,
         icons: [
             {
+                // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 source: (participant.avatar || detail?.avatar) ?? FallbackAvatar,
                 name: login,
                 type: CONST.ICON_TYPE_AVATAR,
@@ -870,7 +880,7 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
-        const reportNameValuePairs = getReportNameValuePairs(report.reportID);
+        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
