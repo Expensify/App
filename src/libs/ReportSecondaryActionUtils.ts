@@ -247,7 +247,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
     const syncEnabled = hasIntegrationAutoSync(policy, connectedIntegration);
     const isReportFinished = isReportClosedOrApproved || isReportReimbursed;
 
-    if (!isReportFinished || syncEnabled) {
+    if (!isReportFinished) {
         return false;
     }
 
@@ -255,7 +255,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
 
     const isExporter = isPrefferedExporter(policy);
 
-    return isAdmin || isExporter;
+    return isAdmin && syncEnabled || isExporter && !syncEnabled;
 }
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
