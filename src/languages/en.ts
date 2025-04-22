@@ -2792,6 +2792,13 @@ const translations = {
             seat: 'Seat',
             class: 'Cabin Class',
             recordLocator: 'Record locator',
+            cabinClasses: {
+                unknown: 'Unknown',
+                economy: 'Economy',
+                premiumEconomy: 'Premium Economy',
+                business: 'Business',
+                first: 'First',
+            },
         },
         hotel: 'Hotel',
         hotelDetails: {
