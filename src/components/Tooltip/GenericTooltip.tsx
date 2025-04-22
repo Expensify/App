@@ -42,14 +42,13 @@ function GenericTooltip({
 }: GenericTooltipProps) {
     const {preferredLocale} = useLocalize();
     const {windowWidth} = useWindowDimensions();
-    
+
     // Is tooltip already rendered on the page's body? happens once.
     const ref = useRef<RNView>(null);
     const [isRendered, setIsRendered] = useState(false);
-    
+
     // Is the tooltip currently visible?
     const [isVisible, setIsVisible] = useState(false);
-    
 
     // The distance between the left side of the wrapper view and the left side of the window
     const [xOffset, setXOffset] = useState(0);
@@ -116,7 +115,7 @@ function GenericTooltip({
             showTooltip();
         }
     }, [isVisible, text, prevText, showTooltip, isAnimationCanceled]);
-    
+
     const updateTargetBounds = (bounds: LayoutRectangle) => {
         if (bounds.width === 0) {
             setIsRendered(false);
@@ -126,21 +125,21 @@ function GenericTooltip({
         setXOffset(bounds.x);
         setYOffset(bounds.y);
     };
-    
+
     const hideTooltip = useCallback(() => {
         cancelAnimation(animation);
-    
+
         if (TooltipSense.isActive() && !isTooltipSenseInitiator.get()) {
             animation.set(0);
         } else {
             isTooltipSenseInitiator.set(false);
             animation.set(0);
         }
-    
+
         TooltipSense.deactivate();
         setIsVisible(false);
     }, [animation, isTooltipSenseInitiator]);
-    
+
     const onPressOverlay = useCallback(() => {
         if (!shouldUseOverlay) {
             return;
@@ -148,11 +147,11 @@ function GenericTooltip({
         setShouldUseOverlay(false);
         hideTooltip();
     }, [shouldUseOverlay, hideTooltip]);
-    
+
     if (StringUtils.isEmptyString(text) && renderTooltipContent == null) {
         return <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds: () => {}})}</View>;
     }
-    
+
     return (
         <>
             {shouldRender && isRendered && (
@@ -183,7 +182,6 @@ function GenericTooltip({
             <View ref={ref}>{children({isVisible, showTooltip, hideTooltip, updateTargetBounds})}</View>
         </>
     );
-    
 }
 
 GenericTooltip.displayName = 'GenericTooltip';
