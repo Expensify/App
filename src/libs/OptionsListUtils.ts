@@ -79,6 +79,7 @@ import {
     canUserPerformWriteAction,
     formatReportLastMessageText,
     getAllReportErrors,
+    getChatByParticipants,
     getChatRoomSubtitle,
     getDeletedParentActionMessageForChatReport,
     getDisplayNameForParticipant,
@@ -99,7 +100,6 @@ import {
     getReportAutomaticallySubmittedMessage,
     getReportLastMessage,
     getReportName,
-    getReportNameValuePairs,
     getReportNotificationPreference,
     getReportOrDraftReport,
     getReportParticipantsTitle,
@@ -357,6 +357,15 @@ Onyx.connect({
     },
 });
 
+let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
 const lastReportActions: ReportActions = {};
 const allSortedReportActions: Record<string, ReportAction[]> = {};
 let allReportActions: OnyxCollection<ReportActions>;
@@ -560,8 +569,14 @@ function getLastActorDisplayName(lastActorDetails: Partial<PersonalDetails> | nu
 /**
  * Should show the last actor display name from last actor details.
  */
-function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null) {
-    if (!lastActorDetails || reportUtilsIsSelfDM(report) || (isDM(report) && lastActorDetails.accountID !== currentUserAccountID)) {
+function shouldShowLastActorDisplayName(report: OnyxEntry<Report>, lastActorDetails: Partial<PersonalDetails> | null, lastAction: OnyxEntry<ReportAction>) {
+    if (
+        !lastActorDetails ||
+        reportUtilsIsSelfDM(report) ||
+        (isDM(report) && lastActorDetails.accountID !== currentUserAccountID) ||
+        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ||
+        lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW
+    ) {
         return false;
     }
 
@@ -855,9 +870,7 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
-        // This will get removed as part of https://github.com/Expensify/App/issues/59961
-        // eslint-disable-next-line deprecation/deprecation
-        const reportNameValuePairs = getReportNameValuePairs(report.reportID);
+        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
@@ -907,7 +920,7 @@ function createOption(
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW &&
             lastAction.actionName !== CONST.REPORT.ACTIONS.TYPE.IOU &&
             !isArchivedNonExpenseReport(report, reportNameValuePairs) &&
-            shouldShowLastActorDisplayName(report, lastActorDetails);
+            shouldShowLastActorDisplayName(report, lastActorDetails, lastAction);
         if (shouldDisplayLastActorName && lastActorDisplayName && lastMessageTextFromReport) {
             lastMessageText = `${lastActorDisplayName}: ${lastMessageTextFromReport}`;
         }
@@ -2333,7 +2346,9 @@ function shouldUseBoldText(report: OptionData): boolean {
 
 function getManagerMcTestParticipant(): Participant | undefined {
     const managerMcTestPersonalDetails = Object.values(allPersonalDetails ?? {}).find((personalDetails) => personalDetails?.login === CONST.EMAIL.MANAGER_MCTEST);
-    return managerMcTestPersonalDetails ? getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails) : undefined;
+    const managerMcTestReport =
+        managerMcTestPersonalDetails?.accountID && currentUserAccountID ? getChatByParticipants([managerMcTestPersonalDetails?.accountID, currentUserAccountID]) : undefined;
+    return managerMcTestPersonalDetails ? {...getParticipantsOption(managerMcTestPersonalDetails, allPersonalDetails), reportID: managerMcTestReport?.reportID} : undefined;
 }
 
 export {
