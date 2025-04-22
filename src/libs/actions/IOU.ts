@@ -616,15 +616,6 @@ Onyx.connect({
     },
 });
 
-let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        allReportNameValuePairs = value;
-    },
-});
-
 let allTransactionDrafts: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.TRANSACTION_DRAFT,
