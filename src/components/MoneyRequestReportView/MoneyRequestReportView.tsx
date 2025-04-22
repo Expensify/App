@@ -102,20 +102,22 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false, canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
     const {reportActions, hasNewerActions, hasOlderActions} = usePaginatedReportActions(reportID);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
+        canBeMissing: false,
         selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
     });
     const shouldUseSingleTransactionView = transactions.length === 1;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
+        canBeMissing: true,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 

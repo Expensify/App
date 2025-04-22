@@ -78,7 +78,7 @@ function ReportFieldView(reportField: EnrichedPolicyReportField, report: OnyxEnt
 function MoneyRequestViewReportFields({report, policy, isCombinedReport = false, pendingAction}: MoneyRequestViewReportFieldsProps) {
     const styles = useThemeStyles();
 
-    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`);
+    const [violations] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${report?.reportID}`, {canBeMissing: true});
 
     const shouldHideSingleReportField = (reportField: PolicyReportField) => {
         const fieldValue = reportField.value ?? reportField.defaultValue;

@@ -89,14 +89,15 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
+        canBeMissing: true,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`);
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
