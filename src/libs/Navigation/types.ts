@@ -135,6 +135,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD]: {
         /** cardID of selected card */
         cardID: string;
+        backTo?: Routes;
     };
     [SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD_CONFIRMATION]: {
         /** cardID of selected card */
@@ -1778,6 +1779,10 @@ type MigratedUserModalNavigatorParamList = {
     [SCREENS.MIGRATED_USER_WELCOME_MODAL.ROOT]: undefined;
 };
 
+type TestDriveModalNavigatorParamList = {
+    [SCREENS.TEST_DRIVE_MODAL.ROOT]: undefined;
+};
+
 type SharedScreensParamList = {
     [NAVIGATORS.REPORTS_SPLIT_NAVIGATOR]: NavigatorScreenParams<ReportsSplitNavigatorParamList>;
     [SCREENS.TRANSITION_BETWEEN_APPS]: {
@@ -1859,6 +1864,7 @@ type AuthScreensParamList = SharedScreensParamList & {
     [NAVIGATORS.WELCOME_VIDEO_MODAL_NAVIGATOR]: NavigatorScreenParams<WelcomeVideoModalNavigatorParamList>;
     [NAVIGATORS.EXPLANATION_MODAL_NAVIGATOR]: NavigatorScreenParams<ExplanationModalNavigatorParamList>;
     [NAVIGATORS.MIGRATED_USER_MODAL_NAVIGATOR]: NavigatorScreenParams<MigratedUserModalNavigatorParamList>;
+    [NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR]: NavigatorScreenParams<TestDriveModalNavigatorParamList>;
     [NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR]: NavigatorScreenParams<SearchFullscreenNavigatorParamList>;
     [SCREENS.DESKTOP_SIGN_IN_REDIRECT]: undefined;
     [SCREENS.TRANSACTION_RECEIPT]: {
@@ -2054,6 +2060,7 @@ export type {
     WorkspaceConfirmationNavigatorParamList,
     TwoFactorAuthNavigatorParamList,
     ConsoleNavigatorParamList,
+    TestDriveModalNavigatorParamList,
     WorkspaceScreenName,
     SettingsTabScreenName,
 };

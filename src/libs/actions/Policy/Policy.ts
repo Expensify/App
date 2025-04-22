@@ -82,7 +82,7 @@ import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPo
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
 import {resolveEnableFeatureConflicts} from '@userActions/RequestConflictUtils';
-import type {OnboardingPurpose} from '@src/CONST';
+import type {OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
@@ -1799,6 +1799,7 @@ function buildPolicyData(
     currency = '',
     file?: File,
     shouldAddOnboardingTasks = true,
+    companySize?: OnboardingCompanySize,
 ) {
     const workspaceName = policyName || generateDefaultWorkspaceName(policyOwnerEmail);
 
@@ -2082,6 +2083,7 @@ function buildPolicyData(
         engagementChoice,
         currency: outputCurrency,
         file: clonedFile,
+        companySize,
     };
 
     if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
@@ -2102,17 +2104,6 @@ function buildPolicyData(
     return {successData, optimisticData, failureData, params};
 }
 
-/**
- * Optimistically creates a new workspace and default workspace chats
- *
- * @param [policyOwnerEmail] the email of the account to make the owner of the policy
- * @param [makeMeAdmin] leave the calling account as an admin on the policy
- * @param [policyName] custom policy name we will use for created workspace
- * @param [policyID] custom policy id we will use for created workspace
- * @param [engagementChoice] Purpose of using application selected by user in guided setup flow
- * @param [currency] Optional, selected currency for the workspace
- * @param [file], avatar file for workspace
- */
 function createWorkspace(
     policyOwnerEmail = '',
     makeMeAdmin = false,
@@ -2122,6 +2113,7 @@ function createWorkspace(
     currency = '',
     file?: File,
     shouldAddOnboardingTasks = true,
+    companySize?: OnboardingCompanySize,
 ): CreateWorkspaceParams {
     const {optimisticData, failureData, successData, params} = buildPolicyData(
         policyOwnerEmail,
@@ -2133,6 +2125,7 @@ function createWorkspace(
         currency,
         file,
         shouldAddOnboardingTasks,
+        companySize,
     );
     API.write(WRITE_COMMANDS.CREATE_WORKSPACE, params, {optimisticData, successData, failureData});
 
