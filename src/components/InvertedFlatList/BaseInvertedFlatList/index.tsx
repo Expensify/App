@@ -53,11 +53,21 @@ function BaseInvertedFlatList<T>(props: BaseInvertedFlatListProps<T>, ref: Forwa
 
     // If the unread message is within the first pagination items, we need to manually scroll to the top,
     // because otherwise the content would shift up by new messages loading and filling up the page.
-    const [shouldInitiallyScrollToFirstMessage, setShouldInitiallyScrollToFirstMessage] = useState(
+    const isUnreadMessageOnFirstPage = useCallback(
         () => data.length >= CONST.PAGINATION_SIZE && currentDataIndex >= Math.max(0, data.length - CONST.PAGINATION_SIZE),
+        [data.length, currentDataIndex],
     );
+
+    const [shouldInitiallyScrollToFirstMessage, setShouldInitiallyScrollToFirstMessage] = useState(isUnreadMessageOnFirstPage);
     useEffect(() => {
-        // Scroll to the end once the first page of items or the whole list is loaded.
+        if (shouldInitiallyScrollToFirstMessage !== undefined || !isUnreadMessageOnFirstPage) {
+            return;
+        }
+        setShouldInitiallyScrollToFirstMessage(true);
+    }, [currentDataIndex, isUnreadMessageOnFirstPage, shouldInitiallyScrollToFirstMessage]);
+
+    useEffect(() => {
+        // Scroll to the end once the first page of items or the whole list is loaded, if there not that many items.
         if (!shouldInitiallyScrollToFirstMessage || (displayedData.length !== data.length && displayedData.length < CONST.PAGINATION_SIZE)) {
             return;
         }
