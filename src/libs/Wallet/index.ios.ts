@@ -6,13 +6,15 @@ import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import type {Card} from '@src/types/onyx';
 
+const ExpensifyCardNetwork = CONST.COMPANY_CARDS.CARD_TYPE.VISA.toUpperCase();
+
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
 function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
     const data = {
-        network: 'VISA',
+        network: ExpensifyCardNetwork,
         lastDigits: card.lastFourPAN,
         cardDescription,
         cardHolderName,
@@ -36,7 +38,7 @@ function isCardInWallet(card: Card): Promise<boolean> {
 
     let callback = null;
     if (card.token) {
-        callback = getCardStatusByIdentifier(card.token, 'VISA');
+        callback = getCardStatusByIdentifier(card.token, ExpensifyCardNetwork);
     } else if (card.lastFourPAN) {
         callback = getCardStatusBySuffix(card.lastFourPAN);
     }
