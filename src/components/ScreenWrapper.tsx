@@ -370,8 +370,13 @@ function ScreenWrapper(
         if (!showOfflineIndicatorBackground) {
             return undefined;
         }
+
+        if (isOfflineIndicatorTranslucentProp === undefined && isUsingEdgeToEdgeMode) {
+            return styles.appBG;
+        }
+
         return isOfflineIndicatorTranslucent ? styles.navigationBarBG : styles.appBG;
-    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, isSoftKeyNavigation, styles.appBG, styles.navigationBarBG]);
+    }, [extraContent, isOffline, isOfflineIndicatorTranslucent, isOfflineIndicatorTranslucentProp, isSoftKeyNavigation, isUsingEdgeToEdgeMode, styles.appBG, styles.navigationBarBG]);
 
     /** In edge-to-edge mode, we always want to apply the bottom safe area padding to the mobile offline indicator. */
     const hasMobileOfflineIndicatorBottomSafeAreaPadding = isUsingEdgeToEdgeMode ? enableEdgeToEdgeBottomSafeAreaPadding : !includeSafeAreaPaddingBottom;
