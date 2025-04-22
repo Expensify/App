@@ -684,6 +684,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.INVITE_MESSAGE]: {
                             path: ROUTES.WORKSPACE_INVITE_MESSAGE.route,
                         },
+                        [SCREENS.WORKSPACE.INVITE_MESSAGE_ROLE]: {
+                            path: ROUTES.WORKSPACE_INVITE_MESSAGE_ROLE.route,
+                        },
                         [SCREENS.WORKSPACE.CATEGORY_SETTINGS]: {
                             path: ROUTES.WORKSPACE_CATEGORY_SETTINGS.route,
                             parse: {
