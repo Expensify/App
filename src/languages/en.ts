@@ -1428,6 +1428,10 @@ const translations = {
             confirmMerge: 'Are you sure you want to merge accounts?',
             lossOfUnsubmittedData: `Merging your accounts is irreversible and will result in the loss of any unsubmitted expenses for `,
             enterMagicCode: `To continue, please enter the magic code sent to `,
+            errors: {
+                incorrect2fa: 'Incorrect two-factor authentication code. Please try again.',
+                fallback: 'Something went wrong. Please try again later.',
+            },
         },
         mergeSuccess: {
             accountsMerged: 'Accounts merged!',
@@ -5246,6 +5250,14 @@ const translations = {
         searchIn: 'Search in',
         searchPlaceholder: 'Search for something',
         suggestions: 'Suggestions',
+        exportSearchResults: {
+            title: 'Create export',
+            description: "Whoa, that's a lot of items! We'll bundle them up, and Concierge will send you a file shortly.",
+        },
+        exportAll: {
+            selectAllMatchingItems: 'Select all matching items',
+            allMatchingItemsSelected: 'All matching items selected',
+        },
     },
     genericErrorPage: {
         title: 'Uh-oh, something went wrong!',
