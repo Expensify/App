@@ -58,7 +58,8 @@ function MoneyRequestReportPreview({
     );
 
     const shouldShowIOUData = useMemo(() => {
-        return transactions.some((transaction) => transaction.amount < 0);
+        const firstAttendee = transactions.at(0)?.comment?.attendees?.at(0);
+        return transactions.some((transaction) => firstAttendee?.email !== transaction.comment?.attendees?.at(0)?.email);
     }, [transactions]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
