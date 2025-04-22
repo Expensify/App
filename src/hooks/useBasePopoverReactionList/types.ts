@@ -37,11 +37,4 @@ type InnerReactionListRef = {
     isActiveReportAction: (actionID: number | string) => boolean;
 };
 
-export type {
-    BasePopoverReactionListHookProps,
-    BasePopoverReactionListPropsWithLocalWithOnyx,
-    BasePopoverReactionListOnyxProps,
-    ShowReactionList,
-    ReactionListAnchor,
-    InnerReactionListRef,
-};
+export type {BasePopoverReactionListHookProps, BasePopoverReactionListPropsWithLocalWithOnyx, BasePopoverReactionListOnyxProps, ShowReactionList, ReactionListAnchor, InnerReactionListRef};

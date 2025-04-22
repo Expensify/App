@@ -74,4 +74,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type { WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+export type {WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};

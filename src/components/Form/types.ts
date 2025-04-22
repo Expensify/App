@@ -184,16 +184,4 @@ type InputRefs = Record<string, MutableRefObject<InputComponentBaseProps>>;
 
 type FormInputErrors<TFormID extends OnyxFormKey = OnyxFormKey> = Partial<Record<FormOnyxKeys<TFormID>, string | undefined>>;
 
-export type {
-    FormProps,
-    ValidInputs,
-    InputComponentValueProps,
-    FormValue,
-    ValueTypeKey,
-    FormOnyxValues,
-    FormOnyxKeys,
-    FormInputErrors,
-    InputRefs,
-    InputComponentBaseProps,
-    FormRef,
-};
+export type {FormProps, ValidInputs, InputComponentValueProps, FormValue, ValueTypeKey, FormOnyxValues, FormOnyxKeys, FormInputErrors, InputRefs, InputComponentBaseProps, FormRef};

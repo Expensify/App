@@ -54,8 +54,4 @@ type PlatformNavigationBuilderDescriptors<
     ParamList extends ParamListBase = ParamListBase,
 > = Record<string, PlatformNavigationBuilderDescriptor<NavigationOptions, EventMap, ParamList>>;
 
-export type {
-    PlatformNavigationBuilderOptions,
-    PlatformNavigationBuilderNavigation,
-    PlatformNavigationBuilderDescriptors,
-};
+export type {PlatformNavigationBuilderOptions, PlatformNavigationBuilderNavigation, PlatformNavigationBuilderDescriptors};

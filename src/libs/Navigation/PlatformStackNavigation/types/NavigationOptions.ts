@@ -26,8 +26,4 @@ type PlatformStackNavigationOptions = CommonStackNavigationOptions & GeneralPlat
 // Used to represent navigation options specific to the native implementation/platform (`stack` or `native-stack`).
 type PlatformSpecificNavigationOptions = StackNavigationOptions | NativeStackNavigationOptions;
 
-export type {
-    CommonStackNavigationOptions,
-    PlatformStackNavigationOptions,
-    PlatformSpecificNavigationOptions,
-};
+export type {CommonStackNavigationOptions, PlatformStackNavigationOptions, PlatformSpecificNavigationOptions};

@@ -94,4 +94,4 @@ type TranslationParameters<TKey extends TranslationPaths> = FlatTranslationsObje
         : Args
     : never[];
 
-export type { TranslationDeepObject, TranslationPaths, PluralForm, FlatTranslationsObject, TranslationParameters};
+export type {TranslationDeepObject, TranslationPaths, PluralForm, FlatTranslationsObject, TranslationParameters};

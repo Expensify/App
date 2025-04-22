@@ -106,4 +106,4 @@ class ErrorLaunchCamera extends Error {
 type LaunchCamera = (options: CameraOptions, callback: Callback) => void;
 
 export {ErrorLaunchCamera};
-export type { LaunchCamera };
+export type {LaunchCamera};

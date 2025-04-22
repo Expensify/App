@@ -113,4 +113,4 @@ type ThemeColors = {
     colorScheme: ColorScheme;
 };
 
-export { type ThemePreferenceWithoutSystem, type ThemeColors, type Color};
+export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};
