@@ -42,9 +42,11 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined) {
-    const fromID = ownerAccountID;
-    const toID = managerID;
+const chooseIDBasedOnAmount = (amount: number, negativeId: number, positiveId: number) => (amount < 0 ? negativeId : positiveId);
+
+function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+    const fromID = chooseIDBasedOnAmount(amount, managerID, ownerAccountID);
+    const toID = chooseIDBasedOnAmount(amount, ownerAccountID, managerID);
 
     return fromID && toID && isIOUReport
         ? {
