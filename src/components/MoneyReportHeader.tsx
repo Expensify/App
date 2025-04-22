@@ -126,7 +126,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const route = useRoute();
     const moneyRequestReportChatID = moneyRequestReport?.chatReportID ?? CONST.DEFAULT_NUMBER_ID;
     const moneyRequestReportID = moneyRequestReport?.reportID ?? CONST.DEFAULT_NUMBER_ID;
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportChatID}`, {canBeMissing: false});    
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportChatID}`, {canBeMissing: false});
     const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReportID}`, {canBeMissing: false});
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
