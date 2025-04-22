@@ -293,7 +293,8 @@ function IOURequestStepScan({
                             CONST.IOU.ACTION.CREATE,
                             isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
                             transactionID,
-                            reportIDParam ?? reportID,
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            reportIDParam || reportID,
                         ),
                     );
             }
