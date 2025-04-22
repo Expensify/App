@@ -529,18 +529,6 @@ function isConnectedAsDelegate() {
     return !!delegatedAccess?.delegate;
 }
 
-function removePendingDelegate(email: string) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.ACCOUNT, {
-        delegatedAccess: {
-            delegates: delegatedAccess.delegates.filter((delegate) => delegate.email !== email),
-        },
-    });
-}
-
 function updateDelegateRole(email: string, role: DelegateRole, validateCode: string) {
     if (!delegatedAccess?.delegates) {
         return;
@@ -711,7 +699,6 @@ export {
     addDelegate,
     requestValidationCode,
     clearDelegateErrorsByField,
-    removePendingDelegate,
     restoreDelegateSession,
     isConnectedAsDelegate,
     updateDelegateRoleOptimistically,

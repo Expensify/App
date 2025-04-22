@@ -12,7 +12,7 @@ import AttachmentPicker from './AttachmentPicker';
 import Button from './Button';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import Icon from './Icon';
-import * as Expensicons from './Icon/Expensicons';
+import {Close, Paperclip} from './Icon/Expensicons';
 import {PressableWithFeedback} from './Pressable';
 import Text from './Text';
 
@@ -129,7 +129,7 @@ function UploadFile({
                     key={file.name}
                 >
                     <Icon
-                        src={Expensicons.Paperclip}
+                        src={Paperclip}
                         fill={theme.icon}
                         medium
                     />
@@ -145,7 +145,7 @@ function UploadFile({
                         accessibilityLabel={translate('common.remove')}
                     >
                         <Icon
-                            src={Expensicons.Close}
+                            src={Close}
                             fill={theme.icon}
                             medium
                         />

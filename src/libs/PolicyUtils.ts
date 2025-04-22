@@ -538,7 +538,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -1118,6 +1118,11 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
+    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
+    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+        return false;
+    }
+
     // Submitters: workspaces where the submitter is a member of
     const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
     if (isCurrentUserSubmitter) {
@@ -1134,7 +1139,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)) {
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
         return true;
     }
 
