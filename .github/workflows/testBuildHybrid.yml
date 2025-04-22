@@ -136,6 +136,9 @@ jobs:
             const body = pullRequest.data.body;
             const regex = /MOBILE-EXPENSIFY:\s*https:\/\/github.com\/Expensify\/Mobile-Expensify\/pull\/(?<prNumber>\d+)/;
             const found = body.match(regex)?.groups?.prNumber || "";
+            
+            console.log('body', body);
+            console.log('found', found);
 
             return found.trim();
 
