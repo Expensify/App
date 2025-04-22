@@ -1401,8 +1401,8 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
-            paddingBottom: 8,
+            paddingTop: 9,
+            paddingBottom: 10,
         },
 
         textInputPrefix: {
