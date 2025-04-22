@@ -466,29 +466,29 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                     <SearchMoneyRequestReportEmptyState />
                 ) : (
                     <FlatList
-                            initialNumToRender={INITIAL_NUM_TO_RENDER}
-                            accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                            testID="money-request-report-actions-list"
-                            style={styles.overscrollBehaviorContain}
-                            data={visibleReportActions}
-                            renderItem={renderItem}
-                            keyExtractor={(item) => item.reportActionID}
-                            onEndReached={onEndReached}
-                            onEndReachedThreshold={0.75}
-                            onStartReached={onStartReached}
-                            onStartReachedThreshold={0.75}
-                            ListHeaderComponent={
-                                <MoneyRequestReportTransactionList
-                                    report={report}
-                                    transactions={transactions}
-                                    reportActions={reportActions}
-                                    hasComments={reportHasComments}
-                                />
-                            }
-                            keyboardShouldPersistTaps="handled"
-                            onScroll={trackVerticalScrolling}
-                            ref={reportScrollManager.ref}
-                        />
+                        initialNumToRender={INITIAL_NUM_TO_RENDER}
+                        accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
+                        testID="money-request-report-actions-list"
+                        style={styles.overscrollBehaviorContain}
+                        data={visibleReportActions}
+                        renderItem={renderItem}
+                        keyExtractor={(item) => item.reportActionID}
+                        onEndReached={onEndReached}
+                        onEndReachedThreshold={0.75}
+                        onStartReached={onStartReached}
+                        onStartReachedThreshold={0.75}
+                        ListHeaderComponent={
+                            <MoneyRequestReportTransactionList
+                                report={report}
+                                transactions={transactions}
+                                reportActions={reportActions}
+                                hasComments={reportHasComments}
+                            />
+                        }
+                        keyboardShouldPersistTaps="handled"
+                        onScroll={trackVerticalScrolling}
+                        ref={reportScrollManager.ref}
+                    />
                 )}
             </View>
             <DecisionModal
