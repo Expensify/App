@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.1.29-9",
+  "version": "9.1.29-5",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -352,7 +352,7 @@
     "ts-node": "^10.9.2",
     "tsconfig-paths": "^4.2.0",
     "type-fest": "4.35.0",
-    "typescript": "^5.5.4",
+    "typescript": "^5.4.5",
     "wait-port": "^0.2.9",
     "webpack": "^5.94.0",
     "webpack-bundle-analyzer": "^4.5.0",
