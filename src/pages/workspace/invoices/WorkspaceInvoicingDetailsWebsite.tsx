@@ -71,6 +71,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                 testID={WorkspaceInvoicingDetailsWebsite.displayName}
                 shouldEnablePickerAvoiding={false}
                 shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.invoices.companyWebsite')} />
                 <FormProvider
@@ -81,6 +82,7 @@ function WorkspaceInvoicingDetailsWebsite({route}: WorkspaceInvoicingDetailsWebs
                     enabledWhenOffline
                     validate={validate}
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}

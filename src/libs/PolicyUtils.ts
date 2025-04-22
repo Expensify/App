@@ -36,6 +36,7 @@ import {hasSynchronizationErrorMessage} from './actions/connections';
 import {shouldShowQBOReimbursableExportDestinationAccountError} from './actions/connections/QuickbooksOnline';
 import {getCurrentUserAccountID, getCurrentUserEmail} from './actions/Report';
 import {getCategoryApproverRule} from './CategoryUtils';
+import DateUtils from './DateUtils';
 import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
@@ -74,6 +75,12 @@ Onyx.connect({
     key: ONYXKEYS.IS_LOADING_REPORT_DATA,
     initWithStoredValues: false,
     callback: (value) => (isLoadingReportData = value ?? false),
+});
+
+let preferredLocale: ValueOf<typeof CONST.LOCALES> | null = null;
+Onyx.connect({
+    key: ONYXKEYS.NVP_PREFERRED_LOCALE,
+    callback: (val) => (preferredLocale = val ?? null),
 });
 
 /**
@@ -531,7 +538,7 @@ function getPolicyEmployeeListByIdWithoutCurrentUser(policies: OnyxCollection<Pi
 }
 
 function goBackFromInvalidPolicy() {
-    Navigation.navigate(ROUTES.SETTINGS_WORKSPACES.route);
+    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
 }
 
 /** Get a tax with given ID from policy */
@@ -1023,13 +1030,15 @@ function getIntegrationLastSuccessfulDate(connection?: Connections[keyof Connect
         syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
 
+    const connectionSyncTimeStamp = DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, connectionSyncProgress?.timestamp).toISOString();
+
     if (
         connectionSyncProgress &&
         connectionSyncProgress.stageInProgress === CONST.POLICY.CONNECTIONS.SYNC_STAGE_NAME.JOB_DONE &&
         syncSuccessfulDate &&
-        connectionSyncProgress.timestamp > syncSuccessfulDate
+        connectionSyncTimeStamp > DateUtils.getLocalDateFromDatetime(preferredLocale ?? CONST.LOCALES.DEFAULT, syncSuccessfulDate).toISOString()
     ) {
-        syncSuccessfulDate = connectionSyncProgress.timestamp;
+        syncSuccessfulDate = connectionSyncTimeStamp;
     }
     return syncSuccessfulDate;
 }
@@ -1109,6 +1118,11 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
+    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
+    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+        return false;
+    }
+
     // Submitters: workspaces where the submitter is a member of
     const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
     if (isCurrentUserSubmitter) {
@@ -1125,7 +1139,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)) {
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
         return true;
     }
 
