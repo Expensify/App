@@ -16,13 +16,14 @@ jobs:
     needs: createNewVersion
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout staging branch with full history
+      - name: Checkout staging branch
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
           ref: staging
           token: ${{ secrets.OS_BOTIFY_TOKEN }}
           submodules: true
+          fetch-depth: 0
 
       - name: Extract PR information
         id: getPRInfo
@@ -64,26 +65,21 @@ jobs:
         with:
           SEMVER_LEVEL: "PATCH"
 
-      - name: Fetch necessary history
-        run: |
-          # Unshallow the main repository to get full history needed for merge-base calculation
-          # This converts the shallow clone from checkout into a full one.
-          echo "Unshallowing the main repository..."
-          # Add || true in case the repo is already unshallow or the command fails unexpectedly
-          git fetch --unshallow origin || true
-
-          # Unshallow the submodule(s)
-          echo "Unshallowing submodules..."
-          # Use submodule foreach to apply to all submodules (Mobile-Expensify)
-          # Add || true here as well for robustness
-          git submodule foreach 'git fetch --unshallow origin || true'
-
-          # Explicitly fetch the latest main and staging refs (good practice after unshallow)
-          echo "Fetching latest main and staging refs for the main repository..."
-          git fetch origin main staging
-
-          echo "Fetching latest main and staging refs for submodules..."
-          git submodule foreach 'git fetch origin main staging'
+      - name: Fetch history of relevant refs
+      run: |
+        # Temporary hack during transition when -staging suffix is being added to tags
+        if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+        else
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
+        fi
+        cd Mobile-Expensify
+        # Temporary hack during transition when -staging suffix is being added to tags
+        if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
+        else
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
+        fi
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit

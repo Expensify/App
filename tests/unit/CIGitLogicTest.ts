@@ -20,7 +20,6 @@ import * as Log from '../../scripts/utils/Logger';
 
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
-const SUBMOD_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/SubMod');
 
 const mockGetInput = jest.fn();
 
@@ -63,23 +62,6 @@ function getVersion(): string {
 }
 
 function initGitServer() {
-    Log.info('Initializing git server for submodule...');
-    if (fs.existsSync(SUBMOD_REMOTE)) {
-        Log.info(`${SUBMOD_REMOTE} exists, removing it now...`);
-        fs.rmSync(SUBMOD_REMOTE, {recursive: true});
-    }
-    fs.mkdirSync(SUBMOD_REMOTE, {recursive: true});
-    process.chdir(SUBMOD_REMOTE);
-    exec('git init -b main');
-    setupGitAsHuman();
-    exec('npm init -y');
-    exec('npm version --no-git-tag-version 1.0.0-0');
-    fs.appendFileSync('.gitignore', 'node_modules/\n');
-    exec('git add -A');
-    exec('git commit -m "Initial commit"');
-    exec('git switch -c staging');
-    exec('git switch -c production');
-
     Log.info('Initializing git server...');
     if (fs.existsSync(GIT_REMOTE)) {
         Log.info(`${GIT_REMOTE} exists, removing it now...`);
@@ -89,7 +71,6 @@ function initGitServer() {
     process.chdir(GIT_REMOTE);
     exec('git init -b main');
     setupGitAsHuman();
-    exec(`git -c protocol.file.allow=always submodule add ${SUBMOD_REMOTE} SubMod`);
     exec('npm init -y');
     exec('npm version --no-git-tag-version 1.0.0-0');
     fs.appendFileSync('.gitignore', 'node_modules/\n');
