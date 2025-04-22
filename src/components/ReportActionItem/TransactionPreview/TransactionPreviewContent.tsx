@@ -24,7 +24,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isIOUReport, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUData, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
@@ -132,7 +132,7 @@ function TransactionPreviewContent({
     const showCashOrCard = getTranslatedText(previewText.showCashOrCard);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
-    const iouData = getIOUData(managerID, ownerAccountID, personalDetails);
+    const iouData = getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails);
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
