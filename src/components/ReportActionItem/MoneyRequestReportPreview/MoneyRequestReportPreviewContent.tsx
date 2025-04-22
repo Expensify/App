@@ -394,7 +394,8 @@ function MoneyRequestReportPreviewContent({
         if (typeof newIndex === 'number') {
             setCurrentIndex(newIndex);
         }
-        setCurrentVisible(viewableItems.map((item) => item.index).filter((item) => item != null));
+        const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item) => item !== null);
+        setCurrentVisible(viewableItemsIndexes);
     }).current;
 
     const carouselTransactionsCount = transactions.slice(0, 11).length;
