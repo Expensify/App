@@ -69,6 +69,9 @@ const INVALID_TOKEN = 'pizza';
 
 let session: Session = {};
 let authPromiseResolver: ((value: boolean) => void) | null = null;
+
+let isSwitchedAccount = false;
+
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
@@ -301,6 +304,7 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
     // stashed session, then switch the account instead of completely logging out.
     if (shouldRestoreStashedSession && !shouldStashSession && hasStashedSession()) {
         if (CONFIG.IS_HYBRID_APP) {
+            isSwitchedAccount = true;
             HybridAppModule.switchAccount({
                 newDotCurrentAccountEmail: stashedSession.email ?? '',
                 authToken: stashedSession.authToken ?? '',
@@ -335,6 +339,10 @@ function signOutAndRedirectToSignIn(shouldResetToHome?: boolean, shouldStashSess
             } else {
                 redirectToSignIn().then(() => {
                     Onyx.multiSet(onyxSetParams);
+
+                    if (isSwitchedAccount) {
+                        openApp();
+                    }
                 });
             }
         })
