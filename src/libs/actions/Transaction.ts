@@ -619,7 +619,7 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
 
         // 2. Keep track of the new report totals
         const transactionAmount = getAmount(transaction);
-        if (oldReportID && oldReportID !== '0') {
+        if (oldReportID) {
             updatedReportTotals[oldReportID] = (updatedReportTotals[oldReportID] ? updatedReportTotals[oldReportID] : oldReport?.total ?? 0) + transactionAmount;
         }
         if (reportID) {
