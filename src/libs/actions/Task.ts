@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -1287,7 +1288,7 @@ function completeTestDriveTask() {
     }
 
     const testDriveTaskParentReport = Object.values(onboardingReportActions).find(
-        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && reportAction.childReportName === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
+        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && Str.stripHTML(reportAction.childReportName ?? '') === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
     );
 
     const testDriveTaskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskParentReport?.childReportID}`];
