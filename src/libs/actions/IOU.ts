@@ -105,6 +105,7 @@ import {
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedTrackedExpenseModifiedReportAction,
+    buildOptimisticMovedTransactionAction,
     buildOptimisticReportPreview,
     buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticSubmittedReportAction,
@@ -4595,7 +4596,7 @@ const getConvertTrackedExpenseInformation = (
     failureData?.push(...deleteFailureData);
 
     // Build modified expense report action with the transaction changes
-    const modifiedExpenseReportAction = buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadReportID, moneyRequestReportID);
+    const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, moneyRequestReportID);
 
     optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
