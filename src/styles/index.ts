@@ -3825,7 +3825,6 @@ const styles = (theme: ThemeColors) =>
         },
 
         searchAutocompleteInputResults: {
-            backgroundColor: theme.sidebarHover,
             borderWidth: 1,
             borderColor: theme.sidebarHover,
         },
@@ -3833,7 +3832,6 @@ const styles = (theme: ThemeColors) =>
         searchAutocompleteInputResultsFocused: {
             borderWidth: 1,
             borderColor: theme.success,
-            backgroundColor: theme.appBG,
         },
 
         searchTableHeaderActive: {
