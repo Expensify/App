@@ -10,7 +10,6 @@ import type {ListItem, SectionListDataType, SelectionListHandle} from '@componen
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
-import {generateReportID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
 import {startMoneyRequest} from '@userActions/IOU';
@@ -20,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type Transaction from '@src/types/onyx/Transaction';
-import type IconAsset from '@src/types/utils/IconAsset';
 import NewChatSelectorPage from './NewChatSelectorPage';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
@@ -45,6 +43,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => getUnreportedTransactions(_transactions),
         initialValue: [],
+        canBeMissing: true,
     });
 
     const styles = useThemeStyles();
@@ -60,7 +59,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
 
     const reportID = route.params.reportID;
     const selectedIds = new Set<string>();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
     return (
         <ScreenWrapper
             shouldEnableKeyboardAvoidingView={false}
@@ -72,7 +71,7 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
             focusTrapSettings={{active: false}}
         >
             <HeaderWithBackButton
-                title="Add unreported expanse"
+                title={translate('iou.addUnreportedExpense')}
                 onBackButtonPress={Navigation.goBack}
             />
 
@@ -82,8 +81,8 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     cardContentStyles={[styles.pt5, styles.pb0]}
                     headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
                     headerMedia={LottieAnimations.GenericEmptyState}
-                    title="No unreported expenses"
-                    subtitle="Looks like you don’t have any unreported expenses. Try creating one below."
+                    title={translate('iou.emptyStateUnreportedExpenseTitle')}
+                    subtitle={translate('iou.emptyStateUnreportedExpenseSubtitle')}
                     headerStyles={[styles.emptyStateMoneyRequestReport]}
                     lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     headerContentStyles={styles.emptyStateFolderWebStyles}
@@ -116,9 +115,9 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     ListItem={UnreportedExpenseListItem}
                     confirmButtonStyles={[styles.justifyContentCenter]}
                     showConfirmButton
-                    confirmButtonText="Add to report"
+                    confirmButtonText={translate('iou.addUnreportedExpenseConfirm')}
                     onConfirm={() => {
-                        changeTransactionsReport([...selectedIds], report?.reportID ?? '0');
+                        changeTransactionsReport([...selectedIds], report?.reportID ?? CONST.REPORT.UNREPORTED_REPORTID);
                         Navigation.goBack(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID, backTo: Navigation.getActiveRoute()}));
                     }}
                 />

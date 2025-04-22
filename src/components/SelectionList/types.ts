@@ -351,7 +351,7 @@ type UserListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     FooterComponent?: ReactElement;
 };
 
-type TransactionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
+type TransactionSelectionListItem<TItem extends ListItem> = ListItemProps<TItem> & Transaction;
 
 type InviteMemberListItemProps<TItem extends ListItem> = UserListItemProps<TItem>;
 
@@ -758,7 +758,7 @@ export type {
     TableListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
-    TransactionListItem,
+    TransactionSelectionListItem,
     UserListItemProps,
     ValidListItem,
     ReportActionListItemType,

@@ -48,7 +48,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {report, action, transactionThreadReport} = contextValue;
-    debugger;
     const policy = usePolicy(report?.policyID === CONST.POLICY.OWNER_EMAIL_FAKE ? undefined : report?.policyID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
 
@@ -71,8 +70,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     );
 
     const contextMenuValue = useMemo(() => ({...contextValue, isDisabled: true}), [contextValue]);
-
-    debugger;
 
     if (isTransactionThread(parentReportAction)) {
         const isReversedTransaction = isReversedTransactionReportActionsUtils(parentReportAction);
@@ -152,10 +149,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
     }
 
     if (isExpenseReport(report) || isIOUReport(report) || isInvoiceReport(report)) {
-        console.log(isExpenseReport(report));
-        console.log(isInvoiceReport(report));
-        console.log(isIOUReport(report));
-        debugger;
         return (
             <OfflineWithFeedback pendingAction={action?.pendingAction}>
                 {!isEmptyObject(transactionThreadReport?.reportID) ? (
@@ -188,9 +181,6 @@ function ReportActionItemContentCreated({contextValue, parentReportAction, trans
                 )}
             </OfflineWithFeedback>
         );
-        {
-            /* ); */
-        }
     }
 
     return (
