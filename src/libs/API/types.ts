@@ -218,7 +218,6 @@ const WRITE_COMMANDS = {
     CANCEL_PAYMENT: 'CancelPayment',
     ACCEPT_ACH_CONTRACT_FOR_BANK_ACCOUNT: 'AcceptACHContractForBankAccount',
     SWITCH_TO_OLD_DOT: 'SwitchToOldDot',
-    SWITCH_TO_OLD_DOT_ON_COMPANY_SIZE: 'SwitchToOldDotOnCompanySize',
     TRACK_EXPENSE: 'TrackExpense',
     ENABLE_POLICY_CATEGORIES: 'EnablePolicyCategories',
     ENABLE_POLICY_CONNECTIONS: 'EnablePolicyConnections',
@@ -408,6 +407,7 @@ const WRITE_COMMANDS = {
     UPDATE_SAGE_INTACCT_NON_REIMBURSABLE_EXPENSES_EXPORT_VENDOR: 'UpdateSageIntacctNonreimbursableExpensesExportVendor',
     REQUEST_TAX_EXEMPTION: 'RequestTaxExemption',
     EXPORT_SEARCH_ITEMS_TO_CSV: 'ExportSearchToCSV',
+    QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV: 'QueueExportSearchToCSV',
     CREATE_WORKSPACE_APPROVAL: 'CreateWorkspaceApproval',
     UPDATE_WORKSPACE_APPROVAL: 'UpdateWorkspaceApproval',
     REMOVE_WORKSPACE_APPROVAL: 'RemoveWorkspaceApproval',
@@ -689,7 +689,6 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.ENABLE_POLICY_DEFAULT_REPORT_TITLE]: Parameters.EnablePolicyDefaultReportTitleParams;
     [WRITE_COMMANDS.SET_WORKSPACE_DEFAULT_SPEND_CATEGORY]: Parameters.SetWorkspaceDefaultSpendCategoryParams;
     [WRITE_COMMANDS.SWITCH_TO_OLD_DOT]: Parameters.SwitchToOldDotParams;
-    [WRITE_COMMANDS.SWITCH_TO_OLD_DOT_ON_COMPANY_SIZE]: Parameters.SwitchToOldDotOnCompanySizeParams;
     [WRITE_COMMANDS.TRACK_EXPENSE]: Parameters.TrackExpenseParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CATEGORIES]: Parameters.EnablePolicyCategoriesParams;
     [WRITE_COMMANDS.ENABLE_POLICY_CONNECTIONS]: Parameters.EnablePolicyConnectionsParams;
@@ -903,6 +902,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_SYNC_TAX_CONFIGURATION]: Parameters.UpdateSageIntacctGenericTypeParams<'enabled', boolean>;
     [WRITE_COMMANDS.UPDATE_SAGE_INTACCT_USER_DIMENSION]: Parameters.UpdateSageIntacctGenericTypeParams<'dimensions', string>;
     [WRITE_COMMANDS.EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.ExportSearchItemsToCSVParams;
+    [WRITE_COMMANDS.QUEUE_EXPORT_SEARCH_ITEMS_TO_CSV]: Parameters.ExportSearchItemsToCSVParams;
     [WRITE_COMMANDS.EXPORT_REPORT_TO_CSV]: Parameters.ExportReportCSVParams;
     [WRITE_COMMANDS.CREATE_WORKSPACE_APPROVAL]: Parameters.CreateWorkspaceApprovalParams;
     [WRITE_COMMANDS.UPDATE_WORKSPACE_APPROVAL]: Parameters.UpdateWorkspaceApprovalParams;

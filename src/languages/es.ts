@@ -1427,6 +1427,10 @@ const translations = {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
             lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
             enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+            errors: {
+                incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
+                fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+            },
         },
         mergeSuccess: {
             accountsMerged: '¡Cuentas fusionadas!',
@@ -2813,6 +2817,13 @@ const translations = {
             seat: 'Asiento',
             class: 'Clase de cabina',
             recordLocator: 'Localizador de la reserva',
+            cabinClasses: {
+                unknown: 'Desconocido',
+                economy: 'Económica',
+                premiumEconomy: 'Económica Premium',
+                business: 'Ejecutiva',
+                first: 'Primera',
+            },
         },
         hotel: 'Hotel',
         hotelDetails: {
@@ -5301,6 +5312,14 @@ const translations = {
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
         suggestions: 'Sugerencias',
+        exportSearchResults: {
+            title: 'Crear exportación',
+            description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
+        },
+        exportAll: {
+            selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
+            allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
