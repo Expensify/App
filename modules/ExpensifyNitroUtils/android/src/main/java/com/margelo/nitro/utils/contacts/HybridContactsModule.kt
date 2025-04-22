@@ -141,7 +141,7 @@ class HybridContactsModule : HybridContactsModuleSpec() {
 
     companion object {
         const val PERMISSION_REQUEST_CODE = 1
-        const val REQUIRED_PERMISSION = Manifest.permission.READ_CONTACTS
+        val REQUIRED_PERMISSIONS = arrayOf(Manifest.permission.READ_CONTACTS)
         
         private val CONTACT_PROJECTION = arrayOf(
             ContactsContract.Data.MIMETYPE,
