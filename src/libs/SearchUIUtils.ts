@@ -453,7 +453,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             const formattedAssignee = formatPhoneNumber(getDisplayNameOrDefault(assignee));
             const formattedCreatedBy = formatPhoneNumber(getDisplayNameOrDefault(createdBy));
 
-            const report = getReportOrDraftReport(taskItem.reportID);
+            const report = getReportOrDraftReport(taskItem.reportID) ?? taskItem;
             const parentReport = getReportOrDraftReport(taskItem.parentReportID);
 
             const doesDataContainAPastYearTransaction = shouldShowYear(data);
