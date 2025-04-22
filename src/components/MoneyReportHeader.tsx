@@ -135,12 +135,12 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (_transactions) => reportTransactionsSelector(_transactions, moneyRequestReport?.reportID),
         initialValue: [],
-        canBeMissing: false,
+        canBeMissing: true,
     });
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${isMoneyRequestAction(requestParentReportAction) && getOriginalMessage(requestParentReportAction)?.IOUTransactionID}`, {
         canBeMissing: true,
     });
-    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: false});
+    const [dismissedHoldUseExplanation, dismissedHoldUseExplanationResult] = useOnyx(ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION, {initialValue: true, canBeMissing: true});
     const isLoadingHoldUseExplained = isLoadingOnyxValue(dismissedHoldUseExplanationResult);
 
     const {isPaidAnimationRunning, isApprovedAnimationRunning, stopAnimation, startAnimation, startApprovedAnimation} = usePaymentAnimations();
@@ -170,7 +170,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);
     const transactionIDs = useMemo(() => transactions?.map((t) => t.transactionID) ?? [], [transactions]);
-    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
+    const [allViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: true});
     const violations = useMemo(
         () => Object.fromEntries(Object.entries(allViolations ?? {}).filter(([key]) => transactionIDs.includes(key.replace(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, '')))),
         [allViolations, transactionIDs],

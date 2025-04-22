@@ -95,7 +95,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
         selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
-        canBeMissing: false,
+        canBeMissing: true,
     });
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
