@@ -349,7 +349,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
@@ -368,12 +368,69 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with disabled workflows if the onboarding choice is not newDotManageTeam or newDotLookingAround', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND});
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            // When a new workspace is created with introSelected set to PERSONAL_SPEND
+            // When a new workspace is created with introSelected set to LOOKING_AROUND
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the workflows feature is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to TRACK_WORKSPACE
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then workflows are not enabled
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotEmployer', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to EMPLOYER
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then workflows are not enabled
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotSplitChat', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to CHAT_SPLIT
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 
