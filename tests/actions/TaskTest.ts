@@ -20,11 +20,11 @@ describe('actions/Task', () => {
         const managerAccountID = 1;
         const employeeAccountID = 2;
 
-        // Report with a normal parent
+        // Report with a non-archived parent
         const report = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
         const reportParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
-        // Cancelled report with a normal parent
+        // Cancelled report with a non-archived parent
         const cancelledTaskReport = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
         const cancelledTaskReportParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
