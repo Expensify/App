@@ -19,13 +19,14 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import {ACTIVE_LABEL_SCALE, ACTIVE_LABEL_TRANSLATE_Y, INACTIVE_LABEL_SCALE, INACTIVE_LABEL_TRANSLATE_Y} from '@components/TextInput/styleConst';
 import TextInputClearButton from '@components/TextInput/TextInputClearButton';
 import TextInputLabel from '@components/TextInput/TextInputLabel';
+import TextInputMeasurement from '@components/TextInput/TextInputMeasurement';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 import useLocalize from '@hooks/useLocalize';
 import useMarkdownStyle from '@hooks/useMarkdownStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isMobileChrome, isMobileSafari, isSafari} from '@libs/Browser';
+import {isMobileChrome} from '@libs/Browser';
 import {scrollToRight} from '@libs/InputUtils';
 import isInputAutoFilled from '@libs/isInputAutoFilled';
 import variables from '@styles/variables';
@@ -49,7 +50,6 @@ function BaseTextInput(
         containerStyles,
         inputStyle,
         forceActiveLabel = false,
-        autoFocus = false,
         disableKeyboard = false,
         autoGrow = false,
         autoGrowHeight = false,
@@ -58,7 +58,6 @@ function BaseTextInput(
         maxLength = undefined,
         hint = '',
         onInputChange = () => {},
-        shouldDelayFocus = false,
         multiline = false,
         shouldInterceptSwipe = false,
         autoCorrect = true,
@@ -106,6 +105,7 @@ function BaseTextInput(
     const [textInputHeight, setTextInputHeight] = useState(0);
     const [width, setWidth] = useState<number | null>(null);
     const [prefixCharacterPadding, setPrefixCharacterPadding] = useState(8);
+    const [isPrefixCharacterPaddingCalculated, setIsPrefixCharacterPaddingCalculated] = useState(() => !prefixCharacter);
 
     const labelScale = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_SCALE : INACTIVE_LABEL_SCALE);
     const labelTranslateY = useSharedValue<number>(initialActiveLabel ? ACTIVE_LABEL_TRANSLATE_Y : INACTIVE_LABEL_TRANSLATE_Y);
@@ -119,14 +119,10 @@ function BaseTextInput(
     // AutoFocus which only works on mount:
     useEffect(() => {
         // We are manually managing focus to prevent this issue: https://github.com/Expensify/App/issues/4514
-        if (!autoFocus || !input.current) {
+        if (!inputProps.autoFocus || !input.current) {
             return;
         }
 
-        if (shouldDelayFocus) {
-            const focusTimeout = setTimeout(() => input?.current?.focus(), CONST.ANIMATED_TRANSITION);
-            return () => clearTimeout(focusTimeout);
-        }
         input.current.focus();
         // We only want this to run on mount
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
@@ -269,7 +265,7 @@ function BaseTextInput(
     const isMultiline = multiline || autoGrowHeight;
 
     const inputPaddingLeft = !!prefixCharacter && StyleUtils.getPaddingLeft(prefixCharacterPadding + styles.pl1.paddingLeft);
-    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(prefixCharacterPadding + styles.pr1.paddingRight);
+    const inputPaddingRight = !!suffixCharacter && StyleUtils.getPaddingRight(StyleUtils.getCharacterPadding(suffixCharacter) + styles.pr1.paddingRight);
     // This is workaround for https://github.com/Expensify/App/issues/47939: in case when user is using Chrome on Android we set inputMode to 'search' to disable autocomplete bar above the keyboard.
     // If we need some other inputMode (eg. 'decimal'), then the autocomplete bar will show, but we can do nothing about it as it's a known Chrome bug.
     const inputMode = inputProps.inputMode ?? (isMobileChrome() ? 'search' : undefined);
@@ -335,6 +331,7 @@ function BaseTextInput(
                                     <Text
                                         onLayout={(event) => {
                                             setPrefixCharacterPadding(event?.nativeEvent?.layout.width);
+                                            setIsPrefixCharacterPaddingCalculated(true);
                                         }}
                                         tabIndex={-1}
                                         style={[styles.textInputPrefix, !hasLabel && styles.pv0, styles.pointerEventsNone, prefixStyle]}
@@ -470,63 +467,21 @@ function BaseTextInput(
                     />
                 )}
             </View>
-            {!!contentWidth && (
-                <View
-                    style={[inputStyle as ViewStyle, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, styles.wAuto, inputPaddingLeft]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        setTextInputWidth(e.nativeEvent.layout.width);
-                        setTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    <Text
-                        style={[
-                            inputStyle,
-                            autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                            {width: contentWidth},
-                        ]}
-                    >
-                        {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                        {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                    </Text>
-                </View>
-            )}
-            {/*
-                 Text input component doesn't support auto grow by default.
-                 We're using a hidden text input to achieve that.
-                 This text view is used to calculate width or height of the input value given textStyle in this component.
-                 This Text component is intentionally positioned out of the screen.
-             */}
-            {(!!autoGrow || autoGrowHeight) && !isAutoGrowHeightMarkdown && (
-                // Add +2 to width on Safari browsers so that text is not cut off due to the cursor or when changing the value
-                // Reference: https://github.com/Expensify/App/issues/8158, https://github.com/Expensify/App/issues/26628
-                // For mobile Chrome, ensure proper display of the text selection handle (blue bubble down).
-                // Reference: https://github.com/Expensify/App/issues/34921
-                <Text
-                    style={[
-                        inputStyle,
-                        autoGrowHeight && styles.autoGrowHeightHiddenInput(width ?? 0, typeof maxAutoGrowHeight === 'number' ? maxAutoGrowHeight : undefined),
-                        styles.hiddenElementOutsideOfWindow,
-                        styles.visibilityHidden,
-                    ]}
-                    onLayout={(e) => {
-                        if (e.nativeEvent.layout.width === 0 && e.nativeEvent.layout.height === 0) {
-                            return;
-                        }
-                        let additionalWidth = 0;
-                        if (isMobileSafari() || isSafari() || isMobileChrome()) {
-                            additionalWidth = 2;
-                        }
-                        setTextInputWidth(e.nativeEvent.layout.width + additionalWidth);
-                        setTextInputHeight(e.nativeEvent.layout.height);
-                    }}
-                >
-                    {/* \u200B added to solve the issue of not expanding the text input enough when the value ends with '\n' (https://github.com/Expensify/App/issues/21271) */}
-                    {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
-                </Text>
-            )}
+            <TextInputMeasurement
+                value={value}
+                placeholder={placeholder}
+                contentWidth={contentWidth}
+                autoGrowHeight={autoGrowHeight}
+                maxAutoGrowHeight={maxAutoGrowHeight}
+                width={width}
+                inputStyle={inputStyle}
+                inputPaddingLeft={inputPaddingLeft}
+                autoGrow={autoGrow}
+                isAutoGrowHeightMarkdown={isAutoGrowHeightMarkdown}
+                onSetTextInputWidth={setTextInputWidth}
+                onSetTextInputHeight={setTextInputHeight}
+                isPrefixCharacterPaddingCalculated={isPrefixCharacterPaddingCalculated}
+            />
         </>
     );
 }

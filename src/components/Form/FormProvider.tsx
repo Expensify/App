@@ -73,6 +73,9 @@ type FormProviderProps<TFormID extends OnyxFormKey = OnyxFormKey> = FormProps<TF
     /** Whether HTML is allowed in form inputs */
     allowHTML?: boolean;
 
+    /** Whether to render the submit button above the footer. */
+    shouldRenderFooterAboveSubmit?: boolean;
+
     /** Whether the form is loading */
     isLoading?: boolean;
 
@@ -98,13 +101,14 @@ function FormProvider(
         shouldTrimValues = true,
         allowHTML = false,
         isLoading = false,
+        shouldRenderFooterAboveSubmit = false,
         ...rest
     }: FormProviderProps,
     forwardedRef: ForwardedRef<FormRef>,
 ) {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`);
-    const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [formState] = useOnyx<OnyxFormKey, Form>(`${formID}`, {canBeMissing: true});
+    const [draftValues] = useOnyx<OnyxFormDraftKey, Form>(`${formID}Draft`, {canBeMissing: true});
     const {preferredLocale, translate} = useLocalize();
     const inputRefs = useRef<InputRefs>({});
     const touchedInputs = useRef<Record<string, boolean>>({});
@@ -432,6 +436,7 @@ function FormProvider(
                 errors={errors}
                 isLoading={isLoading}
                 enabledWhenOffline={enabledWhenOffline}
+                shouldRenderFooterAboveSubmit={shouldRenderFooterAboveSubmit}
             >
                 {typeof children === 'function' ? children({inputValues}) : children}
             </FormWrapper>
