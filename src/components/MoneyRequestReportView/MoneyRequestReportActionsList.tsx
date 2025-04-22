@@ -414,6 +414,49 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
 
     return (
         <View style={[styles.flex1]}>
+            {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
+                <>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        options={selectedTransactionsOptions}
+                        customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
+                        isSplitButton={false}
+                        shouldAlwaysShowDropdownMenu
+                        wrapperStyle={[styles.w100, styles.ph5]}
+                    />
+                    <View style={[styles.searchListHeaderContainerStyle, styles.pt6, styles.ph8, styles.pb3]}>
+                        <Checkbox
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            isChecked={selectedTransactionsID.length === transactions.length}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
+                            onPress={() => {
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                        />
+
+                        <PressableWithFeedback
+                            style={[styles.userSelectNone, styles.alignItemsCenter]}
+                            onPress={() => {
+                                if (selectedTransactionsID.length === transactions.length) {
+                                    setSelectedTransactionsID([]);
+                                } else {
+                                    setSelectedTransactionsID(transactions.map((t) => t.transactionID));
+                                }
+                            }}
+                            accessibilityLabel={translate('workspace.people.selectAll')}
+                            role="button"
+                            accessibilityState={{checked: selectedTransactionsID.length === transactions.length}}
+                            dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
+                        >
+                            <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
+                        </PressableWithFeedback>
+                    </View>
+                </>
+            )}
             <View style={[styles.flex1, styles.justifyContentEnd, styles.overflowHidden, styles.pb4]}>
                 <FloatingMessageCounter
                     isActive={isFloatingMessageCounterVisible}
@@ -422,51 +465,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                 {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
                     <SearchMoneyRequestReportEmptyState />
                 ) : (
-                    <>
-                        {shouldUseNarrowLayout && !!selectionMode?.isEnabled && (
-                            <>
-                                <ButtonWithDropdownMenu
-                                    onPress={() => null}
-                                    options={selectedTransactionsOptions}
-                                    customText={translate('workspace.common.selected', {count: selectedTransactionsID.length})}
-                                    isSplitButton={false}
-                                    shouldAlwaysShowDropdownMenu
-                                    wrapperStyle={[styles.w100, styles.ph5]}
-                                />
-                                <View style={[styles.searchListHeaderContainerStyle, styles.pt6, styles.ph8, styles.pb3]}>
-                                    <Checkbox
-                                        accessibilityLabel={translate('workspace.people.selectAll')}
-                                        isChecked={selectedTransactionsID.length === transactions.length}
-                                        isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
-                                        onPress={() => {
-                                            if (selectedTransactionsID.length === transactions.length) {
-                                                setSelectedTransactionsID([]);
-                                            } else {
-                                                setSelectedTransactionsID(transactions.map((t) => t.transactionID));
-                                            }
-                                        }}
-                                    />
-
-                                    <PressableWithFeedback
-                                        style={[styles.userSelectNone, styles.alignItemsCenter]}
-                                        onPress={() => {
-                                            if (selectedTransactionsID.length === transactions.length) {
-                                                setSelectedTransactionsID([]);
-                                            } else {
-                                                setSelectedTransactionsID(transactions.map((t) => t.transactionID));
-                                            }
-                                        }}
-                                        accessibilityLabel={translate('workspace.people.selectAll')}
-                                        role="button"
-                                        accessibilityState={{checked: selectedTransactionsID.length === transactions.length}}
-                                        dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
-                                    >
-                                        <Text style={[styles.textStrong, styles.ph3]}>{translate('workspace.people.selectAll')}</Text>
-                                    </PressableWithFeedback>
-                                </View>
-                            </>
-                        )}
-                        <FlatList
+                    <FlatList
                             initialNumToRender={INITIAL_NUM_TO_RENDER}
                             accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
                             testID="money-request-report-actions-list"
@@ -490,7 +489,6 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                             onScroll={trackVerticalScrolling}
                             ref={reportScrollManager.ref}
                         />
-                    </>
                 )}
             </View>
             <DecisionModal

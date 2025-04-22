@@ -274,7 +274,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
             >
                 <MenuItem
                     title={translate('common.select')}
-                    icon={Expensicons.Checkmark}
+                    icon={Expensicons.CheckSquare}
                     onPress={() => {
                         if (!selectionMode?.isEnabled) {
                             turnOnMobileSelectionMode();
