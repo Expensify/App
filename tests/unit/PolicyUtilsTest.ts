@@ -766,5 +766,47 @@ describe('PolicyUtils', () => {
 
             expect(isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin)).toBe(false);
         });
+
+        it('returns false if the report is approved and the current user is not an admin', async () => {
+            const currentUserLogin = approverEmail;
+            const currentUserAccountID = approverAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
+                },
+            };
+            const report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+            const oldPolicy = createRandomPolicy(0);
+
+            expect(isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin)).toBe(false);
+        });
+
+        it('returns true if the report is approved and the current user is an admin', async () => {
+            const currentUserLogin = adminEmail;
+            const currentUserAccountID = adminAccountID;
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserLogin, accountID: currentUserAccountID});
+
+            const newPolicy = {
+                ...createRandomPolicy(1),
+                employeeList: {
+                    [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
+                },
+            };
+            const report = {
+                ...createRandomReport(0),
+                ownerAccountID: employeeAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            };
+            const oldPolicy = createRandomPolicy(0);
+
+            expect(isWorkspaceEligibleForReportChange(newPolicy, report, oldPolicy, currentUserLogin)).toBe(true);
+        });
     });
 });
