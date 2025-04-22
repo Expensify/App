@@ -565,8 +565,6 @@ function getPolicyIDFromSearchQuery(queryJSON: SearchQueryJSON) {
  * A copy of `getFilterDisplayValue` handling the policy ID, used if you have access to the leftHandBar beta.
  * When this beta is no longer needed, this method will be renamed to `getFilterDisplayValue` and will replace the old method.
  *
- * Formats a given `SearchQueryJSON` object into the human-readable string version of query.
- * This format of query is the one which we want to display to users.
  * Returns the human-readable "pretty" string for a specified filter value.
  */
 function getFilterDisplayValueWithPolicyID(
