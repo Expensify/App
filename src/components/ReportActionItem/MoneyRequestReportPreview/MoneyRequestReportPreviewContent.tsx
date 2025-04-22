@@ -374,16 +374,19 @@ function MoneyRequestReportPreviewContent({
         thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
 
+    const carouselTransactions = transactions.slice(0, 11);
     const [currentIndex, setCurrentIndex] = useState(0);
-    const [currentVisible, setCurrentVisible] = useState([0]);
-    const [wrapperWidth, setWrapperWidth] = useState(0);
+    const [currentVisibleItems, setCurrentVisibleItems] = useState([0]);
+    const [carouselWrapperWidth, setCarouselWrapperWidth] = useState(0);
     const [footerWidth, setFooterWidth] = useState(0);
-    const [optimistic, setOptimistic] = useState<number | undefined>(undefined);
+    const [optimisticIndex, setOptimisticIndex] = useState<number | undefined>(undefined);
     const carouselRef = useRef<FlatList<Transaction> | null>(null);
-    const visibleEndItemsCount = useMemo(() => {
+    const visibleItemsOnEndCount = useMemo(() => {
         const lastItemWidth = transactions.length > 10 ? footerWidth : reportPreviewStyles.transactionPreviewStyle.width;
-        return Math.floor((wrapperWidth - lastItemWidth - 24) / (reportPreviewStyles.transactionPreviewStyle.width + 8)) + 1;
-    }, [footerWidth, reportPreviewStyles.transactionPreviewStyle.width, transactions.length, wrapperWidth]);
+        const lastItemWithGap = lastItemWidth + styles.gap2.gap;
+        const itemWithGap = reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap;
+        return Math.floor((carouselWrapperWidth - 2 * styles.pl2.paddingLeft - lastItemWithGap) / itemWithGap) + 1;
+    }, [transactions.length, footerWidth, reportPreviewStyles.transactionPreviewStyle.width, carouselWrapperWidth, styles.pl2.paddingLeft, styles.gap2.gap]);
     const viewabilityConfig = useMemo(() => {
         return {itemVisiblePercentThreshold: 100};
     }, []);
@@ -395,23 +398,21 @@ function MoneyRequestReportPreviewContent({
             setCurrentIndex(newIndex);
         }
         const viewableItemsIndexes = viewableItems.map((item) => item.index).filter((item): item is number => item !== null);
-        setCurrentVisible(viewableItemsIndexes);
+        setCurrentVisibleItems(viewableItemsIndexes);
     }).current;
 
-    const carouselTransactionsCount = transactions.slice(0, 11).length;
-
     const handleChange = (index: number) => {
-        if (index > carouselTransactionsCount - visibleEndItemsCount) {
-            setOptimistic(carouselTransactionsCount - visibleEndItemsCount);
-            carouselRef.current?.scrollToIndex({index: carouselTransactionsCount - visibleEndItemsCount, animated: true, viewOffset: 2 * styles.gap2.gap});
+        if (index > carouselTransactions.length - visibleItemsOnEndCount) {
+            setOptimisticIndex(carouselTransactions.length - visibleItemsOnEndCount);
+            carouselRef.current?.scrollToIndex({index: carouselTransactions.length - visibleItemsOnEndCount, animated: true, viewOffset: 2 * styles.gap2.gap});
             return;
         }
         if (index < 0) {
-            setOptimistic(0);
+            setOptimisticIndex(0);
             carouselRef.current?.scrollToIndex({index: 0, animated: true, viewOffset: 2 * styles.gap2.gap});
             return;
         }
-        setOptimistic(index);
+        setOptimisticIndex(index);
         carouselRef.current?.scrollToIndex({index, animated: true, viewOffset: 2 * styles.gap2.gap});
     };
 
@@ -454,16 +455,17 @@ function MoneyRequestReportPreviewContent({
 
     useEffect(() => {
         if (
-            optimistic === undefined ||
-            optimistic !== currentIndex ||
+            optimisticIndex === undefined ||
+            optimisticIndex !== currentIndex ||
             // currentIndex is still the same as target (f.ex. 0), but not yet scrolled to the far left
-            (currentVisible.at(0) !== optimistic && optimistic !== undefined) ||
-            (optimistic === carouselTransactionsCount - visibleEndItemsCount && currentVisible.length !== visibleEndItemsCount)
+            (currentVisibleItems.at(0) !== optimisticIndex && optimisticIndex !== undefined) ||
+            // currentIndex reached, but not scrolled to the end
+            (optimisticIndex === carouselTransactions.length - visibleItemsOnEndCount && currentVisibleItems.length !== visibleItemsOnEndCount)
         ) {
             return;
         }
-        setOptimistic(undefined);
-    }, [carouselTransactionsCount, currentIndex, currentVisible, currentVisible.length, optimistic, visibleEndItemsCount]);
+        setOptimisticIndex(undefined);
+    }, [carouselTransactions.length, currentIndex, currentVisibleItems, currentVisibleItems.length, optimisticIndex, visibleItemsOnEndCount]);
 
     const getPreviewName = () => {
         if (isInvoice && isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW)) {
@@ -485,7 +487,7 @@ function MoneyRequestReportPreviewContent({
                     style={[styles.chatItemMessage, containerStyles]}
                     onLayout={(e: LayoutChangeEvent) => {
                         getCurrentWidth(e);
-                        setWrapperWidth(e.nativeEvent.layout.width);
+                        setCarouselWrapperWidth(e.nativeEvent.layout.width);
                     }}
                 >
                     <PressableWithoutFeedback
@@ -553,7 +555,7 @@ function MoneyRequestReportPreviewContent({
                                                         accessibilityLabel="button"
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex - 1)}
-                                                        disabled={optimistic !== undefined ? optimistic === 0 : currentIndex === 0 && currentVisible.at(0) === 0}
+                                                        disabled={optimisticIndex !== undefined ? optimisticIndex === 0 : currentIndex === 0 && currentVisibleItems.at(0) === 0}
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
                                                         <Icon
@@ -570,9 +572,9 @@ function MoneyRequestReportPreviewContent({
                                                         style={[styles.reportPreviewArrowButton, {backgroundColor: theme.buttonDefaultBG}]}
                                                         onPress={() => handleChange(currentIndex + 1)}
                                                         disabled={
-                                                            optimistic
-                                                                ? optimistic + visibleEndItemsCount >= carouselTransactionsCount
-                                                                : currentVisible.at(-1) === carouselTransactionsCount - 1
+                                                            optimisticIndex
+                                                                ? optimisticIndex + visibleItemsOnEndCount >= carouselTransactions.length
+                                                                : currentVisibleItems.at(-1) === carouselTransactions.length - 1
                                                         }
                                                         disabledStyle={[styles.cursorDefault, styles.buttonOpacityDisabled]}
                                                     >
@@ -593,7 +595,7 @@ function MoneyRequestReportPreviewContent({
                                             decelerationRate="fast"
                                             snapToInterval={reportPreviewStyles.transactionPreviewStyle.width + styles.gap2.gap}
                                             horizontal
-                                            data={transactions.slice(0, 11)}
+                                            data={carouselTransactions}
                                             ref={carouselRef}
                                             nestedScrollEnabled
                                             bounces={false}
@@ -610,7 +612,7 @@ function MoneyRequestReportPreviewContent({
                                     </View>
                                     {shouldUseNarrowLayout && transactions.length > 1 && (
                                         <View style={[styles.flexRow, styles.alignSelfCenter, styles.gap2]}>
-                                            {transactions.slice(0, 11).map((item, index) => (
+                                            {carouselTransactions.map((item, index) => (
                                                 <PressableWithFeedback
                                                     accessibilityRole="button"
                                                     accessible
