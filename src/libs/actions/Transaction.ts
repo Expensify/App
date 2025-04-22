@@ -664,14 +664,16 @@ function changeTransactionsReport(transactionIDs: string[], reportID: string) {
             actionName: oldIOUAction?.actionName ?? CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
             created: oldIOUAction?.created ?? DateUtils.getDBTime(),
         };
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [newIOUAction.reportActionID]: newIOUAction,
-            },
-        });
+
         if (oldIOUAction) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+                value: {
+                    [newIOUAction.reportActionID]: newIOUAction,
+                },
+            });
+
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${oldReportID}`,

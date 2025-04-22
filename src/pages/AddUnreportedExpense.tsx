@@ -9,8 +9,11 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem, SectionListDataType, SelectionListHandle} from '@components/SelectionList/types';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import interceptAnonymousUser from '@libs/interceptAnonymousUser';
+import {generateReportID} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import type {PlatformStackScreenProps} from '@navigation/PlatformStackNavigation/types';
+import {startMoneyRequest} from '@userActions/IOU';
 import {changeTransactionsReport} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -84,7 +87,18 @@ function AddUnreportedExpense({route}: AddUnreportedExpensePageType) {
                     headerStyles={[styles.emptyStateMoneyRequestReport]}
                     lottieWebViewStyles={styles.emptyStateFolderWebStyles}
                     headerContentStyles={styles.emptyStateFolderWebStyles}
-                    buttons={[{buttonText: translate('iou.createExpense'), buttonAction: () => {}, success: true}]}
+                    buttons={[
+                        {
+                            buttonText: translate('iou.createExpense'),
+                            buttonAction: () => {
+                                interceptAnonymousUser(() => {
+                                    startMoneyRequest(CONST.IOU.TYPE.SUBMIT, reportID);
+                                });
+                            },
+                            success: true,
+                            style: styles.unreportedExpenseCreateExpenseButton,
+                        },
+                    ]}
                 />
             ) : (
                 <SelectionList<Transaction & ListItem>

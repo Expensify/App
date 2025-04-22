@@ -5666,6 +5666,10 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
         },
+
+        unreportedExpenseCreateExpenseButton: {
+            ...flex.alignSelfStart,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
