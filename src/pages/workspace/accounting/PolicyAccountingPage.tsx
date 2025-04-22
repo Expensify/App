@@ -334,15 +334,14 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
-        const connectionMessage = useMemo(() => {
-            if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
-                return translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
-            }
-            if (isConnectionVerified) {
-                return translate('workspace.accounting.notSync');
-            }
-            return translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
-        }, [isSyncInProgress, isConnectionVerified, datetimeToRelative, translate, connectionSyncProgress?.stageInProgress]);
+        let connectionMessage = '';
+        if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
+            connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
+        } else if (isConnectionVerified) {
+            connectionMessage = translate('workspace.accounting.notSync');
+        } else {
+            connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
+        }
 
         const configurationOptions = [
             {
