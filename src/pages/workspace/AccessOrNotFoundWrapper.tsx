@@ -124,9 +124,13 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        canBeMissing: true,
+    });
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
