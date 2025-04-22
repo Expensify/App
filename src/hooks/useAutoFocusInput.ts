@@ -3,6 +3,7 @@ import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
@@ -63,7 +64,8 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
             return;
         }
 
-        setIsScreenTransitionEnded(isSidePanelTransitionEnded);
+        console.log('refocus from side panel');
+        ComposerFocusManager.isReadyToFocus().then(() => setIsScreenTransitionEnded(isSidePanelTransitionEnded));
     }, [isSidePanelTransitionEnded, shouldHideSidePanel, prevShouldHideSidePanel]);
 
     const inputCallbackRef = (ref: TextInput | null) => {
