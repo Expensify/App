@@ -738,18 +738,6 @@ Onyx.connect({
     callback: (value) => (personalDetailsList = value),
 });
 
-let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportNameValuePairs = value;
-    },
-});
-
 /**
  * @private
  * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
