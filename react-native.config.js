@@ -1,11 +1,9 @@
-const projectRootPath = process.env.IS_HYBRID_APP === 'true' ? './Mobile-Expensify' : './';
-const iosSourceDir = projectRootPath + 'ios';
-const androidSourceDir = projectRootPath + 'android';
+const isHybrid = process.env.IS_HYBRID_APP === 'true';
 
 module.exports = {
     project: {
-        ios: {sourceDir: iosSourceDir},
-        android: {sourceDir: androidSourceDir},
+        ios: {sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'},
+        android: {sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'},
     },
     assets: ['./assets/fonts/native'],
     dependencies: {
