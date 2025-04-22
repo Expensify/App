@@ -433,6 +433,7 @@ function MagicCodeInput(
                                 StyleUtils.getHeightOfMagicCodeInput(),
                                 hasError || errorText ? styles.borderColorDanger : {},
                                 focusedIndex === index ? styles.borderColorFocus : {},
+                                styles.pt1,
                             ]}
                         >
                             <Text style={[styles.magicCodeInput, styles.textAlignCenter]}>{decomposeString(value, maxLength).at(index) ?? ''}</Text>
