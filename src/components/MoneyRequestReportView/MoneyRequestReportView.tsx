@@ -189,27 +189,28 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         Navigation.goBack(backToRoute);
                     }}
                 />
-                {shouldUseSingleTransactionView ? (
-                    // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
-                    <ReportActionsView
-                        report={report}
-                        reportActions={reportActions}
-                        isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
-                        hasNewerActions={hasNewerActions}
-                        hasOlderActions={hasOlderActions}
-                        parentReportAction={parentReportAction}
-                        transactionThreadReportID={transactionThreadReportID}
-                    />
-                ) : (
-                    <MoneyRequestReportActionsList
-                        report={report}
-                        transactions={transactions}
-                        reportActions={reportActions}
-                        hasOlderActions={hasOlderActions}
-                        hasNewerActions={hasNewerActions}
-                    />
-                )}
-                <Button
+                <View style={[styles.overflowHidden, styles.flex1]}>
+                    {shouldUseSingleTransactionView ? (
+                        // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
+                        <ReportActionsView
+                            report={report}
+                            reportActions={reportActions}
+                            isLoadingInitialReportActions={reportMetadata?.isLoadingInitialReportActions}
+                            hasNewerActions={hasNewerActions}
+                            hasOlderActions={hasOlderActions}
+                            parentReportAction={parentReportAction}
+                            transactionThreadReportID={transactionThreadReportID}
+                        />
+                    ) : (
+                        <MoneyRequestReportActionsList
+                            report={report}
+                            transactions={transactions}
+                            reportActions={reportActions}
+                            hasOlderActions={hasOlderActions}
+                            hasNewerActions={hasNewerActions}
+                        />
+                    )}
+                    <Button
                     success
                     onPress={() => openUnreportedExpense(reportID)}
                 >
@@ -224,7 +225,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                         isComposerFullSize={!!isComposerFullSize}
                         lastReportAction={lastReportAction}
                     />
-                ) : null}
+                ) : null}</View>
             </OfflineWithFeedback>
         </View>
     );

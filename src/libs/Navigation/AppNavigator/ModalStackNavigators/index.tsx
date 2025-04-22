@@ -19,7 +19,6 @@ import type {
     PrivateNotesNavigatorParamList,
     ProfileNavigatorParamList,
     ReferralDetailsNavigatorParamList,
-    ReimbursementAccountNavigatorParamList,
     ReportChangeWorkspaceNavigatorParamList,
     ReportDescriptionNavigatorParamList,
     ReportDetailsNavigatorParamList,
@@ -312,6 +311,7 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.CATEGORIES_IMPORTED]: () => require<ReactComponentModule>('../../../../pages/workspace/categories/ImportedCategoriesPage').default,
     [SCREENS.WORKSPACE.UPGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/upgrade/WorkspaceUpgradePage').default,
     [SCREENS.WORKSPACE.DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/WorkspaceDowngradePage').default,
+    [SCREENS.WORKSPACE.PAY_AND_DOWNGRADE]: () => require<ReactComponentModule>('../../../../pages/workspace/downgrade/PayAndDowngradePage').default,
     [SCREENS.WORKSPACE.MEMBER_DETAILS]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberDetailsPage').default,
     [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: () => require<ReactComponentModule>('../../../../pages/workspace/members/WorkspaceMemberNewCardPage').default,
     [SCREENS.WORKSPACE.OWNER_CHANGE_CHECK]: () => require<ReactComponentModule>('@pages/workspace/members/WorkspaceOwnerChangeWrapperPage').default,
@@ -647,10 +647,6 @@ const AddPersonalBankAccountModalStackNavigator = createModalStackNavigator<AddP
     [SCREENS.ADD_PERSONAL_BANK_ACCOUNT_ROOT]: () => require<ReactComponentModule>('../../../../pages/AddPersonalBankAccountPage').default,
 });
 
-const ReimbursementAccountModalStackNavigator = createModalStackNavigator<ReimbursementAccountNavigatorParamList>({
-    [SCREENS.REIMBURSEMENT_ACCOUNT_ROOT]: () => require<ReactComponentModule>('../../../../pages/ReimbursementAccount/ReimbursementAccountPage').default,
-});
-
 const WalletStatementStackNavigator = createModalStackNavigator<WalletStatementNavigatorParamList>({
     [SCREENS.WALLET_STATEMENT_ROOT]: () => require<ReactComponentModule>('../../../../pages/wallet/WalletStatementPage').default,
 });
@@ -673,14 +669,6 @@ const SignInModalStackNavigator = createModalStackNavigator<SignInNavigatorParam
 });
 const ReferralModalStackNavigator = createModalStackNavigator<ReferralDetailsNavigatorParamList>({
     [SCREENS.REFERRAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/ReferralDetailsPage').default,
-});
-
-const ProcessMoneyRequestHoldStackNavigator = createModalStackNavigator({
-    [SCREENS.PROCESS_MONEY_REQUEST_HOLD_ROOT]: () => require<ReactComponentModule>('../../../../pages/ProcessMoneyRequestHoldPage').default,
-});
-
-const ChangePolicyEducationalStackNavigator = createModalStackNavigator({
-    [SCREENS.CHANGE_POLICY_EDUCATIONAL_ROOT]: () => require<ReactComponentModule>('../../../../pages/ChangePolicyEducationalModal').default,
 });
 
 const TransactionDuplicateStackNavigator = createModalStackNavigator<TransactionDuplicateNavigatorParamList>({
@@ -776,12 +764,9 @@ export {
     NewTaskModalStackNavigator,
     NewTeachersUniteNavigator,
     PrivateNotesModalStackNavigator,
-    ProcessMoneyRequestHoldStackNavigator,
-    ChangePolicyEducationalStackNavigator,
     ProfileModalStackNavigator,
     ReferralModalStackNavigator,
     TravelModalStackNavigator,
-    ReimbursementAccountModalStackNavigator,
     NewReportWorkspaceSelectionModalStackNavigator,
     ReportDescriptionModalStackNavigator,
     ReportDetailsModalStackNavigator,
