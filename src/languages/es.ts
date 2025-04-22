@@ -2817,6 +2817,13 @@ const translations = {
             seat: 'Asiento',
             class: 'Clase de cabina',
             recordLocator: 'Localizador de la reserva',
+            cabinClasses: {
+                unknown: 'Desconocido',
+                economy: 'Económica',
+                premiumEconomy: 'Económica Premium',
+                business: 'Ejecutiva',
+                first: 'Primera',
+            },
         },
         hotel: 'Hotel',
         hotelDetails: {
