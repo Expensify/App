@@ -57,6 +57,10 @@ function MoneyRequestReportPreview({
         [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
     );
 
+    const shouldShowIOUData = useMemo(() => {
+        return transactions.some((transaction) => transaction.amount < 0);
+    }, [transactions]);
+
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
@@ -73,6 +77,7 @@ function MoneyRequestReportPreview({
             containerStyles={[styles.h100, containerStyles]}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            shouldShowIOUData={shouldShowIOUData}
         />
     );
 

@@ -22,6 +22,7 @@ function SearchFullscreenNavigator({route}: PlatformStackScreenProps<AuthScreens
             ...rootNavigatorScreenOptions.fullScreen.web,
             cardStyleInterpolator: undefined,
         },
+        gestureEnabled: true,
     };
     return (
         <FreezeWrapper>
