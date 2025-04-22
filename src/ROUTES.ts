@@ -213,6 +213,8 @@ const ROUTES = {
         route: 'settings/security/merge-accounts/:login/result/:result',
         getRoute: (login: string, result: string, backTo?: string) => getUrlWithBackToParam(`settings/security/merge-accounts/${encodeURIComponent(login)}/result/${result}`, backTo),
     },
+    SETTINGS_LOCK_ACCOUNT: 'settings/security/lock-account',
+    SETTINGS_UNLOCK_ACCOUNT: 'settings/security/unlock-account',
     SETTINGS_ADD_DELEGATE: 'settings/security/delegate',
     SETTINGS_DELEGATE_ROLE: {
         route: 'settings/security/delegate/:login/role/:role',

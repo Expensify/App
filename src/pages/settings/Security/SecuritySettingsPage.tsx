@@ -53,6 +53,7 @@ function SecuritySettingsPage() {
     const {canUseMergeAccounts} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.LOCK_ACCOUNT_DETAILS);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
@@ -128,6 +129,20 @@ function SecuritySettingsPage() {
                 action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS.route)),
             });
         }
+
+        if (lockAccountDetails?.isLocked) {
+            baseMenuItems.push({
+                translationKey: 'mergeAccountsPage.unlockAccount',
+                icon: Expensicons.UserLock,
+                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+            });
+        }
+
+        baseMenuItems.push({
+            translationKey: 'mergeAccountsPage.lockAccount',
+            icon: Expensicons.UserLock,
+            action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
+        });
 
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',

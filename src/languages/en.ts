@@ -1499,6 +1499,7 @@ const translations = {
             description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
         },
         mergeFailureGenericHeading: 'Can’t merge accounts',
+        lockAccount: 'Lock account',
     },
     passwordPage: {
         changePassword: 'Change password',
