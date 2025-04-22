@@ -209,7 +209,7 @@ function BaseValidateCodeForm({
                 // Clear flow specific error
                 clearError();
 
-                // Clear "incorrect magic" code error
+                // Clear "incorrect magic code" error
                 clearValidateCodeActionError(validateCodeActionErrorField);
             }
         },
