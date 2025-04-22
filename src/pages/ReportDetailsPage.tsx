@@ -283,8 +283,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         caseID = CASES.DEFAULT;
     }
 
-    console.log('caseID', caseID)
-
     const transactionIDList = useMemo(() => {
         if (caseID !== CASES.MONEY_REPORT || !transactions) {
             return [];
@@ -307,6 +305,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const requestParentReportAction = useMemo(() => {
         // 2. MoneyReport case
         if (caseID === CASES.MONEY_REPORT) {
+            console.log('transactionThreadReport?.parentReportActionID', transactionThreadReport?.parentReportActionID)
             if (!reportActions || !transactionThreadReport?.parentReportActionID) {
                 return undefined;
             }
@@ -317,6 +316,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
     const isActionOwner =
         typeof requestParentReportAction?.actorAccountID === 'number' && typeof session?.accountID === 'number' && requestParentReportAction.actorAccountID === session?.accountID;
+        console.log('requestParentReportAction.actorAccountID', requestParentReportAction?.actorAccountID, 'session?.accountID', session?.accountID)
     const isDeletedParentAction = isDeletedAction(requestParentReportAction);
 
     const moneyRequestReport: OnyxEntry<OnyxTypes.Report> = useMemo(() => {
@@ -332,10 +332,10 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
     const shouldShowTaskDeleteButton =
         isTaskReport && !isCanceledTaskReport && canWriteInReport(report) && report.stateNum !== CONST.REPORT.STATE_NUM.APPROVED && !isClosedReport(report) && canModifyTask && canActionTask;
     const canDeleteRequest = isActionOwner && (canDeleteTransaction(moneyRequestReport) || isSelfDMTrackExpenseReport) && !isDeletedParentAction;
+    console.log('reportID', report?.reportID,"isActionOwner", isActionOwner, 'canDeleteTransaction', canDeleteTransaction(moneyRequestReport), 'isSelfDMTrackExpenseReport', isSelfDMTrackExpenseReport, 'isDeletedParentAction', isDeletedParentAction);
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : '';
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransactionID);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted);
-
     useEffect(() => {
         if (canDeleteRequest) {
             return;
@@ -1067,15 +1067,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                         />
                     ))}
 
-                    {true && (
+                    {shouldShowDeleteButton && (
                         <MenuItem
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={Expensicons.Trashcan}
                             title={(caseID === CASES.DEFAULT || caseID === CASES.MONEY_REPORT)? translate('common.delete') : translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction})}
-                            onPress={() => {
-                                console.log('report?.reportID::: ', report?.reportID);
-                                deleteAppReport(report?.reportID);
-                            }}
+                            onPress={() => setIsDeleteModalVisible(true)}
                         />
                     )}
 

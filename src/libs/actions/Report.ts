@@ -4550,13 +4550,7 @@ function deleteAppReport(reportID: string | undefined) {
     }
     const optimisticData: OnyxUpdate[] = [];
     const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    // const onyxData: Record<string, null> = {
-    //     [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: null,
-    //     [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`]: null,
-    // };
 
-    // Delete linked transactions
-    const reportActionsForReport = allReportActions?.[reportID];
     let selfDMReportID = findSelfDMReportID();
 
     if (!selfDMReportID) {
@@ -4565,6 +4559,7 @@ function deleteAppReport(reportID: string | undefined) {
         selfDMReportID = selfDMReport.reportID;
     }
     // 1. Get all report transactions
+    const reportActionsForReport = allReportActions?.[reportID];
     const transactionIDs = Object.values(reportActionsForReport ?? {})
         .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
         .map((reportAction) => ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID);
@@ -4578,31 +4573,39 @@ function deleteAppReport(reportID: string | undefined) {
         });
     });
 
+    const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
     Object.values(reportActionsForReport ?? {})
-        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction))
+        .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => ReportActionsUtils.isMoneyRequestAction(reportAction)).reverse()
         .forEach((reportAction) => {
-            console.log('reportAction', reportAction);
-            console.log('eachreport of report action:', allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`]);
             // 3. Move the IOU reportActions to the selfDM
+            const newReportActionID = rand64()
             const updatedReportAction = {
                 ...reportAction,
                 originalMessage: {
                     ...reportAction.originalMessage,
                     IOUReportID: selfDMReportID,
                 },
+                reportactionID: newReportActionID,
             };
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${selfDMReportID}`,
                 value: {
-                    [reportAction.reportActionID]: updatedReportAction,
+                    [newReportActionID]: updatedReportAction,
                 },
             });
+
+            const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
+            if (transactionID) {
+                transactionIDToMoneyRequestReportActionIDMap[transactionID] = newReportActionID;
+            }
+            
             // 4. Get transaction thread
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${reportAction.childReportID}`,
                 value: {
+                    parentReportActionID: newReportActionID,
                     parentReportID: selfDMReportID,
                     policyID: '_FAKE_',
                 },
@@ -4612,7 +4615,7 @@ function deleteAppReport(reportID: string | undefined) {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.childReportID}`,
                 value: {
-                    [reportAction.reportActionID]: {
+                    [newReportActionID]: {
                         originalMessage: {
                             movedToReportID: selfDMReportID,
                         },
@@ -4646,21 +4649,6 @@ function deleteAppReport(reportID: string | undefined) {
         value: {
             [reportactionID]: null,
         },
-    });
-
-    const transactionIDToMoneyRequestReportActionIDMap: Record<string, string> = {};
-
-Object.values(reportActionsForReport ?? {})
-    .filter((reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => 
-        ReportActionsUtils.isMoneyRequestAction(reportAction)
-    )
-    .forEach((reportAction) => {
-        const transactionID = ReportActionsUtils.getOriginalMessage(reportAction)?.IOUTransactionID;
-        if (transactionID) {
-            transactionIDToMoneyRequestReportActionIDMap[transactionID] = reportAction.reportActionID;
-        }
-
-        // your existing moving logic...
     });
 
     const parameters: DeleteAppReportParams = {
