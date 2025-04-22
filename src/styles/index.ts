@@ -1207,8 +1207,8 @@ const styles = (theme: ThemeColors) =>
             borderRadius: 20,
         },
 
-        componentMinHeightLarge: {
-            minHeight: variables.inputHeight,
+        componentHeightLarge: {
+            height: variables.inputHeight,
         },
 
         calendarHeader: {
@@ -1290,6 +1290,7 @@ const styles = (theme: ThemeColors) =>
         textInputLabel: {
             position: 'absolute',
             left: 8,
+            paddingRight: 16,
             top: 0,
             fontSize: variables.fontSizeNormal,
             color: theme.textSupporting,
@@ -1321,7 +1322,7 @@ const styles = (theme: ThemeColors) =>
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.lineHeightXLarge,
             color: theme.text,
-            paddingTop: 23,
+            paddingTop: 17,
             paddingBottom: 8,
             paddingLeft: 0,
             borderWidth: 0,
@@ -1333,7 +1334,7 @@ const styles = (theme: ThemeColors) =>
 
         textInputMultilineContainer: {
             height: '100%',
-            paddingTop: 23,
+            paddingTop: 17,
         },
 
         textInputAndIconContainer: (isMarkdownEnabled: boolean) => {
@@ -1388,7 +1389,7 @@ const styles = (theme: ThemeColors) =>
             display: 'flex',
             flexDirection: 'row',
             alignItems: 'center',
-            paddingTop: 23,
+            paddingTop: 17,
             paddingBottom: 8,
         },
 
