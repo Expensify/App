@@ -5694,6 +5694,10 @@ const styles = (theme: ThemeColors) =>
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
         },
+
+        testDriveBannerGap: {
+            height: CONST.DESKTOP_HEADER_PADDING * 2,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
