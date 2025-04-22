@@ -10,6 +10,7 @@ import {createDraftTransaction, removeDraftTransaction} from '@libs/actions/Tran
 import {convertToBackendAmount, isValidCurrencyCode} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
+import Performance from '@libs/Performance';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {getBankAccountRoute, getPolicyExpenseChat, getTransactionDetails, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -139,6 +140,8 @@ function IOURequestStepAmount({
     };
 
     const navigateToParticipantPage = () => {
+        Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE_CONTACT);
+
         switch (iouType) {
             case CONST.IOU.TYPE.REQUEST:
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute(CONST.IOU.TYPE.SUBMIT, transactionID, reportID));

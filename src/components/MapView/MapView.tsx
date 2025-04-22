@@ -3,11 +3,10 @@ import type {MapState} from '@rnmapbox/maps';
 import Mapbox, {MarkerView, setAccessToken} from '@rnmapbox/maps';
 import {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import * as Expensicons from '@components/Icon/Expensicons';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Text from '@components/Text';
+import useOnyx from '@hooks/useOnyx';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
@@ -24,6 +23,7 @@ import Direction from './Direction';
 import type {MapViewHandle, MapViewProps} from './MapViewTypes';
 import PendingMapView from './PendingMapView';
 import responder from './responder';
+import ToggleDistanceUnitButton from './ToggleDistanceUnitButton';
 import utils from './utils';
 
 const MapView = forwardRef<MapViewHandle, MapViewProps>(
@@ -317,7 +317,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                             key="distance-label"
                         >
                             <View style={{zIndex: 1}}>
-                                <PressableWithoutFeedback
+                                <ToggleDistanceUnitButton
                                     accessibilityRole={CONST.ROLE.BUTTON}
                                     accessibilityLabel="distance-label"
                                     onPress={toggleDistanceUnit}
@@ -325,7 +325,7 @@ const MapView = forwardRef<MapViewHandle, MapViewProps>(
                                     <View style={[styles.distanceLabelWrapper]}>
                                         <Text style={styles.distanceLabelText}> {distanceLabelText}</Text>
                                     </View>
-                                </PressableWithoutFeedback>
+                                </ToggleDistanceUnitButton>
                             </View>
                         </MarkerView>
                     )}

@@ -83,6 +83,11 @@ platforms:
         title: Expensify Billing
         icon: /assets/images/subscription-annual.svg
         description: Review Expensify's subscription options, plan types, and payment methods.
+
+      - href: travel
+        title: Travel
+        icon: /assets/images/plane.svg
+        description: Manage all your corporate travel needs with Expensify Travel.
      
         
   - href: new-expensify

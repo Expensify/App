@@ -1,5 +1,6 @@
 import type {CommonActions, DefaultNavigatorOptions, ParamListBase, StackActionType, StackNavigationState, StackRouterOptions} from '@react-navigation/native';
 import type {StackNavigationEventMap, StackNavigationOptions} from '@react-navigation/stack';
+import type {WorkspaceScreenName} from '@libs/Navigation/types';
 import type CONST from '@src/CONST';
 
 type RootStackNavigatorActionType =
@@ -16,6 +17,7 @@ type RootStackNavigatorActionType =
           type: typeof CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
           payload: {
               policyID: string;
+              screenName: WorkspaceScreenName;
           };
       };
 

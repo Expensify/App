@@ -17,7 +17,7 @@ type UseBottomSafeAreaPaddingStyleParams = {
     style?: StyleProp<ViewStyle>;
 
     /** The style property to use for applying the bottom safe area padding. */
-    styleProperty?: 'paddingBottom' | 'bottom';
+    styleProperty?: 'paddingBottom' | 'marginBottom' | 'bottom';
 
     /** The additional padding to add to the bottom of the content. */
     additionalPaddingBottom?: number;
