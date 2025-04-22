@@ -80,7 +80,7 @@ export default function <TProps extends WithPolicyProps, TRef>(
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
         const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
         const isLoadingPolicy = isLoadingApp || isLoadingOnyxValue(policyResults, policyDraftResults);
