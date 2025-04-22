@@ -1,27 +1,34 @@
-import {keepLocalCopy, pick, types} from '@react-native-documents/picker';
 import React, {useCallback, useRef} from 'react';
 import {Alert} from 'react-native';
 import RNFetchBlob from 'react-native-blob-util';
+import RNDocumentPicker from 'react-native-document-picker';
+import type {DocumentPickerResponse} from 'react-native-document-picker';
 import type {FileObject} from '@components/AttachmentModal';
 import useLocalize from '@hooks/useLocalize';
-import {cleanFileName} from '@libs/fileDownload/FileUtils';
+import * as FileUtils from '@libs/fileDownload/FileUtils';
 import type FilePickerProps from './types';
 
-type LocalCopy = {
-    name: string | null;
-    uri: string;
-    size: number | null;
-    type: string | null;
+/**
+ * Utility function to get the file name from DocumentPickerResponse
+ */
+const getFileDataName = (fileData: DocumentPickerResponse): string => {
+    if ('fileName' in fileData) {
+        return fileData.fileName as string;
+    }
+    if ('name' in fileData && fileData.name) {
+        return fileData.name;
+    }
+    return '';
 };
 
 /**
  * The data returned from `show` is different on web and mobile,
  * use this function to ensure the data will be handled properly.
  */
-const getDataForUpload = (fileData: LocalCopy): Promise<FileObject> => {
+const getDataForUpload = (fileData: DocumentPickerResponse): Promise<FileObject> => {
     const fileName = fileData.name ?? 'spreadsheet';
     const fileResult: FileObject = {
-        name: cleanFileName(fileName),
+        name: FileUtils.cleanFileName(fileName),
         type: fileData.type ?? undefined,
         uri: fileData.uri,
         size: fileData.size,
@@ -54,16 +61,34 @@ function FilePicker({children}: FilePickerProps) {
     );
 
     /**
+     * Launches the DocumentPicker
+     *
+     * @returns {Promise<DocumentPickerResponse[] | void>}
+     */
+    const showFilePicker = useCallback(
+        (): Promise<DocumentPickerResponse[] | void> =>
+            RNDocumentPicker.pick({
+                type: [RNDocumentPicker.types.allFiles],
+                copyTo: 'cachesDirectory',
+            }).catch((error: Error) => {
+                if (RNDocumentPicker.isCancel(error)) {
+                    onCanceled.current();
+                    return;
+                }
+
+                showGeneralAlert(error.message);
+                throw error;
+            }),
+        [showGeneralAlert],
+    );
+
+    /**
      * Validates and completes file selection
      *
      * @param fileData The file data received from the picker
      */
     const validateAndCompleteFileSelection = useCallback(
-        (fileData: LocalCopy | void) => {
-            if (!fileData) {
-                onCanceled.current();
-                return;
-            }
+        (fileData: DocumentPickerResponse) => {
             return getDataForUpload(fileData)
                 .then((result) => {
                     completeFileSelection.current(result);
@@ -81,29 +106,34 @@ function FilePicker({children}: FilePickerProps) {
      *
      * @param files The array of DocumentPickerResponse
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
-    const pickFile = async (): Promise<LocalCopy> => {
-        const [file] = await pick({
-            type: [types.allFiles],
-        });
+    const pickFile = useCallback(
+        (files: DocumentPickerResponse[] | void = []): Promise<void> | undefined => {
+            if (!files || files.length === 0) {
+                onCanceled.current();
+                return Promise.resolve();
+            }
+            const fileData = files.at(0);
 
-        const [localCopy] = await keepLocalCopy({
-            files: [
-                {
-                    uri: file.uri,
-                    fileName: file.name ?? 'spreadsheet',
-                },
-            ],
-            destination: 'cachesDirectory',
-        });
+            if (!fileData) {
+                onCanceled.current();
+                return Promise.resolve();
+            }
 
-        return {
-            name: cleanFileName(file.name ?? 'spreadsheet'),
-            type: file.type,
-            uri: localCopy.sourceUri,
-            size: file.size,
-        };
-    };
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            const fileDataUri = fileData.fileCopyUri ?? '';
+            const fileDataName = getFileDataName(fileData);
+            const fileDataObject: DocumentPickerResponse = {
+                name: fileDataName,
+                uri: fileDataUri,
+                type: fileData.type ?? '',
+                fileCopyUri: fileDataUri,
+                size: fileData.size ?? 0,
+            };
+            /* eslint-enable @typescript-eslint/prefer-nullish-coalescing */
+            validateAndCompleteFileSelection(fileDataObject);
+        },
+        [validateAndCompleteFileSelection],
+    );
 
     /**
      * Opens the file picker
@@ -111,22 +141,10 @@ function FilePicker({children}: FilePickerProps) {
      * @param onPickedHandler A callback that will be called with the selected file
      * @param onCanceledHandler A callback that will be called if the file is canceled
      */
-    // eslint-disable-next-line @lwc/lwc/no-async-await
     const open = (onPickedHandler: (file: FileObject) => void, onCanceledHandler: () => void = () => {}) => {
         completeFileSelection.current = onPickedHandler;
         onCanceled.current = onCanceledHandler;
-        pickFile()
-            .catch((error: Error) => {
-                if (JSON.stringify(error).includes('OPERATION_CANCELED')) {
-                    onCanceled.current();
-                    return Promise.resolve();
-                }
-
-                showGeneralAlert(error.message);
-                throw error;
-            })
-            .then(validateAndCompleteFileSelection)
-            .catch(console.error);
+        showFilePicker().then(pickFile).catch(console.error);
     };
 
     /**
