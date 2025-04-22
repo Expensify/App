@@ -638,10 +638,8 @@ function isFetchingWaypointsFromServer(transaction: OnyxInputOrEntry<Transaction
 /**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
-function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
+function getMerchant(transaction: OnyxInputOrEntry<Transaction>, policy: OnyxEntry<Policy> = undefined): string {
     if (transaction && isDistanceRequest(transaction)) {
-        const report = getReportOrDraftReport(transaction.reportID);
-        const policy = getPolicy(report?.policyID);
         const mileageRate = DistanceRequestUtils.getRate({transaction, policy});
         const {unit, rate} = mileageRate;
         const distanceInMeters = getDistanceInMeters(transaction, unit);

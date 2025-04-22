@@ -2,6 +2,7 @@ import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
@@ -32,6 +33,7 @@ import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 import type {TransactionPreviewContentProps} from './types';
 
@@ -66,7 +68,8 @@ function TransactionPreviewContent({
         backgroundColor: theme.cardBG,
     };
 
-    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID || CONST.DEFAULT_NUMBER_ID}`);
+    const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction, undefined, policy) ?? {}, [transaction, policy]);
     const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const ownerAccountID = iouReport?.ownerAccountID ?? reportPreviewAction?.childOwnerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
