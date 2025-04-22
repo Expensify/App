@@ -158,6 +158,28 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
     });
 }
 
+async function getCommitHistory(fromTag: string, toTag: string): Promise<CommitType[]> {
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    
+    try {
+        const {data: comparison} = await GithubUtils.octokit.repos.compareCommits({
+            owner: CONST.GITHUB_OWNER,
+            repo: CONST.APP_REPO,
+            base: fromTag,
+            head: toTag,
+        });
+
+        return comparison.commits.map(commit => ({
+            commit: commit.sha,
+            subject: commit.commit.message,
+            authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
+        }));
+    } catch (error) {
+        console.error('GitHub API error when getting commit history:', error);
+        throw error;
+    }
+}
+
 /**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
