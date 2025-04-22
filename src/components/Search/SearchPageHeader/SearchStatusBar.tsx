@@ -1,7 +1,7 @@
 import React, {useMemo, useRef} from 'react';
 import {View} from 'react-native';
 // eslint-disable-next-line no-restricted-imports
-import type {ScrollView as RNScrollView} from 'react-native';
+import type {ScrollView as RNScrollView, ViewStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -180,14 +180,14 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const theme = useTheme();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {selectedTransactions} = useSearchContext();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const {selectedTransactions, setExportMode, isExportMode, shouldShowExportModeOption} = useSearchContext();
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const options = getOptions(queryJSON.type);
     const scrollRef = useRef<RNScrollView>(null);
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
     const {hash} = queryJSON;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`);
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: false});
     const {isOffline} = useNetwork();
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
@@ -203,22 +203,37 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
         return <SearchStatusSkeleton shouldAnimate />;
     }
 
+    const selectionButtonText = isExportMode ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count: selectedTransactionsKeys.length});
+
     return (
         <View style={[shouldShowSelectedDropdown && styles.ph5, styles.mb2, styles.searchStatusBarContainer]}>
             {shouldShowSelectedDropdown ? (
-                <ButtonWithDropdownMenu
-                    onPress={() => null}
-                    shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    customText={translate('workspace.common.selected', {count: selectedTransactionsKeys.length})}
-                    options={headerButtonsOptions}
-                    isSplitButton={false}
-                    anchorAlignment={{
-                        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
-                        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-                    }}
-                    popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
-                />
+                <View style={styles.flexRow}>
+                    <ButtonWithDropdownMenu
+                        onPress={() => null}
+                        shouldAlwaysShowDropdownMenu
+                        buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                        customText={selectionButtonText}
+                        options={headerButtonsOptions}
+                        isSplitButton={false}
+                        anchorAlignment={{
+                            horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
+                            vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+                        }}
+                        popoverHorizontalOffsetType={CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT}
+                    />
+                    {!isExportMode && shouldShowExportModeOption && (
+                        <View style={[styles.button, styles.bgTransparent]}>
+                            <Button
+                                link
+                                shouldUseDefaultHover={false}
+                                innerStyles={[styles.p0, StyleUtils.getResetStyle<ViewStyle>(['height', 'minHeight'])]}
+                                onPress={() => setExportMode(true)}
+                                text={translate('search.exportAll.selectAllMatchingItems')}
+                            />
+                        </View>
+                    )}
+                </View>
             ) : (
                 <ScrollView
                     style={[styles.flexRow, styles.overflowScroll, styles.flexGrow0]}
