@@ -3,7 +3,7 @@ import mapValues from 'lodash/mapValues';
 import React, {memo, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {GestureResponderEvent, TextInput} from 'react-native';
 import {InteractionManager, Keyboard, View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {Emoji} from '@assets/emojis/types';
 import {AttachmentContext} from '@components/AttachmentContext';
@@ -333,6 +333,9 @@ type PureReportActionItemProps = {
 
     /** A message related to a report action that has been automatically forwarded */
     reportAutomaticallyForwardedMessage?: string;
+
+    /** Policies */
+    policies?: OnyxCollection<OnyxTypes.Policy>;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -398,6 +401,7 @@ function PureReportActionItem({
     dismissTrackExpenseActionableWhisper = () => {},
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
+    policies,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -1246,6 +1250,7 @@ function PureReportActionItem({
                     hasBeenFlagged={
                         ![CONST.MODERATION.MODERATOR_DECISION_APPROVED, CONST.MODERATION.MODERATOR_DECISION_PENDING].some((item) => item === moderationDecision) && !isPendingRemove(action)
                     }
+                    policies={policies}
                 >
                     {content}
                 </ReportActionItemSingle>
