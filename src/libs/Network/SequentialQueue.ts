@@ -1,4 +1,5 @@
-import Onyx, { OnyxUpdate } from 'react-native-onyx';
+import type {OnyxUpdate} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
 import {
     deleteRequestsByIndices as deletePersistedRequestsByIndices,
     endRequestAndRemoveFromQueue as endPersistedRequestAndRemoveFromQueue,
@@ -76,6 +77,29 @@ function flushOnyxUpdatesQueue() {
 }
 
 let queueFlushedDataToStore: OnyxUpdate[] = [];
+
+Onyx.connect({
+    key: ONYXKEYS.QUEUE_FLUSHED_DATA,
+    callback: (val) => {
+        if (!val) {
+            return;
+        }
+        queueFlushedDataToStore = val;
+    },
+});
+
+function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
+    const newValue = [...queueFlushedDataToStore, ...onyxUpdates];
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+    return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, newValue).then(() => {
+        Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {newValue});
+    });
+}
+function clearQueueFlushedData() {
+    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+    Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, []);
+}
+
 /**
  * Process any persisted requests, when online, one at a time until the queue is empty.
  *
@@ -121,9 +145,9 @@ function process(): Promise<void> {
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
             if (requestToProcess.queueFlushedData) {
-                queueFlushedDataToStore.push(...requestToProcess.queueFlushedData);
+                saveQueueFlushedData(...requestToProcess.queueFlushedData);
             }
-        
+
             sequentialQueueRequestThrottle.clear();
             return process();
         })
@@ -219,6 +243,7 @@ function flush(shouldResetPromise = true) {
                         Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedDataToStore});
                         Onyx.update(queueFlushedDataToStore).then(() => {
                             Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {queueFlushedDataToStore});
+                            clearQueueFlushedData();
                         });
                         queueFlushedDataToStore.length = 0;
                     });
