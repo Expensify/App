@@ -361,6 +361,8 @@ const ViolationsUtils = {
                 return translate('violations.overCategoryLimit', {formattedLimit});
             case 'overLimit':
                 return translate('violations.overLimit', {formattedLimit});
+            case 'overTripLimit':
+                return translate('violations.overTripLimit', {formattedLimit});
             case 'overLimitAttendee':
                 return translate('violations.overLimitAttendee', {formattedLimit});
             case 'perDayLimit':
