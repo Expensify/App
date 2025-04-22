@@ -128,6 +128,11 @@ function AccountSwitcher() {
         return [currentUserMenuItem, ...delegatorMenuItems];
     };
 
+    const hideDelegatorMenu = () => {
+        setShouldShowDelegatorMenu(false);
+        clearDelegatorErrors();
+    };
+
     return (
         <>
             <Tooltip
@@ -196,10 +201,8 @@ function AccountSwitcher() {
             {!!canSwitchAccounts && (
                 <PopoverMenu
                     isVisible={shouldShowDelegatorMenu}
-                    onClose={() => {
-                        setShouldShowDelegatorMenu(false);
-                        clearDelegatorErrors();
-                    }}
+                    onClose={hideDelegatorMenu}
+                    onItemSelected={hideDelegatorMenu}
                     anchorRef={buttonRef}
                     anchorPosition={CONST.POPOVER_ACCOUNT_SWITCHER_POSITION}
                     anchorAlignment={{
