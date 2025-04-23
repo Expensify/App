@@ -7021,4 +7021,6 @@ export type {
     IOUActionParams,
 };
 
+export {getTestDriveTaskName};
+
 export default CONST;

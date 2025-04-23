@@ -5,12 +5,14 @@ import {canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import Parser from '@libs/Parser';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as ReportUtils from '@libs/ReportUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
-import CONST from '@src/CONST';
+import CONST, {getTestDriveTaskName} from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -82,7 +84,7 @@ describe('actions/Task', () => {
         const testDriveTaskAction: ReportAction = {
             ...LHNTestUtils.getFakeReportAction(),
             childType: CONST.REPORT.TYPE.TASK,
-            childReportName: CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
+            childReportName: Parser.replace(getTestDriveTaskName(`${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`)),
             childReportID: testDriveTaskReport.reportID,
         };
 
