@@ -42,14 +42,13 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-
 function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
     let fromID = ownerAccountID;
     let toID = managerID;
-    
+
     if (amount < 0) {
-       fromID = managerID;
-       toID = ownerAccountID;
+        fromID = managerID;
+        toID = ownerAccountID;
     }
 
     return fromID && toID && isIOUReport
