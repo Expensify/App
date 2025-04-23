@@ -1,4 +1,4 @@
-import {generateReportName, isEmptyReport, isValidReport} from '@libs/ReportUtils';
+import {generateIsEmptyReport, generateReportName, isValidReport} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAttributesDerivedValue} from '@src/types/onyx';
@@ -53,7 +53,7 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
-                isEmpty: isEmptyReport(report),
+                isEmpty: generateIsEmptyReport(report),
             };
 
             return acc;
