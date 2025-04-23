@@ -115,9 +115,9 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: false});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
@@ -149,7 +149,7 @@ function AccessOrNotFoundWrapper({
     const shouldShowNotFoundPage = (!isMoneyRequest && !isFromGlobalCreate && isPolicyNotAccessible) || !isPageAccessible || shouldBeBlocked;
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
-    // Without this, we can have unexpectedly have 'Not Found' be shown.
+    // Without this, we can be unexpectedly navigated to the More Features page.
     useEffect(() => {
         if (isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled)) {
             return;
