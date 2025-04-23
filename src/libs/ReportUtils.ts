@@ -1920,7 +1920,6 @@ function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isR
     if (!report) {
         return false;
     }
-    console.log('timddd isArchivedNonExpenseReportWithID', isExpenseReport(report), isExpenseRequest(report), isReportArchived);
     return !(isExpenseReport(report) || isExpenseRequest(report)) && isReportArchived;
 }
 
