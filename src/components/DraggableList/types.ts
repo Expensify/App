@@ -29,4 +29,4 @@ type SortableItemProps = {
 };
 
 export default DraggableListProps;
-export type { SortableItemProps};
+export type {SortableItemProps};
