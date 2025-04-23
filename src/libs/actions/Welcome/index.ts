@@ -15,7 +15,6 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearInitialPath} from './OnboardingFlow';
-import switchToOldDotOnNonMicroCompanySize from './switchToOldDotOnNonMicroCompanySize';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -94,10 +93,6 @@ function checkOnboardingDataReady() {
     }
 
     resolveOnboardingFlowStatus();
-}
-
-function setOnboardingCustomChoices(value: OnboardingPurpose[]) {
-    Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, value ?? []);
 }
 
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
@@ -244,14 +239,12 @@ export {
     onServerDataReady,
     isOnboardingFlowCompleted,
     dismissProductTraining,
-    setOnboardingCustomChoices,
     setOnboardingPurposeSelected,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
-    switchToOldDotOnNonMicroCompanySize,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,
