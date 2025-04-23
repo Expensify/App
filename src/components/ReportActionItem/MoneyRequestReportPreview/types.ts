@@ -56,7 +56,7 @@ type MoneyRequestReportPreviewProps = {
     /** Whether the report is an invoice preview */
     isInvoice?: boolean;
 
-    /** Show a border to separate Reports Chat Item and Money Request Report Preview */
+    /** Whether to sho a border to separate Reports Chat Item and Money Request Report Preview */
     shouldShowBorder?: boolean;
 };
 
