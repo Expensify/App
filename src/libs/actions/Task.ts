@@ -1219,27 +1219,17 @@ function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number 
 /**
  * Check if you're allowed to modify the task - only the author can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number): boolean {
-    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
-    if (ownerAccountID !== sessionAccountID) {
-        return false;
-    }
-
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number, isParentReportArchived = false): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
 
-    const parentReport = getParentReport(taskReport);
-    const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
-    if (ReportUtils.isArchivedReport(reportNameValuePairs)) {
+    if (isParentReportArchived) {
         return false;
     }
 
-    if (sessionAccountID === ownerAccountID) {
-        return true;
-    }
-
-    return false;
+    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    return sessionAccountID === ownerAccountID;
 }
 
 /**
@@ -1251,6 +1241,9 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
     }
 
     const parentReport = getParentReport(taskReport);
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = ReportUtils.getReportNameValuePairs(parentReport?.reportID);
     if (ReportUtils.isArchivedNonExpenseReport(parentReport, reportNameValuePairs)) {
         return false;

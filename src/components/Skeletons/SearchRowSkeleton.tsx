@@ -39,7 +39,7 @@ function SearchRowSkeleton({shouldAnimate = true, fixedNumItems, gradientOpacity
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout, isLargeScreenWidth} = useResponsiveLayout();
     const {canUseLeftHandBar} = usePermissions();
-    const leftPaneWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth : variables.sideBarWidth;
+    const leftPaneWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth + variables.navigationTabBarSize : variables.sideBarWidth;
 
     if (shouldUseNarrowLayout) {
         return (
