@@ -53,7 +53,6 @@ function SecuritySettingsPage() {
     const {canUseMergeAccounts} = usePermissions();
 
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [lockAccountDetails] = useOnyx(ONYXKEYS.LOCK_ACCOUNT_DETAILS);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);
@@ -67,6 +66,8 @@ function SecuritySettingsPage() {
         horizontal: 0,
         vertical: 0,
     });
+    const [lockAccountDetails] = useOnyx(ONYXKEYS.NVP_PRIVATE_LOCK_ACCOUNT_DETAILS);
+    const isAccountLocked = lockAccountDetails?.isLocked ?? false;
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate || false;
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -130,19 +131,19 @@ function SecuritySettingsPage() {
             });
         }
 
-        if (lockAccountDetails?.isLocked) {
+        if (isAccountLocked) {
             baseMenuItems.push({
                 translationKey: 'mergeAccountsPage.unlockAccount',
                 icon: Expensicons.UserLock,
-                action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+                action: () => waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
+            });
+        } else {
+            baseMenuItems.push({
+                translationKey: 'mergeAccountsPage.lockAccount',
+                icon: Expensicons.UserLock,
+                action: () => waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
         }
-
-        baseMenuItems.push({
-            translationKey: 'mergeAccountsPage.lockAccount',
-            icon: Expensicons.UserLock,
-            action: isActingAsDelegate ? showDelegateNoAccessMenu : waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
-        });
 
         baseMenuItems.push({
             translationKey: 'closeAccountPage.closeAccount',
@@ -158,7 +159,7 @@ function SecuritySettingsPage() {
             link: '',
             wrapperStyle: [styles.sectionMenuItemTopDescription],
         }));
-    }, [translate, waitForNavigate, styles, isActingAsDelegate, canUseMergeAccounts]);
+    }, [isActingAsDelegate, waitForNavigate, canUseMergeAccounts, isAccountLocked, translate, styles.sectionMenuItemTopDescription]);
 
     const delegateMenuItems: MenuItemProps[] = useMemo(
         () =>

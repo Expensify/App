@@ -156,6 +156,10 @@ const SCREENS = {
             ACCOUNT_VALIDATE: 'Settings_MergeAccounts_AccountValidate',
             MERGE_RESULT: 'Settings_MergeAccounts_MergeResult',
         },
+        LOCK: {
+            LOCK_ACCOUNT: 'Settings_Lock_LockAccount',
+            UNLOCK_ACCOUNT: 'Settings_Lock_UnlockAccount',
+        },
     },
     TWO_FACTOR_AUTH: {
         ROOT: 'Settings_TwoFactorAuth_Root',

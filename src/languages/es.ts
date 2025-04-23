@@ -1498,6 +1498,8 @@ const translations = {
             description: 'No puedes fusionarte con otras cuentas porque no está validada. Por favor, valida la cuenta e inténtalo de nuevo.',
         },
         mergeFailureGenericHeading: 'No se pueden fusionar cuentas',
+    },
+    lockAccountPage: {
         lockAccount: 'Bloquear cuenta',
     },
     passwordPage: {
