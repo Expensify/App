@@ -48,6 +48,7 @@ import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
+import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 
 /**
@@ -62,6 +63,9 @@ const DELAY_FOR_SCROLLING_TO_END = 100;
 type MoneyRequestReportListProps = {
     /** The report */
     report: OnyxTypes.Report;
+
+    /** Policy that the report belongs to */
+    policy: OnyxEntry<OnyxTypes.Policy>;
 
     /** Array of report actions for this report */
     reportActions?: OnyxTypes.ReportAction[];
@@ -83,7 +87,7 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function MoneyRequestReportActionsList({report, reportActions = [], transactions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
+function MoneyRequestReportActionsList({report, policy, reportActions = [], transactions = [], hasNewerActions, hasOlderActions}: MoneyRequestReportListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {preferredLocale} = useLocalize();
@@ -94,15 +98,15 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
         canBeMissing: true,
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
     const mostRecentIOUReportActionID = useMemo(() => getMostRecentIOURequestActionID(reportActions), [reportActions]);
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], false);
     const firstVisibleReportActionID = useMemo(() => getFirstVisibleReportActionID(reportActions, isOffline), [reportActions, isOffline]);
     const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
-    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID, canBeMissing: false});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false, selector: (session) => session?.accountID});
 
     const canPerformWriteAction = canUserPerformWriteAction(report);
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(false);
@@ -462,8 +466,15 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                     isActive={isFloatingMessageCounterVisible}
                     onClick={scrollToBottomAndMarkReportAsRead}
                 />
+
                 {isEmpty(visibleReportActions) && isEmpty(transactions) ? (
-                    <SearchMoneyRequestReportEmptyState />
+                    <>
+                        <MoneyRequestViewReportFields
+                            report={report}
+                            policy={policy}
+                        />
+                        <SearchMoneyRequestReportEmptyState />
+                    </>
                 ) : (
                     <FlatList
                         initialNumToRender={INITIAL_NUM_TO_RENDER}
@@ -478,12 +489,18 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                         onStartReached={onStartReached}
                         onStartReachedThreshold={0.75}
                         ListHeaderComponent={
-                            <MoneyRequestReportTransactionList
-                                report={report}
-                                transactions={transactions}
-                                reportActions={reportActions}
-                                hasComments={reportHasComments}
-                            />
+                            <>
+                                <MoneyRequestViewReportFields
+                                    report={report}
+                                    policy={policy}
+                                />
+                                <MoneyRequestReportTransactionList
+                                    report={report}
+                                    transactions={transactions}
+                                    reportActions={reportActions}
+                                    hasComments={reportHasComments}
+                                />
+                            </>
                         }
                         keyboardShouldPersistTaps="handled"
                         onScroll={trackVerticalScrolling}

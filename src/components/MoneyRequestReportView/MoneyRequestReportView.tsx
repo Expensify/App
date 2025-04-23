@@ -123,8 +123,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
         canBeMissing: true,
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -222,6 +222,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     ) : (
                         <MoneyRequestReportActionsList
                             report={report}
+                            policy={policy}
                             transactions={transactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
