@@ -3831,6 +3831,7 @@ const translations = {
                 },
             },
             assignCard: 'Asignar tarjeta',
+            findCard: 'Encontrar tarjeta',
             cardNumber: 'Número de la tarjeta',
             commercialFeed: 'Fuente comercial',
             feedName: ({feedName}: CompanyCardFeedNameParams) => `Tarjetas ${feedName}`,
@@ -3865,6 +3866,7 @@ const translations = {
             disclaimer:
                 'La tarjeta comercial Expensify Visa® es emitida por The Bancorp Bank, N.A., miembro de la FDIC, en virtud de una licencia de Visa U.S.A. Inc. y no puede utilizarse en todos los comercios que aceptan tarjetas Visa. Apple® y el logotipo de Apple® son marcas comerciales de Apple Inc. registradas en EE.UU. y otros países. App Store es una marca de servicio de Apple Inc. Google Play y el logotipo de Google Play son marcas comerciales de Google LLC.',
             issueCard: 'Emitir tarjeta',
+            findCard: 'Encontrar Tarjetas Expensify',
             newCard: 'Nueva tarjeta',
             name: 'Nombre',
             lastFour: '4 últimos',
@@ -4225,6 +4227,7 @@ const translations = {
             customTaxName: 'Nombre del impuesto',
             value: 'Valor',
             taxRate: 'Tasa de impuesto',
+            findTaxRate: 'Encontrar tasa de impuesto',
             taxReclaimableOn: 'Impuesto recuperable en',
             error: {
                 taxRateAlreadyExists: 'Ya existe un impuesto con este nombre',
@@ -4647,6 +4650,7 @@ const translations = {
             centrallyManage: 'Gestiona centralizadamente las tasas, elige si contabilizar en millas o kilómetros, y define una categoría por defecto',
             rate: 'Tasa',
             addRate: 'Agregar tasa',
+            findRate: 'Encontrar tasa',
             trackTax: 'Impuesto de seguimiento',
             deleteRates: () => ({
                 one: 'Eliminar tasa',

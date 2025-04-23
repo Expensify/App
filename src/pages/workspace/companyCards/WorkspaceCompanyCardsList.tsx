@@ -1,10 +1,11 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {ListRenderItemInfo} from 'react-native';
 import {FlatList, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import SearchBar from '@components/SearchBar';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -34,10 +35,25 @@ type WorkspaceCompanyCardsListProps = {
 function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDisabledAssignCardButton}: WorkspaceCompanyCardsListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES, {canBeMissing: true});
 
     const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+
+    const [inputValue, setInputValue] = useState('');
+    const filteredSortedCards = useMemo(() => {
+        if (!inputValue) {
+            return sortedCards;
+        }
+        const lowerValue = inputValue.toLowerCase();
+        return sortedCards.filter((card) => {
+            const cardTitle = card.nameValuePairs?.cardTitle?.toLowerCase() ?? '';
+            const lastFourPAN = card?.lastFourPAN?.toLowerCase() ?? '';
+            const accountLogin = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '';
+            const accountName = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '';
+            return cardTitle.includes(lowerValue) || lastFourPAN.includes(lowerValue) || accountLogin.includes(lowerValue) || accountName.includes(lowerValue);
+        });
+    }, [inputValue, personalDetails, sortedCards]);
 
     const renderItem = useCallback(
         ({item, index}: ListRenderItemInfo<Card>) => {
@@ -104,14 +120,26 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
         );
     }
 
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
     return (
-        <FlatList
-            contentContainerStyle={styles.flexGrow1}
-            data={sortedCards}
-            renderItem={renderItem}
-            ListHeaderComponent={renderListHeader}
-            stickyHeaderIndices={[0]}
-        />
+        <>
+            {sortedCards.length > 0 && (
+                <SearchBar
+                    label={translate('workspace.companyCards.findCard')}
+                    inputValue={inputValue}
+                    onChangeText={setInputValue}
+                    shouldShowEmptyState={isSearchEmpty}
+                />
+            )}
+            <FlatList
+                contentContainerStyle={styles.flexGrow1}
+                data={filteredSortedCards}
+                renderItem={renderItem}
+                ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
+                stickyHeaderIndices={[0]}
+            />
+        </>
     );
 }
 

@@ -9,6 +9,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as Illustrations from '@components/Icon/Illustrations';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
@@ -65,7 +66,7 @@ function WorkspaceTaxesPage({
     const defaultExternalID = policy?.taxRates?.defaultExternalID;
     const foreignTaxDefault = policy?.taxRates?.foreignTaxDefault;
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`);
+    const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy?.id}`, {canBeMissing: true});
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
 
@@ -75,6 +76,7 @@ function WorkspaceTaxesPage({
 
     const enabledRatesCount = selectedTaxesIDs.filter((taxID) => !policy?.taxRates?.taxes[taxID]?.isDisabled).length;
     const disabledRatesCount = selectedTaxesIDs.length - enabledRatesCount;
+    const [inputValue, setInputValue] = useState('');
 
     const fetchTaxes = useCallback(() => {
         openPolicyTaxesPage(policyID);
@@ -176,6 +178,18 @@ function WorkspaceTaxesPage({
             .sort((a, b) => (a.text ?? a.keyForList ?? '').localeCompare(b.text ?? b.keyForList ?? ''));
     }, [policy, textForDefault, selectedTaxesIDs, canSelectMultiple, translate, updateWorkspaceTaxEnabled]);
 
+    const filteredTaxesList = useMemo(() => {
+        if (!inputValue) {
+            return taxesList;
+        }
+        const lowerQuery = inputValue.toLowerCase();
+        return taxesList.filter((tax) => {
+            const taxName = tax.text?.toLowerCase() ?? '';
+            const taxAlternateText = tax.alternateText?.toLowerCase() ?? '';
+            return taxName.includes(lowerQuery) || taxAlternateText.includes(lowerQuery);
+        });
+    }, [inputValue, taxesList]);
+
     const isLoading = !isOffline && taxesList === undefined;
 
     const toggleTax = (tax: ListItem) => {
@@ -193,7 +207,7 @@ function WorkspaceTaxesPage({
     };
 
     const toggleAllTaxes = () => {
-        const taxesToSelect = taxesList.filter(
+        const taxesToSelect = filteredTaxesList.filter(
             (tax) => tax.keyForList !== defaultExternalID && tax.keyForList !== foreignTaxDefault && tax.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         );
         setSelectedTaxesIDs((prev) => {
@@ -363,7 +377,15 @@ function WorkspaceTaxesPage({
                 </HeaderWithBackButton>
                 {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>}
 
-                {!shouldUseNarrowLayout && getHeaderText()}
+                {getHeaderText()}
+                {taxesList.length > 15 && (
+                    <SearchBar
+                        label={translate('workspace.taxes.findTaxRate')}
+                        inputValue={inputValue}
+                        onChangeText={setInputValue}
+                        shouldShowEmptyState={filteredTaxesList.length === 0}
+                    />
+                )}
                 {isLoading && (
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
@@ -375,13 +397,12 @@ function WorkspaceTaxesPage({
                     canSelectMultiple={canSelectMultiple}
                     turnOnSelectionModeOnLongPress
                     onTurnOnSelectionMode={(item) => item && toggleTax(item)}
-                    sections={[{data: taxesList, isDisabled: false}]}
+                    sections={[{data: filteredTaxesList, isDisabled: false}]}
                     onCheckboxPress={toggleTax}
                     onSelectRow={navigateToEditTaxRate}
                     onSelectAll={toggleAllTaxes}
                     ListItem={TableListItem}
                     customListHeader={getCustomListHeader()}
-                    listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
                     shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                     listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
                     onDismissError={(item) => (item.keyForList ? clearTaxRateError(policyID, item.keyForList, item.pendingAction) : undefined)}

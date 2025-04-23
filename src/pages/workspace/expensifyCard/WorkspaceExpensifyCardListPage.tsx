@@ -13,6 +13,7 @@ import {HandCard} from '@components/Icon/Illustrations';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
 import ScreenWrapper from '@components/ScreenWrapper';
+import SearchBar from '@components/SearchBar';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useLocalize from '@hooks/useLocalize';
@@ -54,14 +55,14 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const workspaceAccountID = policy?.workspaceAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [cardOnWaitlist] = useOnyx(`${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST}${policyID}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${fundID}`, {canBeMissing: true});
     const allExpensifyCardFeeds = useExpensifyCardFeeds(policyID);
 
     const shouldShowSelector = Object.keys(allExpensifyCardFeeds ?? {}).length > 1;
 
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: false});
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
 
     const shouldChangeLayout = isMediumScreenWidth || shouldUseNarrowLayout;
@@ -71,6 +72,22 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const policyCurrency = useMemo(() => policy?.outputCurrency ?? CONST.CURRENCY.USD, [policy]);
 
     const sortedCards = useMemo(() => sortCardsByCardholderName(cardsList, personalDetails), [cardsList, personalDetails]);
+
+    const [inputValue, setInputValue] = useState('');
+
+    const filteredSortedCards = useMemo(() => {
+        if (!inputValue) {
+            return sortedCards;
+        }
+        const lowerValue = inputValue.toLowerCase();
+        return sortedCards.filter((card) => {
+            const cardTitle = card.nameValuePairs?.cardTitle?.toLowerCase() ?? '';
+            const lastFourPAN = card?.lastFourPAN?.toLowerCase() ?? '';
+            const accountLogin = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.login?.toLowerCase() ?? '';
+            const accountName = personalDetails?.[card.accountID ?? CONST.DEFAULT_NUMBER_ID]?.displayName?.toLowerCase() ?? '';
+            return cardTitle.includes(lowerValue) || lastFourPAN.includes(lowerValue) || accountLogin.includes(lowerValue) || accountName.includes(lowerValue);
+        });
+    }, [inputValue, sortedCards, personalDetails]);
 
     const handleIssueCardPress = () => {
         if (isActingAsDelegate) {
@@ -141,6 +158,8 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
 
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
     return (
         <ScreenWrapper
             enableEdgeToEdgeBottomSafeAreaPadding
@@ -173,12 +192,22 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             {isEmptyObject(cardsList) ? (
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
-                <FlatList
-                    data={sortedCards}
-                    renderItem={renderItem}
-                    ListHeaderComponent={renderListHeader}
-                    contentContainerStyle={bottomSafeAreaPaddingStyle}
-                />
+                <>
+                    {sortedCards.length > 15 && (
+                        <SearchBar
+                            inputValue={inputValue}
+                            onChangeText={setInputValue}
+                            shouldShowEmptyState={isSearchEmpty}
+                            label={translate('workspace.expensifyCard.findCard')}
+                        />
+                    )}
+                    <FlatList
+                        data={filteredSortedCards}
+                        renderItem={renderItem}
+                        ListHeaderComponent={!isSearchEmpty ? renderListHeader : null}
+                        contentContainerStyle={bottomSafeAreaPaddingStyle}
+                    />
+                </>
             )}
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}

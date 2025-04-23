@@ -3790,6 +3790,7 @@ const translations = {
                 },
             },
             assignCard: 'Assign card',
+            findCard: 'Find card',
             cardNumber: 'Card number',
             commercialFeed: 'Commercial feed',
             feedName: ({feedName}: CompanyCardFeedNameParams) => `${feedName} cards`,
@@ -3824,6 +3825,7 @@ const translations = {
             disclaimer:
                 'The Expensify Visa® Commercial Card is issued by The Bancorp Bank, N.A., Member FDIC, pursuant to a license from Visa U.S.A. Inc. and may not be used at all merchants that accept Visa cards. Apple® and the Apple logo® are trademarks of Apple Inc., registered in the U.S. and other countries. App Store is a service mark of Apple Inc. Google Play and the Google Play logo are trademarks of Google LLC.',
             issueCard: 'Issue card',
+            findCard: 'Find Expensify card',
             newCard: 'New card',
             name: 'Name',
             lastFour: 'Last 4',
@@ -4179,6 +4181,7 @@ const translations = {
             value: 'Value',
             taxReclaimableOn: 'Tax reclaimable on',
             taxRate: 'Tax rate',
+            findTaxRate: 'Find tax rate',
             error: {
                 taxRateAlreadyExists: 'This tax name is already in use',
                 taxCodeAlreadyExists: 'This tax code is already in use',
@@ -4599,6 +4602,7 @@ const translations = {
             centrallyManage: 'Centrally manage rates, track in miles or kilometers, and set a default category.',
             rate: 'Rate',
             addRate: 'Add rate',
+            findRate: 'Find rate',
             trackTax: 'Track tax',
             deleteRates: () => ({
                 one: 'Delete rate',
