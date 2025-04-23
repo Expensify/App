@@ -1,3 +1,4 @@
+import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
@@ -18,7 +19,7 @@ const navigateAfterOnboarding = (
     Navigation.dismissModal();
 
     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
-        setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT));
+        InteractionManager.runAfterInteractions(() => Navigation.navigate(ROUTES.TEST_DRIVE_MODAL_ROOT));
         return;
     }
 
