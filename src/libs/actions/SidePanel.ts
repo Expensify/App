@@ -3,6 +3,7 @@ import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {CloseSidePanelParams, OpenSidePanelParams} from '@libs/API/parameters';
 
 /**
  * Open the side panel
@@ -18,7 +19,9 @@ function openSidePanel(shouldOpenOnNarrowScreen: boolean) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.OPEN_SIDE_PANEL, null, {optimisticData});
+    const params: OpenSidePanelParams = {isNarrowScreen: shouldOpenOnNarrowScreen};
+
+    API.write(WRITE_COMMANDS.OPEN_SIDE_PANEL, params, {optimisticData});
 }
 
 /**
@@ -35,7 +38,9 @@ function closeSidePanel(shouldCloseOnNarrowScreen: boolean) {
         },
     ];
 
-    API.write(WRITE_COMMANDS.CLOSE_SIDE_PANEL, null, {optimisticData});
+    const params: CloseSidePanelParams = {isNarrowScreen: shouldCloseOnNarrowScreen};
+
+    API.write(WRITE_COMMANDS.CLOSE_SIDE_PANEL, params, {optimisticData});
 }
 
 export default {openSidePanel, closeSidePanel};
