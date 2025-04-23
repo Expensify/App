@@ -47,7 +47,7 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getCountOfEnabledTagsOfList, getCountOfRequiredTagLists, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
