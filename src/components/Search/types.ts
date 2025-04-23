@@ -172,4 +172,5 @@ export type {
     PaymentData,
     SearchAutocompleteQueryRange,
     TableColumnSize,
+    SearchGroupBy,
 };
