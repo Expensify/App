@@ -814,6 +814,7 @@ type GetReportNameParams = {
     draftReports?: OnyxCollection<Report>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     policies?: SearchPolicy[];
+    participantPersonalDetailList?: PersonalDetails[];
 };
 
 type ReportByPolicyMap = Record<string, Report[]>;
@@ -4556,18 +4557,41 @@ function getInvoicesChatName({
 /**
  * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
  */
-function buildReportNameFromParticipantNames({report, personalDetails}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) {
+function buildReportNameFromParticipantNames({
+    report,
+    personalDetails,
+    participantPersonalDetailList,
+}: {
+    report: OnyxEntry<Report>;
+    personalDetails?: Partial<PersonalDetailsList>;
+    participantPersonalDetailList?: PersonalDetails[];
+}) {
     const participantsWithoutCurrentUser: number[] = [];
-    Object.keys(report?.participants ?? {}).forEach((accountID) => {
+    const currentParticipants = participantPersonalDetailList ?? report?.participants ?? {};
+    Object.keys(currentParticipants).forEach((accountID) => {
         const accID = Number(accountID);
         if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
             participantsWithoutCurrentUser.push(accID);
         }
     });
+
     const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    return participantsWithoutCurrentUser
-        .map((accountID) => getDisplayNameForParticipant({accountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData: personalDetails}))
-        .join(', ');
+    const displayNames = participantsWithoutCurrentUser
+        .map((accountID) => ({
+            accountID,
+            value: getDisplayNameForParticipant({accountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData: personalDetails}),
+        }))
+        .filter((name) => name.value);
+
+    if (!displayNames || displayNames.length === 0) {
+        return '';
+    }
+
+    if (displayNames.length > 1) {
+        return displayNames.map((name) => name.value).join(', ');
+    }
+
+    return getDisplayNameForParticipant({accountID: displayNames.at(0)?.accountID, shouldUseShortForm: false, personalDetailsData: personalDetails});
 }
 
 function generateReportName(report: OnyxEntry<Report>): string {
@@ -4586,6 +4610,7 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
+    participantPersonalDetailList?: PersonalDetails[],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
@@ -4593,7 +4618,7 @@ function getReportName(
     if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
         return reportAttributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, participantPersonalDetailList});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -4620,6 +4645,7 @@ function getReportNameInternal({
     reports,
     reportNameValuePairs,
     policies,
+    participantPersonalDetailList,
 }: GetReportNameParams): string {
     const reportID = report?.reportID;
 
@@ -4821,7 +4847,7 @@ function getReportNameInternal({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetails, participantPersonalDetailList});
 
     return formattedName;
 }
