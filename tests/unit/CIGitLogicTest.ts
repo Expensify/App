@@ -81,6 +81,38 @@ function getVersion(): string {
     return packageJson.version;
 }
 
+function initGithubAPIMocking() {
+    jest.spyOn(core, 'getInput').mockImplementation((name) => {
+        if (name === 'GITHUB_TOKEN') {
+            return 'mock-token';
+        }
+        return mockGetInput(name) || '';
+    });
+    jest.spyOn(GithubUtils.octokit.repos, 'compareCommits')
+        .mockImplementation(async (params) => {
+            const base = params?.base;
+            const head = params?.head;
+            let mockCommits: any[] = [];
+            console.log(`Mock compareCommits called with: ${base}...${head}`);
+
+            if (base === '2.0.0-0' && head === '2.0.0-1-staging') {
+                mockCommits = [
+                    { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                ];
+            }
+            return {
+                ...mockCompareCommitsResponseBase,
+                data: {
+                    ...mockCompareCommitsResponseBase.data,
+                    commits: mockCommits,
+                    total_commits: mockCommits.length,
+                    ahead_by: mockCommits.length,
+                    status: mockCommits.length > 0 ? 'ahead' : 'identical',
+                },
+            };
+        });
+}
+
 function initGitServer() {
     Log.info('Initializing git server...');
     if (fs.existsSync(GIT_REMOTE)) {
@@ -369,40 +401,9 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
-        // Mocking the Github API is necessary for the retrieval of commits data
-        jest.spyOn(core, 'getInput').mockImplementation((name) => {
-            if (name === 'GITHUB_TOKEN') {
-                return 'mock-token';
-            }
-            return mockGetInput(name) || '';
-        });
-
-        jest.spyOn(GithubUtils.octokit.repos, 'compareCommits')
-            .mockImplementation(async (params) => {
-                const base = params?.base;
-                const head = params?.head;
-                let mockCommits: any[] = [];
-                console.log(`Mock compareCommits called with: ${base}...${head}`);
-
-                if (base === '2.0.0-0' && head === '2.0.0-1-staging') {
-                    mockCommits = [
-                        { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                }
-                return {
-                    ...mockCompareCommitsResponseBase,
-                    data: {
-                        ...mockCompareCommitsResponseBase.data,
-                        commits: mockCommits,
-                        total_commits: mockCommits.length,
-                        ahead_by: mockCommits.length,
-                        status: mockCommits.length > 0 ? 'ahead' : 'identical',
-                    },
-                };
-            });
-
         Log.info('Starting setup');
         startingDir = process.cwd();
+        initGithubAPIMocking();
         initGitServer();
         checkoutRepo();
         Log.success('Setup complete!');
