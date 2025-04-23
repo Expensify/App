@@ -6223,7 +6223,7 @@ const translations = {
             part3: '\nand more!',
         },
         expenseReportsFilter: {
-            part1: 'Welcome!\nFind all of your ',
+            part1: 'Welcome! Find all of your\n',
             part2: "company's reports",
             part3: ' here.',
         },
