@@ -27,7 +27,6 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useSubscriptionPlan from '@hooks/useSubscriptionPlan';
 import useTheme from '@hooks/useTheme';
@@ -120,7 +119,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const freeTrialText = getFreeTrialText(policies);
     const shouldOpenBookACall = tryNewDot?.classicRedirect?.dismissed === false;
 
-    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isScreenFocused = useIsAccountSettingsRouteActive(shouldUseNarrowLayout);
 
     useEffect(() => {
