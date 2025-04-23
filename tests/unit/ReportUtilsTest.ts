@@ -2327,17 +2327,17 @@ describe('ReportUtils', () => {
     describe('isArchivedNonExpenseReportWithID', () => {
         // Given an expense report, a chat report, and an archived chat report
         const expenseReport: Report = {
-            ...createRandomReport(1),
+            ...createRandomReport(1000),
             ownerAccountID: employeeAccountID,
             type: CONST.REPORT.TYPE.EXPENSE,
         };
         const chatReport: Report = {
-            ...createRandomReport(2),
+            ...createRandomReport(2000),
             ownerAccountID: employeeAccountID,
             type: CONST.REPORT.TYPE.CHAT,
         };
         const archivedChatReport: Report = {
-            ...createRandomReport(3),
+            ...createRandomReport(3000),
             ownerAccountID: employeeAccountID,
             type: CONST.REPORT.TYPE.CHAT,
         };
