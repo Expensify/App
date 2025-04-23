@@ -581,8 +581,8 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       icon: Expensicons.Binoculars,
                       iconStyles: styles.popoverIconCircle,
                       iconFill: theme.icon,
-                      text: translate('tour.takeATwoMinuteTour'),
-                      description: translate('tour.exploreExpensify'),
+                      text: translate('testDrive.quickAction.takeATwoMinuteTestDrive'),
+                      description: translate('testDrive.quickAction.exploreExpensify'),
                       onSelected: () => {
                           openExternalLink(navatticURL);
                           setSelfTourViewed(isAnonymousUser());
