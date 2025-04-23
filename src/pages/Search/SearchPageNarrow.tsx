@@ -5,8 +5,8 @@ import Animated, {clamp, runOnJS, useAnimatedScrollHandler, useAnimatedStyle, us
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import BottomTabBar from '@components/Navigation/BottomTabBar';
-import BOTTOM_TABS from '@components/Navigation/BottomTabBar/BOTTOM_TABS';
+import NavigationTabBar from '@components/Navigation/NavigationTabBar';
+import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
 import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
@@ -17,6 +17,7 @@ import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar
 import type {SearchQueryJSON} from '@components/Search/types';
 import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useScrollEventEmitter from '@hooks/useScrollEventEmitter';
@@ -26,6 +27,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildCannedSearchQuery, isCannedSearchQuery, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
+import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -55,6 +57,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {canUseLeftHandBar} = usePermissions();
     const searchResults = currentSearchResults?.data ? currentSearchResults : lastNonEmptySearchResults;
+    const {isOffline} = useNetwork();
 
     // Controls the visibility of the educational tooltip based on user scrolling.
     // Hides the tooltip when the user is scrolling and displays it once scrolling stops.
@@ -134,20 +137,24 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
         );
     }
 
+    const isDataLoaded = isSearchDataLoaded(currentSearchResults, lastNonEmptySearchResults, queryJSON);
+    const shouldShowLoadingState = !isOffline && !isDataLoaded;
+
     return (
         <ScreenWrapper
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            bottomContent={!searchRouterListVisible && <BottomTabBar selectedTab={BOTTOM_TABS.SEARCH} />}
+            extraContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
             <View style={[styles.flex1, styles.overflowHidden]}>
                 {!selectionMode?.isEnabled ? (
-                    <View style={[StyleUtils.getSearchBottomTabHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
+                    <View style={[StyleUtils.getSearchPageNarrowHeaderStyles(), searchRouterListVisible && styles.flex1, styles.mh100]}>
                         <View style={[styles.zIndex10, styles.appBG]}>
                             <TopBar
+                                shouldShowLoadingBar={shouldShowLoadingState}
                                 activeWorkspaceID={policyID}
                                 breadcrumbLabel={translate('common.reports')}
                                 shouldDisplaySearch={false}
