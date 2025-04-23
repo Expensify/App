@@ -1,5 +1,5 @@
 {
-    "name": "expensify-nitro-utils",
+    "name": "@expensify/nitro-utils",
     "version": "0.0.1",
     "main": "src/index",
     "react-native": "src/index",

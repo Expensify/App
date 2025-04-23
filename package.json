@@ -83,6 +83,7 @@
     "@dotlottie/react-player": "^1.6.3",
     "@expensify/react-native-background-task": "file:./modules/background-task",
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
+    "@expensify/nitro-utils": "file:./modules/ExpensifyNitroUtils",
     "@expensify/react-native-live-markdown": "0.1.244",
     "@expensify/react-native-wallet": "file:modules/expensify-react-native-wallet.tgz",
     "@expo/metro-runtime": "^4.0.1",
@@ -317,7 +318,6 @@
     "eslint-plugin-storybook": "^0.12.0",
     "eslint-plugin-testing-library": "^6.2.2",
     "eslint-plugin-you-dont-need-lodash-underscore": "^6.14.0",
-    "expensify-nitro-utils": "./modules/ExpensifyNitroUtils",
     "googleapis": "^144.0.0",
     "html-webpack-plugin": "^5.5.0",
     "http-server": "^14.1.1",
@@ -406,8 +406,5 @@
   "engines": {
     "node": "20.18.1",
     "npm": "10.8.2"
-  },
-  "workspaces": [
-    "modules/ExpensifyNitroUtils"
-  ]
+  }
 }
