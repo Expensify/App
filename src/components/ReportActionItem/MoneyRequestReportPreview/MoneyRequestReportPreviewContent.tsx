@@ -86,7 +86,6 @@ const FixIconPadding = <View style={{height: variables.iconSizeNormal}} />;
 
 function MoneyRequestReportPreviewContent({
     iouReportID,
-    policyID,
     chatReportID,
     action,
     containerStyles,
@@ -105,12 +104,13 @@ function MoneyRequestReportPreviewContent({
     invoiceReceiverPersonalDetail,
     lastTransactionViolations,
     isDelegateAccessRestricted,
-    renderItem,
-    getCurrentWidth,
+    renderTransactionItem,
+    onLayout,
     reportPreviewStyles,
     shouldDisplayContextMenu = true,
     isInvoice,
     shouldShowBorder = false,
+    onPress,
 }: MoneyRequestReportPreviewContentProps) {
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
@@ -405,7 +405,7 @@ function MoneyRequestReportPreviewContent({
                 </View>
             );
         }
-        return renderItem(itemInfo);
+        return renderTransactionItem(itemInfo);
     };
 
     // The button should expand up to transaction width
@@ -440,10 +440,10 @@ function MoneyRequestReportPreviewContent({
             >
                 <View
                     style={[styles.chatItemMessage, containerStyles]}
-                    onLayout={getCurrentWidth}
+                    onLayout={onLayout}
                 >
                     <PressableWithoutFeedback
-                        onPress={() => {}}
+                        onPress={onPress}
                         onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                         onPressOut={() => ControlSelection.unblock()}
                         onLongPress={(event) => {
@@ -580,7 +580,6 @@ function MoneyRequestReportPreviewContent({
                                             onAnimationFinish={stopAnimation}
                                             formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, buttonType)}
                                             currency={iouReport?.currency}
-                                            policyID={policyID}
                                             chatReportID={chatReportID}
                                             iouReport={iouReport}
                                             wrapperStyle={buttonMaxWidth}
@@ -625,7 +624,7 @@ function MoneyRequestReportPreviewContent({
                                             text={translate('common.review', {
                                                 amount: shouldShowSettlementButton ? getTotalAmountForIOUReportPreviewButton(iouReport, policy, buttonType) : '',
                                             })}
-                                            onPress={() => {}}
+                                            onPress={onPress}
                                             style={buttonMaxWidth}
                                         />
                                     )}
@@ -647,7 +646,6 @@ function MoneyRequestReportPreviewContent({
                     isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                     onClose={() => setIsNoDelegateAccessMenuVisible(false)}
                 />
-
                 {isHoldMenuVisible && !!iouReport && !!requestType && (
                     <ProcessMoneyReportHoldMenu
                         nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}
