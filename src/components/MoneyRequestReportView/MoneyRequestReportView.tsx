@@ -212,12 +212,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                             hasNewerActions={hasNewerActions}
                         />
                     )}
-                    <Button
-                        success
-                        onPress={() => openUnreportedExpense(reportID)}
-                    >
-                        OPEN
-                    </Button>
                     {shouldDisplayReportFooter ? (
                         <ReportFooter
                             report={report}
