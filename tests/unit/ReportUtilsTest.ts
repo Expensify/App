@@ -1,7 +1,9 @@
 /* eslint-disable @typescript-eslint/naming-convention */
+import {renderHook} from '@testing-library/react-native';
 import {addDays, format as formatDate} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
@@ -2352,15 +2354,19 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the report is an expense report', () => {
-            expect(isArchivedNonExpenseReportWithID(expenseReport.reportID)).toBe(false);
+            // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(expenseReport, isReportArchived.current)).toBe(false);
         });
 
         it('should return false if the report is a non-expense report and not archived', () => {
-            expect(isArchivedNonExpenseReportWithID(chatReport.reportID)).toBe(false);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(chatReport, isReportArchived.current)).toBe(false);
         });
 
         it('should return true if the report is a non-expense report and archived', () => {
-            expect(isArchivedNonExpenseReportWithID(archivedChatReport.reportID)).toBe(true);
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(archivedChatReport?.reportID));
+            expect(isArchivedNonExpenseReportWithID(archivedChatReport, isReportArchived.current)).toBe(true);
         });
     });
 });
