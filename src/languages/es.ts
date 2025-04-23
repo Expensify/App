@@ -5348,7 +5348,6 @@ const translations = {
                     automaticActionTwo: 'configuración contable',
                     manual: ({label}: ExportedToIntegrationParams) => `marcó este informe como exportado manualmente a ${label}.`,
                     automaticActionThree: 'y creó correctamente un registro para',
-                    and: 'y',
                     reimburseableLink: 'gastos por cuenta propia',
                     nonReimbursableLink: 'gastos de la tarjeta de empresa.',
                     pending: ({label}: ExportedToIntegrationParams) => `comenzó a exportar este informe a ${label}...`,

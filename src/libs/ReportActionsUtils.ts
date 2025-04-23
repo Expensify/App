@@ -1810,7 +1810,7 @@ function getExportIntegrationActionFragments(reportAction: OnyxEntry<ReportActio
     }
     if (reimbursableUrls.length === 1 && nonReimbursableUrls.length) {
         result.push({
-            text: translateLocal('report.actions.type.exportedToIntegration.and'),
+            text: translateLocal('common.and'),
             url: '',
         });
     }
