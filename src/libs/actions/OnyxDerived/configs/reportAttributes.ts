@@ -19,8 +19,14 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.COLLECTION.REPORT_ACTIONS,
         ONYXKEYS.COLLECTION.POLICY,
         ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+        ONYXKEYS.COLLECTION.REPORT_DRAFT,
     ],
-    compute: (dependencies, {currentValue, sourceValues}) => {
+    compute: (_dependencies, {currentValue, sourceValues}) => {
+        const dependencies = [..._dependencies] as typeof _dependencies;
+
+        // Add correct default value for REPORT_DRAFT collection
+        dependencies[7] ??= {};
+
         const areAllDependenciesSet = [...dependencies].every((dependency) => dependency !== undefined);
         if (!areAllDependenciesSet) {
             return {
