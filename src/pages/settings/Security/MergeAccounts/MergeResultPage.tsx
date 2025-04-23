@@ -1,6 +1,6 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {useRoute} from '@react-navigation/native';
-import React, {useContext, useMemo} from 'react';
+import React, {useContext, useEffect, useMemo} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
@@ -23,7 +23,7 @@ import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
@@ -227,6 +227,14 @@ function MergeResultPage() {
             },
         };
     }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
+
+    useEffect(() => {
+        if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
+            return;
+        }
+
+        Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+    }, [result]);
 
     const {
         heading,
