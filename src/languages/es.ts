@@ -6730,10 +6730,10 @@ const translations = {
             part2: ' aquí',
         },
         bottomNavInboxTooltip: {
-            part1: 'Consulta lo que ',
-            part2: 'requiere tu atención',
+            part1: 'Revisa lo que ',
+            part2: 'necesita tu atención',
             part3: '\ny ',
-            part4: 'chatea sobre gastos.',
+            part4: 'chatea sobre los gastos.',
         },
         workspaceChatTooltip: {
             part1: 'Envía gastos',
@@ -6746,9 +6746,9 @@ const translations = {
             part3: '\ny mucho más!',
         },
         expenseReportsFilter: {
-            part1: '¡Bienvenido!\nEncuentra todos los ',
-            part2: 'informes de tu empresa',
-            part3: ' aquí.',
+            part1: '¡Bienvenido!\nAquí encontrarás todos los ',
+            part2: 'informes de tu empresa.',
+            part3: '',
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
