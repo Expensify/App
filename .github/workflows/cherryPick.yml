@@ -123,7 +123,7 @@ jobs:
       - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
         run: |
-          read MERGE_COMMIT_SHA MERGE_ACTOR <<< "$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json mergeCommit,author --jq '"\(.mergeCommit.oid) \(.author.login)"')"
+          read -r MERGE_COMMIT_SHA MERGE_ACTOR <<< "$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json mergeCommit,author --jq '"\(.mergeCommit.oid) \(.author.login)"')"
           echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
           echo "MERGE_ACTOR=$MERGE_ACTOR" >> "$GITHUB_OUTPUT"
         env:
