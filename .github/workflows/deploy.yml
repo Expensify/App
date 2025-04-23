@@ -45,12 +45,11 @@ jobs:
         id: getAppVersion
         run: echo "VERSION=$(jq -r .version < package.json)" >> "$GITHUB_OUTPUT"
 
-      - name: Get tag name
+      - name: Get tag
         id: getTagName
         run: echo "TAG=${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && steps.getAppVersion.outputs.VERSION || format('{0}-staging', steps.getAppVersion.outputs.VERSION) }}" >> "$GITHUB_OUTPUT"
 
       - name: Create and push tag
-        if: ${{ !fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
           git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
@@ -166,11 +165,13 @@ jobs:
       - name: Submit production build for Google Play review and a slow rollout
         if: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) }}
         run: |
-          # The Play Store is slow to review Android releases. To avoid halting production rollouts, we must wait for the previous release to finish rolling out before uploading a new one.
-          # Skip this release if the current prod release is not fully rolled out.
+          # Complete the previous version rollout if the current rollout percentage is not -1 (no rollout in progress) or 1 (fully rolled out)
+          echo "Current rollout percentage: ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }}"
           if [[ ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '-1' && ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} != '1' ]]; then
-            echo "Skipping Android release because the current prod release ${{ steps.getAndroidRolloutPercentage.outputs.CURRENT_ROLLOUT_PERCENTAGE }} has not fully rolled out"
-            exit 0
+            echo "Completing the previous version rollout"
+              bundle exec fastlane android complete_hybrid_rollout
+          else
+              echo "Skipping the completion of the previous version rollout"
           fi
 
           # Submit the new version for review and slow rollout when it's approved
@@ -286,14 +287,14 @@ jobs:
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-sourcemaps-artifact' || 'desktop-staging-sourcemaps-artifact' }}
+          name: desktop-sourcemaps-artifact
           path: ./desktop/dist/www/merged-source-map.js.map
 
       - name: Upload desktop build artifact
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'desktop-build-artifact' || 'desktop-staging-build-artifact' }}
+          name: desktop-build-artifact
           path: ./desktop-build/NewExpensify.dmg
 
   ios:
@@ -517,7 +518,7 @@ jobs:
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-sourcemaps-artifact
+          name: web-sourcemaps-artifact
           path: ./dist/merged-source-map.js.map
 
       - name: Compress web build .tar.gz and .zip
@@ -529,14 +530,14 @@ jobs:
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-build-tar-gz-artifact
+          name: web-build-tar-gz-artifact
           path: ./webBuild.tar.gz
 
       - name: Upload .zip web build artifact
         # v4
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: ${{ fromJSON(env.SHOULD_DEPLOY_PRODUCTION) && 'web' || 'web-staging' }}-build-zip-artifact
+          name: web-build-zip-artifact
           path: ./webBuild.zip
 
   postSlackMessageOnFailure:
@@ -589,94 +590,29 @@ jobs:
           echo "IS_ALL_PLATFORMS_DEPLOYED=$isAllPlatformsDeployed" >> "$GITHUB_OUTPUT"
           echo "IS_ALL_PLATFORMS_DEPLOYED is $isAllPlatformsDeployed"
 
-  createPrerelease:
+  createRelease:
     runs-on: ubuntu-latest
-    if: ${{ always() && github.ref == 'refs/heads/staging' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
+    if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
+      # v4.2.1
       - name: Download all workflow run artifacts
-        # v4
         uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
 
-      - name: 🚀 Create prerelease 🚀
+      - name:  🚀 Create release 🚀
         run: |
-          gh release create ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --title ${{ needs.prep.outputs.APP_VERSION }} --generate-notes --prerelease --verify-tag --target staging
+          gh release create ${{ needs.prep.outputs.TAG }} ${{ github.ref == 'refs/heads/staging' && '--prerelease' || '' }} \
+            --repo ${{ github.repository }} \
+            --title ${{ needs.prep.outputs.TAG }} \
+            --generate-notes \
+            --verify-tag \
+            --target ${{ github.ref }}
           RETRIES=0
-          MAX_RETRIES=10
+          readonly MAX_RETRIES=10
           until [[ $(gh release view ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }}) || $RETRIES -ge $MAX_RETRIES ]]; do
-            echo "release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
+            echo "Release not found, retrying $((MAX_RETRIES - RETRIES++)) times"
             sleep 1
           done
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Rename web and desktop sourcemaps artifacts before assets upload in order to have unique ReleaseAsset.name
-        continue-on-error: true
-        run: |
-          mv ./desktop-staging-sourcemaps-artifact/merged-source-map.js.map ./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map
-          mv ./web-staging-sourcemaps-artifact/merged-source-map.js.map ./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map
-
-      - name: Upload artifacts to GitHub Release
-        continue-on-error: true
-        run: |
-          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
-          files=(
-            "./android-build-artifact/Expensify-release.aab#android.aab"
-            "./android-apk-artifact/Expensify.apk#android.apk"
-            "./android-sourcemap-artifact/index.android.bundle.map#android-sourcemap.js.map"
-            "./desktop-staging-sourcemaps-artifact/desktop-staging-merged-source-map.js.map#desktop-staging-sourcemap.js.map"
-            "./desktop-staging-build-artifact/NewExpensify.dmg#desktop-staging.dmg"
-            "./ios-build-artifact/Expensify.ipa#ios.ipa"
-            "./ios-sourcemap-artifact/main.jsbundle.map#ios-sourcemap.js.map"
-            "./web-staging-sourcemaps-artifact/web-staging-merged-source-map.js.map#web-staging-sourcemap.js.map"
-            "./web-staging-build-tar-gz-artifact/webBuild.tar.gz#web-staging.tar.gz"
-            "./web-staging-build-zip-artifact/webBuild.zip#web-staging.zip"
-          )
-
-          # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
-          for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber "$file_entry" || {
-              echo "Failed to upload $file_entry. Continuing with the next file."
-              continue
-            }
-            echo "Successfully uploaded $file_entry."
-          done
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
-      - name: Warn deployers if staging deploy failed
-        if: ${{ failure() }}
-        # v3
-        uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
-        with:
-          status: custom
-          custom_payload: |
-            {
-              channel: '#deployer',
-              attachments: [{
-                color: "#DB4545",
-                pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot staging deploy failed. 💥`,
-              }]
-            }
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
-
-  finalizeRelease:
-    runs-on: ubuntu-latest
-    if: ${{ always() && github.ref == 'refs/heads/production' && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, checkDeploymentSuccess]
-    steps:
-      - name: Download all workflow run artifacts
-        # v4
-        uses: actions/download-artifact@95815c38cf2ff2164869cbab79da8d1f422bc89e
-
-      - name: 🚀 Edit the release to be no longer a prerelease 🚀
-        run: |
-          LATEST_RELEASE="$(gh release list --repo ${{ github.repository }} --exclude-pre-releases --json tagName,isLatest --jq '.[] | select(.isLatest) | .tagName')"
-          gh api --method POST /repos/Expensify/App/releases/generate-notes -f "tag_name=${{ needs.prep.outputs.TAG }}" -f "previous_tag_name=$LATEST_RELEASE" | jq -r '.body' >> releaseNotes.md
-          gh release edit ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --prerelease=false --latest --notes-file releaseNotes.md
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
@@ -689,27 +625,33 @@ jobs:
       - name: Upload artifacts to GitHub Release
         continue-on-error: true
         run: |
-          # Release asset name should follow the template: [platform]-[staging, production or blank]-[sourcemap or blank].[file extension]
-          files=(
-            "./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-production-sourcemap.js.map"
-            "./desktop-build-artifact/NewExpensify.dmg#desktop-production.dmg"
-            "./web-sourcemaps-artifact/web-merged-source-map.js.map#web-production-sourcemap.js.map"
-            "./web-build-tar-gz-artifact/webBuild.tar.gz#web-production.tar.gz"
-            "./web-build-zip-artifact/webBuild.zip#web-production.zip"
-          )
+          # Release asset name should follow the template: fileNameOnRunner#fileNameInRelease
+          files="
+            ./android-build-artifact/Expensify-release.aab#android.aab
+            ./android-apk-artifact/Expensify.apk#android.apk
+            ./android-sourcemap-artifact/index.android.bundle.map#android-sourcemap.js.map
+            ./desktop-sourcemaps-artifact/desktop-merged-source-map.js.map#desktop-sourcemap.js.map
+            ./desktop-build-artifact/NewExpensify.dmg#desktop.dmg
+            ./ios-build-artifact/Expensify.ipa#ios.ipa
+            ./ios-sourcemap-artifact/main.jsbundle.map#ios-sourcemap.js.map
+            ./web-sourcemaps-artifact/web-merged-source-map.js.map#web-sourcemap.js.map
+            ./web-build-tar-gz-artifact/webBuild.tar.gz#web.tar.gz
+            ./web-build-zip-artifact/webBuild.zip#web.zip
+          "
 
           # Loop through each file and upload individually (so if one fails, we still have other platforms uploaded)
-          for file_entry in "${files[@]}"; do
-            gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber "$file_entry" || {
-              echo "Failed to upload $file_entry. Continuing with the next file."
-              continue
-            }
-            echo "Successfully uploaded $file_entry."
-          done
+          # Note: Not all of these files are present for production releases, because we don't build the native apps for prod deploys. That's expected.
+          echo -e "$files" | xargs -I {} --max-procs=4 bash -c '
+            if gh release upload ${{ needs.prep.outputs.TAG }} --repo ${{ github.repository }} --clobber {}; then
+              echo "✅ Successfully uploaded {}"
+            else
+              echo "❌ Failed to upload {}"
+            fi
+          '
         env:
           GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Warn deployers if production deploy failed
+      - name: Warn deployers if deploy failed
         if: ${{ failure() }}
         # v3
         uses: 8398a7/action-slack@1750b5085f3ec60384090fb7c52965ef822e869e
@@ -721,7 +663,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 NewDot production deploy failed. 💥`,
+                text: `💥 NewDot ${{ github.ref == 'refs/heads/staging' && 'staging' || 'production' }} deploy failed. 💥`,
               }]
             }
         env:
@@ -732,7 +674,7 @@ jobs:
     name: Post a Slack message when all platforms deploy successfully
     runs-on: ubuntu-latest
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
-    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createRelease]
     steps:
       - name: 'Announces the deploy in the #announce Slack room'
         # v3
@@ -789,7 +731,7 @@ jobs:
   postGithubComments:
     uses: ./.github/workflows/postDeployComments.yml
     if: ${{ always() && fromJSON(needs.checkDeploymentSuccess.outputs.IS_AT_LEAST_ONE_PLATFORM_DEPLOYED) }}
-    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createPrerelease, finalizeRelease]
+    needs: [prep, android, desktop, ios, web, checkDeploymentSuccess, createRelease]
     with:
       version: ${{ needs.prep.outputs.APP_VERSION }}
       env: ${{ github.ref == 'refs/heads/production' && 'production' || 'staging' }}

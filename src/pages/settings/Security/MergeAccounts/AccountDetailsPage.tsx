@@ -1,7 +1,7 @@
-import {useFocusEffect, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React, {useCallback, useRef, useState} from 'react';
-import {View} from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
@@ -16,11 +16,10 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorMessage} from '@libs/ErrorUtils';
-import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
+import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {isNumericWithSpecialChars} from '@libs/ValidationUtils';
 import {clearGetValidateCodeForAccountMerge, requestValidationCodeForAccountMerge} from '@userActions/MergeAccounts';
 import CONST from '@src/CONST';
@@ -52,8 +51,9 @@ const getValidateCodeErrorKey = (err: string): ValueOf<typeof CONST.MERGE_ACCOUN
 
 function AccountDetailsPage() {
     const formRef = useRef<FormRef>(null);
-    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
-    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge});
+    const navigation = useNavigation();
+    const [userEmailOrPhone] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: true});
+    const [getValidateCodeForAccountMerge] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.getValidateCodeForAccountMerge, canBeMissing: true});
     const {params} = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS>>();
     const [email, setEmail] = useState(params?.email ?? '');
 
@@ -67,30 +67,38 @@ function AccountDetailsPage() {
 
     useFocusEffect(
         useCallback(() => {
-            if (!validateCodeSent || !email) {
-                return;
-            }
+            const task = InteractionManager.runAfterInteractions(() => {
+                if (!validateCodeSent || !email) {
+                    return;
+                }
 
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
+                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_MAGIC_CODE.getRoute(email));
+            });
+
+            return () => task.cancel();
         }, [validateCodeSent, email]),
     );
 
     useFocusEffect(
         useCallback(() => {
-            if (!errorKey || !email) {
-                return;
-            }
-            return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+            const task = InteractionManager.runAfterInteractions(() => {
+                if (!errorKey || !email) {
+                    return;
+                }
+                return Navigation.navigate(ROUTES.SETTINGS_MERGE_ACCOUNTS_RESULT.getRoute(email, errorKey));
+            });
+
+            return () => task.cancel();
         }, [errorKey, email]),
     );
 
-    useFocusEffect(
-        useCallback(() => {
-            return () => {
-                clearGetValidateCodeForAccountMerge();
-            };
-        }, []),
-    );
+    useEffect(() => {
+        const unsubscribe = navigation.addListener('blur', () => {
+            clearGetValidateCodeForAccountMerge();
+        });
+
+        return unsubscribe;
+    }, [navigation]);
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MERGE_ACCOUNT_DETAILS_FORM>): Errors => {
         const errors = {};
@@ -99,11 +107,13 @@ function AccountDetailsPage() {
 
         if (!login) {
             addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.pleaseEnterEmailOrPhoneNumber'));
+        } else if (login.trim() === userEmailOrPhone) {
+            addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.email'));
         } else {
-            const phoneLogin = appendCountryCode(getPhoneNumberWithoutSpecialChars(login));
-            const parsedPhoneNumber = parsePhoneNumber(phoneLogin);
+            const phoneLogin = getPhoneLogin(login);
+            const validateIfNumber = validateNumber(phoneLogin);
 
-            if (!Str.isValidEmail(login) && !parsedPhoneNumber.possible) {
+            if (!Str.isValidEmail(login) && !validateIfNumber) {
                 if (isNumericWithSpecialChars(login)) {
                     addErrorMessage(errors, INPUT_IDS.PHONE_OR_EMAIL, translate('common.error.phoneNumber'));
                 } else {
@@ -120,6 +130,7 @@ function AccountDetailsPage() {
 
     return (
         <ScreenWrapper
+            shouldEnableMaxHeight
             includeSafeAreaPaddingBottom
             testID={AccountDetailsPage.displayName}
         >
@@ -141,10 +152,12 @@ function AccountDetailsPage() {
                 ref={formRef}
             >
                 <View style={[styles.flexGrow1, styles.mt3]}>
-                    <Text>
-                        {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
-                        <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
-                    </Text>
+                    <View>
+                        <Text>
+                            {translate('mergeAccountsPage.accountDetails.accountToMergeInto')}
+                            <Text style={styles.textStrong}>{userEmailOrPhone}</Text>
+                        </Text>
+                    </View>
                     <InputWrapper
                         InputComponent={TextInput}
                         inputID={INPUT_IDS.PHONE_OR_EMAIL}
@@ -152,13 +165,13 @@ function AccountDetailsPage() {
                         label={translate('loginForm.phoneOrEmail')}
                         aria-label={translate('loginForm.phoneOrEmail')}
                         role={CONST.ROLE.PRESENTATION}
-                        containerStyles={[styles.mt5]}
+                        containerStyles={[styles.mt8]}
                         autoCorrect={false}
                         onChangeText={setEmail}
                         value={email}
                     />
                     <InputWrapper
-                        style={[styles.mt6]}
+                        style={[styles.mt8]}
                         InputComponent={CheckboxWithLabel}
                         inputID={INPUT_IDS.CONSENT}
                         label={translate('mergeAccountsPage.accountDetails.notReversibleConsent')}
