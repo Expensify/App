@@ -46,6 +46,40 @@ const data: ExampleDataType[] = [
     },
 ];
 
+// Example commit history data for tests
+const commitHistoryData = {
+    emptyResponse: {
+        data: {
+            commits: [],
+        },
+    },
+    singleCommit: {
+        data: {
+            commits: [
+                {
+                    sha: 'abc123',
+                    commit: {
+                        message: 'Test commit message',
+                        author: {
+                            name: 'Test Author',
+                        },
+                    },
+                    author: {
+                        login: 'testuser',
+                    },
+                },
+            ],
+        },
+    },
+    expectedFormattedCommit: [
+        {
+            commit: 'abc123',
+            subject: 'Test commit message',
+            authorName: 'Test Author',
+        },
+    ],
+};
+
 describe('GitUtils', () => {
     describe.each(data)('getValidMergedPRs', (exampleCase) => {
         test('getValidMergedPRs', () => {
@@ -75,15 +109,23 @@ describe('GitUtils', () => {
         });
 
         test('should return empty array when no commits found', async () => {
-            // Mock implementation
-            mockCompareCommits.mockResolvedValue({
-                data: {
-                    commits: [],
-                },
-            });
+            mockCompareCommits.mockResolvedValue(commitHistoryData.emptyResponse);
 
             const result = await GitUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
             expect(result).toEqual([]);
+        });
+
+        test('should return formatted commit history when commits exist', async () => {
+            mockCompareCommits.mockResolvedValue(commitHistoryData.singleCommit);
+
+            const result = await GitUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            expect(result).toEqual(commitHistoryData.expectedFormattedCommit);
+        });
+
+        test('should handle API errors gracefully', async () => {
+            mockCompareCommits.mockRejectedValue(new Error('API Error'));
+
+            await expect(GitUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1')).rejects.toThrow('API Error');
         });
     });
 });
