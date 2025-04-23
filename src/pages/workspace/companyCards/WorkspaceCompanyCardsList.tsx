@@ -124,7 +124,7 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
 
     return (
         <>
-            {sortedCards.length > 0 && (
+            {sortedCards.length > 15 && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
                     inputValue={inputValue}
