@@ -19,6 +19,7 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     NAVIGATORS.ONBOARDING_MODAL_NAVIGATOR,
     NAVIGATORS.FEATURE_TRANING_MODAL_NAVIGATOR,
     NAVIGATORS.SHARE_MODAL_NAVIGATOR,
+    NAVIGATORS.TEST_DRIVE_MODAL_NAVIGATOR,
     SCREENS.NOT_FOUND,
     SCREENS.ATTACHMENTS,
     SCREENS.TRANSACTION_RECEIPT,
@@ -28,8 +29,9 @@ const MODAL_ROUTES_TO_DISMISS: string[] = [
     SCREENS.CONCIERGE,
 ];
 
-const workspaceSplitsWithoutEnteringAnimation = new Set();
-const reportsSplitsWithEnteringAnimation = new Set();
+const workspaceSplitsWithoutEnteringAnimation = new Set<string>();
+const reportsSplitsWithEnteringAnimation = new Set<string>();
+const settingsSplitWithEnteringAnimation = new Set<string>();
 
 let lastAccessedWorkspaceSwitcherID: OnyxEntry<string>;
 Onyx.connect({
@@ -203,6 +205,30 @@ function handlePushReportSplitAction(
     return stateWithReportsSplitNavigator;
 }
 
+function handlePushSettingsSplitAction(
+    state: StackNavigationState<ParamListBase>,
+    action: PushActionType,
+    configOptions: RouterConfigOptions,
+    stackRouter: Router<StackNavigationState<ParamListBase>, CommonActions.Action | StackActionType>,
+) {
+    const stateWithSettingsSplitNavigator = stackRouter.getStateForAction(state, action, configOptions);
+
+    if (!stateWithSettingsSplitNavigator) {
+        Log.hmmm('[handlePushSettingsAction] SettingsSplitNavigator has not been found in the navigation state.');
+        return null;
+    }
+
+    const lastFullScreenRoute = stateWithSettingsSplitNavigator.routes.at(-1);
+    const actionPayloadScreen = action.payload?.params && 'screen' in action.payload.params ? action.payload?.params?.screen : undefined;
+
+    // Transitioning to all central screens in settings should be animated
+    if (actionPayloadScreen !== SCREENS.SETTINGS.ROOT && lastFullScreenRoute?.key) {
+        settingsSplitWithEnteringAnimation.add(lastFullScreenRoute.key);
+    }
+
+    return stateWithSettingsSplitNavigator;
+}
+
 /**
  * If a new Search page is opened, it is necessary to check whether workspace is currently selected in the application.
  * If so, the id of the current policy has to be passed to the new Search page
@@ -317,6 +343,8 @@ export {
     handleSwitchPolicyIDAction,
     handleSwitchPolicyIDFromSearchAction,
     handleNavigatingToModalFromModal,
+    handlePushSettingsSplitAction,
     workspaceSplitsWithoutEnteringAnimation,
     reportsSplitsWithEnteringAnimation,
+    settingsSplitWithEnteringAnimation,
 };
