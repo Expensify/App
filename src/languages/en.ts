@@ -3690,6 +3690,7 @@ const translations = {
             toggleImportTitleSecondPart: ' in Expensify.',
             expenseTypes: 'Expense types',
             expenseTypesDescription: 'Your Sage Intacct expense types will import into Expensify as categories.',
+            accountTypesDescription: 'Your Sage Intacct chart of accounts will import into Expensify as categories.',
             importTaxDescription: 'Import purchase tax rate from Sage Intacct.',
             userDefinedDimensions: 'User-defined dimensions',
             addUserDefinedDimension: 'Add user-defined dimension',
