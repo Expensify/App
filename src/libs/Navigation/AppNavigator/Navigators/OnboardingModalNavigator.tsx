@@ -17,6 +17,8 @@ import OnboardingEmployees from '@pages/OnboardingEmployees';
 import OnboardingPersonalDetails from '@pages/OnboardingPersonalDetails';
 import OnboardingPrivateDomain from '@pages/OnboardingPrivateDomain';
 import OnboardingPurpose from '@pages/OnboardingPurpose';
+import OnboardingWorkEmail from '@pages/OnboardingWorkEmail';
+import OnboardingWorkEmailValidation from '@pages/OnboardingWorkEmailValidation';
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -36,7 +38,14 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID ?? 0});
+    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
+
+    const isOnPrivateDomainAndHasAccessiblePolicies = !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
+
+    const [accountID] = useOnyx(ONYXKEYS.SESSION, {
+        selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+        canBeMissing: false,
+    });
 
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
@@ -68,13 +77,25 @@ function OnboardingModalNavigator() {
                         style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
-                            <Stack.Screen
-                                name={SCREENS.ONBOARDING.PURPOSE}
-                                component={OnboardingPurpose}
-                            />
+                            {/* The OnboardingPurpose screen is shown after the workspace step when the user is on a private domain and has accessible policies.
+                             */}
+                            {!isOnPrivateDomainAndHasAccessiblePolicies && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PURPOSE}
+                                    component={OnboardingPurpose}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PERSONAL_DETAILS}
                                 component={OnboardingPersonalDetails}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL}
+                                component={OnboardingWorkEmail}
+                            />
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORK_EMAIL_VALIDATION}
+                                component={OnboardingWorkEmailValidation}
                             />
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.PRIVATE_DOMAIN}
@@ -84,6 +105,14 @@ function OnboardingModalNavigator() {
                                 name={SCREENS.ONBOARDING.WORKSPACES}
                                 component={OnboardingWorkspaces}
                             />
+                            {/* The OnboardingPurpose screen is only shown after the workspace step when the user is on a private domain and has accessible policies
+                             */}
+                            {!!isOnPrivateDomainAndHasAccessiblePolicies && (
+                                <Stack.Screen
+                                    name={SCREENS.ONBOARDING.PURPOSE}
+                                    component={OnboardingPurpose}
+                                />
+                            )}
                             <Stack.Screen
                                 name={SCREENS.ONBOARDING.EMPLOYEES}
                                 component={OnboardingEmployees}
