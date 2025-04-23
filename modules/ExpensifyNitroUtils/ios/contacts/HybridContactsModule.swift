@@ -41,6 +41,8 @@ final class HybridContactsModule: HybridContactsModuleSpec {
         }
     }
     
+    // This annotation forces the compiler to inline this function at every call site,
+    // eliminating function call overhead for better performance during contact processing
     @inline(__always)
     private func processContact(_ contact: CNContact, keysSet: Set<ContactFields>) -> Contact {
         Contact(
@@ -54,6 +56,8 @@ final class HybridContactsModule: HybridContactsModuleSpec {
         )
     }
     
+    // This annotation forces the compiler to inline this function at every call site,
+    // eliminating function call overhead for better performance when handling contact images
     @inline(__always)
     private func getImagePath(for contact: CNContact, isThumbnail: Bool) -> String? {
         let imageData = isThumbnail ? contact.thumbnailImageData : contact.imageData
