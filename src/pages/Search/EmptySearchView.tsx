@@ -9,12 +9,14 @@ import type {FeatureListItem} from '@components/FeatureList';
 import {Alert, PiggyBank} from '@components/Icon/Illustrations';
 import LottieAnimations from '@components/LottieAnimations';
 import MenuItem from '@components/MenuItem';
+import ScrollView from '@components/ScrollView';
 import SearchRowSkeleton from '@components/Skeletons/SearchRowSkeleton';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -55,7 +57,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [modalVisible, setModalVisible] = useState(false);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const shouldRedirectToExpensifyClassic = useMemo(() => {
         return areAllGroupPoliciesExpenseChatDisabled((allPolicies as OnyxCollection<Policy>) ?? {});
     }, [allPolicies]);
@@ -99,17 +101,19 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         );
     }, [styles, translate]);
 
-    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {canBeMissing: true});
     const onboardingPurpose = introSelected?.choice;
     const {environment} = useEnvironment();
     const navatticURL = getNavatticURL(environment, onboardingPurpose);
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
+        canBeMissing: true,
     });
     const viewTourTaskReportID = introSelected?.viewTour;
-    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
+    const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, undefined, isReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
 
     const content = useMemo(() => {
@@ -128,7 +132,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyExpenseResults.title'),
-                        subtitle: translate('search.searchResults.emptyExpenseResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyExpenseResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyExpenseResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -168,7 +172,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                     return {
                         headerMedia: LottieAnimations.GenericEmptyState,
                         title: translate('search.searchResults.emptyInvoiceResults.title'),
-                        subtitle: translate('search.searchResults.emptyInvoiceResults.subtitle'),
+                        subtitle: translate(hasSeenTour ? 'search.searchResults.emptyInvoiceResults.subtitleWithOnlyCreateButton' : 'search.searchResults.emptyInvoiceResults.subtitle'),
                         buttons: [
                             ...(!hasSeenTour
                                 ? [
@@ -232,21 +236,25 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
 
     return (
         <>
-            <EmptyStateComponent
-                SkeletonComponent={SearchRowSkeleton}
+            <ScrollView
                 showsVerticalScrollIndicator={false}
-                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                headerMedia={content.headerMedia}
-                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
-                title={content.title}
-                titleStyles={content.titleStyles}
-                subtitle={content.subtitle}
-                buttons={content.buttons}
-                headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
-                lottieWebViewStyles={content.lottieWebViewStyles}
+                contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}
             >
-                {content.children}
-            </EmptyStateComponent>
+                <EmptyStateComponent
+                    SkeletonComponent={SearchRowSkeleton}
+                    headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                    headerMedia={content.headerMedia}
+                    headerStyles={[styles.emptyStateCardIllustrationContainer, styles.overflowHidden]}
+                    title={content.title}
+                    titleStyles={content.titleStyles}
+                    subtitle={content.subtitle}
+                    buttons={content.buttons}
+                    headerContentStyles={[styles.h100, styles.w100, ...content.headerContentStyles]}
+                    lottieWebViewStyles={content.lottieWebViewStyles}
+                >
+                    {content.children}
+                </EmptyStateComponent>
+            </ScrollView>
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}

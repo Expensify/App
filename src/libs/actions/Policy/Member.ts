@@ -5,6 +5,7 @@ import * as API from '@libs/API';
 import type {
     AddMembersToWorkspaceParams,
     DeleteMembersFromWorkspaceParams,
+    OpenPolicyMemberProfilePageParams,
     OpenWorkspaceMembersPageParams,
     RequestWorkspaceOwnerChangeParams,
     UpdateWorkspaceMembersRoleParams,
@@ -202,7 +203,7 @@ function buildRoomMembersOnyxData(
 /**
  * Updates the import spreadsheet data according to the result of the import
  */
-function updateImportSpreadsheetData(membersLength: number): OnyxData {
+function updateImportSpreadsheetData(addedMembersLength: number, updatedMembersLength: number): OnyxData {
     const onyxData: OnyxData = {
         successData: [
             {
@@ -212,7 +213,7 @@ function updateImportSpreadsheetData(membersLength: number): OnyxData {
                     shouldFinalModalBeOpened: true,
                     importFinalModal: {
                         title: translateLocal('spreadsheet.importSuccessfullTitle'),
-                        prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {members: membersLength}),
+                        prompt: translateLocal('spreadsheet.importMembersSuccessfullDescription', {added: addedMembersLength, updated: updatedMembersLength}),
                     },
                 },
             },
@@ -948,7 +949,22 @@ type PolicyMember = {
 };
 
 function importPolicyMembers(policyID: string, members: PolicyMember[]) {
-    const onyxData = updateImportSpreadsheetData(members.length);
+    const policy = getPolicy(policyID);
+    const {added, updated} = members.reduce(
+        (acc, curr) => {
+            const employee = policy?.employeeList?.[curr.email];
+            if (employee) {
+                if (curr.role !== employee.role) {
+                    acc.updated++;
+                }
+            } else {
+                acc.added++;
+            }
+            return acc;
+        },
+        {added: 0, updated: 0},
+    );
+    const onyxData = updateImportSpreadsheetData(added, updated);
 
     const parameters = {
         policyID,
@@ -962,7 +978,7 @@ function importPolicyMembers(policyID: string, members: PolicyMember[]) {
  * Invite member to the specified policyID
  * Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
  */
-function inviteMemberToWorkspace(policyID: string, inviterEmail: string) {
+function inviteMemberToWorkspace(policyID: string, inviterEmail?: string) {
     const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
 
     const optimisticMembersState = {policyID, inviterEmail};
@@ -1015,6 +1031,31 @@ function joinAccessiblePolicy(policyID: string) {
 }
 
 /**
+ * Ask the policy admin to add member to the selected private domain workspace based on policyID
+ */
+function askToJoinPolicy(policyID: string) {
+    const memberJoinKey = `${ONYXKEYS.COLLECTION.POLICY_JOIN_MEMBER}${policyID}` as const;
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID},
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: memberJoinKey,
+            value: {policyID, errors: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.people.error.genericAdd')},
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.ASK_TO_JOIN_POLICY, {policyID}, {optimisticData, failureData});
+}
+
+/**
  * Removes an error after trying to delete a member
  */
 function clearDeleteMemberError(policyID: string, accountID: number) {
@@ -1056,6 +1097,15 @@ function openWorkspaceMembersPage(policyID: string, clientMemberEmails: string[]
     };
 
     API.read(READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE, params);
+}
+
+function openPolicyMemberProfilePage(policyID: string, accountID: number) {
+    const params: OpenPolicyMemberProfilePageParams = {
+        policyID,
+        accountID,
+    };
+
+    API.read(READ_COMMANDS.OPEN_POLICY_MEMBER_PROFILE_PAGE, params);
 }
 
 function setWorkspaceInviteMembersDraft(policyID: string, invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs) {
@@ -1217,12 +1267,15 @@ export {
     setWorkspaceInviteMembersDraft,
     inviteMemberToWorkspace,
     joinAccessiblePolicy,
+    askToJoinPolicy,
     acceptJoinRequest,
     declineJoinRequest,
     isApprover,
     importPolicyMembers,
     downloadMembersCSV,
     clearInviteDraft,
+    buildRoomMembersOnyxData,
+    openPolicyMemberProfilePage,
 };
 
 export type {NewCustomUnit};

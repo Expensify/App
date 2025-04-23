@@ -56,6 +56,9 @@ type FeatureListProps = {
 
     /** Custom content to display in the footer */
     footer?: ReactNode;
+
+    /** Whether the button should be disabled */
+    isButtonDisabled?: boolean;
 };
 
 function FeatureList({
@@ -72,6 +75,7 @@ function FeatureList({
     titleStyles,
     contentPaddingOnLargeScreens,
     footer,
+    isButtonDisabled = false,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -117,6 +121,7 @@ function FeatureList({
                         accessibilityLabel={ctaAccessibilityLabel}
                         style={styles.w100}
                         success
+                        isDisabled={isButtonDisabled}
                         large
                     />
                 )}

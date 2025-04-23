@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
-import {getQueryWithUpdatedValues} from '@src/libs/SearchQueryUtils';
+import CONST from '@src/CONST';
+import {buildQueryStringFromFilterFormValues, getQueryWithUpdatedValues, shouldHighlight} from '@src/libs/SearchQueryUtils';
+import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 const personalDetailsFakeData = {
     'johndoe@example.com': {
@@ -23,44 +25,181 @@ jest.mock('@libs/PersonalDetailsUtils', () => {
 // We don't want to test or mock the grammar and the parser, so we're simply defining this string directly here.
 const defaultQuery = `type:expense status:all sortBy:date sortOrder:desc`;
 
-describe('getQueryWithUpdatedValues', () => {
-    test('returns default query for empty value', () => {
-        const userQuery = '';
+describe('SearchQueryUtils', () => {
+    describe('getQueryWithUpdatedValues', () => {
+        test('returns default query for empty value', () => {
+            const userQuery = '';
 
-        const result = getQueryWithUpdatedValues(userQuery);
+            const result = getQueryWithUpdatedValues(userQuery);
 
-        expect(result).toEqual(defaultQuery);
+            expect(result).toEqual(defaultQuery);
+        });
+
+        test('returns query with updated amounts', () => {
+            const userQuery = 'foo test amount:20000';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
+        });
+
+        test('returns query with user emails substituted', () => {
+            const userQuery = 'from:johndoe@example.com hello';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} from:12345 hello`);
+        });
+
+        test('returns query with user emails substituted and preserves user ids', () => {
+            const userQuery = 'from:johndoe@example.com to:112233';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} from:12345 to:112233`);
+        });
+
+        test('returns query with all of the fields correctly substituted', () => {
+            const userQuery = 'from:9876,87654 to:janedoe@example.com hello amount:150 test';
+
+            const result = getQueryWithUpdatedValues(userQuery);
+
+            expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
+        });
     });
 
-    test('returns query with updated amounts', () => {
-        const userQuery = 'foo test amount:20000';
+    describe('buildQueryStringFromFilterFormValues', () => {
+        test('simple filter value', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: 'all',
+                policyID: '12345',
+                lessThan: '100',
+            };
 
-        const result = getQueryWithUpdatedValues(userQuery);
+            const result = buildQueryStringFromFilterFormValues(filterValues);
 
-        expect(result).toEqual(`${defaultQuery} amount:2000000 foo test`);
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all policyID:12345 amount<100');
+        });
+
+        test('with Policy ID', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                policyID: '12345',
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc policyID:12345');
+        });
+
+        test('with keywords', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: 'all',
+                policyID: '67890',
+                merchant: 'Amazon',
+                description: 'Electronics',
+                keyword: 'laptop',
+                category: ['electronics', 'gadgets'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all policyID:67890 merchant:Amazon description:Electronics laptop category:electronics,gadgets');
+        });
+
+        test('currencies and categories', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                status: 'all',
+                category: ['services', 'consulting'],
+                currency: ['USD', 'EUR'],
+            };
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense status:all category:services,consulting currency:USD,EUR');
+        });
+
+        test('empty filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {};
+
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc');
+        });
+
+        test('array of from', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                from: ['user1@gmail.com', 'user2@gmail.com'],
+                to: ['user3@gmail.com'],
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com');
+        });
+
+        test('complex filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                from: ['user1@gmail.com', 'user2@gmail.com'],
+                to: ['user3@gmail.com'],
+                dateAfter: '2025-03-01',
+                dateBefore: '2025-03-10',
+                lessThan: '1000',
+                greaterThan: '1',
+                category: ['finance', 'insurance'],
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual(
+                'sortBy:date sortOrder:desc type:expense from:user1@gmail.com,user2@gmail.com to:user3@gmail.com category:finance,insurance date<2025-03-10 date>2025-03-01 amount>1 amount<1000',
+            );
+            expect(result).not.toMatch(CONST.VALIDATE_FOR_HTML_TAG_REGEX);
+        });
     });
 
-    test('returns query with user emails substituted', () => {
-        const userQuery = 'from:johndoe@example.com hello';
+    describe('shouldHighlight', () => {
+        it('returns false if either input is empty', () => {
+            expect(shouldHighlight('', 'test')).toBe(false);
+            expect(shouldHighlight('Some text', '')).toBe(false);
+        });
 
-        const result = getQueryWithUpdatedValues(userQuery);
+        it('matches exact word at beginning', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'Take')).toBe(true);
+        });
 
-        expect(result).toEqual(`${defaultQuery} from:12345 hello`);
-    });
+        it('matches exact word in middle', () => {
+            expect(shouldHighlight('Take a 2-minute tour', '2-minute')).toBe(true);
+        });
 
-    test('returns query with user emails substituted and preserves user ids', () => {
-        const userQuery = 'from:johndoe@example.com to:112233';
+        it('matches phrase with leading space', () => {
+            expect(shouldHighlight('Take a 2-minute tour', ' 2-minute tour')).toBe(true);
+        });
 
-        const result = getQueryWithUpdatedValues(userQuery);
+        it('matches with special characters', () => {
+            expect(shouldHighlight('Explore the #%tự đặc biệt!', '#%tự')).toBe(true);
+        });
 
-        expect(result).toEqual(`${defaultQuery} from:12345 to:112233`);
-    });
+        it('is case-insensitive', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'TOUR')).toBe(true);
+        });
 
-    test('returns query with all of the fields correctly substituted', () => {
-        const userQuery = 'from:9876,87654 to:janedoe@example.com hello amount:150 test';
+        it('does not match partial word in the middle', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'in')).toBe(false);
+        });
 
-        const result = getQueryWithUpdatedValues(userQuery);
+        it('does not match incomplete trailing text', () => {
+            expect(shouldHighlight('Take a 2-minute tour', '2-minute to')).toBe(false);
+        });
 
-        expect(result).toEqual(`${defaultQuery} from:9876,87654 to:78901 amount:15000 hello test`);
+        it('matches multi-word phrase exactly', () => {
+            expect(shouldHighlight('Take a 2-minute tour', '2-minute tour')).toBe(true);
+        });
+
+        it('does not match words out of order', () => {
+            expect(shouldHighlight('Take a 2-minute tour', 'tour 2-minute')).toBe(false);
+        });
     });
 });

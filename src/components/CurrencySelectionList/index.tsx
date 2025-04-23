@@ -18,6 +18,7 @@ function CurrencySelectionList({
     canSelectMultiple = false,
     recentlyUsedCurrencies,
     excludedCurrencies = [],
+    ...restProps
 }: CurrencySelectionListProps) {
     const [currencyList] = useOnyx(ONYXKEYS.CURRENCY_LIST);
     const [searchValue, setSearchValue] = useState('');
@@ -91,6 +92,8 @@ function CurrencySelectionList({
 
     return (
         <SelectionList
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...restProps}
             sections={sections}
             ListItem={canSelectMultiple ? SelectableListItem : RadioListItem}
             textInputLabel={searchInputLabel}

@@ -43,6 +43,7 @@ const includeModules = [
     'expo-av',
     'expo-image-manipulator',
     'expo-modules-core',
+    'react-native-webrtc-web-shim',
 ].join('|');
 
 const environmentToLogoSuffixMap: Record<string, string> = {
@@ -293,7 +294,7 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
 
     optimization: {
         minimizer: [
-            // default settings accordint to https://webpack.js.org/configuration/optimization/#optimizationminimizer
+            // default settings according to https://webpack.js.org/configuration/optimization/#optimizationminimizer
             // with addition of preserving the class name for ImageManipulator (expo module)
             new TerserPlugin({
                 terserOptions: {
@@ -302,6 +303,10 @@ const getCommonConfiguration = ({file = '.env', platform = 'web'}: Environment):
                     },
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     keep_classnames: /ImageManipulator|ImageModule/,
+                    mangle: {
+                        // eslint-disable-next-line @typescript-eslint/naming-convention
+                        keep_fnames: true,
+                    },
                 },
             }),
             '...',

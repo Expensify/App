@@ -1,4 +1,4 @@
-import {format, lastDayOfMonth, setDate} from 'date-fns';
+import {format, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -9,10 +9,9 @@ import type {Policy, Report, ReportNextStep, TransactionViolations} from '@src/t
 import type {Message} from '@src/types/onyx/ReportNextStep';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {getNextApproverAccountID} from './actions/IOU';
-import DateUtils from './DateUtils';
 import EmailUtils from './EmailUtils';
 import {getLoginsByAccountIDs, getPersonalDetailsByIDs} from './PersonalDetailsUtils';
-import {getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
+import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getDisplayNameForParticipant, getPersonalDetailsForAccountID, hasViolations as hasViolationsReportUtils, isExpenseReport, isInvoiceReport, isPayer} from './ReportUtils';
 
 let currentUserAccountID = -1;
@@ -135,6 +134,12 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
         currentUserAccountID,
         shouldChangeUserDisplayName: true,
     });
+    const isReportContainingTransactions =
+        report &&
+        ((report.total !== 0 && report.total !== undefined) ||
+            (report.unheldTotal !== 0 && report.unheldTotal !== undefined) ||
+            (report.unheldNonReimbursableTotal !== 0 && report.unheldNonReimbursableTotal !== undefined));
+
     const ownerDisplayName = ownerPersonalDetails?.displayName ?? ownerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: ownerAccountID});
     const policyOwnerDisplayName = policyOwnerPersonalDetails?.displayName ?? policyOwnerPersonalDetails?.login ?? getDisplayNameForParticipant({accountID: policy.ownerAccountID});
     const nextApproverDisplayName = getNextApproverDisplayName(report, isUnapprove);
@@ -230,7 +235,7 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
             };
 
             // Scheduled submit enabled
-            if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL) {
+            if (harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL && isReportContainingTransactions) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',
@@ -252,27 +257,22 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
 
                 if (autoReportingFrequency) {
                     const currentDate = new Date();
-                    let autoSubmissionDate: Date | null = null;
-                    let formattedDate = '';
+                    let autoSubmissionDate = '';
+                    let monthlyText = '';
 
                     if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_DAY_OF_MONTH) {
-                        autoSubmissionDate = lastDayOfMonth(currentDate);
+                        monthlyText = 'on the last day of the month';
                     } else if (autoReportingOffset === CONST.POLICY.AUTO_REPORTING_OFFSET.LAST_BUSINESS_DAY_OF_MONTH) {
-                        const lastBusinessDayOfMonth = DateUtils.getLastBusinessDayOfMonth(currentDate);
-                        autoSubmissionDate = setDate(currentDate, lastBusinessDayOfMonth);
+                        monthlyText = 'on the last business day of the month';
                     } else if (autoReportingOffset !== undefined) {
-                        autoSubmissionDate = setDate(currentDate, autoReportingOffset);
-                    }
-
-                    if (autoSubmissionDate) {
-                        formattedDate = format(autoSubmissionDate, CONST.DATE.ORDINAL_DAY_OF_MONTH);
+                        autoSubmissionDate = format(setDate(currentDate, autoReportingOffset), CONST.DATE.ORDINAL_DAY_OF_MONTH);
                     }
 
                     const harvestingSuffixes: Record<DeepValueOf<typeof CONST.POLICY.AUTO_REPORTING_FREQUENCIES>, string> = {
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.IMMEDIATE]: 'later today',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.WEEKLY]: 'on Sunday',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.SEMI_MONTHLY]: 'on the 1st and 16th of each month',
-                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: formattedDate ? `on the ${formattedDate} of each month` : '',
+                        [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MONTHLY]: autoSubmissionDate ? `on the ${autoSubmissionDate} of each month` : monthlyText,
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.TRIP]: 'at the end of their trip',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT]: '',
                         [CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL]: '',
@@ -325,7 +325,8 @@ function buildNextStep(report: OnyxEntry<Report>, predictedNextStatus: ValueOf<t
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
             };
             // We want to show pending approval next step for cases where the policy has approvals enabled
-            if (autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.INSTANT) {
+            const policyApprovalMode = getApprovalWorkflow(policy);
+            if ([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policyApprovalMode)) {
                 optimisticNextStep.message = [
                     {
                         text: 'Waiting for ',

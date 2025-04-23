@@ -2,6 +2,7 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import * as Localize from '@libs/Localize';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
@@ -14,10 +15,20 @@ import {
     handleOpenWorkspaceSplitAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
+    handlePushSettingsSplitAction,
+    handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
 import syncBrowserHistory from './syncBrowserHistory';
-import type {DismissModalActionType, OpenWorkspaceSplitActionType, PushActionType, RootStackNavigatorAction, RootStackNavigatorRouterOptions, SwitchPolicyIdActionType} from './types';
+import type {
+    DismissModalActionType,
+    OpenWorkspaceSplitActionType,
+    PushActionType,
+    ReplaceActionType,
+    RootStackNavigatorAction,
+    RootStackNavigatorRouterOptions,
+    SwitchPolicyIdActionType,
+} from './types';
 
 function isOpenWorkspaceSplitAction(action: RootStackNavigatorAction): action is OpenWorkspaceSplitActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.OPEN_WORKSPACE_SPLIT;
@@ -29,6 +40,10 @@ function isSwitchPolicyIdAction(action: RootStackNavigatorAction): action is Swi
 
 function isPushAction(action: RootStackNavigatorAction): action is PushActionType {
     return action.type === CONST.NAVIGATION.ACTION_TYPE.PUSH;
+}
+
+function isReplaceAction(action: RootStackNavigatorAction): action is ReplaceActionType {
+    return action.type === CONST.NAVIGATION.ACTION_TYPE.REPLACE;
 }
 
 function isDismissModalAction(action: RootStackNavigatorAction): action is DismissModalActionType {
@@ -65,7 +80,11 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const {setActiveWorkspaceID} = useActiveWorkspace();
+    const {setActiveWorkspaceID: setActiveWorkspaceIDUtils} = useActiveWorkspace();
+    const setActiveWorkspaceID = (workspaceID: string | undefined) => {
+        setActiveWorkspaceIDUtils?.(workspaceID);
+        updateLastAccessedWorkspaceSwitcher(workspaceID);
+    };
 
     return {
         ...stackRouter,
@@ -82,6 +101,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
                 return handleDismissModalAction(state, configOptions, stackRouter);
             }
 
+            if (isReplaceAction(action) && action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                return handleReplaceReportsSplitNavigatorAction(state, action, configOptions, stackRouter);
+            }
+
             if (isPushAction(action)) {
                 if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                     return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
@@ -89,6 +112,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
                 if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
                     return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                }
+
+                if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter);
                 }
             }
 

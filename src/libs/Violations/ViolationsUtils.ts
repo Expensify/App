@@ -396,6 +396,12 @@ const ViolationsUtils = {
                 return translate('violations.taxRequired');
             case 'hold':
                 return translate('violations.hold');
+            case CONST.VIOLATIONS.PROHIBITED_EXPENSE:
+                return translate('violations.prohibitedExpense', {
+                    prohibitedExpenseType: violation.data?.prohibitedExpenseRule ?? '',
+                });
+            case CONST.VIOLATIONS.RECEIPT_GENERATED_WITH_AI:
+                return translate('violations.receiptGeneratedWithAI');
             default:
                 // The interpreter should never get here because the switch cases should be exhaustive.
                 // If typescript is showing an error on the assertion below it means the switch statement is out of

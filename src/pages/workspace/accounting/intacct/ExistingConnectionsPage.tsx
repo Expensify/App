@@ -1,8 +1,11 @@
 import React from 'react';
-import {View} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import {LinkCopy} from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
+import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
@@ -10,8 +13,10 @@ import {getAdminPoliciesConnectedToSageIntacct} from '@libs/actions/Policy/Polic
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 type ExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.EXISTING_SAGE_INTACCT_CONNECTIONS>;
@@ -29,8 +34,9 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             title: policy.name,
             key: policy.id,
             avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : ReportUtils.getDefaultWorkspaceAvatar(policy.name),
-            iconType: policy.avatarURL ? CONST.ICON_TYPE_AVATAR : CONST.ICON_TYPE_WORKSPACE,
+            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+            iconType: CONST.ICON_TYPE_WORKSPACE,
+            shouldShowRightIcon: true,
             description: date
                 ? translate('workspace.common.lastSyncDate', {
                       connectionName: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct,
@@ -51,16 +57,25 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             testID={ExistingConnectionsPage.displayName}
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.existingConnections')}
+                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
-            <View style={[styles.flex1]}>
+            <ScrollView style={[styles.flex1]}>
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}</Text>
+                <MenuItem
+                    title={translate('workspace.common.createNewConnection')}
+                    icon={LinkCopy}
+                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
+                    shouldShowRightIcon
+                    onPress={() => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_SAGE_INTACCT_PREREQUISITES.getRoute(policyID, Navigation.getActiveRoute()))}
+                />
+                <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>
                 <MenuItemList
                     menuItems={menuItems}
                     shouldUseSingleExecution
                 />
-            </View>
+            </ScrollView>
         </ScreenWrapper>
     );
 }

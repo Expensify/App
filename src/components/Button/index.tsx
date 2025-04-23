@@ -2,7 +2,7 @@ import {useIsFocused} from '@react-navigation/native';
 import type {ForwardedRef} from 'react';
 import React, {useCallback, useMemo, useState} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, StyleSheet, View} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
@@ -123,9 +123,6 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Id to use for this button */
     id?: string;
 
-    /** Used to locate this button in ui tests */
-    testID?: string;
-
     /** Accessibility label for the component */
     accessibilityLabel?: string;
 
@@ -147,11 +144,20 @@ type ButtonProps = Partial<ChildrenProps> & {
     /** Whether the Enter keyboard listening is active whether or not the screen that contains the button is focused */
     isPressOnEnterActive?: boolean;
 
+    /** The testID of the button. Used to locate this view in end-to-end tests. */
+    testID?: string;
+
     /** Whether is a nested button inside other button, since nesting buttons isn't valid html */
     isNested?: boolean;
 
     /** The text displays under the first line */
     secondLineText?: string;
+
+    /**
+     * Whether the button should have a background layer in the color of theme.appBG.
+     * This is needed for buttons that allow content to display under them.
+     */
+    shouldBlendOpacity?: boolean;
 };
 
 type KeyboardShortcutComponentProps = Pick<ButtonProps, 'isDisabled' | 'isLoading' | 'onPress' | 'pressOnEnter' | 'allowBubble' | 'enterKeyEventListenerPriority' | 'isPressOnEnterActive'>;
@@ -255,6 +261,7 @@ function Button(
         isPressOnEnterActive,
         isNested = false,
         secondLineText = '',
+        shouldBlendOpacity = false,
         ...rest
     }: ButtonProps,
     ref: ForwardedRef<View>,
@@ -356,6 +363,57 @@ function Button(
         return textComponent;
     };
 
+    const buttonStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [
+            styles.button,
+            StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
+            success ? styles.buttonSuccess : undefined,
+            danger ? styles.buttonDanger : undefined,
+            isDisabled ? styles.buttonOpacityDisabled : undefined,
+            isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
+            shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
+            shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
+            text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
+            innerStyles,
+            link && styles.bgTransparent,
+        ],
+        [
+            StyleUtils,
+            danger,
+            icon,
+            innerStyles,
+            isDisabled,
+            large,
+            link,
+            medium,
+            shouldRemoveLeftBorderRadius,
+            shouldRemoveRightBorderRadius,
+            shouldShowRightIcon,
+            small,
+            styles,
+            success,
+            text,
+        ],
+    );
+
+    const buttonContainerStyles = useMemo<StyleProp<ViewStyle>>(
+        () => [buttonStyles, shouldBlendOpacity && styles.buttonBlendContainer],
+        [buttonStyles, shouldBlendOpacity, styles.buttonBlendContainer],
+    );
+
+    const buttonBlendForegroundStyle = useMemo<StyleProp<ViewStyle>>(() => {
+        if (!shouldBlendOpacity) {
+            return undefined;
+        }
+
+        const {backgroundColor, opacity} = StyleSheet.flatten(buttonStyles);
+
+        return {
+            backgroundColor,
+            opacity,
+        };
+    }, [buttonStyles, shouldBlendOpacity]);
+
     return (
         <>
             {pressOnEnter && (
@@ -402,6 +460,7 @@ function Button(
                 onPressIn={onPressIn}
                 onPressOut={onPressOut}
                 onMouseDown={onMouseDown}
+                shouldBlendOpacity={shouldBlendOpacity}
                 disabled={isLoading || isDisabled}
                 wrapperStyle={[
                     isDisabled ? {...styles.cursorDisabled, ...styles.noSelect} : {},
@@ -410,19 +469,7 @@ function Button(
                     shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
                     style,
                 ]}
-                style={[
-                    styles.button,
-                    StyleUtils.getButtonStyleWithIcon(styles, small, medium, large, !!icon, !!(text?.length > 0), shouldShowRightIcon),
-                    success ? styles.buttonSuccess : undefined,
-                    danger ? styles.buttonDanger : undefined,
-                    isDisabled ? styles.buttonOpacityDisabled : undefined,
-                    isDisabled && !danger && !success ? styles.buttonDisabled : undefined,
-                    shouldRemoveRightBorderRadius ? styles.noRightBorderRadius : undefined,
-                    shouldRemoveLeftBorderRadius ? styles.noLeftBorderRadius : undefined,
-                    text && shouldShowRightIcon ? styles.alignItemsStretch : undefined,
-                    innerStyles,
-                    link && styles.bgTransparent,
-                ]}
+                style={buttonContainerStyles}
                 isNested={isNested}
                 hoverStyle={[
                     shouldUseDefaultHover && !isDisabled ? styles.buttonDefaultHovered : undefined,
@@ -439,6 +486,7 @@ function Button(
                 onHoverIn={() => setIsHovered(true)}
                 onHoverOut={() => setIsHovered(false)}
             >
+                {shouldBlendOpacity && <View style={[StyleSheet.absoluteFill, buttonBlendForegroundStyle]} />}
                 {renderContent()}
                 {isLoading && (
                     <ActivityIndicator

@@ -128,6 +128,7 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
     // We will use it if the reportID is not defined. Router of this navigator has logic to fill it with a report.
     const fallbackRoute = {
         name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR,
+        params: policyID ? {policyID} : undefined,
     };
 
     if (route && isRouteWithReportID(route)) {
@@ -154,12 +155,12 @@ function getDefaultFullScreenRoute(route?: NavigationPartialRoute, policyID?: st
 
 function getOnboardingAdaptedState(state: PartialState<NavigationState>): PartialState<NavigationState> {
     const onboardingRoute = state.routes.at(0);
-    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE) {
+    if (!onboardingRoute || onboardingRoute.name === SCREENS.ONBOARDING.PURPOSE || onboardingRoute.name === SCREENS.ONBOARDING.WORK_EMAIL) {
         return state;
     }
 
     const routes = [];
-    routes.push({name: SCREENS.ONBOARDING.PURPOSE});
+    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE});
     if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
         routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
     }

@@ -4,15 +4,20 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import useNetwork from '@hooks/useNetwork';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
 import onyxSubscribe from '@libs/onyxSubscribe';
-import {isTripPreview, shouldReportActionBeVisible} from '@libs/ReportActionsUtils';
+import {isTripPreview} from '@libs/ReportActionsUtils';
 import type {Ancestor} from '@libs/ReportUtils';
-import {canCurrentUserOpenReport, canUserPerformWriteAction as canUserPerformWriteActionReportUtils, getAllAncestorReportActionIDs, getAllAncestorReportActions} from '@libs/ReportUtils';
+import {
+    canCurrentUserOpenReport,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getAllAncestorReportActionIDs,
+    getAllAncestorReportActions,
+    navigateToLinkedReportAction,
+} from '@libs/ReportUtils';
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
@@ -36,6 +41,9 @@ type ReportActionItemParentActionProps = {
     /** The transaction thread report associated with the current report, if any */
     transactionThreadReport: OnyxEntry<OnyxTypes.Report>;
 
+    /** Array of report actions for this report */
+    reportActions: OnyxTypes.ReportAction[];
+
     /** Report actions belonging to the report's parent */
     parentReportAction: OnyxEntry<OnyxTypes.ReportAction>;
 
@@ -52,6 +60,7 @@ type ReportActionItemParentActionProps = {
 function ReportActionItemParentAction({
     report,
     transactionThreadReport,
+    reportActions,
     parentReportAction,
     index = 0,
     shouldHideThreadDividerLine = false,
@@ -65,6 +74,7 @@ function ReportActionItemParentAction({
     const ancestorReports = useRef<Record<string, OnyxEntry<OnyxTypes.Report>>>({});
     const [allAncestors, setAllAncestors] = useState<Ancestor[]>([]);
     const {isOffline} = useNetwork();
+    const {isInNarrowPaneModal} = useResponsiveLayout();
 
     useEffect(() => {
         const unsubscribeReports: Array<() => void> = [];
@@ -127,19 +137,12 @@ function ReportActionItemParentAction({
                         <ReportActionItem
                             onPress={
                                 canCurrentUserOpenReport(ancestorReports.current?.[ancestor?.report?.reportID])
-                                    ? () => {
-                                          const isVisibleAction = shouldReportActionBeVisible(ancestor.reportAction, ancestor.reportAction.reportActionID, canUserPerformWriteAction);
-                                          // Pop the thread report screen before navigating to the chat report.
-                                          Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID));
-                                          if (isVisibleAction && !isOffline) {
-                                              // Pop the chat report screen before navigating to the linked report action.
-                                              Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(ancestor.report.reportID, ancestor.reportAction.reportActionID));
-                                          }
-                                      }
+                                    ? () => navigateToLinkedReportAction(ancestor, isInNarrowPaneModal, canUserPerformWriteAction, isOffline)
                                     : undefined
                             }
                             parentReportAction={parentReportAction}
                             report={ancestor.report}
+                            reportActions={reportActions}
                             transactionThreadReport={transactionThreadReport}
                             action={ancestor.reportAction}
                             displayAsGroup={false}

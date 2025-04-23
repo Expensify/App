@@ -20,9 +20,9 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Clipboard from '@libs/Clipboard';
 import Navigation from '@libs/Navigation/Navigation';
-import * as ReportUtils from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, getRoom} from '@libs/ReportUtils';
 import shouldAllowDownloadQRCode from '@libs/shouldAllowDownloadQRCode';
-import * as Url from '@libs/Url';
+import {addTrailingForwardSlash} from '@libs/Url';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
@@ -39,17 +39,17 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
     const session = useSession();
 
     const policyName = policy?.name ?? '';
-    const policyID = policy?.id ?? '-1';
+    const policyID = policy?.id;
     const adminEmail = session?.email ?? '';
-    const urlWithTrailingSlash = Url.addTrailingForwardSlash(environmentURL);
+    const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
 
-    const url = `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}`;
+    const url = policyID ? `${urlWithTrailingSlash}${ROUTES.WORKSPACE_JOIN_USER.getRoute(policyID, adminEmail)}` : '';
 
     const hasAvatar = !!policy?.avatarURL;
     const logo = hasAvatar ? (policy?.avatarURL as ImageSourcePropType) : undefined;
 
-    const defaultWorkspaceAvatar = ReportUtils.getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
-    const defaultWorkspaceAvatarColors = StyleUtils.getDefaultWorkspaceAvatarColor(policyID);
+    const defaultWorkspaceAvatar = getDefaultWorkspaceAvatar(policyName) || Expensicons.FallbackAvatar;
+    const defaultWorkspaceAvatarColors = policyID ? StyleUtils.getDefaultWorkspaceAvatarColor(policyID) : StyleUtils.getDefaultWorkspaceAvatarColor('');
 
     const svgLogo = !hasAvatar ? defaultWorkspaceAvatar : undefined;
     const logoBackgroundColor = !hasAvatar ? defaultWorkspaceAvatarColors.backgroundColor?.toString() : undefined;
@@ -59,7 +59,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
         if (!policy?.id) {
             return undefined;
         }
-        return ReportUtils.getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
+        return getRoom(CONST.REPORT.CHAT_TYPE.POLICY_ADMINS, policy?.id);
     }, [policy?.id]);
 
     return (
@@ -70,12 +70,16 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
             <ScreenWrapper
                 testID={WorkspaceOverviewSharePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('common.share')}
                     onBackButtonPress={Navigation.goBack}
                 />
-                <ScrollView style={[themeStyles.flex1, themeStyles.pt3]}>
+                <ScrollView
+                    style={[themeStyles.flex1, themeStyles.pt3]}
+                    addBottomSafeAreaPadding
+                >
                     <View style={[themeStyles.flex1, shouldUseNarrowLayout ? themeStyles.workspaceSectionMobile : themeStyles.workspaceSection]}>
                         <View style={[themeStyles.mh5]}>
                             <Text style={[themeStyles.textHeadlineH1, themeStyles.mb2]}>{translate('workspace.common.shareNote.header')}</Text>
@@ -89,7 +93,7 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                         if (!adminRoom?.reportID) {
                                             return;
                                         }
-                                        Navigation.dismissModal(adminRoom.reportID);
+                                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(adminRoom.reportID));
                                     }}
                                 >
                                     {CONST.REPORT.WORKSPACE_CHAT_ROOMS.ADMINS}
@@ -122,8 +126,8 @@ function WorkspaceOverviewSharePage({policy}: WithPolicyProps) {
                                 shouldLimitWidth={false}
                                 wrapperStyle={themeStyles.sectionMenuItemTopDescription}
                             />
-                            {/* Remove this once https://github.com/Expensify/App/issues/19834 is done. 
-                            We shouldn't introduce platform specific code in our codebase. 
+                            {/* Remove this once https://github.com/Expensify/App/issues/19834 is done.
+                            We shouldn't introduce platform specific code in our codebase.
                             This is a temporary solution while Web is not supported for the QR code download feature */}
                             {shouldAllowDownloadQRCode && (
                                 <MenuItem

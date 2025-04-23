@@ -1,4 +1,4 @@
-import {NativeModules} from 'react-native';
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import * as API from '@libs/API';
@@ -8,6 +8,7 @@ import * as ErrorUtils from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Delegate, DelegatedAccess, DelegateRole} from '@src/types/onyx/Account';
@@ -74,8 +75,12 @@ const KEYS_TO_PRESERVE_DELEGATE_ACCESS = [
     ONYXKEYS.IS_SIDEBAR_LOADED,
 ];
 
-function connect(email: string) {
-    if (!delegatedAccess?.delegators) {
+/**
+ * Connects the user as a delegate to another account.
+ * Returns a Promise that resolves to true on success, false on failure, or undefined if not applicable.
+ */
+function connect(email: string, isFromOldDot = false) {
+    if (!delegatedAccess?.delegators && !isFromOldDot) {
         return;
     }
 
@@ -134,14 +139,14 @@ function connect(email: string) {
 
     // We need to access the authToken directly from the response to update the session
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_AS_DELEGATE, {to: email}, {optimisticData, successData, failureData})
         .then((response) => {
             if (!response?.restrictedToken || !response?.encryptedAuthToken) {
                 Log.alert('[Delegate] No auth token returned while connecting as a delegate');
                 Onyx.update(failureData);
                 return;
             }
-            if (!activePolicyID) {
+            if (!activePolicyID && CONFIG.IS_HYBRID_APP) {
                 Log.alert('[Delegate] Unable to access activePolicyID');
                 Onyx.update(failureData);
                 return;
@@ -157,19 +162,24 @@ function connect(email: string) {
 
                     NetworkStore.setAuthToken(response?.restrictedToken ?? null);
                     confirmReadyToOpenApp();
-                    openApp().then(() =>
-                        NativeModules.HybridAppModule?.switchAccount({
+                    return openApp().then(() => {
+                        if (!CONFIG.IS_HYBRID_APP || !policyID) {
+                            return true;
+                        }
+                        HybridAppModule.switchAccount({
                             newDotCurrentAccountEmail: email,
                             authToken: restrictedToken,
                             policyID,
                             accountID: String(previousAccountID),
-                        }),
-                    );
+                        });
+                        return true;
+                    });
                 });
         })
         .catch((error) => {
             Log.alert('[Delegate] Error connecting as delegate', {error});
             Onyx.update(failureData);
+            return false;
         });
 }
 
@@ -248,14 +258,17 @@ function disconnect() {
                     NetworkStore.setAuthToken(response?.authToken ?? null);
 
                     confirmReadyToOpenApp();
-                    openApp().then(() =>
-                        NativeModules.HybridAppModule?.switchAccount({
+                    openApp().then(() => {
+                        if (!CONFIG.IS_HYBRID_APP) {
+                            return;
+                        }
+                        HybridAppModule.switchAccount({
                             newDotCurrentAccountEmail: requesterEmail,
                             authToken,
                             policyID: '',
                             accountID: '',
-                        }),
-                    );
+                        });
+                    });
                 });
         })
         .catch((error) => {
@@ -516,18 +529,6 @@ function isConnectedAsDelegate() {
     return !!delegatedAccess?.delegate;
 }
 
-function removePendingDelegate(email: string) {
-    if (!delegatedAccess?.delegates) {
-        return;
-    }
-
-    Onyx.merge(ONYXKEYS.ACCOUNT, {
-        delegatedAccess: {
-            delegates: delegatedAccess.delegates.filter((delegate) => delegate.email !== email),
-        },
-    });
-}
-
 function updateDelegateRole(email: string, role: DelegateRole, validateCode: string) {
     if (!delegatedAccess?.delegates) {
         return;
@@ -698,7 +699,6 @@ export {
     addDelegate,
     requestValidationCode,
     clearDelegateErrorsByField,
-    removePendingDelegate,
     restoreDelegateSession,
     isConnectedAsDelegate,
     updateDelegateRoleOptimistically,

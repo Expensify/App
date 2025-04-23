@@ -6,27 +6,30 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
-import {getWorkspaceAccountID} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {ExpensifyCardSettings} from '@src/types/onyx';
 import WorkspaceCardsListLabel from './WorkspaceCardsListLabel';
 
 type WorkspaceCardListHeaderProps = {
     /** ID of the current policy */
     policyID: string;
+
+    /** Card settings */
+    cardSettings: ExpensifyCardSettings | undefined;
 };
 
-function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
+function WorkspaceCardListHeader({policyID, cardSettings}: WorkspaceCardListHeaderProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isMediumScreenWidth, isSmallScreenWidth} = useResponsiveLayout();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const workspaceAccountID = getWorkspaceAccountID(policyID);
+    const workspaceAccountID = useWorkspaceAccountID(policyID);
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
 
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
     const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
 
     const errorMessage = getLatestErrorMessage(cardSettings) ?? '';
@@ -104,7 +107,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 <View style={[styles.flexRow, styles.flex4, styles.gap2, styles.alignItemsCenter]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.name')}
                     </Text>
@@ -113,7 +116,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                     <View style={[styles.flexRow, styles.gap2, styles.flex1, styles.alignItemsCenter, styles.justifyContentStart]}>
                         <Text
                             numberOfLines={1}
-                            style={[styles.textLabelSupporting, styles.lh16]}
+                            style={[styles.textMicroSupporting, styles.lh16]}
                         >
                             {translate('common.type')}
                         </Text>
@@ -130,7 +133,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 >
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.lastFour')}
                     </Text>
@@ -138,7 +141,7 @@ function WorkspaceCardListHeader({policyID}: WorkspaceCardListHeaderProps) {
                 <View style={[styles.flexRow, shouldUseNarrowLayout ? styles.flex3 : styles.flex1, styles.gap2, styles.alignItemsCenter, styles.justifyContentEnd]}>
                     <Text
                         numberOfLines={1}
-                        style={[styles.textLabelSupporting, styles.lh16]}
+                        style={[styles.textMicroSupporting, styles.lh16]}
                     >
                         {translate('workspace.expensifyCard.limit')}
                     </Text>

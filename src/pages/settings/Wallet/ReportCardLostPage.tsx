@@ -11,18 +11,18 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
-import useStyledSafeAreaInsets from '@hooks/useStyledSafeAreaInsets';
+import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {setErrors} from '@libs/actions/FormActions';
 import {requestValidateCodeAction} from '@libs/actions/User';
-import * as ErrorUtils from '@libs/ErrorUtils';
+import {getLatestErrorMessageField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
+import {getFormattedAddress} from '@libs/PersonalDetailsUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+import {clearCardListErrors, requestReplacementExpensifyCard} from '@userActions/Card';
 import type {ReplacementReason} from '@userActions/Card';
-import * as CardActions from '@userActions/Card';
-import * as FormActions from '@userActions/FormActions';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -74,14 +74,14 @@ function ReportCardLostPage({
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
 
     const physicalCard = cardList?.[cardID];
-    const validateError = ErrorUtils.getLatestErrorMessageField(physicalCard);
+    const validateError = getLatestErrorMessageField(physicalCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
 
     const prevIsLoading = usePrevious(formData?.isLoading);
 
-    const {paddingBottom} = useStyledSafeAreaInsets();
+    const {paddingBottom} = useSafeAreaPaddings();
 
-    const formattedAddress = PersonalDetailsUtils.getFormattedAddress(privatePersonalDetails ?? {});
+    const formattedAddress = getFormattedAddress(privatePersonalDetails ?? {});
     const primaryLogin = account?.primaryLogin ?? '';
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
@@ -99,7 +99,7 @@ function ReportCardLostPage({
             return;
         }
 
-        FormActions.setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard?.errors ?? {});
+        setErrors(ONYXKEYS.FORMS.REPORT_PHYSICAL_CARD_FORM, physicalCard?.errors ?? {});
     }, [formData?.isLoading, physicalCard?.errors]);
 
     const handleValidateCodeEntered = useCallback(
@@ -107,7 +107,7 @@ function ReportCardLostPage({
             if (!physicalCard) {
                 return;
             }
-            CardActions.requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason, validateCode);
+            requestReplacementExpensifyCard(physicalCard.cardID, reason?.key as ReplacementReason, validateCode);
         },
         [physicalCard, reason?.key],
     );
@@ -198,7 +198,7 @@ function ReportCardLostPage({
                             sendValidateCode={sendValidateCode}
                             validateError={validateError}
                             clearError={() => {
-                                CardActions.clearCardListErrors(physicalCard.cardID);
+                                clearCardListErrors(physicalCard.cardID);
                             }}
                             onClose={() => setIsValidateCodeActionModalVisible(false)}
                             isVisible={isValidateCodeActionModalVisible}

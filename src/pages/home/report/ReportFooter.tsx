@@ -14,8 +14,8 @@ import {usePersonalDetails} from '@components/OnyxProvider';
 import SwipeableView from '@components/SwipeableView';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useScreenWrapperTranstionStatus from '@hooks/useScreenWrapperTransitionStatus';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {addComment} from '@libs/actions/Report';
@@ -28,7 +28,6 @@ import {
     canWriteInReport as canWriteInReportUtil,
     isAdminsOnlyPostingRoom as isAdminsOnlyPostingRoomUtil,
     isArchivedNonExpenseReport,
-    isPolicyExpenseChat,
     isPublicRoom,
     isSystemChat as isSystemChatUtil,
 } from '@libs/ReportUtils';
@@ -64,10 +63,10 @@ type ReportFooterProps = {
     isComposerFullSize?: boolean;
 
     /** A method to call when the input is focus */
-    onComposerFocus: () => void;
+    onComposerFocus?: () => void;
 
     /** A method to call when the input is blur */
-    onComposerBlur: () => void;
+    onComposerBlur?: () => void;
 };
 
 function ReportFooter({
@@ -86,7 +85,7 @@ function ReportFooter({
     const {translate} = useLocalize();
     const {windowWidth} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {didScreenTransitionEnd} = useScreenWrapperTranstionStatus();
+    const {canUseLeftHandBar} = usePermissions();
 
     const [shouldShowComposeInput] = useOnyx(ONYXKEYS.SHOULD_SHOW_COMPOSE_INPUT, {initialValue: false});
     const [isAnonymousUser = false] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.authTokenType === CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
@@ -109,7 +108,8 @@ function ReportFooter({
     const chatFooterStyles = {...styles.chatFooter, minHeight: !isOffline ? CONST.CHAT_FOOTER_MIN_HEIGHT : 0};
     const isArchivedRoom = isArchivedNonExpenseReport(report, reportNameValuePairs);
 
-    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : variables.sideBarWidth) < variables.anonymousReportFooterBreakpoint;
+    const sidebarWidth = canUseLeftHandBar ? variables.sideBarWithLHBWidth : variables.sideBarWidth;
+    const isSmallSizeLayout = windowWidth - (shouldUseNarrowLayout ? 0 : sidebarWidth) < variables.anonymousReportFooterBreakpoint;
 
     // If a user just signed in and is viewing a public report, optimistically show the composer while loading the report, since they will have write access when the response comes back.
     const shouldShowComposerOptimistically = !isAnonymousUser && isPublicRoom(report) && !!reportMetadata?.isLoadingInitialReportActions;
@@ -119,8 +119,6 @@ function ReportFooter({
     const isSystemChat = isSystemChatUtil(report);
     const isAdminsOnlyPostingRoom = isAdminsOnlyPostingRoomUtil(report);
     const isUserPolicyAdmin = isPolicyAdmin(policy);
-
-    const shouldShowEducationalTooltip = isPolicyExpenseChat(report) && !!report.isOwnPolicyExpenseChat;
 
     const allPersonalDetails = usePersonalDetails();
 
@@ -211,7 +209,7 @@ function ReportFooter({
                         />
                     )}
                     {!shouldUseNarrowLayout && (
-                        <View style={styles.offlineIndicatorRow}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
+                        <View style={styles.offlineIndicatorContainer}>{shouldHideComposer && <OfflineIndicator containerStyles={[styles.chatItemComposeSecondaryRow]} />}</View>
                     )}
                 </View>
             )}
@@ -228,7 +226,6 @@ function ReportFooter({
                             pendingAction={pendingAction}
                             isComposerFullSize={isComposerFullSize}
                             isReportReadyForDisplay={isReportReadyForDisplay}
-                            shouldShowEducationalTooltip={didScreenTransitionEnd && shouldShowEducationalTooltip}
                             didHideComposerInput={didHideComposerInput}
                         />
                     </SwipeableView>

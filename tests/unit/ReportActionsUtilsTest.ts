@@ -8,6 +8,8 @@ import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
+jest.mock('@components/ConfirmedRoute.tsx');
+
 describe('ReportActionsUtils', () => {
     beforeAll(() =>
         Onyx.init({
@@ -191,15 +193,110 @@ describe('ReportActionsUtils', () => {
                     },
                 ],
             ],
+            [
+                [
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    // this item has no created field, so it should appear right after CONST.REPORT.ACTIONS.TYPE.CREATED
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+                [
+                    {
+                        created: '2022-11-09 22:27:01.600',
+                        reportActionID: '6401435781022176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        reportActionID: '2962390724708756',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.889',
+                        reportActionID: '1609646094152486',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:26:48.989',
+                        reportActionID: '1661970171066218',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                    {
+                        created: '2022-11-09 22:27:01.825',
+                        reportActionID: '8401445780099176',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                        originalMessage: {
+                            html: 'Hello world',
+                            whisperedTo: [],
+                        },
+                    },
+                ],
+            ],
         ];
 
         test.each(cases)('sorts by created, then actionName, then reportActionID', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[]);
             expect(result).toStrictEqual(expectedOutput);
         });
 
         test.each(cases)('in descending order', (input, expectedOutput) => {
-            const result = ReportActionsUtils.getSortedReportActions(input, true);
+            const result = ReportActionsUtils.getSortedReportActions(input as ReportAction[], true);
             expect(result).toStrictEqual(expectedOutput.reverse());
         });
     });
@@ -842,6 +939,24 @@ describe('ReportActionsUtils', () => {
                 ],
             };
             expect(ReportActionsUtils.isDeletedAction(reportAction)).toBe(false);
+        });
+    });
+
+    describe('getRenamedAction', () => {
+        it('should return the correct translated message for a renamed action', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    lastModified: '2022-11-09 22:27:01.825',
+                    oldName: 'Old name',
+                    newName: 'New name',
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            expect(ReportActionsUtils.getRenamedAction(reportAction, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
     });
 });

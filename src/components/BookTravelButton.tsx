@@ -1,7 +1,10 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Str} from 'expensify-common';
+import type {ReactElement} from 'react';
 import React, {useCallback, useContext, useState} from 'react';
-import {NativeModules} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import useAccountValidation from '@hooks/useAccountValidation';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -11,8 +14,9 @@ import {openTravelDotLink} from '@libs/actions/Link';
 import {cleanupTravelProvisioningSession} from '@libs/actions/Travel';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
-import {getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
+import {getActivePolicies, getAdminsPrivateEmailDomains, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import colors from '@styles/theme/colors';
+import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -22,35 +26,49 @@ import ConfirmModal from './ConfirmModal';
 import CustomStatusBarAndBackgroundContext from './CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import {RocketDude} from './Icon/Illustrations';
+import Text from './Text';
+import TextLink from './TextLink';
 
 type BookTravelButtonProps = {
     text: string;
+
+    /** Whether to render the error message below the button */
+    shouldRenderErrorMessageBelowButton?: boolean;
 };
 
-const navigateToAcceptTerms = (domain: string) => {
+const navigateToAcceptTerms = (domain: string, isUserValidated?: boolean) => {
     // Remove the previous provision session infromation if any is cached.
     cleanupTravelProvisioningSession();
-    Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+    if (isUserValidated) {
+        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        return;
+    }
+    Navigation.navigate(ROUTES.SETTINGS_WALLET_VERIFY_ACCOUNT.getRoute(Navigation.getActiveRoute(), ROUTES.TRAVEL_TCS.getRoute(domain)));
 };
 
-function BookTravelButton({text}: BookTravelButtonProps) {
+function BookTravelButton({text, shouldRenderErrorMessageBelowButton = false}: BookTravelButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const isUserValidated = useAccountValidation();
+
     const policy = usePolicy(activePolicyID);
-    const [errorMessage, setErrorMessage] = useState('');
-    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
-    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin});
-    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [errorMessage, setErrorMessage] = useState<string | ReactElement>('');
+    const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS, {canBeMissing: false});
+    const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => account?.primaryLogin, canBeMissing: false});
+    const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {isBlockedFromSpotnanaTravel} = usePermissions();
     const [isPreventionModalVisible, setPreventionModalVisibility] = useState(false);
-
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const activePolicies = getActivePolicies(policies, currentUserLogin);
+    const groupPaidPolicies = activePolicies.filter((activePolicy) => activePolicy.type !== CONST.POLICY.TYPE.PERSONAL && isPaidGroupPolicy(activePolicy));
     // Flag indicating whether NewDot was launched exclusively for Travel,
     // e.g., when the user selects "Trips" from the Expensify Classic menu in HybridApp.
-    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY);
+    const [wasNewDotLaunchedJustForTravel] = useOnyx(ONYXKEYS.IS_SINGLE_NEW_DOT_ENTRY, {canBeMissing: false});
 
     const hidePreventionModal = () => setPreventionModalVisibility(false);
 
@@ -64,12 +82,34 @@ function BookTravelButton({text}: BookTravelButtonProps) {
 
         // The primary login of the user is where Spotnana sends the emails with booking confirmations, itinerary etc. It can't be a phone number.
         if (!primaryContactMethod || Str.isSMSLogin(primaryContactMethod)) {
-            setErrorMessage(translate('travel.phoneError'));
+            setErrorMessage(
+                <Text style={[styles.flexRow, StyleUtils.getDotIndicatorTextStyles(true)]}>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase1')}</Text>{' '}
+                    <TextLink
+                        style={[StyleUtils.getDotIndicatorTextStyles(true), styles.link]}
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                    >
+                        {translate('travel.phoneError.link')}
+                    </TextLink>
+                    <Text style={[StyleUtils.getDotIndicatorTextStyles(true)]}>{translate('travel.phoneError.phrase2')}</Text>
+                </Text>,
+            );
+            return;
+        }
+
+        const adminDomains = getAdminsPrivateEmailDomains(policy);
+        if (adminDomains.length === 0) {
+            Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
+            return;
+        }
+
+        if (groupPaidPolicies.length < 1) {
+            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
             return;
         }
 
         if (!isPaidGroupPolicy(policy)) {
-            Navigation.navigate(ROUTES.TRAVEL_UPGRADE);
+            setErrorMessage(translate('travel.termsAndConditions.defaultWorkspaceError'));
             return;
         }
 
@@ -79,13 +119,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 ?.then(() => {
                     // When a user selects "Trips" in the Expensify Classic menu, the HybridApp opens the ManageTrips page in NewDot.
                     // The wasNewDotLaunchedJustForTravel flag indicates if NewDot was launched solely for this purpose.
-                    if (!NativeModules.HybridAppModule || !wasNewDotLaunchedJustForTravel) {
+                    if (!CONFIG.IS_HYBRID_APP || !wasNewDotLaunchedJustForTravel) {
                         return;
                     }
 
                     // Close NewDot if it was opened only for Travel, as its purpose is now fulfilled.
                     Log.info('[HybridApp] Returning to OldDot after opening TravelDot');
-                    NativeModules.HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
+                    HybridAppModule.closeReactNativeApp({shouldSignOut: false, shouldSetNVP: false});
                     setRootStatusBarEnabled(false);
                 })
                 ?.catch(() => {
@@ -93,28 +133,40 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 });
         } else if (isPolicyProvisioned) {
             navigateToAcceptTerms(CONST.TRAVEL.DEFAULT_DOMAIN);
-        } else {
-            // Determine the domain to associate with the workspace during provisioning in Spotnana.
-            // - If all admins share the same private domain, the workspace is tied to it automatically.
-            // - If admins have multiple private domains, the user must select one.
-            // - Public domains are not allowed; an error page is shown in that case.
-            const adminDomains = getAdminsPrivateEmailDomains(policy);
-            if (adminDomains.length === 0) {
-                Navigation.navigate(ROUTES.TRAVEL_PUBLIC_DOMAIN_ERROR);
-            } else if (isEmptyObject(policy?.address)) {
-                // Spotnana requires an address anytime an entity is created for a policy
-                Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_ADDRESS.getRoute(policy?.id, Navigation.getActiveRoute()));
-            } else if (adminDomains.length === 1) {
-                navigateToAcceptTerms(adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN);
-            } else {
-                Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
-            }
         }
-    }, [policy, wasNewDotLaunchedJustForTravel, travelSettings, translate, primaryContactMethod, setRootStatusBarEnabled, isBlockedFromSpotnanaTravel]);
+        // Determine the domain to associate with the workspace during provisioning in Spotnana.
+        // - If all admins share the same private domain, the workspace is tied to it automatically.
+        // - If admins have multiple private domains, the user must select one.
+        // - Public domains are not allowed; an error page is shown in that case.
+        else if (adminDomains.length === 1) {
+            const domain = adminDomains.at(0) ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+            if (isEmptyObject(policy?.address)) {
+                // Spotnana requires an address anytime an entity is created for a policy
+                Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+            } else {
+                navigateToAcceptTerms(domain, !!isUserValidated);
+            }
+        } else {
+            Navigation.navigate(ROUTES.TRAVEL_DOMAIN_SELECTOR);
+        }
+    }, [
+        isBlockedFromSpotnanaTravel,
+        primaryContactMethod,
+        policy,
+        travelSettings?.hasAcceptedTerms,
+        styles.flexRow,
+        styles.link,
+        StyleUtils,
+        translate,
+        wasNewDotLaunchedJustForTravel,
+        setRootStatusBarEnabled,
+        isUserValidated,
+        groupPaidPolicies.length,
+    ]);
 
     return (
         <>
-            {!!errorMessage && (
+            {!shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
                     style={styles.mb1}
                     messages={{error: errorMessage}}
@@ -129,6 +181,13 @@ function BookTravelButton({text}: BookTravelButtonProps) {
                 success
                 large
             />
+            {shouldRenderErrorMessageBelowButton && !!errorMessage && (
+                <DotIndicatorMessage
+                    style={[styles.mb1, styles.pt3]}
+                    messages={{error: errorMessage}}
+                    type="error"
+                />
+            )}
             <ConfirmModal
                 title={translate('travel.blockedFeatureModal.title')}
                 titleStyles={styles.textHeadlineH1}

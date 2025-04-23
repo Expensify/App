@@ -4,6 +4,7 @@ import type * as Illustrations from '@src/components/Icon/Illustrations';
 import CONST from '@src/CONST';
 import {
     checkIfFeedConnectionIsBroken,
+    filterInactiveCards,
     flatAllCardsList,
     formatCardExpiration,
     getBankCardDetailsImage,
@@ -19,9 +20,10 @@ import {
     hasIssuedExpensifyCard,
     isCustomFeed as isCustomFeedCardUtils,
     isExpensifyCardFullySetUp,
+    lastFourNumbersFromCardName,
     maskCardNumber,
 } from '@src/libs/CardUtils';
-import type {CardFeeds, CompanyCardFeed, ExpensifyCardSettings, Policy, WorkspaceCardsList} from '@src/types/onyx';
+import type {CardFeeds, CardList, CompanyCardFeed, ExpensifyCardSettings, Policy, WorkspaceCardsList} from '@src/types/onyx';
 import type {CompanyCardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 const shortDate = '0924';
@@ -458,6 +460,23 @@ describe('CardUtils', () => {
         });
     });
 
+    describe('lastFourNumbersFromCardName', () => {
+        it('Should return last 4 numbers from the card name', () => {
+            const lastFour = lastFourNumbersFromCardName('Business Card Cash - 3001');
+            expect(lastFour).toBe('3001');
+        });
+
+        it('Should return empty string if card number does not have space', () => {
+            const lastFour = lastFourNumbersFromCardName('480801XXXXXX2554');
+            expect(lastFour).toBe('');
+        });
+
+        it('Should return empty string if card number does not have number in the end with dash', () => {
+            const lastFour = lastFourNumbersFromCardName('Business Card Cash - Business');
+            expect(lastFour).toBe('');
+        });
+    });
+
     describe('maskCardNumber', () => {
         it("Should return the card number divided into chunks of 4, with 'X' replaced by '•' if it's provided in the '480801XXXXXX2554' format", () => {
             const cardNumber = '480801XXXXXX2554';
@@ -492,6 +511,11 @@ describe('CardUtils', () => {
         it('Should return empty string if invalid card name was provided', () => {
             const maskedCardNumber = maskCardNumber('', CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD);
             expect(maskedCardNumber).toBe('');
+        });
+
+        it('Should return card name without last 4 numbers', () => {
+            const maskedCardNumber = maskCardNumber('Business Card Cash - 3001', undefined);
+            expect(maskedCardNumber).toBe('Business Card Cash');
         });
     });
 
@@ -593,6 +617,111 @@ describe('CardUtils', () => {
         it('Should return empty object if no data was provided', () => {
             const cardsList = getFilteredCardList(undefined, undefined);
             expect(cardsList).toStrictEqual({});
+        });
+
+        it('Should handle the case when all cards are already assigned in other workspaces', () => {
+            const assignedCard1 = 'CREDIT CARD...5566';
+            const assignedCard2 = 'CREDIT CARD...6677';
+
+            const mockAllWorkspaceCards = {
+                cards_888888_feed: {
+                    '11111': {
+                        accountID: 999999,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                        cardID: 11111,
+                        cardName: assignedCard1,
+                        domainName: 'other-workspace.exfy',
+                        state: 3,
+                    },
+                    '22222': {
+                        accountID: 999999,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE,
+                        cardID: 22222,
+                        cardName: assignedCard2,
+                        domainName: 'other-workspace.exfy',
+                        state: 3,
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+
+            const customFeedWithAllAssignedCards = {
+                cardList: {
+                    [assignedCard1]: 'ENCRYPTED_DATA',
+                    [assignedCard2]: 'ENCRYPTED_DATA',
+                },
+            } as unknown as WorkspaceCardsList;
+            const filteredCards = getFilteredCardList(customFeedWithAllAssignedCards, undefined, mockAllWorkspaceCards);
+            expect(filteredCards).toStrictEqual({});
+        });
+
+        it('Should filter out cards that are already assigned in another workspace (custom feed)', () => {
+            const customFeedWorkspaceCardsList = {
+                '21310091': {
+                    accountID: 18439984,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: 21310091,
+                    cardName: '480801XXXXXX2554',
+                    domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2554',
+                    lastUpdated: '',
+                    lastScrape: '2024-11-27 11:00:53',
+                    scrapeMinDate: '2024-10-17',
+                    state: 3,
+                },
+                '21310092': {
+                    accountID: 18439985,
+                    bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+                    cardID: 21310092,
+                    cardName: '480801XXXXXX2666',
+                    domainName: 'expensify-policy41314f4dc5ce25af.exfy',
+                    fraud: 'none',
+                    lastFourPAN: '2666',
+                    lastUpdated: '',
+                    lastScrape: '2024-11-27 11:00:53',
+                    scrapeMinDate: '2024-10-17',
+                    state: 3,
+                },
+                cardList: {
+                    '480801XXXXXX2554': 'ENCRYPTED_CARD_NUMBER',
+                    '480801XXXXXX2666': 'ENCRYPTED_CARD_NUMBER',
+                },
+            } as unknown as WorkspaceCardsList;
+
+            const filteredCards = getFilteredCardList(customFeedWorkspaceCardsList, undefined);
+            expect(filteredCards).toStrictEqual({});
+        });
+
+        it('Should filter out cards that are already assigned in another workspace (direct feed)', () => {
+            const assignedCard1 = 'CREDIT CARD...3344';
+            const assignedCard2 = 'CREDIT CARD...3355';
+            const unassignedCard = 'CREDIT CARD...6666';
+
+            const mockAllWorkspaceCards = {
+                cards_888888_feed: {
+                    '67889': {
+                        accountID: 999998,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                        cardID: 67889,
+                        cardName: assignedCard1,
+                        domainName: 'other-workspace.exfy',
+                        state: 3,
+                    },
+                    '67890': {
+                        accountID: 999999,
+                        bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CAPITAL_ONE,
+                        cardID: 67890,
+                        cardName: assignedCard2,
+                        domainName: 'other-workspace.exfy',
+                        state: 3,
+                    },
+                },
+            } as unknown as OnyxCollection<WorkspaceCardsList>;
+            const directFeedWithAssignedCard = {
+                accountList: [assignedCard1, assignedCard2, unassignedCard],
+            } as unknown as (typeof oAuthAccountDetails)[typeof CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE];
+            const filteredCards = getFilteredCardList(undefined, directFeedWithAssignedCard, mockAllWorkspaceCards);
+            expect(filteredCards).toStrictEqual({[`${unassignedCard}`]: unassignedCard});
         });
     });
 
@@ -707,6 +836,25 @@ describe('CardUtils', () => {
         it('should return false when both policy and cardSettings are undefined', () => {
             const result = isExpensifyCardFullySetUp(undefined, undefined);
             expect(result).toBe(false);
+        });
+    });
+
+    describe('filterInactiveCards', () => {
+        it('should filter out closed, deactivated and suspended cards', () => {
+            const activeCards = {card1: {cardID: 1, state: CONST.EXPENSIFY_CARD.STATE.OPEN}};
+            const closedCards = {
+                card2: {cardID: 2, state: CONST.EXPENSIFY_CARD.STATE.CLOSED},
+                card3: {cardID: 3, state: CONST.EXPENSIFY_CARD.STATE.STATE_DEACTIVATED},
+                card4: {cardID: 4, state: CONST.EXPENSIFY_CARD.STATE.STATE_SUSPENDED},
+            };
+            const cardList = {...activeCards, ...closedCards} as unknown as CardList;
+            const filteredList = filterInactiveCards(cardList);
+            expect(filteredList).toEqual(activeCards);
+        });
+
+        it('should return an empty object if undefined card list is passed', () => {
+            const cards = filterInactiveCards(undefined);
+            expect(cards).toEqual({});
         });
     });
 });

@@ -26,7 +26,7 @@ import CompanyCardsPendingState from '@assets/images/companyCards/pendingstate_l
 import VisaCompanyCards from '@assets/images/companyCards/visa.svg';
 import EmptyCardState from '@assets/images/emptystate__expensifycard.svg';
 import ExpensifyCardIllustration from '@assets/images/expensifyCard/cardIllustration.svg';
-import LaptopwithSecondScreenandHourglass from '@assets/images/LaptopwithSecondScreenandHourglass.svg';
+import LaptopWithSecondScreenAndHourglass from '@assets/images/laptop-with-second-screen-and-hourglass.svg';
 import Abracadabra from '@assets/images/product-illustrations/abracadabra.svg';
 import BankArrowPink from '@assets/images/product-illustrations/bank-arrow--pink.svg';
 import BankMouseGreen from '@assets/images/product-illustrations/bank-mouse--green.svg';
@@ -37,6 +37,7 @@ import ConciergeExclamation from '@assets/images/product-illustrations/concierge
 import CreditCardsBlue from '@assets/images/product-illustrations/credit-cards--blue.svg';
 import EmptyStateExpenses from '@assets/images/product-illustrations/emptystate__expenses.svg';
 import HoldExpense from '@assets/images/product-illustrations/emptystate__holdexpense.svg';
+import ReceiptFairy from '@assets/images/product-illustrations/emptystate__receiptfairy.svg';
 import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__travel.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
 import GpsTrackOrange from '@assets/images/product-illustrations/gps-track--orange.svg';
@@ -64,6 +65,7 @@ import TeleScope from '@assets/images/product-illustrations/telescope.svg';
 import ThreeLeggedLaptopWoman from '@assets/images/product-illustrations/three_legged_laptop_woman.svg';
 import ToddBehindCloud from '@assets/images/product-illustrations/todd-behind-cloud.svg';
 import ToddWithPhones from '@assets/images/product-illustrations/todd-with-phones.svg';
+import RunningTurtle from '@assets/images/running-turtle.svg';
 import ReportReceipt from '@assets/images/simple-illustration__report-receipt.svg';
 import BigVault from '@assets/images/simple-illustrations/emptystate__big-vault.svg';
 import Puzzle from '@assets/images/simple-illustrations/emptystate__puzzlepieces.svg';
@@ -92,6 +94,7 @@ import CreditCardEyes from '@assets/images/simple-illustrations/simple-illustrat
 import CreditCardsNewGreen from '@assets/images/simple-illustrations/simple-illustration__creditcards--green.svg';
 import EmailAddress from '@assets/images/simple-illustrations/simple-illustration__email-address.svg';
 import EmptyState from '@assets/images/simple-illustrations/simple-illustration__empty-state.svg';
+import Encryption from '@assets/images/simple-illustrations/simple-illustration__encryption.svg';
 import EnvelopeReceipt from '@assets/images/simple-illustrations/simple-illustration__envelopereceipt.svg';
 import Filters from '@assets/images/simple-illustrations/simple-illustration__filters.svg';
 import Flash from '@assets/images/simple-illustrations/simple-illustration__flash.svg';
@@ -154,6 +157,7 @@ import TurtleInShell from '@assets/images/turtle-in-shell.svg';
 
 export {
     Abracadabra,
+    Encryption,
     BankArrowPink,
     BankMouseGreen,
     BankUserGreen,
@@ -202,7 +206,7 @@ export {
     CreditCardsNew,
     CreditCardsNewGreen,
     InvoiceBlue,
-    LaptopwithSecondScreenandHourglass,
+    LaptopWithSecondScreenAndHourglass,
     LockOpen,
     Luggage,
     MoneyIntoWallet,
@@ -231,6 +235,7 @@ export {
     QRCode,
     RealtimeReport,
     HoldExpense,
+    ReceiptFairy,
     ReceiptEnvelope,
     Approval,
     WalletAlt,
@@ -276,6 +281,7 @@ export {
     Filters,
     MagnifyingGlassMoney,
     Rules,
+    RunningTurtle,
     CompanyCardsEmptyState,
     AmexCompanyCards,
     MasterCardCompanyCards,

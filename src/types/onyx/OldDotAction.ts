@@ -2,7 +2,6 @@ import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type {
     ChangeFieldParams,
-    ChangePolicyParams,
     DelegateSubmitParams,
     ExportedToIntegrationParams,
     IntegrationsMessageParams,
@@ -28,7 +27,7 @@ type OldDotOriginalMessageActionName =
     | 'MARKREIMBURSEDFROMINTEGRATION'
     | 'OUTDATEDBANKACCOUNT'
     | 'REIMBURSEMENTACHBOUNCE'
-    | 'REIMBURSEMENTACHCANCELLED'
+    | 'REIMBURSEMENTACHCANCELED'
     | 'REIMBURSEMENTACCOUNTCHANGED'
     | 'REIMBURSEMENTDELAYED'
     | 'SELECTEDFORRANDOMAUDIT'
@@ -50,20 +49,6 @@ type OriginalMessageChangeField = {
      *
      */
     originalMessage: Record<string, unknown> & ChangeFieldParams;
-};
-
-/**
- *
- */
-type OriginalMessageChangePolicy = {
-    /**
-     *
-     */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY;
-    /**
-     *
-     */
-    originalMessage: ChangePolicyParams & Record<string, unknown>;
 };
 
 // Currently lacking Params
@@ -223,7 +208,7 @@ type OriginalMessageReimbursementACHCancelled = {
     /**
      *
      */
-    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED;
+    actionName: typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED;
     /**
      *
      */
@@ -349,10 +334,6 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY]: OriginalMessageChangePolicy;
-    /**
-     *
-     */
     [CONST.REPORT.ACTIONS.TYPE.DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     /**
      *
@@ -389,7 +370,7 @@ type OldDotOriginalMessageMap = {
     /**
      *
      */
-    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELLED]: OriginalMessageReimbursementACHCancelled;
+    [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED]: OriginalMessageReimbursementACHCancelled;
     /**
      *
      */
@@ -449,7 +430,6 @@ export default OldDotAction;
 export type {
     OriginalMessageChangeField,
     OldDotOriginalMessageActionName,
-    OriginalMessageChangePolicy,
     OriginalMessageDelegateSubmit,
     OriginalMessageExportedToCSV,
     OriginalMessageExportedToIntegration,

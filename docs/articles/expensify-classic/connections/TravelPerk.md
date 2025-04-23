@@ -1,71 +1,70 @@
 ---
-title: Connecting TravelPerk to your Expensify Account
-description: Help article that describes how to connect TravelPerk to your Expensify Account
+title: Connecting-TravelPerk-to-Expensify.md
+description: Learn how to seamlessly integrate TravelPerk with Expensify to automate travel expense tracking and improve financial workflows.
+keywords: [TravelPerk, Expensify, integration, travel expenses, automation, corporate travel]
 ---
-# Connecting TravelPerk to your Expensify Account
 
-## Overview
-Expensify and TravelPerk are two powerful tools that can streamline your expense management and travel booking processes. By integrating these two platforms, you can make tracking travel expenses even more efficient. This article will walk you through the steps to integrate Expensify with Travel Perk seamlessly.
+<div id="new-expensify" markdown="1">
 
-## How to Connect TravelPerk to your Expensify Account
-**Prerequisites:**
-Before you begin, ensure that you have the following:
-- An active Expensify account.
-- An active TravelPerk account.
-- Administrative access to both Expensify and TravelPerk accounts.
+Integrating TravelPerk with Expensify allows you to automate travel expense tracking, ensuring that all bookings made through TravelPerk are seamlessly recorded in Expensify. Follow the steps below to connect your accounts and streamline your travel expense management.  
 
-1. **Log in to your Expensify account (web)**
-   - Open your web browser and navigate to the Expensify login page.
-   - Enter your Expensify username and password.
-   - Click "Sign In" to access your Expensify account.
+---
 
-2. **Access Your Expensify Account Settings**
-   - Once logged in, click on your profile icon or username in the upper-right corner.
-   - From the dropdown menu, select "Settings."
+## Prerequisites  
 
-3. **Navigate to Integrations**
-   - In the Settings menu, find and click on the "Integrations" option.
+Before setting up the integration, ensure you have:  
+- An **active Expensify account**.  
+- An **active TravelPerk account**.  
+- **Admin access** to both accounts.  
 
-4. **Search for TravelPerk Integration**
-   - In the Integrations section, locate the search bar.
-   - Type "TravelPerk" into the search bar and hit "Enter."
+---
 
-5. **Connect TravelPerk to Expensify**
-   - Click on the Travel Perk integration option.
-   - You'll be prompted to log in to your Travel Perk account. Enter your TravelPerk credentials and log in.
+## How to Connect TravelPerk to Expensify  
 
-6. **Authorize the Integration**
-   - After logging in to TravelPerk, you'll be asked to authorize the integration. Review the permissions requested and click "Authorize" or "Allow."
+1. **Log in to Expensify (Web)**  
+   - Go to [Expensify](https://www.expensify.com/) and sign in to your account.  
 
-7. **Configure Integration Settings**
-   - Once the integration is authorized, you may have the option to configure settings such as expense categories and tags.
-   - Follow the on-screen prompts to customize the integration settings according to your preferences.
+2. **Access Integrations**  
+   - Click on your **profile icon** in the upper-right corner.  
+   - Select **Settings > Account > Integrations**.  
 
-8. **Save Integration Settings**
-   - After configuring the integration settings, click the "Save" or "Finish" button to confirm your choices.
+3. **Find TravelPerk**  
+   - Use the search bar to find **TravelPerk**.  
 
-9. **Test the Integration**
-   - To ensure that the integration is working correctly, consider creating a test expense in TravelPerk.
-   - Wait for a few minutes and check your Expensify account to confirm that the expense has been automatically imported.
+4. **Connect TravelPerk**  
+   - Click on **TravelPerk** and follow the on-screen prompts.  
+   - Log in to your **TravelPerk account** when prompted.  
 
-10. **Regularly Review and Approve Expenses**
-    - With the integration in place, expenses from TravelPerk will be automatically synced to your Expensify account.
-    - Regularly review and approve these expenses in Expensify to keep your financial records up to date.
+5. **Authorize the Integration**  
+   - Review the requested permissions.  
+   - Click **Authorize** to enable the connection.  
 
-## How to Book Travel
-- From the Trips dashboard in TravelPerk, click Create Trip.
-- Give your trip a unique name, then book your flights and hotels.
-- Review your itinerary and click Confirm Payment, and your TravelPerk invoice and itinerary will automatically populate in Expensify!
+6. **Customize Integration Settings**  
+   - Configure expense categories and tags based on your company’s policies.  
+   - Click **Save** to confirm your settings.  
 
-## Deep Dive on the TravelPerk Integration
+7. **Test the Integration**  
+   - Book a test trip in TravelPerk.  
+   - Check Expensify to ensure the expense appears automatically.  
 
-The integration between Expensify and TravelPerk enables a seamless flow of data between the two platforms. When employees book travel through TravelPerk, their travel expenses are automatically transferred to Expensify.
+---
 
-## Key Benefits
-- **Efficiency and accuracy:** The TravelPerk integration provides real-time data synchronization. Travel expenses are automatically input into Expensify, allowing for timely reporting and reimbursement.
-- **Expense policy compliance:** TravelPerk helps enforce corporate travel policies by offering pre-approved travel options. Expenses generated from these bookings automatically adhere to company policies.
-- **Visibility and control:** Finance teams gain greater visibility into travel expenses. They can track expenses in real-time, monitor spending trends, and enforce budget controls more effectively.
-- **Streamlined approval workflows:** Expense approval workflows can be set up in Expensify. Managers can review and approve expenses with ease, ensuring adherence to company policies.
+## How to Book Travel with TravelPerk  
 
-Integrating Expensify with TravelPerk can significantly simplify your expense management process. By following these steps, you can ensure that your travel expenses are automatically imported into Expensify, making it easier to track and report expenses accurately. If you encounter any issues or have questions, don’t hesitate to reach out to your Account Manager or concierge@expensify.com with any questions.
+1. In TravelPerk, navigate to **Trips > Create Trip**.  
+2. Enter a **trip name** and select flights and hotels.  
+3. Review the itinerary and click **Confirm Payment**.  
+4. Your **TravelPerk invoice and itinerary** will automatically sync to Expensify.  
 
+---
+
+## Benefits of the TravelPerk Integration  
+
+- **Automated expense tracking** – Travel expenses sync in real-time.  
+- **Expense policy compliance** – Pre-approved bookings align with company policies.  
+- **Improved visibility** – Finance teams gain better insights into travel spending.  
+- **Streamlined approvals** – Managers can review and approve expenses effortlessly.  
+
+By integrating TravelPerk with Expensify, you eliminate manual expense tracking, making business travel more efficient. If you need help, contact **Concierge** or your **Account Manager**.  
+
+</div>

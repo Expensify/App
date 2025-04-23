@@ -21,7 +21,7 @@ import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest, isReceiptBeingScanned} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -63,10 +63,10 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const payeePersonalDetails = personalDetails?.[actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
-    const isDistanceRequestTransaction = isDistanceRequest(transaction);
     const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
     const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
+    const isDistanceRequest = isDistanceRequestUtil(transaction);
     const [isConfirmed, setIsConfirmed] = useState(false);
 
     const {
@@ -108,7 +108,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                             />
                         </View>
                     )}
-                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequestTransaction}>
+                    <ImageBehaviorContextProvider shouldSetAspectRatioInStyle={!isDistanceRequest}>
                         {!!participants.length && (
                             <MoneyRequestConfirmationList
                                 payeePersonalDetails={payeePersonalDetails}
@@ -123,10 +123,10 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                                 iouIsBillable={splitBillable}
                                 iouType={CONST.IOU.TYPE.SPLIT}
                                 isReadOnly={!isEditingSplitBill}
-                                isDistanceRequest={isDistanceRequestTransaction}
                                 shouldShowSmartScanFields
                                 receiptPath={transaction?.receipt?.source}
                                 receiptFilename={transaction?.filename}
+                                isDistanceRequest={isDistanceRequest}
                                 isEditingSplitBill={isEditingSplitBill}
                                 hasSmartScanFailed={hasSmartScanFailed}
                                 reportID={reportID}

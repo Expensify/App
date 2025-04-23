@@ -9,6 +9,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getFieldRequiredErrors, isValidAddress, isValidZipCode, isValidZipCodeInternational} from '@libs/ValidationUtils';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
+import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormValuesMapping} from '@src/ONYXKEYS';
 
 type AddressValues = {
@@ -63,6 +64,15 @@ type AddressStepProps<TFormID extends keyof OnyxFormValuesMapping> = SubStepProp
 
     /** Callback to be called when the country is changed */
     onCountryChange?: (country: unknown) => void;
+
+    /** Translation key of street field */
+    streetTranslationKey?: TranslationPaths;
+
+    /** Indicates if country can be changed by user */
+    shouldAllowCountryChange?: boolean;
+
+    /** Indicates if zip code format should be validated */
+    shouldValidateZipCodeFormat?: boolean;
 };
 
 function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
@@ -82,6 +92,9 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
     stateSelectorModalHeaderTitle,
     stateSelectorSearchInputTitle,
     onCountryChange,
+    streetTranslationKey = 'common.streetAddress',
+    shouldAllowCountryChange = true,
+    shouldValidateZipCodeFormat = true,
 }: AddressStepProps<TFormID>) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -104,14 +117,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             }
 
             const zipCode = values[inputFieldsIDs.zipCode as keyof typeof values];
-            if (zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
+            if (shouldValidateZipCodeFormat && zipCode && (shouldDisplayCountrySelector ? !isValidZipCodeInternational(zipCode as string) : !isValidZipCode(zipCode as string))) {
                 // @ts-expect-error type mismatch to be fixed
                 errors[inputFieldsIDs.zipCode] = translate('bankAccount.error.zipCode');
             }
 
             return errors;
         },
-        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, stepFields, translate],
+        [inputFieldsIDs.street, inputFieldsIDs.zipCode, shouldDisplayCountrySelector, shouldValidateZipCodeFormat, stepFields, translate],
     );
 
     return (
@@ -122,13 +135,14 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
             onSubmit={onSubmit}
             style={[styles.mh5, styles.flexGrow1]}
             ref={formRef}
+            enabledWhenOffline
         >
             <View>
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.mb3]}>{formTitle}</Text>
                 {!!formPOBoxDisclaimer && <Text style={[styles.textSupporting]}>{formPOBoxDisclaimer}</Text>}
                 <AddressFormFields
                     inputKeys={inputFieldsIDs}
-                    streetTranslationKey="common.streetAddress"
+                    streetTranslationKey={streetTranslationKey}
                     defaultValues={defaultValues}
                     shouldSaveDraft={!isEditing}
                     shouldDisplayStateSelector={shouldDisplayStateSelector}
@@ -137,6 +151,8 @@ function AddressStep<TFormID extends keyof OnyxFormValuesMapping>({
                     stateSelectorModalHeaderTitle={stateSelectorModalHeaderTitle}
                     stateSelectorSearchInputTitle={stateSelectorSearchInputTitle}
                     onCountryChange={onCountryChange}
+                    shouldAllowCountryChange={shouldAllowCountryChange}
+                    shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
                 />
                 {!!shouldShowHelpLinks && <HelpLinks containerStyles={[styles.mt6]} />}
             </View>

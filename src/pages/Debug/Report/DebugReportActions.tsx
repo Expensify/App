@@ -8,6 +8,7 @@ import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getOriginalMessage, getReportActionMessage, getReportActionMessageText, getSortedReportActionsForDisplay, isCreatedAction} from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, formatReportLastMessageText} from '@libs/ReportUtils';
@@ -85,6 +86,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
                 listItemTitleStyles={styles.fontWeightNormal}
                 textInputValue={searchValue}
                 textInputLabel={translate('common.search')}
+                headerMessage={getHeaderMessageForNonUserList(searchedReportActions.length > 0, debouncedSearchValue)}
                 onChangeText={setSearchValue}
                 onSelectRow={(item) => Navigation.navigate(ROUTES.DEBUG_REPORT_ACTION.getRoute(reportID, item.reportActionID))}
                 ListItem={RadioListItem}

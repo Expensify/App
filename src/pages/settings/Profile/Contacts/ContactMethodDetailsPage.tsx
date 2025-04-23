@@ -4,6 +4,7 @@ import {InteractionManager, Keyboard} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import ConfirmModal from '@components/ConfirmModal';
+import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import ErrorMessageRow from '@components/ErrorMessageRow';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -56,7 +57,8 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const [securityGroups, securityGroupsResult] = useOnyx(ONYXKEYS.COLLECTION.SECURITY_GROUP);
     const [isLoadingReportData, isLoadingReportDataResult] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
     const [isValidateCodeFormVisible, setIsValidateCodeFormVisible] = useState(true);
-
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
     const isLoadingOnyxValues = isLoadingOnyxValue(loginListResult, sessionResult, myDomainSecurityGroupsResult, securityGroupsResult, isLoadingReportDataResult);
 
     const {formatPhoneNumber, translate} = useLocalize();
@@ -92,6 +94,7 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     const loginData = useMemo(() => loginList?.[contactMethod], [loginList, contactMethod]);
     const isDefaultContactMethod = useMemo(() => session?.email === loginData?.partnerUserID, [session?.email, loginData?.partnerUserID]);
     const validateLoginError = getEarliestErrorField(loginData, 'validateLogin');
+    const prevPendingDeletedLogin = usePrevious(loginData?.pendingFields?.deletedLogin);
 
     /**
      * Attempt to set this contact method as user's "Default contact method"
@@ -167,10 +170,12 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
     }, [loginData?.validatedDate, loginData?.errorFields?.addedLogin]);
 
     useEffect(() => {
-        if (loginData?.validatedDate) {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (loginData?.validatedDate || prevPendingDeletedLogin) {
             return;
         }
         resetContactMethodValidateCodeSentState(contactMethod);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- The prevPendingDeletedLogin is a ref, so no need to add it to dependencies.
     }, [contactMethod, loginData?.validatedDate]);
 
     const getThreeDotsMenuItems = useCallback(() => {
@@ -261,7 +266,13 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                         title={translate('common.remove')}
                         icon={Trashcan}
                         iconFill={theme.danger}
-                        onPress={() => toggleDeleteModal(true)}
+                        onPress={() => {
+                            if (isActingAsDelegate) {
+                                setIsNoDelegateAccessMenuVisible(true);
+                                return;
+                            }
+                            toggleDeleteModal(true);
+                        }}
                     />
                 </OfflineWithFeedback>
             )}
@@ -343,6 +354,10 @@ function ContactMethodDetailsPage({route}: ContactMethodDetailsPageProps) {
                 {!isValidateCodeFormVisible && !!loginData.validatedDate && getMenuItems()}
                 {getDeleteConfirmationModal()}
             </ScrollView>
+            <DelegateNoAccessModal
+                isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+            />
         </ScreenWrapper>
     );
 }

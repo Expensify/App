@@ -39,6 +39,8 @@ type ValueSelectorModalProps = {
     shouldEnableKeyboardAvoidingView?: boolean;
 };
 
+type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips'>;
+
 type ValuePickerProps = {
     /** Item to display */
     value?: string;
@@ -63,6 +65,9 @@ type ValuePickerProps = {
 
     /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Whether to show the selector modal */
+    shouldShowModal?: boolean;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};
+export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem, ValueSelectionListProps};

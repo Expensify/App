@@ -15,6 +15,7 @@ jest.mock('../../src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isActiveRoute: jest.fn(),
     getTopmostReportId: jest.fn(),
+    getActiveRoute: jest.fn(),
     getTopmostReportActionId: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isDisplayedInModal: jest.fn(() => false),
@@ -32,6 +33,7 @@ jest.mock('@components/Icon/Expensicons');
 
 jest.mock('@react-navigation/native');
 jest.mock('@src/hooks/useLHNEstimatedListSize/index.native.ts');
+jest.mock('@components/ConfirmedRoute.tsx');
 
 const getMockedReportsMap = (length = 100) => {
     const mockReports = Object.fromEntries(

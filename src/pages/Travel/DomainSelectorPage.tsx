@@ -16,6 +16,7 @@ import {getAdminsPrivateEmailDomains, getMostFrequentEmailDomain} from '@libs/Po
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type DomainItem = ListItem & {
     value: string;
@@ -46,8 +47,14 @@ function DomainSelectorPage() {
     }, [domains, recommendedDomain, selectedDomain]);
 
     const provisionTravelForDomain = () => {
-        cleanupTravelProvisioningSession();
-        Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN));
+        const domain = selectedDomain ?? CONST.TRAVEL.DEFAULT_DOMAIN;
+        if (isEmptyObject(policy?.address)) {
+            // Spotnana requires an address anytime an entity is created for a policy
+            Navigation.navigate(ROUTES.TRAVEL_WORKSPACE_ADDRESS.getRoute(domain));
+        } else {
+            cleanupTravelProvisioningSession();
+            Navigation.navigate(ROUTES.TRAVEL_TCS.getRoute(domain));
+        }
     };
 
     return (

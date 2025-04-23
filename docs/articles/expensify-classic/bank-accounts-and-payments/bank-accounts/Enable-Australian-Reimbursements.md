@@ -1,25 +1,28 @@
 ---
-title: Enable Australian reimbursements
-description: Reimburse AUD expenses using ABA files
+title: Enable Australian Reimbursements
+description: Learn how to reimburse AUD expenses using ABA files in Expensify.
+keywords: [Expensify Classic, AUD, reimbursement, ABA file, indirect reimbursement, Expensify, Australian payments]
 ---
 <div id="expensify-classic" markdown="1">
+  
+You can reimburse AUD expenses using **indirect reimbursements**. This allows Australian employees to submit their bank account details in Expensify, which are then provided to you for payment via `.aba` file. A **Workspace Admin** can upload the `.aba` file to the bank to process payments.
 
-{% include info.html %}
-AUD bank accounts do not rely on direct deposit or ACH.
+**Note:** AUD bank accounts do not use direct deposit or ACH.
 
-For businesses that will also be reimbursing employees in other countries outside of Australia, you’ll need to set up Global Reimbursement instead.
-{% include end-info.html %}
+If you'd like an option for direct international payments, consider setting up [global reimbursements](https://help.expensify.com/articles/expensify-classic/bank-accounts-and-payments/bank-accounts/Enable-Global-Reimbursements) instead. 
 
-You can reimburse AUD expenses using indirect reimbursements. This allows your Australian employees to submit their personal bank account information to Expensify where it will be provided to you for payment via an .aba file. A Workspace Admin can then upload the .aba file to the bank to have payments issued. 
+---
 
-To enable ABA payments,
+# Setting Up ABA Payments
 
-1. Hover over **Settings**, then click **Workspaces**. 
-2. Select the desired workspace. 
-3. Click the **Reports** tab on the left. 
-4. Click the Report Currency dropdown and select **AUD A$**. 
-5. Click the **Reimbursement** tab on the left. 
-6. Select **Indirect** as the Reimbursement type.
+1. Go to **Settings > Workspaces**.
+2. Select the workspace you want to configure.
+3. Click the **Reports** tab.
+4. In the **Report Currency** dropdown, select **AUD A$**.
+5. Click the **Reimbursement** tab.
+6. Set **Reimbursement Type** to **Indirect**.
 7. Enable the toggle.
+
+Once enabled, employees can submit expenses in AUD, and you can process reimbursements via ABA files.
 
 </div>

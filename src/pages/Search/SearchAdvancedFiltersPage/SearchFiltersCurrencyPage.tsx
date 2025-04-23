@@ -7,8 +7,8 @@ import SearchMultipleSelectionPicker from '@components/Search/SearchMultipleSele
 import type {SearchMultipleSelectionPickerItem} from '@components/Search/SearchMultipleSelectionPicker';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@libs/actions/Search';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {updateAdvancedFilters} from '@libs/actions/Search';
+import {getCurrencySymbol} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -25,19 +25,23 @@ function SearchFiltersCurrencyPage() {
         const currencies: SearchMultipleSelectionPickerItem[] = [];
 
         Object.keys(currencyList ?? {}).forEach((currencyCode) => {
+            if (currencyList?.[currencyCode]?.retired) {
+                return;
+            }
+
             if (selectedCurrenciesCodes?.includes(currencyCode) && !selectedCurrencies.some((currencyItem) => currencyItem.value === currencyCode)) {
-                selectedCurrencies.push({name: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`, value: currencyCode});
+                selectedCurrencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
 
             if (!currencies.some((item) => item.value === currencyCode)) {
-                currencies.push({name: `${currencyCode} - ${CurrencyUtils.getCurrencySymbol(currencyCode)}`, value: currencyCode});
+                currencies.push({name: `${currencyCode} - ${getCurrencySymbol(currencyCode)}`, value: currencyCode});
             }
         });
 
         return {selectedCurrenciesItems: selectedCurrencies, currencyItems: currencies};
     }, [currencyList, selectedCurrenciesCodes]);
     const handleOnSubmit = (values: string[]) => {
-        SearchActions.updateAdvancedFilters({currency: values});
+        updateAdvancedFilters({currency: values});
     };
 
     return (
