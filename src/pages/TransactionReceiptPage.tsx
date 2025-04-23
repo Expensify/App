@@ -93,24 +93,6 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [receiptPath]);
 
-    const onModalClose = () => {
-        // Receipt Page can be opened either from Reports or from Search RHP view
-        // We have to handle going back to correct screens, if it was opened from RHP just close the modal, otherwise go to Report Page
-        const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
-        const secondToLastRoute = rootState.routes.at(-2);
-        if (secondToLastRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || isDraftTransaction) {
-            Navigation.dismissModal();
-        } else {
-            const isOneTransactionThread = isOneTransactionThreadReportUtils(report?.reportID, report?.parentReportID, parentReportAction);
-            const dismissModalReportID = isOneTransactionThread ? report?.parentReportID : report?.reportID;
-            if (!dismissModalReportID) {
-                Navigation.dismissModal();
-                return;
-            }
-            Navigation.dismissModalWithReport({reportID: dismissModalReportID});
-        }
-    };
-
     const moneyRequestReportID = isMoneyRequestReport(report) ? report?.reportID : report?.parentReportID;
     const isTrackExpenseReport = isTrackExpenseReportReportUtils(report);
 
@@ -135,7 +117,7 @@ function TransactionReceipt({route}: TransactionReceiptProps) {
             iouAction={action}
             iouType={iouType}
             draftTransactionID={isDraftTransaction ? transactionID : undefined}
-            onModalClose={onModalClose}
+            onModalClose={Navigation.dismissModal}
             isLoading={!transaction && reportMetadata?.isLoadingInitialReportActions}
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         />
