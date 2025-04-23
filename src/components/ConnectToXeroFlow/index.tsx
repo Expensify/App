@@ -4,6 +4,7 @@ import RequireTwoFactorAuthenticationModal from '@components/RequireTwoFactorAut
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import {getXeroSetupLink} from '@libs/actions/connections/Xero';
+import {close} from '@libs/actions/Modal';
 import Navigation from '@libs/Navigation/Navigation';
 import {openLink} from '@userActions/Link';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +34,7 @@ function ConnectToXeroFlow({policyID}: ConnectToXeroFlowProps) {
             <RequireTwoFactorAuthenticationModal
                 onSubmit={() => {
                     setIsRequire2FAModalOpen(false);
-                    Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID)));
+                    close(() => Navigation.navigate(ROUTES.SETTINGS_2FA_ROOT.getRoute(ROUTES.POLICY_ACCOUNTING.getRoute(policyID), getXeroSetupLink(policyID))));
                 }}
                 onCancel={() => {
                     setIsRequire2FAModalOpen(false);
