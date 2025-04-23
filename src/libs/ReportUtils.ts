@@ -4728,7 +4728,7 @@ function getReportNameInternal({
         }
 
         if (isRenamedAction(parentReportAction)) {
-            return getRenamedAction(parentReportAction);
+            return getRenamedAction(parentReportAction, getReport(report.parentReportID, allReports));
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -4775,9 +4775,6 @@ function getReportNameInternal({
         }
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction});
-        }
-        if (isRenamedAction(parentReportAction)) {
-            return getRenamedAction(parentReportAction, getReport(report.parentReportID, allReports));
         }
 
         return reportActionMessage;

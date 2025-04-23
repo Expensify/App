@@ -4,6 +4,7 @@ import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
 import type {Report, ReportAction} from '../../src/types/onyx';
+import createRandomReport from '../utils/collections/reports';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
@@ -956,7 +957,8 @@ describe('ReportActionsUtils', () => {
                 reportActionID: '1',
                 created: '1',
             };
-            expect(ReportActionsUtils.getRenamedAction(reportAction, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
+            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.CHAT};
+            expect(ReportActionsUtils.getRenamedAction(reportAction, report, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
     });
 });
