@@ -60,6 +60,9 @@ type TransactionPreviewProps = {
 
     /** In the case where we have access to the transactionID in the parent */
     transactionID?: string;
+
+    /** The action to be displayed in the preview */
+    reportPreviewAction?: ReportAction;
 };
 
 type TransactionPreviewContentProps = {
@@ -122,6 +125,9 @@ type TransactionPreviewContentProps = {
 
     /** Determine whether to hide the component's children if deletion is pending */
     shouldHideOnDelete?: boolean;
+
+    /** The action to be displayed in the preview */
+    reportPreviewAction?: ReportAction;
 };
 
 export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};
