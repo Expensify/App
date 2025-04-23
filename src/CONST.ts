@@ -680,7 +680,7 @@ const CONST = {
     },
     NON_USD_BANK_ACCOUNT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
-        FILE_LIMIT: 10,
+        FILE_LIMIT: 1,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
@@ -796,6 +796,7 @@ const CONST = {
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
+        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1083,7 +1084,8 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
-    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
+    CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1730,9 +1732,8 @@ const CONST = {
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
 
-    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
-    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
+    VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
@@ -3650,6 +3651,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REPORT: 'report',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -3987,61 +3989,34 @@ const CONST = {
         ZW: 'Zimbabwe',
     },
 
-    ALL_EUROPEAN_COUNTRIES: {
-        AL: 'Albania',
-        AD: 'Andorra',
+    ALL_EUROPEAN_UNION_COUNTRIES: {
         AT: 'Austria',
-        BY: 'Belarus',
         BE: 'Belgium',
-        BA: 'Bosnia & Herzegovina',
         BG: 'Bulgaria',
         HR: 'Croatia',
         CY: 'Cyprus',
         CZ: 'Czech Republic',
         DK: 'Denmark',
         EE: 'Estonia',
-        FO: 'Faroe Islands',
         FI: 'Finland',
         FR: 'France',
-        GE: 'Georgia',
         DE: 'Germany',
-        GI: 'Gibraltar',
         GR: 'Greece',
-        GL: 'Greenland',
         HU: 'Hungary',
-        IS: 'Iceland',
         IE: 'Ireland',
-        IM: 'Isle of Man',
         IT: 'Italy',
-        JE: 'Jersey',
-        XK: 'Kosovo',
-        LV: 'Latvia',
-        LI: 'Liechtenstein',
         LT: 'Lithuania',
         LU: 'Luxembourg',
+        LV: 'Latvia',
         MT: 'Malta',
-        MD: 'Moldova',
-        MC: 'Monaco',
-        ME: 'Montenegro',
         NL: 'Netherlands',
-        MK: 'North Macedonia',
-        NO: 'Norway',
         PL: 'Poland',
         PT: 'Portugal',
         RO: 'Romania',
-        RU: 'Russia',
-        SM: 'San Marino',
-        RS: 'Serbia',
         SK: 'Slovakia',
         SI: 'Slovenia',
         ES: 'Spain',
-        SJ: 'Svalbard & Jan Mayen',
         SE: 'Sweden',
-        CH: 'Switzerland',
-        TR: 'Turkey',
-        UA: 'Ukraine',
-        GB: 'United Kingdom',
-        VA: 'Vatican City',
     },
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
@@ -5116,6 +5091,11 @@ const CONST = {
         SCROLLING: 'scrolling',
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
+
+    IMAGE_TEST_ID: 'Image',
+    IMAGE_SVG_TEST_ID: 'ImageSVG',
+    VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
+    LOTTIE_VIEW_TEST_ID: 'LottieView',
 
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
