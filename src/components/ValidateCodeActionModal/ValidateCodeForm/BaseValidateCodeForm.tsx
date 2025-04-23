@@ -76,6 +76,9 @@ type ValidateCodeFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
+    /** Whether to allow auto submit again after the previous attempt fails */
+    allowResubmit?: boolean;
+
     /** Whether to show skip button */
     shouldShowSkipButton?: boolean;
 
@@ -97,6 +100,7 @@ function BaseValidateCodeForm({
     hideSubmitButton,
     submitButtonText,
     isLoading,
+    allowResubmit,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
 }: ValidateCodeFormProps) {
@@ -108,7 +112,9 @@ function BaseValidateCodeForm({
     const [formError, setFormError] = useState<ValidateCodeFormError>({});
     const [validateCode, setValidateCode] = useState('');
     const inputValidateCodeRef = useRef<MagicCodeInputHandle>(null);
-    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [account = {}] = useOnyx(ONYXKEYS.ACCOUNT, {
+        canBeMissing: true,
+    });
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing doesn't achieve the same result in this case
     const shouldDisableResendValidateCode = !!isOffline || account?.isLoading;
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -247,6 +253,7 @@ function BaseValidateCodeForm({
                 hasError={canShowError ? !isEmptyObject(validateError) : false}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
+                allowResubmit={allowResubmit}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
