@@ -55,7 +55,7 @@ function UnreportedExpenseListItem<TItem extends ListItem & Transaction>({
             containerStyle={[styles.p3, styles.mbn4, styles.expenseWidgetRadius]}
             hoverStyle={[styles.borderRadiusComponentNormal]}
         >
-            <View style={[{flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between'}]}>
+            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <TransactionItemRow
                     transactionItem={item}
                     shouldUseNarrowLayout
