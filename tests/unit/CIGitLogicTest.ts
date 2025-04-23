@@ -23,6 +23,25 @@ const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 const mockGetInput = jest.fn();
+const mockCompareCommitsResponse = {
+    data: {
+        commits: [],
+        url: '',
+        html_url: '',
+        permalink_url: '',
+        diff_url: '',
+        patch_url: '',
+        base_commit: {} as any,
+        merge_base_commit: {} as any,
+        status: 'ahead' as const,
+        ahead_by: 0,
+        behind_by: 0,
+        total_commits: 0,
+    },
+    status: 200 as const,
+    headers: {},
+    url: '',
+};
 
 type ExecSyncError = {stderr: Buffer};
 
@@ -357,25 +376,9 @@ describe('CIGitLogic', () => {
             return mockGetInput(name) || '';
         });
 
-        jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockResolvedValue({
-            data: {
-                commits: [],
-                url: '',
-                html_url: '',
-                permalink_url: '',
-                diff_url: '',
-                patch_url: '',
-                base_commit: {} as any, // Use 'as any' for simplicity in mock
-                merge_base_commit: {} as any,
-                status: 'ahead', // Example status
-                ahead_by: 0,
-                behind_by: 0,
-                total_commits: 0,
-            },
-            status: 200,
-            headers: {},
-            url: '',
-        });
+        // Mock the API used to retrieve PRs between two tags
+        jest.spyOn(GithubUtils.octokit.repos, 'compareCommits')
+            .mockResolvedValue(mockCompareCommitsResponse);
 
         Log.info('Starting setup');
         startingDir = process.cwd();
