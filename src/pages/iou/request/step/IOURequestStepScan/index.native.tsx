@@ -331,8 +331,9 @@ function IOURequestStepScan({
                 if (!managerMcTestParticipant.reportID && report?.reportID) {
                     reportIDParam = generateReportID();
                 }
-                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true);
-                navigateToConfirmationPage(true, reportIDParam);
+                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                    navigateToConfirmationPage(true, reportIDParam);
+                });
                 return;
             }
 
