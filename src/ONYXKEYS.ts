@@ -110,8 +110,8 @@ const ONYXKEYS = {
     /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
 
-    /** Flag to indicate if the joinablePolicies are loading */
-    JOINABLE_POLICIES_LOADING: 'joinablePoliciesLoading',
+    /* Contains meta data for the call to the API to get the joinable policies */
+    VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'validateUserAndGetAccessiblePolicies',
 
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
@@ -1013,7 +1013,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
-    [ONYXKEYS.JOINABLE_POLICIES_LOADING]: boolean;
+    [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
