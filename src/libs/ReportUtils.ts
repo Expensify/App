@@ -356,6 +356,7 @@ type BuildOptimisticIOUReportActionParams = {
     isOwnPolicyExpenseChat?: boolean;
     created?: string;
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
+    isPersonalTrackingExpense?: boolean;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -3345,11 +3346,7 @@ function getReasonAndReportActionThatRequiresAttention(
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user
-    const policy = getPolicy(optionOrReport.policyID);
-    if (
-        (optionOrReport.hasOutstandingChildRequest === true || iouReportActionToApproveOrPay?.reportActionID) &&
-        (policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO || !hasOnlyPendingTransactions)
-    ) {
+    if (optionOrReport.hasOutstandingChildRequest && !hasOnlyPendingTransactions) {
         return {
             reason: CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION,
             reportAction: iouReportActionToApproveOrPay,
@@ -4226,6 +4223,10 @@ function getReportPreviewMessage(
         let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: true});
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
+        if (isForListPreview && report?.parentReportID != null) {
+            const payerText = isDM(parentReport) && translatePhraseKey === 'iou.payerPaidAmount' ? '' : payerDisplayName;
+            return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerText});
+        }
 
         return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
     }
@@ -5863,9 +5864,10 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isOwnPolicyExpenseChat = false,
         created = DateUtils.getDBTime(),
         linkedExpenseReportAction,
+        isPersonalTrackingExpense = false,
     } = params;
 
-    const IOUReportID = iouReportID || generateReportID();
+    const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
         amount,
@@ -7351,7 +7353,8 @@ function buildOptimisticMoneyRequestEntities({
         participants,
         transactionID,
         paymentType,
-        iouReportID: isPersonalTrackingExpense ? '0' : iouReport.reportID,
+        iouReportID: iouReport.reportID,
+        isPersonalTrackingExpense,
         isSettlingUp,
         isSendMoneyFlow,
         isOwnPolicyExpenseChat,

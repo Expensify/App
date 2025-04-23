@@ -84,7 +84,6 @@ import {
     getTrackExpenseActionableWhisper,
     isActionableTrackExpense,
     isCreatedAction,
-    isDeletedParentAction,
     isMoneyRequestAction,
     isReportPreviewAction,
 } from '@libs/ReportActionsUtils';
@@ -666,6 +665,15 @@ Onyx.connect({
     },
 });
 
+let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
 let userAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
@@ -728,18 +736,6 @@ let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => (personalDetailsList = value),
-});
-
-let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportNameValuePairs = value;
-    },
 });
 
 /**
@@ -952,8 +948,8 @@ function setMoneyRequestReimbursable(transactionID: string, reimbursable: boolea
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {reimbursable});
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = []) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], shouldUpdateReportID = false) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, reportID: shouldUpdateReportID ? participants.at(0)?.reportID : undefined});
 }
 
 function setSplitPayer(transactionID: string, payerAccountID: number) {
@@ -7054,9 +7050,8 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     if (chatReport) {
         canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
     }
-    const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
-    const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
-    const shouldDeleteIOUReport = iouReportLastMessageText.length === 0 && !isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
+    // If we are deleting the last transaction on a report, then delete the report too
+    const shouldDeleteIOUReport = getReportTransactions(iouReportID).length === 1;
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
     let updatedIOUReport: OnyxInputValue<OnyxTypes.Report>;
@@ -7098,6 +7093,8 @@ function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxT
     }
 
     if (updatedIOUReport) {
+        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+        const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
     }
@@ -8709,7 +8706,7 @@ function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> |
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`];
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
@@ -8837,6 +8834,9 @@ function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report
     const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
 
     return Object.values(chatReportActions).find((action) => {
+        if (!action) {
+            return false;
+        }
         const iouReport = getReportOrDraftReport(action.childReportID);
         const policy = getPolicy(iouReport?.policyID);
         const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
@@ -9105,6 +9105,7 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             pendingFields: {
                 partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
             },
+            isCancelledIOU: false,
         },
     };
 
@@ -9151,6 +9152,16 @@ function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
             value: currentNextStep,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+                isCancelledIOU: true,
+            },
         },
     ];
 
@@ -9364,6 +9375,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
                 lastMessageHtml: getReportActionHtml(optimisticReportAction),
                 stateNum,
                 statusNum,
+                isCancelledIOU: true,
             },
         },
     ];
@@ -9402,6 +9414,7 @@ function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: O
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                isCancelledIOU: false,
             },
         },
     ];
