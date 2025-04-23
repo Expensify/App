@@ -1095,6 +1095,10 @@ function isDisablingOrDeletingLastEnabledCategory(
 ): boolean {
     const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
 
+    if (!enabledCategoriesCount) {
+        return false;
+    }
+
     if (policy?.requiresCategory && selectedCategories.filter((selectedCategory) => selectedCategory?.enabled).length === enabledCategoriesCount) {
         return true;
     }
@@ -1105,6 +1109,10 @@ function isDisablingOrDeletingLastEnabledCategory(
 function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
     const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
 
+    if (!enabledTagsCount) {
+        return false;
+    }
+
     if (policyTagList?.required && selectedTags.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
         return true;
     }
@@ -1113,6 +1121,10 @@ function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | unde
 
 function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagLists: Array<PolicyTagList | undefined>): boolean {
     const requiredTagsCount = getCountOfRequiredTagLists(policyTags);
+
+    if (!requiredTagsCount) {
+        return false;
+    }
 
     if (policy?.requiresTag && selectedTagLists.filter((selectedTagList) => selectedTagList?.required).length === requiredTagsCount) {
         return true;
