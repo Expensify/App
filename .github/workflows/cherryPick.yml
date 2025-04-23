@@ -20,6 +20,7 @@ jobs:
     uses: ./.github/workflows/createNewVersion.yml
     secrets: inherit
     with:
+      # In order to submit a new build for production review, it must have a higher PATCH version than the previously-submitted build
       SEMVER_LEVEL: ${{ inputs.TARGET == 'staging' && 'BUILD' || 'PATCH' }}
 
   cherryPick:
@@ -271,3 +272,19 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK }}
+
+  # FIXME: This needs to happen after the CP-to-prod build finishes
+  # Why is this necessary for CP-to-prod? Consider this scenario:
+  #   1. You close a checklist and we create a new staging version `9.0.34-0` and a new checklist
+  #   2. You then CP a PR to production, and in the process create `9.0.35-0`
+  #   3. You close the new checklist, and we try to ship `9.0.34-0` to production. This won't work, because we already submitted a higher version `9.0-35-0`
+  #
+  # To address this, we'll:
+  #   1. Bump the version on main again
+  #   2. CP that version bump to staging
+  createAnotherNewVersion:
+    if: ${{ inputs.TARGET == 'production' }}
+    uses: ./.github/workflows/createNewVersion.yml
+    secrets: inherit
+    with:
+      SEMVER_LEVEL: BUILD
