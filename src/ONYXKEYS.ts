@@ -555,7 +555,6 @@ const ONYXKEYS = {
         REPORT_VIOLATIONS: 'reportViolations_',
         SECURITY_GROUP: 'securityGroup_',
         TRANSACTION: 'transactions_',
-        TRANSACTION_DELETED: 'transactionsDeleted_',
         TRANSACTION_VIOLATIONS: 'transactionViolations_',
         TRANSACTION_DRAFT: 'transactionsDraft_',
         SKIP_CONFIRMATION: 'skipConfirmation_',
@@ -944,7 +943,6 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.REPORT_VIOLATIONS]: OnyxTypes.ReportViolations;
     [ONYXKEYS.COLLECTION.SECURITY_GROUP]: OnyxTypes.SecurityGroup;
     [ONYXKEYS.COLLECTION.TRANSACTION]: OnyxTypes.Transaction;
-    [ONYXKEYS.COLLECTION.TRANSACTION_DELETED]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.TRANSACTION_DRAFT]: OnyxTypes.Transaction;
     [ONYXKEYS.COLLECTION.SKIP_CONFIRMATION]: boolean;
     [ONYXKEYS.COLLECTION.TRANSACTION_BACKUP]: OnyxTypes.Transaction;

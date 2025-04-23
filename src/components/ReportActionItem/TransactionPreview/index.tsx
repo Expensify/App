@@ -42,17 +42,15 @@ function TransactionPreview(props: TransactionPreviewProps) {
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: false});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = transactionIDFromProps ?? (isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : null);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
-    const [deletedTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DELETED}${transactionID}`, {canBeMissing: true});
-    const transactionOrDeleted = useMemo(() => transaction ?? deletedTransaction, [transaction, deletedTransaction]);
-    const violations = useTransactionViolations(transactionOrDeleted?.transactionID);
+    const violations = useTransactionViolations(transaction?.transactionID);
     const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
 
     // Get transaction violations for given transaction id from onyx, find duplicated transactions violations and get duplicates
     const allDuplicates = useMemo(() => violations?.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION)?.data?.duplicates ?? [], [violations]);
@@ -73,10 +71,10 @@ function TransactionPreview(props: TransactionPreviewProps) {
     }, [chatReportID]);
 
     const navigateToReviewFields = useCallback(() => {
-        Navigation.navigate(getReviewNavigationRoute(route, report, transactionOrDeleted, duplicates));
-    }, [duplicates, report, route, transactionOrDeleted]);
+        Navigation.navigate(getReviewNavigationRoute(route, report, transaction, duplicates));
+    }, [duplicates, report, route, transaction]);
 
-    const {originalTransaction, isSplit} = getOriginalTransactionIfBillIsSplit(transactionOrDeleted);
+    const {originalTransaction, isSplit} = getOriginalTransactionIfBillIsSplit(transaction);
 
     return (
         <TransactionPreviewContent

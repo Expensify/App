@@ -7371,32 +7371,16 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
             value: null,
         },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DELETED}${transactionID}`,
-            value: transaction ?? null,
-        },
     ];
-
-    optimisticData.push({
-        onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-        value: null,
-    });
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: transaction ?? null,
-        },
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DELETED}${transactionID}`,
-            value: null,
         },
     ];
 
@@ -7589,7 +7573,7 @@ function deleteMoneyRequest(transactionID: string | undefined, reportAction: Ony
 
     successData.push({
         onyxMethod: Onyx.METHOD.SET,
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DELETED}${transactionID}`,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: null,
     });
 
