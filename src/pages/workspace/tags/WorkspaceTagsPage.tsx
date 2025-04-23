@@ -1,6 +1,6 @@
 import lodashSortBy from 'lodash/sortBy';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, View} from 'react-native';
+import {ActivityIndicator, InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
@@ -262,9 +262,12 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const selectedTagsArray = Object.keys(selectedTags).filter((key) => selectedTags[key]);
 
     const deleteTags = () => {
-        setSelectedTags({});
         deletePolicyTags(policyID, selectedTagsArray);
         setIsDeleteTagsConfirmModalVisible(false);
+
+        InteractionManager.runAfterInteractions(() => {
+            setSelectedTags({});
+        });
     };
 
     const isLoading = !isOffline && policyTags === undefined;
