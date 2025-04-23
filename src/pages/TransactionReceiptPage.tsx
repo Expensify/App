@@ -8,11 +8,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {AuthScreensParamList} from '@libs/Navigation/types';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getReportAction, isTrackExpenseAction as isTrackExpenseReportReportActionsUtils} from '@libs/ReportActionsUtils';
-import {
-    canEditFieldOfMoneyRequest,
-    isMoneyRequestReport,
-    isTrackExpenseReport as isTrackExpenseReportReportUtils,
-} from '@libs/ReportUtils';
+import {canEditFieldOfMoneyRequest, isMoneyRequestReport, isTrackExpenseReport as isTrackExpenseReportReportUtils} from '@libs/ReportUtils';
 import {getRequestType, hasEReceipt, hasReceiptSource} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 import CONST from '@src/CONST';
