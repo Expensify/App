@@ -57,7 +57,7 @@ function WorkspaceSplitNavigator({route, navigation}: PlatformStackScreenProps<A
 
     return (
         <FocusTrapForScreens>
-            <View>
+            <View style={{flex: 1}}>
                 <Split.Navigator
                     persistentScreens={[SCREENS.WORKSPACE.INITIAL]}
                     sidebarScreen={SCREENS.WORKSPACE.INITIAL}

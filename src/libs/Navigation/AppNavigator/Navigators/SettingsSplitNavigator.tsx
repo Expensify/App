@@ -32,7 +32,7 @@ function SettingsSplitNavigator() {
 
     return (
         <FocusTrapForScreens>
-            <View>
+            <View style={{flex: 1}}>
                 <Split.Navigator
                     persistentScreens={[SCREENS.SETTINGS.ROOT]}
                     sidebarScreen={SCREENS.SETTINGS.ROOT}
