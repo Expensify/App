@@ -99,6 +99,18 @@ function initGithubAPIMocking() {
                 mockCommits = [
                     { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
                 ];
+            } else if (base === '2.0.0-0' && head === '2.0.0-2-staging') {
+                mockCommits = [
+                    { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                    { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                ];
+            } else if (base === '2.0.0-1-staging' && head === '2.0.0-2-staging') {
+                 mockCommits = [
+                    { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                ];
+            }
+            else {
+                console.warn(`Unhandled tag pair in compareCommits mock: ${base}...${head}`);
             }
             return {
                 ...mockCompareCommitsResponseBase,
