@@ -60,7 +60,7 @@ type CustomBaseTextInputProps = {
     autoGrowExtraSpace?: number;
 
     /**
-     * Specifies the side where the autoGrow margin should be applied.
+     * Specifies the side ('left' or 'right') where the autoGrow margin should be applied.
      * This determines which side of the input container will expand when autoGrow is enabled.
      */
     autoGrowMarginSide?: 'left' | 'right';
