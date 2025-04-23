@@ -5,7 +5,7 @@ import type {ScrollView} from 'react-native-gesture-handler';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type {DraggableListProps} from './types';
 
-function DraggableList<T>({renderClone, shouldUsePortal, ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<ScrollView>) {
+function DraggableList<T>({ListFooterComponent, ...viewProps}: DraggableListProps<T>, ref: React.ForwardedRef<ScrollView>) {
     const styles = useThemeStyles();
     return (
         <NestableScrollContainer
