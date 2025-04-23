@@ -32,7 +32,7 @@ import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
 import {hideEmojiPicker} from '@libs/actions/EmojiPickerAction';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {isSingleTransactionReport, selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import clearReportNotifications from '@libs/Notification/clearReportNotifications';
@@ -63,8 +63,8 @@ import {
     isMoneyRequestReportPendingDeletion,
     isOneTransactionThread,
     isPolicyExpenseChat,
+    isReportTransactionThread,
     isTaskReport,
-    isTrackExpenseReport,
     isValidReportIDFromPath,
 } from '@libs/ReportUtils';
 import {isNumeric} from '@libs/ValidationUtils';
@@ -107,19 +107,6 @@ const defaultReportMetadata = {
 };
 
 const reportDetailScreens = [...Object.values(SCREENS.REPORT_DETAILS), ...Object.values(SCREENS.REPORT_SETTINGS), ...Object.values(SCREENS.PRIVATE_NOTES)];
-
-/**
- * Returns a boolean indicating whether report should be considered a special case of "single transaction (expense)" report.
- * Based on the flag `canUseTableReportView` we are using either the old way or new way of checking this value.
- * The new way of checking is more explicit and is the same check that is used on SearchMoneyRequestReportPage
- * - which means the two views will be consistent in what version of report they display.
- */
-function getIsReportSingleTransaction(report: OnyxEntry<OnyxTypes.Report>, transactions: OnyxTypes.Transaction[], canUseTableReportView: boolean | undefined) {
-    const isSingleTransactionReportOld = isMoneyRequest(report) || isTrackExpenseReport(report);
-    const isSingleTransactionReportNew = isSingleTransactionReport(transactions);
-
-    return canUseTableReportView ? isSingleTransactionReportNew : isSingleTransactionReportOld;
-}
 
 /**
  * Check is the report is deleted.
@@ -317,11 +304,9 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const isTopMostReportId = currentReportIDValue?.currentReportID === reportIDFromRoute;
     const didSubscribeToReportLeavingEvents = useRef(false);
-    const backTo = route?.params?.backTo as string;
+    const isTransactionThreadView = isReportTransactionThread(report);
 
     const {canUseTableReportView} = usePermissions();
-    const isReportSingleTransaction = getIsReportSingleTransaction(report, reportTransactions, canUseTableReportView);
-
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     useEffect(() => {
@@ -339,6 +324,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         wasReportAccessibleRef.current = true;
     }, [report]);
 
+    const backTo = route?.params?.backTo as string;
     const onBackButtonPress = useCallback(() => {
         if (isInNarrowPaneModal && backTo !== SCREENS.SEARCH.REPORT_RHP) {
             Navigation.dismissModal();
@@ -361,7 +347,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         />
     );
 
-    if (isReportSingleTransaction) {
+    if (isTransactionThreadView) {
         headerView = (
             <MoneyRequestHeader
                 report={report}
@@ -550,7 +536,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     // If a user has chosen to leave a thread, and then returns to it (e.g. with the back button), we need to call `openReport` again in order to allow the user to rejoin and to receive real-time updates
     useEffect(() => {
-        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isReportSingleTransaction) {
+        if (!shouldUseNarrowLayout || !isFocused || prevIsFocused || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
         openReport(reportID);
@@ -558,7 +544,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         // We don't want to run this useEffect every time `report` is changed
         // Excluding shouldUseNarrowLayout from the dependency list to prevent re-triggering on screen resize events.
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, [prevIsFocused, report?.participants, isFocused, isReportSingleTransaction, reportID]);
+    }, [prevIsFocused, report?.participants, isFocused, isTransactionThreadView, reportID]);
 
     useEffect(() => {
         // We don't want this effect to run on the first render.
@@ -742,7 +728,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     // If true reports that are considered MoneyRequest | InvoiceReport will get the new report table view
-    const shouldDisplayMoneyRequestReport = canUseTableReportView && isMoneyRequestOrInvoiceReport && !isReportSingleTransaction;
+    const shouldDisplayMoneyRequestReport = canUseTableReportView && isMoneyRequestOrInvoiceReport && !isTransactionThreadView;
 
     return (
         <ActionListContext.Provider value={actionListValue}>
@@ -804,6 +790,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
                                 {!!report && shouldDisplayMoneyRequestReport ? (
                                     <MoneyRequestReportActionsList
                                         report={report}
+                                        policy={policy}
                                         reportActions={reportActions}
                                         transactions={reportTransactions}
                                         hasOlderActions={hasOlderActions}

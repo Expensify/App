@@ -67,16 +67,6 @@ function selectAllTransactionsForReport(transactions: OnyxCollection<Transaction
     });
 }
 
-/**
- * Even though this function does not accept `Report` or ID as an argument, it nevertheless decides about a report property.
- * In the app there are special behaviors for a report that has exactly 1 transaction attached to it, and we need a function to check for it.
- * As transactions come from onyx I don't want to enclose fetching transactions for report in this function,
- * so it ends up accepting only transactions as an argument, but it makes decision about a report.
- */
-function isSingleTransactionReport(transactions: Transaction[]) {
-    return transactions.length === 1;
-}
-
 const IOU_REPORT_PREVIEW_BUTTON = {
     PAY: CONST.REPORT.PRIMARY_ACTIONS.PAY,
     APPROVE: CONST.REPORT.PRIMARY_ACTIONS.APPROVE,
@@ -180,5 +170,11 @@ const getIOUReportPreviewButtonType = ({
     return IOU_REPORT_PREVIEW_BUTTON.NONE;
 };
 
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, getTotalAmountForIOUReportPreviewButton, getIOUReportPreviewButtonType, IOU_REPORT_PREVIEW_BUTTON};
-export {isActionVisibleOnMoneyRequestReport, getThreadReportIDsForTransactions, selectAllTransactionsForReport, isSingleTransactionReport};
+export {
+    isActionVisibleOnMoneyRequestReport,
+    getThreadReportIDsForTransactions,
+    getTotalAmountForIOUReportPreviewButton,
+    selectAllTransactionsForReport,
+    getIOUReportPreviewButtonType,
+    IOU_REPORT_PREVIEW_BUTTON,
+};

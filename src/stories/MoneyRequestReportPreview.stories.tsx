@@ -34,7 +34,7 @@ const mockTransactionsBig = Array.from({length: 12}).map((item, index) => {
     return {...transactionR14932, transactionID: `${transactionR14932.transactionID}${index}`};
 });
 
-const style = getMoneyRequestReportPreviewStyle(false);
+const reportPreviewStyle = getMoneyRequestReportPreviewStyle(false, 400, false);
 
 const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
     <TransactionPreviewContent
@@ -54,7 +54,7 @@ const mockRenderItem: ListRenderItem<Transaction> = ({item}) => (
         walletTermsErrors={undefined}
         routeName={SCREENS.TRANSACTION_DUPLICATE.REVIEW}
         shouldHideOnDelete={false}
-        transactionPreviewWidth={style.transactionPreviewStyle.width}
+        transactionPreviewWidth={303}
         containerStyles={[sizing.h100]}
     />
 );
@@ -124,7 +124,7 @@ export default {
         violations: violationsR14932,
         invoiceReceiverPersonalDetail: undefined,
         invoiceReceiverPolicy: undefined,
-        renderItem: mockRenderItem,
+        renderTransactionItem: mockRenderItem,
     },
     parameters: {
         useLightTheme: true,
@@ -138,11 +138,17 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
     return (
         <ThemeProvider theme={theme}>
             <ThemeStylesProvider>
-                <View style={{maxWidth: '100%'}}>
+                <View
+                    style={[
+                        // {maxWidth: '100%'},
+                        {width: 500},
+                    ]}
+                >
                     <MoneyRequestReportPreviewContent
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}
-                        containerStyles={[style.componentStyle, props.containerStyles]}
+                        reportPreviewStyles={reportPreviewStyle}
+                        containerStyles={[reportPreviewStyle.componentStyle, props.containerStyles]}
                         transactions={transactions}
                     />
                 </View>

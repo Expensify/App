@@ -14,10 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
-import {isSingleTransactionReport, selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
+import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
 import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
@@ -100,7 +100,6 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
-    const shouldUseSingleTransactionView = isSingleTransactionReport(transactions);
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
@@ -148,6 +147,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         );
     }
 
+    // Special case handling a report that is a single transaction thread
+    // If true we will use standard ReportActionsView to display report data, anything else is handled via `MoneyRequestReportActionsList`
+    const isTransactionThreadView = isReportTransactionThread(report);
+
     return (
         <View style={styles.flex1}>
             <OfflineWithFeedback
@@ -175,8 +178,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
                 <View style={[styles.overflowHidden, styles.flex1]}>
-                    {shouldUseSingleTransactionView ? (
-                        // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
+                    {isTransactionThreadView ? (
                         <ReportActionsView
                             report={report}
                             reportActions={reportActions}

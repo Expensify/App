@@ -167,7 +167,7 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder]]}>
+                <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
                     {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}

@@ -4653,7 +4653,6 @@ const styles = (theme: ThemeColors) =>
         reportPreviewBoxHoverBorder: {
             borderColor: theme.cardBG,
             backgroundColor: theme.cardBG,
-            borderRadius: variables.componentBorderRadiusLarge,
         },
 
         reportContainerBorderRadius: {
