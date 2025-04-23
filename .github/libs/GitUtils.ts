@@ -220,7 +220,7 @@ function getValidMergedPRs(commits: CommitType[]): number[] {
  */
 async function getPullRequestsMergedBetween(fromTag: string, toTag: string) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    const commitList = await getCommitHistoryBetweenTags(fromTag, toTag);
     console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
 
     // Find which commit messages correspond to merged PR's
