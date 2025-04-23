@@ -10,7 +10,7 @@ function TabNavigatorSkeleton() {
     const theme = useTheme();
 
     return (
-        <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, {height: 40}]}>
+        <View style={[styles.flexRow, styles.w100, styles.justifyContentBetween, styles.h10]}>
             <SkeletonViewContentLoader
                 animate
                 height={40}

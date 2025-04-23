@@ -3,7 +3,9 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type {ASTNode, QueryFilter, QueryFilters, SearchDateFilterKeys, SearchFilterKey, SearchQueryJSON, SearchQueryString, SearchStatus, UserFriendlyKey} from '@components/Search/types';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import FILTER_KEYS, {DATE_FILTER_KEYS} from '@src/types/form/SearchAdvancedFiltersForm';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -15,6 +17,8 @@ import {convertToBackendAmount, convertToFrontendAmountAsInteger} from './Curren
 import localeCompare from './LocaleCompare';
 import Log from './Log';
 import {validateAmount} from './MoneyRequestUtils';
+import navigationRef from './Navigation/navigationRef';
+import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 import {getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getCleanedTagName, getTagNamesFromTagsLists} from './PolicyUtils';
 import {getReportName} from './ReportUtils';
@@ -67,6 +71,8 @@ const UserFriendlyKeyMap: Record<SearchFilterKey | typeof CONST.SEARCH.SYNTAX_RO
     exported: 'exported',
     posted: 'posted',
     groupBy: 'group-by',
+    billable: 'billable',
+    reimbursable: 'reimbursable',
 };
 
 /**
@@ -354,7 +360,14 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
 
     const mappedFilters = Object.entries(otherFilters)
         .map(([filterKey, filterValue]) => {
-            if ((filterKey === FILTER_KEYS.MERCHANT || filterKey === FILTER_KEYS.DESCRIPTION || filterKey === FILTER_KEYS.REPORT_ID) && filterValue) {
+            if (
+                (filterKey === FILTER_KEYS.MERCHANT ||
+                    filterKey === FILTER_KEYS.DESCRIPTION ||
+                    filterKey === FILTER_KEYS.REPORT_ID ||
+                    filterKey === FILTER_KEYS.REIMBURSABLE ||
+                    filterKey === FILTER_KEYS.BILLABLE) &&
+                filterValue
+            ) {
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${sanitizeSearchValue(filterValue as string)}`;
@@ -382,6 +395,7 @@ function buildQueryStringFromFilterFormValues(filterValues: Partial<SearchAdvanc
             ) {
                 const filterValueArray = [...new Set<string>(filterValue)];
                 const keyInCorrectForm = (Object.keys(CONST.SEARCH.SYNTAX_FILTER_KEYS) as FilterKeys[]).find((key) => CONST.SEARCH.SYNTAX_FILTER_KEYS[key] === filterKey);
+
                 if (keyInCorrectForm) {
                     return `${CONST.SEARCH.SYNTAX_FILTER_KEYS[keyInCorrectForm]}:${filterValueArray.map(sanitizeSearchValue).join(',')}`;
                 }
@@ -423,6 +437,7 @@ function buildFilterFormValuesFromQuery(
     const filters = queryJSON.flatFilters;
     const filtersForm = {} as Partial<SearchAdvancedFiltersForm>;
     const policyID = queryJSON.policyID;
+
     for (const queryFilter of filters) {
         const filterKey = queryFilter.key;
         const filterList = queryFilter.filters;
@@ -499,6 +514,10 @@ function buildFilterFormValuesFromQuery(
             filtersForm[FILTER_KEYS.GREATER_THAN] =
                 filterList.find((filter) => filter.operator === 'gt' && validateAmount(filter.value.toString(), 0, CONST.IOU.AMOUNT_MAX_LENGTH + 2))?.value.toString() ??
                 filtersForm[FILTER_KEYS.GREATER_THAN];
+        }
+        if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE || filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE) {
+            const validBooleanTypes = Object.values(CONST.SEARCH.BOOLEAN);
+            filtersForm[filterKey] = validBooleanTypes.find((value) => filterValues.at(0) === value);
         }
     }
 
@@ -777,7 +796,6 @@ function isCannedSearchQuery(queryJSON: SearchQueryJSON) {
 /**
  * A copy of `isDefaultExpensesQuery` handling the policy ID, used if you have access to the leftHandBar beta.
  * When this beta is no longer needed, this method will be renamed to `isDefaultExpensesQuery` and will replace the old method.
- *
  */
 function isDefaultExpensesQueryWithPolicyIDCheck(queryJSON: SearchQueryJSON) {
     return queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && queryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && !queryJSON.filters && !queryJSON.groupBy && !queryJSON.policyID;
@@ -838,6 +856,28 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
     return buildSearchQueryString(standardizedQuery);
 }
 
+function getCurrentSearchQueryJSON() {
+    const rootState = navigationRef.getRootState();
+    const lastPolicyRoute = rootState?.routes?.findLast((route) => route.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR || route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
+
+    if (!lastPolicyRoute) {
+        return;
+    }
+
+    const lastSearchRoute = lastPolicyRoute.state?.routes.findLast((route) => route.name === SCREENS.SEARCH.ROOT);
+    if (!lastSearchRoute || !lastSearchRoute.params) {
+        return;
+    }
+
+    const {q: searchParams} = lastSearchRoute.params as SearchFullscreenNavigatorParamList[typeof SCREENS.SEARCH.ROOT];
+    const queryJSON = buildSearchQueryJSON(searchParams);
+    if (!queryJSON) {
+        return;
+    }
+
+    return queryJSON;
+}
+
 /**
  * Converts a filter key from old naming (camelCase) to user friendly naming (kebab-case).
  *
@@ -851,6 +891,20 @@ function getQueryWithUpdatedValues(query: string, policyID?: string) {
  */
 function getUserFriendlyKey(keyName: SearchFilterKey | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_BY | typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.SORT_ORDER): UserFriendlyKey {
     return UserFriendlyKeyMap[keyName];
+}
+
+function shouldHighlight(referenceText: string, searchText: string) {
+    if (!referenceText || !searchText) {
+        return false;
+    }
+
+    const escapedText = searchText
+        .toLowerCase()
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const pattern = new RegExp(`(^|\\s)${escapedText}(?=\\s|$)`, 'i');
+
+    return pattern.test(referenceText.toLowerCase());
 }
 
 export {
@@ -867,7 +921,9 @@ export {
     isCannedSearchQueryWithPolicyIDCheck,
     sanitizeSearchValue,
     getQueryWithUpdatedValues,
+    getCurrentSearchQueryJSON,
     getUserFriendlyKey,
     isDefaultExpensesQuery,
+    shouldHighlight,
     isDefaultExpensesQueryWithPolicyIDCheck,
 };
