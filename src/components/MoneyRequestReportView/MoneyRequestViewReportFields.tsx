@@ -31,9 +31,10 @@ type MoneyRequestViewReportFieldsProps = {
     /** Policy that the report belongs to */
     policy: OnyxEntry<Policy>;
 
-    /** Indicates whether the iou report is a combine report */
+    /** Indicates whether the IOU report is a combined report */
     isCombinedReport?: boolean;
 
+    /** Indicates whether we have any pending actions from parent component */
     pendingAction?: PendingAction;
 };
 
