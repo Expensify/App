@@ -149,6 +149,7 @@ function WorkspaceCreateReportFieldsPage({
                                 maxLength={CONST.WORKSPACE_REPORT_FIELD_POLICY_MAX_LENGTH}
                                 multiline={false}
                                 role={CONST.ROLE.PRESENTATION}
+                                required
                             />
                             <InputWrapper
                                 InputComponent={TypeSelector}

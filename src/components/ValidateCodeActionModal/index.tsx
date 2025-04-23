@@ -72,6 +72,7 @@ function ValidateCodeActionModal({
             useNativeDriver
             shouldUseModalPaddingStyle={false}
             animationInTiming={disableAnimation ? 1 : undefined}
+            canBeClosedByOtherModal={false}
         >
             <ScreenWrapper
                 includeSafeAreaPaddingBottom
