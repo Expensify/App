@@ -53,37 +53,37 @@ describe('GitUtils', () => {
             expect(result).toStrictEqual(exampleCase.expectedOutput);
         });
     });
-});
 
-describe('getCommitHistoryBetweenTags', () => {
-    let mockCompareCommits: jest.Mock;
+    describe('getCommitHistoryBetweenTags', () => {
+        let mockCompareCommits: jest.Mock;
 
-    beforeEach(() => {
-        // Provide mocked GitHub token to prevent error during test
-        jest.spyOn(core, 'getInput').mockImplementation((name) => {
-            if (name === 'GITHUB_TOKEN') {
-                return 'mock-token';
-            }
-            return '';
-        });
-        // Prepare the mocked GitHub API
-        mockCompareCommits = jest.fn();
-        jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation(mockCompareCommits);
-    });
+        beforeEach(() => {
+            jest.spyOn(core, 'getInput').mockImplementation((name) => {
+                if (name === 'GITHUB_TOKEN') {
+                    return 'mock-token';
+                }
+                return '';
+            });
 
-    afterEach(() => {
-        jest.restoreAllMocks();
-    });
-
-    test('should return empty array when no commits found', async () => {
-        // Mock implementation
-        mockCompareCommits.mockResolvedValue({
-            data: {
-                commits: [],
-            },
+            // Prepare the mocked GitHub API
+            mockCompareCommits = jest.fn();
+            jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation(mockCompareCommits);
         });
 
-        const result = await GitUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
-        expect(result).toEqual([]);
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        test('should return empty array when no commits found', async () => {
+            // Mock implementation
+            mockCompareCommits.mockResolvedValue({
+                data: {
+                    commits: [],
+                },
+            });
+
+            const result = await GitUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+            expect(result).toEqual([]);
+        });
     });
 });
