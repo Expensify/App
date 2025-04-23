@@ -65,7 +65,7 @@ const getAuthenticationErrorKey = (err: string): TranslationPaths | null => {
     }
 
     if (err.includes('Invalid validateCode')) {
-        return 'mergeAccountsPage.accountValidate.errors.incorrect2fa';
+        return 'mergeAccountsPage.accountValidate.errors.incorrectMagicCode';
     }
 
     return 'mergeAccountsPage.accountValidate.errors.fallback';
