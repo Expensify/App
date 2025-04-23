@@ -38,6 +38,7 @@ import {
     canShowReportRecipientLocalTime,
     canUserPerformWriteAction,
     chatIncludesChronosWithID,
+    getReasonAndReportActionThatRequiresAttention,
     getReportLastVisibleActionCreated,
     isArchivedNonExpenseReport,
     isCanceledTaskReport,
@@ -47,6 +48,7 @@ import {
     isTaskReport,
     isUnread,
 } from '@libs/ReportUtils';
+import SidebarUtils from '@libs/SidebarUtils';
 import Visibility from '@libs/Visibility';
 import type {ReportsSplitNavigatorParamList} from '@navigation/types';
 import variables from '@styles/variables';
@@ -163,6 +165,8 @@ function ReportActionsList({
     const isFocused = useIsFocused();
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportActionsCollection] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.reportID}`);
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.accountID});
     const participantsContext = useContext(PersonalDetailsContext);
 
@@ -312,8 +316,13 @@ function ReportActionsList({
     hasNewestReportActionRef.current = hasNewestReportAction;
     const previousLastIndex = useRef(lastActionIndex);
 
+    const redBrickRoad = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(report, reportActionsCollection, transactionViolations);
+    const greenBrickRoad = getReasonAndReportActionThatRequiresAttention(report, parentReportAction);
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const brickRoadReportActionID = redBrickRoad?.reportAction?.reportActionID || greenBrickRoad?.reportAction?.reportActionID;
+
     // Display the new message indicator when comment linking and not close to the newest message.
-    const reportActionID = route?.params?.reportActionID;
+    const reportActionID = route?.params?.reportActionID || brickRoadReportActionID;
     const indexOfLinkedAction = reportActionID ? sortedVisibleReportActions.findIndex((action) => action.reportActionID === reportActionID) : -1;
     const isLinkedActionCloseToNewest = indexOfLinkedAction < IS_CLOSE_TO_NEWEST_THRESHOLD;
     const [isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible] = useState(!isLinkedActionCloseToNewest);
@@ -367,7 +376,7 @@ function ReportActionsList({
     }, [report.lastVisibleActionCreated, transactionThreadReport?.lastVisibleActionCreated, report.reportID, isVisible]);
 
     useEffect(() => {
-        if (linkedReportActionID) {
+        if (linkedReportActionID || brickRoadReportActionID) {
             return;
         }
         InteractionManager.runAfterInteractions(() => {
@@ -725,7 +734,7 @@ function ReportActionsList({
                     onScrollToIndexFailed={onScrollToIndexFailed}
                     extraData={extraData}
                     key={listID}
-                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold}
+                    shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScrollToTopThreshold && !reportActionID}
                     initialScrollKey={reportActionID}
                 />
             </View>
