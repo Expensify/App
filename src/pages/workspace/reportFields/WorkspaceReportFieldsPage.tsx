@@ -233,7 +233,7 @@ function WorkspaceReportFieldsPage({
                                             <FlatList
                                                 data={reportFieldsSections}
                                                 renderItem={renderItem}
-                                                style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6, styles.mbn3]}
+                                                style={[shouldUseNarrowLayout ? styles.mhn5 : styles.mhn8, styles.mt6]}
                                                 scrollEnabled={false}
                                             />
                                             <MenuItem
