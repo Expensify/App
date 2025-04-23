@@ -12,6 +12,9 @@ import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
 import useLocalize from './useLocalize';
 
+const HOLD = 'HOLD';
+const UNHOLD = 'UNHOLD';
+
 function useSelectedTransactionsActions({report, reportActions, session, onExportFailed}: {report?: Report; reportActions: ReportAction[]; session?: Session; onExportFailed?: () => void}) {
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
     const {translate} = useLocalize();
@@ -31,7 +34,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
-                value: CONST.REPORT.SECONDARY_ACTIONS.HOLD,
+                value: HOLD,
                 onSelected: () => {
                     if (!report?.reportID) {
                         return;
@@ -45,7 +48,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             options.push({
                 text: translate('iou.unhold'),
                 icon: Expensicons.Stopwatch,
-                value: 'UNHOLD',
+                value: UNHOLD,
                 onSelected: () => {
                     selectedTransactionsID.forEach((transactionID) => {
                         const action = getIOUActionForTransactionID(reportActions, transactionID);
