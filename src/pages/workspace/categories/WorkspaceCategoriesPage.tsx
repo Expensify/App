@@ -240,7 +240,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const getHeaderButtons = () => {
         const options: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>>> = [];
         const isThereAnyAccountingConnection = Object.keys(policy?.connections ?? {}).length !== 0;
-        const selectedCategoriesObject = selectedCategoriesArray.map((key) => policyCategories && policyCategories[key]);
+        const selectedCategoriesObject = selectedCategoriesArray.map((key) => policyCategories?.[key]);
 
         if (isSmallScreenWidth ? canSelectMultiple : selectedCategoriesArray.length > 0) {
             if (!isThereAnyAccountingConnection) {

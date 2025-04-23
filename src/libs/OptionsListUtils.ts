@@ -34,6 +34,7 @@ import type {Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import Timing from './actions/Timing';
+import {getEnabledCategoriesCount} from './CategoryUtils';
 import filterArrayByMatch from './filterArrayByMatch';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -1087,43 +1088,33 @@ function isCurrentUser(userDetails: PersonalDetails): boolean {
     return Object.keys(loginList ?? {}).some((login) => login.toLowerCase() === userDetailsLogin.toLowerCase());
 }
 
-/**
- * Calculates count of all enabled options
- */
-function getEnabledCategoriesCount(PolicyCategories: PolicyCategories | undefined): number {
-    if (PolicyCategories === undefined) {
-        return 0;
-    }
-    return Object.values(PolicyCategories).filter((PolicyCategory) => PolicyCategory.enabled).length;
-}
-
 function isDisablingOrDeletingLastEnabledCategory(
     policy: Policy | undefined,
     policyCategories: PolicyCategories | undefined,
-    selectedCategoriesObject: Array<PolicyCategory | undefined>,
+    selectedCategories: Array<PolicyCategory | undefined>,
 ): boolean {
     const enabledCategoriesCount = getEnabledCategoriesCount(policyCategories);
 
-    if (policy?.requiresCategory && selectedCategoriesObject.filter((selectedCategories) => selectedCategories?.enabled).length === enabledCategoriesCount) {
+    if (policy?.requiresCategory && selectedCategories.filter((selectedCategory) => selectedCategory?.enabled).length === enabledCategoriesCount) {
         return true;
     }
 
     return false;
 }
 
-function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTagArray: Array<PolicyTag | undefined>): boolean {
+function isDisablingOrDeletingLastEnabledTag(policyTagList: PolicyTagList | undefined, selectedTags: Array<PolicyTag | undefined>): boolean {
     const enabledTagsCount = getCountOfEnabledTagsOfList(policyTagList?.tags);
 
-    if (policyTagList?.required && selectedTagArray.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
+    if (policyTagList?.required && selectedTags.filter((selectedTag) => selectedTag?.enabled).length === enabledTagsCount) {
         return true;
     }
     return false;
 }
 
-function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagListArray: Array<PolicyTagList | undefined>): boolean {
+function isMakingLastRequiredTagListOptional(policy: Policy | undefined, policyTags: PolicyTagLists | undefined, selectedTagLists: Array<PolicyTagList | undefined>): boolean {
     const requiredTagsCount = getCountOfRequiredTagLists(policyTags);
 
-    if (policy?.requiresTag && selectedTagListArray.filter((selectedTag) => selectedTag?.required).length === requiredTagsCount) {
+    if (policy?.requiresTag && selectedTagLists.filter((selectedTagList) => selectedTagList?.required).length === requiredTagsCount) {
         return true;
     }
     return false;
@@ -2373,7 +2364,6 @@ export {
     shouldOptionShowTooltip,
     getLastActorDisplayName,
     getLastMessageTextForReport,
-    getEnabledCategoriesCount,
     hasEnabledOptions,
     sortAlphabetically,
     formatMemberForList,

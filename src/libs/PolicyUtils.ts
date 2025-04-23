@@ -432,17 +432,13 @@ function getCountOfEnabledTagsOfList(policyTags: PolicyTags | undefined): number
     return Object.values(policyTags).filter((policyTag) => policyTag.enabled).length;
 }
 /**
- * Gets count of multi-level required tags of a policy
+ * Gets count of required tag lists of a policy
  */
-function getCountOfRequiredTagLists(policyTagList: OnyxEntry<PolicyTagLists>): number {
-    if (!policyTagList || typeof policyTagList !== 'object') {
+function getCountOfRequiredTagLists(policyTagLists: OnyxEntry<PolicyTagLists>): number {
+    if (!policyTagLists) {
         return 0;
     }
-
-    return Object.keys(policyTagList).filter((tagList) => {
-        const tagListValue = policyTagList[tagList];
-        return tagListValue && tagListValue?.required;
-    }).length;
+    return Object.values(policyTagLists).filter((tagList) => tagList.required).length;
 }
 
 /**

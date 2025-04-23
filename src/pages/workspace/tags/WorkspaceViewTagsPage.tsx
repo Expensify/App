@@ -124,7 +124,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
                             disabled={tag.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE}
                             accessibilityLabel={translate('workspace.tags.enableTag')}
                             onToggle={(newValue: boolean) => {
-                                if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag]) && tag.enabled) {
+                                if (isDisablingOrDeletingLastEnabledTag(currentPolicyTag, [tag])) {
                                     setIsCannotDisableLastTagModalVisible(true);
                                     return;
                                 }
@@ -233,7 +233,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
         }
 
         if (enabledTagCount > 0) {
-            const selectedTagsObject = selectedTagsArray.map((key) => Object.values(currentPolicyTag?.tags ?? {}).find((tag) => tag.name === key));
+            const selectedTagsObject = selectedTagsArray.map((key) => currentPolicyTag?.tags[key]);
             options.push({
                 icon: Expensicons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),

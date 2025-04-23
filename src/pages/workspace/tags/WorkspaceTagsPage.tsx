@@ -158,7 +158,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         },
         [policyID],
     );
-    const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
 
     const tagList = useMemo<TagListItem[]>(() => {
         if (isMultiLevelTags) {
@@ -198,6 +197,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 };
             });
         }
+        const sortedTags = lodashSortBy(Object.values(policyTagLists.at(0)?.tags ?? {}), 'name', localeCompare) as PolicyTag[];
 
         return sortedTags.map((tag) => ({
             value: tag.name,
@@ -224,7 +224,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 />
             ),
         }));
-    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, sortedTags, policy, policyTags]);
+    }, [isMultiLevelTags, policyTagLists, selectedTags, canSelectMultiple, translate, updateWorkspaceRequiresTag, updateWorkspaceTagEnabled, policy, policyTags]);
 
     const tagListKeyedByName = useMemo(
         () =>
@@ -287,12 +287,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         setIsDeleteTagsConfirmModalVisible(false);
     };
 
-    const selectedTagsObject = selectedTagsArray.map((key) => sortedTags.find((tag) => tag.name === key));
-
     const isLoading = !isOffline && policyTags === undefined;
 
     const getHeaderButtons = () => {
         const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
+        const selectedTagsObject = selectedTagsArray.map((key) => policyTagLists.at(0)?.tags?.[key]);
 
         if (shouldUseNarrowLayout ? !selectionMode?.isEnabled : selectedTagsArray.length === 0) {
             return (
