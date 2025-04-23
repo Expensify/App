@@ -12,6 +12,7 @@ import path from 'path';
 import type {PackageJson} from 'type-fest';
 import getPreviousVersion from '@github/actions/javascript/getPreviousVersion/getPreviousVersion';
 import CONST from '@github/libs/CONST';
+import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
@@ -349,6 +350,33 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
+        jest.spyOn(core, 'getInput').mockImplementation((name) => {
+            if (name === 'GITHUB_TOKEN') {
+                return 'mock-token';
+            }
+            return mockGetInput(name) || '';
+        });
+
+        jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockResolvedValue({
+            data: {
+                commits: [],
+                url: '',
+                html_url: '',
+                permalink_url: '',
+                diff_url: '',
+                patch_url: '',
+                base_commit: {} as any, // Use 'as any' for simplicity in mock
+                merge_base_commit: {} as any,
+                status: 'ahead', // Example status
+                ahead_by: 0,
+                behind_by: 0,
+                total_commits: 0,
+            },
+            status: 200,
+            headers: {},
+            url: '',
+        });
+
         Log.info('Starting setup');
         startingDir = process.cwd();
         initGitServer();
@@ -360,6 +388,7 @@ describe('CIGitLogic', () => {
     });
 
     afterAll(() => {
+        jest.restoreAllMocks();
         fs.rmSync(DUMMY_DIR, {recursive: true, force: true});
         fs.rmSync(path.resolve(GIT_REMOTE, '..'), {recursive: true, force: true});
         process.chdir(startingDir);
