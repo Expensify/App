@@ -10,6 +10,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {isIOUReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
@@ -58,9 +59,13 @@ function MoneyRequestReportPreview({
     );
 
     const shouldShowIOUData = useMemo(() => {
-        const firstAttendee = transactions.at(0)?.comment?.attendees?.at(0);
-        return transactions.some((transaction) => firstAttendee?.email !== transaction.comment?.attendees?.at(0)?.email);
-    }, [transactions]);
+        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
+            return false;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+    }, [transactions, action.childType, iouReport]);
 
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
