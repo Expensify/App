@@ -38,7 +38,17 @@ const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<Transaction>
 };
 
 function TransactionPreview(props: TransactionPreviewProps) {
-    const {action, chatReportID, reportID, contextMenuAnchor, checkIfContextMenuActive = () => {}, shouldDisplayContextMenu, iouReportID, transactionID: transactionIDFromProps} = props;
+    const {
+        action,
+        chatReportID,
+        reportID,
+        contextMenuAnchor,
+        checkIfContextMenuActive = () => {},
+        shouldDisplayContextMenu,
+        iouReportID,
+        transactionID: transactionIDFromProps,
+        reportPreviewAction,
+    } = props;
 
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
@@ -93,7 +103,7 @@ function TransactionPreview(props: TransactionPreviewProps) {
             sessionAccountID={sessionAccountID}
             walletTermsErrors={walletTerms?.errors}
             routeName={route.name}
-            reportPreviewAction={props.reportPreviewAction}
+            reportPreviewAction={reportPreviewAction}
         />
     );
 }
