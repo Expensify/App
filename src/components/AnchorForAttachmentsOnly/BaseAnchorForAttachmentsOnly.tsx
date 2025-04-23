@@ -41,7 +41,7 @@ function BaseAnchorForAttachmentsOnly({style, attachmentID, source = '', display
         }
         Attachment.cacheAttachment({
             attachmentID,
-            src: finalSourceURL,
+            url: finalSourceURL,
         });
     };
 

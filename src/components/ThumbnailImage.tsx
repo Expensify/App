@@ -141,8 +141,7 @@ function ThumbnailImage({
         }
         Attachment.cacheAttachment({
             attachmentID,
-            src: source.toString(),
-            fileName,
+            url: source.toString(),
         });
     };
 
