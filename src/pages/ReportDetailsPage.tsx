@@ -556,24 +556,22 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         }
 
         if (caseID === CASES.MONEY_REPORT) {
-            if (!canUseTableReportView) {
-                items.push({
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
-                    translationKey: 'common.downloadAsCSV',
-                    icon: Expensicons.Table,
-                    isAnonymousAction: false,
-                    action: () => {
-                        if (isOffline) {
-                            setOfflineModalVisible(true);
-                            return;
-                        }
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_CSV,
+                translationKey: 'common.downloadAsCSV',
+                icon: Expensicons.Table,
+                isAnonymousAction: false,
+                action: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                        return;
+                    }
 
-                        exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
-                            setDownloadErrorModalVisible(true);
-                        });
-                    },
-                });
-            }
+                    exportReportToCSV({reportID: report.reportID, transactionIDList}, () => {
+                        setDownloadErrorModalVisible(true);
+                    });
+                },
+            });
 
             if (canUsePDFExport) {
                 items.push({
@@ -1164,17 +1162,15 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     isVisible={offlineModalVisible}
                     onClose={() => setOfflineModalVisible(false)}
                 />
-                {!canUseTableReportView && (
-                    <DecisionModal
-                        title={translate('common.downloadFailedTitle')}
-                        prompt={translate('common.downloadFailedDescription')}
-                        isSmallScreenWidth={isSmallScreenWidth}
-                        onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
-                        secondOptionText={translate('common.buttonConfirm')}
-                        isVisible={downloadErrorModalVisible}
-                        onClose={() => setDownloadErrorModalVisible(false)}
-                    />
-                )}
+                <DecisionModal
+                    title={translate('common.downloadFailedTitle')}
+                    prompt={translate('common.downloadFailedDescription')}
+                    isSmallScreenWidth={isSmallScreenWidth}
+                    onSecondOptionSubmit={() => setDownloadErrorModalVisible(false)}
+                    secondOptionText={translate('common.buttonConfirm')}
+                    isVisible={downloadErrorModalVisible}
+                    onClose={() => setDownloadErrorModalVisible(false)}
+                />
                 <Modal
                     onClose={() => setIsPDFModalVisible(false)}
                     isVisible={isPDFModalVisible}
