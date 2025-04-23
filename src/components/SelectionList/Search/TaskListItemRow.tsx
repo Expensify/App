@@ -69,6 +69,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const session = useSession();
     const {translate} = useLocalize();
 
+    const taskAssigneeID = taskItem.assignee.accountID;
+    const taskCreatorID = taskItem.createdBy.accountID;
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {
@@ -100,7 +102,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             success
             text={translate('task.action')}
             style={[styles.w100]}
-            isDisabled={!canActionTask(taskItem.report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+            isDisabled={!canActionTask(taskItem.report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, taskCreatorID, taskAssigneeID)}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem, taskItem.reportID);
             })}
