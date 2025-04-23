@@ -718,7 +718,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
         setIsLinkingToMessage(!!reportActionIDFromRoute);
         return null;
     }
-
     return (
         <ActionListContext.Provider value={actionListValue}>
             <ReactionListWrapper>

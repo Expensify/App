@@ -48,6 +48,7 @@
 		ED222ED90E074A5481A854FA /* ExpensifyNeue-BoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */; };
 		F0C450EA2705020500FD2970 /* colors.json in Resources */ = {isa = PBXBuildFile; fileRef = F0C450E92705020500FD2970 /* colors.json */; };
 		FF941A8D48F849269AB85C9A /* ExpensifyNewKansas-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 44BF435285B94E5B95F90994 /* ExpensifyNewKansas-Medium.otf */; };
+		59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */ = {isa = PBXBuildFile; fileRef = B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -158,6 +159,7 @@
 		F0C450E92705020500FD2970 /* colors.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; name = colors.json; path = ../colors.json; sourceTree = "<group>"; };
 		F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "ExpensifyNeue-Regular.otf"; path = "../assets/fonts/native/ExpensifyNeue-Regular.otf"; sourceTree = "<group>"; };
 		F8839E9820F4C312BD1C9339 /* Pods-NewExpensify.releasedevelopment.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NewExpensify.releasedevelopment.xcconfig"; path = "Target Support Files/Pods-NewExpensify/Pods-NewExpensify.releasedevelopment.xcconfig"; sourceTree = "<group>"; };
+		B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */ = {isa = PBXFileReference; name = "CustomEmojiNativeFont.ttf"; path = "../assets/fonts/native/CustomEmojiNativeFont.ttf"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = unknown; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -319,6 +321,7 @@
 				8B28D84EF339436DBD42A203 /* ExpensifyNeue-BoldItalic.otf */,
 				BF6A4C5167244B9FB8E4D4E3 /* ExpensifyNeue-Italic.otf */,
 				F4F8A052A22040339996324B /* ExpensifyNeue-Regular.otf */,
+				B42BBCC5FB8E4E40B1A9202C /* CustomEmojiNativeFont.ttf */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -491,6 +494,7 @@
 				D27CE6B77196EF3EF450EEAC /* PrivacyInfo.xcprivacy in Resources */,
 				524F95D57E75496EBD14B0AA /* ExpensifyMono-BoldItalic.otf in Resources */,
 				0F749C2B3B8F4562B816DEAB /* BuildFile in Resources */,
+				59164B2F48344A53975791A9 /* CustomEmojiNativeFont.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
