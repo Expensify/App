@@ -36,13 +36,14 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
 import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
@@ -72,6 +73,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
+
+const SMALL_SCREEN_TOOLTIP_OFFSET = 10;
+const DEFAULT_TOOLTIP_OFFSET = 8;
 
 function IOURequestStepScan({
     report,
@@ -107,13 +111,13 @@ function IOURequestStepScan({
     const [elementTop, setElementTop] = useState(0);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -123,6 +127,8 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+
+    const platform = getPlatform(true);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -273,7 +279,7 @@ function IOURequestStepScan({
     }, [iouType, reportID, transactionID]);
 
     const navigateToConfirmationPage = useCallback(
-        (isTestTransaction = false) => {
+        (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
@@ -283,7 +289,13 @@ function IOURequestStepScan({
                     break;
                 default:
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            reportIDParam || reportID,
+                        ),
                     );
             }
         },
@@ -334,6 +346,17 @@ function IOURequestStepScan({
         (file: FileObject, source: string, locationPermissionGranted = false, isTestTransaction = false) => {
             if (backTo) {
                 Navigation.goBack(backTo);
+                return;
+            }
+
+            if (isTestTransaction) {
+                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                let reportIDParam = managerMcTestParticipant.reportID;
+                if (!managerMcTestParticipant.reportID && report?.reportID) {
+                    reportIDParam = generateReportID();
+                }
+                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true);
+                navigateToConfirmationPage(true, reportIDParam);
                 return;
             }
 
@@ -469,12 +492,6 @@ function IOURequestStepScan({
                     );
                 });
             } else {
-                if (isTestTransaction) {
-                    const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-                    setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
-                    navigateToConfirmationPage(true);
-                    return;
-                }
                 navigateToParticipantPage();
             }
         },
@@ -862,6 +879,18 @@ function IOURequestStepScan({
         </>
     );
 
+    const elementTopOffset = useMemo(() => {
+        if (platform === CONST.PLATFORM.MOBILEWEB) {
+            return SMALL_SCREEN_TOOLTIP_OFFSET;
+        }
+
+        if (isSmallScreenWidth) {
+            return -variables.tabSelectorButtonHeight + SMALL_SCREEN_TOOLTIP_OFFSET;
+        }
+
+        return -variables.tabSelectorButtonHeight + DEFAULT_TOOLTIP_OFFSET;
+    }, [isSmallScreenWidth, platform]);
+
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
@@ -873,13 +902,7 @@ function IOURequestStepScan({
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
-                        onLayout={(e) => {
-                            setElementTop(
-                                isSmallScreenWidth
-                                    ? e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 10)
-                                    : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8),
-                            );
-                        }}
+                        onLayout={(e) => setElementTop(e.nativeEvent.layout.height + elementTopOffset)}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >
                         <EducationalTooltip

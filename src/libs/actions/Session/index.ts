@@ -15,7 +15,6 @@ import type {
     BeginSignInParams,
     DisableTwoFactorAuthParams,
     LogOutParams,
-    RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
     ResetSMSDeliveryFailureStatusParams,
@@ -353,50 +352,6 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
         return () => signOutAndRedirectToSignIn();
     }
     return callback;
-}
-
-/**
- * Resend the validation link to the user that is validating their account
- */
-function resendValidationLink(login = credentials.login) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-                message: null,
-                loadingForm: CONST.FORMS.RESEND_VALIDATION_FORM,
-            },
-        },
-    ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: 'resendValidationForm.linkHasBeenResent',
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
-                loadingForm: null,
-            },
-        },
-    ];
-
-    const params: RequestAccountValidationLinkParams = {email: login};
-
-    API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1287,43 +1242,6 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-/**
- * Validates user account and returns a list of accessible policies.
- */
-function validateUserAndGetAccessiblePolicies(validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: true,
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
-}
-
-function isUserOnPrivateDomain() {
-    // TODO: Implement this function later, and skip the check for now
-    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
-    return false;
-}
-
 function AddWorkEmail(workEmail: string) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1513,7 +1431,6 @@ export {
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
-    resendValidationLink,
     resendValidateCode,
     requestUnlinkValidationLink,
     unlinkLogin,
@@ -1537,8 +1454,6 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
-    validateUserAndGetAccessiblePolicies,
-    isUserOnPrivateDomain,
     AddWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,

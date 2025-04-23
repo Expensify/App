@@ -504,6 +504,7 @@ function BaseVideoPlayer({
                                             onError={() => {
                                                 setHasError(true);
                                             }}
+                                            testID={CONST.VIDEO_PLAYER_TEST_ID}
                                         />
                                     </View>
                                 )}
