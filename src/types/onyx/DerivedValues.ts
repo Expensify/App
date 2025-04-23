@@ -6,6 +6,10 @@ type ReportAttributes = {
      * The name of the report.
      */
     reportName: string;
+    /**
+     * Whether the report is empty (has no visible messages).
+     */
+    isEmpty: boolean;
 };
 
 /**

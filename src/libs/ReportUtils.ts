@@ -7368,6 +7368,11 @@ function isEmptyReport(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
+    // Get the `isEmpty` state from cached report attributes
+    if (reportAttributes?.[report.reportID]) {
+        return reportAttributes[report.reportID].isEmpty;
+    }
+
     const lastVisibleMessage = getLastVisibleMessage(report.reportID);
     return !lastVisibleMessage.lastMessageText;
 }
