@@ -1,5 +1,7 @@
 import type {CommitType} from '../../.github/libs/GitUtils';
 import GitUtils from '../../.github/libs/GitUtils';
+import GithubUtils from '../../.github/libs/GithubUtils';
+import * as core from '@actions/core';
 
 type ExampleDataType = {
     input: CommitType[];
@@ -57,7 +59,14 @@ describe('getCommitHistoryBetweenTags', () => {
     let mockCompareCommits: jest.Mock;
 
     beforeEach(() => {
-        // Mock the GitHub API response
+        // Provide mocked GitHub token to prevent error during test
+        jest.spyOn(core, 'getInput').mockImplementation((name) => {
+            if (name === 'GITHUB_TOKEN') {
+                return 'mock-token';
+            }
+            return '';
+        });
+        // Prepare the mocked GitHub API
         mockCompareCommits = jest.fn();
         jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation(mockCompareCommits);
     });
