@@ -295,7 +295,7 @@ function MoneyRequestParticipantsSelector({
         inputHelperText,
     ]);
 
-    const handleContactImport = useCallback(() => {
+    const importAndSaveContacts = useCallback(() => {
         contactImport().then(({contactList, permissionStatus}: ContactImportResult) => {
             setContactPermissionState(permissionStatus);
             const usersFromContact = getContacts(contactList);
@@ -465,9 +465,9 @@ function MoneyRequestParticipantsSelector({
 
     const handleSoftPermissionGrant = useCallback(() => {
         setSoftPermissionModalVisible(false);
-        InteractionManager.runAfterInteractions(handleContactImport);
+        InteractionManager.runAfterInteractions(importAndSaveContacts);
         setTextInputAutoFocus(true);
-    }, [handleContactImport]);
+    }, [importAndSaveContacts]);
 
     const footerContent = useMemo(() => {
         if (isDismissed && !shouldShowSplitBillErrorMessage && !participants.length) {

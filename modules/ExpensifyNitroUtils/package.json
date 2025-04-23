@@ -30,6 +30,7 @@
         "typescript": "tsc --noEmit false",
         "specs": "npx nitro-codegen"
     },
+    "author": "Expensify",
     "license": "MIT",
     "homepage": "https://github.com/mrousavy/nitro#readme",
     "keywords": ["react-native", "nitro"],
