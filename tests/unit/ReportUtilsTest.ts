@@ -2354,7 +2354,7 @@ describe('ReportUtils', () => {
         });
 
         it('should return false if the report is an expense report', () => {
-            // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
+            // Simulate how components uses the hook useReportIsArchived() to see if the report is archived
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(expenseReport?.reportID));
             expect(isArchivedNonExpenseReportWithID(expenseReport, isReportArchived.current)).toBe(false);
         });
