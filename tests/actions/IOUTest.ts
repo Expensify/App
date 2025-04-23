@@ -10,6 +10,7 @@ import {
     canIOUBePaid,
     canUnapproveIOU,
     deleteMoneyRequest,
+    initMoneyRequest,
     payMoneyRequest,
     putOnHold,
     requestMoney,
@@ -68,6 +69,7 @@ import createRandomPolicy, {createCategoryTaxExpenseRules} from '../utils/collec
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import createRandomReport from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import getOnyxValue from '../utils/getOnyxValue';
 import PusherHelper from '../utils/PusherHelper';
 import {getGlobalFetchMock, getOnyxData, setPersonalDetails, signInWithTestUser} from '../utils/TestHelper';
 import type {MockFetch} from '../utils/TestHelper';
@@ -2813,7 +2815,7 @@ describe('actions/IOU', () => {
             expect(tr).toBeFalsy();
         });
 
-        it('delete the IOU report when there are no visible comments left in the IOU report', async () => {
+        it('delete the IOU report when there are no expenses left in the IOU report', async () => {
             // Given an IOU report and a paused fetch state
             mockFetch?.pause?.();
 
@@ -2856,40 +2858,26 @@ describe('actions/IOU', () => {
             expect(report).toBeFalsy();
         });
 
-        it('does not delete the IOU report when there are visible comments left in the IOU report', async () => {
-            // Given the initial setup is completed
-            await waitForBatchedUpdates();
-
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                callback: (val) => (reportActions = val),
+        it('does not delete the IOU report when there are expenses left in the IOU report', async () => {
+            // Given multiple expenses on an IOU report
+            requestMoney({
+                report: chatReport,
+                participantParams: {
+                    payeeEmail: TEST_USER_LOGIN,
+                    payeeAccountID: TEST_USER_ACCOUNT_ID,
+                    participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: '',
+                    comment,
+                },
             });
-            await waitForBatchedUpdates();
-
-            jest.advanceTimersByTime(10);
-
-            // When a comment is added to the IOU report
-            if (IOU_REPORT_ID) {
-                addComment(IOU_REPORT_ID, 'Testing a comment');
-            }
-            await waitForBatchedUpdates();
-
-            // Then verify that the comment is correctly added
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID;
-
-            expect(resultAction?.message).toEqual(REPORT_ACTION.message);
-            expect(resultAction?.person).toEqual(REPORT_ACTION.person);
-            expect(resultAction?.pendingAction).toBeUndefined();
 
             await waitForBatchedUpdates();
-
-            // Verify there are three actions (created + iou + addcomment) and our optimistic comment has been removed
-            expect(Object.values(reportActions ?? {}).length).toBe(3);
-
-            // Then check the loading state of our action
-            const resultActionAfterUpdate = reportActionID ? reportActions?.[reportActionID] : undefined;
-            expect(resultActionAfterUpdate?.pendingAction).toBeUndefined();
 
             // When we attempt to delete an expense from the IOU report
             mockFetch?.pause?.();
@@ -2918,7 +2906,7 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
 
             // Given the resumed fetch state
-            mockFetch?.resume?.();
+            await mockFetch?.resume?.();
 
             allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -3449,48 +3437,30 @@ describe('actions/IOU', () => {
         });
 
         it('navigate the user correctly to the iou Report when appropriate', async () => {
-            await waitForBatchedUpdates();
-
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${IOU_REPORT_ID}`,
-                callback: (val) => (reportActions = val),
+            // Given multiple expenses on an IOU report
+            requestMoney({
+                report: chatReport,
+                participantParams: {
+                    payeeEmail: TEST_USER_LOGIN,
+                    payeeAccountID: TEST_USER_ACCOUNT_ID,
+                    participant: {login: RORY_EMAIL, accountID: RORY_ACCOUNT_ID},
+                },
+                transactionParams: {
+                    amount,
+                    attendees: [],
+                    currency: CONST.CURRENCY.USD,
+                    created: '',
+                    merchant: '',
+                    comment,
+                },
             });
             await waitForBatchedUpdates();
 
-            // Given an added comment to the iou report
-
-            jest.advanceTimersByTime(10);
-
-            if (IOU_REPORT_ID) {
-                addComment(IOU_REPORT_ID, 'Testing a comment');
-            }
-            await waitForBatchedUpdates();
-
-            const resultAction = Object.values(reportActions ?? {}).find((reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT);
-            reportActionID = resultAction?.reportActionID;
-
-            expect(resultAction?.message).toEqual(REPORT_ACTION.message);
-            expect(resultAction?.person).toEqual(REPORT_ACTION.person);
-
-            await waitForBatchedUpdates();
-
-            // Verify there are three actions (created + iou + addcomment) and our optimistic comment has been removed
-            expect(Object.values(reportActions ?? {}).length).toBe(3);
-
-            await waitForBatchedUpdates();
-
             // Given a thread report
-
             jest.advanceTimersByTime(10);
             thread = buildTransactionThread(createIOUAction, iouReport);
 
             expect(thread.participants).toStrictEqual({[CARLOS_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN, role: CONST.REPORT.ROLE.ADMIN}});
-
-            Onyx.connect({
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${thread.reportID}`,
-                callback: (val) => (reportActions = val),
-            });
-            await waitForBatchedUpdates();
 
             jest.advanceTimersByTime(10);
             const participantAccountIDs = Object.keys(thread.participants ?? {}).map(Number);
@@ -3515,17 +3485,13 @@ describe('actions/IOU', () => {
             );
             expect(createIOUAction?.childReportID).toBe(thread.reportID);
 
-            await waitForBatchedUpdates();
-
-            // When we delete the expense in SingleTransactionView and we should not delete the IOU report
-
+            // When we delete the expense, we should not delete the IOU report
             mockFetch?.pause?.();
 
             let navigateToAfterDelete;
             if (transaction && createIOUAction) {
                 navigateToAfterDelete = deleteMoneyRequest(transaction.transactionID, createIOUAction, true);
             }
-            await waitForBatchedUpdates();
 
             let allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -3538,14 +3504,12 @@ describe('actions/IOU', () => {
                 });
             });
 
-            await waitForBatchedUpdates();
-
             iouReport = Object.values(allReports ?? {}).find((report) => isIOUReport(report));
             expect(iouReport).toBeTruthy();
             expect(iouReport).toHaveProperty('reportID');
             expect(iouReport).toHaveProperty('chatReportID');
 
-            mockFetch?.resume?.();
+            await mockFetch?.resume?.();
 
             allReports = await new Promise<OnyxCollection<Report>>((resolve) => {
                 const connection = Onyx.connect({
@@ -3564,7 +3528,6 @@ describe('actions/IOU', () => {
             expect(iouReport).toHaveProperty('chatReportID');
 
             // Then we expect to navigate to the iou report
-
             expect(IOU_REPORT_ID).not.toBeUndefined();
             if (IOU_REPORT_ID) {
                 expect(navigateToAfterDelete).toEqual(ROUTES.REPORT_WITH_ID.getRoute(IOU_REPORT_ID));
@@ -5131,6 +5094,93 @@ describe('actions/IOU', () => {
             };
 
             expect(calculateDiffAmount(fakeReport, updatedTransaction, fakeTransaction)).toBeNull();
+        });
+    });
+
+    describe('initMoneyRequest', () => {
+        const fakeReport: Report = {
+            ...createRandomReport(0),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: '1',
+            managerID: CARLOS_ACCOUNT_ID,
+        };
+        const fakePolicy: Policy = {
+            ...createRandomPolicy(1),
+            type: CONST.POLICY.TYPE.TEAM,
+            outputCurrency: 'USD',
+        };
+        const fakePersonalPolicy: Policy = {
+            ...createRandomPolicy(2),
+            type: CONST.POLICY.TYPE.PERSONAL,
+            outputCurrency: 'NZD',
+        };
+        const transactionResult: Transaction = {
+            amount: 0,
+            comment: {
+                attendees: [
+                    {
+                        email: 'rory@expensifail.com',
+                        login: 'rory@expensifail.com',
+                        accountID: 3,
+                        text: 'rory@expensifail.com',
+                        selected: true,
+                        reportID: '0',
+                        avatarUrl: '',
+                        displayName: '',
+                    },
+                ],
+            },
+            created: '2025-04-01',
+            currency: 'USD',
+            iouRequestType: 'manual',
+            reportID: fakeReport.reportID,
+            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+            isFromGlobalCreate: true,
+            merchant: '(none)',
+            splitPayerAccountIDs: [3],
+        };
+        beforeEach(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`, null);
+            await Onyx.merge(`${ONYXKEYS.CURRENT_DATE}`, '2025-04-01');
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${fakeReport.reportID}`, fakeReport);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePersonalPolicy.id}`, fakePersonalPolicy);
+            return waitForBatchedUpdates();
+        });
+
+        it('should merge transaction draft onyx value', async () => {
+            await waitForBatchedUpdates()
+                .then(() => {
+                    initMoneyRequest(fakeReport.reportID, fakePolicy, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual(transactionResult);
+                });
+        });
+
+        it('should modify transaction draft when currentIouRequestType is different', async () => {
+            await waitForBatchedUpdates()
+                .then(() => {
+                    return initMoneyRequest(fakeReport.reportID, fakePolicy, true, CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.REQUEST_TYPE.SCAN);
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
+                        ...transactionResult,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                    });
+                });
+        });
+        it('should return personal currency when policy is missing', async () => {
+            await waitForBatchedUpdates()
+                .then(() => {
+                    return initMoneyRequest(fakeReport.reportID, undefined, true, undefined, CONST.IOU.REQUEST_TYPE.MANUAL);
+                })
+                .then(async () => {
+                    expect(await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`)).toStrictEqual({
+                        ...transactionResult,
+                        currency: fakePersonalPolicy.outputCurrency,
+                    });
+                });
         });
     });
 

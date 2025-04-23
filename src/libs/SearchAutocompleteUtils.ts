@@ -165,6 +165,7 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined;
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
