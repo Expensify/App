@@ -6746,9 +6746,9 @@ const translations = {
             part3: '\ny mucho más!',
         },
         expenseReportsFilter: {
-            part1: '¡Bienvenido!\nAquí encontrarás todos los ',
-            part2: 'informes de tu empresa.',
-            part3: '',
+            part1: '¡Bienvenido! Aquí encontrarás todos los\n',
+            part2: 'informes de tu empresa',
+            part3: '.',
         },
         scanTestTooltip: {
             part1: '¿Quieres ver cómo funciona Escanear?',
