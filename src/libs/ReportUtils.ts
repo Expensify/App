@@ -9674,6 +9674,9 @@ function prepareOnboardingOnyxData(
                 return false;
             }
 
+            if (['addAccountingIntegration', 'setupCategoriesAndTags'].includes(task.type) && !userReportedIntegration) {
+                return false;
+            }
             type SkipViewTourOnboardingChoices = 'newDotSubmit' | 'newDotSplitChat' | 'newDotPersonalSpend' | 'newDotEmployer';
             if (
                 task.type === 'viewTour' &&
