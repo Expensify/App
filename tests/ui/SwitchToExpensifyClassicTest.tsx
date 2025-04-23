@@ -1,5 +1,5 @@
 import * as NativeNavigation from '@react-navigation/native';
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, userEvent} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import {act} from 'react-test-renderer';
 import * as Localize from '@libs/Localize';
@@ -24,23 +24,24 @@ TestHelper.setupGlobalFetchMock();
 
 function navigateToSetting() {
     const hintText = Localize.translateLocal('sidebarScreen.buttonMySettings');
-    const mySettingButton = screen.queryByAccessibilityHint(hintText);
+    const mySettingButton = screen.queryAllByAccessibilityHint(hintText).at(0);
     if (mySettingButton) {
         fireEvent(mySettingButton, 'press');
     }
     return waitForBatchedUpdatesWithAct();
 }
 
-function navigateToExpensifyClassicFlow() {
+async function navigateToExpensifyClassicFlow() {
     const hintText = Localize.translateLocal('exitSurvey.goToExpensifyClassic');
     const switchToExpensifyClassicBtn = screen.queryByAccessibilityHint(hintText);
     if (switchToExpensifyClassicBtn) {
-        fireEvent(switchToExpensifyClassicBtn, 'press');
+        const user = userEvent.setup();
+        await user.press(switchToExpensifyClassicBtn);
     }
     return waitForBatchedUpdatesWithAct();
 }
 
-function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
+async function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
     render(<App />);
     return waitForBatchedUpdatesWithAct()
         .then(async () => {
@@ -62,7 +63,7 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
         })
         .then(async () => {
             await act(() => (NativeNavigation as NativeNavigationMock).triggerTransitionEnd());
-            return navigateToExpensifyClassicFlow();
+            await navigateToExpensifyClassicFlow();
         });
 }
 
@@ -75,15 +76,13 @@ describe('Switch to Expensify Classic flow', () => {
         PusherHelper.teardown();
     });
 
-    test('Should navigate to BookACall when dismissed is false', () => {
-        signInAppAndEnterTestFlow(false).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
-        });
+    test('Should navigate to BookACall when dismissed is false', async () => {
+        await signInAppAndEnterTestFlow(false);
+        expect(screen.getAllByText(Localize.translateLocal('exitSurvey.bookACallTitle')).at(0)).toBeOnTheScreen();
     });
 
-    test('Should navigate to ConfirmPage when dismissed is true', () => {
-        signInAppAndEnterTestFlow(true).then(() => {
-            expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
-        });
+    test('Should navigate to ConfirmPage when dismissed is true', async () => {
+        await signInAppAndEnterTestFlow(true);
+        expect(screen.getAllByText(Localize.translateLocal('exitSurvey.goToExpensifyClassic')).at(0)).toBeOnTheScreen();
     });
 });
