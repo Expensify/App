@@ -1,7 +1,7 @@
 import {generateReportName, isValidReport} from '@libs/ReportUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributes} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
 
@@ -11,22 +11,39 @@ let isFullyComputed = false;
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    dependencies: [ONYXKEYS.COLLECTION.REPORT],
+    dependencies: [
+        ONYXKEYS.COLLECTION.REPORT,
+        ONYXKEYS.NVP_PREFERRED_LOCALE,
+        ONYXKEYS.PERSONAL_DETAILS_LIST,
+        ONYXKEYS.COLLECTION.TRANSACTION,
+        ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+        ONYXKEYS.COLLECTION.POLICY,
+        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    ],
     compute: (dependencies, {currentValue, sourceValues}) => {
         const areAllDependenciesSet = [...dependencies].every((dependency) => dependency !== undefined);
         if (!areAllDependenciesSet) {
-            return {};
+            return {
+                reports: {},
+                locale: null,
+            };
         }
-        const [reports] = dependencies;
+        const [reports, preferredLocale] = dependencies;
+
+        // if the preferred locale has changed, reset the isFullyComputed flag
+        if (preferredLocale !== currentValue?.locale) {
+            isFullyComputed = false;
+        }
+
         const reportUpdates = sourceValues?.[ONYXKEYS.COLLECTION.REPORT];
 
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((isFullyComputed && reportUpdates === undefined) || !reports) {
-            return currentValue ?? {};
+            return currentValue ?? {reports: {}, locale: null};
         }
 
         const dataToIterate = isFullyComputed && reportUpdates !== undefined ? reportUpdates : reports ?? {};
-        const attributes = Object.keys(dataToIterate).reduce<Record<string, ReportAttributes>>((acc, reportID) => {
+        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, reportID) => {
             // source value sends partial data, so we need an entire report object to do computations
             const report = reports[reportID];
 
@@ -34,18 +51,21 @@ export default createOnyxDerivedValueConfig({
                 return acc;
             }
 
-            acc[reportID] = {
+            acc[report.reportID] = {
                 reportName: generateReportName(report),
             };
 
             return acc;
-        }, currentValue ?? {});
+        }, currentValue?.reports ?? {});
 
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
         if (reportUpdates === undefined && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }
 
-        return attributes;
+        return {
+            reports: reportAttributes,
+            locale: preferredLocale ?? null,
+        };
     },
 });
