@@ -60,7 +60,7 @@ function MentionReportRenderer({style, tnode, TDefaultRenderer, ...defaultRender
                     style={
                         isGroupPolicyReport && (!exactlyMatch || navigationRoute)
                             ? [styles.link, styleWithoutColor, StyleUtils.getMentionStyle(isCurrentRoomMention), {color: StyleUtils.getMentionTextColor(isCurrentRoomMention)}]
-                            : []
+                            : [flattenStyle]
                     }
                     suppressHighlighting
                     onPress={

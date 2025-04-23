@@ -1,5 +1,5 @@
 import {useIsFocused, useRoute} from '@react-navigation/native';
-import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {InteractionManager} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
@@ -29,13 +29,11 @@ import {
     shouldReportActionBeVisible,
 } from '@libs/ReportActionsUtils';
 import {buildOptimisticCreatedReportAction, buildOptimisticIOUReportAction, canUserPerformWriteAction, isMoneyRequestReport} from '@libs/ReportUtils';
-import {ReactionListContext} from '@pages/home/ReportScreenContext';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import PopoverReactionList from './ReactionList/PopoverReactionList';
 import ReportActionsList from './ReportActionsList';
 import UserTypingEventListener from './UserTypingEventListener';
 
@@ -75,16 +73,17 @@ function ReportActionsView({
     hasOlderActions,
 }: ReportActionsViewProps) {
     useCopySelectionHelper();
-    const reactionListRef = useContext(ReactionListContext);
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
-    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`, {
+    const [transactionThreadReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
         selector: (reportActions: OnyxEntry<OnyxTypes.ReportActions>) => getSortedReportActionsForDisplay(reportActions, canUserPerformWriteAction(report), true),
+        canBeMissing: true,
     });
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, {canBeMissing: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const prevTransactionThreadReport = usePrevious(transactionThreadReport);
     const reportActionID = route?.params?.reportActionID;
     const prevReportActionID = usePrevious(reportActionID);
+    const reportPreviewAction = useMemo(() => getReportPreviewAction(report.chatReportID, report.reportID), [report.chatReportID, report.reportID]);
     const didLayout = useRef(false);
     const {isOffline} = useNetwork();
 
@@ -136,7 +135,6 @@ function ReportActionsView({
             actions.push(optimisticCreatedAction);
         }
 
-        const reportPreviewAction = getReportPreviewAction(report.chatReportID, report.reportID);
         const moneyRequestActions = allReportActions.filter((action) => {
             const originalMessage = isMoneyRequestAction(action) ? getOriginalMessage(action) : undefined;
             return (
@@ -171,7 +169,7 @@ function ReportActionsView({
         }
 
         return [...actions, createdAction];
-    }, [allReportActions, report, transactionThreadReport]);
+    }, [allReportActions, report, transactionThreadReport, reportPreviewAction]);
 
     // Get a sorted array of reportActions for both the current report and the transaction thread report associated with this report (if there is one)
     // so that we display transaction-level and report-level report actions in order in the one-transaction view
@@ -205,6 +203,11 @@ function ReportActionsView({
     const isNewestAction = (actionCreated: string | undefined, lastVisibleActionCreated: string | undefined) =>
         actionCreated && lastVisibleActionCreated ? actionCreated >= lastVisibleActionCreated : actionCreated === lastVisibleActionCreated;
     const hasNewestReportAction = isNewestAction(lastActionCreated, report.lastVisibleActionCreated) || isNewestAction(lastActionCreated, transactionThreadReport?.lastVisibleActionCreated);
+
+    const isSingleExpenseReport = reportPreviewAction?.childMoneyRequestCount === 1;
+    const isMissingTransactionThreadReportID = !transactionThreadReport?.reportID;
+    const isReportDataIncomplete = isSingleExpenseReport && isMissingTransactionThreadReportID;
+    const isMissingReportActions = visibleReportActions.length === 0;
 
     useEffect(() => {
         // update ref with current state
@@ -271,11 +274,11 @@ function ReportActionsView({
         };
     }, [isTheFirstReportActionIsLinked]);
 
-    if ((isLoadingInitialReportActions && !isOffline) ?? isLoadingApp) {
+    if ((isLoadingInitialReportActions && (isReportDataIncomplete || isMissingReportActions) && !isOffline) ?? isLoadingApp) {
         return <ReportActionsSkeletonView />;
     }
 
-    if (visibleReportActions.length === 0) {
+    if (isMissingReportActions) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -298,7 +301,6 @@ function ReportActionsView({
                 shouldEnableAutoScrollToTopThreshold={shouldEnableAutoScroll}
             />
             <UserTypingEventListener report={report} />
-            <PopoverReactionList ref={reactionListRef} />
         </>
     );
 }

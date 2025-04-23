@@ -11,6 +11,8 @@ import type {ValidateCodeActionFormProps} from './type';
 function ValidateCodeActionForm({
     descriptionPrimary,
     descriptionSecondary,
+    descriptionPrimaryStyles,
+    descriptionSecondaryStyles,
     validatePendingAction,
     validateError,
     handleSubmitForm,
@@ -18,22 +20,26 @@ function ValidateCodeActionForm({
     sendValidateCode,
     hasMagicCodeBeenSent,
     isLoading,
+    submitButtonText,
     forwardedRef,
+    shouldSkipInitialValidation,
 }: ValidateCodeActionFormProps) {
     const themeStyles = useThemeStyles();
 
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
 
     const isUnmounted = useRef(false);
 
     useEffect(() => {
-        sendValidateCode();
+        if (!shouldSkipInitialValidation) {
+            sendValidateCode();
+        }
 
         return () => {
             isUnmounted.current = true;
         };
         // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-    }, []);
+    }, [shouldSkipInitialValidation]);
 
     useEffect(() => {
         return () => {
@@ -46,8 +52,8 @@ function ValidateCodeActionForm({
 
     return (
         <View style={[themeStyles.ph5, themeStyles.mt3, themeStyles.mb5, themeStyles.flex1]}>
-            <Text style={[themeStyles.mb3]}>{descriptionPrimary}</Text>
-            {!!descriptionSecondary && <Text style={[themeStyles.mb3]}>{descriptionSecondary}</Text>}
+            <Text style={[themeStyles.mb6, descriptionPrimaryStyles]}>{descriptionPrimary}</Text>
+            {!!descriptionSecondary && <Text style={[themeStyles.mb6, descriptionSecondaryStyles]}>{descriptionSecondary}</Text>}
             <ValidateCodeForm
                 isLoading={isLoading}
                 validateCodeAction={validateCodeAction}
@@ -59,6 +65,7 @@ function ValidateCodeActionForm({
                 buttonStyles={[themeStyles.justifyContentEnd, themeStyles.flex1]}
                 ref={forwardedRef}
                 hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                submitButtonText={submitButtonText}
             />
         </View>
     );

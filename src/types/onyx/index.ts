@@ -7,13 +7,14 @@ import type {BankAccountList} from './BankAccount';
 import type BankAccount from './BankAccount';
 import type Beta from './Beta';
 import type BillingGraceEndPeriod from './BillingGraceEndPeriod';
+import type BillingReceiptDetails from './BillingReceiptDetails';
 import type BillingStatus from './BillingStatus';
 import type BlockedFromConcierge from './BlockedFromConcierge';
 import type CancellationDetails from './CancellationDetails';
 import type Card from './Card';
 import type {CardList, IssueNewCard, WorkspaceCardsList} from './Card';
 import type CardFeeds from './CardFeeds';
-import type {AddNewCompanyCardFeed, CompanyCardFeed} from './CardFeeds';
+import type {AddNewCompanyCardFeed, CompanyCardFeed, FundID} from './CardFeeds';
 import type CardOnWaitlist from './CardOnWaitlist';
 import type {CapturedLogs, Log} from './Console';
 import type {CorpayFields, CorpayFormField} from './CorpayFields';
@@ -22,6 +23,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
+import type ReportAttributes from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
@@ -98,7 +100,7 @@ import type SecurityGroup from './SecurityGroup';
 import type SelectedTabRequest from './SelectedTabRequest';
 import type Session from './Session';
 import type ShareTempFile from './ShareTempFile';
-import type SidePane from './SidePane';
+import type SidePanel from './SidePanel';
 import type StripeCustomerID from './StripeCustomerID';
 import type TalkToAISales from './TalkToAISales';
 import type Task from './Task';
@@ -113,6 +115,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
+import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -144,6 +147,7 @@ export type {
     ExpensifyCardBankAccountMetadata,
     FrequentlyUsedEmoji,
     Fund,
+    FundID,
     FundList,
     IntroSelected,
     IOU,
@@ -258,7 +262,10 @@ export type {
     JoinablePolicies,
     DismissedProductTraining,
     TravelProvisioning,
-    SidePane,
+    SidePanel,
     LastPaymentMethodType,
+    ReportAttributes,
     TalkToAISales,
+    ValidateUserAndGetAccessiblePolicies,
+    BillingReceiptDetails,
 };

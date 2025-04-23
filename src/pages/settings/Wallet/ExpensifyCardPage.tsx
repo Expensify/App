@@ -2,6 +2,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
+import AddToWalletButton from '@components/AddToWalletButton/index';
 import Button from '@components/Button';
 import CardPreview from '@components/CardPreview';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -13,8 +14,10 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useBeforeRemove from '@hooks/useBeforeRemove';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
@@ -62,18 +65,22 @@ function ExpensifyCardPage({
         params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {canUseInAppProvisioning} = usePermissions();
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const [currentCardID, setCurrentCardID] = useState<number>(-1);
-    const shouldDisplayCardDomain = !cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual;
+    const isTravelCard = cardList?.[cardID]?.nameValuePairs?.isTravelCard;
+    const shouldDisplayCardDomain = !isTravelCard && (!cardList?.[cardID]?.nameValuePairs?.issuedBy || !cardList?.[cardID]?.nameValuePairs?.isVirtual);
     const domain = cardList?.[cardID]?.domainName ?? '';
-    const pageTitle = shouldDisplayCardDomain ? translate('cardPage.expensifyCard') : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? translate('cardPage.expensifyCard');
+    const expensifyCardTitle = isTravelCard ? translate('cardPage.expensifyTravelCard') : translate('cardPage.expensifyCard');
+    const pageTitle = shouldDisplayCardDomain ? expensifyCardTitle : cardList?.[cardID]?.nameValuePairs?.cardTitle ?? expensifyCardTitle;
+    const {displayName} = useCurrentUserPersonalDetails();
 
     const [isNotFound, setIsNotFound] = useState(false);
     const cardsToShow = useMemo(() => {
@@ -89,8 +96,12 @@ function ExpensifyCardPage({
         setIsNotFound(!cardsToShow);
     }, [cardList, cardsToShow]);
 
-    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual), [cardsToShow]);
+    const virtualCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && !card?.nameValuePairs?.isTravelCard), [cardsToShow]);
+    const travelCards = useMemo(() => cardsToShow?.filter((card) => card?.nameValuePairs?.isVirtual && card?.nameValuePairs?.isTravelCard), [cardsToShow]);
     const physicalCards = useMemo(() => cardsToShow?.filter((card) => !card?.nameValuePairs?.isVirtual), [cardsToShow]);
+    const cardToAdd = useMemo(() => {
+        return virtualCards?.at(0);
+    }, [virtualCards]);
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
@@ -236,11 +247,56 @@ function ExpensifyCardPage({
                                         titleStyle={styles.walletCardMenuItem}
                                         icon={Expensicons.Flag}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                     />
                                 )}
                             </>
                         ))}
+                        {isTravelCard &&
+                            travelCards.map((card) => (
+                                <>
+                                    {!!cardsDetails[card.cardID] && cardsDetails[card.cardID]?.cvv ? (
+                                        <CardDetails
+                                            cvv={cardsDetails[card.cardID]?.cvv}
+                                            domain={domain}
+                                        />
+                                    ) : (
+                                        <>
+                                            <MenuItemWithTopDescription
+                                                description={translate('cardPage.travelCardCvv')}
+                                                title="•••"
+                                                interactive={false}
+                                                titleStyle={styles.walletCardNumber}
+                                                shouldShowRightComponent
+                                                rightComponent={
+                                                    !isSignedInAsdelegate ? (
+                                                        <Button
+                                                            text={translate('cardPage.cardDetails.revealCvv')}
+                                                            onPress={() => openValidateCodeModal(card.cardID)}
+                                                            isDisabled={isCardDetailsLoading[card.cardID] || isOffline}
+                                                            isLoading={isCardDetailsLoading[card.cardID]}
+                                                        />
+                                                    ) : undefined
+                                                }
+                                            />
+                                            <DotIndicatorMessage
+                                                messages={cardsDetailsErrors[card.cardID] ? {error: translate(cardsDetailsErrors[card.cardID] as TranslationPaths)} : {}}
+                                                type="error"
+                                                style={[styles.ph5]}
+                                            />
+                                        </>
+                                    )}
+                                    {!isSignedInAsdelegate && (
+                                        <MenuItemWithTopDescription
+                                            title={translate('cardPage.reportTravelFraud')}
+                                            titleStyle={styles.walletCardMenuItem}
+                                            icon={Expensicons.Flag}
+                                            shouldShowRightIcon
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
+                                        />
+                                    )}
+                                </>
+                            ))}
                         {physicalCards.map((card) => {
                             if (card.state !== CONST.EXPENSIFY_CARD.STATE.OPEN) {
                                 return null;
@@ -275,6 +331,14 @@ function ExpensifyCardPage({
                             }}
                         />
                     </>
+                )}
+                {!!canUseInAppProvisioning && cardToAdd !== undefined && (
+                    <AddToWalletButton
+                        card={cardToAdd}
+                        buttonStyle={styles.alignSelfCenter}
+                        cardHolderName={displayName ?? ''}
+                        cardDescription={expensifyCardTitle}
+                    />
                 )}
             </ScrollView>
             {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED) && (

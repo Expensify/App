@@ -2,6 +2,7 @@ import AddReaction from '@assets/images/add-reaction.svg';
 import All from '@assets/images/all.svg';
 import Android from '@assets/images/android.svg';
 import Apple from '@assets/images/apple.svg';
+import ArrowCollapse from '@assets/images/arrow-collapse.svg';
 import ArrowDownLong from '@assets/images/arrow-down-long.svg';
 import ArrowRightLong from '@assets/images/arrow-right-long.svg';
 import ArrowRight from '@assets/images/arrow-right.svg';
@@ -140,6 +141,7 @@ import MakeAdmin from '@assets/images/make-admin.svg';
 import Megaphone from '@assets/images/megaphone.svg';
 import Menu from '@assets/images/menu.svg';
 import Meter from '@assets/images/meter.svg';
+import Minus from '@assets/images/minus.svg';
 import MoneyBag from '@assets/images/money-bag.svg';
 import MoneyCircle from '@assets/images/money-circle.svg';
 import MoneySearch from '@assets/images/money-search.svg';
@@ -228,6 +230,7 @@ export {
     AnnounceRoomAvatar,
     Apple,
     AppleLogo,
+    ArrowCollapse,
     ArrowRight,
     ArrowRightLong,
     ArrowsUpDown,
@@ -438,4 +441,5 @@ export {
     MagnifyingGlassSpyMouthClosed,
     EmptySquare,
     CheckSquare,
+    Minus,
 };
