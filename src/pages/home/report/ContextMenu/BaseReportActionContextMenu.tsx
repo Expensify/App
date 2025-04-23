@@ -138,7 +138,7 @@ function BaseReportActionContextMenu({
     const {isOffline} = useNetwork();
     const {isProduction} = useEnvironment();
     const threedotRef = useRef<View>(null);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${originalReportID}`, {
         canBeMissing: true,
         canEvict: false,
