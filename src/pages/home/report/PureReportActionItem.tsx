@@ -337,6 +337,9 @@ type PureReportActionItemProps = {
 
     /** Policies */
     policies?: OnyxCollection<OnyxTypes.Policy>;
+
+    /** Whether to show border for MoneyRequestReportPreviewContent */
+    shouldShowBorder?: boolean;
 };
 
 // This is equivalent to returning a negative boolean in normal functions, but we can keep the element return type
@@ -397,6 +400,7 @@ function PureReportActionItem({
     userBillingFundID,
     reportAutomaticallyForwardedMessage,
     policies,
+    shouldShowBorder,
 }: PureReportActionItemProps) {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -810,7 +814,8 @@ function PureReportActionItem({
                                 action={action}
                                 isBillSplit={isSplitBillActionReportActionsUtils(action)}
                                 transactionID={isSplitInGroupChat ? moneyRequestOriginalMessage?.IOUTransactionID : undefined}
-                                wrapperStyle={shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle}
+                                containerStyles={[shouldUseNarrowLayout ? {...styles.w100, ...styles.mw100} : reportPreviewStyles.transactionPreviewStyle, styles.mt1]}
+                                transactionPreviewWidth={shouldUseNarrowLayout ? styles.w100.width : reportPreviewStyles.transactionPreviewStyle.width}
                                 onPreviewPressed={() => {
                                     if (isSplitInGroupChat) {
                                         Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
@@ -860,6 +865,7 @@ function PureReportActionItem({
                     onPaymentOptionsShow={() => setIsPaymentMethodPopoverActive(true)}
                     onPaymentOptionsHide={() => setIsPaymentMethodPopoverActive(false)}
                     shouldDisplayContextMenu={shouldDisplayContextMenu}
+                    shouldShowBorder={shouldShowBorder}
                 />
             );
         } else if (action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
