@@ -444,11 +444,6 @@ type OptimisticSubmittedReportAction = Pick<
     | 'delegateAccountID'
 >;
 
-type OptimisticMovedTransactionReportAction = Pick<
-    ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>,
-    'actionName' | 'actorAccountID' | 'adminAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction' | 'delegateAccountID'
->;
-
 type OptimisticHoldReportAction = Pick<
     ReportAction,
     'actionName' | 'actorAccountID' | 'automatic' | 'avatar' | 'isAttachmentOnly' | 'originalMessage' | 'message' | 'person' | 'reportActionID' | 'shouldShow' | 'created' | 'pendingAction'
@@ -10792,7 +10787,6 @@ export type {
     OptimisticCreatedReportAction,
     OptimisticIOUReportAction,
     OptimisticTaskReportAction,
-    OptimisticMovedTransactionReportAction,
     OptionData,
     TransactionDetails,
     PartialReportAction,
