@@ -2,6 +2,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import isEmpty from 'lodash/isEmpty';
 import React, {memo, useCallback, useMemo, useState} from 'react';
 import {View} from 'react-native';
+import type {LayoutChangeEvent} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
@@ -45,6 +46,9 @@ type MoneyRequestReportTransactionListProps = {
 
     /** Whether the report that these transactions belong to has any chat comments */
     hasComments: boolean;
+
+    /** scrollToOffset callback used for scrolling to new transaction when it is created */
+    scrollToOffset: (offset: number, animated?: boolean) => void;
 };
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
@@ -74,7 +78,7 @@ const getTransactionKey = (transaction: OnyxTypes.Transaction, key: SortableColu
     return key === CONST.SEARCH.TABLE_COLUMNS.DATE ? dateKey : key;
 };
 
-function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments}: MoneyRequestReportTransactionListProps) {
+function MoneyRequestReportTransactionList({report, transactions, reportActions, hasComments, scrollToOffset}: MoneyRequestReportTransactionListProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -124,7 +128,9 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         return transactions
             .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
             .map((trans) => trans.transactionID);
-    }, [prevTransactions, transactions]);
+        // eslint-disable-next-line react-compiler/react-compiler
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [transactions]);
 
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
@@ -139,6 +145,13 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                 return transaction;
             });
     }, [newTransactionsIDs, sortBy, sortOrder, transactions]);
+
+    const scrollToNewTransaction = useCallback(
+        (event: LayoutChangeEvent) => {
+            scrollToOffset(event.nativeEvent.layout.y, true);
+        },
+        [scrollToOffset],
+    );
 
     const navigateToTransaction = useCallback(
         (activeTransaction: OnyxTypes.Transaction) => {
@@ -224,7 +237,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             key={transaction.transactionID}
                         >
                             <TransactionItemRow
-                                shouldHighlight={transaction.shouldHighlight}
                                 transactionItem={transaction}
                                 isSelected={isTransactionSelected(transaction.transactionID)}
                                 shouldShowTooltip
@@ -232,6 +244,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
+                                shouldHighlight={transaction.shouldHighlight}
+                                scrollToTransactionRow={newTransactionsIDs.at(0) === transaction.transactionID ? scrollToNewTransaction : undefined}
                             />
                         </PressableWithFeedback>
                     );

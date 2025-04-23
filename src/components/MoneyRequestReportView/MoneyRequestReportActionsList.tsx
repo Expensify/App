@@ -420,6 +420,7 @@ function MoneyRequestReportActionsList({report, reportActions = [], transactions
                                 transactions={transactions}
                                 reportActions={reportActions}
                                 hasComments={reportHasComments}
+                                scrollToOffset={reportScrollManager.scrollToOffset}
                             />
                         }
                         keyboardShouldPersistTaps="handled"
