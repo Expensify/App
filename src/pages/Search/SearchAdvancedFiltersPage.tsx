@@ -5,7 +5,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TextLink from '@components/TextLink';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as SearchActions from '@userActions/Search';
+import {clearAdvancedFilters} from '@libs/actions/Search';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
@@ -30,7 +30,7 @@ function SearchAdvancedFiltersPage() {
             includeSafeAreaPaddingBottom
         >
             <HeaderWithBackButton title={translate('search.filtersHeader')}>
-                {shouldShowResetFilters && <TextLink onPress={SearchActions.clearAdvancedFilters}>{translate('search.resetFilters')}</TextLink>}
+                {shouldShowResetFilters && <TextLink onPress={clearAdvancedFilters}>{translate('search.resetFilters')}</TextLink>}
             </HeaderWithBackButton>
             <AdvancedSearchFilters />
         </ScreenWrapper>
