@@ -107,10 +107,29 @@ function removeDoubleQuotes(text = '') {
 }
 
 /**
+ * Sort an array of strings by their length.
+ * The longest strings will be at the end of the array.
+ */
+function sortStringArrayByLength(arr: string[]): string[] {
+    return arr.sort((a, b) => a.length - b.length);
+}
+
+/**
  * Remove pre tag from the html
  */
 function removePreCodeBlock(text = '') {
     return text.replace(/<pre[^>]*>|<\/pre>/g, '');
 }
 
-export default {sanitizeString, isEmptyString, removeInvisibleCharacters, normalizeAccents, normalizeCRLF, lineBreaksToSpaces, getFirstLine, removeDoubleQuotes, removePreCodeBlock};
+export default {
+    sanitizeString,
+    isEmptyString,
+    removeInvisibleCharacters,
+    normalizeAccents,
+    normalizeCRLF,
+    lineBreaksToSpaces,
+    getFirstLine,
+    removeDoubleQuotes,
+    removePreCodeBlock,
+    sortStringArrayByLength,
+};
