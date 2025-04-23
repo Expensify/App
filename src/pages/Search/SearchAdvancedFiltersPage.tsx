@@ -16,10 +16,10 @@ function SearchAdvancedFiltersPage() {
     const {translate} = useLocalize();
 
     const emptySearchFilters: SearchAdvancedFiltersForm = {} as SearchAdvancedFiltersForm;
-    const [searchAdvancedFilters = emptySearchFilters] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
+    const [searchAdvancedFilters = emptySearchFilters] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {canBeMissing: true});
 
     const shouldShowResetFilters = Object.entries(searchAdvancedFilters)
-        .filter(([key]) => CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE !== key && CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS !== key)
+        .filter(([key]) => !([CONST.SEARCH.SYNTAX_ROOT_KEYS.TYPE, CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS, CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY] as string[]).includes(key))
         .some(([, value]) => (Array.isArray(value) ? value.length !== 0 : !!value));
 
     return (
