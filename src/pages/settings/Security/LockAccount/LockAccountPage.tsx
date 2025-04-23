@@ -3,6 +3,7 @@ import Button from '@components/Button';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import useLocalize from '@hooks/useLocalize';
+import Navigation from '@libs/Navigation/Navigation';
 
 function LockAccountPage() {
     const {translate} = useLocalize();
@@ -12,14 +13,17 @@ function LockAccountPage() {
         includeSafeAreaPaddingBottom={false}
         testID={LockAccountPage.displayName}
     >
-        <HeaderWithBackButton title={translate('mergeAccountsPage.lockAccountPage.lockAccount')} />
+        <HeaderWithBackButton 
+            title={translate('lockAccountPage.lockAccount')}
+            onBackButtonPress={() => Navigation.dismissModal()}
+        />
         <View>
-            <Text>{translate('mergeAccountsPage.lockAccountPage.compromisedDescription')}</Text>
+            <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
 
-            <Text>{translate('mergeAccountsPage.lockAccountPage.domainAdminsDescription')}</Text>
+            <Text>{translate('lockAccountPage.domainAdminsDescription')}</Text>
         </View>
         <Button
-            text={translate('mergeAccountsPage.lockAccountPage.lockAccount')}
+            text={translate('lockAccountPage.lockAccount')}
             onPress={() => {}}
         />
         <Modal

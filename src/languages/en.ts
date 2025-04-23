@@ -1502,6 +1502,7 @@ const translations = {
     },
     lockAccountPage: {
         lockAccount: 'Lock account',
+        unlockAccount: 'Unlock account',
     },
     passwordPage: {
         changePassword: 'Change password',

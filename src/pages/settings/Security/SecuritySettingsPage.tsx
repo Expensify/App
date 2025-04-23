@@ -133,13 +133,13 @@ function SecuritySettingsPage() {
 
         if (isAccountLocked) {
             baseMenuItems.push({
-                translationKey: 'mergeAccountsPage.unlockAccount',
+                translationKey: 'lockAccountPage.unlockAccount',
                 icon: Expensicons.UserLock,
                 action: () => waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT)),
             });
         } else {
             baseMenuItems.push({
-                translationKey: 'mergeAccountsPage.lockAccount',
+                translationKey: 'lockAccountPage.lockAccount',
                 icon: Expensicons.UserLock,
                 action: () => waitForNavigate(() => Navigation.navigate(ROUTES.SETTINGS_LOCK_ACCOUNT)),
             });
