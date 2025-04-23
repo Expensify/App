@@ -106,7 +106,7 @@ function ConfirmationPage({
                     </View>
                 )}
                 <Text style={[styles.textHeadline, styles.textAlignCenter, styles.mv2, headingStyle]}>{heading}</Text>
-                <Text style={[styles.textAlignCenter, descriptionStyle]}>{description}</Text>
+                <Text style={[styles.textAlignCenter, descriptionStyle, styles.w100]}>{description}</Text>
                 {cta ? <Text style={[styles.textAlignCenter, ctaStyle]}>{cta}</Text> : null}
             </View>
             {(shouldShowSecondaryButton || shouldShowButton) && (

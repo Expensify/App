@@ -17,8 +17,6 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -35,16 +33,13 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 function WorkspaceNewRoomPage() {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
-    const {isOffline} = useNetwork();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
-    const [formState] = useOnyx(ONYXKEYS.FORMS.NEW_ROOM_FORM, {initWithStoredValues: false, canBeMissing: false});
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
@@ -53,9 +48,7 @@ function WorkspaceNewRoomPage() {
     const {top} = useSafeAreaInsets();
     const [visibility, setVisibility] = useState<ValueOf<typeof CONST.REPORT.VISIBILITY>>(CONST.REPORT.VISIBILITY.RESTRICTED);
     const [writeCapability, setWriteCapability] = useState<ValueOf<typeof CONST.REPORT.WRITE_CAPABILITIES>>(CONST.REPORT.WRITE_CAPABILITIES.ALL);
-    const wasLoading = usePrevious<boolean>(!!formState?.isLoading);
     const visibilityDescription = useMemo(() => translate(`newRoomPage.${visibility}Description`), [translate, visibility]);
-    const {isLoading = false, errorFields = {}} = formState ?? {};
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const activeWorkspaceOrDefaultID = activeWorkspaceID ?? activePolicyID;
@@ -84,7 +77,6 @@ function WorkspaceNewRoomPage() {
 
         return isPolicyAdmin(policyID, policies);
     }, [policyID, policies]);
-    const [newRoomReportID, setNewRoomReportID] = useState<string>();
 
     /**
      * @param values - form input values passed by the Form component
@@ -107,7 +99,6 @@ function WorkspaceNewRoomPage() {
 
         InteractionManager.runAfterInteractions(() => {
             requestAnimationFrame(() => {
-                setNewRoomReportID(policyReport.reportID);
                 addPolicyReport(policyReport);
             });
         });
@@ -130,18 +121,6 @@ function WorkspaceNewRoomPage() {
             setPolicyID('');
         }
     }, [activeWorkspaceOrDefaultID, policyID, workspaceOptions]);
-
-    useEffect(() => {
-        if (!(((wasLoading && !isLoading) || (isOffline && isLoading)) && isEmptyObject(errorFields))) {
-            return;
-        }
-        if (!newRoomReportID) {
-            Navigation.dismissModal();
-            return;
-        }
-        Navigation.dismissModalWithReport({reportID: newRoomReportID});
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps -- we just want this to update on changing the form State
-    }, [isLoading, errorFields]);
 
     useEffect(() => {
         if (isAdminPolicy) {
