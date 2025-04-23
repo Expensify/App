@@ -9,8 +9,8 @@ export default {
     remoteCacheProvider: null,
     bundler: pluginMetro(),
     platforms: {
-        ios: platformIOS({sourceDir: isHybrid ? './Mobile-Expensify/iOS' : './ios'}),
-        android: platformAndroid({sourceDir: isHybrid ? './Mobile-Expensify/Android' : './android'}),
+        ios: platformIOS({sourceDir: isHybrid ? './iOS' : './ios'}),
+        android: platformAndroid({sourceDir: isHybrid ? './Android' : './android'}),
     },
-    root: isHybrid ? './Mobile-Expensify' : './'
+    root: isHybrid ? './Mobile-Expensify/' : './'
 };
