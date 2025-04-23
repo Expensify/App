@@ -18,6 +18,8 @@ jobs:
     outputs:
       APP_VERSION: ${{ steps.getAppVersion.outputs.VERSION }}
       TAG: ${{ steps.getTagName.outputs.TAG }}
+      # Is this deploy for a cherry-pick?
+      IS_CHERRY_PICK: ${{ steps.isCherryPick.outputs.IS_CHERRY_PICK }}
     steps:
       - name: Checkout
         # v4
@@ -56,6 +58,19 @@ jobs:
           cd Mobile-Expensify
           git tag ${{ steps.getTagName.outputs.TAG }}
           git push origin --tags
+
+        # We use JS here instead of bash/jq because inlining potentially large json into a bash command is non-trivial.
+        # JS is better at handling JSON: https://stackoverflow.com/questions/72953526/github-actions-how-to-pass-tojson-result-to-shell-commands
+      - name: Check if this deploy was triggered by a cherry-pick
+        id: isCherryPick
+        uses: actions/github-script@e7aeb8c663f696059ebb5f9ab1425ed2ef511bdb
+        with:
+          script: |
+            const commitMessages = github.context.payload.commits.map((commit) => commit.message);
+            core.setOutput(
+                'IS_CHERRY_PICK',
+                commitMessages.some((message) => /.*\(cherry-picked to .* by .*\)$/.test(message)),
+            );
 
   # Note: we're updating the checklist before running the deploys and assuming that it will succeed on at least one platform
   deployChecklist:
