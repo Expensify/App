@@ -814,7 +814,6 @@ type GetReportNameParams = {
     draftReports?: OnyxCollection<Report>;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     policies?: SearchPolicy[];
-    participantPersonalDetailList?: PersonalDetails[];
 };
 
 type ReportByPolicyMap = Record<string, Report[]>;
@@ -4555,44 +4554,36 @@ function getInvoicesChatName({
 }
 
 /**
- * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
+ * Generates a report title using the names of participants, excluding the current user.
+ * This function is useful in contexts such as 1:1 direct messages (DMs) or other group chats.
+ * It limits to a maximum of 5 participants for the title and uses short names unless there is only one participant.
  */
-function buildReportNameFromParticipantNames({
-    report,
-    personalDetails,
-    participantPersonalDetailList,
-}: {
-    report: OnyxEntry<Report>;
-    personalDetails?: Partial<PersonalDetailsList>;
-    participantPersonalDetailList?: PersonalDetails[];
-}) {
-    const participantsWithoutCurrentUser: number[] = [];
-    const currentParticipants = participantPersonalDetailList ?? report?.participants ?? {};
-    Object.keys(currentParticipants).forEach((accountID) => {
-        const accID = Number(accountID);
-        if (accID !== currentUserAccountID && participantsWithoutCurrentUser.length < 5) {
-            participantsWithoutCurrentUser.push(accID);
-        }
-    });
-
-    const isMultipleParticipantReport = participantsWithoutCurrentUser.length > 1;
-    const displayNames = participantsWithoutCurrentUser
+const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
+    Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((id) => id !== currentUserAccountID) // Exclude the current user's ID
+        .slice(0, 5) // Limit the number of participants to 5
         .map((accountID) => ({
+            // Retrieve the display name for each participant
             accountID,
-            value: getDisplayNameForParticipant({accountID, shouldUseShortForm: isMultipleParticipantReport, personalDetailsData: personalDetails}),
+            name: getDisplayNameForParticipant({
+                accountID,
+                shouldUseShortForm: true,
+                personalDetailsData,
+            }),
         }))
-        .filter((name) => name.value);
-
-    if (!displayNames || displayNames.length === 0) {
-        return '';
-    }
-
-    if (displayNames.length > 1) {
-        return displayNames.map((name) => name.value).join(', ');
-    }
-
-    return getDisplayNameForParticipant({accountID: displayNames.at(0)?.accountID, shouldUseShortForm: false, personalDetailsData: personalDetails});
-}
+        .filter((participant) => participant.name) // Filter out any participants without a name
+        .reduce((formattedNames, {name, accountID}, _, array) => {
+            // If there is only one participant (if it is 0 or less the function will return empty string), return their full name
+            if (array.length < 2) {
+                return getDisplayNameForParticipant({
+                    accountID,
+                    personalDetailsData,
+                });
+            }
+            // Concatenate names for a comma-separated list
+            return formattedNames ? `${formattedNames}, ${name}` : name;
+        }, '');
 
 function generateReportName(report: OnyxEntry<Report>): string {
     if (!report) {
@@ -4610,7 +4601,6 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
-    participantPersonalDetailList?: PersonalDetails[],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
@@ -4618,7 +4608,7 @@ function getReportName(
     if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
         return reportAttributes[report.reportID].reportName;
     }
-    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy, participantPersonalDetailList});
+    return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
 }
 
 function getSearchReportName(props: GetReportNameParams): string {
@@ -4645,7 +4635,6 @@ function getReportNameInternal({
     reports,
     reportNameValuePairs,
     policies,
-    participantPersonalDetailList,
 }: GetReportNameParams): string {
     const reportID = report?.reportID;
 
@@ -4847,7 +4836,7 @@ function getReportNameInternal({
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
-    formattedName = buildReportNameFromParticipantNames({report, personalDetails, participantPersonalDetailList});
+    formattedName = buildReportNameFromParticipantNames({report, personalDetails});
 
     return formattedName;
 }
