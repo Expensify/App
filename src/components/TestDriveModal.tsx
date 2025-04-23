@@ -1,4 +1,5 @@
 import React from 'react';
+import {InteractionManager} from 'react-native';
 import FastTrack from '@assets/images/fast-track-cover.jpg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -17,7 +18,7 @@ function TestDriveModal() {
     };
 
     const navigateTestDriveDemo = () => {
-        setNavigationActionToMicrotaskQueue(() => {
+        InteractionManager.runAfterInteractions(() => {
             Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
         });
     };
