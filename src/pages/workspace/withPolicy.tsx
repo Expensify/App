@@ -79,11 +79,11 @@ export default function <TProps extends WithPolicyProps, TRef>(
 ): React.ComponentType<Omit<TProps, keyof WithPolicyOnyxProps> & RefAttributes<TRef>> {
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
-        const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+        const [hasLoadedApp] = useOnyx(ONYXKEYS.HAS_LOADED_APP, {canBeMissing: false});
         const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
-        const isLoadingPolicy = isLoadingApp || isLoadingOnyxValue(policyResults, policyDraftResults);
+        const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
 
         if (policyID.length > 0) {
             updateLastAccessedWorkspace(policyID);

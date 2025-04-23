@@ -259,14 +259,13 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
-        ],
-        successData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.HAS_LOADED_APP,
-                value: true,
+                value: false,
             },
         ],
+        successData: [],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -274,7 +273,13 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 value: false,
             },
         ],
-        queueFlushedData: [],
+        queueFlushedData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.HAS_LOADED_APP,
+                value: true,
+            },
+        ],
     };
 
     if (isOpenApp) {
@@ -284,7 +289,7 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
             value: true,
         });
 
-        result.queueFlushedData?.push({
+        result.finallyData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.IS_LOADING_APP,
             value: false,
