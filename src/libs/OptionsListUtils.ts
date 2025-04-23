@@ -438,18 +438,6 @@ Onyx.connect({
     callback: (value) => (nvpDismissedProductTraining = value),
 });
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-    waitForCollectionCallback: true,
-    callback: (value) => {
-        if (!value) {
-            return;
-        }
-        allReportNameValuePairs = value;
-    },
-});
-
 /**
  * @param defaultValues {login: accountID} In workspace invite page, when new user is added we pass available data to opt in
  * @returns Returns avatar data for a list of user accountIDs
