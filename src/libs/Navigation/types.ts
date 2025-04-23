@@ -1973,8 +1973,12 @@ type DebugParamList = {
 };
 
 type ScheduleCallParamList = {
-    [SCREENS.SCHEDULE_CALL.BOOK_CALL]: undefined;
-    [SCREENS.SCHEDULE_CALL.CONFIRMATION]: undefined;
+    [SCREENS.SCHEDULE_CALL.BOOK_CALL]: {
+        reportID: string;
+    };
+    [SCREENS.SCHEDULE_CALL.CONFIRMATION]: {
+        reportID: string;
+    };
 };
 
 type RootNavigatorParamList = PublicScreensParamList & AuthScreensParamList & LeftModalNavigatorParamList & SearchFullscreenNavigatorParamList;
