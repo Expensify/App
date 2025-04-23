@@ -32,6 +32,7 @@ import {
     getWorkspaceNameUpdatedMessage,
     hasReceiptError,
     isAllowedToApproveExpenseReport,
+    isArchivedNonExpenseReportWithID,
     isChatUsedForOnboarding,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
@@ -2318,6 +2319,48 @@ describe('ReportUtils', () => {
                     });
                 });
             });
+        });
+    });
+
+    describe('isArchivedNonExpenseReportWithID', () => {
+        // Given an expense report, a chat report, and an archived chat report
+        const expenseReport: Report = {
+            ...createRandomReport(1),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.EXPENSE,
+        };
+        const chatReport: Report = {
+            ...createRandomReport(2),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+        const archivedChatReport: Report = {
+            ...createRandomReport(3),
+            ownerAccountID: employeeAccountID,
+            type: CONST.REPORT.TYPE.CHAT,
+        };
+
+        beforeAll(async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${archivedChatReport.reportID}`, archivedChatReport);
+
+            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${archivedChatReport.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
+        });
+
+        it('should return false if the report is an expense report', () => {
+            expect(isArchivedNonExpenseReportWithID(expenseReport.reportID)).toBe(false);
+        });
+
+        it('should return false if the report is a non-expense report and not archived', () => {
+            expect(isArchivedNonExpenseReportWithID(chatReport.reportID)).toBe(false);
+        });
+
+        it('should return true if the report is a non-expense report and archived', () => {
+            expect(isArchivedNonExpenseReportWithID(archivedChatReport.reportID)).toBe(true);
         });
     });
 });
