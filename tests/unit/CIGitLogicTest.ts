@@ -22,10 +22,10 @@ import * as Log from '../../scripts/utils/Logger';
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
-const mockGetInput = jest.fn();
-const mockCompareCommitsResponse = {
+// Used to mock the Oktokit GithubAPI
+const mockGetInput = jest.fn()
+const mockCompareCommitsResponseBase = {
     data: {
-        commits: [],
         url: '',
         html_url: '',
         permalink_url: '',
@@ -369,6 +369,7 @@ async function assertPRsMergedBetween(from: string, to: string, expected: number
 let startingDir: string;
 describe('CIGitLogic', () => {
     beforeAll(() => {
+        // Mocking the Github API is necessary for the retrieval of commits data
         jest.spyOn(core, 'getInput').mockImplementation((name) => {
             if (name === 'GITHUB_TOKEN') {
                 return 'mock-token';
@@ -376,9 +377,29 @@ describe('CIGitLogic', () => {
             return mockGetInput(name) || '';
         });
 
-        // Mock the API used to retrieve PRs between two tags
         jest.spyOn(GithubUtils.octokit.repos, 'compareCommits')
-            .mockResolvedValue(mockCompareCommitsResponse);
+            .mockImplementation(async (params) => {
+                const base = params?.base;
+                const head = params?.head;
+                let mockCommits: any[] = [];
+                console.log(`Mock compareCommits called with: ${base}...${head}`);
+
+                if (base === '2.0.0-0' && head === '2.0.0-1-staging') {
+                    mockCommits = [
+                        { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                    ];
+                }
+                return {
+                    ...mockCompareCommitsResponseBase,
+                    data: {
+                        ...mockCompareCommitsResponseBase.data,
+                        commits: mockCommits,
+                        total_commits: mockCommits.length,
+                        ahead_by: mockCommits.length,
+                        status: mockCommits.length > 0 ? 'ahead' : 'identical',
+                    },
+                };
+            });
 
         Log.info('Starting setup');
         startingDir = process.cwd();
