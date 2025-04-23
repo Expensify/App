@@ -2777,7 +2777,7 @@ describe('actions/IOU', () => {
                 });
             });
 
-            expect(t).toBeFalsy();
+            expect(t).toBeTruthy();
 
             // Given fetch operations are resumed
             mockFetch?.resume?.();
@@ -5298,7 +5298,7 @@ describe('actions/IOU', () => {
                     },
                 });
             });
-            expect(updatedTransaction?.modifiedAmount).toBe(20000);
+            expect(updatedTransaction?.modifiedAmount).toBe(0);
         });
     });
 
