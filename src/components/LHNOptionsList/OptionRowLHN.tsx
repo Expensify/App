@@ -119,14 +119,6 @@ function OptionRowLHN({reportID, isFocused = false, onSelectRow = () => {}, opti
         return null;
     }
 
-    if (optionItem?.text?.length === 0) {
-        // This is the case when the optionItem is not null but the text is empty.
-        // For example, when a split expense is created both online and offline with the same new user that has different accountIDs.
-        // Flashing occurs because the UI briefly shows the stale report with missing data before the new correct report is fully loaded.
-        // Adding this check ensures that incomplete reports aren’t rendered during the transition.
-        return null;
-    }
-
     const hasBrickError = optionItem.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
     const shouldShowGreenDotIndicator = !hasBrickError && requiresAttentionFromCurrentUser(optionItem, optionItem.parentReportAction);
     const textStyle = isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText;
