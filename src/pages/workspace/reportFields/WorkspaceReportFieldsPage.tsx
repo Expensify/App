@@ -240,7 +240,7 @@ function WorkspaceReportFieldsPage({
                                                 onPress={() => Navigation.navigate(ROUTES.WORKSPACE_CREATE_REPORT_FIELD.getRoute(policyID))}
                                                 title={translate('workspace.reportFields.addField')}
                                                 icon={Plus}
-                                                style={[styles.sectionMenuItemTopDescription, styles.mt6, styles.mbn3]}
+                                                style={[styles.sectionMenuItemTopDescription]}
                                             />
                                         </>
                                     )
