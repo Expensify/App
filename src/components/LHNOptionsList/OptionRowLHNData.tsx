@@ -31,6 +31,7 @@ function OptionRowLHNData({
     lastReportActionTransaction,
     transactionViolations,
     lastMessageTextFromReport,
+    reportAttributes,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
@@ -89,6 +90,7 @@ function OptionRowLHNData({
         invoiceReceiverPolicy,
         shouldDisplayReportViolations,
         lastMessageTextFromReport,
+        reportAttributes,
     ]);
 
     return (
