@@ -9,7 +9,6 @@ import {getCurrencyDecimals} from '@libs/CurrencyUtils';
 import {canUseTouchScreen as canUseTouchScreenCheck} from '@libs/DeviceCapabilities';
 import getOperatingSystem from '@libs/getOperatingSystem';
 import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
-import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import BigNumberPad from './BigNumberPad';
 import FormHelpMessage from './FormHelpMessage';
@@ -53,7 +52,7 @@ type AmountFormProps = {
     /** Number of decimals to display */
     fixedDecimals?: number;
 } & Pick<BaseTextInputWithCurrencySymbolProps, 'hideCurrencySymbol' | 'extraSymbol'> &
-    Pick<BaseTextInputProps, 'autoFocus'>;
+    Pick<BaseTextInputProps, 'autoFocus' | 'autoGrowExtraSpace' | 'autoGrowMarginSide' | 'style'>;
 
 /**
  * Returns the new selection object based on the updated amount's length
@@ -281,7 +280,6 @@ function AmountForm(
             >
                 <TextInputWithCurrencySymbol
                     formattedAmount={formattedAmount}
-                    autoGrowExtraSpace={variables.w80}
                     onChangeAmount={setNewAmount}
                     onCurrencyButtonPress={onCurrencyButtonPress}
                     placeholder={numberFormat(0)}

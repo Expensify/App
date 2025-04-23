@@ -10,14 +10,16 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {updatePolicyTaxValue, validateTaxValue} from '@libs/actions/TaxRate';
+import getPlatform from '@libs/getPlatform';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import {getTaxByID} from '@libs/PolicyUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullscreenLoading';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -35,7 +37,7 @@ function ValuePage({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
-    const currentTaxRate = PolicyUtils.getTaxByID(policy, taxID);
+    const currentTaxRate = getTaxByID(policy, taxID);
     const defaultValue = currentTaxRate?.value?.replace('%', '');
 
     const goBack = useCallback(() => Navigation.goBack(ROUTES.WORKSPACE_TAX_EDIT.getRoute(policyID ?? '-1', taxID)), [policyID, taxID]);
@@ -96,6 +98,10 @@ function ValuePage({
                         amountMaxLength={CONST.MAX_TAX_RATE_INTEGER_PLACES}
                         extraSymbol={<Text style={styles.iouAmountText}>%</Text>}
                         ref={inputCallbackRef}
+                        autoGrowExtraSpace={variables.w80}
+                        autoGrowMarginSide="left"
+                        // Currently, autoGrow is only supported on Android. Therefore, we need to check the platform before applying flex styles to avoid layout issues on other platforms.
+                        style={[styles.iouAmountTextInput, styles.textAlignRight, getPlatform() === CONST.PLATFORM.ANDROID && styles.flex1]}
                     />
                 </FormProvider>
             </ScreenWrapper>
