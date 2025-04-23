@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {InteractionManager, View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
 import MoneyReportHeader from '@components/MoneyReportHeader';
@@ -14,9 +14,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
+import {selectAllTransactionsForReport} from '@libs/MoneyRequestReportUtils';
 import navigationRef from '@libs/Navigation/navigationRef';
-import {getIOUActionForTransactionID, getOneTransactionThreadReportID, isDeletedParentAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canEditReportAction, getReportOfflinePendingActionAndErrors} from '@libs/ReportUtils';
+import {getOneTransactionThreadReportID, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {canEditReportAction, getReportOfflinePendingActionAndErrors, isReportTransactionThread} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReportActionsView from '@pages/home/report/ReportActionsView';
@@ -82,20 +83,6 @@ function getParentReportAction(parentReportActions: OnyxEntry<OnyxTypes.ReportAc
     return parentReportActions[parentReportActionID];
 }
 
-function selectTransactionsForReportID(transactions: OnyxCollection<OnyxTypes.Transaction>, reportID: string | undefined, reportActions: OnyxTypes.ReportAction[]) {
-    if (!reportID) {
-        return [];
-    }
-
-    return Object.values(transactions ?? {}).filter((transaction): transaction is OnyxTypes.Transaction => {
-        if (!transaction) {
-            return false;
-        }
-        const action = getIOUActionForTransactionID(reportActions, transaction.transactionID);
-        return transaction.reportID === reportID && !isDeletedParentAction(action);
-    });
-}
-
 function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayReportFooter, backToRoute}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -110,15 +97,14 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
+        selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportID, reportActions),
         canBeMissing: true,
     });
-    const shouldUseSingleTransactionView = transactions.length === 1;
 
     const [parentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.parentReportID)}`, {
         canEvict: false,
-        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
         canBeMissing: true,
+        selector: (parentReportActions) => getParentReportAction(parentReportActions, report?.parentReportActionID),
     });
 
     const lastReportAction = [...reportActions, parentReportAction].find((action) => canEditReportAction(action) && !isMoneyRequestAction(action));
@@ -161,6 +147,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         );
     }
 
+    // Special case handling a report that is a transaction thread
+    // If true we will use standard `ReportActionsView` to display report data, anything else is handled via `MoneyRequestReportActionsList`
+    const isTransactionThreadView = isReportTransactionThread(report);
+
     return (
         <View style={styles.flex1}>
             <OfflineWithFeedback
@@ -188,8 +178,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     }}
                 />
                 <View style={[styles.overflowHidden, styles.flex1]}>
-                    {shouldUseSingleTransactionView ? (
-                        // This component originally lives in ReportScreen, it is used here to handle the case when the report has a single transaction. Any other case will be handled by MoneyRequestReportActionsList
+                    {isTransactionThreadView ? (
                         <ReportActionsView
                             report={report}
                             reportActions={reportActions}
@@ -202,6 +191,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     ) : (
                         <MoneyRequestReportActionsList
                             report={report}
+                            policy={policy}
                             transactions={transactions}
                             reportActions={reportActions}
                             hasOlderActions={hasOlderActions}
