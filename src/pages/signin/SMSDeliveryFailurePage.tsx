@@ -18,8 +18,8 @@ function SMSDeliveryFailurePage() {
     const styles = useThemeStyles();
     const {isKeyboardShown} = useKeyboardState();
     const {translate} = useLocalize();
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: true});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
 
     const login = useMemo(() => {
         if (!credentials?.login) {
@@ -40,7 +40,14 @@ function SMSDeliveryFailurePage() {
         if (!SMSDeliveryFailureMessage) {
             return null;
         }
-        return JSON.parse(SMSDeliveryFailureMessage) as TimeData;
+
+        const parsedData = JSON.parse(SMSDeliveryFailureMessage) as TimeData | [];
+
+        if (Array.isArray(parsedData) && !parsedData.length) {
+            return null;
+        }
+
+        return parsedData as TimeData;
     }, [SMSDeliveryFailureMessage]);
 
     const hasSMSDeliveryFailure = account?.smsDeliveryFailureStatus?.hasSMSDeliveryFailure;
@@ -63,9 +70,7 @@ function SMSDeliveryFailurePage() {
             <>
                 <View style={[styles.mv3, styles.flexRow]}>
                     <View style={[styles.flex1]}>
-                        <Text>
-                            {translate('smsDeliveryFailurePage.validationFailed')} {timeData && translate('smsDeliveryFailurePage.pleaseWaitBeforeTryingAgain', {timeData})}
-                        </Text>
+                        <Text>{translate('smsDeliveryFailurePage.validationFailed', {timeData})}</Text>
                     </View>
                 </View>
                 <View style={[styles.mv4, styles.flexRow, styles.justifyContentBetween, styles.alignItemsEnd]}>

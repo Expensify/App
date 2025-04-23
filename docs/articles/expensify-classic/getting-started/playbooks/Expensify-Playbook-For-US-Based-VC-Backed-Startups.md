@@ -15,7 +15,7 @@ As a VC-backed startup focused on growth and efficiency, you need a solution tha
 This guide is based on best practices from thousands of companies using Expensify. Customize it as needed, and reach out via chat for additional support.
 
 ## Step 1: Create an Expensify Account
-If you don’t already have an account, visit [new.expensify.com](https://new.expensify.com) and sign up using your work email. Expensify accounts are free to create.
+If you don’t already have an account, visit [new.expensify.com](https://new.expensify.com) and sign up using your work email. 
 
 ## Step 2: Upgrade to a Paid Workspace
 Expensify offers three workspace plans: **Individual, Collect, and Control**. We recommend **Control** for VC-backed startups because it provides:

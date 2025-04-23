@@ -152,12 +152,14 @@ function filterOutRangesWithCorrectValue(
     const expenseTypeList = Object.values(CONST.SEARCH.TRANSACTION_TYPE) as string[];
     const statusList = Object.values({...CONST.SEARCH.STATUS.EXPENSE, ...CONST.SEARCH.STATUS.INVOICE, ...CONST.SEARCH.STATUS.CHAT, ...CONST.SEARCH.STATUS.TRIP}) as string[];
     const groupByList = Object.values(CONST.SEARCH.GROUP_BY) as string[];
+    const booleanList = Object.values(CONST.SEARCH.BOOLEAN) as string[];
 
     switch (range.key) {
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.IN:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.CARD_ID:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID:
             return substitutionMap[`${range.key}:${range.value}`] !== undefined;
 
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TO:
@@ -178,6 +180,9 @@ function filterOutRangesWithCorrectValue(
             return tagList.get().includes(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.GROUP_BY:
             return groupByList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE:
+            return booleanList.includes(range.value);
         default:
             return false;
     }

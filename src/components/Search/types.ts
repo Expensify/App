@@ -73,6 +73,10 @@ type SearchContext = {
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    shouldShowExportModeOption: boolean;
+    setShouldShowExportModeOption: (shouldShow: boolean) => void;
+    isExportMode: boolean;
+    setExportMode: (on: boolean) => void;
     isOnSearch: boolean;
 };
 
@@ -86,6 +90,8 @@ type QueryFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     value: string | number;
 };
+
+type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -145,6 +151,7 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchStatus,
     SearchQueryAST,
