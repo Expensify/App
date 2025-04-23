@@ -308,6 +308,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
 
     const [reportTransactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
         selector: (allTransactions): OnyxTypes.Transaction[] => selectAllTransactionsForReport(allTransactions, reportIDFromRoute, reportActions),
+        canBeMissing: false,
     });
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
     const [transactionThreadReportActions = {}] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {canBeMissing: true});
