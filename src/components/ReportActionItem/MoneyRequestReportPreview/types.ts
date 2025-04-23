@@ -1,9 +1,8 @@
-import type { LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle } from 'react-native';
-import type { OnyxCollection, OnyxEntry } from 'react-native-onyx';
-import type { TransactionPreviewStyleType } from '@components/ReportActionItem/TransactionPreview/types';
-import type { ContextMenuAnchor } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type { PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations } from '@src/types/onyx';
-
+import type {LayoutChangeEvent, ListRenderItem, StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TransactionPreviewStyleType} from '@components/ReportActionItem/TransactionPreview/types';
+import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 
 type TransactionPreviewStyle = {
     [key in keyof TransactionPreviewStyleType]: number;
