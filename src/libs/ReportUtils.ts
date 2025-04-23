@@ -7864,7 +7864,8 @@ function getInvoiceChatByParticipants(receiverID: string | number, receiverType:
         // This will get removed as part of https://github.com/Expensify/App/issues/59961
         // eslint-disable-next-line deprecation/deprecation
         const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
-        if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReportWithID(report, isArchivedReport(reportNameValuePairs))) {
+        const isReportArchived = isArchivedReport(reportNameValuePairs);
+        if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReportWithID(report, isReportArchived)) {
             return false;
         }
 

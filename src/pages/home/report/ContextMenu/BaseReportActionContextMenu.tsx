@@ -15,6 +15,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestoreInputFocus from '@hooks/useRestoreInputFocus';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -145,6 +146,8 @@ function BaseReportActionContextMenu({
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
     const [user] = useOnyx(ONYXKEYS.USER);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const policyID = report?.policyID;
 
     const reportAction: OnyxEntry<ReportAction> = useMemo(() => {
@@ -290,7 +293,7 @@ function BaseReportActionContextMenu({
             report: {
                 reportID,
                 originalReportID,
-                isArchivedRoom: isArchivedNonExpenseReportWithID(originalReportID),
+                isArchivedRoom: isArchivedNonExpenseReportWithID(originalReport, isOriginalReportArchived),
                 isChronos: chatIncludesChronosWithID(originalReportID),
             },
             reportAction: {
