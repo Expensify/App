@@ -102,7 +102,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const {activeWorkspaceID} = useActiveWorkspace();
 
     const reportID = report?.reportID;
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: false});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const [isComposerFullSize] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`, {initialValue: false, canBeMissing: true});
     const {reportPendingAction, reportErrors} = getReportOfflinePendingActionAndErrors(report);
 
@@ -110,8 +110,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const transactionThreadReportID = getOneTransactionThreadReportID(reportID, reportActions ?? [], isOffline);
 
     const [transactions = []] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
-        canBeMissing: false,
         selector: (allTransactions): OnyxTypes.Transaction[] => selectTransactionsForReportID(allTransactions, reportID, reportActions),
+        canBeMissing: true,
     });
     const shouldUseSingleTransactionView = transactions.length === 1;
 
@@ -177,7 +177,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                     report={report}
                     policy={policy}
                     reportActions={reportActions}
-                    transactionThreadReportID={undefined}
+                    transactionThreadReportID={transactionThreadReportID}
                     shouldDisplayBackButton
                     onBackButtonPress={() => {
                         if (!backToRoute) {
