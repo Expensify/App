@@ -1,9 +1,10 @@
-import type {AndroidCardData, AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet';
+import type {AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
+import type {CreateDigitalGoogleWalletParams} from '@libs/API/parameters/CreateDigitalWalletParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type CONST from '@src/CONST';
@@ -273,28 +274,52 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
         });
 }
 
-function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletData): Promise<AndroidCardData> {
-    // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
+/**
+ * Add card to digital wallet
+ *
+ * @param walletAcountID ID of the wallet on user's phone
+ * @param deviceID ID of user's phone
+ */
+function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletData) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_ADDED_TO_WALLET,
+            value: {
+                isLoading: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_ADDED_TO_WALLET,
+            value: {
+                errors: null,
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_ADDED_TO_WALLET,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const requestParams: CreateDigitalGoogleWalletParams = {
         platform: 'android',
         appVersion: pkg.version,
         walletAccountID,
         deviceID,
-    })
-        .then((response) => {
-            const data = response as unknown as AndroidCardData;
-            return {
-                network: data.network,
-                opaquePaymentCard: data.network,
-                cardHolderName: data.userAddress.name ?? '',
-                lastDigits: data.lastDigits,
-                userAddress: data.userAddress,
-            } as AndroidCardData;
-        })
-        .catch((error) => {
-            Log.warn(`createDigitalGoogleWallet error: ${error}`);
-            return {} as AndroidCardData;
-        });
+    };
+
+    return API.write(WRITE_COMMANDS.CREATE_DIGITAL_WALLET, requestParams, {optimisticData, successData, failureData});
 }
 
 export {

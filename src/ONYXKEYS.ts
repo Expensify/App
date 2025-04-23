@@ -516,6 +516,9 @@ const ONYXKEYS = {
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
+    /** Information about card added to wallet */
+    CARD_ADDED_TO_WALLET: 'cardAddedToWallet',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1144,6 +1147,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.CARD_ADDED_TO_WALLET]: OnyxTypes.CardAddedToWallet;
 };
 
 type OnyxDerivedValuesMapping = {

@@ -1,7 +1,6 @@
 const iosSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'ios' : 'ios';
 const androidSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'android' : 'android';
-const isStandalone = process.env.NEW_DOT_FLAG === 'true';
-const isHybrid = !isStandalone && process.env.IS_HYBRID_APP_REPO == 'true' ? true : false;
+const isHybrid = process.env.PROJECT_ROOT_PATH === 'Mobile-Expensify/' ? true : false;
 
 const config = {
     project: {

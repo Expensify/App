@@ -1,9 +1,11 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusByIdentifier, getSecureWalletInfo} from '@expensify/react-native-wallet';
 import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
+import useOnyx from '@hooks/useOnyx';
 import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card} from '@src/types/onyx';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
@@ -14,7 +16,27 @@ function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: 
     getSecureWalletInfo()
         .then((walletData: AndroidWalletData) => {
             createDigitalGoogleWallet(walletData)
-                .then((cardData: AndroidCardData) => {
+                .then(() => {
+                    const [onyxData] = useOnyx(ONYXKEYS.CARD_ADDED_TO_WALLET);
+                    if (!onyxData) {
+                        return Promise.reject();
+                    }
+                    const cardData: AndroidCardData = {
+                        network: onyxData.network,
+                        opaquePaymentCard: onyxData.opaquePaymentCard,
+                        cardHolderName,
+                        lastDigits: onyxData.lastDigits,
+                        userAddress: {
+                            name: onyxData.userAddress.name,
+                            addressOne: onyxData.userAddress.address1,
+                            addressTwo: onyxData.userAddress.address2,
+                            administrativeArea: onyxData.userAddress.state,
+                            locality: onyxData.userAddress.city,
+                            countryCode: onyxData.userAddress.country,
+                            postalCode: onyxData.userAddress.postal_code,
+                            phoneNumber: onyxData.userAddress.phone,
+                        },
+                    };
                     addCardToGoogleWallet({...cardData, cardHolderName})
                         .then(() => {
                             Log.info('Card added to wallet');
