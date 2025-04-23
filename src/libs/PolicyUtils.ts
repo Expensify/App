@@ -1408,6 +1408,16 @@ function isPrefferedExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
+/**
+ * Checks if the user is invited to any workspace.
+ */
+function isUserInvitedToWorkspace(): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    return Object.values(allPolicies ?? {}).some(
+        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
+    );
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1549,6 +1559,7 @@ export {
     getManagerAccountID,
     isPrefferedExporter,
     areAllGroupPoliciesExpenseChatDisabled,
+    isUserInvitedToWorkspace,
 };
 
 export type {MemberEmailsToAccountIDs};
