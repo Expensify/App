@@ -77,6 +77,7 @@ function CategoryForm({onSubmit, policyCategories, categoryName, validateEdit}: 
             style={[styles.mh5, styles.flex1]}
             enabledWhenOffline
             shouldHideFixErrorsAlert
+            addBottomSafeAreaPadding
         >
             <InputWrapper
                 ref={inputCallbackRef}

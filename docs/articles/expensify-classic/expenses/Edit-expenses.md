@@ -29,6 +29,13 @@ Editing restrictions apply based on expense type and report status.
 - **Approved expenses** cannot be edited unless reopened (also called unapproved).
 - **Expenses in a Closed report** cannot be edited.
 
+## Description and Workspace Violations
+- If an expense has a violation but includes a **description or comment**, it will still be submitted via Scheduled Submit.
+- The **description acts as the user’s explanation** for why the violation wasn’t resolved.
+- This allows the report to move forward while providing visibility for approvers or Workspace Admins.
+
+**Note:** The violation will still appear but will not block submission if a comment or explanation is provided.
+
 ## Expense Icons
 **Each expense has an icon showing how it was created:**
 - 🏦 **Cash Icon**: Manually added or SmartScanned
@@ -108,7 +115,6 @@ You can merge two duplicate expenses into one consolidated entry. This is useful
 3. Click the **Details** tab, then select the Edit icon.
 4. Select the two expenses you want to merge.
 5. Choose which details to retain for the new merged expense.
-
 
 ## Merging Expenses on Mobile
 

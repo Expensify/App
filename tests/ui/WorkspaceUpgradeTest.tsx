@@ -104,7 +104,7 @@ describe('WorkspaceUpgrade', () => {
             const price = `${convertToShortDisplayString(CONST.SUBSCRIPTION_PRICES[currency][CONST.POLICY.TYPE.CORPORATE][CONST.SUBSCRIPTION.TYPE.ANNUAL], currency)}`;
 
             // Initialized the user's preferred currency to another payment card currency
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {'-1': {localCurrencyCode: currency}});
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {[CONST.DEFAULT_NUMBER_ID]: {localCurrencyCode: currency}});
 
             // Render the WorkspaceUpgradePage without a feature to render GenericFeaturesView
             renderPage(SCREENS.WORKSPACE.UPGRADE, {policyID: policy.id});
