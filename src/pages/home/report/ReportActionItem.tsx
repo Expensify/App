@@ -3,6 +3,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useBlockedFromConcierge} from '@components/OnyxProvider';
 import useAccountValidation from '@hooks/useAccountValidation';
 import useOnyx from '@hooks/useOnyx';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import ModifiedExpenseMessage from '@libs/ModifiedExpenseMessage';
 import {getIOUReportIDFromReportActionPreview, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {
@@ -37,6 +38,8 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
     const reportID = report?.reportID;
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const originalReportID = useMemo(() => getOriginalReportID(reportID, action), [reportID, action]);
+    const [originalReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${originalReportID}`);
+    const isOriginalReportArchived = useReportIsArchived(originalReportID);
     const [draftMessage] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${originalReportID}`, {
         selector: (draftMessagesForReport) => {
             const matchingDraftMessage = draftMessagesForReport?.[action.reportActionID];
@@ -79,7 +82,7 @@ function ReportActionItem({action, report, ...props}: PureReportActionItemProps)
             blockedFromConcierge={blockedFromConcierge}
             originalReportID={originalReportID}
             deleteReportActionDraft={deleteReportActionDraft}
-            isArchivedRoom={isArchivedNonExpenseReportWithID(originalReportID)}
+            isArchivedRoom={isArchivedNonExpenseReportWithID(originalReport, isOriginalReportArchived)}
             isChronosReport={chatIncludesChronosWithID(originalReportID)}
             toggleEmojiReaction={toggleEmojiReaction}
             createDraftTransactionAndNavigateToParticipantSelector={createDraftTransactionAndNavigateToParticipantSelector}
