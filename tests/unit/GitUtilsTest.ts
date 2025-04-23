@@ -52,3 +52,29 @@ describe('GitUtils', () => {
         });
     });
 });
+
+describe('getCommitHistoryBetweenTags', () => {
+    let mockCompareCommits: jest.Mock;
+
+    beforeEach(() => {
+        // Mock the GitHub API response
+        mockCompareCommits = jest.fn();
+        jest.spyOn(GithubUtils.octokit.repos, 'compareCommits').mockImplementation(mockCompareCommits);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
+    });
+
+    test('should return empty array when no commits found', async () => {
+        // Mock implementation
+        mockCompareCommits.mockResolvedValue({
+            data: {
+                commits: [],
+            },
+        });
+
+        const result = await GitUtils.getCommitHistoryBetweenTags('1.0.0', '1.0.1');
+        expect(result).toEqual([]);
+    });
+});
