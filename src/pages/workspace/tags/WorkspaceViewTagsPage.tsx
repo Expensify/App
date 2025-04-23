@@ -58,7 +58,7 @@ function WorkspaceViewTagsPage({route}: WorkspaceViewTagsProps) {
     const theme = useTheme();
     const {translate} = useLocalize();
     const [selectedTags, setSelectedTags] = useState<Record<string, boolean>>({});
-    const dropdownButtonRef = useRef(null);
+    const dropdownButtonRef = useRef<View>(null);
     const [isDeleteTagsConfirmModalVisible, setIsDeleteTagsConfirmModalVisible] = useState(false);
     const isFocused = useIsFocused();
     const policyID = route.params.policyID;

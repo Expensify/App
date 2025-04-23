@@ -23,7 +23,7 @@ function elementContains(ref: RefObject<View | HTMLElement | Text> | undefined, 
 function PopoverContextProvider(props: PopoverContextProps) {
     const [isOpen, setIsOpen] = useState(false);
     const activePopoverRef = useRef<AnchorRef | null>(null);
-    const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current']>(null);
+    const [activePopoverAnchor, setActivePopoverAnchor] = useState<AnchorRef['anchorRef']['current'] | null>(null);
     const [activePopoverExtraAnchorRefs, setActivePopoverExtraAnchorRefs] = useState<AnchorRef['extraAnchorRefs']>([]);
 
     const closePopover = useCallback((anchorRef?: RefObject<View | HTMLElement | Text>): boolean => {

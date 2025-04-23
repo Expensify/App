@@ -37,7 +37,7 @@ function OptionRowLHNData({
     const currentReportIDValue = useCurrentReportID();
     const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
-    const optionItemRef = useRef<OptionData>();
+    const optionItemRef = useRef<OptionData>(undefined);
 
     const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
     const isReportSettled = isSettled(fullReport);

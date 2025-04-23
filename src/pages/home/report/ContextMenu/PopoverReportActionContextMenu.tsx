@@ -34,13 +34,13 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef<string | undefined>();
-    const typeRef = useRef<ContextMenuType>();
+    const reportIDRef = useRef<string | undefined>(undefined);
+    const typeRef = useRef<ContextMenuType>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef<string | undefined>();
-    const originalReportIDRef = useRef<string | undefined>();
+    const reportActionIDRef = useRef<string | undefined>(undefined);
+    const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string>();
+    const reportActionDraftMessageRef = useRef<string>(undefined);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,
@@ -80,7 +80,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const onPopoverShow = useRef(() => {});
     const [isContextMenuOpening, setIsContextMenuOpening] = useState(false);
     const onPopoverHide = useRef(() => {});
-    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>();
+    const onEmojiPickerToggle = useRef<undefined | ((state: boolean) => void)>(undefined);
     const onCancelDeleteModal = useRef(() => {});
     const onConfirmDeleteModal = useRef(() => {});
 
