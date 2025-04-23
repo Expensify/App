@@ -29,8 +29,8 @@ import PopoverMenu from './PopoverMenu';
 import {PressableWithFeedback} from './Pressable';
 import {useProductTrainingContext} from './ProductTrainingContext';
 import Text from './Text';
-import EducationalTooltip from './Tooltip/EducationalTooltip';
 import Tooltip from './Tooltip';
+import EducationalTooltip from './Tooltip/EducationalTooltip';
 
 type AccountSwitcherProps = {
     /* Whether the screen is focused. Used to hide the product training tooltip */
@@ -160,67 +160,69 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                 wrapperStyle={styles.productTrainingTooltipWrapper}
                 onTooltipPress={onPressSwitcher}
             >
-            <Tooltip
-                text={translate('delegate.copilotAccess')}
-                shiftVertical={8}
-                shiftHorizontal={8}
-                anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
-                shouldRender={canSwitchAccounts}
-            >
-                <PressableWithFeedback
-                    accessible
-                    accessibilityLabel={translate('common.profile')}
-                    onPress={onPressSwitcher}
-                    ref={buttonRef}
-                    interactive={canSwitchAccounts}
-                    pressDimmingValue={canSwitchAccounts ? undefined : 1}
-                    wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                <Tooltip
+                    text={translate('delegate.copilotAccess')}
+                    shiftVertical={8}
+                    shiftHorizontal={8}
+                    anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
+                    shouldRender={canSwitchAccounts}
                 >
-                    <View style={[styles.flexRow, styles.gap3]}>
-                        <Avatar
-                            type={CONST.ICON_TYPE_AVATAR}
-                            size={CONST.AVATAR_SIZE.DEFAULT}
-                            avatarID={currentUserPersonalDetails?.accountID}
-                            source={currentUserPersonalDetails?.avatar}
-                            fallbackIcon={currentUserPersonalDetails.fallbackIcon}
-                        />
-                        <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
-                            <View style={[styles.flexRow, styles.gap1]}>
+                    <PressableWithFeedback
+                        accessible
+                        accessibilityLabel={translate('common.profile')}
+                        onPress={onPressSwitcher}
+                        ref={buttonRef}
+                        interactive={canSwitchAccounts}
+                        pressDimmingValue={canSwitchAccounts ? undefined : 1}
+                        wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
+                    >
+                        <View style={[styles.flexRow, styles.gap3]}>
+                            <Avatar
+                                type={CONST.ICON_TYPE_AVATAR}
+                                size={CONST.AVATAR_SIZE.DEFAULT}
+                                avatarID={currentUserPersonalDetails?.accountID}
+                                source={currentUserPersonalDetails?.avatar}
+                                fallbackIcon={currentUserPersonalDetails.fallbackIcon}
+                            />
+                            <View style={[styles.flex1, styles.flexShrink1, styles.flexBasis0, styles.justifyContentCenter, styles.gap1]}>
+                                <View style={[styles.flexRow, styles.gap1]}>
+                                    <Text
+                                        numberOfLines={1}
+                                        style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
+                                    >
+                                        {processedTextArray.length !== 0
+                                            ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji)
+                                            : currentUserPersonalDetails?.displayName}
+                                    </Text>
+                                    {!!canSwitchAccounts && (
+                                        <View style={styles.justifyContentCenter}>
+                                            <Icon
+                                                fill={theme.icon}
+                                                src={Expensicons.CaretUpDown}
+                                                height={variables.iconSizeSmall}
+                                                width={variables.iconSizeSmall}
+                                            />
+                                        </View>
+                                    )}
+                                </View>
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
+                                    style={[styles.colorMuted, styles.fontSizeLabel]}
                                 >
-                                    {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
+                                    {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
                                 </Text>
-                                {!!canSwitchAccounts && (
-                                    <View style={styles.justifyContentCenter}>
-                                        <Icon
-                                            fill={theme.icon}
-                                            src={Expensicons.CaretUpDown}
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                        />
-                                    </View>
+                                {!!user?.isDebugModeEnabled && (
+                                    <Text
+                                        style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
+                                        numberOfLines={1}
+                                    >
+                                        AccountID: {session?.accountID}
+                                    </Text>
                                 )}
                             </View>
-                            <Text
-                                numberOfLines={1}
-                                style={[styles.colorMuted, styles.fontSizeLabel]}
-                            >
-                                {Str.removeSMSDomain(currentUserPersonalDetails?.login ?? '')}
-                            </Text>
-                            {!!user?.isDebugModeEnabled && (
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.mt1, styles.w100]}
-                                    numberOfLines={1}
-                                >
-                                    AccountID: {session?.accountID}
-                                </Text>
-                            )}
                         </View>
-                    </View>
-                </PressableWithFeedback>
-            </Tooltip>
+                    </PressableWithFeedback>
+                </Tooltip>
             </EducationalTooltip>
 
             {!!canSwitchAccounts && (
