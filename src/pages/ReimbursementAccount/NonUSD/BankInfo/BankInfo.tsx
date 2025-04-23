@@ -53,7 +53,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        if (previousIsLoading !== true || corpayFields?.isLoading !== false || reimbursementAccount?.errors) {
+        if (previousIsLoading !== true || reimbursementAccount?.isLoading !== false || reimbursementAccount?.errors) {
             return;
         }
 
