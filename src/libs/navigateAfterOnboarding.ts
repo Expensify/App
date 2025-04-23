@@ -2,7 +2,6 @@ import {InteractionManager} from 'react-native';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OnboardingPurpose} from '@src/types/onyx';
-import setNavigationActionToMicrotaskQueue from './Navigation/helpers/setNavigationActionToMicrotaskQueue';
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport} from './ReportUtils';
