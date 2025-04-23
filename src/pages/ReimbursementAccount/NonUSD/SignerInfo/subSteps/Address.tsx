@@ -39,6 +39,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
     const [shouldDisplayStateSelector, setShouldDisplayStateSelector] = useState<boolean>(
         defaultValues.country === CONST.COUNTRY.US || defaultValues.country === CONST.COUNTRY.CA || defaultValues.country === '',
     );
+    const [shouldValidateZipCodeFormat, setShouldValidateZipCodeFormat] = useState<boolean>(defaultValues.country === CONST.COUNTRY.US);
 
     const stepFieldsWithState = useMemo(
         () => [inputKeys.street, inputKeys.city, inputKeys.state, inputKeys.zipCode, countryInputKey],
@@ -56,6 +57,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             return;
         }
         setShouldDisplayStateSelector(country === CONST.COUNTRY.US || country === CONST.COUNTRY.CA);
+        setShouldValidateZipCodeFormat(country === CONST.COUNTRY.US);
     };
 
     const handleNextStep = () => {
@@ -89,6 +91,7 @@ function Address({onNext, isEditing, onMove}: NameProps) {
             onCountryChange={handleCountryChange}
             shouldDisplayStateSelector={shouldDisplayStateSelector}
             shouldDisplayCountrySelector
+            shouldValidateZipCodeFormat={shouldValidateZipCodeFormat}
         />
     );
 }
