@@ -6224,8 +6224,8 @@ const translations = {
             part3: '\nand more!',
         },
         expenseReportsFilter: {
-            part1: 'Welcome! Find all of your\n',
-            part2: "company's reports",
+            part1: 'Welcome! Find all of your',
+            part2: "\ncompany's reports",
             part3: ' here.',
         },
         scanTestTooltip: {
