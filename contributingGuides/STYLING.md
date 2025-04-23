@@ -41,12 +41,12 @@ On the other hand, if we are copying and pasting some chunks of JSX from one pla
 
 ## Use the "Rule of Three"
 
-In order to resist the urge to preoptimize and have many single-use components, we've adopted a main principle:
+In order to resist the urge to pre-optimize and have many single-use components, we've adopted a main principle:
 
 Any array of styles associated with a single type of React element that has at least 3 identical usages should be refactored into:
 
-- A new resusable style that can be used in many places e.g. `styles.button`
-- If that style has modifiers or style variations, then those styles should follow a naming convention of `styles.elementModifer` e.g. `styles.buttonSuccess`
+- A new reusable style that can be used in many places e.g. `styles.button`
+- If that style has modifiers or style variations, then those styles should follow a naming convention of `styles.elementModifier` e.g. `styles.buttonSuccess`
 - If a reusable style has 3 or more modifiers, it should be refactored into a component with props to modify the styles e.g.
 
 ```jsx
