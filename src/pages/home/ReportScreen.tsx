@@ -308,7 +308,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
 
-    const {canUseTableReportView} = usePermissions();
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     useEffect(() => {
