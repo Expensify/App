@@ -64,6 +64,12 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.ACCOUNT_SWITCHER,
         isScreenFocused && canSwitchAccounts,
     );
+
+    const onPressSwitcher = () => {
+        hideProductTrainingTooltip();
+        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
+    };
+    
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
@@ -160,11 +166,6 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
             });
 
         return [currentUserMenuItem, ...delegatorMenuItems];
-    };
-
-    const onPressSwitcher = () => {
-        hideProductTrainingTooltip();
-        setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
     };
 
     return (
