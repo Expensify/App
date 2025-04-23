@@ -334,7 +334,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         const integrationData = getAccountingIntegrationData(connectedIntegration, policyID, translate, policy, undefined, undefined, undefined, canUseNetSuiteUSATax);
         const iconProps = integrationData?.icon ? {icon: integrationData.icon, iconType: CONST.ICON_TYPE_AVATAR} : {};
 
-        let connectionMessage = '';
+        let connectionMessage;
         if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
             connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
         } else if (isConnectionVerified) {
@@ -421,7 +421,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 ),
             },
             ...(isEmptyObject(integrationSpecificMenuItems) || shouldShowSynchronizationError || isEmptyObject(policy?.connections) ? [] : [integrationSpecificMenuItems]),
-            ...(isEmptyObject(policy?.connections) || isConnectionVerified ? [] : configurationOptions),
+            ...(isEmptyObject(policy?.connections) || !isConnectionVerified ? [] : configurationOptions),
         ];
     }, [
         policy,
