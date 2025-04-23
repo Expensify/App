@@ -18,9 +18,10 @@ import useWindowDimensions from './useWindowDimensions';
  */
 function useSidePanelDisplayStatus() {
     const {isExtraLargeScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
-    const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL);
-    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
+    const [sidePanelNVP] = useOnyx(ONYXKEYS.NVP_SIDE_PANEL, {canBeMissing: true});
+    const [language] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE, {canBeMissing: true});
     const [isModalCenteredVisible = false] = useOnyx(ONYXKEYS.MODAL, {
+        canBeMissing: true,
         selector: (modal) =>
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT ||
             modal?.type === CONST.MODAL.MODAL_TYPE.CENTERED_UNSWIPEABLE ||
