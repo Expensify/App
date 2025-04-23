@@ -371,3 +371,41 @@ window.addEventListener('hashchange', () => {
         behavior: 'smooth',
     });
 });
+
+const makeTwoPartCallback = () => {
+    let customResults = [];
+    const readyCallback = (name, q, promos, results, resultsDiv) => {
+        customResults = [];
+        results.forEach((result) => {
+            const {ogUrl, ogSiteName} = result.richSnippet.metatags;
+
+            const newOgSiteName = ogUrl.includes('expensify-classic') ? 'Expensify Classic' : 'New Expensify';
+
+            result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
+            result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
+            if (!result.title.includes(newOgSiteName)) {
+                result.title = result.title + ` • ${newOgSiteName}`;
+            }
+            customResults.push(result);
+        });
+    };
+    const renderedCallback = (name, q, promos, results) => {
+        for (let i = 0; i < results.length; ++i) {
+            const div = results[i];
+            const result = customResults[i];
+            const titleElement = div.querySelector('a.gs-title');
+            titleElement.innerHTML = result.title;
+        }
+    };
+    return {readyCallback, renderedCallback};
+};
+
+const {readyCallback: webResultsReadyCallback, renderedCallback: webResultsRenderedCallback} = makeTwoPartCallback();
+
+window.__gcse || (window.__gcse = {});
+window.__gcse.searchCallbacks = {
+    web: {
+        ready: webResultsReadyCallback,
+        rendered: webResultsRenderedCallback,
+    },
+};
