@@ -2212,6 +2212,13 @@ function isOneTransactionThread(reportID: string | undefined, parentReportID: st
 }
 
 /**
+ * Checks if given report is a transaction thread
+ */
+function isReportTransactionThread(report: OnyxEntry<Report>) {
+    return isMoneyRequest(report) || isTrackExpenseReport(report);
+}
+
+/**
  * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
 function getDisplayedReportID(reportID: string): string {
@@ -10719,6 +10726,7 @@ export {
     isInvoiceReport,
     isNewDotInvoice,
     isOpenInvoiceReport,
+    isReportTransactionThread,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
     navigateToDetailsPage,
