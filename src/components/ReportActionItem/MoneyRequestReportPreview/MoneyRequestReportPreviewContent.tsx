@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { FlatList, View } from 'react-native';
-import type { LayoutChangeEvent, ListRenderItemInfo, ViewToken } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
-import type { LayoutRectangle } from 'react-native/Libraries/Types/CoreEventTypes';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {FlatList, View} from 'react-native';
+import type {LayoutChangeEvent, ListRenderItemInfo, ViewToken} from 'react-native';
+import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import type {LayoutRectangle} from 'react-native/Libraries/Types/CoreEventTypes';
 import Button from '@components/Button';
-import { getButtonRole } from '@components/Button/utils';
+import {getButtonRole} from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import ImageSVG from '@components/ImageSVG';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import { PressableWithFeedback } from '@components/Pressable';
+import {PressableWithFeedback} from '@components/Pressable';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import type { ActionHandledType } from '@components/ProcessMoneyReportHoldMenu';
+import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ExportWithDropdownMenu from '@components/ReportActionItem/ExportWithDropdownMenu';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
-import { showContextMenuForReport } from '@components/ShowContextMenuContext';
+import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -26,25 +26,55 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import ControlSelection from '@libs/ControlSelection';
-import { convertToDisplayString } from '@libs/CurrencyUtils';
-import { canUseTouchScreen } from '@libs/DeviceCapabilities';
-import type { RootNavigatorParamList, State } from '@libs/Navigation/types';
-import { getConnectedIntegration } from '@libs/PolicyUtils';
-import { getOriginalMessage, isActionOfType } from '@libs/ReportActionsUtils';
-import { areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, canBeExported, getBankAccountRoute, getDisplayNameForParticipant, getInvoicePayerName, getMoneyRequestSpendBreakdown, getNonHeldAndFullAmount, getPolicyName, getTransactionsWithReceipts, hasActionsWithErrors, hasHeldExpenses as hasHeldExpensesReportUtils, hasMissingSmartscanFields as hasMissingSmartscanFieldsReportUtils, hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils, hasNoticeTypeViolations, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils, hasReportViolations, hasUpdatedTotal, hasViolations, hasWarningTypeViolations, isAllowedToApproveExpenseReport, isAllowedToSubmitDraftExpenseReport, isInvoiceReport as isInvoiceReportUtils, isInvoiceRoom as isInvoiceRoomReportUtils, isPolicyExpenseChat as isPolicyExpenseChatReportUtils, isReportApproved, isReportOwner, isSettled, isTripRoom as isTripRoomReportUtils, isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils } from '@libs/ReportUtils';
-import { getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions } from '@libs/TransactionUtils';
+import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
+import {getOriginalMessage, isActionOfType} from '@libs/ReportActionsUtils';
+import {
+    areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
+    canBeExported,
+    getBankAccountRoute,
+    getDisplayNameForParticipant,
+    getInvoicePayerName,
+    getMoneyRequestSpendBreakdown,
+    getNonHeldAndFullAmount,
+    getPolicyName,
+    getTransactionsWithReceipts,
+    hasActionsWithErrors,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasMissingSmartscanFields as hasMissingSmartscanFieldsReportUtils,
+    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    hasNoticeTypeViolations,
+    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
+    hasReportViolations,
+    hasUpdatedTotal,
+    hasViolations,
+    hasWarningTypeViolations,
+    isAllowedToApproveExpenseReport,
+    isAllowedToSubmitDraftExpenseReport,
+    isInvoiceReport as isInvoiceReportUtils,
+    isInvoiceRoom as isInvoiceRoomReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
+    isReportApproved,
+    isReportOwner,
+    isSettled,
+    isTripRoom as isTripRoomReportUtils,
+    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
+} from '@libs/ReportUtils';
+import {getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, shouldShowBrokenConnectionViolationForMultipleTransactions} from '@libs/TransactionUtils';
 import navigationRef from '@navigation/navigationRef';
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
-import { approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport } from '@userActions/IOU';
+import {approveMoneyRequest, canApproveIOU, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import CONST from '@src/CONST';
-import type { TranslationPaths } from '@src/languages/types';
+import type {TranslationPaths} from '@src/languages/types';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
-import type { Transaction } from '@src/types/onyx';
-import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
-import type { MoneyRequestReportPreviewContentProps } from './types';
-
+import type {Transaction} from '@src/types/onyx';
+import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {MoneyRequestReportPreviewContentProps} from './types';
 
 type WebLayoutNativeEvent = {
     layout: LayoutRectangle;
