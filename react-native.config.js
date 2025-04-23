@@ -1,5 +1,5 @@
 const path = require('path');
-const pak = require('./modules/ExpensifyNitroUtils/package.json');
+const expensifyNitroUtilsPackageJSON = require('./modules/ExpensifyNitroUtils/package.json');
 const iosSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'ios' : 'ios';
 const androidSourceDir = process.env.PROJECT_ROOT_PATH ? process.env.PROJECT_ROOT_PATH + 'android' : 'android';
 
@@ -10,7 +10,7 @@ module.exports = {
     },
     assets: ['./assets/fonts/native'],
     dependencies: {
-        [pak.name]: {
+        [expensifyNitroUtilsPackageJSON.name]: {
             root: path.join(__dirname, 'modules', 'ExpensifyNitroUtils'),
         },
         // We need to unlink the react-native-wallet package from the android build
