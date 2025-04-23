@@ -46,7 +46,7 @@ describe('ReportButtonUtils', () => {
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.EXPORT)).toBe('');
         });
 
-        it('returns nonHeldValue for PAY & total value for other buttons', () => {
+        it('returns total reimbursable spend for PAY & total value for other buttons', () => {
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.PAY)).toBe(`$50.00`);
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.REVIEW)).toBe(`$100.00`);
             expect(getTotalAmountForIOUReportPreviewButton(mockReport, mockPolicy, IOU_REPORT_PREVIEW_BUTTON.APPROVE)).toBe(`$100.00`);
