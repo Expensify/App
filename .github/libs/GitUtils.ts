@@ -3,6 +3,7 @@ import CONST from './CONST';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
+import GithubUtils from './GithubUtils';
 
 type CommitType = {
     commit: string;
@@ -232,5 +233,6 @@ export default {
     getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsMergedBetween,
+    getCommitHistoryBetweenTags,
 };
 export type {CommitType};
