@@ -2,21 +2,21 @@
 function toggleHeaderMenu() {
     const lhn = document.getElementById('lhn');
     const lhnContent = document.getElementById('lhn-content');
-    const anguleUpIcon = document.getElementById('angle-up-icon');
+    const angleUpIcon = document.getElementById('angle-up-icon');
     const barsIcon = document.getElementById('bars-icon');
     if (lhnContent.className === 'expanded') {
         // Collapse the LHN in mobile
         lhn.className = '';
         lhnContent.className = '';
         barsIcon.classList.remove('hide');
-        anguleUpIcon.classList.add('hide');
+        angleUpIcon.classList.add('hide');
         document.body.classList.remove('disable-scrollbar');
     } else {
         // Expand the LHN in mobile
         lhn.className = 'expanded';
         lhnContent.className = 'expanded';
         barsIcon.classList.add('hide');
-        anguleUpIcon.classList.remove('hide');
+        angleUpIcon.classList.remove('hide');
         document.body.classList.add('disable-scrollbar');
     }
 }
@@ -70,8 +70,8 @@ function navigateBack() {
     setTimeout(toggleHeaderMenu, 250);
 }
 
-function injectFooterCopywrite() {
-    const footer = document.getElementById('footer-copywrite-date');
+function injectFooterCopyright() {
+    const footer = document.getElementById('footer-copyright-date');
     footer.innerHTML = `&copy;2008-${new Date().getFullYear()} Expensify, Inc.`;
 }
 
@@ -265,7 +265,7 @@ function selectExpensifyClassic(newExpensifyTab, newExpensifyContent, expensifyC
 }
 
 window.addEventListener('DOMContentLoaded', () => {
-    injectFooterCopywrite();
+    injectFooterCopyright();
 
     // Handle open & close the sidebar
     const buttonOpenSidebar = document.getElementById('toggle-search-open');
