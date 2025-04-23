@@ -62,6 +62,8 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
         [policyID, sageIntacctConfig?.mappings, translate],
     );
 
+    const isExpenseType = sageIntacctConfig?.export.reimbursable === CONST.SAGE_INTACCT_REIMBURSABLE_EXPENSE_TYPE.EXPENSE_REPORT;
+
     return (
         <ConnectionLayout
             displayName={SageIntacctImportPage.displayName}
@@ -75,9 +77,9 @@ function SageIntacctImportPage({policy}: WithPolicyProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
         >
             <ToggleSettingOptionRow
-                title={translate('workspace.intacct.expenseTypes')}
-                subtitle={translate('workspace.intacct.expenseTypesDescription')}
-                switchAccessibilityLabel={translate('workspace.intacct.expenseTypesDescription')}
+                title={translate(isExpenseType ? 'workspace.intacct.expenseTypes' : 'workspace.accounting.accounts')}
+                subtitle={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
+                switchAccessibilityLabel={translate(isExpenseType ? 'workspace.intacct.expenseTypesDescription' : 'workspace.intacct.accountTypesDescription')}
                 shouldPlaceSubtitleBelowSwitch
                 wrapperStyle={[styles.mv3, styles.mh5]}
                 isActive

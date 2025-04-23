@@ -946,7 +946,7 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
 }
 
 function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], shouldUpdateReportID = false) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, reportID: shouldUpdateReportID ? participants.at(0)?.reportID : undefined});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, reportID: shouldUpdateReportID ? participants.at(0)?.reportID : undefined});
 }
 
 function setSplitPayer(transactionID: string, payerAccountID: number) {
