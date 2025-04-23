@@ -30,17 +30,20 @@ function MoneyRequestReportPreview({
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
     isInvoice = false,
+    shouldShowBorder,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
+        {canBeMissing: true},
     );
     const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails) =>
             personalDetails?.[chatReport?.invoiceReceiver && 'accountID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.accountID : CONST.DEFAULT_NUMBER_ID],
+        canBeMissing: true,
     });
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const policy = usePolicy(policyID);
@@ -70,6 +73,7 @@ function MoneyRequestReportPreview({
             wrapperStyle={reportPreviewStyles.transactionPreviewStyle}
             containerStyles={[styles.h100, containerStyles]}
             transactionID={item.transactionID}
+            reportPreviewAction={action}
         />
     );
 
@@ -102,6 +106,7 @@ function MoneyRequestReportPreview({
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
+            shouldShowBorder={shouldShowBorder}
         />
     );
 }
