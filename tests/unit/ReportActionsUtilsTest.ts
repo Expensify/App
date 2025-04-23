@@ -960,5 +960,23 @@ describe('ReportActionsUtils', () => {
             const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.CHAT};
             expect(ReportActionsUtils.getRenamedAction(reportAction, report, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
+
+        it('should return the correct translated message for a renamed action in expense report', () => {
+            const reportAction = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.RENAMED,
+                originalMessage: {
+                    html: 'Hello world',
+                    whisperedTo: [],
+                    lastModified: '2022-11-09 22:27:01.825',
+                    oldName: 'Old name',
+                    newName: 'New name',
+                },
+                reportActionID: '1',
+                created: '1',
+            };
+            const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE};
+
+            expect(ReportActionsUtils.getRenamedAction(reportAction, report, 'John')).toBe('John renamed to "New name" (previously "Old name")');
+        });
     });
 });

@@ -4776,7 +4776,6 @@ function getReportNameInternal({
         if (isCardIssuedAction(parentReportAction)) {
             return getCardIssuedMessage({reportAction: parentReportAction});
         }
-
         return reportActionMessage;
     }
 
