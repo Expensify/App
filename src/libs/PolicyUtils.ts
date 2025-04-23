@@ -1118,6 +1118,11 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
+    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
+    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+        return false;
+    }
+
     // Submitters: workspaces where the submitter is a member of
     const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
     if (isCurrentUserSubmitter) {
@@ -1134,7 +1139,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)) {
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
         return true;
     }
 
@@ -1411,6 +1416,16 @@ function isAutoSyncEnabled(policy: Policy) {
     return values.some((value) => !!value);
 }
 
+/**
+ * Checks if the user is invited to any workspace.
+ */
+function isUserInvitedToWorkspace(): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    return Object.values(allPolicies ?? {}).some(
+        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
+    );
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1552,6 +1567,7 @@ export {
     isPrefferedExporter,
     isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
+    isUserInvitedToWorkspace,
 };
 
 export type {MemberEmailsToAccountIDs};
