@@ -2284,62 +2284,65 @@ describe('ReportUtils', () => {
                     });
                 });
                 describe('has transaction match with approver rule', () => {
-                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
-                        const policyTest: Policy = {
-                            ...createRandomPolicy(1),
-                            approver: 'owner@test.com',
-                            owner: 'owner@test.com',
-                            type: CONST.POLICY.TYPE.CORPORATE,
-                            employeeList,
-                            rules,
-                            approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
-                        };
-                        const expenseReport: Report = {
-                            ...createRandomReport(1),
-                            ownerAccountID: employeeAccountID,
-                            type: CONST.REPORT.TYPE.EXPENSE,
-                        };
-                        const transaction1: Transaction = {
-                            ...createRandomTransaction(2),
-                            category: 'cat1',
-                            tag: '',
-                            created: testDate,
-                            reportID: expenseReport.reportID,
-                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                        };
-                        const transaction2: Transaction = {
-                            ...createRandomTransaction(3),
-                            category: '',
-                            tag: 'tag1',
-                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                            reportID: expenseReport.reportID,
-                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                        };
-                        const transaction3: Transaction = {
-                            ...createRandomTransaction(4),
-                            category: 'cat2',
-                            tag: '',
-                            created: testDate,
-                            reportID: expenseReport.reportID,
-                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
-                        };
-                        const transaction4: Transaction = {
-                            ...createRandomTransaction(5),
-                            category: '',
-                            tag: 'tag2',
-                            created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
-                            reportID: expenseReport.reportID,
-                            inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
-                        };
-                        Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
+                    const policyTest: Policy = {
+                        ...createRandomPolicy(1),
+                        approver: 'owner@test.com',
+                        owner: 'owner@test.com',
+                        type: CONST.POLICY.TYPE.CORPORATE,
+                        employeeList,
+                        rules,
+                        approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+                    };
+                    const expenseReport: Report = {
+                        ...createRandomReport(100),
+                        ownerAccountID: employeeAccountID,
+                        type: CONST.REPORT.TYPE.EXPENSE,
+                    };
+                    const transaction1: Transaction = {
+                        ...createRandomTransaction(2),
+                        category: 'cat1',
+                        tag: '',
+                        created: testDate,
+                        reportID: expenseReport.reportID,
+                        inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                    };
+                    const transaction2: Transaction = {
+                        ...createRandomTransaction(3),
+                        category: '',
+                        tag: 'tag1',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        reportID: expenseReport.reportID,
+                        inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                    };
+                    const transaction3: Transaction = {
+                        ...createRandomTransaction(4),
+                        category: 'cat2',
+                        tag: '',
+                        created: testDate,
+                        reportID: expenseReport.reportID,
+                        inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                    };
+                    const transaction4: Transaction = {
+                        ...createRandomTransaction(5),
+                        category: '',
+                        tag: 'tag2',
+                        created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
+                        reportID: expenseReport.reportID,
+                        inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
+                    };
+
+                    beforeAll(async () => {
+                        await Onyx.merge(ONYXKEYS.COLLECTION.TRANSACTION, {
                             [transaction1.transactionID]: transaction1,
                             [transaction2.transactionID]: transaction2,
                             [transaction3.transactionID]: transaction3,
                             [transaction4.transactionID]: transaction4,
-                        }).then(() => {
-                            const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
+                    });
+
+                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
+                        const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
+                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                     });
                 });
             });
