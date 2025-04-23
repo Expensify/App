@@ -43,7 +43,7 @@ function FocusTrapForScreen({children, focusTrapSettings}: FocusTrapProps) {
             focusTrapOptions={{
                 onActivate: () => {
                     const activeElement = document?.activeElement as HTMLElement;
-                    if ((activeElement?.nodeName === 'INPUT' || activeElement?.nodeName === 'TEXTAREA')) {
+                    if (activeElement?.nodeName === 'INPUT' || activeElement?.nodeName === 'TEXTAREA') {
                         return;
                     }
                     activeElement?.blur();
