@@ -24,7 +24,7 @@ jobs:
 
       - name: Verify repository
         run: |
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]]; then
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify-Test-Fork" ]]; then
             echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
@@ -34,7 +34,7 @@ jobs:
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-staging-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
 
       - name: Checkout staging branch with full history if cherry picking Mobile-Expensify
-        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' }}
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify-Test-Fork' }}
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
@@ -149,7 +149,7 @@ jobs:
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
         # If cherry picking a Mobile-Expensify change, we need to run the cherry pick in the Mobile-Expensify directory
-        working-directory: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' && 'Mobile-Expensify' || '.' }}
+        working-directory: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify-Test-Fork' && 'Mobile-Expensify' || '.' }}
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
@@ -169,7 +169,7 @@ jobs:
             git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
             git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
-            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
+            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify-Test-Fork" ]]; then
               # Push Mobile-Expensify changes first
               cd Mobile-Expensify
               git push origin staging
