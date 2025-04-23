@@ -6736,12 +6736,12 @@ const translations = {
         },
         workspaceChatTooltip: {
             part1: 'Chatea con ',
-            part2: 'aprobadores',
+            part2: 'los aprobadores',
         },
         globalCreateTooltip: {
             part1: 'Crea gastos',
-            part2: ', comienza a chatear,',
-            part3: '\ny mucho más!',
+            part2: ', empieza a chatear',
+            part3: '\ny más.',
             part4: ' ¡Pruébalo!',
         },
         scanTestTooltip: {
