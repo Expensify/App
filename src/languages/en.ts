@@ -4888,7 +4888,6 @@ const translations = {
                 prohibitedDefaultDescription:
                     'Flag any receipts where alcohol, gambling, or other restricted items appear. Expenses with receipts where these line items appear will require manual review.',
                 prohibitedExpenses: 'Prohibited expenses',
-                none: 'None',
                 alcohol: 'Alcohol',
                 hotelIncidentals: 'Hotel incidentals',
                 gambling: 'Gambling',
