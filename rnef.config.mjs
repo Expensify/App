@@ -12,5 +12,5 @@ export default {
         ios: platformIOS({sourceDir: isHybrid ? './iOS' : './ios'}),
         android: platformAndroid({sourceDir: isHybrid ? './Android' : './android'}),
     },
-    root: isHybrid ? './Mobile-Expensify' : './'
+    root: isHybrid ? './Mobile-Expensify/' : './'
 };
