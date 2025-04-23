@@ -435,12 +435,13 @@ Onyx.connect({
     callback: (value) => (nvpDismissedProductTraining = value),
 });
 
-let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+// we cannot redeclare block-scoped variable 'allReportNameValuePairs' so we use another name
+let allReportNameValuePairsFromOnyx: OnyxCollection<ReportNameValuePairs>;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
     waitForCollectionCallback: true,
     callback: (value) => {
-        allReportNameValuePairs = value;
+        allReportNameValuePairsFromOnyx = value;
     },
 });
 
@@ -879,7 +880,7 @@ function createOption(
     result.participantsList = personalDetailList;
     result.isOptimisticPersonalDetail = personalDetail?.isOptimisticPersonalDetail;
     if (report) {
-        const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
+        const reportNameValuePairs = allReportNameValuePairsFromOnyx?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
         result.isChatRoom = reportUtilsIsChatRoom(report);
         result.isDefaultRoom = isDefaultRoom(report);
         result.private_isArchived = reportNameValuePairs?.private_isArchived;
