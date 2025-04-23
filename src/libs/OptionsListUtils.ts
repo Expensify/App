@@ -2370,4 +2370,4 @@ export {
     shouldShowLastActorDisplayName,
 };
 
-export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};
