@@ -458,7 +458,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
             policyName={policyName}
             isValidateCodeActionModalVisible={isValidateCodeActionModalVisible}
             toggleValidateCodeActionModal={setIsValidateCodeActionModalVisible}
-            onBackButtonPress={Navigation.goBack}
+            onBackButtonPress={Navigation.closeRHPFlow}
             shouldShowContinueSetupButton={shouldShowContinueSetupButton}
             isNonUSDWorkspace={isNonUSDWorkspace}
             setNonUSDBankAccountStep={setNonUSDBankAccountStep}

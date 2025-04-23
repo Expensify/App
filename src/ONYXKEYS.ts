@@ -516,6 +516,10 @@ const ONYXKEYS = {
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
+    /** Set when user tries to connect VBBA but workspace currency is unsupported and is forced to change
+     * This is later used to redirect user directly back to the VBBA flow */
+    IS_FORCED_TO_CHANGE_CURRENCY: 'isForcedToChangeCurrency',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1144,6 +1148,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING]: boolean | undefined;
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
+    [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {
