@@ -35,6 +35,7 @@ function MoneyRequestReportPreview({
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
     isInvoice = false,
+    shouldShowBorder,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -119,6 +120,7 @@ function MoneyRequestReportPreview({
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
             onPress={openReportFromPreview}
+            shouldShowBorder={shouldShowBorder}
         />
     );
 }
