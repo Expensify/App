@@ -69,11 +69,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
         hideProductTrainingTooltip();
         setShouldShowDelegatorMenu(!shouldShowDelegatorMenu);
     };
-    
+
     const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
     const tooltipProps = shouldShowProductTrainingTooltip
         ? {
-              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
               shouldRender: shouldShowProductTrainingTooltip,
               renderTooltipContent: renderProductTrainingTooltip,
               anchorAlignment: {
