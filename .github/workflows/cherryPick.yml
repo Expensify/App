@@ -24,7 +24,7 @@ jobs:
 
       - name: Verify repository
         run: |
-          if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ] && [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]; then
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]]; then
             echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
@@ -123,8 +123,7 @@ jobs:
       - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
         run: |
-          MERGE_COMMIT_SHA="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json mergeCommit --jq '.mergeCommit.oid')"
-          MERGE_ACTOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json author --jq '.author.login')"
+          read MERGE_COMMIT_SHA MERGE_ACTOR <<< "$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json mergeCommit,author --jq '"\(.mergeCommit.oid) \(.author.login)"')"
           echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
           echo "MERGE_ACTOR=$MERGE_ACTOR" >> "$GITHUB_OUTPUT"
         env:
@@ -149,12 +148,10 @@ jobs:
 
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
+        # If cherry picking a Mobile-Expensify change, we need to run the cherry pick in the Mobile-Expensify directory
+        working-directory: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' && 'Mobile-Expensify' || '.' }}
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
-            cd Mobile-Expensify
-          fi
-
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
             echo "🎉 No conflicts! CP was a success, PR can be automerged 🎉"
             echo "HAS_CONFLICTS=false" >> "$GITHUB_OUTPUT"
@@ -164,10 +161,6 @@ jobs:
             git --no-pager diff --name-only --diff-filter=U
             git cherry-pick --abort
             echo "HAS_CONFLICTS=true" >> "$GITHUB_OUTPUT"
-          fi
-
-          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
-            cd ..
           fi
 
       - name: Push changes
