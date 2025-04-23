@@ -1,91 +1,85 @@
 ---
 title: Report Approvals
-description: Learn how to set up and enforce expense report approval workflows in Expensify, including multi-level approvals and over-limit expense reviews.
-keywords: [Expensify Classic, report approvals, approval workflow, approver]
+description: Learn how to configure and enforce expense report approval workflows in Expensify Classic, including multi-level approval chains and over-limit expense reviews.
+keywords: [Expensify Classic, report approvals, approval workflows, approver assignments, over-limit expenses, advanced approval]
 ---
 
-Expensify allows Workspace Admins to create automated workflows for expense report approvals. You can choose from three approval modes:
-- **Submit and Close**: Automatically approves reports unless they contain violations.
-- **Submit and Approve**: Sends reports to a single designated approver.
-- **Advanced Approval**: Enables multi-level approvals for complex workflows.
+<div id="expensify-classic" markdown="1">
+
+Expensify Classic lets Workspace Admins build flexible approval workflows for expense reports. You can automate simple approvals or set up detailed chains of command for large organizations.
 
 ---
 
-# Set an Approval Workflow
+# Choose an Approval Mode
 
-1. Navigate to **Settings** > **Workspaces**.
-2. Select the desired workspace.
-3. Click the **Members** tab.
-4. Scroll to the **Approval Mode** section.
-5. Choose an approval mode:
-   - **Submit and Close**: Reports are auto-approved unless they have violations.
-   - **Submit and Approve**: Reports go to a single approver.
-   - **Advanced Approval**: Allows multiple approvers and conditional rules.
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows > Add approvals**.
+2. Choose one of the following modes:
+   - **Submit and Close** – Automatically approves reports unless they contain violations.
+   - **Submit and Approve** – Sends each report to a single assigned approver.
+   - **Advanced Approval** – Supports multi-level approval chains with conditional logic.
 
-You can also set approval rules for specific **categories** and **tags** to enhance your workflow.
+## Enforce Workflow Rules
 
-## Enforce Workflow
-To prevent employees from overriding approval rules, enable **workflow enforcement** in the **Members** tab. Admins can still manually override workflows when needed.
+To prevent employees from bypassing the workflow:
+- In the **Workflows** tab, enable **Workflow Enforcement**.
+- This locks the approval path unless overridden by a Workspace Admin.
 
 ---
 
 # Require Review for Over-Limit Expenses
 
-You can enforce manual review for expenses that exceed a specific limit.
+You can flag high-value expenses for manual review.
 
 ## Set a Manual Approval Rule
-1. Go to **Settings** > **Workspaces**.
-2. Select the workspace.
-3. Click **Members**.
-4. Scroll to **Expense Approvals**.
-5. Enter a limit in **Manually approve all expenses over:**
+
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows**.
+2. Under **Expense approvals**, enter a dollar amount in the **Manually approve all expenses over** field.
 
 ## Assign an Over-Limit Approver
-For Advanced Approval workspaces, you can assign a secondary approver for large expenses.
 
-1. Go to **Settings** > **Workspaces**.
-2. Select the workspace.
-3. Click **Members**.
-4. Click **Settings** next to the member.
-5. In **If report total is over**, enter the limit.
-6. In **Then approves to**, select the secondary approver.
-7. Click **Save**.
+For workspaces using **Advanced Approval**, assign a backup approver for large reports.
+
+1. Go to **Settings > Workspace > [Workspace Name] > Members**.
+2. Click **Settings** next to a member’s name.
+3. In the **If report total is over** field, set a dollar amount.
+4. In the **Then approves to** field, select the backup approver.
+5. Click **Save**.
 
 ---
 
-# Assign Tag and Category Approvers
+# Assign Approvers by Category or Tag
 
-Approvers can be assigned to specific **categories** or **tags** to route expenses accordingly.
+Use categories or tags to send expenses to specialized approvers.
 
 ## Assign a Category Approver
-1. Go to **Settings** > **Workspaces**.
-2. Select the workspace.
-3. Click **Categories**.
-4. Locate the category and click **Edit**.
-5. Assign an approver.
-6. Click **Save**.
+
+1. Go to **Settings > Workspace > [Workspace Name] > Categories**.
+2. Find the category and click **Edit**.
+3. Choose an approver from the list.
+4. Click **Save**.
 
 ## Assign a Tag Approver
-_Tag approvers are supported only for single-level tags._
 
-1. Go to **Settings** > **Workspaces**.
-2. Select the workspace.
-3. Click **Tags**.
-4. Locate the tag and assign an approver.
+**Note:** Tag-based approvers only work with single-level tags.
+
+1. Go to **Settings > Workspace > [Workspace Name] > Tags**.
+2. Select the relevant tag.
+3. Assign an approver.
 
 ---
 
-# Understanding Complex Approval Workflows
+# Understand Complex Approval Workflows
 
 ## Lifecycle of an Expense Report
-1. **Submission**: Reports can be submitted manually or via [Scheduled Submit](https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports).
-2. **Category & Tag Approvers**: If assigned, reports first go to these approvers.
-3. **Approval Mode**: Reports proceed according to the selected workflow:
-   - **Submit & Close**: Auto-closes after submission.
-   - **Submit & Approve**: Goes to a single approver.
-   - **Advanced Approval**: Travels through a chain of assigned approvers.
-4. **Concierge Approval**: If [manual approval](https://help.expensify.com/articles/expensify-classic/reports/Require-review-for-over-limit-expenses) is required, Concierge will approve reports under the limit.
-5. **Final Approval & Export**: Once approved, reports can be exported to an [accounting system](https://help.expensify.com/expensify-classic/hubs/connections/).
+
+1. **Submission** – Reports are submitted manually or via [Delay Submissions](https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports).
+2. **Category & Tag Approvers** – Reports are routed here first, if set.
+3. **Approval Mode** – Determines how the report progresses:
+   - **Submit and Close** – Auto-closes if no violations.
+   - **Submit and Approve** – Goes to one approver.
+   - **Advanced Approval** – Follows a chain of multiple approvers.
+4. **Concierge Approval** – If enabled, Concierge approves reports under the manual limit.
+5. **Final Approval & Export** – Approved reports can be exported to an [accounting system](https://help.expensify.com/expensify-classic/hubs/connections/).
 
 ## Approval Workflow Examples
 
@@ -99,43 +93,48 @@ _Tag approvers are supported only for single-level tags._
 
 # Automate Receipt Audits
 
-**Concierge Receipt Audit** automatically verifies receipts and flags discrepancies.
+**Concierge Receipt Audit** automatically checks receipts for accuracy.
 
-- Available on all **Control** plan workspaces.
+- Available in all **Control** plan workspaces.
 - Cannot be disabled.
-- SmartScan verifies receipt details against entered data.
-- Flagged expenses require manual review.
+- Uses **SmartScan** to compare receipt data to entered amounts.
+- Flags discrepancies for manual review.
 
 ---
 
-# Set a Random Report Audit Schedule
+# Customize Expense Report Auditing
 
-While Expensify automatically flags reports that contain inaccurate or non-compliant expenses for review, you can set a percentage of compliant reports to be audited at random.
+All reports are checked for errors and compliance. You can add manual audits for specific cases.
 
-1. Go to **Settings** > **Workspaces**.
-2. Select the workspace.
-3. Click **Members**.
-4. Scroll to **Expense Approvals**.
-5. In **Randomly route reports for manual approval**, enter a percentage (default: 5%).
-6. Click **Save**.
+To set this up:
+1. Go to **Settings > Workspace > [Workspace Name] > Workflows**.
+2. Under **Expense approvals**, use the **Manually approve all expenses over** field to:
+   - Enter a **dollar amount** to review all expenses above a certain threshold.
+   - Enter a **percentage** to randomly audit that portion of compliant reports.
+3. Click **Save**.
 
 ---
 
 # FAQ
 
 ## Can I disable Concierge Receipt Audit?
-No, this feature is automatically included in Control plan workspaces.
+
+No, this feature is always enabled on Control plan workspaces.
 
 ## Who can access the Reconciliation tab?
+
 Only **Domain Admins** have access.
 
-## What if company card expenses are missing?
+## What if company card expenses are missing from a report?
+
 1. Use the **Reconciliation tool** to locate missing expenses.
-2. Click **Update** next to the card to pull missing transactions.
-3. If expenses are still missing, contact Concierge with:
+2. Click **Update** next to the card to sync transactions.
+3. If transactions are still missing, contact Concierge and share:
    - Merchant name
    - Date
    - Amount
-   - Last four digits of the card number
+   - The last four digits of the card
 
-**Note:** Only posted transactions will be imported.
+**Note:** Only posted credit card transactions will import.
+
+</div>
