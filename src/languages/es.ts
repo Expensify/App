@@ -6746,13 +6746,13 @@ const translations = {
         },
         GBRRBRChat: {
             part1: 'Verás 🟢 en ',
-            part2: 'acciones a realizar',
-            part3: ',\ny 🔴 en ',
-            part4: 'errores para revisar.',
+            part2: 'las acciones a realizar',
+            part3: '\ny 🔴 en ',
+            part4: 'los errores que debes revisar.',
         },
         accountSwitcher: {
             part1: 'Accede a tus ',
-            part2: 'cuentas Copilot',
+            part2: 'cuentas copiloto',
             part3: ' aquí',
         },
         scanTestTooltip: {
