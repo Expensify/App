@@ -138,12 +138,7 @@ function Template(props: MoneyRequestReportPreviewContentProps, {parameters}: {p
     return (
         <ThemeProvider theme={theme}>
             <ThemeStylesProvider>
-                <View
-                    style={[
-                        // {maxWidth: '100%'},
-                        {width: 500},
-                    ]}
-                >
+                <View style={{maxWidth: '100%'}}>
                     <MoneyRequestReportPreviewContent
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}

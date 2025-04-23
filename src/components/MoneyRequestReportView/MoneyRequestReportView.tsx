@@ -147,8 +147,8 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         );
     }
 
-    // Special case handling a report that is a single transaction thread
-    // If true we will use standard ReportActionsView to display report data, anything else is handled via `MoneyRequestReportActionsList`
+    // Special case handling a report that is a transaction thread
+    // If true we will use standard `ReportActionsView` to display report data, anything else is handled via `MoneyRequestReportActionsList`
     const isTransactionThreadView = isReportTransactionThread(report);
 
     return (
