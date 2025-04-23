@@ -7,7 +7,6 @@ import type {EmptyObject} from '@src/types/utils/EmptyObject';
 import type * as Parameters from './parameters';
 import type SignInUserParams from './parameters/SignInUserParams';
 import type UpdateBeneficialOwnersForBankAccountParams from './parameters/UpdateBeneficialOwnersForBankAccountParams';
-import OpenSidePanelParams from './parameters/OpenSidePanelParams';
 
 type ApiRequestType = ValueOf<typeof CONST.API_REQUEST_TYPE>;
 

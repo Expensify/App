@@ -1,9 +1,9 @@
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
+import type {CloseSidePanelParams, OpenSidePanelParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CloseSidePanelParams, OpenSidePanelParams} from '@libs/API/parameters';
 
 /**
  * Open the side panel
