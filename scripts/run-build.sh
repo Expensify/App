@@ -16,7 +16,7 @@ NC='\033[0m'
 function start_repack {
     # Start repack in a new terminal window and activate it
     osascript -e 'tell application "Terminal"
-        do script "cd \"'"$PWD"'\" && npx react-native webpack-start"
+        do script "cd \"'"$PWD"'\" && npx rnef start"
         activate
     end tell'
     

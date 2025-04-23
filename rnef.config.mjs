@@ -1,11 +1,11 @@
 import {platformAndroid} from '@rnef/platform-android';
 import {platformIOS} from '@rnef/platform-ios';
-import {pluginMetro} from '@rnef/plugin-metro';
+import {pluginRepack} from '@rnef/plugin-repack';
 
 /** @type {import('@rnef/config').Config} */
 export default {
     remoteCacheProvider: null,
-    bundler: pluginMetro(),
+    bundler: pluginRepack(),
     platforms: {
         ios: platformIOS(),
         android: platformAndroid(),
