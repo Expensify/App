@@ -10,6 +10,8 @@ import {useSession} from '@components/OnyxProvider';
 import type {TaskListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
@@ -68,6 +70,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const StyleUtils = useStyleUtils();
     const session = useSession();
     const {translate} = useLocalize();
+    const parentReport = useParentReport(taskItem.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
 
     const taskAssigneeID = taskItem.assignee.accountID;
     const taskCreatorID = taskItem.createdBy.accountID;
@@ -102,7 +106,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             success
             text={translate('task.action')}
             style={[styles.w100]}
-            isDisabled={!canActionTask(taskItem.report, session?.accountID, taskCreatorID, taskAssigneeID)}
+            isDisabled={!canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived)}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem, taskItem.reportID);
             })}
