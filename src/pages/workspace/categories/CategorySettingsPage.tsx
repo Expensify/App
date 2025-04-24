@@ -1,3 +1,4 @@
+import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
@@ -62,12 +63,14 @@ function CategorySettingsPage({
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : undefined);
     };
 
+    const isFocused = useIsFocused();
+
     useEffect(() => {
-        if (policyCategory?.name === categoryName || !policyCategory) {
+        if (policyCategory?.name === categoryName || !isFocused) {
             return;
         }
         navigation.setParams({categoryName: policyCategory?.name});
-    }, [categoryName, navigation, policyCategory]);
+    }, [categoryName, navigation, policyCategory?.name, isFocused]);
 
     const flagAmountsOverText = useMemo(() => {
         if (policyCategory?.maxExpenseAmount === CONST.DISABLED_MAX_EXPENSE_VALUE || !policyCategory?.maxExpenseAmount) {
