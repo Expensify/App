@@ -15,6 +15,7 @@ import type Onboarding from '@src/types/onyx/Onboarding';
 import type TryNewDot from '@src/types/onyx/TryNewDot';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {clearInitialPath} from './OnboardingFlow';
+import switchToOldDotOnNonMicroCompanySize from './switchToOldDotOnNonMicroCompanySize';
 
 type OnboardingData = Onboarding | undefined;
 
@@ -245,6 +246,7 @@ export {
     setOnboardingAdminsChatReportID,
     setOnboardingPolicyID,
     completeHybridAppOnboarding,
+    switchToOldDotOnNonMicroCompanySize,
     setOnboardingErrorMessage,
     setOnboardingCompanySize,
     setSelfTourViewed,
