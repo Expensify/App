@@ -348,13 +348,13 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-function hasAnyErrorsOrViolations(report: Report, reportActions: OnyxEntry<ReportActions>, anyReportHasViolations: boolean, hasErrors: boolean, singleTransactionThread?: string) {
+function hasAnyErrorsOrViolations(report: Report, reportActions: OnyxEntry<ReportActions>, hasAnyViolations: boolean, hasErrors: boolean, singleTransactionThread?: string) {
     const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
     if (isArchivedReportWithID(report.reportID)) {
         return false;
     }
 
-    if (anyReportHasViolations) {
+    if (hasAnyViolations) {
         return {
             reason: CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS,
         };

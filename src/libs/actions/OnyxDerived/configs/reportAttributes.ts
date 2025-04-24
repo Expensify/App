@@ -1,8 +1,7 @@
 import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
 import {
-    generateAllReportErrors,
     generateReportName,
-    getAllReportActionsErrorsAndReportActionThatRequiresAttention,
+    getAllReportErrors,
     hasReportViolations,
     isReportOwner,
     isSettled,
@@ -73,8 +72,7 @@ export default createOnyxDerivedValueConfig({
             const doesReportHasViolations = hasReportViolations(report.reportID);
             const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
             const hasAnyViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-            const reportErrors = generateAllReportErrors(report, reportActionsList);
-            const reportActionsErrors = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsList);
+            const reportErrors = getAllReportErrors(report, reportActionsList);
             const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActionsList);
             const parentReportAction = report.parentReportActionID ? reportActionsList?.[report.parentReportActionID] : undefined;
             const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
@@ -91,13 +89,7 @@ export default createOnyxDerivedValueConfig({
 
             acc[report.reportID] = {
                 reportName: generateReportName(report),
-                reportErrors,
-                reportActionsErrors,
-                hasViolationsToDisplayInLHN,
-                hasAnyViolations,
-                oneTransactionThreadReportID,
                 brickRoadStatus,
-                requiresAttention,
             };
 
             return acc;

@@ -7621,7 +7621,7 @@ function getAllReportActionsErrorsAndReportActionThatRequiresAttention(report: O
 /**
  * Get an object of error messages keyed by microtime by combining all error objects related to the report.
  */
-function generateAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
+function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
     const reportErrorFields = report?.errorFields ?? {};
     const {errors: reportActionErrors} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions);
 
@@ -7641,19 +7641,6 @@ function generateAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxE
         }
     }
     return allReportErrors;
-}
-
-function getAllReportErrors(report: OnyxEntry<Report>, reportActions: OnyxEntry<ReportActions>): Errors {
-    if (!report) {
-        return {};
-    }
-    // If errors are already stored in the report attributes, return them
-    if (reportAttributes?.[report.reportID]) {
-        return reportAttributes[report.reportID].reportErrors ?? {};
-    }
-
-    // Otherwise, generate the errors
-    return generateAllReportErrors(report, reportActions);
 }
 
 function hasReportErrorsOtherThanFailedReceipt(report: Report, doesReportHaveViolations: boolean, transactionViolations: OnyxCollection<TransactionViolation[]>) {
@@ -10847,7 +10834,6 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReports,
     isReportOutstanding,
-    generateAllReportErrors,
 };
 
 export type {
