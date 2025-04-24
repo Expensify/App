@@ -99,7 +99,10 @@ type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEv
 
 type ExtendedTargetedEvent = TargetedEvent & {
     /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
-    sourceCapabilities?: unknown;
+    sourceCapabilities?: {
+        /** A boolean value that indicates whether the device dispatches touch events. */
+        firesTouchEvents: boolean;
+    };
 };
 
 type ListItem = {
@@ -398,10 +401,6 @@ type Section<TItem extends ListItem> = {
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
     indexOffset?: number;
-};
-
-type SkeletonViewProps = {
-    shouldAnimate: boolean;
 };
 
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
@@ -731,19 +730,15 @@ export type {
     BaseListItemProps,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
-    CommonListItemProps,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    ItemLayout,
     ListItem,
     ListItemFocusEventHandler,
-    ListItemProps,
     RadioListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
-    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
@@ -751,7 +746,6 @@ export type {
     TransactionListItemProps,
     TransactionListItemType,
     UserListItemProps,
-    ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,

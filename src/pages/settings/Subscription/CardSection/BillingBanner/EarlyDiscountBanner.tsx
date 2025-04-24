@@ -40,8 +40,8 @@ function EarlyDiscountBanner({isSubscriptionPage, GuideBookingButton, TalkToSale
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
 
-    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
-    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, {canBeMissing: true});
+    const [lastDayFreeTrial] = useOnyx(ONYXKEYS.NVP_LAST_DAY_FREE_TRIAL, {canBeMissing: true});
 
     const initialDiscountInfo = getEarlyDiscountInfo();
     const [discountInfo, setDiscountInfo] = useState(initialDiscountInfo);

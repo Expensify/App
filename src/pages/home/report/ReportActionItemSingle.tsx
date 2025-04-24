@@ -105,16 +105,20 @@ function ReportActionItemSingle({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        canBeMissing: true,
+    });
+    const [innerPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+    });
+    const activePolicies = policies ?? innerPolicies;
     const policy = usePolicy(report?.policyID);
     const delegatePersonalDetails = action?.delegateAccountID ? personalDetails?.[action?.delegateAccountID] : undefined;
     const ownerAccountID = iouReport?.ownerAccountID ?? action?.childOwnerAccountID;
     const isReportPreviewAction = action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW;
     const actorAccountID = getReportActionActorAccountID(action, iouReport, report, delegatePersonalDetails);
     const invoiceReceiverPolicy =
-        report?.invoiceReceiver && 'policyID' in report.invoiceReceiver
-            ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`]
-            : policies?.[`${ONYXKEYS.COLLECTION.POLICY}${CONST.DEFAULT_NUMBER_ID}`];
+        report?.invoiceReceiver && 'policyID' in report.invoiceReceiver ? activePolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.invoiceReceiver.policyID}`] : undefined;
 
     let displayName = getDisplayNameForParticipant({accountID: actorAccountID, personalDetailsData: personalDetails});
     const {avatar, login, pendingFields, status, fallbackIcon} = personalDetails?.[actorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? {};

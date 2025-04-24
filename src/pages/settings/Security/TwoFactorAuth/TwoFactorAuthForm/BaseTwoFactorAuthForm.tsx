@@ -21,7 +21,7 @@ type BaseTwoFactorAuthFormProps = {
 function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwoFactorAuthFormProps, ref: ForwardedRef<BaseTwoFactorAuthFormRef>) {
     const {translate} = useLocalize();
     const [formError, setFormError] = useState<{twoFactorAuthCode?: string}>({});
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [twoFactorAuthCode, setTwoFactorAuthCode] = useState('');
     const inputRef = useRef<MagicCodeInputHandle | null>(null);
     const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
@@ -88,7 +88,6 @@ function BaseTwoFactorAuthForm({autoComplete, validateInsteadOfDisable}: BaseTwo
             onFulfill={validateAndSubmitForm}
             errorText={formError.twoFactorAuthCode ?? getLatestErrorMessage(account)}
             ref={inputRef}
-            shouldDelayFocus
         />
     );
 }
