@@ -245,6 +245,7 @@ function FeatureTrainingModal({
                             controlsStatus={CONST.VIDEO_PLAYER.CONTROLS_STATUS.HIDE}
                             shouldUseControlsBottomMargin={false}
                             shouldPlay
+                            reportID="welcome-video"
                             isLooping
                         />
                     </GestureHandlerRootView>
