@@ -4351,6 +4351,7 @@ const translations = {
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
+            notSync: 'No sincronizado',
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
