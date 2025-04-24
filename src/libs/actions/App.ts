@@ -100,7 +100,7 @@ Onyx.connect({
 
 let preservedShouldUseStagingServer: boolean | undefined;
 Onyx.connect({
-    key: ONYXKEYS.USER,
+    key: ONYXKEYS.ACCOUNT,
     callback: (value) => {
         preservedShouldUseStagingServer = value?.shouldUseStagingServer;
     },
@@ -617,7 +617,7 @@ function clearOnyxAndResetApp(shouldNavigateToHomepage?: boolean) {
             }
 
             if (shouldUseStagingServer) {
-                Onyx.set(ONYXKEYS.USER, {shouldUseStagingServer});
+                Onyx.set(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
             }
         })
         .then(() => {

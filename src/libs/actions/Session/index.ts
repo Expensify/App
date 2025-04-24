@@ -612,7 +612,7 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
                     classicRedirect: {completedHybridAppOnboarding},
                     nudgeMigration: nudgeMigrationTimestamp ? {timestamp: new Date(nudgeMigrationTimestamp)} : undefined,
                 },
-                [ONYXKEYS.USER]: {shouldUseStagingServer: isStaging},
+                [ONYXKEYS.ACCOUNT]: {shouldUseStagingServer: isStaging},
             }).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {primaryLogin, requiresTwoFactorAuth, needsTwoFactorAuthSetup})),
         )
         .then(() => {

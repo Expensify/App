@@ -187,20 +187,20 @@ function requestContactMethodValidateCode(contactMethod: string) {
 }
 
 /**
- * Sets whether the user is subscribed to Expensify news
+ * Sets whether the user account is subscribed to Expensify news
  */
 function updateNewsletterSubscription(isSubscribed: boolean) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
+            key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: isSubscribed},
         },
     ];
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
+            key: ONYXKEYS.ACCOUNT,
             value: {isSubscribedToNewsletter: !isSubscribed},
         },
     ];
@@ -614,13 +614,6 @@ function validateSecondaryLogin(loginList: OnyxEntry<LoginList>, contactMethod: 
             key: ONYXKEYS.ACCOUNT,
             value: {
                 isLoading: false,
-                validated: true,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.USER,
-            value: {
                 validated: true,
             },
         },
@@ -1113,7 +1106,7 @@ function setShouldUseStagingServer(shouldUseStagingServer: boolean) {
     if (CONFIG.IS_HYBRID_APP) {
         HybridAppModule.shouldUseStaging(shouldUseStagingServer);
     }
-    Onyx.merge(ONYXKEYS.USER, {shouldUseStagingServer});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {shouldUseStagingServer});
 }
 
 function togglePlatformMute(platform: Platform, mutedPlatforms: Partial<Record<Platform, true>>) {
@@ -1479,7 +1472,7 @@ function requestRefund() {
 }
 
 function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
-    Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
+    Onyx.merge(ONYXKEYS.ACCOUNT, {isDebugModeEnabled});
 }
 
 export {

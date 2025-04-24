@@ -52,7 +52,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -195,7 +195,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     if (!shouldUseNarrowLayout && canUseLeftHandBar) {
         return (
             <>
-                {!!user?.isDebugModeEnabled && (
+                {!!account?.isDebugModeEnabled && (
                     <DebugTabView
                         selectedTab={selectedTab}
                         chatTabBrickRoad={chatTabBrickRoad}
@@ -304,7 +304,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
 
     return (
         <>
-            {!!user?.isDebugModeEnabled && (
+            {!!account?.isDebugModeEnabled && (
                 <DebugTabView
                     selectedTab={selectedTab}
                     chatTabBrickRoad={chatTabBrickRoad}
