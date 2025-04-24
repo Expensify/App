@@ -4,7 +4,6 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
 import DecisionModal from '@components/DecisionModal';
-import HeaderGap from '@components/HeaderGap';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
@@ -13,8 +12,8 @@ import TopBar from '@components/Navigation/TopBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Search from '@components/Search';
 import {useSearchContext} from '@components/Search/SearchContext';
-import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import type {SearchHeaderOptionValue} from '@components/Search/SearchPageHeader/SearchPageHeader';
+import SearchPageHeader from '@components/Search/SearchPageHeader/SearchPageHeader';
 import SearchStatusBar from '@components/Search/SearchPageHeader/SearchStatusBar';
 import type {PaymentData} from '@components/Search/types';
 import {usePlaybackContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -458,7 +457,6 @@ function SearchPage({route}: SearchPageProps) {
                         <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             {queryJSON ? (
                                 <View style={styles.flex1}>
-                                    <HeaderGap />
                                     <TopBar
                                         shouldShowLoadingBar={shouldShowLoadingState}
                                         activeWorkspaceID={policyID}
