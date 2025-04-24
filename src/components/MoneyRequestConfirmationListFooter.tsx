@@ -288,7 +288,7 @@ function MoneyRequestConfirmationListFooter({
     const policyID = selectedParticipants?.at(0)?.policyID;
     const reportOwnerAccountID = selectedParticipants?.at(0)?.accountID;
     const shouldUseTransactionReport = !!transactionReport && isReportOutstanding(transactionReport, policyID);
-    const firstOutstandingReport = getOutstandingReports(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
+    const firstOutstandingReport = getOutstandingReportsForUser(policyID, reportOwnerAccountID, allReports ?? {}).at(0);
     let reportName: string | undefined;
     if (shouldUseTransactionReport) {
         reportName = transactionReport.reportName;

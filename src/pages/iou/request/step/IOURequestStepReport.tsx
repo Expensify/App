@@ -54,7 +54,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const transactionReport = Object.values(allReports ?? {}).find(
         (report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID,
     );
-    const expenseReports = getOutstandingReports(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
+    const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];

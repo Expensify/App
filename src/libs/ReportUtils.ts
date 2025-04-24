@@ -3866,7 +3866,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     }
 
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
-        return getOutstandingReports(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 0;
+        return getOutstandingReportsForUser(moneyRequestReport?.policyID, moneyRequestReport?.ownerAccountID, allReports ?? {}).length > 0;
     }
 
     return true;
@@ -9556,7 +9556,7 @@ function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: stri
  * @param reports - Collection of reports to filter
  * @returns Array of outstanding expense reports sorted by name
  */
-function getOutstandingReports(policyID: string | undefined, reportOwnerAccountID: number | undefined, reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+function getOutstandingReportsForUser(policyID: string | undefined, reportOwnerAccountID: number | undefined, reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
     if (!reports) {
         return [];
     }
