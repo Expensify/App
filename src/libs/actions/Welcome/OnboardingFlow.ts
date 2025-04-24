@@ -9,8 +9,8 @@ import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type Onboarding from '@src/types/onyx/Onboarding';
 import type Account from '@src/types/onyx/Account';
+import type Onboarding from '@src/types/onyx/Onboarding';
 
 let onboardingInitialPath = '';
 const onboardingLastVisitedPathConnection = Onyx.connect({
