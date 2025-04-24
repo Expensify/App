@@ -383,7 +383,7 @@ const makeTwoPartCallback = () => {
 
             result.title = result.title.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
             result.titleNoFormatting = result.titleNoFormatting.replace(`- ${ogSiteName}`, `• ${newOgSiteName}`);
-            if (!result.title.includes(newOgSiteName)) {
+            if (!result.title.endsWith(` • ${newOgSiteName}`)) {
                 result.title = result.title + ` • ${newOgSiteName}`;
             }
             customResults.push(result);
