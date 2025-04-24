@@ -39,8 +39,7 @@ type WorkspaceNewRoomPageHandle = {
     focus: () => void;
 };
 
-// @ts-expect-error - props not used
-function WorkspaceNewRoomPage(props, ref: React.Ref<WorkspaceNewRoomPageHandle>) {
+function WorkspaceNewRoomPage(_: unknown, ref: React.Ref<WorkspaceNewRoomPageHandle>) {
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {translate} = useLocalize();
@@ -58,7 +57,7 @@ function WorkspaceNewRoomPage(props, ref: React.Ref<WorkspaceNewRoomPageHandle>)
     const isIOSNative = getPlatform() === CONST.PLATFORM.IOS;
     // We're disabling the useAutoFocusInput functionality on iOS native because we're using the new `onPageSelected` focus method in `NewChatSelectorPage`, otherwise keeping it to align the behavior on all platforms
     const {inputCallbackRef} = useAutoFocusInput(undefined, isIOSNative);
-    const roomPageInputRef = useRef<AnimatedTextInputRef>(null);
+    const roomPageInputRef = useRef<AnimatedTextInputRef | null>(null);
 
     const inputRefHandler = useCallback(
         (inputRef: AnimatedTextInputRef) => {
@@ -66,7 +65,6 @@ function WorkspaceNewRoomPage(props, ref: React.Ref<WorkspaceNewRoomPageHandle>)
                 return;
             }
             inputCallbackRef(inputRef);
-            // @ts-expect-error - inputRef.current is not read-only
             roomPageInputRef.current = inputRef;
         },
         [inputCallbackRef],

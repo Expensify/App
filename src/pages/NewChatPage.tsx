@@ -138,8 +138,7 @@ type NewChatPageHandle = {
     selectionList: SelectionListHandle | null;
 };
 
-// @ts-expect-error - props not used
-function NewChatPage(props, ref: React.Ref<NewChatPageHandle>) {
+function NewChatPage(_: unknown, ref: React.Ref<NewChatPageHandle>) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to show offline indicator on small screen only
