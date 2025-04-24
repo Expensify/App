@@ -1,6 +1,5 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
@@ -33,7 +32,6 @@ function TransactionItemRow({
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
     shouldHighlight,
-    scrollToTransactionRow,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -43,7 +41,6 @@ function TransactionItemRow({
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
     shouldHighlight?: boolean;
-    scrollToTransactionRow?: ((event: LayoutChangeEvent) => void) | undefined;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -63,10 +60,7 @@ function TransactionItemRow({
     const {selectionMode} = useMobileSelectionMode();
 
     return (
-        <View
-            style={[styles.flex1]}
-            onLayout={scrollToTransactionRow}
-        >
+        <View style={[styles.flex1]}>
             {shouldUseNarrowLayout ? (
                 <Animated.View style={[animatedHighlightStyle]}>
                     <Hoverable>

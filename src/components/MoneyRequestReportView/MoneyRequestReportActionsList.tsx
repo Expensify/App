@@ -499,7 +499,6 @@ function MoneyRequestReportActionsList({report, policy, reportActions = [], tran
                                     transactions={transactions}
                                     reportActions={reportActions}
                                     hasComments={reportHasComments}
-                                    scrollToOffset={reportScrollManager.scrollToOffset}
                                 />
                             </>
                         }
