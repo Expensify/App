@@ -35,6 +35,7 @@ Select the officially supported platforms where the issue was reproduced:
 - [ ] Android: mWeb Chrome
 - [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
@@ -47,6 +48,7 @@ On which of our officially supported platforms was this issue tested:
 - [ ] Android: mWeb Chrome
 - [ ] iOS: App
 - [ ] iOS: mWeb Safari
+- [ ] iOS: mWeb Chrome
 - [ ] Windows: Chrome
 - [ ] MacOS: Chrome / Safari
 - [ ] MacOS: Desktop
