@@ -38,16 +38,13 @@ function TestToolsModal() {
     const isAuthenticated = useIsAuthenticated();
     const route = getRouteBasedOnAuthStatus(isAuthenticated, activeRoute);
 
-    if (!isTestToolsModalOpen) {
-        return null;
-    }
-
     return (
         <Modal
             isVisible={!!isTestToolsModalOpen}
             type={shouldUseNarrowLayout ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CENTERED_SMALL}
             onClose={toggleTestToolsModal}
             innerContainerStyle={styles.overflowHidden}
+            shouldUseNewModal
         >
             <ScrollView
                 contentContainerStyle={[StyleUtils.getTestToolsModalStyle(windowWidth), shouldUseNarrowLayout && {...styles.w100, ...styles.pv0}]}
