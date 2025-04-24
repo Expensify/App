@@ -644,7 +644,7 @@ function MoneyRequestConfirmationList({
                     hideFocusedState={false}
                     hideCurrencySymbol
                     formatAmountOnBlur
-                    prefixContainerStyle={[styles.pv0]}
+                    prefixContainerStyle={[styles.pv0, styles.h100]}
                     inputStyle={[styles.optionRowAmountInput]}
                     containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
@@ -666,6 +666,7 @@ function MoneyRequestConfirmationList({
         styles.flexWrap,
         styles.pl2,
         styles.pr1,
+        styles.h100,
         styles.textLabel,
         styles.pv0,
         styles.optionRowAmountInput,
