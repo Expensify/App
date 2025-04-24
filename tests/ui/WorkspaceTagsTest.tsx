@@ -23,7 +23,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 jest.mock('@components/ConfirmedRoute.tsx');
 
-jest.unmock('react-native-reanimated')
+jest.unmock('react-native-reanimated');
 
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
