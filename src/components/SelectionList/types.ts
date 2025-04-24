@@ -151,7 +151,7 @@ type ListItem = {
     icons?: Icon[];
 
     /** Errors that this user may contain */
-    errors?: Errors | ReceiptErrors;
+    errors?: Errors;
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
