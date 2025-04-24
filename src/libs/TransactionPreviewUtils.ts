@@ -17,6 +17,7 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getFormattedCreated,
+    getTransaction,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -101,22 +102,28 @@ const getReviewNavigationRoute = (
     return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
 };
 
-const sumUpSplits = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
-    const splits = transaction?.comment?.splits;
-
-    if (!splits?.length) {
-        return 0;
-    }
-
-    return splits.reduce((sum, split) => sum + (split?.amount ?? 0), 0);
-};
-
 type TranslationPathOrText = {
     translationPath?: TranslationPaths;
     text?: string;
 };
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, originalTransaction: transaction};
+    }
+
+    const originalTransaction = getTransaction(originalTransactionID);
+
+    return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
+};
 
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
@@ -234,7 +241,7 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    const amount = isBillSplit ? sumUpSplits(transaction) : requestAmount;
+    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
     let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
@@ -328,5 +335,5 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals};
+export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals, getOriginalTransactionIfBillIsSplit};
 export type {TranslationPathOrText};
