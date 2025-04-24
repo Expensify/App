@@ -109,7 +109,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
             featureName={CONST.POLICY.MORE_FEATURES.ARE_WORKFLOWS_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={WorkspaceAutoReportingFrequencyPage.displayName}
             >
                 <FullPageNotFoundView
@@ -117,6 +117,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                     onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
                     shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy) || !PolicyUtils.isPaidGroupPolicy(policy)}
                     subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
+                    addBottomSafeAreaPadding
                 >
                     <HeaderWithBackButton
                         title={translate('workflowsPage.submissionFrequency')}
@@ -135,6 +136,7 @@ function WorkspaceAutoReportingFrequencyPage({policy, route}: WorkspaceAutoRepor
                             onSelectRow={onSelectAutoReportingFrequency}
                             initiallyFocusedOptionKey={autoReportingFrequency}
                             shouldUpdateFocusedIndex
+                            addBottomSafeAreaPadding
                         />
                     </OfflineWithFeedback>
                 </FullPageNotFoundView>

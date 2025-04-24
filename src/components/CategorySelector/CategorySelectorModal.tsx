@@ -43,7 +43,7 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableKeyboardAvoidingView={false}
                 testID={CategorySelectorModal.displayName}
             >
@@ -56,7 +56,8 @@ function CategorySelectorModal({policyID, isVisible, currentCategory, onCategory
                     policyID={policyID}
                     selectedCategory={currentCategory}
                     onSubmit={onCategorySelected}
-                    enableEdgeToEdgeBottomSafeAreaPadding
+                    contentContainerStyle={styles.pb5}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>
