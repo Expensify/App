@@ -1,4 +1,6 @@
 import type {OnyxEntry} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import type CONST from '@src/CONST';
 import type {ReportAction} from '.';
 import type {ErrorFields, Errors} from './OnyxCommon';
 
@@ -39,6 +41,10 @@ type ReportAttributes = {
      * The ID of the one transaction thread report.
      */
     oneTransactionThreadReportID: string | undefined;
+    /**
+     * The status of the brick road.
+     */
+    brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
 };
 
 export default ReportAttributes;
