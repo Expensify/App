@@ -443,6 +443,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
                     errors: null,
+                    isSuccess: true,
                 },
             },
         ],
@@ -453,6 +454,7 @@ function createCorpayBankAccount(fields: ReimbursementAccountForm, policyID: str
                 value: {
                     isLoading: false,
                     isCreateCorpayBankAccount: false,
+                    isSuccess: false,
                 },
             },
         ],

@@ -51,13 +51,18 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors || reimbursementAccount?.isSuccess === false) {
+        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors) {
             return;
         }
 
-        onSubmit();
-        return () => clearReimbursementAccountBankCreation();
+        if (reimbursementAccount?.isSuccess === true) {
+            onSubmit();
+        }
     }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+
+    useEffect(() => {
+        return () => clearReimbursementAccountBankCreation();
+    }, []);
 
     useEffect(() => {
         if (country === '') {
