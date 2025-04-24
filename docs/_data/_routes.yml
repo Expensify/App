@@ -11,7 +11,7 @@ platforms:
     url: www.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-old-dot.svg
-  
+
     # Hubs are comprised of subcategories and articles. Subcategories contain multiple related articles, but there can be standalone articles as well
     hubs:
       - href: getting-started
@@ -38,7 +38,7 @@ platforms:
         title: Domains
         icon: /assets/images/domains.svg
         description: Claim and verify your company’s domain to access additional management and security features.
-      
+
       - href: bank-accounts-and-payments
         title: Bank Accounts & Payments
         icon: /assets/images/send-money.svg
@@ -88,8 +88,8 @@ platforms:
         title: Travel
         icon: /assets/images/plane.svg
         description: Manage all your corporate travel needs with Expensify Travel.
-     
-        
+
+
   - href: new-expensify
     title: New Expensify
     hub-title: New Expensify - Help & Resources
@@ -97,7 +97,7 @@ platforms:
     url: new.expensify.com
     description: "Your account settings look like this:"
     image: /assets/images/settings-new-dot.svg
-  
+
     hubs:
       - href: getting-started
         title: Getting Started
@@ -113,7 +113,7 @@ platforms:
         title: Workspaces
         icon: /assets/images/shield.svg
         description: Configure rules, settings, and limits for your company’s spending.
-      
+
       - href: reports-and-expenses
         title: Reports & Expenses
         icon: /assets/images/envelope-receipt.svg
@@ -128,12 +128,12 @@ platforms:
         title: Connect Credit Cards
         icon: /assets/images/bank-card.svg
         description: Track credit card transactions and reconcile company cards.
-        
+
       - href: expensify-card
         title: Expensify Card
         icon: /assets/images/hand-card.svg
         description: Explore the perks and benefits of the Expensify Card.
-      
+
       - href: travel
         title: Travel
         icon: /assets/images/plane.svg
@@ -148,9 +148,13 @@ platforms:
         title: Settings
         icon: /assets/images/gears.svg
         description: Manage profile settings and notifications.
-        
+
       - href: billing-and-subscriptions
         title: Expensify Billing & Subscriptions
         icon: /assets/images/subscription-annual.svg
         description: Review Expensify's subscription options, plan types, and payment methods.
-        
+
+      - href: search-overview
+        title: Search Functionality in New Expensify
+        icon: /assets/images/magnifying-glass.svg
+        description: Search feature overview.
