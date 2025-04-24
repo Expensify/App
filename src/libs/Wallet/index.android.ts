@@ -12,8 +12,10 @@ import type {Card, CardAddedToWallet} from '@src/types/onyx';
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
+let isWalletScreenOpen: boolean;
 
-function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
+function handleAddCardToWallet(card: Card, cardHolderName: string, cardDescription: string, onFinished?: () => void) {
+    isWalletScreenOpen = false;
     Onyx.connect({
         key: ONYXKEYS.CARD_ADDED_TO_WALLET,
         callback: addToGoogleWalletCallback(cardHolderName, onFinished),
@@ -45,6 +47,10 @@ function addToGoogleWalletCallback(cardHolderName: string, onFinished?: () => vo
                 phoneNumber: value.userAddress.phone,
             },
         };
+        if (isWalletScreenOpen) {
+            return;
+        }
+        isWalletScreenOpen = true;
         addCardToGoogleWallet(cardData)
             .then(() => {
                 Log.info('Card added to wallet');
@@ -63,11 +69,9 @@ function isCardInWallet(card: Card): Promise<boolean> {
     if (!tokenRefId) {
         return Promise.resolve(false);
     }
-
     return getCardStatusByIdentifier(tokenRefId, CONST.COMPANY_CARDS.CARD_TYPE.VISA)
         .then((status: CardStatus) => {
             Log.info(`Card status: ${status}`);
-
             return status === 'active';
         })
         .catch((error) => {

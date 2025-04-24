@@ -4,12 +4,14 @@ import {View} from 'react-native';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import {checkIfWalletIsAvailable, handleAddCardToWallet, isCardInWallet} from '@libs/Wallet/index';
+import CONST from '@src/CONST';
 import type AddToWalletButtonProps from './types';
 
 function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}: AddToWalletButtonProps) {
     const [isWalletAvailable, setIsWalletAvailable] = React.useState<boolean>(false);
     const [isInWallet, setIsInWallet] = React.useState<boolean | null>(null);
     const {translate} = useLocalize();
+    const isCardAvailable = card.state === CONST.EXPENSIFY_CARD.STATE.OPEN;
 
     const checkIfCardIsInWallet = useCallback(() => {
         isCardInWallet(card)
@@ -26,10 +28,17 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
     }, [card, cardDescription, cardHolderName, checkIfCardIsInWallet]);
 
     useEffect(() => {
+        if (!isCardAvailable) {
+            return;
+        }
         checkIfCardIsInWallet();
-    }, [checkIfCardIsInWallet]);
+    }, [checkIfCardIsInWallet, isCardAvailable]);
 
     useEffect(() => {
+        if (!isCardAvailable) {
+            return;
+        }
+
         checkIfWalletIsAvailable()
             .then((result) => {
                 setIsWalletAvailable(result);
@@ -37,9 +46,9 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
             .catch(() => {
                 setIsWalletAvailable(false);
             });
-    }, []);
+    }, [isCardAvailable]);
 
-    if (!isWalletAvailable || isInWallet == null) {
+    if (!isWalletAvailable || isInWallet == null || !isCardAvailable) {
         return null;
     }
 
