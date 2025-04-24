@@ -86,8 +86,12 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
-function getSetupCategoriesOnboardingData(): OnyxData {
-    return getFinishOnboardingTaskOnyxData('setupCategories');
+function appendSetupCategoriesOnboardingData(onyxData: OnyxData) {
+    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
+    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
+    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
+    return onyxData;
 }
 
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
@@ -364,10 +368,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
-    const finishOnboardingTaskData = getSetupCategoriesOnboardingData();
-    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
-    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
-    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
+    appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
@@ -600,10 +601,7 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
 
 function createPolicyCategory(policyID: string, categoryName: string) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
-    const finishOnboardingTaskData = getSetupCategoriesOnboardingData();
-    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
-    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
-    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
+    appendSetupCategoriesOnboardingData(onyxData);
     const parameters = {
         policyID,
         categories: JSON.stringify([{name: categoryName}]),
@@ -1011,10 +1009,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
-    const finishOnboardingTaskData = getSetupCategoriesOnboardingData();
-    onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
-    onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
-    onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
+    appendSetupCategoriesOnboardingData(onyxData);
     if (shouldDisableRequiresCategory) {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
