@@ -8,6 +8,7 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
 import Text from '@components/Text';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
@@ -47,6 +48,11 @@ function TransactionStartDateStep({policyID, feed, backTo}: TransactionStartDate
         }
         setAssignCardStepAndData({currentStep: CONST.COMPANY_CARD.STEP.CARD});
     };
+
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const handleSelectDateOption = (dateOption: string) => {
         setDateOptionSelected(dateOption);

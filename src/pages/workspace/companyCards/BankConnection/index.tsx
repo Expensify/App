@@ -8,6 +8,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useCardFeeds from '@hooks/useCardFeeds';
+import useHandleBackButton from '@hooks/useHandleBackButton';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
@@ -90,6 +91,11 @@ function BankConnection({policyID: policyIDFromProps, feed, route}: BankConnecti
         }
         setAddNewCompanyCardStepAndData({step: CONST.COMPANY_CARDS.STEP.SELECT_FEED_TYPE});
     };
+
+    useHandleBackButton(() => {
+        handleBackButtonPress();
+        return true;
+    });
 
     const CustomSubtitle = (
         <Text style={[styles.textAlignCenter, styles.textSupporting]}>
