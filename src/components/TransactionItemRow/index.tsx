@@ -7,6 +7,7 @@ import Hoverable from '@components/Hoverable';
 import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -59,6 +60,8 @@ function TransactionItemRow({
         backgroundColor: theme.highlightBG,
     });
 
+    const {selectionMode} = useMobileSelectionMode();
+
     return (
         <View
             style={[styles.flex1]}
@@ -70,6 +73,17 @@ function TransactionItemRow({
                         {(hovered) => (
                             <View style={[styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3, hovered && styles.hoveredComponentBG, isSelected && styles.buttonDefaultBG]}>
                                 <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
+                                    {!!selectionMode?.isEnabled && (
+                                        <View style={[styles.mr2, styles.justifyContentCenter]}>
+                                            <Checkbox
+                                                onPress={() => {
+                                                    onCheckboxPress(transactionItem.transactionID);
+                                                }}
+                                                accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                                isChecked={isSelected}
+                                            />
+                                        </View>
+                                    )}
                                     <View style={[styles.mr3]}>
                                         <ReceiptCell
                                             transactionItem={transactionItem}
