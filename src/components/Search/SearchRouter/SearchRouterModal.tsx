@@ -35,8 +35,6 @@ function SearchRouterModal() {
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
-            // statusBarTranslucent={false}
-            // navigationBarTranslucent={false}
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapperContainer
