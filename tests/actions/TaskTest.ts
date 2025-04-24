@@ -26,23 +26,28 @@ describe('actions/Task', () => {
     describe('canModify and canAction tasl', () => {
         const managerAccountID = 1;
         const employeeAccountID = 2;
+        const taskAssigneeAccountID = 3;
 
-        // Report with a non-archived parent
+        // TaskReport with a non-archived parent
         const taskReport = {...LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK};
         const taskReportParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
-        // Cancelled report with a non-archived parent
+        // Cancelled Task report with a non-archived parent
         const taskReportCancelled = {...LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK};
         const taskReportCancelledParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
-        // Report with an archived parent
+        // Task report with an archived parent
         const taskReportArchived = {...LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK};
         const taskReportArchivedParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+
+        // This report has no parent
+        const taskReportWithNoParent = {...LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]), type: CONST.REPORT.TYPE.TASK};
 
         // Set the manager as the owner of each report
         taskReport.ownerAccountID = managerAccountID;
         taskReportCancelled.ownerAccountID = managerAccountID;
         taskReportArchived.ownerAccountID = managerAccountID;
+        taskReportWithNoParent.ownerAccountID = managerAccountID;
 
         // Set the parent report ID of each report
         taskReport.parentReportID = taskReportParent.reportID;
@@ -59,6 +64,7 @@ describe('actions/Task', () => {
             initOnyxDerivedValues();
 
             // Store all the necessary data in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportWithNoParent.reportID}`, taskReportWithNoParent);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportParent.reportID}`, taskReportParent);
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
@@ -109,12 +115,67 @@ describe('actions/Task', () => {
                 expect(canActionTask(taskReport, employeeAccountID)).toBe(false);
             });
 
-            it('returns true if the user modifying the task is the author and the parent report is not archived or cancelled', () => {
+            it('returns true if the user modifying the task is the author', () => {
                 expect(canActionTask(taskReport, managerAccountID)).toBe(true);
             });
 
-            it('returns true if the user modifying the task is assigned to the task author and the parent report is archived or cancelled', () => {
-                expect(canActionTask(taskReportCancelled, managerAccountID)).toBe(true);
+            // The third parameter of canActionTask is the accountID of the user who is assigned to the task
+            // and is used when the task report has no parent
+            describe('testing the third parameter', () => {
+                it('returns true if the report has no parent and the third parameter is the same as the second', () => {
+                    expect(canActionTask(taskReportWithNoParent, managerAccountID, managerAccountID)).toBe(true);
+                });
+
+                it('returns false if the report has no parent, the logged on user is not the author or assignee', () => {
+                    expect(canActionTask(taskReportWithNoParent, employeeAccountID, 0)).toBe(false);
+                });
+
+                it('returns false if the report has no parent, the logged on user is not the author or assignee', () => {
+                    expect(canActionTask(taskReportWithNoParent, employeeAccountID, managerAccountID)).toBe(false);
+                });
+            });
+
+            // When the third parameter is not passed, the function uses childManagerAccountID of the parent report action
+            // to indicate the user assigned to the task
+            describe('testing without the third parameter and report action', () => {
+                beforeAll(async () => {
+                    taskReport.parentReportActionID = 'a1';
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+
+                    // Given that the task is assigned to a user who is not the author of the task
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${taskReport.parentReportID}`, {
+                        a1: {
+                            ...LHNTestUtils.getFakeReportAction(),
+                            reportID: taskReport.parentReportID,
+                            childManagerAccountID: taskAssigneeAccountID,
+                        },
+                    });
+                });
+
+                it('returns false if the logged in user is not the author or the one assigned to the task', () => {
+                    expect(canActionTask(taskReport, employeeAccountID)).toBe(false);
+                });
+
+                it('returns true if the logged in user is the one assigned to the task', () => {
+                    expect(canActionTask(taskReport, taskAssigneeAccountID)).toBe(true);
+                });
+            });
+
+            // When the third parameter is not passed, the function uses report.managerID
+            // to indicate the user assigned to the task
+            describe('testing without the third parameter and report.managerId', () => {
+                beforeAll(async () => {
+                    taskReport.managerID = taskAssigneeAccountID;
+                    await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
+                });
+
+                it('returns false if the logged in user is not the author or the one assigned to the task', () => {
+                    expect(canActionTask(taskReport, employeeAccountID)).toBe(false);
+                });
+
+                it('returns true if the logged in user is the one assigned to the task', () => {
+                    expect(canActionTask(taskReport, taskAssigneeAccountID)).toBe(true);
+                });
             });
         });
     });

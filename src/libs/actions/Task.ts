@@ -988,6 +988,7 @@ function getParentReportAction(report: OnyxEntry<OnyxTypes.Report>): OnyxEntry<R
     if (!report?.parentReportID || !report.parentReportActionID) {
         return undefined;
     }
+
     return allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.parentReportID}`]?.[report.parentReportActionID];
 }
 
