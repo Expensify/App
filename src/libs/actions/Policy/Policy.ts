@@ -102,7 +102,6 @@ import type {
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
-import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
@@ -2408,15 +2407,17 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
-function updateCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
+function updateCustomField(policyID: string, login: string, customFieldType: keyof typeof CONST.CUSTOM_FIELD_KEYS, value: string) {
+    const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const policy = getPolicy(policyID);
-    const previousValue = policy?.employeeList?.[login]?.[customFieldType];
+    const previousValue = policy?.employeeList?.[login]?.[customFieldKey];
+
     const optimisticData: OnyxUpdate[] = [
         {
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                employeeList: {[login]: {[customFieldType]: value, pendingFields: {[customFieldType]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
+                employeeList: {[login]: {[customFieldKey]: value, pendingFields: {[customFieldKey]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}}},
             },
         },
     ];
@@ -2425,7 +2426,7 @@ function updateCustomField(policyID: string, login: string, customFieldType: Cus
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                employeeList: {[login]: {pendingFields: {[customFieldType]: null}}},
+                employeeList: {[login]: {pendingFields: {[customFieldKey]: null}}},
             },
         },
     ];
@@ -2434,11 +2435,12 @@ function updateCustomField(policyID: string, login: string, customFieldType: Cus
             key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
             onyxMethod: Onyx.METHOD.MERGE,
             value: {
-                employeeList: {[login]: {[customFieldType]: previousValue, pendingFields: {[customFieldType]: null}}},
+                employeeList: {[login]: {[customFieldKey]: previousValue, pendingFields: {[customFieldKey]: null}}},
             },
         },
     ];
-    const params = {policyID, employees: [{email: login, [customFieldType]: value}]};
+
+    const params = {policyID, employees: JSON.stringify([{email: login, [customFieldType]: value}])};
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS, params, {optimisticData, successData, failureData});
 }

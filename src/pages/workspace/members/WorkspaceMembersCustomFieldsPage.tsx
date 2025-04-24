@@ -60,7 +60,7 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
                 enabledWhenOffline
                 submitButtonText={translate('common.save')}
                 onSubmit={() => {
-                    updateCustomField(params.policyID, memberLogin, customFieldKey, customField ?? '');
+                    updateCustomField(params.policyID, memberLogin, customFieldType, customField ?? '');
                     goBack();
                 }}
             >
