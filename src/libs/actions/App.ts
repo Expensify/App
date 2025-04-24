@@ -259,11 +259,6 @@ function getOnyxDataForOpenOrReconnect(isOpenApp = false, isFullReconnect = fals
                 key: ONYXKEYS.IS_LOADING_REPORT_DATA,
                 value: true,
             },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.HAS_LOADED_APP,
-                value: false,
-            },
         ],
         successData: [],
         finallyData: [

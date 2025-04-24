@@ -97,7 +97,9 @@ function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
 }
 function clearQueueFlushedData() {
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, []);
+    Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, null).then(() => {
+        Log.info('[SequentialQueue] QueueFlushedData has been cleared.');
+    });
 }
 
 /**
