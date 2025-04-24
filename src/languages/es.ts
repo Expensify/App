@@ -5140,9 +5140,9 @@ const translations = {
                 return `actualizó la categoría "${categoryName}" añadiendo un Código de Nómina de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código de nómina (previamente "${oldValue}")`;
+                return `actualizó la categoría "${categoryName}" eliminando el código de Nómina (previamente "${oldValue}")`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el código de nómina a ${newValue} (previamente "${oldValue}")`;
+            return `actualizó la categoría "${categoryName}" cambiando el código de Nómina a ${newValue} (previamente "${oldValue}")`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
