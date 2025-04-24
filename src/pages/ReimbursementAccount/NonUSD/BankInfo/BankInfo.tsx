@@ -3,7 +3,6 @@ import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
