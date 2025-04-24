@@ -43,7 +43,7 @@ function promptToOpenInDesktopApp(initialUrl = '') {
 function DeeplinkWrapper({children, isAuthenticated, autoAuthState, initialUrl}: DeeplinkWrapperProps) {
     const [currentScreen, setCurrentScreen] = useState<string | undefined>();
     const [hasShownPrompt, setHasShownPrompt] = useState(false);
-    const removeListener = useRef<() => void>();
+    const removeListener = useRef<(() => void) | undefined>(undefined);
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
     const isActingAsDelegateRef = useRef(isActingAsDelegate);
     const delegatorEmailRef = useRef(getSearchParamFromUrl(getCurrentUrl(), 'delegatorEmail'));
