@@ -4,9 +4,9 @@ import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOutstandingReportsForUser} from '@libs/ReportUtils';
@@ -51,9 +51,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
-    const transactionReport = Object.values(allReports ?? {}).find(
-        (report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID,
-    );
+    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID);
     const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
