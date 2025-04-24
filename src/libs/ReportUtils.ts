@@ -23,7 +23,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {IOUAction, IOUType, OnboardingAccounting, OnboardingPurpose} from '@src/CONST';
+import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -1054,6 +1054,14 @@ let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
 Onyx.connect({
     key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     callback: (value) => (newGroupChatDraft = value),
+});
+
+let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
+Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+    callback: (value) => {
+        onboardingCompanySize = value;
+    },
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -9599,6 +9607,7 @@ function prepareOnboardingOnyxData(
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
+    companySize?: OnboardingCompanySize,
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -9645,23 +9654,26 @@ function prepareOnboardingOnyxData(
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
-    // Text message
-    const textComment = buildOptimisticAddCommentReportAction(onboardingMessage.message, undefined, actorAccountID, 1);
-    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: textCommentAction.reportActionID,
-        reportComment: textComment.commentText,
-    };
-
     const onboardingTaskParams = {
         integrationName,
+        onboardingCompanySize: companySize ?? onboardingCompanySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
+        corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
+    };
+
+    // Text message
+    const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
+    const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
+    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
+    const textMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: textCommentAction.reportActionID,
+        reportComment: textComment.commentText,
     };
 
     let createWorkspaceTaskReportID;
@@ -9727,7 +9739,9 @@ function prepareOnboardingOnyxData(
         });
 
     // Sign-off welcome message
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(translateLocal('onboarding.welcomeSignOffTitle'), undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffText =
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,
