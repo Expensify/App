@@ -5084,9 +5084,9 @@ const translations = {
                 return `updated the category "${categoryName}" by adding a Payroll Code of ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `updated the category "${categoryName}" by removing the Payroll Code (previously ${oldValue})`;
+                return `updated the category "${categoryName}" by removing the Payroll Code (previously "${oldValue}")`;
             }
-            return `updated the category "${categoryName}" by changing the Payroll Code to ${newValue} (previously ${oldValue})`;
+            return `updated the category "${categoryName}" by changing the Payroll Code to ${newValue} (previously "${oldValue}")`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
@@ -5105,24 +5105,24 @@ const translations = {
                 return `updated the category "${categoryName}" by adding a Max Amount of ${newAmount}`;
             }
             if (oldAmount && !newAmount) {
-                return `updated the category "${categoryName}" by removing the Max Amount (previously ${oldAmount})`;
+                return `updated the category "${categoryName}" by removing the Max Amount (previously "${oldAmount}")`;
             }
-            return `updated the category "${categoryName}" by changing the Max Amount to ${newAmount} (previously ${oldAmount})`;
+            return `updated the category "${categoryName}" by changing the Max Amount to ${newAmount} (previously "${oldAmount}")`;
         },
         updateCategoryExpenseLimitType: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryExpenseLimitTypeParams) => {
             if (!oldValue) {
                 return `updated the category "${categoryName}" by adding a Limit Type of ${newValue}`;
             }
-            return `updated the category "${categoryName}" by changing the Limit Type to ${newValue} (previously ${oldValue})`;
+            return `updated the category "${categoryName}" by changing the Limit Type to ${newValue} (previously "${oldValue}")`;
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
-                return `updated the category "${categoryName}" by changing Receipts from ${oldValue} to ${newValue}`;
+                return `updated the category "${categoryName}" by changing Receipts to ${newValue}`;
             }
-            return `updated the category ""A" by changing Receipts from ${oldValue} to ${newValue}`;
+            return `updated the category "${categoryName}" by changing Receipts to ${newValue} (previously ${oldValue})`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renamed the category "${oldName}" to "${newName}"`,
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `updated the name of the tag list "${oldName}" to be "${newName}"`,
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `updated the name of the tag list to "${newName}" (previously "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `added the tag "${tagName}" to the list "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `updated the tag list "${tagListName}" by changing the tag "${oldName}" to "${newName}`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'enabled' : 'disabled'} the tag "${tagName}" on the list "${tagListName}"`,
@@ -5135,7 +5135,7 @@ const translations = {
             return `updated the tag "${tagName}" on the list "${tagListName}" by adding a ${updatedField} of "${newValue}"`;
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
-            `updated the ${customUnitName} ${updatedField} from "${oldValue}" to "${newValue}"`,
+            `updated the ${customUnitName} ${updatedField} to "${newValue}" (previously "${oldValue}")`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'enabled' : 'disabled'} tax tracking on distance rates`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>

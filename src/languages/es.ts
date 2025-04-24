@@ -5140,18 +5140,18 @@ const translations = {
                 return `actualizó la categoría "${categoryName}" añadiendo un Código de Nómina de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código de nómina (previamente ${oldValue})`;
+                return `actualizó la categoría "${categoryName}" eliminando el código de nómina (previamente "${oldValue}")`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el código de nómina a ${newValue} (previamente ${oldValue})`;
+            return `actualizó la categoría "${categoryName}" cambiando el código de nómina a ${newValue} (previamente "${oldValue}")`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" añadiendo un código GL de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código GL (previamente ${oldValue})`;
+                return `actualizó la categoría "${categoryName}" eliminando el código GL (previamente "${oldValue}")`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el código GL a ${newValue} (previamente ${oldValue})`;
+            return `actualizó la categoría "${categoryName}" cambiando el código GL a ${newValue} (previamente "${oldValue}")`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
             return `actualizó la categoría "${categoryName}" cambiando la descripción a ${!oldValue ? 'Obligatoria' : 'No obligatoria'} (previamente ${
@@ -5171,16 +5171,16 @@ const translations = {
             if (!oldValue) {
                 return `actualizó la categoría "${categoryName}" añadiendo un Tipo de Límite de ${newValue}`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el Tipo de Límite a ${newValue} (previamente ${oldValue})`;
+            return `actualizó la categoría "${categoryName}" cambiando el Tipo de Límite a ${newValue} (previamente "${oldValue}")`;
         },
         updateCategoryMaxAmountNoReceipt: ({categoryName, oldValue, newValue}: UpdatedPolicyCategoryMaxAmountNoReceiptParams) => {
             if (!oldValue) {
-                return `actualizó la categoría "${categoryName}" cambiando Recibos de ${oldValue} a ${newValue}`;
+                return `actualizó la categoría "${categoryName}" cambiando Recibos a ${newValue}`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando Recibos de ${oldValue} a ${newValue}`;
+            return `actualizó la categoría "${categoryName}" cambiando Recibos a ${newValue} (previamente "${oldValue}")`;
         },
         setCategoryName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `renombró la categoría "${oldName}" a "${newName}`,
-        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `actualizó el nombre de la lista de etiquetas de "${oldName}" a "${newName}"`,
+        updateTagListName: ({oldName, newName}: UpdatedPolicyCategoryNameParams) => `actualizó el nombre de la lista de etiquetas a "${newName}" (previamente "${oldName}")`,
         addTag: ({tagListName, tagName}: UpdatedPolicyTagParams) => `añadió la etiqueta "${tagName}" a la lista "${tagListName}"`,
         updateTagName: ({tagListName, newName, oldName}: UpdatedPolicyTagNameParams) => `actualizó la lista de etiquetas "${tagListName}" cambiando la etiqueta "${oldName}" a "${newName}"`,
         updateTagEnabled: ({tagListName, tagName, enabled}: UpdatedPolicyTagParams) => `${enabled ? 'habilitó' : 'deshabilitó'} la etiqueta "${tagName}" en la lista "${tagListName}"`,
@@ -5193,7 +5193,7 @@ const translations = {
             return `actualizó la etiqueta "${tagName}" en la lista "${tagListName}" añadiendo un ${updatedField} de "${newValue}"`;
         },
         updateCustomUnit: ({customUnitName, newValue, oldValue, updatedField}: UpdatePolicyCustomUnitParams) =>
-            `actualizó el ${customUnitName} ${updatedField} de "${oldValue}" a "${newValue}"`,
+            `actualizó el ${updatedField} de ${customUnitName} a "${newValue}" (previamente "${oldValue}")`,
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en las tasas de distancia`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
