@@ -151,7 +151,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
             }
             handleSearch(value);
         },
-        [isAutocompleteListVisible],
+        [handleSearch, isAutocompleteListVisible],
     );
 
     const onSearchQueryChange = useCallback(
