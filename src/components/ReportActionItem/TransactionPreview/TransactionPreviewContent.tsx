@@ -2,12 +2,10 @@ import lodashSortBy from 'lodash/sortBy';
 import truncate from 'lodash/truncate';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
-import Button from '@components/Button';
 import Icon from '@components/Icon';
 import {DotIndicator, Folder, Tag} from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/SelectionList/Search/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -15,9 +13,7 @@ import TransactionPreviewSkeletonView from '@components/TransactionPreviewSkelet
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {calculateAmount} from '@libs/IOUUtils';
 import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
@@ -25,7 +21,7 @@ import {getCleanedTagName} from '@libs/PolicyUtils';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
-import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
+import {canEditMoneyRequest, getTransactionDetails, getWorkspaceIcon, isIOUReport, isPolicyExpenseChat, isReportApproved, isSettled} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {createTransactionPreviewConditionals, getIOUData, getTransactionPreviewTextAndTranslationPaths} from '@libs/TransactionPreviewUtils';
@@ -33,7 +29,6 @@ import {hasReceipt as hasReceiptTransactionUtils, isReceiptBeingScanned} from '@
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import SCREENS from '@src/SCREENS';
 import type {TransactionPreviewContentProps} from './types';
 
 function TransactionPreviewContent({
@@ -45,27 +40,20 @@ function TransactionPreviewContent({
     iouReport,
     transaction,
     violations,
-    showContextMenu,
     offlineWithFeedbackOnClose,
-    navigateToReviewFields,
-    onPreviewPressed,
     containerStyles,
-    wrapperStyle,
+    transactionPreviewWidth,
     isBillSplit,
     areThereDuplicates,
     sessionAccountID,
     walletTermsErrors,
-    routeName,
     reportPreviewAction,
     shouldHideOnDelete = true,
+    shouldShowIOUData,
 }: TransactionPreviewContentProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-
-    const themeStyles = {
-        backgroundColor: theme.cardBG,
-    };
 
     const transactionDetails = useMemo<Partial<TransactionDetails>>(() => getTransactionDetails(transaction) ?? {}, [transaction]);
     const managerID = iouReport?.managerID ?? reportPreviewAction?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -73,40 +61,29 @@ function TransactionPreviewContent({
     const isReportAPolicyExpenseChat = isPolicyExpenseChat(chatReport);
     const {amount: requestAmount, comment: requestComment, merchant, tag, category, currency: requestCurrency} = transactionDetails;
 
-    const transactionPreviewUtilsArguments = useMemo(
+    const transactionPreviewCommonArguments = useMemo(
         () => ({
             iouReport,
             transaction,
-            translate,
             action,
             isBillSplit,
             violations,
             transactionDetails,
         }),
-        [action, iouReport, isBillSplit, transaction, transactionDetails, translate, violations],
+        [action, iouReport, isBillSplit, transaction, transactionDetails, violations],
     );
 
     const conditionals = useMemo(
         () =>
             createTransactionPreviewConditionals({
-                ...transactionPreviewUtilsArguments,
+                ...transactionPreviewCommonArguments,
                 areThereDuplicates,
                 isReportAPolicyExpenseChat,
             }),
-        [areThereDuplicates, transactionPreviewUtilsArguments, isReportAPolicyExpenseChat],
+        [areThereDuplicates, transactionPreviewCommonArguments, isReportAPolicyExpenseChat],
     );
 
-    const {
-        shouldShowRBR,
-        shouldShowMerchant,
-        shouldShowSplitShare,
-        shouldShowTag,
-        shouldShowCategory,
-        shouldShowSkeleton,
-        shouldShowDescription,
-        shouldShowKeepButton,
-        shouldDisableOnPress,
-    } = conditionals;
+    const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
     const firstViolation = violations.at(0);
     const isIOUActionType = isMoneyRequestAction(action);
@@ -116,11 +93,11 @@ function TransactionPreviewContent({
     const previewText = useMemo(
         () =>
             getTransactionPreviewTextAndTranslationPaths({
-                ...transactionPreviewUtilsArguments,
+                ...transactionPreviewCommonArguments,
                 shouldShowRBR,
                 violationMessage,
             }),
-        [transactionPreviewUtilsArguments, shouldShowRBR, violationMessage],
+        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : item.text ?? '');
 
@@ -130,10 +107,11 @@ function TransactionPreviewContent({
 
     const RBRMessage = getTranslatedText(previewText.RBRMessage);
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
-    const showCashOrCard = getTranslatedText(previewText.showCashOrCard);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
-    const iouData = getIOUData(managerID, ownerAccountID, personalDetails);
+    const iouData = shouldShowIOUData
+        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails, requestAmount ?? 0)
+        : undefined;
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowCategoryOrTag = shouldShowCategory || shouldShowTag;
@@ -149,7 +127,6 @@ function TransactionPreviewContent({
     const displayAmount = isDeleted ? displayDeleteAmountText : displayAmountText;
     const receiptImages = [{...getThumbnailAndImageURIs(transaction), transaction}];
     const merchantOrDescription = shouldShowMerchant ? requestMerchant : description || '';
-    const isReviewDuplicateTransactionPage = routeName === SCREENS.TRANSACTION_DUPLICATE.REVIEW;
     const participantAccountIDs = isMoneyRequestAction(action) && isBillSplit ? getOriginalMessage(action)?.participantAccountIDs ?? [] : [managerID, ownerAccountID];
     const participantAvatars = getAvatarsForAccountIDs(participantAccountIDs, personalDetails ?? {});
     const sortedParticipantAvatars = lodashSortBy(participantAvatars, (avatar) => avatar.id);
@@ -180,8 +157,10 @@ function TransactionPreviewContent({
     const previewTextViewGap = (shouldShowCategoryOrTag || !shouldWrapDisplayAmount) && styles.gap2;
     const previewTextMargin = shouldShowIOUHeader && shouldShowMerchantOrDescription && !isBillSplit && !shouldShowCategoryOrTag && styles.mbn1;
 
-    const transactionContent = (
-        <View style={[styles.border, styles.reportContainerBorderRadius, containerStyles]}>
+    const transactionWrapperStyles = [styles.border, styles.moneyRequestPreviewBox, (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending];
+
+    return (
+        <View style={[transactionWrapperStyles, containerStyles]}>
             <OfflineWithFeedback
                 errors={walletTermsErrors}
                 onClose={() => offlineWithFeedbackOnClose}
@@ -192,12 +171,7 @@ function TransactionPreviewContent({
                 shouldDisableOpacity={isDeleted}
                 shouldHideOnDelete={shouldHideOnDelete}
             >
-                <View
-                    style={[
-                        (isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius],
-                        !onPreviewPressed ? [styles.moneyRequestPreviewBox, containerStyles, themeStyles] : {},
-                    ]}
-                >
+                <View style={[(isScanning || isWhisper) && [styles.reportPreviewBoxHoverBorder, styles.reportContainerBorderRadius]]}>
                     {!isDeleted && (
                         <ReportActionItemImages
                             images={receiptImages}
@@ -208,7 +182,7 @@ function TransactionPreviewContent({
                         />
                     )}
                     {shouldShowSkeleton ? (
-                        <TransactionPreviewSkeletonView transactionPreviewWidth={wrapperStyle.width} />
+                        <TransactionPreviewSkeletonView transactionPreviewWidth={transactionPreviewWidth} />
                     ) : (
                         <View style={[styles.expenseAndReportPreviewBoxBody, styles.mtn1]}>
                             <View style={styles.gap3}>
@@ -356,39 +330,6 @@ function TransactionPreviewContent({
                 </View>
             </OfflineWithFeedback>
         </View>
-    );
-
-    if (!onPreviewPressed) {
-        return transactionContent;
-    }
-
-    return (
-        <PressableWithoutFeedback
-            onPress={shouldDisableOnPress ? undefined : onPreviewPressed}
-            onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
-            onPressOut={() => ControlSelection.unblock()}
-            onLongPress={showContextMenu}
-            shouldUseHapticsOnLongPress
-            accessibilityLabel={isBillSplit ? translate('iou.split') : showCashOrCard}
-            accessibilityHint={convertToDisplayString(requestAmount, requestCurrency)}
-            style={[
-                styles.moneyRequestPreviewBox,
-                wrapperStyle,
-                themeStyles,
-                shouldDisableOnPress && styles.cursorDefault,
-                (isIOUSettled || isApproved) && isSettlementOrApprovalPartial && styles.offlineFeedback.pending,
-            ]}
-        >
-            {transactionContent}
-            {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && shouldShowKeepButton && (
-                <Button
-                    text={translate('violations.keepThisOne')}
-                    success
-                    style={[styles.ph4, styles.pb4]}
-                    onPress={navigateToReviewFields}
-                />
-            )}
-        </PressableWithoutFeedback>
     );
 }
 
