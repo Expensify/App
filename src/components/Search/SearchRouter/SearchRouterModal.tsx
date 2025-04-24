@@ -1,11 +1,9 @@
 import React, {useState} from 'react';
 import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal';
-import KeyboardAvoidingView from '@components/KeyboardAvoidingView';
 import Modal from '@components/Modal';
+import ScreenWrapperContainer from '@components/ScreenWrapper/ScreenWrapperContainer';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
-import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isMobileChrome, isMobileSafari} from '@libs/Browser';
 import CONST from '@src/CONST';
 import SearchRouter from './SearchRouter';
@@ -14,9 +12,7 @@ import {useSearchRouterContext} from './SearchRouterContext';
 const isMobileWebSafari = isMobileSafari();
 
 function SearchRouterModal() {
-    const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const {windowHeight} = useWindowDimensions();
     const {isSearchRouterDisplayed, closeSearchRouter} = useSearchRouterContext();
     const viewportOffsetTop = useViewportOffsetTop();
 
@@ -39,10 +35,14 @@ function SearchRouterModal() {
             onModalHide={() => setShouldHideInputCaret(isMobileWebSafari)}
             onModalShow={() => setShouldHideInputCaret(false)}
             shouldApplySidePanelOffset={!shouldUseNarrowLayout}
+            // statusBarTranslucent={false}
+            // navigationBarTranslucent={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
-            <KeyboardAvoidingView
-                behavior="padding"
-                style={[styles.flex1, {maxHeight: windowHeight}]}
+            <ScreenWrapperContainer
+                testID={SearchRouterModal.displayName}
+                shouldEnableMaxHeight
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <FocusTrapForModal active={isSearchRouterDisplayed}>
                     <SearchRouter
@@ -51,7 +51,7 @@ function SearchRouterModal() {
                         isSearchRouterDisplayed={isSearchRouterDisplayed}
                     />
                 </FocusTrapForModal>
-            </KeyboardAvoidingView>
+            </ScreenWrapperContainer>
         </Modal>
     );
 }
