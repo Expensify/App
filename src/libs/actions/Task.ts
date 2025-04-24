@@ -1227,7 +1227,11 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
 /**
  * Check if you can change the status of the task (mark complete or incomplete). Only the task owner and task assignee can do this.
  */
-function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, parentReport?: OnyxEntry<OnyxTypes.Report>, isParentReportArchived = false): boolean {
+function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID?: number, parentReport?: OnyxEntry<OnyxTypes.Report>, isParentReportArchived = false): boolean {
+    if (!sessionAccountID) {
+        return false;
+    }
+
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }

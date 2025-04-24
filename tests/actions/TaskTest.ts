@@ -102,21 +102,18 @@ describe('actions/Task', () => {
         });
 
         describe('canActionTask', () => {
-            it('returns false if the report is a cancelled task report', () => {
-                // Simulate how components call canActionTask() by using hooks to get the parent report and see if it is archived
-                const {result: parentReport} = renderHook(() => useParentReport(taskReportCancelled.reportID));
-                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
+            it('returns false if there is no logged in user', () => {
+                expect(canActionTask(taskReportCancelled)).toBe(false);
+            });
 
+            it('returns false if the report is a cancelled task report', () => {
                 // The accountID doesn't matter here because the code will do an early return for the cancelled report
-                expect(canActionTask(taskReportCancelled, 0, parentReport.current, isParentReportArchived.current)).toBe(false);
+                expect(canActionTask(taskReportCancelled, 0)).toBe(false);
             });
 
             it('returns false if the report has an archived parent report', () => {
-                const {result: parentReport} = renderHook(() => useParentReport(taskReportArchived.reportID));
-                const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-
                 // The accountID doesn't matter here because the code will do an early return for the archived report
-                expect(canActionTask(taskReportArchived, 0, parentReport.current, isParentReportArchived.current)).toBe(false);
+                expect(canActionTask(taskReportArchived, 0)).toBe(false);
             });
 
             it('returns false if the user modifying the task is not the author', () => {
