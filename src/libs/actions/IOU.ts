@@ -945,7 +945,7 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
 }
 
 function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isFromGlobalCreate = false) {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isFromGlobalCreate: isNewReportID ? true : undefined});
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isFromGlobalCreate: isFromGlobalCreate ? true : undefined});
 }
 
 function setSplitPayer(transactionID: string, payerAccountID: number) {
