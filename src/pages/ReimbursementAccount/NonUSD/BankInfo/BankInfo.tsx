@@ -44,7 +44,6 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const inputKeys = getInputKeysForBankInfoStep(corpayFields);
     const values = useMemo(() => getBankInfoStepValues(inputKeys, reimbursementAccountDraft, reimbursementAccount), [inputKeys, reimbursementAccount, reimbursementAccountDraft]);
     const startFrom = getInitialSubStepForBankInfoStep(values, corpayFields);
-    const previousIsLoading = usePrevious(corpayFields?.isLoading);
 
     const submit = () => {
         const {formFields, isLoading, isSuccess, ...corpayData} = corpayFields ?? {};
@@ -53,13 +52,13 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
-        if (previousIsLoading !== true || reimbursementAccount?.isLoading !== false || reimbursementAccount?.errors) {
+        if (reimbursementAccount?.isLoading === true || !!reimbursementAccount?.errors || reimbursementAccount?.isSuccess === false) {
             return;
         }
 
         onSubmit();
         return () => clearReimbursementAccountBankCreation();
-    }, [corpayFields?.isLoading, onSubmit, previousIsLoading, reimbursementAccount?.errors, reimbursementAccount?.isLoading]);
+    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
         if (country === '') {
