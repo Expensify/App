@@ -128,13 +128,6 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
-
 type WorkspaceFromIOUCreationData = {
     policyID: string;
     workspaceChatReportID: string;
@@ -3263,6 +3256,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -5286,5 +5280,3 @@ export {
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
 };
-
-export type {NewCustomUnit};
