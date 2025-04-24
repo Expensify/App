@@ -166,54 +166,54 @@ const personalDetails: PersonalDetailsList = {
     },
 };
 
-const rules = {
-    approvalRules: [
-        {
-            applyWhen: [
-                {
-                    condition: 'matches',
-                    field: 'category',
-                    value: 'cat1',
-                },
-            ],
-            approver: 'categoryapprover1@test.com',
-            id: '1',
-        },
-        {
-            applyWhen: [
-                {
-                    condition: 'matches',
-                    field: 'tag',
-                    value: 'tag1',
-                },
-            ],
-            approver: 'tagapprover1@test.com',
-            id: '2',
-        },
-        {
-            applyWhen: [
-                {
-                    condition: 'matches',
-                    field: 'category',
-                    value: 'cat2',
-                },
-            ],
-            approver: 'categoryapprover2@test.com',
-            id: '3',
-        },
-        {
-            applyWhen: [
-                {
-                    condition: 'matches',
-                    field: 'tag',
-                    value: 'tag2',
-                },
-            ],
-            approver: 'tagapprover2@test.com',
-            id: '4',
-        },
-    ],
-};
+// const rules = {
+//     approvalRules: [
+//         {
+//             applyWhen: [
+//                 {
+//                     condition: 'matches',
+//                     field: 'category',
+//                     value: 'cat1',
+//                 },
+//             ],
+//             approver: 'categoryapprover1@test.com',
+//             id: '1',
+//         },
+//         {
+//             applyWhen: [
+//                 {
+//                     condition: 'matches',
+//                     field: 'tag',
+//                     value: 'tag1',
+//                 },
+//             ],
+//             approver: 'tagapprover1@test.com',
+//             id: '2',
+//         },
+//         {
+//             applyWhen: [
+//                 {
+//                     condition: 'matches',
+//                     field: 'category',
+//                     value: 'cat2',
+//                 },
+//             ],
+//             approver: 'categoryapprover2@test.com',
+//             id: '3',
+//         },
+//         {
+//             applyWhen: [
+//                 {
+//                     condition: 'matches',
+//                     field: 'tag',
+//                     value: 'tag2',
+//                 },
+//             ],
+//             approver: 'tagapprover2@test.com',
+//             id: '4',
+//         },
+//     ],
+// };
 
 const employeeAccountID = 2;
 // const categoryapprover1Email = 'categoryapprover1@test.com';
