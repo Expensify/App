@@ -372,6 +372,7 @@ window.addEventListener('hashchange', () => {
     });
 });
 
+// We need to pass the results from readyCallback to renderedCallback so we make two part callback here to customize the results from GCSE API
 const makeTwoPartCallback = () => {
     let customResults = [];
     const readyCallback = (name, q, promos, results, resultsDiv) => {
