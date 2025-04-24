@@ -1,7 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
+import {canActionTask, canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
 // eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -95,7 +95,19 @@ describe('actions/Task', () => {
     });
 
     describe('canActionTask', () => {
-        it('returns false if the report is a cancelled task report', () => {});
+        const managerAccountID = 3;
+        const employeeAccountID = 4;
+        const cancelledTaskReport = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+
+        beforeAll(async () => {
+            // Store all the necessary data in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${cancelledTaskReport.reportID}`, cancelledTaskReport);
+        });
+
+        it('returns false if the report is a cancelled task report', () => {
+            // The accountID doesn't matter here because the code will do an early return for the cancelled report
+            expect(canActionTask(cancelledTaskReport, managerAccountID)).toBe(false);
+        });
     });
 
     describe('completeTestDriveTask', () => {
