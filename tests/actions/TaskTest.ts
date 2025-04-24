@@ -94,6 +94,10 @@ describe('actions/Task', () => {
         });
     });
 
+    describe('canActionTask', () => {
+        it('returns false if the report is a cancelled task report', () => {});
+    });
+
     describe('completeTestDriveTask', () => {
         const accountID = 2;
         const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
