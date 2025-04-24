@@ -33,6 +33,7 @@ import {
     hasReceiptError,
     isAllowedToApproveExpenseReport,
     isChatUsedForOnboarding,
+    prepareOnboardingOnyxData,
     requiresAttentionFromCurrentUser,
     shouldDisableThread,
     shouldReportBeInOptionList,
@@ -40,6 +41,7 @@ import {
 } from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import type {OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, OnyxInputOrEntry, PersonalDetailsList, Policy, PolicyEmployeeList, Report, ReportAction, Transaction} from '@src/types/onyx';
@@ -243,6 +245,66 @@ describe('ReportUtils', () => {
         return waitForBatchedUpdates();
     });
     beforeEach(() => Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, CONST.LOCALES.DEFAULT).then(waitForBatchedUpdates));
+
+    describe('prepareOnboardingOnyxData', () => {
+        it('provides test drive url to task title', () => {
+            const title = jest.fn();
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: 'test',
+                            title,
+                            description: () => '',
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                '1',
+            );
+
+            expect(title).toBeCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    testDriveURL: expect.any(String),
+                }),
+            );
+        });
+
+        it('provides test drive url to task description', () => {
+            const description = jest.fn();
+
+            prepareOnboardingOnyxData(
+                undefined,
+                CONST.ONBOARDING_CHOICES.MANAGE_TEAM,
+                {
+                    message: 'This is a test',
+                    tasks: [
+                        {
+                            type: 'test',
+                            title: () => '',
+                            description,
+                            autoCompleted: false,
+                            mediaAttributes: {},
+                        },
+                    ],
+                },
+                '1',
+            );
+
+            expect(description).toBeCalledWith(
+                expect.objectContaining<OnboardingTaskLinks>({
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+                    testDriveURL: expect.any(String),
+                }),
+            );
+        });
+    });
 
     describe('getIconsForParticipants', () => {
         it('returns sorted avatar source by name, then accountID', () => {
@@ -536,13 +598,35 @@ describe('ReportUtils', () => {
                 };
                 const submittedParentReportAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    adminAccountID: 1,
                     originalMessage: {
                         amount: 169,
                         currency: 'USD',
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('Ragnar Lothbrok submitted');
+            });
+
+            test('Manually Approved Report Action', () => {
+                const threadOfApprovedReportAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    parentReportID: '101',
+                    policyID: policy.id,
+                };
+                const approvedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    actorAccountID: 1,
+                    originalMessage: {
+                        amount: 169,
+                        currency: 'USD',
+                    },
+                } as ReportAction;
+
+                expect(getReportName(threadOfApprovedReportAction, policy, approvedParentReportAction)).toBe('Ragnar Lothbrok approved');
             });
 
             test('Invited/Removed Room Member Action', () => {
