@@ -316,7 +316,6 @@ function BaseModal(
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
-                    {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                 </ModalComponent>
             </View>
         </ModalContext.Provider>
