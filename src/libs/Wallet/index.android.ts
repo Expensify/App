@@ -1,55 +1,61 @@
 import {addCardToGoogleWallet, checkWalletAvailability, getCardStatusByIdentifier, getSecureWalletInfo} from '@expensify/react-native-wallet';
 import type {AndroidCardData, AndroidWalletData, CardStatus} from '@expensify/react-native-wallet';
 import {Alert} from 'react-native';
-import useOnyx from '@hooks/useOnyx';
-import {createDigitalGoogleWallet} from '@libs/actions/Wallet';
+import type {OnyxEntry} from 'react-native-onyx';
+import Onyx from 'react-native-onyx';
+import {clearNewCardOnyxData, createDigitalGoogleWallet} from '@libs/actions/Wallet';
 import Log from '@libs/Log';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Card} from '@src/types/onyx';
+import type {Card, CardAddedToWallet} from '@src/types/onyx';
 
 function checkIfWalletIsAvailable(): Promise<boolean> {
     return checkWalletAvailability();
 }
 
 function handleAddCardToWallet(card: Card, cardHolderName: string, onFinished?: () => void) {
+    Onyx.connect({
+        key: ONYXKEYS.CARD_ADDED_TO_WALLET,
+        callback: addToGoogleWalletCallback(cardHolderName, onFinished),
+    });
+
     getSecureWalletInfo()
-        .then((walletData: AndroidWalletData) => {
-            createDigitalGoogleWallet(walletData)
-                .then(() => {
-                    const [onyxData] = useOnyx(ONYXKEYS.CARD_ADDED_TO_WALLET);
-                    if (!onyxData) {
-                        return Promise.reject();
-                    }
-                    const cardData: AndroidCardData = {
-                        network: onyxData.network,
-                        opaquePaymentCard: onyxData.opaquePaymentCard,
-                        cardHolderName,
-                        lastDigits: onyxData.lastDigits,
-                        userAddress: {
-                            name: onyxData.userAddress.name,
-                            addressOne: onyxData.userAddress.address1,
-                            addressTwo: onyxData.userAddress.address2,
-                            administrativeArea: onyxData.userAddress.state,
-                            locality: onyxData.userAddress.city,
-                            countryCode: onyxData.userAddress.country,
-                            postalCode: onyxData.userAddress.postal_code,
-                            phoneNumber: onyxData.userAddress.phone,
-                        },
-                    };
-                    addCardToGoogleWallet({...cardData, cardHolderName})
-                        .then(() => {
-                            Log.info('Card added to wallet');
-                            onFinished?.();
-                        })
-                        .catch((error) => {
-                            Log.warn(`addCardToGoogleWallet error: ${error}`);
-                            Alert.alert('Failed to add card to wallet', 'Please try again later.');
-                        });
-                })
-                .catch((error) => Log.warn(`createDigitalWallet error: ${error}`));
-        })
+        .then((walletData: AndroidWalletData) => createDigitalGoogleWallet(walletData))
         .catch((error) => Log.warn(`getSecureWalletInfo error: ${error}`));
+}
+
+function addToGoogleWalletCallback(cardHolderName: string, onFinished?: () => void) {
+    return (value: OnyxEntry<CardAddedToWallet> | undefined) => {
+        if (!value) {
+            return;
+        }
+        const cardData: AndroidCardData = {
+            network: value.network,
+            opaquePaymentCard: value.opaquePaymentCard,
+            cardHolderName,
+            lastDigits: value.lastDigits,
+            userAddress: {
+                name: value.userAddress.name,
+                addressOne: value.userAddress.address1,
+                addressTwo: value.userAddress.address2,
+                administrativeArea: value.userAddress.state,
+                locality: value.userAddress.city,
+                countryCode: value.userAddress.country,
+                postalCode: value.userAddress.postal_code,
+                phoneNumber: value.userAddress.phone,
+            },
+        };
+        addCardToGoogleWallet(cardData)
+            .then(() => {
+                Log.info('Card added to wallet');
+                onFinished?.();
+                clearNewCardOnyxData();
+            })
+            .catch((error) => {
+                Log.warn(`addCardToGoogleWallet error: ${error}`);
+                Alert.alert('Failed to add card to wallet', 'Please try again later.');
+            });
+    };
 }
 
 function isCardInWallet(card: Card): Promise<boolean> {

@@ -319,7 +319,14 @@ function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletDat
         deviceID,
     };
 
-    return API.write(WRITE_COMMANDS.CREATE_DIGITAL_WALLET, requestParams, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.CREATE_DIGITAL_WALLET, requestParams, {optimisticData, successData, failureData});
+}
+
+/**
+ * Remove data from Onyx for new card added after use
+ */
+function clearNewCardOnyxData() {
+    Onyx.set(ONYXKEYS.CARD_ADDED_TO_WALLET, null);
 }
 
 export {
@@ -327,6 +334,7 @@ export {
     openInitialSettingsPage,
     openEnablePaymentsPage,
     setAdditionalDetailsQuestions,
+    clearNewCardOnyxData,
     updateCurrentStep,
     answerQuestionsForWallet,
     updatePersonalDetails,
