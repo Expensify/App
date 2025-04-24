@@ -22,8 +22,7 @@ function SearchMoneyRequestReportHoldReasonPage({route}: PlatformStackScreenProp
     const onSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_HOLD_FORM>) => {
         selectedTransactionsID.forEach((transactionID) => putOnHold(transactionID, values.comment, reportID));
 
-        // We need to do this so the actions in header are correctly updated
-        setSelectedTransactionsID([...selectedTransactionsID]);
+        setSelectedTransactionsID([]);
         Navigation.goBack();
     };
 

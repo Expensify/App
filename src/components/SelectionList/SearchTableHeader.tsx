@@ -30,6 +30,10 @@ const shouldShowColumnConfig: Record<SortableColumnName, ShouldShowSearchColumnF
     [CONST.SEARCH.TABLE_COLUMNS.TAX_AMOUNT]: (data, metadata) => metadata?.columnsToShow?.shouldShowTaxColumn ?? false,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT]: () => true,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.TITLE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.CREATED_BY]: () => true,
+    [CONST.SEARCH.TABLE_COLUMNS.IN]: () => true,
     // This column is never displayed on Search
     [CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS]: () => false,
 };
@@ -89,10 +93,44 @@ const expenseHeaders: SearchColumnConfig[] = [
     },
 ];
 
+const taskHeaders: SearchColumnConfig[] = [
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        translationKey: 'common.date',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
+        translationKey: 'common.title',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION,
+        translationKey: 'common.description',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.CREATED_BY,
+        translationKey: 'common.createdBy',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.IN,
+        translationKey: 'common.sharedIn',
+        isColumnSortable: false,
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE,
+        translationKey: 'common.assignee',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.ACTION,
+        translationKey: 'common.action',
+        isColumnSortable: false,
+    },
+];
+
 const SearchColumns = {
     [CONST.SEARCH.DATA_TYPES.EXPENSE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.INVOICE]: expenseHeaders,
     [CONST.SEARCH.DATA_TYPES.TRIP]: expenseHeaders,
+    [CONST.SEARCH.DATA_TYPES.TASK]: taskHeaders,
     [CONST.SEARCH.DATA_TYPES.CHAT]: null,
 };
 
@@ -104,9 +142,10 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SearchColumnType, order: SortOrder) => void;
     shouldShowYear: boolean;
     shouldShowSorting: boolean;
+    canSelectMultiple: boolean;
 };
 
-function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting}: SearchTableHeaderProps) {
+function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shouldShowYear, shouldShowSorting, canSelectMultiple}: SearchTableHeaderProps) {
     const styles = useThemeStyles();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth, isMediumScreenWidth} = useResponsiveLayout();
@@ -138,7 +177,8 @@ function SearchTableHeader({data, metadata, sortBy, sortOrder, onSortPress, shou
             shouldShowSorting={shouldShowSorting}
             sortBy={sortBy}
             sortOrder={sortOrder}
-            containerStyles={styles.pl4}
+            // Don't butt up against the 'select all' checkbox if present
+            containerStyles={canSelectMultiple && [styles.pl4]}
             onSortPress={(columnName, order) => {
                 if (columnName === CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS) {
                     return;
