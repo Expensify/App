@@ -431,6 +431,9 @@ const translations = {
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
+        title: 'Título',
+        assignee: 'Asignado a',
+        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -517,6 +520,7 @@ const translations = {
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
         chats: 'Chats',
+        tasks: 'Tereas',
         unread: 'No leído',
         sent: 'Enviado',
         links: 'Enlaces',
@@ -539,6 +543,7 @@ const translations = {
         reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
+        sharedIn: 'Compartido en',
         unreported: 'No reportado',
     },
     supportalNoAccess: {
@@ -2963,7 +2968,8 @@ const translations = {
             descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
-            markAsExported: 'Marcar como introducido manualmente',
+            markAsEntered: 'Marcar como introducido manualmente',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -5195,6 +5201,7 @@ const translations = {
         description: 'Descripción',
         assignee: 'Miembro asignado',
         completed: 'Completada',
+        action: 'Completar',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
@@ -5280,6 +5287,7 @@ const translations = {
             link: 'Enlace',
             pinned: 'Fijado',
             unread: 'No leído',
+            completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
@@ -6778,6 +6786,11 @@ const translations = {
             description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
             confirmText: 'Iniciar prueba',
             helpText: 'Omitir',
+        },
+        banner: {
+            currentlyTestDrivingExpensify: 'Actualmente estás probando Expensify',
+            readyForTheRealThing: '¿Listo para la versión real?',
+            getStarted: 'Comenzar',
         },
     },
 };
