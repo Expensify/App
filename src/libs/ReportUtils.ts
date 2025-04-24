@@ -23,7 +23,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
+import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose, OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -43,7 +43,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
-    ReportAttributes,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -1039,14 +1039,14 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+let reportAttributes: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value;
+        reportAttributes = value.reports;
     },
 });
 
@@ -4604,8 +4604,8 @@ function getReportName(
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
-
-    if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
+    const derivedNameExists = report && !!reportAttributes?.[report.reportID]?.reportName;
+    if (canUseDerivedValue && derivedNameExists) {
         return reportAttributes[report.reportID].reportName;
     }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
@@ -9654,7 +9654,7 @@ function prepareOnboardingOnyxData(
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
-    const onboardingTaskParams = {
+    const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
         onboardingCompanySize: companySize ?? onboardingCompanySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
@@ -9662,6 +9662,7 @@ function prepareOnboardingOnyxData(
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
+        testDriveURL: `${environmentURL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
     };
@@ -10302,10 +10303,15 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions>) {
+function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
     }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isExportIntegrationAction(action));
+    }
+
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -10613,6 +10619,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
@@ -10657,7 +10664,6 @@ export {
     isAdminsOnlyPostingRoom,
     isAllowedToApproveExpenseReport,
     isAllowedToComment,
-    isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
@@ -10834,6 +10840,7 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReports,
     isReportOutstanding,
+    isAllowedToSubmitDraftExpenseReport,
 };
 
 export type {

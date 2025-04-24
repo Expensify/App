@@ -5683,11 +5683,25 @@ const styles = (theme: ThemeColors) =>
             maxWidth: 500,
         },
 
+        backgroundWhite: {
+            backgroundColor: colors.white,
+        },
+
+        embeddedDemoIframe: {
+            height: '100%',
+            width: '100%',
+            border: 'none',
+        },
+
         featureTrainingModalImage: {
             width: '100%',
             height: '100%',
             borderTopLeftRadius: variables.componentBorderRadiusLarge,
             borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        testDriveBannerGap: {
+            height: CONST.DESKTOP_HEADER_PADDING * 2,
         },
     } satisfies Styles);
 
