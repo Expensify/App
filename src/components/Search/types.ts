@@ -161,7 +161,6 @@ export type {
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchStatus,
-    SearchQueryAST,
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,

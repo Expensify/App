@@ -441,10 +441,6 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
-type SkeletonViewProps = {
-    shouldAnimate: boolean;
-};
-
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
@@ -774,19 +770,15 @@ export type {
     BaseListItemProps,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
-    CommonListItemProps,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    ItemLayout,
     ListItem,
     ListItemFocusEventHandler,
-    ListItemProps,
     RadioListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
-    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
@@ -796,7 +788,6 @@ export type {
     TransactionListItemProps,
     TransactionListItemType,
     UserListItemProps,
-    ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
