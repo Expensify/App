@@ -17,10 +17,14 @@ import {isMobile, isMobileWebKit, isSafari} from '@libs/Browser';
 import addViewportResizeListener from '@libs/VisualViewport';
 import toggleTestToolsModal from '@userActions/TestTool';
 import CONST from '@src/CONST';
+import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 
 type ScreenWrapperContainerProps = React.PropsWithChildren<{
     /** Additional styles for extra content */
     forwardedRef?: ForwardedRef<View>;
+
+    /** A unique ID to find the screen wrapper in tests */
+    testID: string;
 
     /** Additional styles to add */
     style?: StyleProp<ViewStyle>;
@@ -31,8 +35,8 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
     /** Additional styles for extra content */
     extraContentStyle?: StyleProp<ViewStyle>;
 
-    /** A unique ID to find the screen wrapper in tests */
-    testID: string;
+    /** Whether the screen wrapper has finished the transition */
+    didScreenTransitionEnd?: boolean;
 
     /** The behavior to pass to the KeyboardAvoidingView, requires some trial and error depending on the layout/devices used.
      *  Search 'switch(behavior)' in ./node_modules/react-native/Libraries/Components/Keyboard/KeyboardAvoidingView.js for more context */
@@ -69,11 +73,14 @@ type ScreenWrapperContainerProps = React.PropsWithChildren<{
     /** Whether to use cached virtual viewport height  */
     shouldUseCachedViewportHeight?: boolean;
 
+    /** Whether to include padding bottom */
+    includeSafeAreaPaddingBottom?: boolean;
+
+    /** Whether to include padding top */
+    includePaddingTop?: boolean;
+
     /** Whether to enable edge to edge bottom safe area padding */
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
-
-    /** Whether to include safe area padding bottom (legacy mode) */
-    includeSafeAreaPaddingBottom?: boolean;
 }>;
 
 function ScreenWrapperContainer({
@@ -83,17 +90,19 @@ function ScreenWrapperContainer({
     testID,
     extraContent,
     extraContentStyle: extraContentStyleProp,
+    didScreenTransitionEnd = true,
     keyboardAvoidingViewBehavior = 'padding',
     keyboardVerticalOffset,
     shouldEnableKeyboardAvoidingView = true,
-    shouldKeyboardOffsetBottomSafeAreaPadding = true,
     shouldEnableMaxHeight = false,
     shouldEnableMinHeight = false,
     shouldEnablePickerAvoiding = true,
     shouldDismissKeyboardBeforeClose = true,
     shouldAvoidScrollOnVirtualViewport = true,
     shouldUseCachedViewportHeight = false,
-    enableEdgeToEdgeBottomSafeAreaPadding = true,
+    shouldKeyboardOffsetBottomSafeAreaPadding: shouldKeyboardOffsetBottomSafeAreaPaddingProp,
+    enableEdgeToEdgeBottomSafeAreaPadding,
+    includePaddingTop = true,
     includeSafeAreaPaddingBottom = false,
 }: ScreenWrapperContainerProps) {
     const isFocused = useIsFocused();
@@ -102,8 +111,55 @@ function ScreenWrapperContainer({
     const styles = useThemeStyles();
     const maxHeight = shouldEnableMaxHeight ? windowHeight : undefined;
     const minHeight = shouldEnableMinHeight && !isSafari() ? initialHeight : undefined;
-
     const {isBlurred, setIsBlurred} = useInputBlurContext();
+    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
+
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
+    const shouldKeyboardOffsetBottomSafeAreaPadding = shouldKeyboardOffsetBottomSafeAreaPaddingProp ?? isUsingEdgeToEdgeMode;
+    const {paddingTop, paddingBottom, unmodifiedPaddings} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
+
+    const showExtraContent = isUsingEdgeToEdgeMode ? !!extraContent : true;
+    const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
+
+    // since Modals are drawn in separate native view hierarchy we should always add paddings
+    const ignoreInsetsConsumption = !useContext(ModalContext).default;
+    const isSafeAreaTopPaddingApplied = includePaddingTop;
+    const paddingTopStyle: StyleProp<ViewStyle> = useMemo(() => {
+        if (!includePaddingTop) {
+            return {};
+        }
+        if (isUsingEdgeToEdgeMode) {
+            return {paddingTop};
+        }
+        if (ignoreInsetsConsumption) {
+            return {paddingTop: unmodifiedPaddings.top};
+        }
+        return {paddingTop};
+    }, [isUsingEdgeToEdgeMode, ignoreInsetsConsumption, includePaddingTop, paddingTop, unmodifiedPaddings.top]);
+
+    const legacyExtraContentStyle: StyleProp<ViewStyle> = useMemo(() => {
+        const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
+        if (shouldUseUnmodifiedPaddings) {
+            return {
+                paddingBottom: unmodifiedPaddings.bottom,
+            };
+        }
+
+        return {
+            // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
+            paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
+        };
+    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
+
+    const extraContentStyle = useMemo(
+        () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, extraContentStyleProp],
+        [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, extraContentStyleProp],
+    );
+
+    const contextValue = useMemo(
+        () => ({didScreenTransitionEnd, isSafeAreaTopPaddingApplied, isSafeAreaBottomPaddingApplied: includeSafeAreaPaddingBottom}),
+        [didScreenTransitionEnd, includeSafeAreaPaddingBottom, isSafeAreaTopPaddingApplied],
+    );
 
     const panResponder = useRef(
         PanResponder.create({
@@ -145,34 +201,6 @@ function ScreenWrapperContainer({
         };
     }, [setIsBlurred]);
 
-    const isAvoidingViewportScroll = useTackInputFocus(isFocused && shouldEnableMaxHeight && shouldAvoidScrollOnVirtualViewport && isMobileWebKit());
-
-    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
-    const {paddingBottom, unmodifiedPaddings} = useSafeAreaPaddings(isUsingEdgeToEdgeMode);
-    const showExtraContent = isUsingEdgeToEdgeMode ? !!extraContent : true;
-    const edgeToEdgeExtraContentStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
-
-    // since Modals are drawn in separate native view hierarchy we should always add paddings
-    const ignoreInsetsConsumption = !useContext(ModalContext).default;
-    const legacyExtraContentStyle: StyleProp<ViewStyle> = useMemo(() => {
-        const shouldUseUnmodifiedPaddings = includeSafeAreaPaddingBottom && ignoreInsetsConsumption;
-        if (shouldUseUnmodifiedPaddings) {
-            return {
-                paddingBottom: unmodifiedPaddings.bottom,
-            };
-        }
-
-        return {
-            // We always need the safe area padding bottom if we're showing the offline indicator since it is bottom-docked.
-            paddingBottom: includeSafeAreaPaddingBottom ? paddingBottom : undefined,
-        };
-    }, [ignoreInsetsConsumption, includeSafeAreaPaddingBottom, paddingBottom, unmodifiedPaddings.bottom]);
-
-    const extraContentStyle = useMemo(
-        () => [isUsingEdgeToEdgeMode ? edgeToEdgeExtraContentStyle : legacyExtraContentStyle, extraContentStyleProp],
-        [isUsingEdgeToEdgeMode, edgeToEdgeExtraContentStyle, legacyExtraContentStyle, extraContentStyleProp],
-    );
-
     return (
         <View
             ref={forwardedRef}
@@ -183,7 +211,7 @@ function ScreenWrapperContainer({
         >
             <View
                 fsClass="fs-unmask"
-                style={style}
+                style={[style, paddingTopStyle]}
                 // eslint-disable-next-line react/jsx-props-no-spreading, react-compiler/react-compiler
                 {...keyboardDismissPanResponder.panHandlers}
             >
@@ -200,7 +228,7 @@ function ScreenWrapperContainer({
                         style={isAvoidingViewportScroll ? [styles.h100, {marginTop: 1}] : styles.flex1}
                         enabled={shouldEnablePickerAvoiding}
                     >
-                        {children}
+                        <ScreenWrapperStatusContext.Provider value={contextValue}>{children}</ScreenWrapperStatusContext.Provider>
                     </PickerAvoidingView>
                 </KeyboardAvoidingView>
             </View>
