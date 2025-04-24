@@ -13,10 +13,10 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Switch from '@components/Switch';
 import Text from '@components/Text';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -84,12 +84,12 @@ function PolicyDistanceRatesPage({
         [customUnitRates],
     );
 
-    const [selectedDistanceRates, setSelectedDistanceRates] = usePersistSelection(selectableRates, filterRate);
+    const [selectedDistanceRates, setSelectedDistanceRates] = useFilteredSelection(selectableRates, filterRate);
 
     const canDisableOrDeleteSelectedRates = useMemo(
         () =>
             Object.keys(selectableRates)
-                .filter((rateID) => !selectedDistanceRates.some((selectedRateID) => selectedRateID === rateID))
+                .filter((rateID) => !selectedDistanceRates.includes(rateID))
                 .some((rateID) => selectableRates[rateID].enabled),
         [selectableRates, selectedDistanceRates],
     );
@@ -271,7 +271,7 @@ function PolicyDistanceRatesPage({
             },
         ];
 
-        const enabledRates = Object.values(selectableRates).filter((rate) => rate.enabled && selectedDistanceRates.includes(rate.customUnitRateID));
+        const enabledRates = selectedDistanceRates.filter((rateID) => selectableRates[rateID].enabled);
         if (enabledRates.length > 0) {
             options.push({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
@@ -281,7 +281,7 @@ function PolicyDistanceRatesPage({
             });
         }
 
-        const disabledRates = Object.values(selectableRates).filter((rate) => !rate.enabled && selectedDistanceRates.includes(rate.customUnitRateID));
+        const disabledRates = selectedDistanceRates.filter((rateID) => !selectableRates[rateID].enabled);
         if (disabledRates.length > 0) {
             options.push({
                 text: translate('workspace.distanceRates.enableRates', {count: disabledRates.length}),

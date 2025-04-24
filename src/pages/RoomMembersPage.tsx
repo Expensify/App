@@ -17,9 +17,9 @@ import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePersistSelection from '@hooks/usePersistSelection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -33,7 +33,7 @@ import type {RoomMembersNavigatorParamList} from '@libs/Navigation/types';
 import {isPersonalDetailsReady, isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {isPolicyEmployee as isPolicyEmployeeUtils, isUserPolicyAdmin} from '@libs/PolicyUtils';
-import {getParticipantsList, getReportName, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
+import {getReportName, getReportPersonalDetailsParticipants, isChatThread, isDefaultRoom, isPolicyExpenseChat as isPolicyExpenseChatUtils, isUserCreatedPolicyRoom} from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {clearAddRoomMemberError, openRoomMembersPage, removeFromRoom} from '@userActions/Report';
 import CONST from '@src/CONST';
@@ -51,7 +51,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const route = useRoute<PlatformStackRouteProp<RoomMembersNavigatorParamList, typeof SCREENS.ROOM_MEMBERS.ROOT>>();
     const styles = useThemeStyles();
     const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: false});
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`, {canBeMissing: true});
     const currentUserAccountID = Number(session?.accountID);
     const {formatPhoneNumber, translate} = useLocalize();
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
@@ -63,20 +63,9 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtils(report), [report]);
     const backTo = route.params.backTo;
 
-    const participants = useMemo(() => getParticipantsList(report, personalDetails, true), [report, personalDetails]);
-
-    const personalDetailsParticipants = useMemo(
-        () =>
-            participants.reduce<Record<number, PersonalDetails>>((acc, accountID) => {
-                const details = personalDetails?.[accountID];
-                if (details) {
-                    acc[accountID] = details;
-                }
-                return acc;
-            }, {}),
-        // explicitly adding reportMetadata to the dependency array to force re-render when removing user
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [participants, personalDetails, reportMetadata],
+    const {chatParticipants: participants, personalDetailsParticipants} = useMemo(
+        () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata, true),
+        [report, personalDetails, reportMetadata],
     );
 
     const shouldIncludeMember = useCallback(
@@ -95,7 +84,7 @@ function RoomMembersPage({report, policies}: RoomMembersPageProps) {
         [participants, reportMetadata?.pendingChatMembers],
     );
 
-    const [selectedMembers, setSelectedMembers] = usePersistSelection(personalDetailsParticipants, shouldIncludeMember);
+    const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
 
     const isFocusedScreen = useIsFocused();
     const {isOffline} = useNetwork();

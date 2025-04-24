@@ -17,10 +17,10 @@ import TableListItem from '@components/SelectionList/TableListItem';
 import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
 import SelectionListWithModal from '@components/SelectionListWithModal';
 import Text from '@components/Text';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePersistSelection from '@hooks/usePersistSelection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -34,8 +34,8 @@ import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchStringMatchUserDetails} from '@libs/OptionsListUtils';
 import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
 import {
-    getParticipantsList,
     getReportName,
+    getReportPersonalDetailsParticipants,
     isArchivedNonExpenseReport,
     isChatRoom,
     isChatThread,
@@ -84,20 +84,9 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
     const canSelectMultiple = isGroupChat && isCurrentUserAdmin && (isSmallScreenWidth ? selectionMode?.isEnabled : true);
     const [searchValue, setSearchValue] = useState('');
 
-    const chatParticipants = useMemo(() => getParticipantsList(report, personalDetails), [report, personalDetails]);
-
-    const personalDetailsParticipants = useMemo(
-        () =>
-            chatParticipants.reduce<Record<number, PersonalDetails>>((acc, accountID) => {
-                const details = personalDetails?.[accountID];
-                if (details) {
-                    acc[accountID] = details;
-                }
-                return acc;
-            }, {}),
-        // explicitly adding reportMetadata to the dependency array to force re-render when removing user
-        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
-        [chatParticipants, personalDetails, reportMetadata],
+    const {chatParticipants, personalDetailsParticipants} = useMemo(
+        () => getReportPersonalDetailsParticipants(report, personalDetails, reportMetadata),
+        [report, personalDetails, reportMetadata],
     );
 
     const filterParticipants = useCallback(
@@ -114,7 +103,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
         [chatParticipants, reportMetadata?.pendingChatMembers],
     );
 
-    const [selectedMembers, setSelectedMembers] = usePersistSelection(personalDetailsParticipants, filterParticipants);
+    const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, filterParticipants);
 
     const pendingChatMembers = reportMetadata?.pendingChatMembers;
     const reportParticipants = report?.participants;
@@ -169,7 +158,7 @@ function ReportParticipantsPage({report, route}: ReportParticipantsPageProps) {
             }
 
             const pendingChatMember = pendingChatMembers?.findLast((member) => member.accountID === accountID.toString());
-            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple; // Removed <number> type assertion
+            const isSelected = selectedMembers.includes(accountID) && canSelectMultiple;
             const isAdmin = role === CONST.REPORT.ROLE.ADMIN;
             let roleBadge = null;
             if (isAdmin) {

@@ -25,11 +25,11 @@ import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
-import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -88,7 +88,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const {canUseLeftHandBar} = usePermissions();
     const filterCategories = useCallback((category: PolicyCategory | undefined) => !!category && category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE, []);
 
-    const [selectedCategories, setSelectedCategories] = usePersistSelection(policyCategories, filterCategories);
+    const [selectedCategories, setSelectedCategories] = useFilteredSelection(policyCategories, filterCategories);
 
     const canSelectMultiple = isSmallScreenWidth ? selectionMode?.isEnabled : true;
 
@@ -155,8 +155,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         (category: PolicyOption) => {
             setSelectedCategories((prev) => {
                 if (prev.includes(category.keyForList)) {
-                    const newCategories = prev.filter((key) => key !== category.keyForList);
-                    return newCategories;
+                    return prev.filter((key) => key !== category.keyForList);
                 }
                 return [...prev, category.keyForList];
             });

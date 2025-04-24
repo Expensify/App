@@ -24,10 +24,10 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 import useAutoTurnSelectionModeOffWhenHasNoActiveOption from '@hooks/useAutoTurnSelectionModeOffWhenHasNoActiveOption';
 import useEnvironment from '@hooks/useEnvironment';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePersistSelection from '@hooks/usePersistSelection';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -109,7 +109,7 @@ function WorkspaceReportFieldsPage({
         return !!reportField && reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     }, []);
 
-    const [selectedReportFields, setSelectedReportFields] = usePersistSelection(selectionFieldList, filterReportFields);
+    const [selectedReportFields, setSelectedReportFields] = useFilteredSelection(selectionFieldList, filterReportFields);
 
     const fetchReportFields = useCallback(() => {
         openPolicyReportFieldsPage(policyID);

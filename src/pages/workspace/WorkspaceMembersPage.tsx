@@ -22,10 +22,10 @@ import CustomListHeader from '@components/SelectionListWithModal/CustomListHeade
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
+import useFilteredSelection from '@hooks/useFilteredSelection';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
-import usePersistSelection from '@hooks/usePersistSelection';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -127,7 +127,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
         [accountIDs, employeeListDetails],
     );
 
-    const [selectedEmployees, setSelectedEmployees] = usePersistSelection(employeeListDetails, filterEmployees);
+    const [selectedEmployees, setSelectedEmployees] = useFilteredSelection(employeeListDetails, filterEmployees);
 
     // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -230,7 +230,7 @@ function WorkspaceMembersPage({personalDetails, route, policy, currentUserPerson
             const prevSelectedElements = prevSelectedEmployees.map((id) => {
                 const prevItem = prevPersonalDetails?.[id];
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
-                return res?.accountID ?? Number(id);
+                return res?.accountID ?? id;
             });
 
             const currentSelectedElements = Object.entries(getMemberAccountIDsForWorkspace(policy?.employeeList))
