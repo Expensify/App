@@ -30,6 +30,18 @@ jest.mock('@hooks/useNetwork', () =>
     })),
 );
 
+jest.mock('@rnmapbox/maps', () => {
+    return {
+        default: jest.fn(),
+        MarkerView: jest.fn(),
+        setAccessToken: jest.fn(),
+    };
+});
+
+jest.mock('@react-native-community/geolocation', () => ({
+    setRNConfiguration: jest.fn(),
+}));
+
 jest.mock('@components/FormAlertWrapper', () => 'FormAlertWrapper');
 jest.mock('@components/FormAlertWithSubmitButton', () => 'FormAlertWithSubmitButton');
 
@@ -82,7 +94,7 @@ describe('AssignCardFeedPage', () => {
     it('should navigate to the member details page as the assignee email has not changed', async () => {
         // Sign in as a test user before running the test.
         await TestHelper.signInWithTestUser();
-        const navigate = jest.spyOn(Navigation, 'navigate');
+        const goBack = jest.spyOn(Navigation, 'goBack');
         const policy = {
             ...LHNTestUtils.getFakePolicy(),
             role: CONST.POLICY.ROLE.ADMIN,
@@ -137,7 +149,7 @@ describe('AssignCardFeedPage', () => {
 
         // Verify that we navigate to the member details page as the card assignee has not changed
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, 1234));
+            expect(goBack).toHaveBeenCalledWith(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(policy.id, 1234));
         });
 
         // Unmount the component after assertions to clean up.
@@ -208,6 +220,8 @@ describe('AssignCardFeedPage', () => {
             currentTarget: assignCardButton,
         };
         fireEvent.press(assignCardButton, mockEvent);
+
+        await waitForBatchedUpdatesWithAct();
 
         // Verify that we navigate to the company cards page as the card assignee has changed
         await waitFor(() => {

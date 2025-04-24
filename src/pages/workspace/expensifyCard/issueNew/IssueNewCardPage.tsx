@@ -23,7 +23,7 @@ type IssueNewCardPageProps = WithPolicyAndFullscreenLoadingProps & PlatformStack
 
 function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
     /* eslint-disable react-compiler/react-compiler */
@@ -33,7 +33,7 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     }
     const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === issueNewCard?.data?.assigneeEmail;
     /* eslint-enable react-compiler/react-compiler */
-    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate});
+    const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
 
     useEffect(() => {
         startIssueNewCardFlow(policyID);
@@ -80,15 +80,14 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     }
 
     return (
-        /* eslint-disable react-compiler/react-compiler */
         <AccessOrNotFoundWrapper
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
+            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>
-        /* eslint-enable react-compiler/react-compiler */
     );
 }
 
