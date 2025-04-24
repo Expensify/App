@@ -15,7 +15,6 @@ import type {
     BeginSignInParams,
     DisableTwoFactorAuthParams,
     LogOutParams,
-    RequestAccountValidationLinkParams,
     RequestNewValidateCodeParams,
     RequestUnlinkValidationLinkParams,
     ResetSMSDeliveryFailureStatusParams,
@@ -356,50 +355,6 @@ function callFunctionIfActionIsAllowed<TCallback extends ((...args: any[]) => an
 }
 
 /**
- * Resend the validation link to the user that is validating their account
- */
-function resendValidationLink(login = credentials.login) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: true,
-                errors: null,
-                message: null,
-                loadingForm: CONST.FORMS.RESEND_VALIDATION_FORM,
-            },
-        },
-    ];
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: 'resendValidationForm.linkHasBeenResent',
-                loadingForm: null,
-            },
-        },
-    ];
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.ACCOUNT,
-            value: {
-                isLoading: false,
-                message: null,
-                loadingForm: null,
-            },
-        },
-    ];
-
-    const params: RequestAccountValidationLinkParams = {email: login};
-
-    API.write(WRITE_COMMANDS.REQUEST_ACCOUNT_VALIDATION_LINK, params, {optimisticData, successData, failureData});
-}
-
-/**
  * Request a new validate / magic code for user to sign in via passwordless flow
  */
 function resendValidateCode(login = credentials.login) {
@@ -607,7 +562,12 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear(KEYS_TO_PRESERVE).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}));
+        // We also need to reset:
+        //  - IS_LOADING_APP after sign in to ensure the condition to show ExplanationModal runs once
+        //    https://github.com/Expensify/App/issues/57575#issuecomment-2780189425
+        return Onyx.clear(KEYS_TO_PRESERVE)
+            .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}))
+            .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
     };
 
     return clearOnyxForNewAccount()
@@ -1287,43 +1247,6 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-/**
- * Validates user account and returns a list of accessible policies.
- */
-function validateUserAndGetAccessiblePolicies(validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: true,
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
-}
-
-function isUserOnPrivateDomain() {
-    // TODO: Implement this function later, and skip the check for now
-    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
-    return false;
-}
-
 function AddWorkEmail(workEmail: string) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1513,7 +1436,6 @@ export {
     cleanupSession,
     signOut,
     signOutAndRedirectToSignIn,
-    resendValidationLink,
     resendValidateCode,
     requestUnlinkValidationLink,
     unlinkLogin,
@@ -1537,8 +1459,6 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
-    validateUserAndGetAccessiblePolicies,
-    isUserOnPrivateDomain,
     AddWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,

@@ -282,6 +282,7 @@ const onboardingCompanySize = {
 type OnboardingInvite = ValueOf<typeof onboardingInviteTypes>;
 
 type OnboardingTaskLinks = Partial<{
+    onboardingCompanySize: OnboardingCompanySize;
     integrationName: string;
     workspaceSettingsLink: string;
     workspaceCategoriesLink: string;
@@ -289,6 +290,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
     navatticURL: string;
+    corporateCardLink: string;
 }>;
 
 type OnboardingTask = {
@@ -301,7 +303,7 @@ type OnboardingTask = {
 
 type OnboardingMessage = {
     /** Text message that will be displayed first */
-    message: string;
+    message: string | ((params: OnboardingTaskLinks) => string);
 
     /** Video object to be displayed after initial description message */
     video?: Video;
@@ -680,7 +682,7 @@ const CONST = {
     },
     NON_USD_BANK_ACCOUNT: {
         ALLOWED_FILE_TYPES: ['pdf', 'jpg', 'jpeg', 'png'],
-        FILE_LIMIT: 10,
+        FILE_LIMIT: 1,
         TOTAL_FILES_SIZE_LIMIT: 5242880,
         PURPOSE_OF_TRANSACTION_ID: 'Intercompany_Payment',
         CURRENT_USER_KEY: 'currentUser',
@@ -796,6 +798,7 @@ const CONST = {
         RECEIPT_LINE_ITEMS: 'receiptLineItems',
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
+        GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1083,7 +1086,8 @@ const CONST = {
     DELAYED_SUBMISSION_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/reports/Automatically-submit-employee-reports',
     ENCRYPTION_AND_SECURITY_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Encryption-and-Data-Security',
     PLAN_TYPES_AND_PRICING_HELP_URL: 'https://help.expensify.com/articles/new-expensify/billing-and-subscriptions/Plan-types-and-pricing',
-    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/settings/Merge-accounts',
+    MERGE_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/settings/Merge-Accounts',
+    CONNECT_A_BUSINESS_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/expenses-&-payments/Connect-a-Business-Bank-Account',
     TEST_RECEIPT_URL: `${CLOUDFRONT_URL}/images/fake-receipt__tacotodds.png`,
     // Use Environment.getEnvironmentURL to get the complete URL with port number
     DEV_NEW_EXPENSIFY_URL: 'https://dev.new.expensify.com:',
@@ -1730,9 +1734,8 @@ const CONST = {
     // 8 alphanumeric characters
     RECOVERY_CODE_REGEX_STRING: /^[a-zA-Z0-9]{8}$/,
 
-    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags using this regex pattern.
-    // It's copied here so that the same regex pattern can be used in form validations to be consistent with the server.
-    VALIDATE_FOR_HTML_TAG_REGEX: /<([^>\s]+)(?:[^>]*?)>/g,
+    // The server has a WAF (Web Application Firewall) which will strip out HTML/XML tags.
+    VALIDATE_FOR_HTML_TAG_REGEX: /<\/?\w*((\s+\w+(\s*=\s*(?:"(.|\n)*?"|'(.|\n)*?'|[^'">\s]+))?)+\s*|\s*)\/?>/g,
 
     // The regex below is used to remove dots only from the local part of the user email (local-part@domain)
     // so when we are using search, we can match emails that have dots without explicitly writing the dots (e.g: fistlast@domain will match first.last@domain)
@@ -1890,6 +1893,7 @@ const CONST = {
         OFFICE: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
         RTF: 'application/rtf',
         ZIP: 'application/zip',
+        APP_TEXT: 'application/txt',
         RFC822: 'message/rfc822',
         TEXT: 'text/plain',
         HTML: 'text/html',
@@ -1906,6 +1910,7 @@ const CONST = {
         MP4: 'video/mp4',
         MP2T: 'video/mp2t',
         WEBM: 'video/webm',
+        VIDEO_MPEG: 'video/mpeg',
         AVC: 'video/avc',
         HEVC: 'video/hevc',
         XVND8: 'video/x-vnd.on2.vp8',
@@ -3650,6 +3655,7 @@ const CONST = {
         TAG: 'tag',
         TAX_RATE: 'taxRate',
         TAX_AMOUNT: 'taxAmount',
+        REPORT: 'report',
     },
     FOOTER: {
         EXPENSE_MANAGEMENT_URL: `${USE_EXPENSIFY_URL}/expense-management`,
@@ -3987,61 +3993,34 @@ const CONST = {
         ZW: 'Zimbabwe',
     },
 
-    ALL_EUROPEAN_COUNTRIES: {
-        AL: 'Albania',
-        AD: 'Andorra',
+    ALL_EUROPEAN_UNION_COUNTRIES: {
         AT: 'Austria',
-        BY: 'Belarus',
         BE: 'Belgium',
-        BA: 'Bosnia & Herzegovina',
         BG: 'Bulgaria',
         HR: 'Croatia',
         CY: 'Cyprus',
         CZ: 'Czech Republic',
         DK: 'Denmark',
         EE: 'Estonia',
-        FO: 'Faroe Islands',
         FI: 'Finland',
         FR: 'France',
-        GE: 'Georgia',
         DE: 'Germany',
-        GI: 'Gibraltar',
         GR: 'Greece',
-        GL: 'Greenland',
         HU: 'Hungary',
-        IS: 'Iceland',
         IE: 'Ireland',
-        IM: 'Isle of Man',
         IT: 'Italy',
-        JE: 'Jersey',
-        XK: 'Kosovo',
-        LV: 'Latvia',
-        LI: 'Liechtenstein',
         LT: 'Lithuania',
         LU: 'Luxembourg',
+        LV: 'Latvia',
         MT: 'Malta',
-        MD: 'Moldova',
-        MC: 'Monaco',
-        ME: 'Montenegro',
         NL: 'Netherlands',
-        MK: 'North Macedonia',
-        NO: 'Norway',
         PL: 'Poland',
         PT: 'Portugal',
         RO: 'Romania',
-        RU: 'Russia',
-        SM: 'San Marino',
-        RS: 'Serbia',
         SK: 'Slovakia',
         SI: 'Slovenia',
         ES: 'Spain',
-        SJ: 'Svalbard & Jan Mayen',
         SE: 'Sweden',
-        CH: 'Switzerland',
-        TR: 'Turkey',
-        UA: 'Ukraine',
-        GB: 'United Kingdom',
-        VA: 'Vatican City',
     },
 
     // Sources: https://github.com/Expensify/App/issues/14958#issuecomment-1442138427
@@ -5117,6 +5096,11 @@ const CONST = {
     },
     SELECTION_LIST_WITH_MODAL_TEST_ID: 'selectionListWithModalMenuItem',
 
+    IMAGE_TEST_ID: 'Image',
+    IMAGE_SVG_TEST_ID: 'ImageSVG',
+    VIDEO_PLAYER_TEST_ID: 'VideoPlayer',
+    LOTTIE_VIEW_TEST_ID: 'LottieView',
+
     CHAT_HEADER_LOADER_HEIGHT: 36,
 
     HORIZONTAL_SPACER: {
@@ -5373,10 +5357,84 @@ const CONST = {
         [onboardingChoices.EMPLOYER]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.SUBMIT]: onboardingEmployerOrSubmitMessage,
         [onboardingChoices.MANAGE_TEAM]: {
-            message: 'Here are some important tasks to help get your team’s expenses under control.',
+            message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
                 selfGuidedTourTask,
+
+                {
+                    type: 'addAccountingIntegration',
+                    autoCompleted: false,
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                        [`${CLOUDFRONT_URL}/${
+                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
+                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                    },
+                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
+                    description: ({integrationName, workspaceAccountingLink}) =>
+                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
+                        '\n' +
+                        `Here’s how to connect to ${integrationName}:\n` +
+                        '\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Accounting*.\n' +
+                        `5. Find ${integrationName}.\n` +
+                        '6. Click *Connect*.\n' +
+                        '\n' +
+                        `${
+                            integrationName && connectionsVideoPaths[integrationName]
+                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
+                                : `[Take me to accounting](${workspaceAccountingLink}).`
+                        }`,
+                },
+                {
+                    type: 'connectCorporateCard',
+                    title: ({corporateCardLink}) => `Connect [your corporate card](${corporateCardLink})`,
+                    description: ({corporateCardLink}) =>
+                        `Connect your corporate card to automatically import and code expenses.\n` +
+                        '\n' +
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click *Workspaces*.\n' +
+                        '2. Select your workspace.\n' +
+                        '3. Click *Corporate cards*.\n' +
+                        '4. Follow the prompts to connect your card.\n' +
+                        '\n' +
+                        `[Take me to connect my corporate card](${corporateCardLink}).`,
+                    autoCompleted: false,
+                    mediaAttributes: {},
+                },
+                {
+                    type: 'inviteTeam',
+                    autoCompleted: false,
+                    mediaAttributes: {
+                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
+                    },
+                    title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
+                    description: ({workspaceMembersLink}) =>
+                        '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
+                        '\n' +
+                        'Here’s how to invite your team:\n' +
+                        '\n' +
+                        '1. Click *Settings*.\n' +
+                        '2. Go to *Workspaces*.\n' +
+                        '3. Select your workspace.\n' +
+                        '4. Click *Members* > *Invite member*.\n' +
+                        '5. Enter emails or phone numbers. \n' +
+                        '6. Add a custom invite message if you’d like!\n' +
+                        '\n' +
+                        `[Take me to workspace members](${workspaceMembersLink}).\n` +
+                        '\n' +
+                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
+                },
                 {
                     type: 'setupCategoriesAndTags',
                     autoCompleted: false,
@@ -5411,62 +5469,6 @@ const CONST = {
                         `[Take me to more features](${workspaceMoreFeaturesLink}).\n` +
                         '\n' +
                         `![Set up tags](${CLOUDFRONT_URL}/videos/walkthrough-tags-v2.mp4)`,
-                },
-                {
-                    type: 'inviteTeam',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-invite_members.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({workspaceMembersLink}) => `Invite [your team](${workspaceMembersLink})`,
-                    description: ({workspaceMembersLink}) =>
-                        '*Invite your team* to Expensify so they can start tracking expenses today.\n' +
-                        '\n' +
-                        'Here’s how to invite your team:\n' +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Members* > *Invite member*.\n' +
-                        '5. Enter emails or phone numbers. \n' +
-                        '6. Add a custom invite message if you’d like!\n' +
-                        '\n' +
-                        `[Take me to workspace members](${workspaceMembersLink}).\n` +
-                        '\n' +
-                        `![Invite your team](${CLOUDFRONT_URL}/videos/walkthrough-invite_members-v2.mp4)`,
-                },
-                {
-                    type: 'addAccountingIntegration',
-                    autoCompleted: false,
-                    mediaAttributes: {
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.netsuite]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_netsuite.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.quickbooksOnline]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_qbo.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                        [`${CLOUDFRONT_URL}/${
-                            connectionsVideoPaths[ONBOARDING_ACCOUNTING_MAPPING.xero]
-                        }`]: `data-expensify-thumbnail-url="${CLOUDFRONT_URL}/images/walkthrough-connect_to_xero.png" data-expensify-width="1920" data-expensify-height="1080"`,
-                    },
-                    title: ({integrationName, workspaceAccountingLink}) => `Connect to [${integrationName}](${workspaceAccountingLink})`,
-                    description: ({integrationName, workspaceAccountingLink}) =>
-                        `Connect to ${integrationName} for automatic expense coding and syncing that makes month-end close a breeze.\n` +
-                        '\n' +
-                        `Here’s how to connect to ${integrationName}:\n` +
-                        '\n' +
-                        '1. Click *Settings*.\n' +
-                        '2. Go to *Workspaces*.\n' +
-                        '3. Select your workspace.\n' +
-                        '4. Click *Accounting*.\n' +
-                        `5. Find ${integrationName}.\n` +
-                        '6. Click *Connect*.\n' +
-                        '\n' +
-                        `${
-                            integrationName && connectionsVideoPaths[integrationName]
-                                ? `[Take me to accounting](${workspaceAccountingLink}).\n\n![Connect to ${integrationName}](${CLOUDFRONT_URL}/${connectionsVideoPaths[integrationName]})`
-                                : `[Take me to accounting](${workspaceAccountingLink}).`
-                        }`,
                 },
             ],
         },
