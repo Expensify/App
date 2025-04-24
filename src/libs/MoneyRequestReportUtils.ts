@@ -74,7 +74,7 @@ const IOU_REPORT_PREVIEW_BUTTON = {
     REVIEW: CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES,
     SUBMIT: CONST.REPORT.PRIMARY_ACTIONS.SUBMIT,
     NONE: undefined,
-};
+}
 
 /**
  * Determines the total amount to be displayed based on the selected button type in the IOU Report Preview.
