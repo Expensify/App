@@ -23,85 +23,87 @@ jest.mock('@components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
 describe('actions/Task', () => {
-    const managerAccountID = 1;
-    const employeeAccountID = 2;
+    describe('canModify and canAction tasl', () => {
+        const managerAccountID = 1;
+        const employeeAccountID = 2;
 
-    // Report with a non-archived parent
-    const report = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
-    const reportParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+        // Report with a non-archived parent
+        const report = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+        const reportParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
-    // Cancelled report with a non-archived parent
-    const taskReportCancelled = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
-    const taskReportCancelledParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+        // Cancelled report with a non-archived parent
+        const taskReportCancelled = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+        const taskReportCancelledParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
-    // Report with an archived parent
-    const reportArchived = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
-    const reportArchivedParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+        // Report with an archived parent
+        const reportArchived = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
+        const reportArchivedParent = LHNTestUtils.getFakeReport([managerAccountID, employeeAccountID]);
 
-    // Set the manager as the owner of each report
-    report.ownerAccountID = managerAccountID;
-    taskReportCancelled.ownerAccountID = managerAccountID;
-    reportArchived.ownerAccountID = managerAccountID;
+        // Set the manager as the owner of each report
+        report.ownerAccountID = managerAccountID;
+        taskReportCancelled.ownerAccountID = managerAccountID;
+        reportArchived.ownerAccountID = managerAccountID;
 
-    // Set the parent report ID of each report
-    report.parentReportID = reportParent.reportID;
-    taskReportCancelled.parentReportID = taskReportCancelledParent.reportID;
-    reportArchived.parentReportID = reportArchivedParent.reportID;
+        // Set the parent report ID of each report
+        report.parentReportID = reportParent.reportID;
+        taskReportCancelled.parentReportID = taskReportCancelledParent.reportID;
+        reportArchived.parentReportID = reportArchivedParent.reportID;
 
-    // This is what indicates that the report is a cancelled task report (see ReportUtils.isCanceledTaskReport())
-    taskReportCancelled.isDeletedParentAction = true;
+        // This is what indicates that the report is a cancelled task report (see ReportUtils.isCanceledTaskReport())
+        taskReportCancelled.isDeletedParentAction = true;
 
-    beforeAll(async () => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-        initOnyxDerivedValues();
+        beforeAll(async () => {
+            Onyx.init({
+                keys: ONYXKEYS,
+            });
+            initOnyxDerivedValues();
 
-        // Store all the necessary data in Onyx
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportParent.reportID}`, reportParent);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelledParent.reportID}`, taskReportCancelledParent);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportArchived.reportID}`, reportArchived);
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportArchivedParent.reportID}`, reportArchivedParent);
+            // Store all the necessary data in Onyx
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportParent.reportID}`, reportParent);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelled.reportID}`, taskReportCancelled);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReportCancelledParent.reportID}`, taskReportCancelledParent);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportArchived.reportID}`, reportArchived);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${reportArchivedParent.reportID}`, reportArchivedParent);
 
-        // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
-        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportArchivedParent.reportID}`, {
-            private_isArchived: new Date().toString(),
-        });
+            // This is what indicates that a report is archived (see ReportUtils.isArchivedReport())
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportArchivedParent.reportID}`, {
+                private_isArchived: new Date().toString(),
+            });
 
-        await waitForBatchedUpdates();
-    });
-
-    describe('canModifyTask', () => {
-        it('returns false if the user modifying the task is not the author', () => {
-            // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-            expect(canModifyTask(report, employeeAccountID, isReportArchived.current)).toBe(false);
-        });
-        it('returns false if the parent report is archived', () => {
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(reportArchived?.parentReportID));
-            expect(canModifyTask(reportArchived, managerAccountID, isReportArchived.current)).toBe(false);
-        });
-        it('returns false if the report is a cancelled task report', () => {
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(taskReportCancelled?.parentReportID));
-            expect(canModifyTask(taskReportCancelled, managerAccountID, isReportArchived.current)).toBe(false);
-        });
-        it('returns true if the user modifying the task is the author and the parent report is not archived or cancelled', () => {
-            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
-            expect(canModifyTask(report, managerAccountID, isReportArchived.current)).toBe(true);
-        });
-    });
-
-    describe('canActionTask', () => {
-        it('returns false if the report is a cancelled task report', () => {
-            // The accountID doesn't matter here because the code will do an early return for the cancelled report
-            expect(canActionTask(taskReportCancelled, 0)).toBe(false);
+            await waitForBatchedUpdates();
         });
 
-        it('returns false if the report has an archived parent report', () => {
-            // The accountID doesn't matter here because the code will do an early return for the archived report
-            expect(canActionTask(reportArchived, 0)).toBe(false);
+        describe('canModifyTask', () => {
+            it('returns false if the user modifying the task is not the author', () => {
+                // Simulate how components call canModifyTask() by using the hook useReportIsArchived() to see if the report is archived
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+                expect(canModifyTask(report, employeeAccountID, isReportArchived.current)).toBe(false);
+            });
+            it('returns false if the parent report is archived', () => {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(reportArchived?.parentReportID));
+                expect(canModifyTask(reportArchived, managerAccountID, isReportArchived.current)).toBe(false);
+            });
+            it('returns false if the report is a cancelled task report', () => {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(taskReportCancelled?.parentReportID));
+                expect(canModifyTask(taskReportCancelled, managerAccountID, isReportArchived.current)).toBe(false);
+            });
+            it('returns true if the user modifying the task is the author and the parent report is not archived or cancelled', () => {
+                const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
+                expect(canModifyTask(report, managerAccountID, isReportArchived.current)).toBe(true);
+            });
+        });
+
+        describe('canActionTask', () => {
+            it('returns false if the report is a cancelled task report', () => {
+                // The accountID doesn't matter here because the code will do an early return for the cancelled report
+                expect(canActionTask(taskReportCancelled, 0)).toBe(false);
+            });
+
+            it('returns false if the report has an archived parent report', () => {
+                // The accountID doesn't matter here because the code will do an early return for the archived report
+                expect(canActionTask(reportArchived, 0)).toBe(false);
+            });
         });
     });
 
