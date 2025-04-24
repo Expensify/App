@@ -103,6 +103,7 @@ import type {
 } from '@src/types/onyx';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Attributes, CompanyAddress, CustomUnit, NetSuiteCustomList, NetSuiteCustomSegment, ProhibitedExpenses, Rate, TaxRate} from '@src/types/onyx/Policy';
+import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {buildOptimisticMccGroup, buildOptimisticPolicyCategories} from './Category';
@@ -2408,7 +2409,7 @@ function requestExpensifyCardLimitIncrease(settlementBankAccountID?: number) {
     API.write(WRITE_COMMANDS.REQUEST_EXPENSIFY_CARD_LIMIT_INCREASE, params);
 }
 
-function updateCustomField(policyID: string, login: string, customFieldType: keyof typeof CONST.CUSTOM_FIELD_KEYS, value: string) {
+function updateCustomField(policyID: string, login: string, customFieldType: CustomFieldType, value: string) {
     const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const policy = getPolicy(policyID);
     const previousValue = policy?.employeeList?.[login]?.[customFieldKey];

@@ -7,6 +7,7 @@ import Log from './libs/Log';
 import type {ReimbursementAccountStepToOpen} from './libs/ReimbursementAccountUtils';
 import type {ExitReason} from './types/form/ExitSurveyReasonForm';
 import type {ConnectionName, SageIntacctMappingName} from './types/onyx/Policy';
+import type {CustomFieldType} from './types/onyx/PolicyEmployee';
 import type AssertTypesNotEqual from './types/utils/AssertTypesNotEqual';
 
 // This is a file containing constants for all the routes we want to be able to go to
@@ -1500,8 +1501,8 @@ const ROUTES = {
         getRoute: (policyID: string, accountID: number) => `settings/workspaces/${policyID}/members/${accountID}` as const,
     },
     WORKSPACE_CUSTOM_FIELDS: {
-        route: 'settings/workspace/:policyID/:accountID/:customFieldType/:backTo?',
-        getRoute: (policyID: string, accountID: number, customFieldType: keyof typeof CONST.CUSTOM_FIELD_KEYS) => `/settings/workspace/${policyID}/${accountID}/${customFieldType}` as const,
+        route: 'settings/workspace/:policyID/:accountID/:customFieldType',
+        getRoute: (policyID: string, accountID: number, customFieldType: CustomFieldType) => `/settings/workspace/${policyID}/${accountID}/${customFieldType}` as const,
     },
     WORKSPACE_MEMBER_NEW_CARD: {
         route: 'settings/workspaces/:policyID/members/:accountID/new-card',

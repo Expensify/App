@@ -1,9 +1,8 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Workspace member custom field key types */
-type CustomFieldType = ValueOf<typeof CONST.CUSTOM_FIELD_KEYS>;
+type CustomFieldType = keyof typeof CONST.CUSTOM_FIELD_KEYS;
 
 /** Model of policy employee */
 type PolicyEmployee = OnyxCommon.OnyxValueWithOfflineFeedback<{

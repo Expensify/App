@@ -33,12 +33,12 @@ function MembersCustomFieldsPage({policy, route, personalDetails}: MembersCustom
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const params = route.params;
+    const customFieldType = params.customFieldType;
     const accountID = Number(params.accountID);
     const memberLogin = personalDetails?.[accountID]?.login ?? '';
     const member = policy?.employeeList?.[memberLogin];
-    const customFieldKey = CONST.CUSTOM_FIELD_KEYS[params.customFieldType];
+    const customFieldKey = CONST.CUSTOM_FIELD_KEYS[customFieldType];
     const [customField, setCustomField] = useState(member?.[customFieldKey ?? '']);
-    const customFieldType = params.customFieldType;
     const customFieldText = translate(`workspace.common.${customFieldType}`);
     const goBack = () => Navigation.goBack(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(params.policyID, accountID));
 

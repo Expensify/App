@@ -23,6 +23,7 @@ import type SCREENS from '@src/SCREENS';
 import type EXIT_SURVEY_REASON_FORM_INPUT_IDS from '@src/types/form/ExitSurveyReasonForm';
 import type {CompanyCardFeed} from '@src/types/onyx';
 import type {ConnectionName, SageIntacctMappingName} from '@src/types/onyx/Policy';
+import type {CustomFieldType} from '@src/types/onyx/PolicyEmployee';
 import type {SIDEBAR_TO_SPLIT} from './linkingConfig/RELATIONS';
 
 type NavigationRef = NavigationContainerRefWithCurrent<RootNavigatorParamList>;
@@ -375,7 +376,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.CUSTOM_FIELDS]: {
         policyID: string;
         accountID: string;
-        customFieldType: keyof typeof CONST.CUSTOM_FIELD_KEYS;
+        customFieldType: CustomFieldType;
     };
     [SCREENS.WORKSPACE.MEMBER_NEW_CARD]: {
         policyID: string;
