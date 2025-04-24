@@ -6,7 +6,7 @@ import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, canHoldUnholdReportAction} from '@libs/ReportUtils';
-import {getTransaction, isOnHold} from '@libs/TransactionUtils';
+import {getTransaction} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
@@ -15,7 +15,6 @@ import useLocalize from './useLocalize';
 // We do not use PRIMARY_REPORT_ACTIONS or SECONDARY_REPORT_ACTIONS because they weren't meant to be used in this situation. `value` property of returned options is later ingored.
 const HOLD = 'HOLD';
 const UNHOLD = 'UNHOLD';
-
 
 function useSelectedTransactionsActions({report, reportActions, session, onExportFailed}: {report?: Report; reportActions: ReportAction[]; session?: Session; onExportFailed?: () => void}) {
     const {selectedTransactionsID, setSelectedTransactionsID} = useMoneyRequestReportContext();
