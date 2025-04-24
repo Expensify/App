@@ -4372,7 +4372,7 @@ function updateMoneyRequestTag(
 /** Updates the created tax amount of an expense */
 function updateMoneyRequestTaxAmount(
     transactionID: string,
-    optimisticReportActionID: string,
+    optimisticReportActionID: string | undefined,
     taxAmount: number,
     policy: OnyxEntry<OnyxTypes.Policy>,
     policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
