@@ -27,7 +27,7 @@ import type {OriginalMessageModifiedExpense} from '@src/types/onyx/OriginalMessa
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
 import type TransactionState from '@src/types/utils/TransactionStateType';
-import arrayLastElement from '@src/utils/arrayLastElelment';
+import arrayLastElement from '@src/utils/arrayLastElement';
 
 let recentWaypoints: RecentWaypoint[] = [];
 Onyx.connect({

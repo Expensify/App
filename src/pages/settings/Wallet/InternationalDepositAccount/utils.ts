@@ -10,7 +10,7 @@ import type {InternationalBankAccountForm} from '@src/types/form';
 import type {BankAccount, BankAccountList, CorpayFields, PrivatePersonalDetails} from '@src/types/onyx';
 import type {CorpayFieldsMap} from '@src/types/onyx/CorpayFields';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arrayLastElement from '@src/utils/arrayLastElelment';
+import arrayLastElement from '@src/utils/arrayLastElement';
 
 function getFieldsMap(corpayFields: OnyxEntry<CorpayFields>): Record<ValueOf<typeof CONST.CORPAY_FIELDS.STEPS_NAME>, CorpayFieldsMap> {
     return (corpayFields?.formFields ?? []).reduce((acc, field) => {

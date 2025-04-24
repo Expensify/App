@@ -19,7 +19,7 @@ import type ReportActionName from '@src/types/onyx/ReportActionName';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import arrayFirstElement from '@src/utils/arrayFirstElement';
-import arrayLastElement from '@src/utils/arrayLastElelment';
+import arrayLastElement from '@src/utils/arrayLastElement';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';

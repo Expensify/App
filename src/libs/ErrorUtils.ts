@@ -6,7 +6,7 @@ import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type Response from '@src/types/onyx/Response';
 import type {ReceiptError} from '@src/types/onyx/Transaction';
 import arrayFirstElement from '@src/utils/arrayFirstElement';
-import arrayLastElement from '@src/utils/arrayLastElelment';
+import arrayLastElement from '@src/utils/arrayLastElement';
 import DateUtils from './DateUtils';
 import * as Localize from './Localize';
 

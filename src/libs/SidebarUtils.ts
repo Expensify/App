@@ -12,7 +12,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
-import arrayLastElement from '@src/utils/arrayLastElelment';
+import arrayLastElement from '@src/utils/arrayLastElement';
 import {getExpensifyCardFromReportAction} from './CardMessageUtils';
 import {extractCollectionItemID} from './CollectionUtils';
 import {hasValidDraftComment} from './DraftCommentUtils';

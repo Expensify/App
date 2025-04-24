@@ -18,7 +18,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Form} from '@src/types/form';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import arrayLastElement from '@src/utils/arrayLastElelment';
+import arrayLastElement from '@src/utils/arrayLastElement';
 import KeyboardUtils from '@src/utils/keyboard';
 import type {RegisterInput} from './FormContext';
 import FormContext from './FormContext';
