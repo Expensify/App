@@ -52,9 +52,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
     const {orderedReportIDs} = useSidebarOrderedReportIDs();
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])});
+    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
+    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
+        selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
+        canBeMissing: true,
+    });
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
