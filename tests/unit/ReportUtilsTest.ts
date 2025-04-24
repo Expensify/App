@@ -216,10 +216,10 @@ const rules = {
 };
 
 const employeeAccountID = 2;
-const categoryapprover1Email = 'categoryapprover1@test.com';
-const categoryapprover2Email = 'categoryapprover2@test.com';
-const tagapprover1Email = 'tagapprover1@test.com';
-const tagapprover2Email = 'tagapprover2@test.com';
+// const categoryapprover1Email = 'categoryapprover1@test.com';
+// const categoryapprover2Email = 'categoryapprover2@test.com';
+// const tagapprover1Email = 'tagapprover1@test.com';
+// const tagapprover2Email = 'tagapprover2@test.com';
 
 const policy: Policy = {
     id: '1',
