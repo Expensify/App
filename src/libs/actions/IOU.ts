@@ -4705,7 +4705,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         attendees,
         transactionThreadReportID,
     } = transactionParams;
-    const {optimisticData: convertTransactionOptimisticData = [], successData: conveconvertTransactionOptimisticData = [], failureData: convertTransactionFailureData = []} = onyxData;
+    const {optimisticData: convertTransactionOptimisticData = [], successData: convertTransactionSuccessData = [], failureData: convertTransactionFailureData = []} = onyxData;
 
     const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
         transactionID,
