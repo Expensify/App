@@ -422,17 +422,17 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const iouReportID = moneyRequestReport?.reportID;
 
-    const iouSettled = isSettled(iouReportID) || requestParentReportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const isIOUSettled = isSettled(iouReportID) || requestParentReportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     const shouldShowRBR =
-        ((hasMissingSmartscanFields(iouReportID) && !iouSettled) ||
+        ((hasMissingSmartscanFields(iouReportID) && !isIOUSettled) ||
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             hasViolations(iouReportID, violations, true) ||
             hasNoticeTypeViolations(iouReportID, violations, true) ||
             hasWarningTypeViolations(iouReportID, violations, true) ||
             (isReportOwner(moneyRequestReport) && hasReportViolations(iouReportID)) ||
             hasActionsWithErrors(iouReportID)) &&
-        !iouSettled;
+        !isIOUSettled;
 
     const buttonType = getIOUReportPreviewButtonType({
         shouldShowPayButton,
