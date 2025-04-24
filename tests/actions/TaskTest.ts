@@ -128,31 +128,8 @@ describe('actions/Task', () => {
                 expect(canActionTask(taskReport, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
             });
 
-            // The third parameter of canActionTask is the accountID of the user who is assigned to the task
-            // and is used when the task report has no parent
-            describe('testing the third parameter', () => {
-                it('returns true if the report has no parent and the third parameter is the same as the second', () => {
-                    const {result: parentReport} = renderHook(() => useParentReport(taskReportWithNoParent.reportID));
-                    const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReportWithNoParent, managerAccountID, parentReport.current, isParentReportArchived.current)).toBe(true);
-                });
-
-                it('returns false if the report has no parent, the logged on user is not the author or assignee', () => {
-                    const {result: parentReport} = renderHook(() => useParentReport(taskReportWithNoParent.reportID));
-                    const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReportWithNoParent, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
-                });
-
-                it('returns false if the report has no parent, the logged on user is not the author or assignee', () => {
-                    const {result: parentReport} = renderHook(() => useParentReport(taskReportWithNoParent.reportID));
-                    const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
-                    expect(canActionTask(taskReportWithNoParent, employeeAccountID, parentReport.current, isParentReportArchived.current)).toBe(false);
-                });
-            });
-
-            // When the third parameter is not passed, the function uses childManagerAccountID of the parent report action
-            // to indicate the user assigned to the task
-            describe('testing without the third parameter and report action', () => {
+            // Looking up the task assignee is usually based on the report action
+            describe('testing with report action', () => {
                 beforeAll(async () => {
                     taskReport.parentReportActionID = 'a1';
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
@@ -180,9 +157,8 @@ describe('actions/Task', () => {
                 });
             });
 
-            // When the third parameter is not passed, the function uses report.managerID
-            // to indicate the user assigned to the task
-            describe('testing without the third parameter and report.managerId', () => {
+            // Some old reports might only have report.managerID so be sure it's still supported
+            describe('testing with report.managerID', () => {
                 beforeAll(async () => {
                     taskReport.managerID = taskAssigneeAccountID;
                     await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${taskReport.reportID}`, taskReport);
