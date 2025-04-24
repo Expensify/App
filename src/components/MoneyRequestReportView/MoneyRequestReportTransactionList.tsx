@@ -163,6 +163,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             isChecked={selectedTransactionsID.length === transactions.length}
                         />
                     </View>
