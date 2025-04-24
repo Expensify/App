@@ -383,6 +383,9 @@ const styles = (theme: ThemeColors) =>
         lineHeightLarge: {
             lineHeight: variables.lineHeightLarge,
         },
+        lineHeightXLarge: {
+            lineHeight: variables.lineHeightXLarge,
+        },
         label: {
             fontSize: variables.fontSizeLabel,
             lineHeight: variables.lineHeightLarge,
@@ -1885,10 +1888,6 @@ const styles = (theme: ThemeColors) =>
 
         emojisWithTextLineHeight: {
             lineHeight: variables.lineHeightXLarge,
-        },
-
-        initialSettingsUsernameEmoji: {
-            fontSize: variables.fontSizeUsernameEmoji,
         },
 
         createMenuPositionSidebar: (windowHeight: number) =>
