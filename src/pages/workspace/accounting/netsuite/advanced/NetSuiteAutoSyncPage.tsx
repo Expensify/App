@@ -1,5 +1,5 @@
 import {CONST as COMMON_CONST} from 'expensify-common';
-import React from 'react';
+import React, {useCallback} from 'react';
 import Accordion from '@components/Accordion';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
@@ -20,6 +20,11 @@ import {clearNetSuiteAutoSyncErrorField} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+
+type NetSuiteAutoSyncPageRouteParams = {
+    backTo?: Route;
+};
 
 function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
@@ -27,11 +32,16 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
     const config = policy?.connections?.netsuite?.options?.config;
     const autoSyncConfig = policy?.connections?.netsuite?.config;
     const policyID = route.params.policyID;
+    const {backTo} = route.params as NetSuiteAutoSyncPageRouteParams;
     const accountingMethod = policy?.connections?.netsuite?.options?.config?.accountingMethod;
     const pendingAction =
         settingsPendingAction([CONST.NETSUITE_CONFIG.AUTO_SYNC], autoSyncConfig?.pendingFields) ?? settingsPendingAction([CONST.NETSUITE_CONFIG.ACCOUNTING_METHOD], config?.pendingFields);
 
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!autoSyncConfig?.autoSync?.enabled);
+
+    const goBack = useCallback(() => {
+        Navigation.goBack(backTo ?? ROUTES.POLICY_ACCOUNTING_NETSUITE_ADVANCED.getRoute(policyID));
+    }, [policyID, backTo]);
 
     return (
         <AccessOrNotFoundWrapper
@@ -46,7 +56,7 @@ function NetSuiteAutoSyncPage({policy, route}: WithPolicyConnectionsProps) {
             >
                 <HeaderWithBackButton
                     title={translate('common.settings')}
-                    onBackButtonPress={() => Navigation.goBack()}
+                    onBackButtonPress={goBack}
                 />
                 <ToggleSettingOptionRow
                     title={translate('workspace.accounting.autoSync')}
