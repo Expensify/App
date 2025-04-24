@@ -14,7 +14,7 @@ import ROUTES from '@src/ROUTES';
 function AddMembersButton() {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: true});
     const activePolicy = usePolicy(activePolicyID);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 
