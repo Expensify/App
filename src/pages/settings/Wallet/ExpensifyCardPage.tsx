@@ -349,7 +349,7 @@ function ExpensifyCardPage({
                     style={[styles.w100, styles.p5]}
                     onPress={() =>
                         Navigation.navigate(
-                            ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(physicalCards?.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED)?.cardID)),
+                            ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID)),
                         )
                     }
                     text={translate('activateCardPage.activatePhysicalCard')}
