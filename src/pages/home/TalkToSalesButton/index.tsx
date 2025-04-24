@@ -57,6 +57,8 @@ function TalkToSalesButton({shouldUseNarrowLayout, reportID}: TalkToSalesButtonP
             }}
             style={shouldUseNarrowLayout && styles.earlyDiscountButton}
             icon={talkToSalesIcon()}
+            // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
+            iconWrapperStyles={[styles.w100]}
             isLoading={talkToAISales?.isLoading}
         />
     );
