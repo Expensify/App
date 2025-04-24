@@ -1,7 +1,7 @@
 ---
 title: Track Taxes
 description: How to track taxes and apply them to expenses
-keywords: [Expensify Classic, track tax]
+keywords: [Expensify Classic, track taxes]
 ---
 <div id="expensify-classic" markdown="1">
 
@@ -12,9 +12,10 @@ Expensify's tax tracking allows you to create tax rates and codes for domestic a
 # Tax Tracking - Connected to an Accounting Integration
 
 If your Workspace is connected to **Xero, QuickBooks Online, Sage Intacct,** or **NetSuite**, follow these steps to set up tax tracking:
-1. Go to **Settings > Workspaces > [Workspace Name] > Connections**.
-2. Click **Configure**.
-3. Click **Sync Connection**. 
+1. Configure the tax settings in your accounting system. 
+2. Go to **Settings > Workspaces > [Workspace Name] > Accounting**.
+3. Click **Configure**.
+4. Click **Sync Connection**. 
 
 The tax rates are then imported from the accounting system and displayed with the connection's logo.
 
