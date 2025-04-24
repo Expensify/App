@@ -816,7 +816,7 @@ type GetReportNameParams = {
     policies?: SearchPolicy[];
 };
 
-type ReportByPolicyMap = Record<string, Report[]>;
+type ReportByPolicyMap = Record<string, string[]>;
 
 let currentUserEmail: string | undefined;
 let currentUserPrivateDomain: string | undefined;
@@ -888,7 +888,7 @@ Onyx.connect({
 });
 
 let allReports: OnyxCollection<Report>;
-let reportsByPolicyID: ReportByPolicyMap;
+let reportIDsByPolicyID: ReportByPolicyMap;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.REPORT,
     waitForCollectionCallback: true,
@@ -905,7 +905,7 @@ Onyx.connect({
             return;
         }
 
-        reportsByPolicyID = Object.values(value).reduce<ReportByPolicyMap>((acc, report) => {
+        reportIDsByPolicyID = Object.values(value).reduce<ReportByPolicyMap>((acc, report) => {
             if (!report) {
                 return acc;
             }
@@ -914,13 +914,13 @@ Onyx.connect({
 
             // Get all reports, which are the ones that are:
             // - Owned by the same user
-            // - Are either open or submitted
+            // - Are not settled.
             // - Belong to the same workspace
-            if (report.policyID && report.ownerAccountID === currentUserAccountID && (report.stateNum ?? 0) <= 1) {
+            if (report.policyID && report.ownerAccountID === currentUserAccountID && !isSettled(report)) {
                 if (!acc[report.policyID]) {
                     acc[report.policyID] = [];
                 }
-                acc[report.policyID].push(report);
+                acc[report.policyID].push(report.reportID);
             }
 
             return acc;
@@ -7497,17 +7497,17 @@ function shouldDisplayViolationsRBRInLHN(report: OnyxEntry<Report>, transactionV
     if (!isCurrentUserSubmitter(report.reportID)) {
         return false;
     }
-    if (!report.policyID || !reportsByPolicyID) {
+    if (!report.policyID || !reportIDsByPolicyID) {
         return false;
     }
 
     // If any report has a violation, then it should have a RBR
-    const potentialReports = reportsByPolicyID[report.policyID] ?? [];
-    return potentialReports.some((potentialReport) => {
+    const potentialReportIDs = reportIDsByPolicyID[report.policyID] ?? [];
+    return potentialReportIDs.some((reportID) => {
         return (
-            hasViolations(potentialReport.reportID, transactionViolations, true) ||
-            hasWarningTypeViolations(potentialReport.reportID, transactionViolations, true) ||
-            hasNoticeTypeViolations(potentialReport.reportID, transactionViolations, true)
+            hasViolations(reportID, transactionViolations, true) ||
+            hasWarningTypeViolations(reportID, transactionViolations, true) ||
+            hasNoticeTypeViolations(reportID, transactionViolations, true)
         );
     });
 }
