@@ -30,7 +30,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
 
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
@@ -69,7 +69,6 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             return;
         }
 
-        setDraftValues(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM, {[COUNTRY]: currencyMappedToCountry});
         setSelectedCountry(currencyMappedToCountry);
     }, [currency, currencyMappedToCountry]);
 
@@ -109,6 +108,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
                 shouldAllowChange={shouldAllowChange}
                 value={selectedCountry}
                 inputID={COUNTRY}
+                shouldSaveDraft={false}
             />
         </FormProvider>
     );
