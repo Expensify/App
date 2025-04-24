@@ -26,12 +26,15 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const accountID = route.params.accountID;
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const attachmentLink = route.params.attachmentLink;
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID || CONST.DEFAULT_NUMBER_ID}`, {
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: true});
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {
         canEvict: false,
+        canBeMissing: true,
     });
-    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID || CONST.DEFAULT_NUMBER_ID}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID}`, {
+        canBeMissing: true,
+    });
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const fileName = route.params?.fileName;
 
@@ -46,7 +49,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         }
         const isEmptyReport = isEmptyObject(report);
         return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
-    }, [isOffline, reportID, isLoadingApp, report, reportMetadata]);
+    }, [isOffline, reportID, isLoadingApp, report, reportMetadata, shouldFetchReport]);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
     const source = Number(route.params.source) || tryResolveUrlFromApiRoot(decodeURIComponent(route.params.source));
@@ -61,7 +64,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
         }
 
         fetchReport();
-    }, [reportID, fetchReport]);
+    }, [reportID, fetchReport, shouldFetchReport]);
 
     const onCarouselAttachmentChange = useCallback(
         (attachment: Attachment) => {
