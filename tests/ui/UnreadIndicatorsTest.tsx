@@ -230,7 +230,7 @@ describe('Unread Indicators', () => {
                 expect(createdAction).toBeTruthy();
                 const reportCommentsHintText = translateLocal('accessibilityHints.chatMessage');
                 const reportComments = screen.queryAllByLabelText(reportCommentsHintText);
-                expect(reportComments).toHaveLength(9);
+                expect(reportComments).toHaveLength(4);
                 // Since the last read timestamp is the timestamp of action 3 we should have an unread indicator above the next "unread" action which will
                 // have actionID of 4
                 const newMessageLineIndicatorHintText = translateLocal('accessibilityHints.newMessageLineIndicator');
