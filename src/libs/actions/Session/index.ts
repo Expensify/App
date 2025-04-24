@@ -1247,6 +1247,43 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
+/**
+ * Validates user account and returns a list of accessible policies.
+ */
+function validateUserAndGetAccessiblePolicies(validateCode: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: true,
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
+            value: false,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
+}
+
+function isUserOnPrivateDomain() {
+    // TODO: Implement this function later, and skip the check for now
+    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
+    return false;
+}
+
 function AddWorkEmail(workEmail: string) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1459,6 +1496,8 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
+    validateUserAndGetAccessiblePolicies,
+    isUserOnPrivateDomain,
     AddWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,
