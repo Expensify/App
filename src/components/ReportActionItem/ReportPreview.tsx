@@ -30,6 +30,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {getIOUReportPreviewButtonType, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
@@ -205,7 +206,7 @@ function ReportPreview({
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(iouReport?.reportID);
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
+    const {totalDisplaySpend} = getMoneyRequestSpendBreakdown(iouReport);
     const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
     const iouSettled = isSettled(iouReportID, isOnSearch ? reports : undefined) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
@@ -299,19 +300,6 @@ function ReportPreview({
             startApprovedAnimation();
             approveMoneyRequest(iouReport, true);
         }
-    };
-
-    const getSettlementAmount = () => {
-        if (hasOnlyHeldExpenses) {
-            return '';
-        }
-
-        // We shouldn't display the nonHeldAmount as the default option if it's not valid since we cannot pay partially in this case
-        if (hasHeldExpensesReportUtils(iouReport?.reportID) && canAllowSettlement && hasValidNonHeldAmount) {
-            return nonHeldAmount;
-        }
-
-        return convertToDisplayString(reimbursableSpend, iouReport?.currency);
     };
 
     const getDisplayAmount = (): string => {
@@ -475,7 +463,7 @@ function ReportPreview({
      */
     const connectedIntegration = getConnectedIntegration(policy);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(iouReport);
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && !!connectedIntegration && isAdmin && canBeExported(iouReport);
 
     useEffect(() => {
         if (!isPaidAnimationRunning || isApprovedAnimationRunning) {
@@ -515,6 +503,15 @@ function ReportPreview({
         Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
     }, [iouReportID]);
+
+    const buttonType = getIOUReportPreviewButtonType({
+        shouldShowPayButton,
+        shouldShowApproveButton,
+        shouldShowSubmitButton,
+        shouldShowSettlementButton,
+        shouldShowRBR,
+        shouldShowExportIntegrationButton,
+    });
 
     return (
         <OfflineWithFeedback
@@ -623,7 +620,7 @@ function ReportPreview({
                                         isApprovedAnimationRunning={isApprovedAnimationRunning}
                                         canIOUBePaid={canIOUBePaidAndApproved || isPaidAnimationRunning}
                                         onAnimationFinish={stopAnimation}
-                                        formattedAmount={getSettlementAmount() ?? ''}
+                                        formattedAmount={getTotalAmountForIOUReportPreviewButton(iouReport, policy, buttonType)}
                                         currency={iouReport?.currency}
                                         policyID={policyID}
                                         chatReportID={chatReportID}

@@ -10,7 +10,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSelectedTransactionsActions from '@hooks/useSelectedTransactionsActions';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getIOUReportPreviewButtonType, getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStepForPreventSelfApprovalsEnabled} from '@libs/NextStepUtils';
 import {getConnectedIntegration} from '@libs/PolicyUtils';
@@ -20,12 +20,17 @@ import {
     canDeleteTransaction,
     getArchiveReason,
     getBankAccountRoute,
-    getMoneyRequestSpendBreakdown,
     getNonHeldAndFullAmount,
     getTransactionsWithReceipts,
+    hasActionsWithErrors,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasMissingSmartscanFields,
+    hasNoticeTypeViolations,
     hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
+    hasReportViolations,
     hasUpdatedTotal,
+    hasViolations,
+    hasWarningTypeViolations,
     isAllowedToApproveExpenseReport,
     isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
@@ -33,6 +38,7 @@ import {
     isProcessingReport,
     isReportApproved,
     isReportOwner,
+    isSettled,
     isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
     navigateBackOnDeleteTransaction,
     reportTransactionsSelector,
@@ -149,7 +155,6 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const [isDeleteRequestModalVisible, setIsDeleteRequestModalVisible] = useState(false);
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(moneyRequestReport);
     const isOnHold = isOnHoldTransactionUtils(transaction);
     const isDeletedParentAction = !!requestParentReportAction && isDeletedAction(requestParentReportAction);
     const isDuplicate = isDuplicateTransactionUtils(transaction?.transactionID) && (!isReportApproved({report: moneyRequestReport}) || isApprovedAnimationRunning);
@@ -219,7 +224,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const filteredTransactions = transactions?.filter((t) => t) ?? [];
     const shouldShowSubmitButton = canSubmitReport(moneyRequestReport, policy, filteredTransactions, violations);
 
-    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
+    const shouldShowExportIntegrationButton = !shouldShowPayButton && !shouldShowSubmitButton && !!connectedIntegration && isAdmin && canBeExported(moneyRequestReport);
 
     const shouldShowSettlementButton =
         !shouldShowSelectedTransactionsButton &&
@@ -254,10 +259,8 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
         shouldShowMarkAsCashButton ||
         shouldShowExportIntegrationButton;
     const bankAccountRoute = getBankAccountRoute(chatReport);
-    const formattedAmount = convertToDisplayString(reimbursableSpend, moneyRequestReport?.currency);
     const {nonHeldAmount, fullAmount, hasValidNonHeldAmount} = getNonHeldAndFullAmount(moneyRequestReport, shouldShowPayButton);
     const isAnyTransactionOnHold = hasHeldExpensesReportUtils(moneyRequestReport?.reportID);
-    const displayedAmount = isAnyTransactionOnHold && canAllowSettlement && hasValidNonHeldAmount ? nonHeldAmount : formattedAmount;
     const isMoreContentShown = shouldShowNextStep || shouldShowStatusBar || (shouldShowAnyButton && shouldUseNarrowLayout);
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
@@ -417,6 +420,29 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
 
     const shouldShowBackButton = shouldDisplayBackButton || shouldUseNarrowLayout;
 
+    const iouReportID = moneyRequestReport?.reportID;
+
+    const iouSettled = isSettled(iouReportID) || requestParentReportAction?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+    const shouldShowRBR =
+        ((hasMissingSmartscanFields(iouReportID) && !iouSettled) ||
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            hasViolations(iouReportID, violations, true) ||
+            hasNoticeTypeViolations(iouReportID, violations, true) ||
+            hasWarningTypeViolations(iouReportID, violations, true) ||
+            (isReportOwner(moneyRequestReport) && hasReportViolations(iouReportID)) ||
+            hasActionsWithErrors(iouReportID)) &&
+        !iouSettled;
+
+    const buttonType = getIOUReportPreviewButtonType({
+        shouldShowPayButton,
+        shouldShowApproveButton,
+        shouldShowSubmitButton,
+        shouldShowSettlementButton,
+        shouldShowRBR,
+        shouldShowExportIntegrationButton,
+    });
+
     return (
         <View style={[styles.pt0, styles.borderBottom]}>
             <HeaderWithBackButton
@@ -473,7 +499,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                             shouldShowApproveButton={shouldShowApproveButton}
                             shouldDisableApproveButton={shouldDisableApproveButton}
                             style={[styles.pv2]}
-                            formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
+                            formattedAmount={getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, buttonType)}
                             isDisabled={isOffline && !canAllowSettlement}
                             isLoading={!isOffline && !canAllowSettlement}
                         />
@@ -552,7 +578,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
                                 addBankAccountRoute={bankAccountRoute}
                                 shouldHidePaymentOptions={!shouldShowPayButton}
                                 shouldShowApproveButton={shouldShowApproveButton}
-                                formattedAmount={!hasOnlyHeldExpenses ? displayedAmount : ''}
+                                formattedAmount={getTotalAmountForIOUReportPreviewButton(moneyRequestReport, policy, buttonType)}
                                 shouldDisableApproveButton={shouldDisableApproveButton}
                                 isDisabled={isOffline && !canAllowSettlement}
                                 isLoading={!isOffline && !canAllowSettlement}
