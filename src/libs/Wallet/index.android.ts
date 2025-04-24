@@ -63,10 +63,13 @@ function isCardInWallet(card: Card): Promise<boolean> {
     if (!tokenRefId) {
         return Promise.resolve(false);
     }
+    console.log('[ZUZA] card', card);
 
     return getCardStatusByIdentifier(tokenRefId, CONST.COMPANY_CARDS.CARD_TYPE.VISA)
         .then((status: CardStatus) => {
             Log.info(`Card status: ${status}`);
+            console.log(`Card status: ${status}`);
+
             return status === 'active';
         })
         .catch((error) => {

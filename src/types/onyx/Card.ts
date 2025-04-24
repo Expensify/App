@@ -171,6 +171,7 @@ type CardAddedToWallet = {
         city: string;
 
         /** Postal code of the city */
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         postal_code: string;
 
         /** Card holder's state of living */

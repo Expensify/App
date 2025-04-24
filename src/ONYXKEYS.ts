@@ -516,7 +516,7 @@ const ONYXKEYS = {
     /** Billing receipt details */
     BILLING_RECEIPT_DETAILS: 'billingReceiptDetails',
 
-    /** Information about card added to wallet */
+    /** Information about card newly added to wallet */
     CARD_ADDED_TO_WALLET: 'cardAddedToWallet',
 
     /** Collection Keys */

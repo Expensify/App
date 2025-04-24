@@ -2,8 +2,6 @@
 set -e
 
 export PROJECT_ROOT_PATH
-export NEW_DOT_FLAG
-export IS_HYBRID_APP_REPO
 
 IOS_MODE="DebugDevelopment"
 ANDROID_MODE="developmentDebug"

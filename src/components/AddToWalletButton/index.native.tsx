@@ -20,6 +20,7 @@ function AddToWalletButton({card, cardHolderName, cardDescription, buttonStyle}:
                 setIsInWallet(false);
             });
     }, [card]);
+    console.log('[ZUZA] isInWallet', isInWallet);
 
     const handleOnPress = useCallback(() => {
         handleAddCardToWallet(card, cardHolderName, cardDescription, checkIfCardIsInWallet);
