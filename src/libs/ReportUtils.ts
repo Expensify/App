@@ -10839,7 +10839,7 @@ export {
     getChatListItemReportName,
     buildOptimisticMovedTransactionAction,
     populateOptimisticReportFormula,
-    getOutstandingReports,
+    getOutstandingReportsForUser,
     isReportOutstanding,
     isAllowedToSubmitDraftExpenseReport,
 };

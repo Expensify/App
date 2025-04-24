@@ -9,7 +9,7 @@ import useLocalize from '@hooks/useLocalize';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReports} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
