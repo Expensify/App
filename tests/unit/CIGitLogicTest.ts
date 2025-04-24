@@ -114,6 +114,17 @@ function initGithubAPIMocking() {
                         { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
                     ];
                     break;
+                case '2.0.0-0...2.0.1-1-staging':
+                    mockCommits = [
+                        { sha: 'sha_pr1_merge_alt', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        { sha: 'sha_pr3_merge_alt', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                    ];
+                    break;
+                case '2.0.0-0...2.0.1-0':
+                    mockCommits = [
+                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                    ];
+                    break;
                 default:
                     console.warn(`Unhandled tag pair in compareCommits mock: ${tagPairKey}`);
                     break;
