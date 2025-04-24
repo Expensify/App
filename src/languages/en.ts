@@ -6255,6 +6255,11 @@ const translations = {
             confirmText: 'Start test drive',
             helpText: 'Skip',
         },
+        banner: {
+            currentlyTestDrivingExpensify: "You're currently test driving Expensify",
+            readyForTheRealThing: 'Ready for the real thing?',
+            getStarted: 'Get started',
+        },
     },
 };
 

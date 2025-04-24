@@ -23,7 +23,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
+import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose, OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -9654,7 +9654,7 @@ function prepareOnboardingOnyxData(
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
-    const onboardingTaskParams = {
+    const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
         onboardingCompanySize: companySize ?? onboardingCompanySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
@@ -9662,6 +9662,7 @@ function prepareOnboardingOnyxData(
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
+        testDriveURL: `${environmentURL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
     };

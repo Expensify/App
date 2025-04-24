@@ -1,3 +1,4 @@
+import {waitFor} from '@testing-library/react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
@@ -61,12 +62,12 @@ describe('navigateAfterOnboarding', () => {
         const navigate = jest.spyOn(Navigation, 'navigate');
         const testSession = {email: 'realaccount@gmail.com'};
 
-        navigateAfterOnboarding(false, true, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, false, true, undefined, undefined, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(ONBOARDING_ADMINS_CHAT_REPORT_ID));
     });
 
     it('should not navigate if onboardingAdminsChatReportID is not provided', () => {
-        navigateAfterOnboarding(false, true, undefined, undefined);
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, false, true, undefined, undefined);
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -85,7 +86,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).not.toHaveBeenCalled();
     });
 
@@ -94,7 +95,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(false);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
@@ -104,7 +105,7 @@ describe('navigateAfterOnboarding', () => {
         mockFindLastAccessedReport.mockReturnValue(lastAccessedReport);
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.LOOKING_AROUND, true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID);
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
     });
 
@@ -115,7 +116,23 @@ describe('navigateAfterOnboarding', () => {
         mockShouldOpenOnAdminRoom.mockReturnValue(true);
         const testSession = {email: 'test+account@gmail.com'};
 
-        navigateAfterOnboarding(true, true, ONBOARDING_POLICY_ID, ACTIVE_WORKSPACE_ID, ONBOARDING_ADMINS_CHAT_REPORT_ID, (testSession?.email ?? '').includes('+'));
+        navigateAfterOnboarding(
+            CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            true,
+            true,
+            ONBOARDING_POLICY_ID,
+            ACTIVE_WORKSPACE_ID,
+            ONBOARDING_ADMINS_CHAT_REPORT_ID,
+            (testSession?.email ?? '').includes('+'),
+        );
         expect(navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+    });
+
+    it('should navigate to Test Drive Modal if user wants to manage a small team', async () => {
+        const navigate = jest.spyOn(Navigation, 'navigate');
+        jest.spyOn(Navigation, 'isNavigationReady').mockReturnValue(Promise.resolve());
+
+        navigateAfterOnboarding(CONST.ONBOARDING_CHOICES.MANAGE_TEAM, true, true);
+        await waitFor(() => expect(navigate).toHaveBeenCalledWith(ROUTES.TEST_DRIVE_MODAL_ROOT));
     });
 });
