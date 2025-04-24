@@ -13,6 +13,7 @@ import * as Expensicons from '@components/Icon/Expensicons';
 import MenuItem from '@components/MenuItem';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Text from '@components/Text';
+import useAccountValidation from '@hooks/useAccountValidation';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import type {FormattedSelectedPaymentMethodIcon} from '@hooks/usePaymentMethodState/types';
@@ -198,7 +199,7 @@ function PaymentMethodList({
     const {isOffline} = useNetwork();
     const illustrations = useThemeIllustrations();
 
-    const [isUserValidated] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.validated});
+    const isUserValidated = useAccountValidation();
     const [bankAccountList = {}, bankAccountListResult] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
     const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
     const isLoadingBankAccountList = isLoadingOnyxValue(bankAccountListResult);
@@ -263,9 +264,10 @@ function PaymentMethodList({
                 }
 
                 const isAdminIssuedVirtualCard = !!card?.nameValuePairs?.issuedBy && !!card?.nameValuePairs?.isVirtual;
+                const isTravelCard = !!card?.nameValuePairs?.isVirtual && !!card?.nameValuePairs?.isTravelCard;
 
                 // The card should be grouped to a specific domain and such domain already exists in a assignedCardsGrouped
-                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard) {
+                if (assignedCardsGrouped.some((item) => item.isGroupedCardDomain && item.description === card.domainName) && !isAdminIssuedVirtualCard && !isTravelCard) {
                     const domainGroupIndex = assignedCardsGrouped.findIndex((item) => item.isGroupedCardDomain && item.description === card.domainName);
                     const assignedCardsGroupedItem = assignedCardsGrouped.at(domainGroupIndex);
                     if (domainGroupIndex >= 0 && assignedCardsGroupedItem) {
@@ -278,17 +280,18 @@ function PaymentMethodList({
                 }
 
                 // The card shouldn't be grouped or it's domain group doesn't exist yet
+                const cardDescription =
+                    card?.nameValuePairs?.issuedBy && card?.lastFourPAN
+                        ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
+                        : getDescriptionForPolicyDomainCard(card.domainName);
                 assignedCardsGrouped.push({
                     key: card.cardID.toString(),
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title: card?.nameValuePairs?.cardTitle || card.bank,
-                    description:
-                        card?.nameValuePairs?.issuedBy && card?.lastFourPAN
-                            ? `${card?.lastFourPAN} ${CONST.DOT_SEPARATOR} ${getDescriptionForPolicyDomainCard(card.domainName)}`
-                            : getDescriptionForPolicyDomainCard(card.domainName),
+                    title: isTravelCard ? translate('cardPage.expensifyTravelCard') : card?.nameValuePairs?.cardTitle || card.bank,
+                    description: isTravelCard ? translate('cardPage.expensifyTravelCard') : cardDescription,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(String(card.cardID))),
                     cardID: card.cardID,
-                    isGroupedCardDomain: !isAdminIssuedVirtualCard,
+                    isGroupedCardDomain: !isAdminIssuedVirtualCard && !isTravelCard,
                     shouldShowRightIcon: true,
                     interactive: !isDisabled,
                     disabled: isDisabled,
@@ -368,6 +371,7 @@ function PaymentMethodList({
         isLoadingBankAccountList,
         isLoadingCardList,
         illustrations,
+        translate,
     ]);
 
     /**

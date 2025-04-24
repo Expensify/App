@@ -64,10 +64,9 @@ function BaseVideoPlayer({
         originalParent,
         shareVideoPlayerElements,
         currentVideoPlayerRef,
-        updateCurrentlyPlayingURL,
+        updateCurrentURLAndReportID,
         videoResumeTryNumberRef,
         setCurrentlyPlayingURL,
-        currentlyPlayingURLReportID,
     } = usePlaybackContext();
     const {isFullScreenRef} = useFullScreenContext();
     const {isOffline} = useNetwork();
@@ -111,13 +110,13 @@ function BaseVideoPlayer({
         setIsEnded(false);
         videoResumeTryNumberRef.current = 0;
         if (!isCurrentlyURLSet) {
-            updateCurrentlyPlayingURL(url);
+            updateCurrentURLAndReportID(url, reportID);
         } else if (isPlaying) {
             pauseVideo();
         } else {
             playVideo();
         }
-    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, updateCurrentlyPlayingURL, url, videoResumeTryNumberRef]);
+    }, [isCurrentlyURLSet, isPlaying, pauseVideo, playVideo, reportID, updateCurrentURLAndReportID, url, videoResumeTryNumberRef]);
 
     const hideControl = useCallback(() => {
         if (isEnded) {
@@ -225,7 +224,7 @@ function BaseVideoPlayer({
 
             // These two conditions are essential for the mute and unmute functionality to work properly during
             // fullscreen playback on the web
-            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted) {
+            if (prevIsMuted.get() && prevVolume.get() === 0 && !status.isMuted && status.volume === 0) {
                 updateVolume(lastNonZeroVolume.get());
             }
 
@@ -333,6 +332,7 @@ function BaseVideoPlayer({
         if (currentVideoPlayerRef.current) {
             pauseVideo();
         }
+
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
@@ -352,17 +352,15 @@ function BaseVideoPlayer({
 
     // update shared video elements
     useEffect(() => {
-        if (shouldUseSharedVideoElement || url !== currentlyPlayingURL || reportID !== currentlyPlayingURLReportID) {
-            return;
-        }
         // On mobile safari, we need to auto-play when sharing video element here
         shareVideoPlayerElements(
             videoPlayerRef.current,
             videoPlayerElementParentRef.current,
             videoPlayerElementRef.current,
             isUploading || isFullScreenRef.current || (!isReadyForDisplayRef.current && !isMobileSafari()),
+            {shouldUseSharedVideoElement, url, reportID},
         );
-    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID, currentlyPlayingURLReportID]);
+    }, [currentlyPlayingURL, shouldUseSharedVideoElement, shareVideoPlayerElements, url, isUploading, isFullScreenRef, reportID]);
 
     // Call bindFunctions() through the refs to avoid adding it to the dependency array of the DOM mutation effect, as doing so would change the DOM when the functions update.
     const bindFunctionsRef = useRef<(() => void) | null>(null);
@@ -409,14 +407,14 @@ function BaseVideoPlayer({
             }
             newParentRef.childNodes[0]?.remove();
         };
-    }, [currentVideoPlayerRef, currentlyPlayingURL, currentlyPlayingURLReportID, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
+    }, [currentVideoPlayerRef, currentlyPlayingURL, isFullScreenRef, originalParent, reportID, sharedElement, shouldUseSharedVideoElement, url]);
 
     useEffect(() => {
         if (!shouldPlay) {
             return;
         }
-        updateCurrentlyPlayingURL(url);
-    }, [shouldPlay, updateCurrentlyPlayingURL, url]);
+        updateCurrentURLAndReportID(url, reportID);
+    }, [reportID, shouldPlay, updateCurrentURLAndReportID, url]);
 
     useEffect(() => {
         videoPlayerRef.current?.setStatusAsync({isMuted: true});
@@ -506,6 +504,7 @@ function BaseVideoPlayer({
                                             onError={() => {
                                                 setHasError(true);
                                             }}
+                                            testID={CONST.VIDEO_PLAYER_TEST_ID}
                                         />
                                     </View>
                                 )}
@@ -527,6 +526,7 @@ function BaseVideoPlayer({
                                     togglePlayCurrentVideo={togglePlayCurrentVideo}
                                     controlsStatus={controlStatusState}
                                     showPopoverMenu={showPopoverMenu}
+                                    reportID={reportID}
                                 />
                             )}
                         </View>

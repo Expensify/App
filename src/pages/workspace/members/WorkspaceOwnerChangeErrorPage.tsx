@@ -39,7 +39,10 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             policyID={policyID}
         >
-            <ScreenWrapper testID={WorkspaceOwnerChangeErrorPage.displayName}>
+            <ScreenWrapper
+                testID={WorkspaceOwnerChangeErrorPage.displayName}
+                enableEdgeToEdgeBottomSafeAreaPadding
+            >
                 <HeaderWithBackButton
                     title={translate('workspace.changeOwner.changeOwnerPageTitle')}
                     onBackButtonPress={closePage}
@@ -59,7 +62,7 @@ function WorkspaceOwnerChangeErrorPage({route}: WorkspaceOwnerChangeSuccessPageP
                         {translate('workspace.changeOwner.errorDescriptionPartThree')}
                     </Text>
                 </View>
-                <FixedFooter>
+                <FixedFooter addBottomSafeAreaPadding>
                     <Button
                         success
                         large

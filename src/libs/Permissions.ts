@@ -42,20 +42,12 @@ function canUseManagerMcTest(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.NEWDOT_MANAGER_MCTEST) || canUseAllBetas(betas);
 }
 
-function canUseInternationalBankAccount(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.NEWDOT_INTERNATIONAL_DEPOSIT_BANK_ACCOUNT) || canUseAllBetas(betas);
-}
-
 function canUseCustomRules(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.CUSTOM_RULES) || canUseAllBetas(betas);
 }
 
 function canUseTableReportView(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.TABLE_REPORT_VIEW) || canUseAllBetas(betas);
-}
-
-function canUseHelpSidePanel(betas: OnyxEntry<Beta[]>): boolean {
-    return !!betas?.includes(CONST.BETAS.HELP_SIDE_PANEL) || canUseAllBetas(betas);
 }
 
 function canUseTalkToAISales(betas: OnyxEntry<Beta[]>): boolean {
@@ -70,6 +62,14 @@ function canUseLeftHandBar(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.LEFT_HAND_BAR) || canUseAllBetas(betas);
 }
 
+function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
+}
+
+function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -79,11 +79,11 @@ export default {
     canUsePDFExport,
     canUseMergeAccounts,
     canUseManagerMcTest,
-    canUseInternationalBankAccount,
     canUseCustomRules,
     canUseTableReportView,
-    canUseHelpSidePanel,
     canUseTalkToAISales,
     canUseProhibitedExpenses,
     canUseLeftHandBar,
+    canUseInAppProvisioning,
+    canUseGlobalReimbursementsOnND,
 };

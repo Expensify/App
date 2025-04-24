@@ -121,6 +121,7 @@ function ApprovalWorkflowEditor({approvalWorkflow, removeApprovalWorkflow, polic
         <ScrollView
             style={[styles.flex1]}
             ref={ref}
+            addBottomSafeAreaPadding
         >
             <View style={[styles.mh5]}>
                 {approvalWorkflow.action === CONST.APPROVAL_WORKFLOW.ACTION.CREATE && (
