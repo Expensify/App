@@ -39,12 +39,17 @@ describe('actions/Policy', () => {
     });
 
     describe('createWorkspace', () => {
+        afterEach(() => {
+            mockFetch?.resume?.();
+        });
+
         it('creates a new workspace', async () => {
             (fetch as MockFetch)?.pause?.();
-            Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
+            await Onyx.set(ONYXKEYS.SESSION, {email: ESH_EMAIL, accountID: ESH_ACCOUNT_ID});
             const fakePolicy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
-            Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
-            Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.NVP_ACTIVE_POLICY_ID}`, fakePolicy.id);
+            await Onyx.set(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
             let adminReportID;
@@ -137,7 +142,7 @@ describe('actions/Policy', () => {
                 });
             });
 
-            // Each of the three reports should have a a `CREATED` action.
+            // Each of the three reports should have a `CREATED` action.
             let adminReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${adminReportID}`] ?? {});
             let expenseReportActions: ReportAction[] = Object.values(reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`] ?? {});
             let workspaceReportActions: ReportAction[] = adminReportActions.concat(expenseReportActions);
@@ -147,30 +152,36 @@ describe('actions/Policy', () => {
                 expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                 expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
             });
-            // Created Report Action, MANAGE_TEAM tasks (minus tasks that requires integrations to be enabled) and signoff message
-            const manageTeamDefaultTaskCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 2;
-            expect(adminReportActions.length).toBe(2 + manageTeamDefaultTaskCount);
-            let createdTaskReportActions = 0;
-            let signingOffMessage = 0;
-            let taskReportActions = 0;
+
+            // Following tasks are filtered in prepareOnboardingOnyxData: 'viewTour', 'addAccountingIntegration' and 'setupCategoriesAndTags' (-3)
+            const expectedManageTeamDefaultTasksCount = CONST.ONBOARDING_MESSAGES[CONST.ONBOARDING_CHOICES.MANAGE_TEAM].tasks.length - 3;
+
+            // After filtering, two actions are added to the list =- signoff message (+1) and default create action (+1)
+            const expectedReportActionsOfTypeCreatedCount = 1;
+            const expectedSignOffMessagesCount = 1;
+            expect(adminReportActions.length).toBe(expectedManageTeamDefaultTasksCount + expectedReportActionsOfTypeCreatedCount + expectedSignOffMessagesCount);
+
+            let reportActionsOfTypeCreatedCount = 0;
+            let signOffMessagesCount = 0;
+            let manageTeamTasksCount = 0;
             adminReportActions.forEach((reportAction) => {
                 if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
-                    createdTaskReportActions++;
+                    reportActionsOfTypeCreatedCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     expect(reportAction.actorAccountID).toBe(ESH_ACCOUNT_ID);
                     return;
                 }
                 if (reportAction.childType === CONST.REPORT.TYPE.TASK) {
-                    taskReportActions++;
+                    manageTeamTasksCount++;
                     expect(reportAction.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
                     // we dont check actorAccountID as it will be a random account id for the guide
                     return;
                 }
-                signingOffMessage++;
+                signOffMessagesCount++;
             });
-            expect(createdTaskReportActions).toBe(1);
-            expect(signingOffMessage).toBe(1);
-            expect(taskReportActions).toBe(manageTeamDefaultTaskCount);
+            expect(reportActionsOfTypeCreatedCount).toBe(expectedReportActionsOfTypeCreatedCount);
+            expect(signOffMessagesCount).toBe(expectedSignOffMessagesCount);
+            expect(manageTeamTasksCount).toBe(expectedManageTeamDefaultTasksCount);
 
             // Check for success data
             (fetch as MockFetch)?.resume?.();
@@ -339,7 +350,7 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam or newDotLookingAround', async () => {
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotManageTeam', async () => {
             Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.MANAGE_TEAM});
             await waitForBatchedUpdates();
 
@@ -358,12 +369,69 @@ describe('actions/Policy', () => {
             });
         });
 
-        it('create a new workspace with disabled workflows if the onboarding choice is not newDotManageTeam or newDotLookingAround', async () => {
-            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.PERSONAL_SPEND});
+        it('create a new workspace with enabled workflows if the onboarding choice is newDotLookingAround', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.LOOKING_AROUND});
             await waitForBatchedUpdates();
 
             const policyID = Policy.generatePolicyID();
-            // When a new workspace is created with introSelected set to PERSONAL_SPEND
+            // When a new workspace is created with introSelected set to LOOKING_AROUND
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then the workflows feature is enabled
+                    expect(policy?.areWorkflowsEnabled).toBeTruthy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotTrackWorkspace', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to TRACK_WORKSPACE
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then workflows are not enabled
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotEmployer', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to EMPLOYER
+            Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
+            await waitForBatchedUpdates();
+
+            await TestHelper.getOnyxData({
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                waitForCollectionCallback: false,
+                callback: (policy) => {
+                    // Then workflows are not enabled
+                    expect(policy?.areWorkflowsEnabled).toBeFalsy();
+                },
+            });
+        });
+
+        it('create a new workspace with disabled workflows if the onboarding choice is newDotSplitChat', async () => {
+            Onyx.merge(`${ONYXKEYS.NVP_INTRO_SELECTED}`, {choice: CONST.ONBOARDING_CHOICES.CHAT_SPLIT});
+            await waitForBatchedUpdates();
+
+            const policyID = Policy.generatePolicyID();
+            // When a new workspace is created with introSelected set to CHAT_SPLIT
             Policy.createWorkspace(ESH_EMAIL, true, WORKSPACE_NAME, policyID);
             await waitForBatchedUpdates();
 

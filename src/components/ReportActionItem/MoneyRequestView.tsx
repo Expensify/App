@@ -459,6 +459,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
+                    numberOfLinesTitle={2}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
@@ -672,6 +673,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={updatedTransaction?.category ?? transactionCategory}
+                            numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}

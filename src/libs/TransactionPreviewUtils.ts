@@ -231,7 +231,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         displayAmountText,
         displayDeleteAmountText,
         previewHeaderText,
-        showCashOrCard,
     };
 }
 
@@ -272,7 +271,6 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
@@ -300,7 +298,6 @@ function createTransactionPreviewConditionals({
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning(transaction);
 
     return {
-        shouldDisableOnPress,
         shouldShowSkeleton,
         shouldShowTag,
         shouldShowRBR,
