@@ -3,30 +3,20 @@ import {View} from 'react-native';
 import type {ViewStyle} from 'react-native';
 import SelectCircle from '@components/SelectCircle';
 import BaseListItem from '@components/SelectionList/BaseListItem';
-import type {ListItem, ListItemProps} from '@components/SelectionList/types';
+import type {ListItem, ListItemProps, TransactionListItemType} from '@components/SelectionList/types';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
-import type Transaction from '@src/types/onyx/Transaction';
 
 const emptyStylesArray: ViewStyle[] = [];
 
-function UnreportedExpenseListItem<TItem extends ListItem & Transaction>({
-    item,
-    isFocused,
-    showTooltip,
-    isDisabled,
-    canSelectMultiple,
-    onFocus,
-    shouldSyncFocus,
-    onSelectRow,
-}: ListItemProps<TItem>) {
+function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, showTooltip, isDisabled, canSelectMultiple, onFocus, shouldSyncFocus, onSelectRow}: ListItemProps<TItem>) {
     const styles = useThemeStyles();
+    const transactionItem = item as unknown as TransactionListItemType;
     const [isSelected, setIsSelected] = useState<boolean>(false);
     const theme = useTheme();
-
     const backgroundColor = isSelected ? styles.buttonDefaultBG : styles.highlightBG;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
@@ -57,7 +47,7 @@ function UnreportedExpenseListItem<TItem extends ListItem & Transaction>({
         >
             <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween]}>
                 <TransactionItemRow
-                    transactionItem={item}
+                    transactionItem={transactionItem}
                     shouldUseNarrowLayout
                     isSelected={isSelected}
                     shouldShowTooltip={false}
