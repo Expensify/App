@@ -3,6 +3,8 @@ import type {ComponentType} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import InteractiveStepWrapper from '@components/InteractiveStepWrapper';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import usePrevious from '@hooks/usePrevious';
 import useSubStep from '@hooks/useSubStep';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
@@ -33,9 +35,11 @@ type BankInfoProps = {
 
 function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     const {translate} = useLocalize();
+    const {isOffline} = useNetwork();
+    const prevIsOffline = usePrevious(isOffline);
 
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const [corpayFields] = useOnyx(ONYXKEYS.CORPAY_FIELDS, {initWithStoredValues: false, canBeMissing: true});
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
@@ -51,6 +55,11 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
     };
 
     useEffect(() => {
+        // Refetch Corpay fields upon going online
+        if (prevIsOffline && !isOffline) {
+            getCorpayBankAccountFields(country, currency);
+        }
+
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         if (reimbursementAccount?.errors || reimbursementAccount?.isLoading || !reimbursementAccount?.isSuccess) {
             return;
@@ -62,7 +71,7 @@ function BankInfo({onBackButtonPress, onSubmit, policyID}: BankInfoProps) {
         }
 
         return () => clearReimbursementAccountBankCreation();
-    }, [onSubmit, reimbursementAccount?.errors, reimbursementAccount?.isCreateCorpayBankAccount, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
+    }, [country, currency, isOffline, onSubmit, prevIsOffline, reimbursementAccount?.errors, reimbursementAccount?.isLoading, reimbursementAccount?.isSuccess]);
 
     useEffect(() => {
         if (country === '') {
