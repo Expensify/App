@@ -128,13 +128,6 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
-
 type WorkspaceFromIOUCreationData = {
     policyID: string;
     workspaceChatReportID: string;
@@ -2086,7 +2079,7 @@ function buildPolicyData(
         companySize,
     };
 
-    if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
         const onboardingData = prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -3263,6 +3256,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -5060,6 +5054,54 @@ function getAssignedSupportData(policyID: string) {
 }
 
 /**
+ * Validates user account and returns a list of accessible policies.
+ */
+function getAccessiblePolicies(validateCode?: string) {
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
+            value: {
+                loading: true,
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
+            value: {
+                loading: false,
+                errors: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES,
+            value: {
+                loading: false,
+            },
+        },
+    ];
+
+    const command = validateCode ? WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES : WRITE_COMMANDS.GET_ACCESSIBLE_POLICIES;
+
+    API.write(command, validateCode ? {validateCode} : null, {optimisticData, successData, failureData});
+}
+
+/**
+ * Clear the errors from the get accessible policies request
+ */
+function clearGetAccessiblePoliciesErrors() {
+    Onyx.merge(ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {errors: null});
+}
+
+/**
  * Call the API to calculate the bill for the new dot
  */
 function calculateBillNewDot() {
@@ -5230,11 +5272,11 @@ export {
     updateDefaultPolicy,
     getAssignedSupportData,
     downgradeToTeam,
+    getAccessiblePolicies,
+    clearGetAccessiblePoliciesErrors,
     calculateBillNewDot,
     payAndDowngrade,
     clearBillingReceiptDetailsErrors,
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
 };
-
-export type {NewCustomUnit};
