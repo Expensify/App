@@ -25,6 +25,7 @@ import * as EmojiPickerAction from './libs/actions/EmojiPickerAction';
 import * as Report from './libs/actions/Report';
 import * as User from './libs/actions/User';
 import * as ActiveClientManager from './libs/ActiveClientManager';
+import {isSafari} from './libs/Browser';
 import * as Environment from './libs/Environment/Environment';
 import FS from './libs/Fullstory';
 import * as Growl from './libs/Growl';
@@ -130,7 +131,14 @@ function Expensify() {
             return;
         }
 
-        ActiveClientManager.init();
+        // Delay client init to avoid issues with delayed Onyx events on iOS. All iOS browsers use WebKit, which suspends events in background tabs.
+        // Events are flushed only when the tab becomes active again causing issues with client initialization.
+        // See: https://stackoverflow.com/questions/54095584/page-becomes-inactive-when-switching-tabs-on-ios
+        if (isSafari()) {
+            setTimeout(ActiveClientManager.init, 400);
+        } else {
+            ActiveClientManager.init();
+        }
     };
 
     const setNavigationReady = useCallback(() => {

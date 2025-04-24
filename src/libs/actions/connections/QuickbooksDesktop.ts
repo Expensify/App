@@ -329,7 +329,7 @@ function getQuickbooksDesktopCodatSetupLink(policyID: string) {
     return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_DESKTOP, params);
 }
 
-function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends {reimbursable: QBDReimbursableExportAccountType; reimbursableAccount: string}>(
+function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends {reimbursable: QBDReimbursableExportAccountType; reimbursableAccount?: string}>(
     policyID: string,
     configUpdate: TConfigUpdate,
     configCurrentData: Partial<TConfigUpdate>,
@@ -339,7 +339,7 @@ function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends 
     const parameters: UpdateQuickbooksDesktopExpensesExportDestinationTypeParams = {
         policyID,
         reimbursableExpensesExportDestination: configUpdate.reimbursable,
-        reimbursableExpensesAccount: configUpdate.reimbursableAccount,
+        reimbursableExpensesAccount: configUpdate?.reimbursableAccount,
         idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.REIMBURSABLE),
     };
 
@@ -347,14 +347,14 @@ function updateQuickbooksDesktopExpensesExportDestination<TConfigUpdate extends 
 }
 
 function updateQuickbooksCompanyCardExpenseAccount<
-    TConfigUpdate extends {nonReimbursable: QBDNonReimbursableExportAccountType; nonReimbursableAccount: string; nonReimbursableBillDefaultVendor: string},
+    TConfigUpdate extends {nonReimbursable: QBDNonReimbursableExportAccountType; nonReimbursableAccount: string | undefined; nonReimbursableBillDefaultVendor: string},
 >(policyID: string, configUpdate: TConfigUpdate, configCurrentData: Partial<TConfigUpdate>) {
     const onyxData = buildOnyxDataForMultipleQuickbooksExportConfigurations(policyID, configUpdate, configCurrentData);
 
     const parameters: UpdateQuickbooksDesktopCompanyCardExpenseAccountTypeParams = {
         policyID,
         nonReimbursableExpensesExportDestination: configUpdate.nonReimbursable,
-        nonReimbursableExpensesAccount: configUpdate.nonReimbursableAccount,
+        nonReimbursableExpensesAccount: configUpdate?.nonReimbursableAccount,
         nonReimbursableBillDefaultVendor: configUpdate.nonReimbursableBillDefaultVendor,
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION),
     };

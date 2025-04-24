@@ -562,7 +562,12 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear(KEYS_TO_PRESERVE).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}));
+        // We also need to reset:
+        //  - IS_LOADING_APP after sign in to ensure the condition to show ExplanationModal runs once
+        //    https://github.com/Expensify/App/issues/57575#issuecomment-2780189425
+        return Onyx.clear(KEYS_TO_PRESERVE)
+            .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}))
+            .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
     };
 
     return clearOnyxForNewAccount()
