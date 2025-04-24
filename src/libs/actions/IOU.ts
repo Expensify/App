@@ -944,8 +944,8 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], shouldUpdateReportID = false) {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, reportID: shouldUpdateReportID ? participants.at(0)?.reportID : undefined});
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isNewReportID = false) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isFromGlobalCreate: isNewReportID ?  true : undefined});
 }
 
 function setSplitPayer(transactionID: string, payerAccountID: number) {
