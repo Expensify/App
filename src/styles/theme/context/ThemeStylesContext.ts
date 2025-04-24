@@ -14,4 +14,3 @@ type ThemeStylesContextType = {
 const ThemeStylesContext = React.createContext<ThemeStylesContextType>({styles: defaultStyles, StyleUtils: DefaultStyleUtils});
 
 export default ThemeStylesContext;
-export {type ThemeStylesContextType};

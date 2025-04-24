@@ -128,13 +128,6 @@ type OptimisticCustomUnits = {
     outputCurrency: string;
 };
 
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
-};
-
 type WorkspaceFromIOUCreationData = {
     policyID: string;
     workspaceChatReportID: string;
@@ -2086,7 +2079,7 @@ function buildPolicyData(
         companySize,
     };
 
-    if (!introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
+    if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
         const onboardingData = prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
@@ -3263,6 +3256,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -5286,5 +5280,3 @@ export {
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
 };
-
-export type {NewCustomUnit};
