@@ -103,6 +103,7 @@ describe('actions/Task', () => {
 
         describe('canActionTask', () => {
             it('returns false if the report is a cancelled task report', () => {
+                // Simulate how components call canActionTask() by using hooks to get the parent report and see if it is archived
                 const {result: parentReport} = renderHook(() => useParentReport(taskReportCancelled.reportID));
                 const {result: isParentReportArchived} = renderHook(() => useReportIsArchived(parentReport.current?.reportID));
 
