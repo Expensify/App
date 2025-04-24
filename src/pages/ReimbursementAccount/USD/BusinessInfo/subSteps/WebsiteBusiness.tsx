@@ -23,9 +23,9 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubStepProps) {
     const [reimbursementAccount, reimbursementAccountResult] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const isLoadingReimbursementAccount = isLoadingOnyxValue(reimbursementAccountResult);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
 
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
     const defaultCompanyWebsite = reimbursementAccount?.achData?.website ?? defaultWebsiteExample;
 
     const validate = useCallback(

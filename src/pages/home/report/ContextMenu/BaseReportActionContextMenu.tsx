@@ -143,7 +143,7 @@ function BaseReportActionContextMenu({
     });
     const transactionID = getLinkedTransactionID(reportActionID, reportID);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const policyID = report?.policyID;
 
@@ -218,7 +218,7 @@ function BaseReportActionContextMenu({
                 isProduction,
                 moneyRequestAction,
                 areHoldRequirementsMet,
-                user,
+                account,
             }),
     );
 

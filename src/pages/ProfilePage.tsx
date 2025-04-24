@@ -69,7 +69,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.USER, {selector: (user) => !!user?.isDebugModeEnabled});
+    const [isDebugModeEnabled] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.isDebugModeEnabled});
     const [guideCalendarLink] = useOnyx(ONYXKEYS.ACCOUNT, {
         selector: (account) => account?.guideCalendarLink,
     });

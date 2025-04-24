@@ -39,8 +39,8 @@ function IOURequestStepCompanyInfo({route, report, transaction}: IOURequestStepC
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, user), [session, user]);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const defaultWebsiteExample = useMemo(() => getDefaultCompanyWebsite(session, account), [session, account]);
 
     const policy = usePolicy(IOU.getIOURequestPolicyID(transaction, report));
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${IOU.getIOURequestPolicyID(transaction, report)}`);

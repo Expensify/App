@@ -30,7 +30,7 @@ function PreferencesPage() {
     const platform = getPlatform(true);
     const [mutedPlatforms = {}] = useOnyx(ONYXKEYS.NVP_MUTED_PLATFORMS);
     const isPlatformMuted = mutedPlatforms[platform];
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [preferredTheme] = useOnyx(ONYXKEYS.PREFERRED_THEME);
     const personalPolicy = usePolicy(getPersonalPolicy()?.id);
 
@@ -71,7 +71,7 @@ function PreferencesPage() {
                                 <View style={[styles.flex1, styles.alignItemsEnd]}>
                                     <Switch
                                         accessibilityLabel={translate('preferencesPage.receiveRelevantFeatureUpdatesAndExpensifyNews')}
-                                        isOn={user?.isSubscribedToNewsletter ?? true}
+                                        isOn={account?.isSubscribedToNewsletter ?? true}
                                         onToggle={updateNewsletterSubscription}
                                     />
                                 </View>
