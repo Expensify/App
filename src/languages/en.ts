@@ -438,6 +438,9 @@ const translations = {
         websiteExample: 'e.g. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `e.g. ${zipSampleFormat}` : ''),
         description: 'Description',
+        title: 'Title',
+        assignee: 'Assignee',
+        createdBy: 'Created by',
         with: 'with',
         shareCode: 'Share code',
         share: 'Share',
@@ -524,6 +527,7 @@ const translations = {
         offlinePrompt: "You can't take this action right now.",
         outstanding: 'Outstanding',
         chats: 'Chats',
+        tasks: 'Tasks',
         unread: 'Unread',
         sent: 'Sent',
         links: 'Links',
@@ -548,6 +552,7 @@ const translations = {
         reimbursable: 'Reimbursable',
         editYourProfile: 'Edit your profile',
         comments: 'Comments',
+        sharedIn: 'Shared in',
         unreported: 'Unreported',
     },
     supportalNoAccess: {
@@ -1950,7 +1955,7 @@ const translations = {
         requestNewCodeAfterErrorOccurred: 'Request a new code',
         error: {
             pleaseFillMagicCode: 'Please enter your magic code',
-            incorrectMagicCode: 'Incorrect magic code',
+            incorrectMagicCode: 'Incorrect or invalid magic code. Please try again or request a new code.',
             pleaseFillTwoFactorAuth: 'Please enter your two-factor authentication code',
         },
     },
@@ -2165,7 +2170,7 @@ const translations = {
         iouReportNotFound: 'The payment details you are looking for cannot be found.',
         notHere: "Hmm... it's not here",
         pageNotFound: 'Oops, this page cannot be found',
-        noAccess: "That chat doesn't exist or you don't have access to it. Try using search to find a chat.",
+        noAccess: 'This chat or expense may have been deleted or you do not have access to it.\n\nFor any questions please contact concierge@expensify.com',
         goBackHome: 'Go back to home page',
     },
     errorPage: {
@@ -4334,6 +4339,7 @@ const translations = {
             goToODToSettings: 'Go to Expensify Classic to manage your settings.',
             setup: 'Connect',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Last synced ${relativeDate}`,
+            notSync: 'Not synced',
             import: 'Import',
             export: 'Export',
             advanced: 'Advanced',
@@ -5139,6 +5145,7 @@ const translations = {
         description: 'Description',
         assignee: 'Assignee',
         completed: 'Completed',
+        action: 'Complete',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `task for ${title}`,
             completed: 'marked as complete',
@@ -5224,6 +5231,7 @@ const translations = {
             link: 'Link',
             pinned: 'Pinned',
             unread: 'Unread',
+            completed: 'Completed',
             amount: {
                 lessThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Less than ${amount ?? ''}`,
                 greaterThan: ({amount}: OptionalParam<RequestAmountParams> = {}) => `Greater than ${amount ?? ''}`,

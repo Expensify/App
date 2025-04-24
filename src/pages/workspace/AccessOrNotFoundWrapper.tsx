@@ -9,12 +9,14 @@ import useNetwork from '@hooks/useNetwork';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {RootNavigatorParamList, State} from '@libs/Navigation/types';
 import {canSendInvoice, isControlPolicy, isPaidGroupPolicy, isPolicyAccessible, isPolicyAdmin, isPolicyFeatureEnabled as isPolicyFeatureEnabledUtil} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -92,7 +94,14 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
             shouldShowOfflineIndicator={false}
             onBackButtonPress={() => {
                 if (isPolicyNotAccessible) {
-                    Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+                    const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
+                    const secondToLastRoute = rootState.routes.at(-2);
+
+                    if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
+                        Navigation.dismissModal();
+                    } else {
+                        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
+                    }
                     return;
                 }
                 Navigation.goBack(policyID && !isMoneyRequest ? ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID) : undefined);
@@ -115,9 +124,13 @@ function AccessOrNotFoundWrapper({
     featureName,
     ...props
 }: AccessOrNotFoundWrapperProps) {
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID ?? CONST.DEFAULT_NUMBER_ID}`);
-    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {
+        canBeMissing: true,
+    });
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
+        canBeMissing: true,
+    });
+    const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA, {initialValue: true, canBeMissing: true});
     const {login = ''} = useCurrentUserPersonalDetails();
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
