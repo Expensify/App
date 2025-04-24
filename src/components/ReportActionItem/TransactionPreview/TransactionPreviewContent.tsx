@@ -109,7 +109,7 @@ function TransactionPreviewContent({
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
 
     const iouData = shouldShowIOUData
-        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails, transaction?.amount ?? 0)
+        ? getIOUData(managerID, ownerAccountID, isIOUReport(iouReport) || reportPreviewAction?.childType === CONST.REPORT.TYPE.IOU, personalDetails, requestAmount ?? 0)
         : undefined;
     const {from, to} = iouData ?? {from: null, to: null};
     const isDeleted = action?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
