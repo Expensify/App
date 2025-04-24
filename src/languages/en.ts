@@ -5139,16 +5139,16 @@ const translations = {
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'enabled' : 'disabled'} tax tracking on distance rates`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `added a new "${customUnitName}" rate "${rateName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
-            `updated the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" from "${oldValue}" to "${newValue}"`,
+            `updated the rate of the ${customUnitName} ${updatedField} "${customUnitRateName}" to "${newValue}" (previously "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
             if (oldTaxPercentage && oldValue) {
-                return `changed the tax rate from "${oldValue} (${oldTaxPercentage})" to "${newValue} (${newTaxPercentage})" on the distance rate "${customUnitRateName}"`;
+                return `updated the tax rate to "${newValue} (${newTaxPercentage})" on the distance rate "${customUnitRateName}" (previously "${oldValue} (${oldTaxPercentage})")`;
             }
             return `added the tax rate "${newValue} (${newTaxPercentage})" to the distance rate "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `changed the tax reclaimable portion from "${oldValue}" to "${newValue}" on the distance rate "${customUnitRateName}"`;
+                return `updated the tax reclaimable portion to "${newValue}" on the distance rate "${customUnitRateName}" (previously "${oldValue}")`;
             }
             return `added the tax reclaimable portion "${newValue}" to the distance rate "${customUnitRateName}"`;
         },
@@ -5213,9 +5213,9 @@ const translations = {
         upgradedWorkspace: 'upgraded this workspace to the Control plan',
         downgradedWorkspace: 'downgraded this workspace to the Collect plan',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
-            `changed the rate of reports randomly routed for manual approval from ${Math.round(oldAuditRate * 100)}% to ${Math.round(newAuditRate * 100)}%`,
+            `updated the rate of reports randomly routed for manual approval to ${Math.round(newAuditRate * 100)}% (previously ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `changed the limit for manual approval of all expenses from ${oldLimit} to ${newLimit}`,
+            `updated the limit for manual approval of all expenses to ${newLimit} (previously ${oldLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Member not found.',

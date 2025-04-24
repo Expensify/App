@@ -5197,16 +5197,16 @@ const translations = {
         updateCustomUnitTaxEnabled: ({newValue}: UpdatePolicyCustomUnitTaxEnabledParams) => `${newValue ? 'habilitó' : 'deshabilitó'} el seguimiento de impuestos en las tasas de distancia`,
         addCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
         updatedCustomUnitRate: ({customUnitName, customUnitRateName, newValue, oldValue, updatedField}: UpdatedPolicyCustomUnitRateParams) =>
-            `actualizó la tasa del ${customUnitName} ${updatedField} "${customUnitRateName}" de "${oldValue}" a "${newValue}"`,
+            `actualizó la tasa de ${customUnitName} ${updatedField} "${customUnitRateName}" a "${newValue}" (previamente "${oldValue}")`,
         updatedCustomUnitTaxRateExternalID: ({customUnitRateName, newValue, newTaxPercentage, oldTaxPercentage, oldValue}: UpdatedPolicyCustomUnitTaxRateExternalIDParams) => {
             if (oldTaxPercentage && oldValue) {
-                return `cambió la tasa de impuesto de "${oldValue} (${oldTaxPercentage})" a "${newValue} (${newTaxPercentage})" en la tasa de distancia "${customUnitRateName}"`;
+                return `actualizó la tasa de impuesto a "${newValue} (${newTaxPercentage})" en la tarifa de distancia "${customUnitRateName}" (previamente "${oldValue} (${oldTaxPercentage})")`;
             }
             return `añadió la tasa de impuesto "${newValue} (${newTaxPercentage})" a la tasa de distancia "${customUnitRateName}"`;
         },
         updatedCustomUnitTaxClaimablePercentage: ({customUnitRateName, newValue, oldValue}: UpdatedPolicyCustomUnitTaxClaimablePercentageParams) => {
             if (oldValue) {
-                return `cambió la parte recuperable de impuestos de "${oldValue}" a "${newValue}" en la tasa de distancia "${customUnitRateName}"`;
+                return `añadió la porción recuperable de impuestos a "${newValue}" en la tarifa de distancia "${customUnitRateName}" (previamente "${oldValue}")`;
             }
             return `añadió la parte recuperable de impuestos "${newValue}" a la tasa de distancia "${customUnitRateName}"`;
         },
@@ -5272,9 +5272,9 @@ const translations = {
         upgradedWorkspace: 'mejoró este espacio de trabajo al plan Controlar',
         downgradedWorkspace: 'bajó de categoría este espacio de trabajo al plan Recopilar',
         updatedAuditRate: ({oldAuditRate, newAuditRate}: UpdatedPolicyAuditRateParams) =>
-            `cambió la tasa de informes asignados aleatoriamente para aprobación manual de ${Math.round(oldAuditRate * 100)}% a ${Math.round(newAuditRate * 100)}%`,
+            `actualizó la tasa de informes enrutados aleatoriamente para aprobación manual a ${Math.round(newAuditRate * 100)}% (previamente ${Math.round(oldAuditRate * 100)}%)`,
         updatedManualApprovalThreshold: ({oldLimit, newLimit}: UpdatedPolicyManualApprovalThresholdParams) =>
-            `cambió el límite para la aprobación manual de todos los gastos de ${oldLimit} a ${newLimit}`,
+            `actualizó el límite para aprobación manual de todos los gastos a ${newLimit} (previamente ${oldLimit})`,
     },
     roomMembersPage: {
         memberNotFound: 'Miembro no encontrado.',
