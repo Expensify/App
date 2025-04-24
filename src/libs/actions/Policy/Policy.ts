@@ -2440,7 +2440,7 @@ function updateCustomField(policyID: string, login: string, customFieldType: Cus
     ];
     const params = {policyID, employees: [{email: login, [customFieldType]: value}]};
 
-    API.write(WRITE_COMMANDS.UPDATE_WORKSPACE_MEMBERS_CUSTOM_FIELDS, params, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS, params, {optimisticData, successData, failureData});
 }
 
 function setWorkspaceInviteMessageDraft(policyID: string, message: string | null) {
