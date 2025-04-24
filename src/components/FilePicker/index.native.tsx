@@ -97,10 +97,14 @@ function FilePicker({children}: FilePickerProps) {
             destination: 'cachesDirectory',
         });
 
+        if (localCopy.status !== 'success') {
+            throw new Error("Couldn't create local file copy");
+        }
+
         return {
             name: cleanFileName(file.name ?? 'spreadsheet'),
             type: file.type,
-            uri: localCopy.sourceUri,
+            uri: localCopy.localUri,
             size: file.size,
         };
     };
