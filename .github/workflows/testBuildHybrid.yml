@@ -47,6 +47,10 @@ on:
         value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
       IOS_LINK:
         value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
+      ANDROID:
+        value: ${{ jobs.androidHybrid.result }}
+      IOS:
+        value: ${{ jobs.iosHybrid.result }}
 
 env:
   # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot
