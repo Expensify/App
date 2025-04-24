@@ -31,7 +31,7 @@ jobs:
       - name: Get previous Mobile-Expensify commit hash
         if: ${{ matrix.is_hybrid == 'true' }}
         id: getOldMobileExpensifyHash
-        run: echo "HASH=$(git rev-parse :Mobile-Expensify) >> "$GITHUB_OUTPUT"
+        run: echo "HASH=$(git rev-parse :Mobile-Expensify)" >> "$GITHUB_OUTPUT"
 
       - name: Get previous react-native version
         id: getOldVersion
@@ -87,7 +87,7 @@ jobs:
       - name: Check if we should build and publish the package
         id: shouldPublish
         run: |
-          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_PATCHES_CHANGE }}' == 'true ]]; then
+          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_PATCHES_CHANGE }}' == 'true' ]]; then
             echo "SHOULD_PUBLISH=true" >> "$GITHUB_OUTPUT"
           else
             echo "::notice::No relevant changes, skipping publishing a new React Native build"
@@ -116,7 +116,7 @@ jobs:
       - name: Determine new patched RN version
         if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
         id: getNewPatchedVersion
-        run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> $GITHUB_OUTPUT
+        run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
         env:
           GITHUB_TOKEN: ${{ github.token }}
           IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
