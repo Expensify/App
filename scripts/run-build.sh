@@ -41,6 +41,7 @@ NEW_DOT_FLAG="${STANDALONE_NEW_DOT:-false}"
 
     echo -e "\n${GREEN}Starting a HybridApp build!${NC}"
     export CUSTOM_APK_NAME="Expensify-debug.apk"
+    export IS_HYBRID_APP="true"
 else
     echo -e "\n${GREEN}Starting a standalone NewDot build!${NC}"
     echo $ANDROID_MODE

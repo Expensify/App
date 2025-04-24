@@ -15,6 +15,7 @@ import {
     handleOpenWorkspaceSplitAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
+    handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
@@ -111,6 +112,10 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
                 if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
                     return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                }
+
+                if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter);
                 }
             }
 

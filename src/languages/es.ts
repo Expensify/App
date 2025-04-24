@@ -905,7 +905,7 @@ const translations = {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
-        approve: 'Aprobar',
+        approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
@@ -2817,6 +2817,13 @@ const translations = {
             seat: 'Asiento',
             class: 'Clase de cabina',
             recordLocator: 'Localizador de la reserva',
+            cabinClasses: {
+                unknown: 'Desconocido',
+                economy: 'Económica',
+                premiumEconomy: 'Económica Premium',
+                business: 'Ejecutiva',
+                first: 'Primera',
+            },
         },
         hotel: 'Hotel',
         hotelDetails: {
