@@ -9561,7 +9561,7 @@ function getOutstandingReports(policyID: string | undefined, reportOwnerAccountI
         return [];
     }
     return Object.values(reports)
-        .filter((report) => isReportOutstanding(report, policyID) && reportOwnerAccountID && report?.ownerAccountID === reportOwnerAccountID)
+        .filter((report) => isReportOutstanding(report, policyID) && report?.ownerAccountID === reportOwnerAccountID)
         .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
 }
 
