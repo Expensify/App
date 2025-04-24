@@ -124,4 +124,4 @@ type TransactionPreviewContentProps = {
     reportPreviewAction?: ReportAction;
 };
 
-export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};
+export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};
