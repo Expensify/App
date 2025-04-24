@@ -47,10 +47,6 @@ on:
         value: ${{ jobs.androidHybrid.outputs.S3_APK_PATH }}
       IOS_LINK:
         value: ${{ jobs.iosHybrid.outputs.IOS_PATH }}
-      ANDROID:
-        value: ${{ jobs.androidHybridResult.outputs.ANDROID }}
-      IOS:
-        value: ${{ jobs.iosHybridResult.outputs.IOS }}
 
 env:
   # This variable is needed for fastlane to construct correct path, -hybrid suffix is needed to distinguish hybrid apps from standalone New Dot
@@ -289,18 +285,6 @@ jobs:
           # $s3APKPath is set from within the Fastfile, android upload_s3 lane
           echo "S3_APK_PATH=$s3APKPath" >> "$GITHUB_OUTPUT"
 
-  androidHybridResult:
-    runs-on: ubuntu-latest
-    needs: [getNewDotRef, androidHybrid]
-    outputs:
-      ANDROID: ${{ needs.androidHybrid.result }}
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ needs.getNewDotRef.outputs.REF }}
-
   iosHybrid:
     name: Build and deploy iOS for testing
     if: ${{ github.event.inputs.DISPATCHED_MANUALLY || inputs.IOS }}
@@ -412,18 +396,6 @@ jobs:
           content_ios="${content_ios//$'\r'/'%0D'}"
           ios_path=$(echo "$content_ios" | jq -r '.html_path')
           echo "IOS_PATH=$ios_path" >> "$GITHUB_OUTPUT"
-
-  iosHybridResult:
-    runs-on: ubuntu-latest
-    needs: [getNewDotRef, iosHybrid]
-    outputs:
-      IOS: ${{ needs.iosHybrid.result }}
-    steps:
-      - name: Checkout
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: ${{ needs.getNewDotRef.outputs.REF }}
 
   postGithubComment:
     runs-on: ubuntu-latest

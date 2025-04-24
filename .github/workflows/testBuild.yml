@@ -192,9 +192,9 @@ jobs:
         with:
           PR_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
           GITHUB_TOKEN: ${{ github.token }}
-          ANDROID: ${{ needs.buildHybridApps.outputs.ANDROID }}
+          ANDROID: ${{ needs.buildHybridApps.result }}
           DESKTOP: ${{ needs.desktop.result }}
-          IOS: ${{ needs.buildHybridApps.outputs.IOS }}
+          IOS: ${{ needs.buildHybridApps.result }}
           WEB: ${{ needs.web.result }}
           ANDROID_LINK: ${{ needs.buildHybridApps.outputs.ANDROID_LINK }}
           DESKTOP_LINK: https://ad-hoc-expensify-cash.s3.amazonaws.com/desktop/${{ github.event.inputs.PULL_REQUEST_NUMBER }}/NewExpensify.dmg
