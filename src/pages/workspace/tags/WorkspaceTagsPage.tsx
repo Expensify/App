@@ -434,116 +434,117 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
-        <AccessOrNotFoundWrapper
-            policyID={policyID}
-            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
-            featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
-        >
-            <ScreenWrapper
-                enableEdgeToEdgeBottomSafeAreaPadding
-                style={[styles.defaultModalContainer]}
-                testID={WorkspaceTagsPage.displayName}
-                shouldShowOfflineIndicatorInWideScreen
-                offlineIndicatorStyle={styles.mtAuto}
+        <>
+            <AccessOrNotFoundWrapper
+                policyID={policyID}
+                accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+                featureName={CONST.POLICY.MORE_FEATURES.ARE_TAGS_ENABLED}
             >
-                <HeaderWithBackButton
-                    icon={!selectionModeHeader ? Illustrations.Tag : undefined}
-                    shouldUseHeadlineHeader={!selectionModeHeader}
-                    title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
-                    shouldShowBackButton={shouldUseNarrowLayout}
-                    onBackButtonPress={() => {
-                        if (selectionMode?.isEnabled) {
-                            setSelectedTags({});
-                            turnOffMobileSelectionMode();
-                            return;
-                        }
-
-                        if (backTo) {
-                            Navigation.goBack(backTo);
-                            return;
-                        }
-
-                        goBackFromWorkspaceCentralScreen(policyID);
-                    }}
-                    shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
-                    threeDotsMenuItems={threeDotsMenuItems}
-                    threeDotsAnchorPosition={threeDotsAnchorPosition}
+                <ScreenWrapper
+                    enableEdgeToEdgeBottomSafeAreaPadding
+                    style={[styles.defaultModalContainer]}
+                    testID={WorkspaceTagsPage.displayName}
+                    shouldShowOfflineIndicatorInWideScreen
+                    offlineIndicatorStyle={styles.mtAuto}
                 >
-                    {!shouldUseNarrowLayout && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ConfirmModal
-                    isVisible={isDeleteTagsConfirmModalVisible}
-                    onConfirm={deleteTags}
-                    onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
-                    title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
-                    prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
-                    confirmText={translate('common.delete')}
-                    cancelText={translate('common.cancel')}
-                    danger
-                />
-                {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
-                {isLoading && (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        style={[styles.flex1]}
-                        color={theme.spinner}
-                    />
-                )}
-                {!hasVisibleTags && !isLoading && (
-                    <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-                        <EmptyStateComponent
-                            SkeletonComponent={TableListItemSkeleton}
-                            headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
-                            headerMedia={LottieAnimations.GenericEmptyState}
-                            title={translate('workspace.tags.emptyTags.title')}
-                            subtitle={translate('workspace.tags.emptyTags.subtitle')}
-                            headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
-                            lottieWebViewStyles={styles.emptyStateFolderWebStyles}
-                            headerContentStyles={styles.emptyStateFolderWebStyles}
-                        />
-                    </ScrollView>
-                )}
-                {hasVisibleTags && !isLoading && (
-                    <SelectionListWithModal
-                        canSelectMultiple={canSelectMultiple}
-                        turnOnSelectionModeOnLongPress={!isMultiLevelTags}
-                        onTurnOnSelectionMode={(item) => item && toggleTag(item)}
-                        sections={[{data: tagList, isDisabled: false}]}
-                        onCheckboxPress={toggleTag}
-                        onSelectRow={navigateToTagSettings}
-                        shouldSingleExecuteRowSelect={!canSelectMultiple}
-                        onSelectAll={toggleAllTags}
-                        ListItem={TableListItem}
-                        customListHeader={getCustomListHeader()}
-                        shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
-                        onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
-                        listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
-                        showScrollIndicator={false}
-                        addBottomSafeAreaPadding
-                    />
-                )}
+                    <HeaderWithBackButton
+                        icon={!selectionModeHeader ? Illustrations.Tag : undefined}
+                        shouldUseHeadlineHeader={!selectionModeHeader}
+                        title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
+                        shouldShowBackButton={shouldUseNarrowLayout}
+                        onBackButtonPress={() => {
+                            if (selectionMode?.isEnabled) {
+                                setSelectedTags({});
+                                turnOffMobileSelectionMode();
+                                return;
+                            }
 
-                <ConfirmModal
-                    isVisible={isOfflineModalVisible}
-                    onConfirm={() => setIsOfflineModalVisible(false)}
-                    title={translate('common.youAppearToBeOffline')}
-                    prompt={translate('common.thisFeatureRequiresInternet')}
-                    confirmText={translate('common.buttonConfirm')}
-                    shouldShowCancelButton={false}
-                />
-                <DecisionModal
-                    title={translate('common.downloadFailedTitle')}
-                    prompt={translate('common.downloadFailedDescription')}
-                    isSmallScreenWidth={isSmallScreenWidth}
-                    onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
-                    secondOptionText={translate('common.buttonConfirm')}
-                    isVisible={isDownloadFailureModalVisible}
-                    onClose={() => setIsDownloadFailureModalVisible(false)}
-                />
-            </ScreenWrapper>
-        </AccessOrNotFoundWrapper>
+                            if (backTo) {
+                                Navigation.goBack(backTo);
+                                return;
+                            }
+
+                            goBackFromWorkspaceCentralScreen(policyID);
+                        }}
+                        shouldShowThreeDotsButton={!policy?.hasMultipleTagLists}
+                        threeDotsMenuItems={threeDotsMenuItems}
+                        threeDotsAnchorPosition={threeDotsAnchorPosition}
+                    >
+                        {!shouldUseNarrowLayout && getHeaderButtons()}
+                    </HeaderWithBackButton>
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    {(!shouldUseNarrowLayout || !hasVisibleTags || isLoading) && getHeaderText()}
+                    {isLoading && (
+                        <ActivityIndicator
+                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                            style={[styles.flex1]}
+                            color={theme.spinner}
+                        />
+                    )}
+                    {!hasVisibleTags && !isLoading && (
+                        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
+                            <EmptyStateComponent
+                                SkeletonComponent={TableListItemSkeleton}
+                                headerMediaType={CONST.EMPTY_STATE_MEDIA.ANIMATION}
+                                headerMedia={LottieAnimations.GenericEmptyState}
+                                title={translate('workspace.tags.emptyTags.title')}
+                                subtitle={translate('workspace.tags.emptyTags.subtitle')}
+                                headerStyles={[styles.emptyStateCardIllustrationContainer, styles.emptyFolderBG]}
+                                lottieWebViewStyles={styles.emptyStateFolderWebStyles}
+                                headerContentStyles={styles.emptyStateFolderWebStyles}
+                            />
+                        </ScrollView>
+                    )}
+                    {hasVisibleTags && !isLoading && (
+                        <SelectionListWithModal
+                            canSelectMultiple={canSelectMultiple}
+                            turnOnSelectionModeOnLongPress={!isMultiLevelTags}
+                            onTurnOnSelectionMode={(item) => item && toggleTag(item)}
+                            sections={[{data: tagList, isDisabled: false}]}
+                            onCheckboxPress={toggleTag}
+                            onSelectRow={navigateToTagSettings}
+                            shouldSingleExecuteRowSelect={!canSelectMultiple}
+                            onSelectAll={toggleAllTags}
+                            ListItem={TableListItem}
+                            customListHeader={getCustomListHeader()}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            onDismissError={(item) => !isMultiLevelTags && clearPolicyTagErrors(policyID, item.value, 0)}
+                            listHeaderContent={shouldUseNarrowLayout ? getHeaderText() : null}
+                            showScrollIndicator={false}
+                            addBottomSafeAreaPadding
+                        />
+                    )}
+                </ScreenWrapper>
+            </AccessOrNotFoundWrapper>
+            <ConfirmModal
+                isVisible={isOfflineModalVisible}
+                onConfirm={() => setIsOfflineModalVisible(false)}
+                title={translate('common.youAppearToBeOffline')}
+                prompt={translate('common.thisFeatureRequiresInternet')}
+                confirmText={translate('common.buttonConfirm')}
+                shouldShowCancelButton={false}
+            />
+            <DecisionModal
+                title={translate('common.downloadFailedTitle')}
+                prompt={translate('common.downloadFailedDescription')}
+                isSmallScreenWidth={isSmallScreenWidth}
+                onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                secondOptionText={translate('common.buttonConfirm')}
+                isVisible={isDownloadFailureModalVisible}
+                onClose={() => setIsDownloadFailureModalVisible(false)}
+            />
+            <ConfirmModal
+                isVisible={isDeleteTagsConfirmModalVisible}
+                onConfirm={deleteTags}
+                onCancel={() => setIsDeleteTagsConfirmModalVisible(false)}
+                title={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags')}
+                prompt={translate(selectedTagsArray.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation')}
+                confirmText={translate('common.delete')}
+                cancelText={translate('common.cancel')}
+                danger
+            />
+        </>
     );
 }
 
