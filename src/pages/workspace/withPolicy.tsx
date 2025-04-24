@@ -5,7 +5,6 @@ import {useOnyx} from 'react-native-onyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
-import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -51,8 +50,8 @@ type PolicyRouteName =
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
-function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? CONST.DEFAULT_NUMBER_ID.toString();
+function getPolicyIDFromRoute(route: PolicyRoute): string | undefined {
+    return route?.params?.policyID;
 }
 
 type WithPolicyOnyxProps = {
@@ -85,7 +84,7 @@ export default function <TProps extends WithPolicyProps, TRef>(
         /* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing */
         const isLoadingPolicy = !hasLoadedApp || isLoadingOnyxValue(policyResults, policyDraftResults);
 
-        if (policyID.length > 0) {
+        if (policyID && policyID.length > 0) {
             updateLastAccessedWorkspace(policyID);
         }
 
@@ -107,4 +106,4 @@ export default function <TProps extends WithPolicyProps, TRef>(
 }
 
 export {policyDefaultProps};
-export type {PolicyRoute, PolicyRouteName, WithPolicyOnyxProps, WithPolicyProps};
+export type {WithPolicyOnyxProps, WithPolicyProps};
