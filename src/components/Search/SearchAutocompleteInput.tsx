@@ -227,6 +227,8 @@ function SearchAutocompleteInput(
                         multiline={false}
                         parser={parser}
                         selection={selection}
+                        shouldHideClearButton
+                        shouldAddMarginTopToClearButton={false}
                     />
                 </View>
                 {!!rightComponent && (

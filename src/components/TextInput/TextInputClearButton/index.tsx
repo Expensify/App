@@ -10,16 +10,17 @@ import CONST from '@src/CONST';
 
 type TextInputClearButtonProps = {
     onPressButton: () => void;
+    shouldAddMarginTop?: boolean;
 };
 
-function TextInputClearButton({onPressButton}: TextInputClearButtonProps) {
+function TextInputClearButton({onPressButton, shouldAddMarginTop = true}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <Tooltip text={translate('common.clear')}>
             <PressableWithoutFeedback
-                style={[styles.mt4, styles.ml1]}
+                style={[shouldAddMarginTop ? styles.mt4 : {}, styles.ml1]}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.clear')}
                 onMouseDown={(e) => {

@@ -68,6 +68,7 @@ function BaseTextInput(
         excludedMarkdownStyles = [],
         shouldShowClearButton = false,
         shouldHideClearButton = true,
+        shouldAddMarginTopToClearButton = true,
         shouldUseDisabledStyles = true,
         prefixContainerStyle = [],
         prefixStyle = [],
@@ -420,6 +421,7 @@ function BaseTextInput(
                                     }}
                                 >
                                     <TextInputClearButton
+                                        shouldAddMarginTop={shouldAddMarginTopToClearButton}
                                         onPressButton={() => {
                                             setValue('');
                                             onClearInput?.();
