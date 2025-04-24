@@ -27,17 +27,25 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     const isAuthTokenRequired = route.params.isAuthTokenRequired;
     const attachmentLink = route.params.attachmentLink;
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID || CONST.DEFAULT_NUMBER_ID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID || CONST.DEFAULT_NUMBER_ID}`, {
+        canEvict: false,
+    });
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportID || CONST.DEFAULT_NUMBER_ID}`);
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const {isOffline} = useNetwork();
     const fileName = route.params?.fileName;
 
+    const shouldFetchReport = useMemo(() => {
+        // Extract the reportActionID from the attachmentID (format: reportActionID_index)
+        const reportActionID = attachmentID?.split('_')?.[0];
+        return isEmptyObject(reportActions?.[reportActionID ?? CONST.DEFAULT_NUMBER_ID]);
+    }, [reportActions, attachmentID]);
     const isLoading = useMemo(() => {
         if (isOffline || isReportNotFound(report) || !reportID) {
             return false;
         }
         const isEmptyReport = isEmptyObject(report);
-        return !!isLoadingApp || isEmptyReport || !!reportMetadata?.isLoadingInitialReportActions;
+        return !!isLoadingApp || isEmptyReport || (reportMetadata?.isLoadingInitialReportActions !== false && shouldFetchReport);
     }, [isOffline, reportID, isLoadingApp, report, reportMetadata]);
 
     // In native the imported images sources are of type number. Ref: https://reactnative.dev/docs/image#imagesource
@@ -48,7 +56,7 @@ function ReportAttachments({route}: ReportAttachmentsProps) {
     }, [reportID]);
 
     useEffect(() => {
-        if (!reportID) {
+        if (!reportID || !shouldFetchReport) {
             return;
         }
 
