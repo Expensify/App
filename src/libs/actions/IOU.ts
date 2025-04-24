@@ -944,7 +944,7 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isNewReportID = false) {
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isFromGlobalCreate = false) {
     return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isFromGlobalCreate: isNewReportID ? true : undefined});
 }
 
