@@ -78,11 +78,14 @@ function BaseModal(
         swipeThreshold = 150,
         swipeDirection,
         shouldPreventScrollOnFocus = false,
-        enableEdgeToEdgeBottomSafeAreaPadding = false,
+        enableEdgeToEdgeBottomSafeAreaPadding,
         shouldApplySidePanelOffset = type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED,
+        canBeClosedByOtherModal = true,
     }: BaseModalProps,
     ref: React.ForwardedRef<View>,
 ) {
+    // When the `enableEdgeToEdgeBottomSafeAreaPadding` prop is explicitly set, we enable edge-to-edge mode.
+    const isUsingEdgeToEdgeMode = enableEdgeToEdgeBottomSafeAreaPadding !== undefined;
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -135,7 +138,9 @@ function BaseModal(
         if (isVisible) {
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
-            removeOnCloseListener = setCloseModal(onClose);
+            if (canBeClosedByOtherModal) {
+                removeOnCloseListener = setCloseModal(onClose);
+            }
         }
 
         return () => {
@@ -144,7 +149,7 @@ function BaseModal(
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type]);
+    }, [isVisible, wasVisible, onClose, type, canBeClosedByOtherModal]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
@@ -216,7 +221,7 @@ function BaseModal(
             shouldAddBottomSafeAreaMargin,
             shouldAddTopSafeAreaMargin,
             // enableEdgeToEdgeBottomSafeAreaPadding is used as a temporary solution to disable safe area bottom spacing on modals, to allow edge-to-edge content
-            shouldAddBottomSafeAreaPadding: !enableEdgeToEdgeBottomSafeAreaPadding && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
+            shouldAddBottomSafeAreaPadding: !isUsingEdgeToEdgeMode && (!avoidKeyboard || !keyboardStateContextValue.isKeyboardActive) && shouldAddBottomSafeAreaPadding,
             shouldAddTopSafeAreaPadding,
             modalContainerStyle,
             insets,
@@ -225,8 +230,8 @@ function BaseModal(
     }, [
         StyleUtils,
         avoidKeyboard,
-        enableEdgeToEdgeBottomSafeAreaPadding,
         insets,
+        isUsingEdgeToEdgeMode,
         keyboardStateContextValue.isKeyboardActive,
         modalContainerStyle,
         shouldAddBottomSafeAreaMargin,
@@ -304,14 +309,14 @@ function BaseModal(
                             shouldPreventScroll={shouldPreventScrollOnFocus}
                         >
                             <View
-                                style={[styles.defaultModalContainer, modalPaddingStyles, modalContainerStyle, !isVisible && styles.pointerEventsNone]}
+                                style={[styles.defaultModalContainer, modalContainerStyle, modalPaddingStyles, !isVisible && styles.pointerEventsNone]}
                                 ref={ref}
                             >
                                 <ColorSchemeWrapper>{children}</ColorSchemeWrapper>
                             </View>
                         </FocusTrapForModal>
                     </ModalContent>
-                    {!keyboardStateContextValue?.isKeyboardShown && <NavigationBar />}
+                    {!keyboardStateContextValue?.isKeyboardActive && <NavigationBar />}
                 </ModalComponent>
             </View>
         </ModalContext.Provider>

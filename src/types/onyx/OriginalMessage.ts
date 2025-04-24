@@ -92,24 +92,6 @@ type Decision = {
     timestamp?: string;
 };
 
-/** Model of user reaction */
-type User = {
-    /** Account ID of the user that reacted to the comment */
-    accountID: number;
-
-    /** What's the skin tone of the user reaction */
-    skinTone: number;
-};
-
-/** Model of comment reaction */
-type Reaction = {
-    /** Which emoji was used to react to the comment */
-    emoji: string;
-
-    /** Which users reacted with this emoji */
-    users: User[];
-};
-
 /** Model of `add comment` report action */
 type OriginalMessageAddComment = {
     /** HTML content of the comment */
@@ -515,6 +497,12 @@ type OriginalMessageDeletedTransaction = {
     currency?: string;
 };
 
+/** Model of `concierge category options` report action */
+type OriginalMessageConciergeCategoryOptions = {
+    /** The options we present to the user when confidence in the predicted category is low */
+    options: string[];
+};
+
 /** Model of `reimbursement queued` report action */
 type OriginalMessageReimbursementQueued = {
     /** How is the payment getting reimbursed */
@@ -555,6 +543,18 @@ type OriginalMessageChangePolicy = {
 
     /** ID of the new policy */
     toPolicy: string;
+};
+
+/** Model of `UNREPORTED_TRANSACTION` report action */
+type OriginalMessageUnreportedTransaction = {
+    /** ID of the old report */
+    fromReportID: string;
+};
+
+/** Model of `MOVEDTRANSACTION` report action */
+type OriginalMessageMovedTransaction = {
+    /** ID of the new report */
+    toReportID: string;
 };
 
 /** Model of `moved` report action */
@@ -763,6 +763,8 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.MERGED_WITH_CASH_TRANSACTION]: never;
     [CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE]: OriginalMessageModifiedExpense;
     [CONST.REPORT.ACTIONS.TYPE.MOVED]: OriginalMessageMoved;
+    [CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION]: OriginalMessageMovedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION]: OriginalMessageUnreportedTransaction;
     [CONST.REPORT.ACTIONS.TYPE.OUTDATED_BANK_ACCOUNT]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSED]: never;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE]: never;
@@ -806,6 +808,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.CARD_ASSIGNED]: OriginalMessageCard;
     [CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED]: OriginalMessageIntegrationSyncFailed;
     [CONST.REPORT.ACTIONS.TYPE.DELETED_TRANSACTION]: OriginalMessageDeletedTransaction;
+    [CONST.REPORT.ACTIONS.TYPE.CONCIERGE_CATEGORY_OPTIONS]: OriginalMessageConciergeCategoryOptions;
 } & OldDotOriginalMessageMap & {
         [T in ValueOf<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG>]: OriginalMessagePolicyChangeLog;
     } & {
@@ -821,7 +824,6 @@ export type {
     ChronosOOOEvent,
     PaymentMethodType,
     OriginalMessageSource,
-    Reaction,
     Decision,
     OriginalMessageChangeLog,
     JoinWorkspaceResolution,
@@ -829,4 +831,6 @@ export type {
     OriginalMessageExportIntegration,
     IssueNewCardOriginalMessage,
     OriginalMessageChangePolicy,
+    OriginalMessageUnreportedTransaction,
+    OriginalMessageMovedTransaction,
 };

@@ -1,5 +1,5 @@
-import React, {forwardRef} from 'react';
 import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import React, {forwardRef} from 'react';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -14,6 +14,9 @@ import PressableWithFeedback from './Pressable/PressableWithFeedback';
 type CheckboxProps = Partial<ChildrenProps> & {
     /** Whether checkbox is checked */
     isChecked?: boolean;
+
+    /** Whether checkbox is in the indeterminate (“mixed”) state */
+    isIndeterminate?: boolean;
 
     /** A function that is called when the box/label is pressed */
     onPress: () => void;
@@ -52,6 +55,7 @@ type CheckboxProps = Partial<ChildrenProps> & {
 function Checkbox(
     {
         isChecked = false,
+        isIndeterminate = false,
         hasError = false,
         disabled = false,
         style,
@@ -103,7 +107,10 @@ function Checkbox(
             style={[StyleUtils.getCheckboxPressableStyle(containerBorderRadius + 2), style]} // to align outline on focus, border-radius of pressable should be 2px more than Checkbox
             onKeyDown={handleSpaceKey}
             role={CONST.ROLE.CHECKBOX}
-            aria-checked={isChecked}
+            /*  true  → checked
+                false → unchecked
+                mixed → indeterminate  */
+            aria-checked={isIndeterminate ? 'mixed' : isChecked}
             accessibilityLabel={accessibilityLabel}
             pressDimmingValue={1}
         >
@@ -112,16 +119,16 @@ function Checkbox(
                     style={[
                         StyleUtils.getCheckboxContainerStyle(containerSize, containerBorderRadius),
                         containerStyle,
-                        isChecked && styles.checkedContainer,
+                        (isChecked || isIndeterminate) && styles.checkedContainer,
                         hasError && styles.borderColorDanger,
                         disabled && styles.cursorDisabled,
                         disabled && styles.buttonOpacityDisabled,
-                        isChecked && styles.borderColorFocus,
+                        (isChecked || isIndeterminate) && styles.borderColorFocus,
                     ]}
                 >
-                    {isChecked && (
+                    {(isChecked || isIndeterminate) && (
                         <Icon
-                            src={Expensicons.Checkmark}
+                            src={isChecked ? Expensicons.Checkmark : Expensicons.Minus}
                             fill={theme.textLight}
                             height={caretSize}
                             width={caretSize}

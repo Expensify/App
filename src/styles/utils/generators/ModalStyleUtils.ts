@@ -207,6 +207,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
                     paddingTop: variables.componentBorderRadiusLarge,
+                    paddingBottom: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,

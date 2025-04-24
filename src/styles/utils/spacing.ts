@@ -395,6 +395,12 @@ export default {
         padding: 0,
         paddingHorizontal: 0,
         paddingVertical: 0,
+        // Set all individual padding properties to 0 to ensure they override any granular padding styles
+        // that may not be affected by the shorthand padding properties above
+        paddingLeft: 0,
+        paddingRight: 0,
+        paddingTop: 0,
+        paddingBottom: 0,
     },
 
     p1: {
@@ -659,6 +665,10 @@ export default {
 
     pb2: {
         paddingBottom: 8,
+    },
+
+    pb2half: {
+        paddingBottom: 10,
     },
 
     pb3: {

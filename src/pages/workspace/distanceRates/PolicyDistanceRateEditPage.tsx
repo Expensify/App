@@ -67,7 +67,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
             featureName={CONST.POLICY.MORE_FEATURES.ARE_DISTANCE_RATES_ENABLED}
         >
             <ScreenWrapper
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
                 style={[styles.defaultModalContainer]}
                 testID={PolicyDistanceRateEditPage.displayName}
                 shouldEnableMaxHeight
@@ -87,6 +87,7 @@ function PolicyDistanceRateEditPage({route}: PolicyDistanceRateEditPageProps) {
                     shouldHideFixErrorsAlert
                     submitFlexEnabled={false}
                     submitButtonStyles={[styles.mh5, styles.mt0]}
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapperWithRef
                         InputComponent={AmountForm}

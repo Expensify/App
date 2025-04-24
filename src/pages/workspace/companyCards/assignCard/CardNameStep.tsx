@@ -60,7 +60,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
             <ScreenWrapper
                 testID={CardNameStep.displayName}
                 shouldEnablePickerAvoiding={false}
-                includeSafeAreaPaddingBottom
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton
                     title={translate('workspace.moreFeatures.companyCards.cardName')}
@@ -75,6 +75,7 @@ function CardNameStep({policyID}: CardNameStepProps) {
                     enabledWhenOffline
                     validate={validate}
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <InputWrapper
                         InputComponent={TextInput}
