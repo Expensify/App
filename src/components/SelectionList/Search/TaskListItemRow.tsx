@@ -102,7 +102,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             success
             text={translate('task.action')}
             style={[styles.w100]}
-            isDisabled={!canActionTask(taskItem.report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, taskCreatorID, taskAssigneeID)}
+            isDisabled={!canActionTask(taskItem.report, session?.accountID, taskCreatorID, taskAssigneeID)}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem, taskItem.reportID);
             })}
