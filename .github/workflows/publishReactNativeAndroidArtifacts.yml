@@ -144,3 +144,4 @@ jobs:
         uses: ./.github/actions/composite/announceFailedWorkflowInSlack
         with:
           SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          CHANNEL: '#expensify-open-source'
