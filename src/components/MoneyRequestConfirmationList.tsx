@@ -646,12 +646,12 @@ function MoneyRequestConfirmationList({
                     formatAmountOnBlur
                     prefixContainerStyle={[styles.pv0]}
                     inputStyle={[styles.optionRowAmountInput]}
-                    containerStyle={[styles.textInputContainer, styles.pl2]}
+                    containerStyle={[styles.textInputContainer, styles.pl2, styles.pr1]}
                     touchableInputWrapperStyle={[styles.ml3]}
                     onFormatAmount={convertToDisplayStringWithoutCurrency}
                     onAmountChange={(value: string) => onSplitShareChange(participantOption.accountID ?? CONST.DEFAULT_NUMBER_ID, Number(value))}
                     maxLength={formattedTotalAmount.length}
-                    contentWidth={formattedTotalAmount.length * 8 + 8}
+                    contentWidth={formattedTotalAmount.length * 8 + 12}
                 />
             ),
         }));
@@ -665,6 +665,7 @@ function MoneyRequestConfirmationList({
         selectedParticipants,
         styles.flexWrap,
         styles.pl2,
+        styles.pr1,
         styles.textLabel,
         styles.pv0,
         styles.optionRowAmountInput,
