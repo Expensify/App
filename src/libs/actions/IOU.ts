@@ -4718,7 +4718,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
     );
 
     optimisticData?.push(...convertTransactionOptimisticData);
-    successData?.push(...conveconvertTransactionOptimisticData);
+    successData?.push(...convertTransactionSuccessData);
     failureData?.push(...convertTransactionFailureData);
 
     if (workspaceParams) {
