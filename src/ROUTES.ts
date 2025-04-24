@@ -588,7 +588,7 @@ const ROUTES = {
                 : (`${type as string}/edit/reason/${transactionID}/?backTo=${backTo}` as const);
 
             if (reportID) {
-                route += `&reportID=${reportID}`;
+                route = `${route}&reportID=${reportID}` as const;
             }
 
             return route;
