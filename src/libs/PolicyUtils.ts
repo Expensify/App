@@ -1416,6 +1416,16 @@ function isAutoSyncEnabled(policy: Policy) {
     return values.some((value) => !!value);
 }
 
+/**
+ * Checks if the user is invited to any workspace.
+ */
+function isUserInvitedToWorkspace(): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    return Object.values(allPolicies ?? {}).some(
+        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
+    );
+}
+
 export {
     canEditTaxRate,
     extractPolicyIDFromPath,
@@ -1557,6 +1567,7 @@ export {
     isPrefferedExporter,
     isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
+    isUserInvitedToWorkspace,
 };
 
 export type {MemberEmailsToAccountIDs};
