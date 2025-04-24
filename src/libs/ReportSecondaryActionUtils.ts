@@ -298,68 +298,9 @@ function isHoldActionForTransation(report: Report, reportTransaction: Transactio
 }
 
 function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction[], violations: OnyxCollection<TransactionViolation[]>, policy?: Policy): boolean {
-    const isExpenseReport = isExpenseReportUtils(report);
-    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-    const areWorkflowsEnabled = !!(policy && policy.areWorkflowsEnabled);
-    const isClosedReport = isClosedReportUtils(report);
-
     const policies = getAllPolicies();
     const currentUserEmail = getCurrentUserEmail();
-    const policiesEligibleForChange = policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, currentUserEmail));
-
-    if (policiesEligibleForChange.length <= 1) {
-        return false;
-    }
-
-    if (isExpenseReport && isReportSubmitter && !areWorkflowsEnabled && isClosedReport) {
-        return true;
-    }
-
-    const isOpenReport = isOpenReportUtils(report);
-    const isProcessingReport = isProcessingReportUtils(report);
-
-    if (isReportSubmitter && (isOpenReport || isProcessingReport)) {
-        return true;
-    }
-
-    const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-
-    if (isReportApprover && isProcessingReport) {
-        return true;
-    }
-
-    const isReportPayer = isPayerUtils(getSession(), report, false, policy);
-    const isReportApproved = isReportApprovedUtils({report});
-    const isIOUReport = isIOUReportUtils(report);
-
-    if (isReportPayer && (isExpenseReport && (isReportApproved || isClosedReport) || (isIOUReport && isProcessingReport))) {
-        return true;
-    }
-
-    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-    const isReportReimbursed = isSettled(report);
-    const transactionIDs = reportTransactions.map((t) => t.transactionID);
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDs, violations);
-
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactionIDs, report, policy, violations);
-
-    const userControlsReport = isReportSubmitter || isReportApprover || isAdmin;
-    const hasReceiptMatchViolation = hasAllPendingRTERViolations || (userControlsReport && shouldShowBrokenConnectionViolation);
-    const isReportExported = isExportedUtils(getReportActions(report));
-    const isReportFinished = isReportApproved || isReportReimbursed || isClosedReport;
-
-    if (isAdmin && ((!isReportExported && isReportFinished) || hasReceiptMatchViolation)) {
-        return true;
-    }
-
-    const hasOnlyPersonalWorkspace = hasNoPolicyOtherThanPersonalType();
-    const isReportReceiver = isReportManagerUtils(report);
-
-    if (isIOUReport && !hasOnlyPersonalWorkspace && isReportReceiver && isReportReimbursed) {
-        return true;
-    }
-
-    return false;
+    return policies.filter((newPolicy) => isWorkspaceEligibleForReportChange(newPolicy, report, policy, currentUserEmail)).length > 0;
 }
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {

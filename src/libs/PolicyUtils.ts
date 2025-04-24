@@ -1126,7 +1126,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
 
     // The report payer must also be a payer in the policy
     const payerLogin = report?.managerID ? getLoginByAccountID(report?.managerID) : undefined;
-    if (!isUserPolicyAdmin(newPolicy, payerLogin) || newPolicy?.achAccount?.reimburser === payerLogin) {
+    if (!isUserPolicyAdmin(newPolicy, payerLogin) && newPolicy?.achAccount?.reimburser !== payerLogin) {
         return false;
     }
 
