@@ -66,6 +66,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DisplayNameParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -183,7 +184,6 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
-    UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnreportedTransactionParams,
     UnshareParams,
@@ -431,6 +431,9 @@ const translations = {
         websiteExample: 'p. ej. https://www.expensify.com',
         zipCodeExampleFormat: ({zipSampleFormat}: ZipCodeExampleFormatParams) => (zipSampleFormat ? `p. ej. ${zipSampleFormat}` : ''),
         description: 'Descripción',
+        title: 'Título',
+        assignee: 'Asignado a',
+        createdBy: 'Creado por',
         with: 'con',
         shareCode: 'Compartir código',
         share: 'Compartir',
@@ -517,6 +520,7 @@ const translations = {
         offlinePrompt: 'No puedes realizar esta acción ahora mismo.',
         outstanding: 'Pendiente',
         chats: 'Chats',
+        tasks: 'Tereas',
         unread: 'No leído',
         sent: 'Enviado',
         links: 'Enlaces',
@@ -539,6 +543,7 @@ const translations = {
         reimbursable: 'Reembolsable',
         editYourProfile: 'Edita tu perfil',
         comments: 'Comentarios',
+        sharedIn: 'Compartido en',
         unreported: 'No reportado',
     },
     supportalNoAccess: {
@@ -905,7 +910,7 @@ const translations = {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
-        approve: 'Aprobar',
+        approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
@@ -1010,8 +1015,8 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
-            `se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
+        submittedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} enviado`,
+        automaticallySubmitted: ({displayName}: DisplayNameParams) => `${displayName} enviado mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1026,10 +1031,11 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
-        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
-            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
-        unapprovedAmount: ({amount}: UnapprovedParams) => `desaprobó ${amount}`,
+        automaticallyApproved: ({displayName}: DisplayNameParams) =>
+            `${displayName} aprobado mediante <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
+        approvedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} aprobado`,
+        unapproved: ({displayName}: DisplayNameParams) => `${displayName} no aprobado`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
@@ -1427,6 +1433,10 @@ const translations = {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
             lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
             enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+            errors: {
+                incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
+                fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+            },
         },
         mergeSuccess: {
             accountsMerged: '¡Cuentas fusionadas!',
@@ -1948,9 +1958,9 @@ const translations = {
         requestNewCode: 'Pedir un código nuevo en ',
         requestNewCodeAfterErrorOccurred: 'Solicitar un nuevo código',
         error: {
-            pleaseFillMagicCode: 'Por favor, introduce el código mágico',
-            incorrectMagicCode: 'Código mágico incorrecto',
-            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores',
+            pleaseFillMagicCode: 'Por favor, introduce el código mágico.',
+            incorrectMagicCode: 'Código mágico incorrecto o no válido. Inténtalo de nuevo o solicita otro código.',
+            pleaseFillTwoFactorAuth: 'Por favor, introduce tu código de autenticación de dos factores.',
         },
     },
     passwordForm: {
@@ -1985,6 +1995,8 @@ const translations = {
     onboarding: {
         welcome: '¡Bienvenido!',
         welcomeSignOffTitle: '¡Es un placer conocerte!',
+        welcomeSignOffTitleManageTeam:
+            'Podemos explorar más características como flujos de trabajo de aprobación y reglas cuando hayas avanzado en estos pasos, ya que son requisitos previos.',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2813,6 +2825,13 @@ const translations = {
             seat: 'Asiento',
             class: 'Clase de cabina',
             recordLocator: 'Localizador de la reserva',
+            cabinClasses: {
+                unknown: 'Desconocido',
+                economy: 'Económica',
+                premiumEconomy: 'Económica Premium',
+                business: 'Ejecutiva',
+                first: 'Primera',
+            },
         },
         hotel: 'Hotel',
         hotelDetails: {
@@ -2949,7 +2968,8 @@ const translations = {
             descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
-            markAsExported: 'Marcar como introducido manualmente',
+            markAsEntered: 'Marcar como introducido manualmente',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -3719,6 +3739,7 @@ const translations = {
             toggleImportTitleSecondPart: ' en Expensify.',
             expenseTypes: 'Tipos de gastos',
             expenseTypesDescription: 'Los tipos de gastos de Sage Intacct se importan a Expensify como categorías.',
+            accountTypesDescription: 'Su plan de cuentas de Sage Intacct se importará a Expensify como categorías.',
             importTaxDescription: 'Importar el tipo impositivo de compra desde Sage Intacct.',
             userDefinedDimensions: 'Dimensiones definidas por el usuario',
             addUserDefinedDimension: 'Añadir dimensión definida por el usuario',
@@ -4330,6 +4351,7 @@ const translations = {
             goToODToSettings: 'Ve a Expensify Classic para gestionar tus configuraciones.',
             setup: 'Configurar',
             lastSync: ({relativeDate}: LastSyncAccountingParams) => `Recién sincronizado ${relativeDate}`,
+            notSync: 'No sincronizado',
             import: 'Importar',
             export: 'Exportar',
             advanced: 'Avanzado',
@@ -5180,6 +5202,7 @@ const translations = {
         description: 'Descripción',
         assignee: 'Miembro asignado',
         completed: 'Completada',
+        action: 'Completar',
         messages: {
             created: ({title}: TaskCreatedActionParams) => `tarea para ${title}`,
             completed: 'marcada como completa',
@@ -5265,6 +5288,7 @@ const translations = {
             link: 'Enlace',
             pinned: 'Fijado',
             unread: 'No leído',
+            completed: 'Completadas',
             card: {
                 expensify: 'Expensify',
                 individualCards: 'Tarjetas individuales',
@@ -6763,6 +6787,11 @@ const translations = {
             description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
             confirmText: 'Iniciar prueba',
             helpText: 'Omitir',
+        },
+        banner: {
+            currentlyTestDrivingExpensify: 'Actualmente estás probando Expensify',
+            readyForTheRealThing: '¿Listo para la versión real?',
+            getStarted: 'Comenzar',
         },
     },
 };

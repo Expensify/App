@@ -562,7 +562,12 @@ function signInAfterTransitionFromOldDot(hybridAppSettings: string) {
             return Promise.resolve();
         }
 
-        return Onyx.clear(KEYS_TO_PRESERVE).then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}));
+        // We also need to reset:
+        //  - IS_LOADING_APP after sign in to ensure the condition to show ExplanationModal runs once
+        //    https://github.com/Expensify/App/issues/57575#issuecomment-2780189425
+        return Onyx.clear(KEYS_TO_PRESERVE)
+            .then(() => Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: null}))
+            .then(() => Onyx.merge(ONYXKEYS.IS_LOADING_APP, null));
     };
 
     return clearOnyxForNewAccount()
@@ -1242,43 +1247,6 @@ const canAnonymousUserAccessRoute = (route: string) => {
     return false;
 };
 
-/**
- * Validates user account and returns a list of accessible policies.
- */
-function validateUserAndGetAccessiblePolicies(validateCode: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: true,
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.JOINABLE_POLICIES_LOADING,
-            value: false,
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES, {validateCode}, {optimisticData, successData, failureData});
-}
-
-function isUserOnPrivateDomain() {
-    // TODO: Implement this function later, and skip the check for now
-    // return !!session?.email && !LoginUtils.isEmailPublicDomain(session?.email);
-    return false;
-}
-
 function AddWorkEmail(workEmail: string) {
     const optimisticData: OnyxUpdate[] = [
         {
@@ -1387,7 +1355,7 @@ function MergeIntoAccountAndLogin(workEmail: string | undefined, validateCode: s
     ).then((response) => {
         if (response?.jsonCode === CONST.JSON_CODE.EXP_ERROR) {
             // If the error other than invalid code, we show a blocking screen
-            if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
+            if (response?.message === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR || response?.title === CONST.MERGE_ACCOUNT_INVALID_CODE_ERROR) {
                 Onyx.merge(ONYXKEYS.ONBOARDING_ERROR_MESSAGE, translateLocal('contacts.genericFailureMessages.validateSecondaryLogin'));
             } else {
                 Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {isMergingAccountBlocked: true});
@@ -1491,8 +1459,6 @@ export {
     hasStashedSession,
     signUpUser,
     signInAfterTransitionFromOldDot,
-    validateUserAndGetAccessiblePolicies,
-    isUserOnPrivateDomain,
     AddWorkEmail,
     MergeIntoAccountAndLogin,
     resetSMSDeliveryFailureStatus,

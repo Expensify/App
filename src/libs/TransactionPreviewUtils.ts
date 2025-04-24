@@ -42,11 +42,16 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-function getIOUData(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined) {
-    const fromID = managerID;
-    const toID = ownerAccountID;
+function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+    let fromID = ownerAccountID;
+    let toID = managerID;
 
-    return fromID && toID
+    if (amount < 0) {
+        fromID = managerID;
+        toID = ownerAccountID;
+    }
+
+    return fromID && toID && isIOUReport
         ? {
               from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
               to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
@@ -232,7 +237,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         displayAmountText,
         displayDeleteAmountText,
         previewHeaderText,
-        showCashOrCard,
     };
 }
 
@@ -275,7 +279,6 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
@@ -303,7 +306,6 @@ function createTransactionPreviewConditionals({
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning;
 
     return {
-        shouldDisableOnPress,
         shouldShowSkeleton,
         shouldShowTag,
         shouldShowRBR,
