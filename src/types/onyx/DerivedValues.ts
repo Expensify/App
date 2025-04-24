@@ -45,6 +45,10 @@ type ReportAttributes = {
      * The status of the brick road.
      */
     brickRoadStatus: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS> | undefined;
+    /**
+     * Whether the report requires attention from the current user.
+     */
+    requiresAttention: boolean;
 };
 
 export default ReportAttributes;

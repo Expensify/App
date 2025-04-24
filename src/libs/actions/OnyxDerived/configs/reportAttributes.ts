@@ -77,13 +77,15 @@ export default createOnyxDerivedValueConfig({
             const reportActionsErrors = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActionsList);
             const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActionsList);
             const parentReportAction = report.parentReportActionID ? reportActionsList?.[report.parentReportActionID] : undefined;
+            const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
 
             let brickRoadStatus;
-            if (SidebarUtils.shouldShowRBR(report, reportActionsList, hasAnyViolations, Object.entries(reportErrors ?? {}).length > 0, oneTransactionThreadReportID)) {
+            // if report has errors or violations, show red dot
+            if (SidebarUtils.hasAnyErrorsOrViolations(report, reportActionsList, hasAnyViolations, Object.entries(reportErrors ?? {}).length > 0, oneTransactionThreadReportID)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot
-            if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttentionFromCurrentUser(report, parentReportAction)) {
+            if (brickRoadStatus !== CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR && requiresAttention) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
             }
 
@@ -95,6 +97,7 @@ export default createOnyxDerivedValueConfig({
                 hasAnyViolations,
                 oneTransactionThreadReportID,
                 brickRoadStatus,
+                requiresAttention,
             };
 
             return acc;
