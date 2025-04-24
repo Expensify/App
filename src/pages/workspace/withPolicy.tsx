@@ -4,7 +4,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
-import * as Policy from '@userActions/Policy/Policy';
+import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -51,8 +51,8 @@ type PolicyRouteName =
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
-function getPolicyIDFromRoute(route: PolicyRoute): string {
-    return route?.params?.policyID ?? '-1';
+function getPolicyIDFromRoute(route: PolicyRoute): string | undefined {
+    return route?.params?.policyID;
 }
 
 type WithPolicyOnyxProps = {
@@ -80,12 +80,12 @@ export default function <TProps extends WithPolicyProps, TRef>(
     function WithPolicy(props: Omit<TProps, keyof WithPolicyOnyxProps>, ref: ForwardedRef<TRef>) {
         const policyID = getPolicyIDFromRoute(props.route as PolicyRoute);
 
-        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`);
+        const [policy, policyResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: true});
+        const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
         const isLoadingPolicy = isLoadingOnyxValue(policyResults, policyDraftResults);
 
-        if (policyID.length > 0) {
-            Policy.updateLastAccessedWorkspace(policyID);
+        if (policyID && policyID.length > 0) {
+            updateLastAccessedWorkspace(policyID);
         }
 
         return (
@@ -106,4 +106,4 @@ export default function <TProps extends WithPolicyProps, TRef>(
 }
 
 export {policyDefaultProps};
-export type {PolicyRoute, PolicyRouteName, WithPolicyOnyxProps, WithPolicyProps};
+export type {WithPolicyOnyxProps, WithPolicyProps};

@@ -4,6 +4,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import DateUtils from '@libs/DateUtils';
 import {translateLocal} from '@libs/Localize';
+import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import {
     buildOptimisticChatReport,
     buildOptimisticCreatedReportAction,
@@ -535,13 +536,35 @@ describe('ReportUtils', () => {
                 };
                 const submittedParentReportAction = {
                     actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                    adminAccountID: 1,
                     originalMessage: {
                         amount: 169,
                         currency: 'USD',
                     },
                 } as ReportAction;
 
-                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('submitted $1.69');
+                expect(getReportName(threadOfSubmittedReportAction, policy, submittedParentReportAction)).toBe('Ragnar Lothbrok submitted');
+            });
+
+            test('Manually Approved Report Action', () => {
+                const threadOfApprovedReportAction = {
+                    ...LHNTestUtils.getFakeReport(),
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    parentReportID: '101',
+                    policyID: policy.id,
+                };
+                const approvedParentReportAction = {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                    actorAccountID: 1,
+                    originalMessage: {
+                        amount: 169,
+                        currency: 'USD',
+                    },
+                } as ReportAction;
+
+                expect(getReportName(threadOfApprovedReportAction, policy, approvedParentReportAction)).toBe('Ragnar Lothbrok approved');
             });
 
             test('Invited/Removed Room Member Action', () => {
@@ -575,6 +598,48 @@ describe('ReportUtils', () => {
             it('Should return deleted task translations when task is is deleted', () => {
                 const report: Report = {...createRandomReport(1), type: 'task', isDeletedParentAction: true};
                 expect(getReportName({...report, reportName: htmlTaskTitle})).toEqual(translateLocal('parentReportAction.deletedTask'));
+            });
+        });
+
+        describe('Derived values', () => {
+            const report: Report = {
+                reportID: '1',
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                currency: 'CLP',
+                ownerAccountID: 1,
+                isPinned: false,
+                isOwnPolicyExpenseChat: true,
+                isWaitingOnBankAccount: false,
+                policyID: '1',
+            };
+
+            beforeEach(() => {
+                jest.clearAllMocks();
+            });
+
+            beforeAll(async () => {
+                await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                    report_1: report,
+                });
+            });
+
+            test('should return report name from a derived value', () => {
+                expect(getReportName(report)).toEqual("Ragnar Lothbrok's expenses");
+            });
+
+            test('should generate report name if report is not merged in the Onyx', () => {
+                const expenseChatReport: Report = {
+                    reportID: '2',
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    currency: 'CLP',
+                    ownerAccountID: 1,
+                    isPinned: false,
+                    isOwnPolicyExpenseChat: true,
+                    isWaitingOnBankAccount: false,
+                    policyID: '1',
+                };
+
+                expect(getReportName(expenseChatReport)).toEqual("Ragnar Lothbrok's expenses");
             });
         });
     });
@@ -1858,6 +1923,22 @@ describe('ReportUtils', () => {
             expect(getWorkspaceNameUpdatedMessage(action as ReportAction)).toEqual(
                 'updated the name of this workspace to &quot;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#111;&quot; (previously &quot;workspace 1&quot;)',
             );
+        });
+    });
+
+    describe('buildOptimisticIOUReportAction', () => {
+        it('should not include IOUReportID in the originalMessage when tracking a personal expense', () => {
+            const iouAction = buildOptimisticIOUReportAction({
+                type: 'track',
+                amount: 1200,
+                currency: 'INR',
+                comment: '',
+                participants: [{login: 'email1@test.com'}],
+                transactionID: '8749701985416635400',
+                iouReportID: '8698041594589716',
+                isPersonalTrackingExpense: true,
+            });
+            expect(getOriginalMessage(iouAction as ReportAction<'IOU'>)?.IOUReportID).toBe(undefined);
         });
     });
 

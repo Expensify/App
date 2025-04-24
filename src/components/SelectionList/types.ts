@@ -99,7 +99,10 @@ type ListItemFocusEventHandler = (event: NativeSyntheticEvent<ExtendedTargetedEv
 
 type ExtendedTargetedEvent = TargetedEvent & {
     /** Provides information about the input device responsible for the event, or null if triggered programmatically, available in some browsers */
-    sourceCapabilities?: unknown;
+    sourceCapabilities?: {
+        /** A boolean value that indicates whether the device dispatches touch events. */
+        firesTouchEvents: boolean;
+    };
 };
 
 type ListItem = {
@@ -400,10 +403,6 @@ type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     indexOffset?: number;
 };
 
-type SkeletonViewProps = {
-    shouldAnimate: boolean;
-};
-
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Sections for the section list */
     sections: Array<SectionListDataType<TItem>> | typeof CONST.EMPTY_ARRAY;
@@ -682,6 +681,12 @@ type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
     /** Whether to add bottom safe area padding to the content. */
     addOfflineIndicatorBottomSafeAreaPadding?: boolean;
 
+    /** Number of items to render in the loader */
+    fixedNumItemsForLoader?: number;
+
+    /** Skeleton loader speed */
+    loaderSpeed?: number;
+
     /** Error text to display */
     errorText?: string;
 } & TRightHandSideComponent<TItem>;
@@ -725,19 +730,15 @@ export type {
     BaseListItemProps,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
-    CommonListItemProps,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    ItemLayout,
     ListItem,
     ListItemFocusEventHandler,
-    ListItemProps,
     RadioListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
-    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
@@ -745,7 +746,6 @@ export type {
     TransactionListItemProps,
     TransactionListItemType,
     UserListItemProps,
-    ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,

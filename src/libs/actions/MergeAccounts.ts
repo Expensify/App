@@ -12,7 +12,7 @@ Onyx.connect({
     callback: (value) => (session = value ?? {}),
 });
 
-function requestValidationCodeForAccountMerge(email: string) {
+function requestValidationCodeForAccountMerge(email: string, validateCodeResent = false) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -21,6 +21,7 @@ function requestValidationCodeForAccountMerge(email: string) {
                 getValidateCodeForAccountMerge: {
                     isLoading: true,
                     validateCodeSent: false,
+                    validateCodeResent: false,
                     errors: null,
                 },
             },
@@ -34,7 +35,8 @@ function requestValidationCodeForAccountMerge(email: string) {
             value: {
                 getValidateCodeForAccountMerge: {
                     isLoading: false,
-                    validateCodeSent: true,
+                    validateCodeSent: !validateCodeResent,
+                    validateCodeResent,
                     errors: null,
                 },
             },
@@ -49,6 +51,7 @@ function requestValidationCodeForAccountMerge(email: string) {
                 getValidateCodeForAccountMerge: {
                     isLoading: false,
                     validateCodeSent: false,
+                    validateCodeResent: false,
                 },
             },
         },
@@ -67,6 +70,7 @@ function clearGetValidateCodeForAccountMerge() {
         getValidateCodeForAccountMerge: {
             errors: null,
             validateCodeSent: false,
+            validateCodeResent: false,
             isLoading: false,
         },
     });

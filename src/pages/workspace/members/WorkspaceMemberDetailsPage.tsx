@@ -1,13 +1,12 @@
 import {Str} from 'expensify-common';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import type {OnyxEntry} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Avatar from '@components/Avatar';
 import Button from '@components/Button';
 import ButtonDisabledWhenOffline from '@components/Button/ButtonDisabledWhenOffline';
-import CommunicationsLink from '@components/CommunicationsLink';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import * as Expensicons from '@components/Icon/Expensicons';
@@ -17,7 +16,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
+import useCardFeeds from '@hooks/useCardFeeds';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
@@ -74,9 +73,9 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const StyleUtils = useStyleUtils();
     const illustrations = useThemeIllustrations();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const [cardFeeds] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`);
-    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`);
+    const [cardFeeds] = useCardFeeds(policyID);
+    const [cardList] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}`, {canBeMissing: true});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${workspaceAccountID}`, {canBeMissing: true});
 
     const [isRemoveMemberConfirmModalVisible, setIsRemoveMemberConfirmModalVisible] = useState(false);
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
@@ -98,7 +97,6 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
     const workspaceCards = getAllCardsForWorkspace(workspaceAccountID, cardList);
     const isSMSLogin = Str.isSMSLogin(memberLogin);
     const phoneNumber = getPhoneNumber(details);
-    const phoneOrEmail = isSMSLogin ? getPhoneNumber(details) : memberLogin;
 
     const policyApproverEmail = policy?.approver;
     const {approvalWorkflows} = useMemo(
@@ -340,25 +338,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             />
                         </View>
                         <View style={styles.w100}>
-                            <View style={[styles.ph5, styles.pv3]}>
-                                <Text
-                                    style={[styles.textLabelSupporting, styles.mb1]}
-                                    numberOfLines={1}
-                                >
-                                    {translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
-                                </Text>
-                                <CommunicationsLink value={phoneOrEmail ?? ''}>
-                                    <UserDetailsTooltip accountID={details?.accountID ?? CONST.DEFAULT_NUMBER_ID}>
-                                        <Text
-                                            numberOfLines={1}
-                                            style={styles.w100}
-                                        >
-                                            {isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
-                                        </Text>
-                                    </UserDetailsTooltip>
-                                </CommunicationsLink>
-                            </View>
-
+                            <MenuItemWithTopDescription
+                                title={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                copyValue={isSMSLogin ? formatPhoneNumber(phoneNumber ?? '') : memberLogin}
+                                description={translate(isSMSLogin ? 'common.phoneNumber' : 'common.email')}
+                                interactive={false}
+                            />
                             <MenuItemWithTopDescription
                                 disabled={isSelectedMemberOwner || isSelectedMemberCurrentUser}
                                 title={translate(`workspace.common.roleName`, {role: member?.role})}

@@ -127,7 +127,9 @@ function SearchList(
     // Keep track of the number of selected items to determine if we should turn off selection mode
     const selectionRef = useRef(0);
 
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        canBeMissing: true,
+    });
 
     useEffect(() => {
         selectionRef.current = selectedItemsLength;
@@ -294,8 +296,15 @@ function SearchList(
                     onSelectRow={onSelectRow}
                     onFocus={(event: NativeSyntheticEvent<ExtendedTargetedEvent>) => {
                         // Prevent unexpected scrolling on mobile Chrome after the context menu closes by ignoring programmatic focus not triggered by direct user interaction.
-                        if (isMobileChrome() && event.nativeEvent && !event.nativeEvent.sourceCapabilities) {
-                            return;
+                        if (isMobileChrome() && event.nativeEvent) {
+                            if (!event.nativeEvent.sourceCapabilities) {
+                                return;
+                            }
+                            // Ignore the focus if it's caused by a touch event on mobile chrome.
+                            // For example, a long press will trigger a focus event on mobile chrome
+                            if (event.nativeEvent.sourceCapabilities.firesTouchEvents) {
+                                return;
+                            }
                         }
                         setFocusedIndex(index);
                     }}
