@@ -229,6 +229,10 @@ function MergeResultPage() {
     }, [setRootStatusBarEnabled, login, translate, userEmailOrPhone, styles]);
 
     useEffect(() => {
+        /**
+         * If the result is success, we need to remove the initial screen from the navigation state
+         * so that the back button closes the modal instead of going back to the initial screen.
+         */
         if (result !== CONST.MERGE_ACCOUNT_RESULTS.SUCCESS) {
             return;
         }
