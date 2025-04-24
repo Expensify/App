@@ -104,15 +104,11 @@ const getReviewNavigationRoute = (
 const sumUpSplits = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
     const splits = transaction?.comment?.splits;
 
-    if (!splits || splits?.length === 0) {
+    if (!splits?.length) {
         return 0;
     }
 
-    return splits.reduce((sum, split) => {
-        // eslint-disable-next-line no-param-reassign
-        sum += split?.amount ?? 0;
-        return sum;
-    }, 0);
+    return splits.reduce((sum, split) => sum + (split?.amount ?? 0), 0);
 };
 
 type TranslationPathOrText = {
