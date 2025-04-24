@@ -41,6 +41,7 @@ function SearchRouterModal() {
                 testID={SearchRouterModal.displayName}
                 shouldEnableMaxHeight
                 enableEdgeToEdgeBottomSafeAreaPadding
+                includePaddingTop={false}
             >
                 <FocusTrapForModal active={isSearchRouterDisplayed}>
                     <SearchRouter
