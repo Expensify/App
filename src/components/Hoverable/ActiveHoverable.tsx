@@ -1,5 +1,5 @@
 /* eslint-disable react-compiler/react-compiler */
-import type {Ref} from 'react';
+import type {Ref, RefObject} from 'react';
 import {cloneElement, forwardRef, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter} from 'react-native';
 import mergeRefs from '@libs/mergeRefs';
@@ -97,7 +97,7 @@ function ActiveHoverable({onHoverIn, onHoverOut, shouldHandleScroll, shouldFreez
     const {onMouseEnter, onMouseLeave} = child.props as OnMouseEvents;
 
     return cloneElement(child, {
-        ref: mergeRefs(elementRef, outerRef, child.props.ref),
+        ref: mergeRefs(elementRef, outerRef, child.ref),
         onMouseEnter: (e: MouseEvent) => {
             handleMouseEvents('enter')();
             onMouseEnter?.(e);

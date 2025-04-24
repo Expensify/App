@@ -1,4 +1,4 @@
-import type {Ref} from 'react';
+import type {ReactElement, Ref} from 'react';
 import React, {cloneElement, forwardRef} from 'react';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import mergeRefs from '@libs/mergeRefs';
@@ -17,7 +17,7 @@ function Hoverable({isDisabled, ...props}: HoverableProps, ref: Ref<HTMLElement>
     if (isDisabled || !hasHoverSupport()) {
         const child = getReturnValue(props.children, false);
         // eslint-disable-next-line react-compiler/react-compiler
-        return cloneElement(child, {ref: mergeRefs(ref, child.props.ref)});
+        return cloneElement(child, {ref: mergeRefs(ref, child.ref)});
     }
 
     return (
