@@ -91,7 +91,7 @@ function AddPlaidBankAccount({
     const defaultSelectedPlaidAccountID = defaultSelectedPlaidAccount?.plaidAccountID ?? '-1';
     const defaultSelectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
     const subscribedKeyboardShortcuts = useRef<Array<() => void>>([]);
-    const previousNetworkState = useRef<boolean | undefined>();
+    const previousNetworkState = useRef<boolean | undefined>(undefined);
     const [selectedPlaidAccountMask, setSelectedPlaidAccountMask] = useState(defaultSelectedPlaidAccountMask);
 
     const {translate} = useLocalize();
