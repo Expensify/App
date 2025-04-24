@@ -78,8 +78,6 @@ type SearchContext = {
     isExportMode: boolean;
     setExportMode: (on: boolean) => void;
     isOnSearch: boolean;
-    isPredefinedFilterSelected: boolean;
-    setIsPredefinedFilterSelected: (isPredefinedFilterSelected: boolean) => void;
 };
 
 type ASTNode = {
