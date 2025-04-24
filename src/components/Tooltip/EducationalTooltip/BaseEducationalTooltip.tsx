@@ -21,10 +21,10 @@ type ScrollingEventData = {
  */
 function BaseEducationalTooltip({children, shouldRender = false, shouldHideOnNavigate = true, shouldHideOnScroll = false, ...props}: EducationalTooltipProps) {
     const genericTooltipStateRef = useRef<GenericTooltipState | undefined>(undefined);
-    const tooltipElementRef = useRef<Readonly<NativeMethods>>();
+    const tooltipElementRef = useRef<Readonly<NativeMethods> | undefined>(undefined);
 
     const [shouldMeasure, setShouldMeasure] = useState(false);
-    const show = useRef<() => void>();
+    const show = useRef<(() => void) | undefined>(undefined);
 
     const navigator = useContext(NavigationContext);
     const insets = useSafeAreaInsets();
