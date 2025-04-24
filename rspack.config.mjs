@@ -18,6 +18,12 @@ const __dirname = path.dirname(__filename);
 export default (env) => ({
     context: __dirname,
     entry: './index.js',
+    cache: true,
+    experiments: {
+        cache: {
+            type: 'persistent',
+        },
+    },
     resolve: {
         ...Repack.getResolveOptions(env.platform),
         tsConfig: {
