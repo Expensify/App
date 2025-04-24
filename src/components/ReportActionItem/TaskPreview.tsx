@@ -91,7 +91,6 @@ function TaskPreview({
         ? taskReport?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && taskReport.statusNum === CONST.REPORT.STATUS_NUM.APPROVED
         : action?.childStateNum === CONST.REPORT.STATE_NUM.APPROVED && action?.childStatusNum === CONST.REPORT.STATUS_NUM.APPROVED;
     const taskAssigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? action?.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
-    const taskOwnerAccountID = taskReport?.ownerAccountID ?? action?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const parentReport = useParentReport(taskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
     const hasAssignee = taskAssigneeAccountID > 0;
