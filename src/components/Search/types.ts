@@ -73,6 +73,10 @@ type SearchContext = {
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    shouldShowExportModeOption: boolean;
+    setShouldShowExportModeOption: (shouldShow: boolean) => void;
+    isExportMode: boolean;
+    setExportMode: (on: boolean) => void;
     isOnSearch: boolean;
     isPredefinedFilterSelected: boolean;
     setIsPredefinedFilterSelected: (isPredefinedFilterSelected: boolean) => void;
@@ -157,7 +161,6 @@ export type {
     SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchStatus,
-    SearchQueryAST,
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,
@@ -176,4 +179,5 @@ export type {
     SearchAutocompleteQueryRange,
     SearchParams,
     TableColumnSize,
+    SearchGroupBy,
 };

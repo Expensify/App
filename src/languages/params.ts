@@ -156,6 +156,8 @@ type CompanyCardFeedNameParams = {feedName: string};
 
 type PayerPaidAmountParams = {payer?: string; amount: number | string};
 
+type DisplayNameParams = {displayName: string};
+
 type ApprovedAmountParams = {amount: number | string};
 
 type ForwardedAmountParams = {amount: number | string};
@@ -226,7 +228,7 @@ type NewWorkspaceNameParams = {userName: string; workspaceNumber?: number};
 
 type RoomNameReservedErrorParams = {reservedName: string};
 
-type RenamedRoomActionParams = {oldName: string; newName: string};
+type RenamedRoomActionParams = {oldName: string; newName: string; actorName?: string};
 
 type RoomRenamedToParams = {newName: string};
 
@@ -369,8 +371,6 @@ type ShareParams = {to: string};
 type UnshareParams = {to: string};
 
 type StripePaidParams = {amount: string; currency: string};
-
-type UnapprovedParams = {amount: string};
 
 type RemoveMembersWarningPrompt = {
     memberName: string;
@@ -621,6 +621,14 @@ type WorkspaceYouMayJoin = {
     email: string;
 };
 
+type WorkEmailResendCodeParams = {
+    workEmail: string | undefined;
+};
+
+type WorkEmailMergingBlockedParams = {
+    workEmail: string | undefined;
+};
+
 type WorkspaceMemberList = {
     employeeCount: number;
     policyOwner: string;
@@ -681,6 +689,10 @@ type PolicyExpenseChatNameParams = {
 
 type ReviewParams = {
     amount: string;
+};
+
+type CurrencyInputDisabledTextParams = {
+    currency: string;
 };
 
 export type {
@@ -754,6 +766,7 @@ export type {
     AdminCanceledRequestParams,
     AlreadySignedInParams,
     ApprovedAmountParams,
+    DisplayNameParams,
     BeginningOfChatHistoryAdminRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartOneParams,
     BeginningOfChatHistoryAnnounceRoomPartTwo,
@@ -872,7 +885,6 @@ export type {
     ShareParams,
     UnshareParams,
     StripePaidParams,
-    UnapprovedParams,
     RemoveMembersWarningPrompt,
     ApprovalWorkflowErrorParams,
     ConnectionNameParams,
@@ -912,6 +924,8 @@ export type {
     UpdatedPolicyDescriptionParams,
     EditDestinationSubtitleParams,
     FlightLayoverParams,
+    WorkEmailResendCodeParams,
+    WorkEmailMergingBlockedParams,
     NewWorkspaceNameParams,
     AddedOrDeletedPolicyReportFieldParams,
     AddedPolicyCustomUnitRateParams,
@@ -926,4 +940,5 @@ export type {
     NeedCategoryForExportToIntegrationParams,
     SubscriptionSettingsSummaryParams,
     ReviewParams,
+    CurrencyInputDisabledTextParams,
 };

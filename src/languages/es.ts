@@ -50,6 +50,7 @@ import type {
     ConnectionNameParams,
     ConnectionParams,
     CurrencyCodeParams,
+    CurrencyInputDisabledTextParams,
     CustomersOrJobsLabelParams,
     CustomUnitRateParams,
     DateParams,
@@ -65,6 +66,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DisplayNameParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -182,7 +184,6 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
-    UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnreportedTransactionParams,
     UnshareParams,
@@ -227,6 +228,8 @@ import type {
     WelcomeEnterMagicCodeParams,
     WelcomeToRoomParams,
     WeSentYouMagicSignInLinkParams,
+    WorkEmailMergingBlockedParams,
+    WorkEmailResendCodeParams,
     WorkspaceLockedPlanTypeParams,
     WorkspaceMemberList,
     WorkspaceOwnerWillNeedToAddOrUpdatePaymentCardParams,
@@ -523,6 +526,7 @@ const translations = {
         minuteAbbreviation: 'm',
         chatWithAccountManager: ({accountManagerDisplayName}: ChatWithAccountManagerParams) => `¿Necesitas algo específico? Habla con tu gerente de cuenta, ${accountManagerDisplayName}.`,
         chatNow: 'Chatear ahora',
+        workEmail: 'correo electrónico de trabajo',
         destination: 'Destino',
         subrate: 'Subtasa',
         perDiem: 'Per diem',
@@ -901,7 +905,7 @@ const translations = {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
-        approve: 'Aprobar',
+        approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
@@ -1006,8 +1010,8 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
-            `se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
+        submittedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} enviado`,
+        automaticallySubmitted: ({displayName}: DisplayNameParams) => `${displayName} enviado mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1022,10 +1026,11 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
-        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
-            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
-        unapprovedAmount: ({amount}: UnapprovedParams) => `desaprobó ${amount}`,
+        automaticallyApproved: ({displayName}: DisplayNameParams) =>
+            `${displayName} aprobado mediante <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
+        approvedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} aprobado`,
+        unapproved: ({displayName}: DisplayNameParams) => `${displayName} no aprobado`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
@@ -1423,6 +1428,10 @@ const translations = {
             confirmMerge: '¿Estás seguro de que deseas fusionar cuentas?',
             lossOfUnsubmittedData: `Fusionar tus cuentas es irreversible y resultará en la pérdida de cualquier gasto no enviado de `,
             enterMagicCode: `Para continuar, por favor introduce el código mágico enviado a `,
+            errors: {
+                incorrect2fa: 'Código de autenticación de dos factores incorrecto. Por favor, inténtalo de nuevo.',
+                fallback: 'Ha ocurrido un error. Por favor, inténtalo mas tarde.',
+            },
         },
         mergeSuccess: {
             accountsMerged: '¡Cuentas fusionadas!',
@@ -1531,7 +1540,8 @@ const translations = {
         twoFactorAuthIsRequiredDescription: 'Por razones de seguridad, Xero requiere la autenticación de dos factores para conectar la integración.',
         twoFactorAuthIsRequiredForAdminsHeader: 'Autenticación de dos factores requerida',
         twoFactorAuthIsRequiredForAdminsTitle: 'Por favor, habilita la autenticación de dos factores',
-        twoFactorAuthIsRequiredForAdminsDescription: 'Tu conexión de contabilidad con Xero requiere autenticación de dos factores. Por favor, habilítala para continuar.',
+        twoFactorAuthIsRequiredForAdminsDescription:
+            'Tu conexión de contabilidad con Xero requiere el uso de autenticación de dos factores. Por favor, habilítala para seguir usando Expensify.',
         twoFactorAuthCannotDisable: 'No se puede desactivar la autenticación de dos factores (2FA)',
         twoFactorAuthRequired: 'La autenticación de dos factores (2FA) es obligatoria para tu conexión a Xero y no se puede desactivar.',
     },
@@ -1980,6 +1990,8 @@ const translations = {
     onboarding: {
         welcome: '¡Bienvenido!',
         welcomeSignOffTitle: '¡Es un placer conocerte!',
+        welcomeSignOffTitleManageTeam:
+            'Podemos explorar más características como flujos de trabajo de aprobación y reglas cuando hayas avanzado en estos pasos, ya que son requisitos previos.',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2022,6 +2034,29 @@ const translations = {
         },
         error: {
             requiredFirstName: 'Introduce tu nombre para continuar',
+        },
+        workEmail: {
+            title: 'Cuál es tu correo electrónico de trabajo',
+            subtitle: 'Expensify funciona mejor cuando conectas tu correo electrónico de trabajo.',
+            explanationModal: {
+                descriptionOne: 'Reenvía a receipts@expensify.com para escanear',
+                descriptionTwo: 'Únete a tus compañeros de trabajo que ya están usando Expensify',
+                descriptionThree: 'Disfruta de una experiencia más personalizada',
+            },
+            addWorkEmail: 'Añadir correo electrónico de trabajo',
+        },
+        workEmailValidation: {
+            title: 'Verifica tu correo electrónico de trabajo',
+            magicCodeSent: ({workEmail}: WorkEmailResendCodeParams) => `Por favor, introduce el código mágico enviado a ${workEmail}. Debería llegar en uno o dos minutos.`,
+        },
+        workEmailValidationError: {
+            publicEmail: 'Por favor, introduce un correo electrónico laboral válido de un dominio privado, por ejemplo: mitch@company.com',
+            offline: 'No pudimos añadir tu correo electrónico laboral porque parece que estás sin conexión.',
+        },
+        mergeBlockScreen: {
+            title: 'No se pudo añadir el correo electrónico de trabajo',
+            subtitle: ({workEmail}: WorkEmailMergingBlockedParams) =>
+                `No pudimos añadir ${workEmail}. Por favor, inténtalo de nuevo más tarde en Configuración o chatea con Concierge para obtener ayuda.`,
         },
     },
     featureTraining: {
@@ -2222,12 +2257,6 @@ const translations = {
         toGetStarted: 'Conecta una cuenta bancaria para reembolsar gastos, emitir Tarjetas Expensify, y cobrar y pagar facturas todo desde un mismo lugar.',
         plaidBodyCopy: 'Ofrezca a sus empleados una forma más sencilla de pagar - y recuperar - los gastos de la empresa.',
         checkHelpLine: 'Tus números de ruta y de cuenta se pueden encontrar en un cheque de la cuenta bancaria.',
-        validateAccountError: {
-            phrase1: '¡Un momento! Primero necesitas validar tu cuenta. Para hacerlo, ',
-            phrase2: 'vuelve a iniciar sesión con un código mágico',
-            phrase3: 'o',
-            phrase4: 'verifica aquí tu cuenta',
-        },
         hasPhoneLoginError: {
             phrase1: 'Para añadir una cuenta bancaria verificada,',
             link: 'asegúrate de que tu nombre de usuario principal sea un correo electrónico válido',
@@ -2691,7 +2720,6 @@ const translations = {
         letsDoubleCheck: 'Verifiquemos que todo esté bien.',
         thisBankAccount: 'Esta cuenta bancaria se utilizará para pagos comerciales en tu espacio de trabajo.',
         accountNumber: 'Número de cuenta',
-        bankStatement: 'Extracto bancario',
         chooseFile: 'Elegir archivo',
         uploadYourLatest: '¿Cuáles son los detalles de tu cuenta bancaria comercial?',
         pleaseUpload: ({lastFourDigits}: LastFourDigitsParams) => `Por favor suba el estado de cuenta mensual más reciente de tu cuenta bancaria comercial que termina en ${lastFourDigits}.`,
@@ -2733,11 +2761,14 @@ const translations = {
         regulationRequiresUs: 'La normativa requiere que verifiquemos la identidad de cualquier individuo que posea más del 25% del negocio.',
         iAmAuthorized: 'Estoy autorizado para usar la cuenta bancaria para gastos del negocio.',
         iCertify: 'Certifico que la información proporcionada es verdadera y correcta.',
-        termsAndConditions: 'términos y condiciones.',
+        termsAndConditions: 'términos y condiciones',
         accept: 'Agregar y aceptar cuenta bancaria',
+        iConsentToThe: 'Doy mi consentimiento para el',
+        privacyNotice: 'aviso de privacidad',
         error: {
             authorized: 'Debe ser un funcionario controlador con autorización para operar la cuenta bancaria comercial',
             certify: 'Por favor certifique que la información es verdadera y exacta',
+            consent: 'Por favor, acepte el aviso de privacidad',
         },
     },
     finishStep: {
@@ -2789,6 +2820,13 @@ const translations = {
             seat: 'Asiento',
             class: 'Clase de cabina',
             recordLocator: 'Localizador de la reserva',
+            cabinClasses: {
+                unknown: 'Desconocido',
+                economy: 'Económica',
+                premiumEconomy: 'Económica Premium',
+                business: 'Ejecutiva',
+                first: 'Primera',
+            },
         },
         hotel: 'Hotel',
         hotelDetails: {
@@ -3695,6 +3733,7 @@ const translations = {
             toggleImportTitleSecondPart: ' en Expensify.',
             expenseTypes: 'Tipos de gastos',
             expenseTypesDescription: 'Los tipos de gastos de Sage Intacct se importan a Expensify como categorías.',
+            accountTypesDescription: 'Su plan de cuentas de Sage Intacct se importará a Expensify como categorías.',
             importTaxDescription: 'Importar el tipo impositivo de compra desde Sage Intacct.',
             userDefinedDimensions: 'Dimensiones definidas por el usuario',
             addUserDefinedDimension: 'Añadir dimensión definida por el usuario',
@@ -4640,7 +4679,8 @@ const translations = {
             nameIsRequiredError: 'Debes definir un nombre para tu espacio de trabajo',
             currencyInputLabel: 'Moneda por defecto',
             currencyInputHelpText: 'Todas los gastos en este espacio de trabajo serán convertidos a esta moneda.',
-            currencyInputDisabledText: 'La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en USD.',
+            currencyInputDisabledText: ({currency}: CurrencyInputDisabledTextParams) =>
+                `La moneda predeterminada no se puede cambiar porque este espacio de trabajo está vinculado a una cuenta bancaria en ${currency}.`,
             save: 'Guardar',
             genericFailureMessage: 'Se ha producido un error al guardar el espacio de trabajo. Por favor, inténtalo de nuevo.',
             avatarUploadFailureMessage: 'No se pudo subir el avatar. Por favor, inténtalo de nuevo.',
@@ -4670,6 +4710,10 @@ const translations = {
             updateCurrencyPrompt:
                 'Parece que tu espacio de trabajo está configurado actualmente en una moneda diferente a USD. Por favor, haz clic en el botón de abajo para actualizar tu moneda a USD ahora.',
             updateToUSD: 'Actualizar a USD',
+            updateWorkspaceCurrency: 'Actualizar la moneda del espacio de trabajo',
+            workspaceCurrencyNotSupported: 'Moneda del espacio de trabajo no soportada',
+            yourWorkspace: 'Tu espacio de trabajo está configurado en una moneda no soportada. Consulta la',
+            listOfSupportedCurrencies: 'lista de monedas soportadas',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',
@@ -4869,6 +4913,15 @@ const translations = {
                 gotIt: 'Entendido, gracias.',
             },
         },
+        payAndDowngrade: {
+            title: 'Pagar y bajar de categoría',
+            headline: 'Tu pago final',
+            description1: 'Tu factura final por esta suscripción será',
+            description2: ({date}: DateParams) => `Consulta el desglose a continuación para ${date}:`,
+            subscription:
+                'Esto finalizará tu suscripción a Expensify, eliminará tu espacio de trabajo restante y todos los miembros perderán acceso de ahora en adelante. Si solo deseas eliminarte a ti mismo, haz que otro administrador se encargue de la facturación, y en ese momento podrás salir de este espacio de trabajo.',
+            genericFailureMessage: 'Ocurrió un error al pagar tu factura. Por favor, inténtalo de nuevo.',
+        },
         restrictedAction: {
             restricted: 'Restringido',
             actionsAreCurrentlyRestricted: ({workspaceName}: ActionsAreCurrentlyRestricted) => `Las acciones en el espacio de trabajo ${workspaceName} están actualmente restringidas`,
@@ -5028,7 +5081,7 @@ const translations = {
         roomNameInvalidError: 'Los nombres de las salas solo pueden contener minúsculas, números y guiones',
         pleaseEnterRoomName: 'Por favor, escribe el nombre de una sala',
         pleaseSelectWorkspace: 'Por favor, selecciona un espacio de trabajo',
-        renamedRoomAction: ({oldName, newName}: RenamedRoomActionParams) => `cambió el nombre de la sala a "${newName}" (previamente "${oldName}")`,
+        renamedRoomAction: ({oldName, newName, actorName}: RenamedRoomActionParams) => `${actorName ? `${actorName} ` : ''}renamed this room to "${newName}" (previously "${oldName}")`,
         roomRenamedTo: ({newName}: RoomRenamedToParams) => `Sala renombrada a ${newName}`,
         social: 'social',
         selectAWorkspace: 'Seleccionar un espacio de trabajo',
@@ -5263,6 +5316,14 @@ const translations = {
         searchIn: 'Buscar en',
         searchPlaceholder: 'Busca algo',
         suggestions: 'Sugerencias',
+        exportSearchResults: {
+            title: 'Crear exportación',
+            description: '¡Wow, esos son muchos elementos! Los agruparemos y Concierge te enviará un archivo en breve.',
+        },
+        exportAll: {
+            selectAllMatchingItems: 'Seleccionar todos los elementos coincidentes',
+            allMatchingItemsSelected: 'Todos los elementos coincidentes seleccionados',
+        },
     },
     genericErrorPage: {
         title: '¡Oh-oh, algo salió mal!',
@@ -6710,6 +6771,14 @@ const translations = {
         getHelp: 'Obtener ayuda',
         talkToConcierge: 'Habla con Concierge',
         hangUp: 'Colgar',
+    },
+    testDrive: {
+        modal: {
+            title: 'Haz una prueba con nosotros',
+            description: 'Haz un recorrido rápido por el producto para ponerte al día rápidamente. ¡No se requieren paradas!',
+            confirmText: 'Iniciar prueba',
+            helpText: 'Omitir',
+        },
     },
 };
 
