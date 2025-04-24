@@ -29,7 +29,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {InvitedEmailsToAccountIDs, PersonalDetailsList, Policy, PolicyEmployee, PolicyOwnershipChangeChecks, Report, ReportAction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import type {JoinWorkspaceResolution} from '@src/types/onyx/OriginalMessage';
-import type {ApprovalRule, Attributes, Rate} from '@src/types/onyx/Policy';
+import type {ApprovalRule} from '@src/types/onyx/Policy';
 import type {Participant} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -39,13 +39,6 @@ type OnyxDataReturnType = {
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
-};
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
 };
 
 type WorkspaceMembersRoleData = {
@@ -883,7 +876,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
 
-            // Convert to object with each key containing {pendingAction: ‘add’}
+            // Convert to object with each key containing {pendingAction: 'add'}
             value: {
                 employeeList: optimisticMembersState,
             },
@@ -919,7 +912,7 @@ function addMembersToWorkspace(invitedEmailsToAccountIDs: InvitedEmailsToAccount
             onyxMethod: Onyx.METHOD.MERGE,
             key: policyKey,
 
-            // Convert to object with each key containing the error. We don’t
+            // Convert to object with each key containing the error. We don't
             // need to remove the members since that is handled by onClose of OfflineWithFeedback.
             value: {
                 employeeList: failureMembersState,
@@ -1277,5 +1270,3 @@ export {
     buildRoomMembersOnyxData,
     openPolicyMemberProfilePage,
 };
-
-export type {NewCustomUnit};
