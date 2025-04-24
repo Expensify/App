@@ -39,6 +39,7 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
 import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
@@ -52,7 +53,7 @@ type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
 function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT);
+    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
     const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
 
     const viewportOffsetTop = useViewportOffsetTop();
@@ -60,9 +61,13 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
 
     const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
-    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`);
-    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {
+        canBeMissing: true,
+    });
+    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`, {
+        canBeMissing: true,
+    });
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
     const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
 
     const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
@@ -73,7 +78,9 @@ function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}:
     );
 
     const openRoleSelectionModal = useCallback(() => {
-        setIsRoleSelectionModalVisible(true);
+        KeyboardUtils.dismiss().then(() => {
+            setIsRoleSelectionModalVisible(true);
+        });
     }, []);
 
     const getDefaultWelcomeNote = useCallback(() => {

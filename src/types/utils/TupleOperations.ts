@@ -23,4 +23,4 @@ type TupleSplit<T, N extends number, O extends any[] = []> = O['length'] extends
  */
 type TakeFirst<T extends any[], N extends number = T['length']> = number extends N ? T : TupleSplit<NonPartial<FillFromRest<T, N>>, N>[0];
 
-export type {TupleSplit, TakeFirst};
+export default TakeFirst;
