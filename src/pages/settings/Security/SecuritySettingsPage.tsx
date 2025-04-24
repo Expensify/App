@@ -52,7 +52,7 @@ function SecuritySettingsPage() {
     const personalDetails = usePersonalDetails();
     const {canUseMergeAccounts} = usePermissions();
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const delegateButtonRef = useRef<HTMLDivElement | null>(null);
 
     const [shouldShowDelegatePopoverMenu, setShouldShowDelegatePopoverMenu] = useState(false);

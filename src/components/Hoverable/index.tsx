@@ -1,4 +1,4 @@
-import type {Ref} from 'react';
+import type {ReactElement, Ref} from 'react';
 import React, {cloneElement, forwardRef} from 'react';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import mergeRefs from '@libs/mergeRefs';

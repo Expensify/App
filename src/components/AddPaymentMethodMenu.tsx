@@ -5,8 +5,8 @@ import type {OnyxEntry} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {completePaymentOnboarding} from '@libs/actions/IOU';
-import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
-import {isExpenseReport, isIOUReport} from '@libs/ReportUtils';
+import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import * as ReportUtils from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {AnchorPosition} from '@src/styles';
@@ -58,15 +58,15 @@ function AddPaymentMethodMenu({
 }: AddPaymentMethodMenuProps) {
     const {translate} = useLocalize();
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION);
 
     // Users can choose to pay with business bank account in case of Expense reports or in case of P2P IOU report
     // which then starts a bottom up flow and creates a Collect workspace where the payer is an admin and payee is an employee.
-    const isCurrentReportIOU = isIOUReport(iouReport);
+    const isIOUReport = ReportUtils.isIOUReport(iouReport);
     const canUseBusinessBankAccount =
-        isExpenseReport(iouReport) || (isCurrentReportIOU && iouReport && !hasRequestFromCurrentAccount(iouReport.reportID, session?.accountID ?? CONST.DEFAULT_NUMBER_ID));
+        ReportUtils.isExpenseReport(iouReport) || (isIOUReport && !ReportActionsUtils.hasRequestFromCurrentAccount(iouReport?.reportID ?? '-1', session?.accountID ?? -1));
 
-    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isCurrentReportIOU;
+    const canUsePersonalBankAccount = shouldShowPersonalBankAccountOption || isIOUReport;
 
     const isPersonalOnlyOption = canUsePersonalBankAccount && !canUseBusinessBankAccount;
 

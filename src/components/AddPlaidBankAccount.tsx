@@ -8,9 +8,8 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
-import {handleRestrictedEvent} from '@userActions/App';
-import {handlePlaidError, setPlaidEvent} from '@userActions/BankAccounts';
-import {openPlaidBankAccountSelector, openPlaidBankLogin} from '@userActions/Plaid';
+import * as App from '@userActions/App';
+import * as BankAccounts from '@userActions/BankAccounts';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PlaidData} from '@src/types/onyx';
@@ -150,7 +149,7 @@ function AddPlaidBankAccount({
         if (isAuthenticatedWithPlaid()) {
             return unsubscribeToNavigationShortcuts;
         }
-        openPlaidBankLogin(allowDebit, bankAccountID);
+        BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         return unsubscribeToNavigationShortcuts;
 
         // disabling this rule, as we want this to run only on the first render
@@ -161,7 +160,7 @@ function AddPlaidBankAccount({
         // If we are coming back from offline and we haven't authenticated with Plaid yet, we need to re-run our call to kick off Plaid
         // previousNetworkState.current also makes sure that this doesn't run on the first render.
         if (previousNetworkState.current && !isOffline && !isAuthenticatedWithPlaid()) {
-            openPlaidBankLogin(allowDebit, bankAccountID);
+            BankAccounts.openPlaidBankLogin(allowDebit, bankAccountID);
         }
         previousNetworkState.current = isOffline;
     }, [allowDebit, bankAccountID, isAuthenticatedWithPlaid, isOffline]);
@@ -188,7 +187,7 @@ function AddPlaidBankAccount({
         onInputChange(plaidAccountID);
     };
 
-    const handlePlaidLinkError = useCallback((error: ErrorEvent | null) => {
+    const handlePlaidError = useCallback((error: ErrorEvent | null) => {
         Log.hmmm('[PlaidLink] Error: ', error?.message);
     }, []);
 
@@ -207,22 +206,22 @@ function AddPlaidBankAccount({
                     token={token}
                     onSuccess={({publicToken, metadata}) => {
                         Log.info('[PlaidLink] Success!');
-                        openPlaidBankAccountSelector(publicToken, metadata?.institution?.name ?? '', allowDebit, bankAccountID);
+                        BankAccounts.openPlaidBankAccountSelector(publicToken, metadata?.institution?.name ?? '', allowDebit, bankAccountID);
                     }}
-                    onError={handlePlaidLinkError}
+                    onError={handlePlaidError}
                     onEvent={(event, metadata) => {
-                        setPlaidEvent(event);
+                        BankAccounts.setPlaidEvent(event);
                         // Handle Plaid login errors (will potentially reset plaid token and item depending on the error)
                         if (event === 'ERROR') {
                             Log.hmmm('[PlaidLink] Error: ', {...metadata});
-                            if (bankAccountID && metadata && 'error_code' in metadata && metadata.error_code && metadata.error_message) {
-                                handlePlaidError(bankAccountID, metadata.error_code, metadata.error_message, metadata.request_id);
+                            if (bankAccountID && metadata && 'error_code' in metadata) {
+                                BankAccounts.handlePlaidError(bankAccountID, metadata.error_code ?? '', metadata.error_message ?? '', metadata.request_id);
                             }
                         }
 
                         // Limit the number of times a user can submit Plaid credentials
                         if (event === 'SUBMIT_CREDENTIALS') {
-                            handleRestrictedEvent(event);
+                            App.handleRestrictedEvent(event);
                         }
                     }}
                     // User prematurely exited the Plaid flow
