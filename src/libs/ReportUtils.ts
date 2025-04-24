@@ -43,7 +43,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
-    ReportAttributes,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -1039,14 +1039,14 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+let reportAttributes: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value;
+        reportAttributes = value.reports;
     },
 });
 
@@ -4604,8 +4604,8 @@ function getReportName(
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
-
-    if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
+    const derivedNameExists = report && !!reportAttributes?.[report.reportID]?.reportName;
+    if (canUseDerivedValue && derivedNameExists) {
         return reportAttributes[report.reportID].reportName;
     }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
@@ -10302,10 +10302,15 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions>) {
+function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
     }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isExportIntegrationAction(action));
+    }
+
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -10613,6 +10618,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
@@ -10657,7 +10663,6 @@ export {
     isAdminsOnlyPostingRoom,
     isAllowedToApproveExpenseReport,
     isAllowedToComment,
-    isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
@@ -10834,6 +10839,7 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReports,
     isReportOutstanding,
+    isAllowedToSubmitDraftExpenseReport,
 };
 
 export type {
