@@ -66,6 +66,7 @@ import type {
     DeleteTransactionParams,
     DemotedFromWorkspaceParams,
     DidSplitAmountMessageParams,
+    DisplayNameParams,
     DuplicateTransactionParams,
     EarlyDiscountSubtitleParams,
     EarlyDiscountTitleParams,
@@ -183,7 +184,6 @@ import type {
     ToValidateLoginParams,
     TransferParams,
     TrialStartedTitleParams,
-    UnapprovedParams,
     UnapproveWithIntegrationWarningParams,
     UnreportedTransactionParams,
     UnshareParams,
@@ -905,7 +905,7 @@ const translations = {
         amount: 'Importe',
         taxAmount: 'Importe del impuesto',
         taxRate: 'Tasa de impuesto',
-        approve: 'Aprobar',
+        approve: ({formattedAmount}: {formattedAmount?: string} = {}) => (formattedAmount ? `Aprobar ${formattedAmount}` : 'Aprobar'),
         approved: 'Aprobado',
         cash: 'Efectivo',
         card: 'Tarjeta',
@@ -1010,8 +1010,8 @@ const translations = {
         sendInvoice: ({amount}: RequestAmountParams) => `Enviar factura de ${amount}`,
         submitAmount: ({amount}: RequestAmountParams) => `Solicitar ${amount}`,
         submittedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `solicitó ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
-        automaticallySubmittedAmount: ({formattedAmount}: RequestedAmountMessageParams) =>
-            `se enviaron automáticamente ${formattedAmount} mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
+        submittedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} enviado`,
+        automaticallySubmitted: ({displayName}: DisplayNameParams) => `${displayName} enviado mediante <a href="${CONST.DELAYED_SUBMISSION_HELP_URL}">envío diferido</a>`,
         trackedAmount: ({formattedAmount, comment}: RequestedAmountMessageParams) => `realizó un seguimiento de ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
         splitAmount: ({amount}: SplitAmountParams) => `dividir ${amount}`,
         didSplitAmount: ({formattedAmount, comment}: DidSplitAmountMessageParams) => `dividió ${formattedAmount}${comment ? ` para ${comment}` : ''}`,
@@ -1026,10 +1026,11 @@ const translations = {
         managerApprovedAmount: ({manager, amount}: ManagerApprovedAmountParams) => `${manager} aprobó ${amount}`,
         payerSettled: ({amount}: PayerSettledParams) => `pagó ${amount}`,
         payerSettledWithMissingBankAccount: ({amount}: PayerSettledParams) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
-        automaticallyApprovedAmount: ({amount}: ApprovedAmountParams) =>
-            `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: ({amount}: ApprovedAmountParams) => `aprobó ${amount}`,
-        unapprovedAmount: ({amount}: UnapprovedParams) => `desaprobó ${amount}`,
+        automaticallyApproved: ({displayName}: DisplayNameParams) =>
+            `${displayName} aprobado mediante <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
+        approvedWithDisplayName: ({displayName}: DisplayNameParams) => `${displayName} aprobado`,
+        unapproved: ({displayName}: DisplayNameParams) => `${displayName} no aprobado`,
         automaticallyForwardedAmount: ({amount}: ForwardedAmountParams) =>
             `aprobado automáticamente ${amount} según las <a href="${CONST.CONFIGURE_REIMBURSEMENT_SETTINGS_HELP_URL}">reglas del espacio de trabajo</a>`,
         forwardedAmount: ({amount}: ForwardedAmountParams) => `aprobó ${amount}`,
@@ -1989,6 +1990,8 @@ const translations = {
     onboarding: {
         welcome: '¡Bienvenido!',
         welcomeSignOffTitle: '¡Es un placer conocerte!',
+        welcomeSignOffTitleManageTeam:
+            'Podemos explorar más características como flujos de trabajo de aprobación y reglas cuando hayas avanzado en estos pasos, ya que son requisitos previos.',
         explanationModal: {
             title: 'Bienvenido a Expensify',
             description: 'Una aplicación para gestionar en un chat todos los gastos de tu empresa y personales. Inténtalo y dinos qué te parece. ¡Hay mucho más por venir!',
@@ -2960,7 +2963,8 @@ const translations = {
             descriptionHint: 'Comparte información sobre este espacio de trabajo con todos los miembros.',
             welcomeNote: `Por favor, utiliza Expensify para enviar tus recibos para reembolso, ¡gracias!`,
             subscription: 'Suscripción',
-            markAsExported: 'Marcar como introducido manualmente',
+            markAsEntered: 'Marcar como introducido manualmente',
+            markAsExported: 'Marcar como exportado manualmente',
             exportIntegrationSelected: ({connectionName}: ExportIntegrationSelectedParams) => `Exportar a  ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             letsDoubleCheck: 'Verifiquemos que todo esté correcto',
             reportField: 'Campo del informe',
@@ -3730,6 +3734,7 @@ const translations = {
             toggleImportTitleSecondPart: ' en Expensify.',
             expenseTypes: 'Tipos de gastos',
             expenseTypesDescription: 'Los tipos de gastos de Sage Intacct se importan a Expensify como categorías.',
+            accountTypesDescription: 'Su plan de cuentas de Sage Intacct se importará a Expensify como categorías.',
             importTaxDescription: 'Importar el tipo impositivo de compra desde Sage Intacct.',
             userDefinedDimensions: 'Dimensiones definidas por el usuario',
             addUserDefinedDimension: 'Añadir dimensión definida por el usuario',
