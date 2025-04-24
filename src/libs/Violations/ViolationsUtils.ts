@@ -172,7 +172,8 @@ const ViolationsUtils = {
         hasDependentTags: boolean,
         isInvoiceTransaction: boolean,
     ): OnyxUpdate {
-        if (TransactionUtils.isPartial(updatedTransaction)) {
+        const isPartialTransaction = TransactionUtils.isPartialMerchant(TransactionUtils.getMerchant(updatedTransaction)) && TransactionUtils.isAmountMissing(updatedTransaction);
+        if (isPartialTransaction) {
             return {
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${updatedTransaction.transactionID}`,

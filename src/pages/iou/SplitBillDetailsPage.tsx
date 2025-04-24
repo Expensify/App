@@ -21,7 +21,7 @@ import Parser from '@libs/Parser';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getTransactionDetails, isPolicyExpenseChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isScanning} from '@libs/TransactionUtils';
+import {areRequiredFieldsEmpty, hasReceipt, isDistanceRequest as isDistanceRequestUtil, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import withReportAndReportActionOrNotFound from '@pages/home/report/withReportAndReportActionOrNotFound';
 import type {WithReportAndReportActionOrNotFoundProps} from '@pages/home/report/withReportAndReportActionOrNotFound';
 import variables from '@styles/variables';
@@ -63,6 +63,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
     const payeePersonalDetails = personalDetails?.[actorAccountID];
     const participantsExcludingPayee = participants.filter((participant) => participant.accountID !== reportAction?.actorAccountID);
 
+    const isScanning = hasReceipt(transaction) && isReceiptBeingScanned(transaction);
     const hasSmartScanFailed = hasReceipt(transaction) && transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCANFAILED;
     const isEditingSplitBill = session?.accountID === actorAccountID && areRequiredFieldsEmpty(transaction);
     const isDistanceRequest = isDistanceRequestUtil(transaction);
@@ -91,7 +92,7 @@ function SplitBillDetailsPage({route, report, reportAction}: SplitBillDetailsPag
                     onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
                 <View style={[styles.containerWithSpaceBetween, styles.pointerEventsBoxNone]}>
-                    {isScanning(transaction) && (
+                    {isScanning && (
                         <View style={[styles.ph5, styles.pb3, styles.borderBottom]}>
                             <MoneyRequestHeaderStatusBar
                                 icon={

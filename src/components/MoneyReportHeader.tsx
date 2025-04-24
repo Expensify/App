@@ -46,7 +46,7 @@ import {
     isOnHold as isOnHoldTransactionUtils,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
-    isScanning,
+    isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowRTERViolationMessage,
 } from '@libs/TransactionUtils';
@@ -165,7 +165,7 @@ function MoneyReportHeader({policy, report: moneyRequestReport, transactionThrea
     const policyType = policy?.type;
     const connectedIntegration = getConnectedIntegration(policy);
     const navigateBackToAfterDelete = useRef<Route>();
-    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isScanning(t));
+    const hasScanningReceipt = getTransactionsWithReceipts(moneyRequestReport?.reportID).some((t) => isReceiptBeingScanned(t));
     const hasOnlyPendingTransactions = useMemo(() => {
         return !!transactions && transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
     }, [transactions]);

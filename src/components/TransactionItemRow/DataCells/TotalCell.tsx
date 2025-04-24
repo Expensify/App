@@ -3,7 +3,7 @@ import TextWithTooltip from '@components/TextWithTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {getCurrency as getTransactionCurrency, isScanning} from '@libs/TransactionUtils';
+import {getCurrency as getTransactionCurrency, hasReceipt, isReceiptBeingScanned} from '@libs/TransactionUtils';
 import type TransactionDataCellProps from './TransactionDataCellProps';
 
 function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProps) {
@@ -13,7 +13,7 @@ function TotalCell({shouldShowTooltip, transactionItem}: TransactionDataCellProp
 
     let amount = convertToDisplayString(Math.abs(transactionItem.amount), currency);
 
-    if (isScanning(transactionItem)) {
+    if (hasReceipt(transactionItem) && isReceiptBeingScanned(transactionItem)) {
         amount = translate('iou.receiptStatusTitle');
     }
 

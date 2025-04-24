@@ -220,7 +220,7 @@ function isPartialTransaction(transaction: OnyxEntry<Transaction>): boolean {
 }
 
 function isPendingCardOrScanningTransaction(transaction: OnyxEntry<Transaction>): boolean {
-    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isScanning(transaction));
+    return (isExpensifyCardTransaction(transaction) && isPending(transaction)) || isPartialTransaction(transaction) || (isScanRequest(transaction) && isReceiptBeingScanned(transaction));
 }
 
 /**
@@ -340,10 +340,6 @@ function isPartialMerchant(merchant: string): boolean {
 
 function isAmountMissing(transaction: OnyxEntry<Transaction>) {
     return transaction?.amount === 0 && (!transaction.modifiedAmount || transaction.modifiedAmount === 0);
-}
-
-function isPartial(transaction: OnyxEntry<Transaction>): boolean {
-    return isPartialMerchant(getMerchant(transaction)) && isAmountMissing(transaction);
 }
 
 function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
@@ -811,14 +807,6 @@ function isPosted(transaction: Transaction): boolean {
     return transaction.status === CONST.TRANSACTION.STATUS.POSTED;
 }
 
-/**
- * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
- * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
- */
-function isScanning(transaction: OnyxEntry<Transaction>): boolean {
-    return isPartialTransaction(transaction) && hasReceipt(transaction) && isReceiptBeingScanned(transaction);
-}
-
 function isReceiptBeingScanned(transaction: OnyxInputOrEntry<Transaction>): boolean {
     return [CONST.IOU.RECEIPT_STATE.SCANREADY, CONST.IOU.RECEIPT_STATE.SCANNING].some((value) => value === transaction?.receipt?.state);
 }
@@ -950,7 +938,7 @@ function hasAnyTransactionWithoutRTERViolation(transactionIds: string[], transac
  * Check if the transaction is pending or has a pending rter violation.
  */
 function hasPendingUI(transaction: OnyxEntry<Transaction>, transactionViolations?: TransactionViolations | null): boolean {
-    return isScanning(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
+    return isReceiptBeingScanned(transaction) || isPending(transaction) || (!!transaction && hasPendingRTERViolation(transactionViolations));
 }
 
 /**
@@ -1595,7 +1583,6 @@ export {
     isAmountMissing,
     isMerchantMissing,
     isPartialMerchant,
-    isPartial,
     isCreatedMissing,
     areRequiredFieldsEmpty,
     hasMissingSmartscanFields,
@@ -1636,7 +1623,6 @@ export {
     shouldShowRTERViolationMessage,
     isPartialTransaction,
     isPendingCardOrScanningTransaction,
-    isScanning,
 };
 
 export type {TransactionChanges};
