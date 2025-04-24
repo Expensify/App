@@ -971,5 +971,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
+export type {MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);
