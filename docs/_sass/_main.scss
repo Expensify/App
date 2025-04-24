@@ -581,12 +581,6 @@ button {
                 border-radius: 8px;
             }
 
-            .vjs-progress-control {
-                .vjs-play-progress::before {
-                    background-color: var(--color-button-text);
-                }
-            }
-
             .vjs-button {
                 display: flex;
                 align-items: center;
@@ -612,19 +606,52 @@ button {
             }
 
             .vjs-play-progress {
-                background-color: var(--color-button-text);
+                background-color: var(--color-white);
             }
 
             .vjs-control-bar {
                 border-radius: 8px;
                 background-color: rgba(6, 27, 9, 0.8);
-                color: var(--color-button-text);
+                color: var(--color-white);
                 width: calc(100% - 16px);
                 bottom: 8px;
                 left: 8px;
 
                 .vjs-control:focus {
                     text-shadow: none;
+                }
+
+                .vjs-progress-holder {
+                    border-radius: 8px;
+                    overflow: hidden;
+
+                    .vjs-time-tooltip {
+                        display: none;
+                    }
+
+                    .vjs-mouse-display {
+                        display: none;
+                    }
+                }
+
+                .vjs-load-progress {
+                    background: var(--color-transparent-white);
+                    border-radius: 8px;
+
+                    div {
+                        background-color: var(--color-transparent-white);
+                        border-radius: 0 8px 8px 0;
+                    }
+                }
+
+                .vjs-progress-control {
+                    .vjs-play-progress {
+                        border-radius: 8px;
+                    }
+
+                    .vjs-play-progress::before {
+                        display: none;
+                    }
                 }
 
                 .vjs-play-control {
