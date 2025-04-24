@@ -149,6 +149,7 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                enableEdgeToEdgeBottomSafeAreaPadding
             />
         </>
     );
