@@ -330,8 +330,9 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
 
     const isReportPayer = isPayerUtils(getSession(), report, false, policy);
     const isReportApproved = isReportApprovedUtils({report});
+    const isIOUReport = isIOUReportUtils(report);
 
-    if (isReportPayer && (isReportApproved || isClosedReport)) {
+    if (isReportPayer && (isExpenseReport && (isReportApproved || isClosedReport) || (isIOUReport && isProcessingReport))) {
         return true;
     }
 
@@ -351,7 +352,6 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
         return true;
     }
 
-    const isIOUReport = isIOUReportUtils(report);
     const hasOnlyPersonalWorkspace = hasNoPolicyOtherThanPersonalType();
     const isReportReceiver = isReportManagerUtils(report);
 
