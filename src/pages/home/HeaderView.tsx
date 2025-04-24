@@ -225,6 +225,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             icon={CalendarSolid}
             // Ensure that a button with an icon displays an ellipsis when its content overflows https://github.com/Expensify/App/issues/58974#issuecomment-2794297554
             iconWrapperStyles={[styles.w100]}
+            isContentCentered
         />
     );
 
