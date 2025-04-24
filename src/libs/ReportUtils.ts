@@ -105,6 +105,7 @@ import {
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
+    getLoginByAccountID,
     getShortMentionIfFound,
 } from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
@@ -10315,6 +10316,44 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
+/**
+ * Determines whether the report can be moved to the workspace.
+ */
+const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
+    const isIOU = isIOUReport(report);
+
+    if (isIOU && (currentUserAccountID !== report?.ownerAccountID || currentUserAccountID !== report?.managerID)) {
+        return false;
+    }
+
+    const payerLogin = report?.managerID ? getLoginByAccountID(report?.managerID) : undefined;
+    if (isIOU && (!isPolicyAdminPolicyUtils(newPolicy, payerLogin) && newPolicy?.achAccount?.reimburser !== payerLogin)) {
+        return false;
+    }
+
+    if (isIOU && report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED) {
+        return false;
+    }
+
+    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
+    const isExpenseReportType = isExpenseReport(report);
+    if (isExpenseReportType && !isCurrentUserMember) {
+        return false;
+    }
+
+    const isAdmin = isPolicyAdminPolicyUtils(newPolicy, currentUserLogin);
+    if (isExpenseReportType && report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+        return false;
+    }
+
+    const reportActions = getAllReportActions(report?.reportID);
+    if (isExpenseReportType && isExported(reportActions)) {
+        return false;
+    }
+
+    return true;
+};
+
 function getApprovalChain(policy: OnyxEntry<Policy>, expenseReport: OnyxEntry<Report>): string[] {
     const approvalChain: string[] = [];
     const fullApprovalChain: string[] = [];
@@ -10841,6 +10880,7 @@ export {
     getOutstandingReports,
     isReportOutstanding,
     isAllowedToSubmitDraftExpenseReport,
+    isWorkspaceEligibleForReportChange,
 };
 
 export type {

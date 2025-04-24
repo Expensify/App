@@ -43,7 +43,6 @@ import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
-import { isIOUReport } from './ReportUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -1110,50 +1109,6 @@ const sortWorkspacesBySelected = (workspace1: WorkspaceDetails, workspace2: Work
 };
 
 /**
- * Determines whether the report can be moved to the workspace.
- */
-const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report: OnyxEntry<Report>, oldPolicy: OnyxEntry<Policy>, currentUserLogin: string | undefined): boolean => {
-    const currentUserAccountID = getCurrentUserAccountID();
-    const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
-    if (!isCurrentUserMember) {
-        return false;
-    }
-
-    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
-    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
-        return false;
-    }
-
-    // The report payer must also be a payer in the policy
-    const payerLogin = report?.managerID ? getLoginByAccountID(report?.managerID) : undefined;
-    if (!isUserPolicyAdmin(newPolicy, payerLogin) && newPolicy?.achAccount?.reimburser !== payerLogin) {
-        return false;
-    }
-
-    // Submitters: workspaces where the submitter is a member of
-    const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
-    if (isCurrentUserSubmitter) {
-        return true;
-    }
-
-    // Approvers: workspaces where both the approver AND submitter are members of
-    const reportApproverAccountID = getSubmitToAccountID(oldPolicy, report);
-    const isCurrentUserApprover = currentUserAccountID === reportApproverAccountID;
-    if (isCurrentUserApprover) {
-        const reportSubmitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
-        const isReportSubmitterMember = !!reportSubmitterLogin && !!newPolicy?.employeeList?.[reportSubmitterLogin];
-        return isCurrentUserApprover && isReportSubmitterMember;
-    }
-
-    // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
-        return true;
-    }
-
-    return false;
-};
-
-/**
  * Takes removes pendingFields and errorFields from a customUnit
  */
 function removePendingFieldsFromCustomUnit(customUnit: CustomUnit): CustomUnit {
@@ -1562,7 +1517,6 @@ export {
     getPolicyNameByID,
     getMostFrequentEmailDomain,
     getDescriptionForPolicyDomainCard,
-    isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
     areAllGroupPoliciesExpenseChatDisabled,

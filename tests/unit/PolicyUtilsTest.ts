@@ -10,9 +10,9 @@ import {
     getSubmitToAccountID,
     getUnitRateValue,
     isUserInvitedToWorkspace,
-    isWorkspaceEligibleForReportChange,
     shouldShowPolicy,
 } from '@libs/PolicyUtils';
+import {isWorkspaceEligibleForReportChange} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, Report, Transaction} from '@src/types/onyx';

@@ -12,9 +12,7 @@ import {
     getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
-    hasNoPolicyOtherThanPersonalType,
     isPrefferedExporter,
-    isWorkspaceEligibleForReportChange,
 } from './PolicyUtils';
 import {getIOUActionForReportID, getReportActions, isPayAction} from './ReportActionsUtils';
 import {
@@ -28,8 +26,8 @@ import {
     isPayer as isPayerUtils,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
-    isReportManager as isReportManagerUtils,
     isSettled,
+    isWorkspaceEligibleForReportChange,
 } from './ReportUtils';
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
