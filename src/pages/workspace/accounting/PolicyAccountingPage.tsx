@@ -337,7 +337,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
         let connectionMessage;
         if (isSyncInProgress && connectionSyncProgress?.stageInProgress) {
             connectionMessage = translate('workspace.accounting.connections.syncStageName', {stage: connectionSyncProgress?.stageInProgress});
-        } else if (isConnectionVerified) {
+        } else if (!isConnectionVerified) {
             connectionMessage = translate('workspace.accounting.notSync');
         } else {
             connectionMessage = translate('workspace.accounting.lastSync', {relativeDate: datetimeToRelative});
