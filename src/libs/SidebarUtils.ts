@@ -5,7 +5,7 @@ import type {ValueOf} from 'type-fest';
 import type {PartialPolicyForSidebar} from '@hooks/useSidebarOrderedReportIDs';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, ReportActions, ReportAttributes, ReportNameValuePairs, TransactionViolation} from '@src/types/onyx';
 import type Beta from '@src/types/onyx/Beta';
 import type Policy from '@src/types/onyx/Policy';
 import type PriorityMode from '@src/types/onyx/PriorityMode';
@@ -160,6 +160,14 @@ Onyx.connect({
             return;
         }
         visibleReportActionItems[reportID] = reportAction;
+    },
+});
+
+let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        reportAttributes = value;
     },
 });
 
@@ -451,9 +459,7 @@ function getOptionData({
     preferredLocale,
     policy,
     parentReportAction,
-    hasViolations,
     lastMessageTextFromReport: lastMessageTextFromReportProp,
-    transactionViolations,
     invoiceReceiverPolicy,
 }: {
     report: OnyxEntry<Report>;
@@ -464,10 +470,8 @@ function getOptionData({
     preferredLocale: DeepValueOf<typeof CONST.LOCALES>;
     policy: OnyxEntry<Policy> | undefined;
     parentReportAction: OnyxEntry<ReportAction> | undefined;
-    hasViolations: boolean;
     lastMessageTextFromReport?: string;
     invoiceReceiverPolicy?: OnyxEntry<Policy>;
-    transactionViolations?: OnyxCollection<TransactionViolation[]>;
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -526,7 +530,7 @@ function getOptionData({
     result.isMoneyRequestReport = isMoneyRequestReport(report);
     result.shouldShowSubscript = shouldReportShowSubscript(report);
     result.pendingAction = report.pendingFields?.addWorkspaceRoom ?? report.pendingFields?.createChat;
-    result.brickRoadIndicator = shouldShowRedBrickRoad(report, reportActions, hasViolations, transactionViolations) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : '';
+    result.brickRoadIndicator = reportAttributes?.[report.reportID]?.brickRoadStatus;
     result.ownerAccountID = report.ownerAccountID;
     result.managerID = report.managerID;
     result.reportID = report.reportID;
@@ -720,7 +724,6 @@ function getOptionData({
 
     if (isJoinRequestInAdminRoom(report)) {
         result.isUnread = true;
-        result.brickRoadIndicator = CONST.BRICK_ROAD_INDICATOR_STATUS.INFO;
     }
 
     if (!hasMultipleParticipants) {

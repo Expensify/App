@@ -24,6 +24,7 @@ import type {
     Report,
     ReportAction,
     ReportActions,
+    ReportAttributes,
     ReportNameValuePairs,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -361,6 +362,14 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
+    },
+});
+
+let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        reportAttributes = value;
     },
 });
 
@@ -885,7 +894,7 @@ function createOption(
         result.pendingAction = report.pendingFields ? report.pendingFields.addWorkspaceRoom ?? report.pendingFields.createChat : undefined;
         result.ownerAccountID = report.ownerAccountID;
         result.reportID = report.reportID;
-        const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`]);
+        const oneTransactionThreadReportID = reportAttributes?.[report.reportID]?.oneTransactionThreadReportID;
         const oneTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneTransactionThreadReportID}`];
         result.isUnread = isUnread(report, oneTransactionThreadReport);
         result.isPinned = report.isPinned;
