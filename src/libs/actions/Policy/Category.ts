@@ -86,6 +86,10 @@ Onyx.connect({
     callback: (val) => (allPolicyCategories = val),
 });
 
+function getSetupCategoriesOnboardingData(): OnyxData {
+    return getFinishOnboardingTaskOnyxData('setupCategories');
+}
+
 function buildOptimisticPolicyCategories(policyID: string, categories: readonly string[]) {
     const optimisticCategoryMap = categories.reduce<Record<string, Partial<PolicyCategory>>>((acc, category) => {
         acc[category] = {
@@ -360,7 +364,7 @@ function setWorkspaceCategoryEnabled(policyID: string, categoriesToUpdate: Recor
             },
         ],
     };
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    const finishOnboardingTaskData = getSetupCategoriesOnboardingData();
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
@@ -596,7 +600,7 @@ function removePolicyCategoryReceiptsRequired(policyID: string, categoryName: st
 
 function createPolicyCategory(policyID: string, categoryName: string) {
     const onyxData = buildOptimisticPolicyCategories(policyID, [categoryName]);
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    const finishOnboardingTaskData = getSetupCategoriesOnboardingData();
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
@@ -1007,7 +1011,7 @@ function deleteWorkspaceCategories(policyID: string, categoryNamesToDelete: stri
             },
         ],
     };
-    const finishOnboardingTaskData = getFinishOnboardingTaskOnyxData('setupCategories');
+    const finishOnboardingTaskData = getSetupCategoriesOnboardingData();
     onyxData.optimisticData?.push(...(finishOnboardingTaskData.optimisticData ?? []));
     onyxData.successData?.push(...(finishOnboardingTaskData.successData ?? []));
     onyxData.failureData?.push(...(finishOnboardingTaskData.failureData ?? []));
