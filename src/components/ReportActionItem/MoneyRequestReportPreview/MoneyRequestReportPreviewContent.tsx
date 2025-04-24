@@ -604,11 +604,13 @@ function MoneyRequestReportPreviewContent({
                                             isLoading={!isOffline && !canAllowSettlement}
                                         />
                                     )}
-                                    {buttonType === IOU_REPORT_PREVIEW_BUTTON.EXPORT && !!connectedIntegration && (
+                                    {buttonType === IOU_REPORT_PREVIEW_BUTTON.EXPORT && (
                                         <ExportWithDropdownMenu
                                             policy={policy}
                                             report={iouReport}
-                                            connectionName={connectedIntegration}
+                                            /* If the button type is Export then the integrations cannot be null, this is checked using shouldShowExportIntegrationButton */
+                                            /* eslint-disable-next-line @typescript-eslint/no-non-null-assertion */
+                                            connectionName={connectedIntegration!}
                                             wrapperStyle={[buttonMaxWidth, styles.flexReset]}
                                             dropdownAnchorAlignment={{
                                                 horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
