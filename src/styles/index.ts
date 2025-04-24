@@ -1920,6 +1920,14 @@ const styles = (theme: ThemeColors) =>
                 vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
             } satisfies AnchorPosition),
 
+        // @TODO: When canUseLeftHandBar beta is no longer needed, rename it to createMenuPositionReportActionCompose and remove the above function
+        createMenuPositionReportActionComposeWhenLhbIsVisible: (shouldUseNarrowLayout: boolean, windowHeight: number, windowWidth: number) =>
+            ({
+                // On a narrow layout the menu is displayed in ReportScreen in RHP, so it must be moved from the right side of the screen
+                horizontal: (shouldUseNarrowLayout ? windowWidth - variables.sideBarWithLHBWidth : variables.sideBarWithLHBWidth + variables.navigationTabBarSize) + 18,
+                vertical: windowHeight - CONST.MENU_POSITION_REPORT_ACTION_COMPOSE_BOTTOM,
+            } satisfies AnchorPosition),
+
         createMenuContainer: {
             width: variables.sideBarWidth - 40,
             paddingVertical: variables.componentBorderRadiusLarge,
@@ -4913,8 +4921,8 @@ const styles = (theme: ThemeColors) =>
             minWidth: 56,
             alignSelf: 'center',
         },
-        timePickerWidth100: {
-            width: 100,
+        timePickerWidth72: {
+            width: 72,
         },
         timePickerHeight100: {
             height: 100,
@@ -4928,6 +4936,7 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'flex-start',
             justifyContent: 'center',
+            marginBottom: 8,
         },
         selectionListRadioSeparator: {
             height: StyleSheet.hairlineWidth,
@@ -4982,6 +4991,8 @@ const styles = (theme: ThemeColors) =>
         },
         formHelperMessage: {
             height: 32,
+            marginTop: 0,
+            marginBottom: 0,
         },
         timePickerInputExtraSmall: {
             fontSize: 50,
@@ -5638,8 +5649,8 @@ const styles = (theme: ThemeColors) =>
         },
         reportPreviewArrowButton: {
             borderRadius: 50,
-            width: 28,
-            height: 28,
+            width: variables.w28,
+            height: variables.h28,
             alignItems: 'center',
             justifyContent: 'center',
             marginLeft: 4,
@@ -5659,6 +5670,34 @@ const styles = (theme: ThemeColors) =>
             left: 0,
             right: 0,
         },
+
+        testDriveModalContainer: {
+            // On small/medium screens, we need to remove the top padding
+            paddingTop: 0,
+            // On medium screens, we need to prevent the modal from becoming too big
+            maxWidth: 500,
+        },
+
+        backgroundWhite: {
+            backgroundColor: colors.white,
+        },
+
+        embeddedDemoIframe: {
+            height: '100%',
+            width: '100%',
+            border: 'none',
+        },
+
+        featureTrainingModalImage: {
+            width: '100%',
+            height: '100%',
+            borderTopLeftRadius: variables.componentBorderRadiusLarge,
+            borderTopRightRadius: variables.componentBorderRadiusLarge,
+        },
+
+        testDriveBannerGap: {
+            height: CONST.DESKTOP_HEADER_PADDING * 2,
+        },
     } satisfies Styles);
 
 type ThemeStyles = ReturnType<typeof styles>;
@@ -5667,4 +5706,4 @@ const defaultStyles = styles(defaultTheme);
 
 export default styles;
 export {defaultStyles};
-export type {Styles, ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};
+export type {ThemeStyles, StatusBarStyle, ColorScheme, AnchorPosition, AnchorDimensions};

@@ -65,9 +65,9 @@ function ExpensifyCardPage({
         params: {cardID = ''},
     },
 }: ExpensifyCardPageProps) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
 
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
@@ -142,6 +142,7 @@ function ExpensifyCardPage({
 
     const hasDetectedDomainFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.DOMAIN);
     const hasDetectedIndividualFraud = cardsToShow?.some((card) => card?.fraud === CONST.EXPENSIFY_CARD.FRAUD_TYPES.INDIVIDUAL);
+    const currentPhysicalCard = physicalCards?.find((card) => String(card?.cardID) === cardID);
 
     const formattedAvailableSpendAmount = convertToDisplayString(cardsToShow?.at(0)?.availableSpend);
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
@@ -247,7 +248,7 @@ function ExpensifyCardPage({
                                         titleStyle={styles.walletCardMenuItem}
                                         icon={Expensicons.Flag}
                                         shouldShowRightIcon
-                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                     />
                                 )}
                             </>
@@ -292,7 +293,7 @@ function ExpensifyCardPage({
                                             titleStyle={styles.walletCardMenuItem}
                                             icon={Expensicons.Flag}
                                             shouldShowRightIcon
-                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID)))}
+                                            onPress={() => Navigation.navigate(ROUTES.SETTINGS_REPORT_FRAUD.getRoute(String(card.cardID), Navigation.getActiveRoute()))}
                                         />
                                     )}
                                 </>
@@ -341,20 +342,16 @@ function ExpensifyCardPage({
                     />
                 )}
             </ScrollView>
-            {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED) && (
+            {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED && (
                 <Button
                     success
                     large
                     style={[styles.w100, styles.p5]}
-                    onPress={() =>
-                        Navigation.navigate(
-                            ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(physicalCards?.find((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED)?.cardID)),
-                        )
-                    }
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_WALLET_CARD_ACTIVATE.getRoute(String(currentPhysicalCard?.cardID)))}
                     text={translate('activateCardPage.activatePhysicalCard')}
                 />
             )}
-            {physicalCards?.some((card) => card?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED) && (
+            {currentPhysicalCard?.state === CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED && (
                 <Button
                     success
                     large

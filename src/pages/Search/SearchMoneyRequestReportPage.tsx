@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import HeaderGap from '@components/HeaderGap';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -21,11 +20,12 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
+import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import variables from '@styles/variables';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionListContext, ReactionListContext} from '@src/pages/home/ReportScreenContext';
-import type {ActionListContextType, ReactionListRef, ScrollPosition} from '@src/pages/home/ReportScreenContext';
+import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
+import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -47,17 +47,16 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {canUseLeftHandBar} = usePermissions();
 
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true});
-    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`);
-    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}});
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {allowStaleData: true, canBeMissing: true});
+    const [reportMetadata = defaultReportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportIDFromRoute}`, {canBeMissing: true});
+    const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {allowStaleData: true, initialValue: {}, canBeMissing: false});
     const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
 
     const {isEditingDisabled, isCurrentReportLoadedFromOnyx} = useIsReportReadyToDisplay(report, reportIDFromRoute);
 
     const [scrollPosition, setScrollPosition] = useState<ScrollPosition>({});
     const flatListRef = useRef<FlatList>(null);
-    const reactionListRef = useRef<ReactionListRef>(null);
     const actionListValue = useMemo((): ActionListContextType => ({flatListRef, scrollPosition, setScrollPosition}), [flatListRef, scrollPosition, setScrollPosition]);
 
     const reportID = report?.reportID;
@@ -88,7 +87,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     if (shouldUseNarrowLayout) {
         return (
             <ActionListContext.Provider value={actionListValue}>
-                <ReactionListContext.Provider value={reactionListRef}>
+                <ReactionListWrapper>
                     <ScreenWrapper
                         testID={SearchMoneyRequestReportPage.displayName}
                         shouldEnableMaxHeight
@@ -113,14 +112,14 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                             />
                         </FullPageNotFoundView>
                     </ScreenWrapper>
-                </ReactionListContext.Provider>
+                </ReactionListWrapper>
             </ActionListContext.Provider>
         );
     }
 
     return (
         <ActionListContext.Provider value={actionListValue}>
-            <ReactionListContext.Provider value={reactionListRef}>
+            <ReactionListWrapper>
                 <ScreenWrapper
                     testID={SearchMoneyRequestReportPage.displayName}
                     shouldEnableMaxHeight
@@ -130,7 +129,6 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
                         <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             <View style={styles.flex1}>
-                                <HeaderGap />
                                 <TopBar
                                     breadcrumbLabel={translate('common.reports')}
                                     shouldDisplaySearch={false}
@@ -166,7 +164,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                         </View>
                     </View>
                 </ScreenWrapper>
-            </ReactionListContext.Provider>
+            </ReactionListWrapper>
         </ActionListContext.Provider>
     );
 }

@@ -148,7 +148,7 @@ The template variable determines what information is saved in your CSV file. If 
 
 **Step 3: Save your generated file name**
 
-Expensify currently supports only the "onReceive":{"immediateResponse":["returnRandomFileName"]} option in step 2, so you should receive a random filename back from the API like "exportc111111d-a1a1-a1a1-a1a1-d1111111f.csv". You will need to document this filename if you plan on running the download command after this one.
+Expensify currently supports only the "onReceive":{"immediateResponse":["returnRandomFileName"]} option in step 2, so you should receive a random filename back from the API like "export111111d-a1a1-a1a1-a1a1-d1111111f.csv". You will need to document this filename if you plan on running the download command after this one.
 
 **Step 4: Download your exported report**
 
@@ -161,7 +161,7 @@ Set up another API call in almost the same way you did before. You don't need th
         "partnerUserID": "my_user_id",
         "partnerUserSecret": "my_user_secret"
     },
-    "fileName": "exportc111111d-a1a1-a1a1-a1a1-d1111111f.csv",
+    "fileName": "export111111d-a1a1-a1a1-a1a1-d1111111f.csv",
     "fileSystem": "integrationServer"
 }
 ```
