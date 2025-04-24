@@ -4705,14 +4705,13 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         attendees,
         transactionThreadReportID,
     } = transactionParams;
-    const {optimisticData, successData, failureData} = onyxData;
-
     const {
-        optimisticData: moveTransactionOptimisticData,
-        successData: moveTransactionSuccessData,
-        failureData: moveTransactionFailureData,
-        modifiedExpenseReportActionID,
-    } = getConvertTrackedExpenseInformation(
+        optimisticData: convertTransactionOptimisticData = [],
+        successData: conveconvertTransactionOptimisticData = [],
+        failureData: convertTransactionFailureData = [],
+    } = onyxData;
+
+    const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
         transactionID,
         actionableWhisperReportActionID,
         iouParams.reportID,
@@ -4722,9 +4721,9 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         CONST.IOU.ACTION.SUBMIT,
     );
 
-    optimisticData?.push(...moveTransactionOptimisticData);
-    successData?.push(...moveTransactionSuccessData);
-    failureData?.push(...moveTransactionFailureData);
+    optimisticData?.push(...convertTransactionOptimisticData);
+    successData?.push(...conveconvertTransactionOptimisticData);
+    failureData?.push(...convertTransactionFailureData);
 
     if (workspaceParams) {
         const params = {
