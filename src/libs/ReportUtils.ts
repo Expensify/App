@@ -4589,7 +4589,7 @@ function getReportName(
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
-    const derivedNameExists = report && reportAttributes?.[report.reportID] && !!reportAttributes?.[report.reportID].reportName;
+    const derivedNameExists = report && !!reportAttributes?.[report.reportID]?.reportName;
     if (canUseDerivedValue && derivedNameExists) {
         return reportAttributes[report.reportID].reportName;
     }
