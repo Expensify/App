@@ -3,7 +3,7 @@ import {useMemo} from 'react';
 import FastSearch from '@libs/FastSearch';
 import {filterUserToInvite, isSearchStringMatch} from '@libs/OptionsListUtils';
 import type {Options as OptionsListType, ReportAndPersonalDetailOptions} from '@libs/OptionsListUtils';
-import StringUtils from '@libs/StringUtils';
+import arrayLastElement from '@src/utils/arrayLastElement';
 
 type AllOrSelectiveOptions = ReportAndPersonalDetailOptions | OptionsListType;
 
@@ -65,10 +65,8 @@ function useFastSearchFromOptions(
         ]);
 
         function search(searchInput: string): AllOrSelectiveOptions {
-            // TODO: Fix this
             const searchWords = deburr(searchInput).split(' ');
-            const searchWordsSorted = StringUtils.sortStringArrayByLength(searchWords);
-            const longestSearchWord = searchWordsSorted.at(searchWordsSorted.length - 1); // longest word is the last element
+            const longestSearchWord = arrayLastElement(searchWords, (a, b) => a.length - b.length); // longest word is the last element
             if (!longestSearchWord) {
                 return emptyResult;
             }
