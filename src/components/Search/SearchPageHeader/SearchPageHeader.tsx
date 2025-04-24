@@ -28,11 +28,12 @@ type SearchPageHeaderProps = {
     hideSearchRouterList?: () => void;
     onSearchRouterFocus?: () => void;
     headerButtonsOptions: Array<DropdownOption<SearchHeaderOptionValue>>;
+    handleSearch: (value: string) => void;
 };
 
 type SearchHeaderOptionValue = DeepValueOf<typeof CONST.SEARCH.BULK_ACTION_TYPES> | undefined;
 
-function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions}: SearchPageHeaderProps) {
+function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, headerButtonsOptions, handleSearch}: SearchPageHeaderProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {selectedTransactions} = useSearchContext();
@@ -85,6 +86,7 @@ function SearchPageHeader({queryJSON, searchName, searchRouterListVisible, hideS
             searchName={searchName}
             hideSearchRouterList={hideSearchRouterList}
             inputRightComponent={InputRightComponent}
+            handleSearch={handleSearch}
         />
     );
 }

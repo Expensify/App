@@ -16,7 +16,6 @@ import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {searchInServer} from '@libs/actions/Report';
 import {getCardFeedKey, getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {getCardDescription, isCard, isCardHiddenFromSearch, mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import memoize from '@libs/memoize';
@@ -55,6 +54,9 @@ type GetAdditionalSectionsCallback = (options: Options) => Array<SectionListData
 type SearchAutocompleteListProps = {
     /** Value of TextInput */
     autocompleteQueryValue: string;
+
+    /** Callback to trigger search action * */
+    handleSearch?: (value: string) => void;
 
     /** An optional item to always display on the top of the router list  */
     searchQueryItem?: SearchQueryItem;
@@ -129,6 +131,7 @@ function SearchRouterItem(props: UserListItemProps<OptionData> | SearchQueryList
 function SearchAutocompleteList(
     {
         autocompleteQueryValue,
+        handleSearch,
         searchQueryItem,
         getAdditionalSections,
         onListItemPress,
@@ -470,7 +473,12 @@ function SearchAutocompleteList(
     }, [autocompleteQueryValue, filterOptions, searchOptions]);
 
     useEffect(() => {
-        searchInServer(autocompleteQueryValue.trim());
+        if (!handleSearch) {
+            return;
+        }
+        handleSearch(autocompleteQueryValue);
+    // eslint-disable-next-line react-compiler/react-compiler
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [autocompleteQueryValue]);
 
     /* Sections generation */

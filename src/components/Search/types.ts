@@ -74,6 +74,8 @@ type SearchContext = {
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
     isOnSearch: boolean;
+    isPredefinedFilterSelected: boolean;
+    setIsPredefinedFilterSelected: (isPredefinedFilterSelected: boolean) => void;
 };
 
 type ASTNode = {
@@ -143,6 +145,11 @@ type SearchAutocompleteQueryRange = {
     value: string;
 };
 
+type SearchParams = {
+    queryJSON: SearchQueryJSON;
+    offset: number;
+}
+
 export type {
     SelectedTransactionInfo,
     SelectedTransactions,
@@ -167,5 +174,6 @@ export type {
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
+    SearchParams,
     TableColumnSize,
 };
