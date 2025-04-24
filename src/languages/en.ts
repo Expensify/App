@@ -3924,6 +3924,14 @@ const translations = {
             glCode: 'GL code',
             updateGLCodeFailureMessage: 'An error occurred while updating the GL code, please try again',
             importCategories: 'Import categories',
+            cannotDisableAllCategories: {
+                title: 'Cannot disable all categories',
+                description: `You can't disable all categories when categories are requied on the workspace.`,
+            },
+            cannotDeleteLastEnabledCategory: {
+                title: 'Cannot delete last enabled category',
+                description: `You can't delete last enabled category when categories are required on the workspace.`,
+            },
         },
         moreFeatures: {
             subtitle: 'Use the toggles below to enable more features as you grow. Each feature will appear in the navigation menu for further customization.',
@@ -4167,6 +4175,18 @@ const translations = {
             importTags: 'Import tags',
             importedTagsMessage: ({columnCounts}: ImportedTagsMessageParams) =>
                 `We found *${columnCounts} columns* in your spreadsheet. Select *Name* next to the column that contains tags names. You can also select *Enabled* next to the column that sets tags status.`,
+            cannotDisableAllTags: {
+                title: 'Cannot disable all tags',
+                description: `You can't disable all tags when tags are requied on the workspace.`,
+            },
+            cannotDeleteLastEnabledTag: {
+                title: 'Cannot delete last enabled tag',
+                description: `You can't delete last enabled tag when tags are required on the workspace.`,
+            },
+            cannotMakeAllTagsOptional: {
+                title: 'Cannot make all tags optional',
+                description: `You can't make all tags optional when tags are required on the workspace.`,
+            },
         },
         taxes: {
             subtitle: 'Add tax names, rates, and set defaults.',
