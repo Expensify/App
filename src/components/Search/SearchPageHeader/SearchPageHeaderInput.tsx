@@ -59,7 +59,7 @@ type SearchPageHeaderInputProps = {
     onSearchRouterFocus?: () => void;
     searchName?: string;
     inputRightComponent: React.ReactNode;
-    handleSearch: (value: string) => void;
+    handleSearch?: (value: string) => void;
 };
 
 function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRouterList, onSearchRouterFocus, searchName, inputRightComponent, handleSearch}: SearchPageHeaderInputProps) {
@@ -146,7 +146,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
     const handleSearchAction = useCallback(
         (value: string) => {
-            if (!isAutocompleteListVisible) {
+            if (!isAutocompleteListVisible || !handleSearch) {
                 return;
             }
             handleSearch(value);
