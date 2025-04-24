@@ -44,6 +44,7 @@ function PopoverWithoutOverlay(
             anchorPosition,
             innerContainerStyle,
             outerStyle,
+            enableEdgeToEdgeBottomSafeAreaPadding,
         );
 
     useEffect(() => {

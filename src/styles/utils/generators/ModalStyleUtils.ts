@@ -41,11 +41,12 @@ type GetModalStylesStyleUtil = {
         popoverAnchorPosition?: ViewStyle,
         innerContainerStyle?: ViewStyle,
         outerStyle?: ViewStyle,
+        enableEdgeToEdgeBottomSafeAreaPadding?: boolean,
     ) => GetModalStyles;
 };
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
-    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
+    getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}, enableEdgeToEdgeBottomSafeAreaPadding = false): GetModalStyles => {
         const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
@@ -207,13 +208,12 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     borderTopLeftRadius: variables.componentBorderRadiusLarge,
                     borderTopRightRadius: variables.componentBorderRadiusLarge,
                     paddingTop: variables.componentBorderRadiusLarge,
-                    paddingBottom: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
                     boxShadow: theme.shadow,
                 };
 
-                shouldAddBottomSafeAreaPadding = true;
+                shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 swipeDirection = undefined;
                 animationIn = 'slideInUp';
                 animationOut = 'slideOutDown';
@@ -276,7 +276,7 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 };
                 hideBackdrop = true;
                 swipeDirection = undefined;
-                shouldAddBottomSafeAreaPadding = true;
+                shouldAddBottomSafeAreaPadding = !enableEdgeToEdgeBottomSafeAreaPadding;
                 shouldAddTopSafeAreaPadding = true;
                 break;
             default:
