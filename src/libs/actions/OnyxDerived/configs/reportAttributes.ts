@@ -1,14 +1,4 @@
-import {getOneTransactionThreadReportID} from '@libs/ReportActionsUtils';
-import {
-    generateReportName,
-    getAllReportErrors,
-    hasReportViolations,
-    isReportOwner,
-    isSettled,
-    isValidReport,
-    requiresAttentionFromCurrentUser,
-    shouldDisplayViolationsRBRInLHN,
-} from '@libs/ReportUtils';
+import {generateReportAttributes, generateReportName, isValidReport} from '@libs/ReportUtils';
 import SidebarUtils from '@libs/SidebarUtils';
 import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDerivedValueConfig';
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
@@ -67,19 +57,14 @@ export default createOnyxDerivedValueConfig({
             }
 
             const reportActionsList = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`];
-            const isReportSettled = isSettled(report);
-            const isCurrentUserReportOwner = isReportOwner(report);
-            const doesReportHasViolations = hasReportViolations(report.reportID);
-            const hasViolationsToDisplayInLHN = shouldDisplayViolationsRBRInLHN(report, transactionViolations);
-            const hasAnyViolations = hasViolationsToDisplayInLHN || (!isReportSettled && isCurrentUserReportOwner && doesReportHasViolations);
-            const reportErrors = getAllReportErrors(report, reportActionsList);
-            const oneTransactionThreadReportID = getOneTransactionThreadReportID(report.reportID, reportActionsList);
-            const parentReportAction = report.parentReportActionID ? reportActionsList?.[report.parentReportActionID] : undefined;
-            const requiresAttention = requiresAttentionFromCurrentUser(report, parentReportAction);
-
+            const {hasAnyViolations, hasErrors, oneTransactionThreadReportID, requiresAttention} = generateReportAttributes({
+                report,
+                reportActions: reportActionsList,
+                transactionViolations,
+            });
             let brickRoadStatus;
             // if report has errors or violations, show red dot
-            if (SidebarUtils.hasAnyErrorsOrViolations(report, reportActionsList, hasAnyViolations, Object.entries(reportErrors ?? {}).length > 0, oneTransactionThreadReportID)) {
+            if (SidebarUtils.hasAnyErrorsOrViolations(report, reportActionsList, hasAnyViolations, hasErrors, oneTransactionThreadReportID)) {
                 brickRoadStatus = CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
             }
             // if report does not have error, check if it should show green dot
