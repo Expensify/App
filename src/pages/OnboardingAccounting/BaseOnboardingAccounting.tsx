@@ -25,7 +25,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {openOldDotLink} from '@libs/actions/Link';
 import {createWorkspace, generatePolicyID} from '@libs/actions/Policy/Policy';
 import {completeOnboarding} from '@libs/actions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID, switchToOldDotOnNonMicroCompanySize} from '@libs/actions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@libs/actions/Welcome';
 import getPlatform from '@libs/getPlatform';
 import navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
@@ -211,8 +211,6 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
                         openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
                         return;
                     }
-
-                    switchToOldDotOnNonMicroCompanySize(onboardingCompanySize);
 
                     const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
 
