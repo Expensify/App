@@ -61,6 +61,7 @@ import type {
     UpdateWorkspaceGeneralSettingsParams,
     UpgradeToCorporateParams,
 } from '@libs/API/parameters';
+import type UpdatePolicyMembersCustomFieldsParams from '@libs/API/parameters/UpdatePolicyMembersCustomFieldsParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
@@ -2440,7 +2441,7 @@ function updateCustomField(policyID: string, login: string, customFieldType: key
         },
     ];
 
-    const params = {policyID, employees: JSON.stringify([{email: login, [customFieldType]: value}])};
+    const params: UpdatePolicyMembersCustomFieldsParams = {policyID, employees: JSON.stringify([{email: login, [customFieldType]: value}])};
 
     API.write(WRITE_COMMANDS.UPDATE_POLICY_MEMBERS_CUSTOM_FIELDS, params, {optimisticData, successData, failureData});
 }

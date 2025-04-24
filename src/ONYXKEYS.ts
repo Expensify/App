@@ -633,6 +633,7 @@ const ONYXKEYS = {
         WORKSPACE_SETTINGS_FORM_DRAFT: 'workspaceSettingsFormDraft',
         WORKSPACE_DESCRIPTION_FORM: 'workspaceDescriptionForm',
         WORKSPACE_CUSTOM_FIELD_FORM: 'WorkspaceCustomFieldForm',
+        WORKSPACE_CUSTOM_FIELD_FORM_DRAFT: 'WorkspaceCustomFieldFormDraft',
         WORKSPACE_DESCRIPTION_FORM_DRAFT: 'workspaceDescriptionFormDraft',
         WORKSPACE_TAX_CUSTOM_NAME: 'workspaceTaxCustomName',
         WORKSPACE_TAX_CUSTOM_NAME_DRAFT: 'workspaceTaxCustomNameDraft',
