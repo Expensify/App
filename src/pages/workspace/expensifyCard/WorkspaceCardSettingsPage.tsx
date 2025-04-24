@@ -11,7 +11,6 @@ import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
-import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -29,8 +28,8 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
+    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {canBeMissing: false});
+    const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`, {canBeMissing: false});
 
     const paymentBankAccountID = cardSettings?.paymentBankAccountID;
     const isMonthlySettlementAllowed = cardSettings?.isMonthlySettlementAllowed ?? false;
@@ -49,10 +48,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                 enableEdgeToEdgeBottomSafeAreaPadding
                 shouldEnableMaxHeight
             >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.settings')}
-                    onBackButtonPress={() => goBackFromWorkspaceCentralScreen(policyID)}
-                />
+                <HeaderWithBackButton title={translate('workspace.common.settings')} />
                 <ScrollView
                     contentContainerStyle={styles.flexGrow1}
                     addBottomSafeAreaPadding
