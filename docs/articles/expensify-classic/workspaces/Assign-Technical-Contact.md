@@ -6,7 +6,7 @@ keywords: [Expensify Classic, technical contact, integrations, error notificatio
 
 <div id="expensify-classic" markdown="1">
 
-When your workspace is connected to an [integration](https://help.expensify.com/expensify-classic/hubs/connections/), the assigned **Technical Contact** will receive email notifications about any export or sync errors that may occur. These notifications ensure that someone is alerted to troubleshoot and resolve any integration issues promptly.  
+When your workspace is connected to an [accounting integration](https://help.expensify.com/expensify-classic/hubs/connections/), the assigned **Technical Contact** will receive email notifications about any export or sync errors that may occur. These notifications ensure that someone is alerted to troubleshoot and resolve any integration issues promptly.  
 
 ---
 
