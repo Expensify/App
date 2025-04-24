@@ -97,10 +97,10 @@ function PageNotFoundFallback({policyID, fullPageNotFoundViewProps, isFeatureEna
                     const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
                     const secondToLastRoute = rootState.routes.at(-2);
 
-                    if (secondToLastRoute?.name === NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR) {
-                        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
-                    } else {
+                    if (secondToLastRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
                         Navigation.dismissModal();
+                    } else {
+                        Navigation.goBack(ROUTES.SETTINGS_WORKSPACES.route);
                     }
                     return;
                 }
