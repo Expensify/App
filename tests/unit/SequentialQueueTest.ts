@@ -1,7 +1,7 @@
 import Onyx from 'react-native-onyx';
 import type {OnyxUpdate} from 'react-native-onyx';
 import {waitForActiveRequestsToBeEmpty} from '@libs/E2E/utils/NetworkInterceptor';
-import {getAll, getLength, getOngoingRequest, save} from '@userActions/PersistedRequests';
+import {getAll, getLength, getOngoingRequest} from '@userActions/PersistedRequests';
 import ONYXKEYS from '@src/ONYXKEYS';
 import * as SequentialQueue from '../../src/libs/Network/SequentialQueue';
 import type Request from '../../src/types/onyx/Request';
