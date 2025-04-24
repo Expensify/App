@@ -40,4 +40,4 @@ type AccountingIntegration = {
     workspaceUpgradeNavigationDetails?: WorkspaceUpgradeNavigationDetails;
 };
 
-export type {MenuItemData, PolicyAccountingPageOnyxProps, PolicyAccountingPageProps, AccountingIntegration};
+export type {MenuItemData, PolicyAccountingPageProps, AccountingIntegration};
