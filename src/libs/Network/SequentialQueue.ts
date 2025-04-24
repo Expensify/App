@@ -97,9 +97,13 @@ function saveQueueFlushedData(...onyxUpdates: OnyxUpdate[]) {
 }
 function clearQueueFlushedData() {
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
-    Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, null).then(() => {
+    return Onyx.set(ONYXKEYS.QUEUE_FLUSHED_DATA, null).then(() => {
+        queueFlushedDataToStore.length = 0;
         Log.info('[SequentialQueue] QueueFlushedData has been cleared.');
     });
+}
+function getQueueFlushedData() {
+    return queueFlushedDataToStore;
 }
 
 /**
@@ -146,7 +150,9 @@ function process(): Promise<void> {
 
             Log.info('[SequentialQueue] Removing persisted request because it was processed successfully.', false, {request: requestToProcess});
             endPersistedRequestAndRemoveFromQueue(requestToProcess);
+
             if (requestToProcess.queueFlushedData) {
+                Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData: requestToProcess.queueFlushedData});
                 saveQueueFlushedData(...requestToProcess.queueFlushedData);
             }
 
@@ -239,15 +245,15 @@ function flush(shouldResetPromise = true) {
                 // The queue can be paused when we sync the data with backend so we should only update the Onyx data when the queue is empty
                 if (getAllPersistedRequests().length === 0) {
                     flushOnyxUpdatesQueue()?.then(() => {
-                        if (queueFlushedDataToStore.length === 0) {
+                        const queueFlushedData = getQueueFlushedData();
+                        if (queueFlushedData.length === 0) {
                             return;
                         }
-                        Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedDataToStore});
-                        Onyx.update(queueFlushedDataToStore).then(() => {
-                            Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {queueFlushedDataToStore});
+                        Log.info('[SequentialQueue] Will store queueFlushedData.', false, {queueFlushedData});
+                        Onyx.update(queueFlushedData).then(() => {
+                            Log.info('[SequentialQueue] QueueFlushedData has been stored.', false, {queueFlushedData});
                             clearQueueFlushedData();
                         });
-                        queueFlushedDataToStore.length = 0;
                     });
                 }
             });
@@ -363,5 +369,20 @@ function resetQueue(): void {
     resolveIsReadyPromise?.();
 }
 
-export {flush, getCurrentRequest, isPaused, isRunning, pause, process, push, resetQueue, sequentialQueueRequestThrottle, unpause, waitForIdle};
+export {
+    flush,
+    getCurrentRequest,
+    isPaused,
+    isRunning,
+    pause,
+    process,
+    push,
+    resetQueue,
+    sequentialQueueRequestThrottle,
+    unpause,
+    waitForIdle,
+    getQueueFlushedData,
+    saveQueueFlushedData,
+    clearQueueFlushedData,
+};
 export type {RequestError};
