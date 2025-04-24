@@ -1,6 +1,5 @@
 <resources>
     <style name="AppTheme" parent="BaseAppTheme">
-        <item name="android:autofilledHighlight">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
         <item name="android:windowBackground">@android:color/transparent</item>
         <item name="android:windowDrawsSystemBarBackgrounds">true</item>
