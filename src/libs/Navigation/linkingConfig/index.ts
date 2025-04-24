@@ -1,30 +1,17 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {LinkingOptions} from '@react-navigation/native';
-import type {RootStackParamList} from '@navigation/types';
-import CONST from '@src/CONST';
-import config from './config';
-import customGetPathFromState from './customGetPathFromState';
-import getAdaptedStateFromPath from './getAdaptedStateFromPath';
+import customGetPathFromState from '@libs/Navigation/helpers/customGetPathFromState';
+import getAdaptedStateFromPath from '@libs/Navigation/helpers/getAdaptedStateFromPath';
+import type {RootNavigatorParamList} from '@libs/Navigation/types';
+import {config} from './config';
+import prefixes from './prefixes';
 
-const linkingConfig: LinkingOptions<RootStackParamList> = {
-    getStateFromPath: (...args) => {
-        const {adaptedState} = getAdaptedStateFromPath(...args);
-
-        // ResultState | undefined is the type this function expect.
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return adaptedState;
-    },
+const linkingConfig: LinkingOptions<RootNavigatorParamList> = {
+    getStateFromPath: getAdaptedStateFromPath,
     getPathFromState: customGetPathFromState,
-    prefixes: [
-        'app://-/',
-        'new-expensify://',
-        'https://www.expensify.cash',
-        'https://staging.expensify.cash',
-        'https://dev.new.expensify.com',
-        CONST.NEW_EXPENSIFY_URL,
-        CONST.STAGING_NEW_EXPENSIFY_URL,
-    ],
+    prefixes,
     config,
 };
 
-export default linkingConfig;
+// eslint-disable-next-line import/prefer-default-export
+export {linkingConfig};

@@ -1,6 +1,7 @@
 import React from 'react';
+import type {ReactNode} from 'react';
 import {View} from 'react-native';
-import type {StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
@@ -35,26 +36,46 @@ type FeatureListProps = {
     /** A list of menuItems representing the feature list. */
     menuItems: FeatureListItem[];
 
-    /** The illustration to display in the header. Can be a JSON object representing a Lottie animation. */
-    illustration: DotLottieAnimation;
+    /** The illustration to display in the header. Can be an image or a JSON object representing a Lottie animation. */
+    illustration: DotLottieAnimation | IconAsset;
 
     /** The style passed to the illustration */
     illustrationStyle?: StyleProp<ViewStyle>;
 
     /** The background color to apply in the upper half of the screen. */
     illustrationBackgroundColor?: string;
+
+    /** Customize the Illustration container */
+    illustrationContainerStyle?: StyleProp<ViewStyle>;
+
+    /** The style used for the title */
+    titleStyles?: StyleProp<TextStyle>;
+
+    /** Padding for content on large screens */
+    contentPaddingOnLargeScreens?: {padding: number};
+
+    /** Custom content to display in the footer */
+    footer?: ReactNode;
+
+    /** Whether the button should be disabled */
+    isButtonDisabled?: boolean;
 };
 
 function FeatureList({
     title,
     subtitle = '',
-    ctaText = '',
-    ctaAccessibilityLabel = '',
+    ctaText,
+    ctaAccessibilityLabel,
     onCtaPress,
     menuItems,
     illustration,
     illustrationStyle,
     illustrationBackgroundColor,
+    illustrationContainerStyle,
+    titleStyles,
+    contentPaddingOnLargeScreens,
+    footer,
+    isButtonDisabled = false,
 }: FeatureListProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -68,6 +89,9 @@ function FeatureList({
             illustration={illustration}
             illustrationBackgroundColor={illustrationBackgroundColor}
             illustrationStyle={illustrationStyle}
+            titleStyles={titleStyles}
+            illustrationContainerStyle={illustrationContainerStyle}
+            contentPaddingOnLargeScreens={contentPaddingOnLargeScreens}
         >
             <View style={styles.flex1}>
                 <View style={[styles.flex1, styles.flexRow, styles.flexWrap, styles.rowGap4, styles.pv4, styles.pl1]}>
@@ -79,24 +103,29 @@ function FeatureList({
                             <MenuItem
                                 title={translate(translationKey)}
                                 icon={icon}
-                                iconWidth={variables.avatarSizeMedium}
-                                iconHeight={variables.avatarSizeMedium}
-                                iconStyles={styles.mr2}
+                                iconWidth={variables.menuIconSize}
+                                iconHeight={variables.menuIconSize}
                                 interactive={false}
                                 displayInDefaultIconColor
                                 wrapperStyle={[styles.p0, styles.cursorAuto]}
                                 containerStyle={[styles.m0, styles.wAuto]}
+                                numberOfLinesTitle={0}
                             />
                         </View>
                     ))}
                 </View>
-                <Button
-                    text={ctaText}
-                    onPress={onCtaPress}
-                    accessibilityLabel={ctaAccessibilityLabel}
-                    style={styles.w100}
-                    success
-                />
+                {!!ctaText && (
+                    <Button
+                        text={ctaText}
+                        onPress={onCtaPress}
+                        accessibilityLabel={ctaAccessibilityLabel}
+                        style={styles.w100}
+                        success
+                        isDisabled={isButtonDisabled}
+                        large
+                    />
+                )}
+                {!!footer && footer}
             </View>
         </Section>
     );

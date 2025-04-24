@@ -1,9 +1,11 @@
+import type {ValueOf} from 'type-fest';
+import type {NavBarButtonStyle} from '@libs/NavBarManager/types';
 import type CONST from '@src/CONST';
 import type {ColorScheme, StatusBarStyle} from '..';
 
 type Color = string;
 
-type ThemePreference = (typeof CONST.THEME)[keyof typeof CONST.THEME];
+type ThemePreference = ValueOf<typeof CONST.THEME>;
 type ThemePreferenceWithoutSystem = Exclude<ThemePreference, typeof CONST.THEME.SYSTEM>;
 
 type ThemeColors = {
@@ -11,6 +13,7 @@ type ThemeColors = {
     appBG: Color;
     splashBG: Color;
     highlightBG: Color;
+    messageHighlightBG: Color;
     border: Color;
     borderLighter: Color;
     borderFocus: Color;
@@ -19,6 +22,7 @@ type ThemeColors = {
     iconHovered: Color;
     iconMenuHovered: Color;
     iconSuccessFill: Color;
+    iconDangerFill: Color;
     iconReversed: Color;
     iconColorfulBackground: Color;
     textSupporting: Color;
@@ -69,7 +73,7 @@ type ThemeColors = {
     heroCard: Color;
     uploadPreviewActivityIndicator: Color;
     dropUIBG: Color;
-    receiptDropUIBG: Color;
+    fileDropUIBG: Color;
     checkBox: Color;
     imageCropBackgroundColor: Color;
     fallbackIconColor: Color;
@@ -81,8 +85,11 @@ type ThemeColors = {
     mentionBG: Color;
     ourMentionText: Color;
     ourMentionBG: Color;
+    tooltipHighlightBG: Color;
+    tooltipHighlightText: Color;
     tooltipSupportingText: Color;
     tooltipPrimaryText: Color;
+    trialBannerBackgroundColor: Color;
     skeletonLHNIn: Color;
     skeletonLHNOut: Color;
     QRLogo: Color;
@@ -91,6 +98,9 @@ type ThemeColors = {
     white: Color;
     videoPlayerBG: Color;
     transparentWhite: Color;
+    emptyFolderBG: Color;
+    travelBG: Color;
+    trialTimer: Color;
 
     PAGE_THEMES: Record<string, {backgroundColor: Color; statusBarStyle: StatusBarStyle}>;
 
@@ -98,7 +108,9 @@ type ThemeColors = {
     // Therefore, we need to define specific themes for these elements
     // e.g. the StatusBar displays either "light-content" or "dark-content" based on the theme
     statusBarStyle: StatusBarStyle;
+    navigationBarButtonsStyle: NavBarButtonStyle;
+    navigationBarBackgroundColor: Color;
     colorScheme: ColorScheme;
 };
 
-export {type ThemePreference, type ThemePreferenceWithoutSystem, type ThemeColors, type Color};
+export {type ThemePreferenceWithoutSystem, type ThemeColors, type Color};

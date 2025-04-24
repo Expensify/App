@@ -1,132 +1,205 @@
-import type {StackScreenProps} from '@react-navigation/stack';
-import lodashDebounce from 'lodash/debounce';
-import React, {useEffect, useState} from 'react';
-import {Keyboard, View} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {InteractionManager, Keyboard, View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import type {GestureResponderEvent} from 'react-native/Libraries/Types/CoreEventTypes';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
+import type {ValueOf} from 'type-fest';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import MultipleAvatars from '@components/MultipleAvatars';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
+import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useViewportOffsetTop from '@hooks/useViewportOffsetTop';
+import {clearDraftValues} from '@libs/actions/FormActions';
+import {openExternalLink} from '@libs/actions/Link';
+import {addMembersToWorkspace} from '@libs/actions/Policy/Member';
+import {setWorkspaceInviteMessageDraft} from '@libs/actions/Policy/Policy';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import {getAvatarsForAccountIDs} from '@libs/OptionsListUtils';
+import {getMemberAccountIDsForWorkspace, goBackFromInvalidPolicy} from '@libs/PolicyUtils';
 import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import type {SettingsNavigatorParamList} from '@navigation/types';
-import * as Link from '@userActions/Link';
-import * as Policy from '@userActions/Policy';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/WorkspaceInviteMessageForm';
-import type {InvitedEmailsToAccountIDs, PersonalDetailsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import SearchInputManager from './SearchInputManager';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+import KeyboardUtils from '@src/utils/keyboard';
+import AccessOrNotFoundWrapper from './AccessOrNotFoundWrapper';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
-
-type WorkspaceInviteMessagePageOnyxProps = {
-    /** All of the personal details for everyone */
-    allPersonalDetails: OnyxEntry<PersonalDetailsList>;
-
-    /** An object containing the accountID for every invited user email */
-    invitedEmailsToAccountIDsDraft: OnyxEntry<InvitedEmailsToAccountIDs>;
-
-    /** Updated workspace invite message */
-    workspaceInviteMessageDraft: OnyxEntry<string>;
-};
+import WorkspaceMemberDetailsRoleSelectionModal from './WorkspaceMemberRoleSelectionModal';
+import type {ListItemType} from './WorkspaceMemberRoleSelectionModal';
 
 type WorkspaceInviteMessagePageProps = WithPolicyAndFullscreenLoadingProps &
-    WorkspaceInviteMessagePageOnyxProps &
-    StackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
+    WithCurrentUserPersonalDetailsProps &
+    PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.INVITE_MESSAGE>;
 
-function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsToAccountIDsDraft, policy, route, allPersonalDetails}: WorkspaceInviteMessagePageProps) {
+function WorkspaceInviteMessagePage({policy, route, currentUserPersonalDetails}: WorkspaceInviteMessagePageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const [formData, formDataResult] = useOnyx(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM_DRAFT, {canBeMissing: true});
+    const [role, setRole] = useState<ValueOf<typeof CONST.POLICY.ROLE>>(CONST.POLICY.ROLE.USER);
 
+    const viewportOffsetTop = useViewportOffsetTop();
     const [welcomeNote, setWelcomeNote] = useState<string>();
 
-    const {inputCallbackRef} = useAutoFocusInput();
+    const {inputCallbackRef, inputRef} = useAutoFocusInput();
 
-    const getDefaultWelcomeNote = () =>
-        // workspaceInviteMessageDraft can be an empty string
-        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        workspaceInviteMessageDraft ||
-        translate('workspace.inviteMessage.welcomeNote', {
-            workspaceName: policy?.name ?? '',
+    const [invitedEmailsToAccountIDsDraft, invitedEmailsToAccountIDsDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`, {
+        canBeMissing: true,
+    });
+    const [workspaceInviteMessageDraft, workspaceInviteMessageDraftResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`, {
+        canBeMissing: true,
+    });
+    const [allPersonalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const isOnyxLoading = isLoadingOnyxValue(workspaceInviteMessageDraftResult, invitedEmailsToAccountIDsDraftResult, formDataResult);
+
+    const [isRoleSelectionModalVisible, setIsRoleSelectionModalVisible] = useState(false);
+
+    const welcomeNoteSubject = useMemo(
+        () => `# ${currentUserPersonalDetails?.displayName ?? ''} invited you to ${policy?.name ?? 'a workspace'}`,
+        [policy?.name, currentUserPersonalDetails?.displayName],
+    );
+
+    const openRoleSelectionModal = useCallback(() => {
+        KeyboardUtils.dismiss().then(() => {
+            setIsRoleSelectionModalVisible(true);
         });
+    }, []);
+
+    const getDefaultWelcomeNote = useCallback(() => {
+        return (
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            formData?.[INPUT_IDS.WELCOME_MESSAGE] ??
+            // workspaceInviteMessageDraft can be an empty string
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            workspaceInviteMessageDraft ??
+            translate('workspace.common.welcomeNote')
+        );
+    }, [workspaceInviteMessageDraft, translate, formData]);
 
     useEffect(() => {
+        if (isOnyxLoading) {
+            return;
+        }
         if (!isEmptyObject(invitedEmailsToAccountIDsDraft)) {
             setWelcomeNote(getDefaultWelcomeNote());
             return;
         }
-        Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID), true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    const debouncedSaveDraft = lodashDebounce((newDraft: string) => {
-        Policy.setWorkspaceInviteMessageDraft(route.params.policyID, newDraft);
-    });
+        if (isEmptyObject(policy)) {
+            return;
+        }
+        Navigation.goBack(route.params.backTo);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isOnyxLoading]);
 
     const sendInvitation = () => {
         Keyboard.dismiss();
+        const policyMemberAccountIDs = Object.values(getMemberAccountIDsForWorkspace(policy?.employeeList, false, false));
         // Please see https://github.com/Expensify/App/blob/main/README.md#Security for more details
-        Policy.addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, welcomeNote ?? '', route.params.policyID);
-        Policy.setWorkspaceInviteMembersDraft(route.params.policyID, {});
-        SearchInputManager.searchInput = '';
-        // Pop the invite message page before navigating to the members page.
-        Navigation.goBack();
-        Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+        addMembersToWorkspace(invitedEmailsToAccountIDsDraft ?? {}, `${welcomeNoteSubject}\n\n${welcomeNote}`, route.params.policyID, policyMemberAccountIDs, role);
+        setWorkspaceInviteMessageDraft(route.params.policyID, welcomeNote ?? null);
+        clearDraftValues(ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM);
+        if ((route.params?.backTo as string)?.endsWith('members')) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.dismissModal());
+            return;
+        }
+
+        if (getIsNarrowLayout()) {
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID), {forceReplace: true});
+            return;
+        }
+
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            Navigation.dismissModal();
+            InteractionManager.runAfterInteractions(() => {
+                Navigation.navigate(ROUTES.WORKSPACE_MEMBERS.getRoute(route.params.policyID));
+            });
+        });
     };
 
     /** Opens privacy url as an external link */
     const openPrivacyURL = (event: GestureResponderEvent | KeyboardEvent | undefined) => {
         event?.preventDefault();
-        Link.openExternalLink(CONST.PRIVACY_URL);
+        openExternalLink(CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL);
     };
 
     const validate = (): FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> => {
         const errorFields: FormInputErrors<typeof ONYXKEYS.FORMS.WORKSPACE_INVITE_MESSAGE_FORM> = {};
-        if (isEmptyObject(invitedEmailsToAccountIDsDraft)) {
-            errorFields.welcomeMessage = 'workspace.inviteMessage.inviteNoMembersError';
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) && !isOnyxLoading) {
+            errorFields.welcomeMessage = translate('workspace.inviteMessage.inviteNoMembersError');
         }
         return errorFields;
     };
 
     const policyName = policy?.name;
 
+    const roleItems: ListItemType[] = useMemo(
+        () => [
+            {
+                value: CONST.POLICY.ROLE.ADMIN,
+                text: translate('common.admin'),
+                alternateText: translate('workspace.common.adminAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.ADMIN,
+                keyForList: CONST.POLICY.ROLE.ADMIN,
+            },
+            {
+                value: CONST.POLICY.ROLE.AUDITOR,
+                text: translate('common.auditor'),
+                alternateText: translate('workspace.common.auditorAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.AUDITOR,
+                keyForList: CONST.POLICY.ROLE.AUDITOR,
+            },
+            {
+                value: CONST.POLICY.ROLE.USER,
+                text: translate('common.member'),
+                alternateText: translate('workspace.common.memberAlternateText'),
+                isSelected: role === CONST.POLICY.ROLE.USER,
+                keyForList: CONST.POLICY.ROLE.USER,
+            },
+        ],
+        [role, translate],
+    );
+
+    const changeRole = useCallback(({value}: ListItemType) => {
+        setIsRoleSelectionModalVisible(false);
+        setRole(value);
+    }, []);
+
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            testID={WorkspaceInviteMessagePage.displayName}
+        <AccessOrNotFoundWrapper
+            policyID={route.params.policyID}
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
+            fullPageNotFoundViewProps={{subtitleKey: isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized', onLinkPress: goBackFromInvalidPolicy}}
         >
-            <FullPageNotFoundView
-                shouldShow={isEmptyObject(policy) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
+            <ScreenWrapper
+                enableEdgeToEdgeBottomSafeAreaPadding
+                testID={WorkspaceInviteMessagePage.displayName}
+                shouldEnableMaxHeight
+                style={{marginTop: viewportOffsetTop}}
             >
                 <HeaderWithBackButton
-                    title={translate('workspace.inviteMessage.inviteMessageTitle')}
+                    title={translate('workspace.inviteMessage.confirmDetails')}
                     subtitle={policyName}
-                    shouldShowGetAssistanceButton
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
                     shouldShowBackButton
                     onCloseButtonPress={() => Navigation.dismissModal()}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID))}
+                    onBackButtonPress={() => Navigation.goBack(route.params.backTo)}
                 />
                 <FormProvider
                     style={[styles.flexGrow1, styles.ph5]}
@@ -135,12 +208,14 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                     onSubmit={sendInvitation}
                     submitButtonText={translate('common.invite')}
                     enabledWhenOffline
+                    shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                     footerContent={
                         <PressableWithoutFeedback
                             onPress={openPrivacyURL}
                             role={CONST.ROLE.LINK}
                             accessibilityLabel={translate('common.privacy')}
-                            href={CONST.PRIVACY_URL}
+                            href={CONST.OLD_DOT_PUBLIC_URLS.PRIVACY_URL}
                             style={[styles.mv2, styles.alignSelfStart]}
                         >
                             <View style={[styles.flexRow]}>
@@ -152,11 +227,7 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                     <View style={[styles.mv4, styles.justifyContentCenter, styles.alignItemsCenter]}>
                         <MultipleAvatars
                             size={CONST.AVATAR_SIZE.LARGE}
-                            icons={OptionsListUtils.getAvatarsForAccountIDs(
-                                Object.values(invitedEmailsToAccountIDsDraft ?? {}),
-                                allPersonalDetails ?? {},
-                                invitedEmailsToAccountIDsDraft ?? {},
-                            )}
+                            icons={getAvatarsForAccountIDs(Object.values(invitedEmailsToAccountIDsDraft ?? {}), allPersonalDetails ?? {}, invitedEmailsToAccountIDsDraft ?? {})}
                             shouldStackHorizontally
                             shouldDisplayAvatarsInRows
                             secondAvatarStyle={[styles.secondAvatarInline]}
@@ -166,6 +237,20 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                         <Text>{translate('workspace.inviteMessage.inviteMessagePrompt')}</Text>
                     </View>
                     <View style={[styles.mb3]}>
+                        <View style={[styles.mhn5, styles.mb3]}>
+                            <MenuItemWithTopDescription
+                                title={translate(`workspace.common.roleName`, {role})}
+                                description={translate('common.role')}
+                                shouldShowRightIcon
+                                onPress={openRoleSelectionModal}
+                            />
+                            <WorkspaceMemberDetailsRoleSelectionModal
+                                isVisible={isRoleSelectionModalVisible}
+                                items={roleItems}
+                                onRoleChange={changeRole}
+                                onClose={() => setIsRoleSelectionModalVisible(false)}
+                            />
+                        </View>
                         <InputWrapper
                             InputComponent={TextInput}
                             role={CONST.ROLE.PRESENTATION}
@@ -175,40 +260,29 @@ function WorkspaceInviteMessagePage({workspaceInviteMessageDraft, invitedEmailsT
                             autoCompleteType="off"
                             autoCorrect={false}
                             autoGrowHeight
-                            containerStyles={[styles.autoGrowHeightMultilineInput]}
-                            defaultValue={getDefaultWelcomeNote()}
+                            maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                             value={welcomeNote}
                             onChangeText={(text: string) => {
                                 setWelcomeNote(text);
-                                debouncedSaveDraft(text);
                             }}
                             ref={(element: AnimatedTextInputRef) => {
                                 if (!element) {
                                     return;
                                 }
+                                if (!inputRef.current) {
+                                    updateMultilineInputRange(element);
+                                }
                                 inputCallbackRef(element);
-                                updateMultilineInputRange(element);
                             }}
+                            shouldSaveDraft
                         />
                     </View>
                 </FormProvider>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+            </ScreenWrapper>
+        </AccessOrNotFoundWrapper>
     );
 }
 
 WorkspaceInviteMessagePage.displayName = 'WorkspaceInviteMessagePage';
 
-export default withPolicyAndFullscreenLoading(
-    withOnyx<WorkspaceInviteMessagePageProps, WorkspaceInviteMessagePageOnyxProps>({
-        allPersonalDetails: {
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-        },
-        invitedEmailsToAccountIDsDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`,
-        },
-        workspaceInviteMessageDraft: {
-            key: ({route}) => `${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MESSAGE_DRAFT}${route.params.policyID.toString()}`,
-        },
-    })(WorkspaceInviteMessagePage),
-);
+export default withPolicyAndFullscreenLoading(withCurrentUserPersonalDetails(WorkspaceInviteMessagePage));

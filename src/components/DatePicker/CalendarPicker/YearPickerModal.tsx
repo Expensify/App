@@ -1,4 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
+import {Keyboard} from 'react-native';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -31,7 +32,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
     const {translate} = useLocalize();
     const [searchText, setSearchText] = useState('');
     const {sections, headerMessage} = useMemo(() => {
-        const yearsList = searchText === '' ? years : years.filter((year) => year.text.includes(searchText));
+        const yearsList = searchText === '' ? years : years.filter((year) => year.text?.includes(searchText));
         return {
             headerMessage: !yearsList.length ? translate('common.noResultsFound') : '',
             sections: [{data: yearsList.sort((a, b) => b.value - a.value), indexOffset: 0}],
@@ -53,11 +54,13 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            shouldHandleNavigationBack
+            enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScreenWrapper
                 style={[styles.pb0]}
                 includePaddingTop={false}
-                includeSafeAreaPaddingBottom={false}
+                enableEdgeToEdgeBottomSafeAreaPadding
                 testID={YearPickerModal.displayName}
             >
                 <HeaderWithBackButton
@@ -65,7 +68,6 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
-                    shouldDelayFocus
                     textInputLabel={translate('yearPickerPage.selectYear')}
                     textInputValue={searchText}
                     textInputMaxLength={4}
@@ -74,6 +76,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     headerMessage={headerMessage}
                     sections={sections}
                     onSelectRow={(option) => {
+                        Keyboard.dismiss();
                         onYearChange?.(option.value);
                     }}
                     initiallyFocusedOptionKey={currentYear.toString()}
@@ -81,6 +84,7 @@ function YearPickerModal({isVisible, years, currentYear = new Date().getFullYear
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
                     ListItem={RadioListItem}
+                    addBottomSafeAreaPadding
                 />
             </ScreenWrapper>
         </Modal>

@@ -51,8 +51,8 @@ export default function generateMonthMatrix(year: number, month: number) {
     }
 
     // Add null values for days before the first day of the month
-    for (let i = matrix[0].length; i < 7; i++) {
-        matrix[0].unshift(undefined);
+    for (let i = matrix.at(0)?.length ?? 0; i < 7; i++) {
+        matrix.at(0)?.unshift(undefined);
     }
 
     return matrix;

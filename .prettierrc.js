@@ -6,11 +6,13 @@ module.exports = {
     arrowParens: 'always',
     printWidth: 190,
     singleAttributePerLine: true,
+    plugins: [require.resolve('@trivago/prettier-plugin-sort-imports')],
     /** `importOrder` should be defined in an alphabetical order. */
     importOrder: [
         '@assets/(.*)$',
         '@components/(.*)$',
         '@desktop/(.*)$',
+        '@github/(.*)$',
         '@hooks/(.*)$',
         '@libs/(.*)$',
         '@navigation/(.*)$',

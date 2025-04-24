@@ -1,14 +1,19 @@
-import React from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
+import Icon from '@components/Icon';
+import * as Expensicons from '@components/Icon/Expensicons';
 import MultipleAvatars from '@components/MultipleAvatars';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import TextWithTooltip from '@components/TextWithTooltip';
+import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {TableListItemProps} from './types';
+import type {ListItem, TableListItemProps} from './types';
 
-function TableListItem({
+function TableListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
@@ -17,37 +22,89 @@ function TableListItem({
     onSelectRow,
     onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
     rightHandSideComponent,
-}: TableListItemProps) {
+    onFocus,
+    onLongPressRow,
+    shouldSyncFocus,
+    titleContainerStyles,
+}: TableListItemProps<TItem>) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const StyleUtils = useStyleUtils();
 
+    const animatedHighlightStyle = useAnimatedHighlightStyle({
+        borderRadius: styles.selectionListPressableItemWrapper.borderRadius,
+        shouldHighlight: !!item.shouldAnimateInHighlight,
+        highlightColor: theme.messageHighlightBG,
+        backgroundColor: theme.highlightBG,
+    });
+
     const focusedBackgroundColor = styles.sidebarLinkActive.backgroundColor;
     const hoveredBackgroundColor = styles.sidebarLinkHover?.backgroundColor ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
+
+    const handleCheckboxPress = useCallback(() => {
+        if (onCheckboxPress) {
+            onCheckboxPress(item);
+        } else {
+            onSelectRow(item);
+        }
+    }, [item, onCheckboxPress, onSelectRow]);
 
     return (
         <BaseListItem
             item={item}
-            pressableStyle={[[styles.selectionListPressableItemWrapper, item.isSelected && styles.activeComponentBG, isFocused && styles.sidebarLinkActive]]}
+            pressableStyle={[
+                [
+                    styles.selectionListPressableItemWrapper,
+                    styles.mh0,
+                    // Removing background style because they are added to the parent OpacityView via animatedHighlightStyle
+                    item.shouldAnimateInHighlight ? styles.bgTransparent : undefined,
+                    item.isSelected && styles.activeComponentBG,
+                    item.cursorStyle,
+                ],
+            ]}
+            pressableWrapperStyle={[styles.mh5, animatedHighlightStyle]}
             wrapperStyle={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}
-            selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+            containerStyle={styles.mb2}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
             canSelectMultiple={canSelectMultiple}
+            onLongPressRow={onLongPressRow}
             onSelectRow={onSelectRow}
-            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
             rightHandSideComponent={rightHandSideComponent}
             errors={item.errors}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            hoverStyle={item.isSelected && styles.activeComponentBG}
         >
             {(hovered) => (
                 <>
+                    {!!canSelectMultiple && (
+                        <PressableWithFeedback
+                            accessibilityLabel={item.text ?? ''}
+                            role={CONST.ROLE.BUTTON}
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            disabled={isDisabled || item.isDisabledCheckbox}
+                            onPress={handleCheckboxPress}
+                            testID={`TableListItemCheckbox-${item.text}`}
+                            style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled, styles.mr3, item.cursorStyle]}
+                        >
+                            <View style={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled), item.cursorStyle]}>
+                                {!!item.isSelected && (
+                                    <Icon
+                                        src={Expensicons.Checkmark}
+                                        fill={theme.textLight}
+                                        height={14}
+                                        width={14}
+                                    />
+                                )}
+                            </View>
+                        </PressableWithFeedback>
+                    )}
                     {!!item.icons && (
                         <MultipleAvatars
                             icons={item.icons ?? []}
@@ -59,10 +116,10 @@ function TableListItem({
                             ]}
                         />
                     )}
-                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch]}>
+                    <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, titleContainerStyles]}>
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
-                            text={item.text}
+                            text={item.text ?? ''}
                             style={[
                                 styles.optionDisplayName,
                                 isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,

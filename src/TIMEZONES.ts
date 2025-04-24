@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
 // All timezones were taken from: https://raw.githubusercontent.com/leon-do/Timezones/main/timezone.json
+import type {TupleToUnion} from 'type-fest';
+
 const TIMEZONES = [
     'Africa/Abidjan',
     'Africa/Accra',
@@ -425,7 +427,7 @@ const TIMEZONES = [
  * The timezones supported in browser and on native devices differ, so we must map each timezone to its supported equivalent.
  * Data sourced from https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
  */
-const timezoneBackwardMap: Record<string, (typeof TIMEZONES)[number]> = {
+const timezoneBackwardMap: Record<string, TupleToUnion<typeof TIMEZONES>> = {
     'Africa/Asmera': 'Africa/Nairobi',
     'Africa/Timbuktu': 'Africa/Abidjan',
     'America/Argentina/ComodRivadavia': 'America/Argentina/Catamarca',
@@ -549,6 +551,17 @@ const timezoneBackwardMap: Record<string, (typeof TIMEZONES)[number]> = {
     'US/Pacific': 'America/Los_Angeles',
     'US/Samoa': 'Pacific/Pago_Pago',
     'W-SU': 'Europe/Moscow',
+    CET: 'Europe/Paris',
+    CST6CDT: 'America/Chicago',
+    EET: 'Europe/Sofia',
+    EST: 'America/Cancun',
+    EST5EDT: 'America/New_York',
+    HST: 'Pacific/Honolulu',
+    MET: 'Europe/Paris',
+    MST: 'America/Phoenix',
+    MST7MDT: 'America/Denver',
+    PST8PDT: 'America/Los_Angeles',
+    WET: 'Europe/Lisbon',
 };
 
 export {timezoneBackwardMap};

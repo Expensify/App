@@ -23,10 +23,13 @@ type ReactionTooltipContentProps = Pick<WithCurrentUserPersonalDetailsProps, 'cu
     accountIDs: number[];
 };
 
-function ReactionTooltipContent({accountIDs, currentUserPersonalDetails = {}, emojiCodes, emojiName}: ReactionTooltipContentProps) {
+function ReactionTooltipContent({accountIDs, currentUserPersonalDetails, emojiCodes, emojiName}: ReactionTooltipContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const users = useMemo(() => PersonalDetailsUtils.getPersonalDetailsByIDs(accountIDs, currentUserPersonalDetails.accountID, true), [currentUserPersonalDetails.accountID, accountIDs]);
+    const users = useMemo(
+        () => PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs, currentUserAccountID: currentUserPersonalDetails.accountID, shouldChangeUserDisplayName: true}),
+        [currentUserPersonalDetails.accountID, accountIDs],
+    );
 
     const namesString = users
         .map((user) => user?.displayName)

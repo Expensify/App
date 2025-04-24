@@ -1,0 +1,127 @@
+import {useRoute} from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {View} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+import FormHelpMessage from '@components/FormHelpMessage';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import ScreenWrapper from '@components/ScreenWrapper';
+import SelectionList from '@components/SelectionList';
+import RadioListItem from '@components/SelectionList/RadioListItem';
+import Text from '@components/Text';
+import useLocalize from '@hooks/useLocalize';
+import useThemeIllustrations from '@hooks/useThemeIllustrations';
+import useThemeStyles from '@hooks/useThemeStyles';
+import {getBankCardDetailsImage, getCorrectStepForSelectedBank} from '@libs/CardUtils';
+import Navigation from '@navigation/Navigation';
+import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import variables from '@styles/variables';
+import {clearAddNewCardFlow, setAddNewCompanyCardStepAndData} from '@userActions/CompanyCards';
+import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type SCREENS from '@src/SCREENS';
+
+function SelectBankStep() {
+    const {translate} = useLocalize();
+    const route = useRoute<PlatformStackRouteProp<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ADD_NEW>>();
+    const styles = useThemeStyles();
+    const illustrations = useThemeIllustrations();
+
+    const [addNewCard] = useOnyx(ONYXKEYS.ADD_NEW_COMPANY_CARD);
+    const [bankSelected, setBankSelected] = useState<ValueOf<typeof CONST.COMPANY_CARDS.BANKS>>();
+    const [hasError, setHasError] = useState(false);
+    const isOtherBankSelected = bankSelected === CONST.COMPANY_CARDS.BANKS.OTHER;
+
+    const submit = () => {
+        if (!bankSelected) {
+            setHasError(true);
+        } else {
+            if (addNewCard?.data.selectedBank !== bankSelected) {
+                clearAddNewCardFlow();
+            }
+            setAddNewCompanyCardStepAndData({
+                step: getCorrectStepForSelectedBank(bankSelected),
+                data: {
+                    selectedBank: bankSelected,
+                    cardTitle: !isOtherBankSelected ? bankSelected : undefined,
+                    feedType: bankSelected === CONST.COMPANY_CARDS.BANKS.STRIPE ? CONST.COMPANY_CARD.FEED_BANK_NAME.STRIPE : undefined,
+                },
+                isEditing: false,
+            });
+        }
+    };
+
+    useEffect(() => {
+        setBankSelected(addNewCard?.data.selectedBank);
+    }, [addNewCard?.data.selectedBank]);
+
+    const handleBackButtonPress = () => {
+        if (route?.params?.backTo) {
+            Navigation.navigate(route.params.backTo);
+            return;
+        }
+        Navigation.goBack();
+    };
+
+    const data = Object.values(CONST.COMPANY_CARDS.BANKS).map((bank) => ({
+        value: bank,
+        text: bank === CONST.COMPANY_CARDS.BANKS.OTHER ? translate('workspace.companyCards.addNewCard.other') : bank,
+        keyForList: bank,
+        isSelected: bankSelected === bank,
+        leftElement: (
+            <Icon
+                src={getBankCardDetailsImage(bank, illustrations)}
+                height={variables.iconSizeExtraLarge}
+                width={variables.iconSizeExtraLarge}
+                additionalStyles={styles.mr3}
+            />
+        ),
+    }));
+
+    return (
+        <ScreenWrapper
+            testID={SelectBankStep.displayName}
+            enableEdgeToEdgeBottomSafeAreaPadding
+            shouldEnablePickerAvoiding={false}
+            shouldEnableMaxHeight
+        >
+            <HeaderWithBackButton
+                title={translate('workspace.companyCards.addCards')}
+                onBackButtonPress={handleBackButtonPress}
+            />
+
+            <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.addNewCard.whoIsYourBankAccount')}</Text>
+            <SelectionList
+                ListItem={RadioListItem}
+                onSelectRow={({value}) => {
+                    setBankSelected(value);
+                    setHasError(false);
+                }}
+                sections={[{data}]}
+                shouldSingleExecuteRowSelect
+                initiallyFocusedOptionKey={addNewCard?.data.selectedBank}
+                shouldUpdateFocusedIndex
+                showConfirmButton
+                confirmButtonText={translate('common.next')}
+                onConfirm={submit}
+                confirmButtonStyles={!hasError && styles.mt5}
+                addBottomSafeAreaPadding
+            >
+                {hasError && (
+                    <View style={[styles.ph3, styles.mb3]}>
+                        <FormHelpMessage
+                            isError={hasError}
+                            message={translate('workspace.companyCards.addNewCard.error.pleaseSelectBank')}
+                        />
+                    </View>
+                )}
+            </SelectionList>
+        </ScreenWrapper>
+    );
+}
+
+SelectBankStep.displayName = 'SelectBankStep';
+
+export default SelectBankStep;

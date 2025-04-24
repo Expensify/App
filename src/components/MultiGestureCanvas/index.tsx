@@ -1,15 +1,16 @@
 import type {ForwardedRef} from 'react';
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
+import type {GestureType} from 'react-native-gesture-handler';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import type {GestureRef} from 'react-native-gesture-handler/lib/typescript/handlers/gestures/gesture';
 import type PagerView from 'react-native-pager-view';
 import type {SharedValue} from 'react-native-reanimated';
-import Animated, {cancelAnimation, runOnUI, useAnimatedStyle, useDerivedValue, useSharedValue, useWorkletCallback, withSpring} from 'react-native-reanimated';
+import Animated, {cancelAnimation, runOnUI, useAnimatedReaction, useAnimatedStyle, useDerivedValue, useSharedValue, withSpring} from 'react-native-reanimated';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
-import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG, ZOOM_RANGE_BOUNCE_FACTORS} from './constants';
+import {DEFAULT_ZOOM_RANGE, SPRING_CONFIG} from './constants';
 import type {CanvasSize, ContentSize, OnScaleChangedCallback, OnSwipeDownCallback, OnTapCallback, ZoomRange} from './types';
 import usePanGesture from './usePanGesture';
 import usePinchGesture from './usePinchGesture';
@@ -39,8 +40,14 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap) */
     shouldDisableTransformationGestures?: SharedValue<boolean>;
 
+    /** A shared value to enable/disable the pager scroll */
+    isPagerScrollEnabled: SharedValue<boolean>;
+
     /** If there is a pager wrapping the canvas, we need to disable the pan gesture in case the pager is swiping */
-    pagerRef?: ForwardedRef<PagerView>; // TODO: For TS migration: Exclude<GestureRef, number>
+    pagerRef?: ForwardedRef<PagerView | GestureType>; // TODO: For TS migration: Exclude<GestureRef, number>
+
+    /** Whether the component is being used inside a carousel */
+    isUsedInCarousel: boolean;
 
     /** Handles scale changed event */
     onScaleChanged?: OnScaleChangedCallback;
@@ -48,17 +55,22 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** Handles scale changed event */
     onTap?: OnTapCallback;
 
+    /** Handles swipe down event */
     onSwipeDown?: OnSwipeDownCallback;
 };
 
+const defaultContentSize = {width: 1, height: 1};
+
 function MultiGestureCanvas({
     canvasSize,
-    contentSize = {width: 1, height: 1},
+    contentSize: contentSizeProp,
     zoomRange: zoomRangeProp,
     isActive = true,
     children,
     pagerRef,
+    isUsedInCarousel,
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
+    isPagerScrollEnabled,
     onTap,
     onScaleChanged,
     onSwipeDown,
@@ -66,6 +78,7 @@ function MultiGestureCanvas({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
+    const contentSize = contentSizeProp ?? defaultContentSize;
     const shouldDisableTransformationGesturesFallback = useSharedValue(false);
     const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
 
@@ -87,7 +100,7 @@ function MultiGestureCanvas({
     // Adding together zoom scale and the initial scale to fit the content into the canvas
     // Using the minimum content scale, so that the image is not bigger than the canvas
     // and not smaller than needed to fit
-    const totalScale = useDerivedValue(() => zoomScale.value * minContentScale, [minContentScale]);
+    const totalScale = useDerivedValue(() => zoomScale.get() * minContentScale, [minContentScale]);
 
     const panTranslateX = useSharedValue(0);
     const panTranslateY = useSharedValue(0);
@@ -102,46 +115,64 @@ function MultiGestureCanvas({
     const offsetX = useSharedValue(0);
     const offsetY = useSharedValue(0);
 
+    useAnimatedReaction(
+        () => isSwipingDownToClose.get(),
+        (current) => {
+            if (!isUsedInCarousel) {
+                return;
+            }
+            // eslint-disable-next-line react-compiler/react-compiler, no-param-reassign
+            isPagerScrollEnabled.set(!current);
+        },
+    );
+
     /**
      * Stops any currently running decay animation from panning
      */
-    const stopAnimation = useWorkletCallback(() => {
+    const stopAnimation = useCallback(() => {
+        'worklet';
+
         cancelAnimation(offsetX);
         cancelAnimation(offsetY);
-    });
+    }, [offsetX, offsetY]);
 
     /**
      * Resets the canvas to the initial state and animates back smoothly
      */
-    const reset = useWorkletCallback((animated: boolean, callback?: () => void) => {
-        stopAnimation();
+    const reset = useCallback(
+        (animated: boolean, callback?: () => void) => {
+            'worklet';
 
-        if (animated) {
-            offsetX.value = 0;
-            offsetY.value = 0;
-            panTranslateX.value = withSpring(0, SPRING_CONFIG);
-            panTranslateY.value = withSpring(0, SPRING_CONFIG);
-            pinchTranslateX.value = withSpring(0, SPRING_CONFIG);
-            pinchTranslateY.value = withSpring(0, SPRING_CONFIG);
-            zoomScale.value = withSpring(1, SPRING_CONFIG, callback);
+            stopAnimation();
 
-            return;
-        }
+            offsetX.set(0);
+            offsetY.set(0);
+            pinchScale.set(1);
 
-        offsetX.value = 0;
-        offsetY.value = 0;
-        panTranslateX.value = 0;
-        panTranslateY.value = 0;
-        pinchTranslateX.value = 0;
-        pinchTranslateY.value = 0;
-        zoomScale.value = 1;
+            if (animated) {
+                panTranslateX.set(withSpring(0, SPRING_CONFIG));
+                panTranslateY.set(withSpring(0, SPRING_CONFIG));
+                pinchTranslateX.set(withSpring(0, SPRING_CONFIG));
+                pinchTranslateY.set(withSpring(0, SPRING_CONFIG));
+                zoomScale.set(withSpring(1, SPRING_CONFIG, callback));
 
-        if (callback === undefined) {
-            return;
-        }
+                return;
+            }
 
-        callback();
-    });
+            panTranslateX.set(0);
+            panTranslateY.set(0);
+            pinchTranslateX.set(0);
+            pinchTranslateY.set(0);
+            zoomScale.set(1);
+
+            if (callback === undefined) {
+                return;
+            }
+
+            callback();
+        },
+        [offsetX, offsetY, panTranslateX, panTranslateY, pinchScale, pinchTranslateX, pinchTranslateY, stopAnimation, zoomScale],
+    );
 
     const {singleTapGesture: baseSingleTapGesture, doubleTapGesture} = useTapGestures({
         canvasSize,
@@ -158,6 +189,7 @@ function MultiGestureCanvas({
         onTap,
         shouldDisableTransformationGestures,
     });
+    // eslint-disable-next-line react-compiler/react-compiler
     const singleTapGesture = baseSingleTapGesture.requireExternalGestureToFail(doubleTapGesture, panGestureRef);
 
     const panGestureSimultaneousList = useMemo(
@@ -180,6 +212,7 @@ function MultiGestureCanvas({
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
+        // eslint-disable-next-line react-compiler/react-compiler
         .withRef(panGestureRef);
 
     const pinchGesture = usePinchGesture({
@@ -211,8 +244,8 @@ function MultiGestureCanvas({
 
     // Animate the x and y position of the content within the canvas based on all of the gestures
     const animatedStyles = useAnimatedStyle(() => {
-        const x = pinchTranslateX.value + panTranslateX.value + offsetX.value;
-        const y = pinchTranslateY.value + panTranslateY.value + offsetY.value;
+        const x = pinchTranslateX.get() + panTranslateX.get() + offsetX.get();
+        const y = pinchTranslateY.get() + panTranslateY.get() + offsetY.get();
 
         return {
             transform: [
@@ -222,8 +255,10 @@ function MultiGestureCanvas({
                 {
                     translateY: y,
                 },
-                {scale: totalScale.value},
+                {scale: totalScale.get()},
             ],
+            // Hide the image if the size is not ready yet
+            opacity: contentSizeProp?.width ? 1 : 0,
         };
     });
 
@@ -237,11 +272,12 @@ function MultiGestureCanvas({
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGesture))}>
                 <View
                     collapsable={false}
+                    onTouchEnd={(e) => e.preventDefault()}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}
                 >
                     <Animated.View
                         collapsable={false}
-                        style={animatedStyles}
+                        style={[animatedStyles, styles.canvasContainer]}
                     >
                         {children}
                     </Animated.View>
@@ -253,5 +289,4 @@ function MultiGestureCanvas({
 MultiGestureCanvas.displayName = 'MultiGestureCanvas';
 
 export default MultiGestureCanvas;
-export {DEFAULT_ZOOM_RANGE, ZOOM_RANGE_BOUNCE_FACTORS};
-export type {MultiGestureCanvasProps};
+export {DEFAULT_ZOOM_RANGE};

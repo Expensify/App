@@ -1,4 +1,3 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 
 /**
@@ -15,6 +14,10 @@ function stripSpacesFromAmount(amount: string): string {
     return amount.replace(/\s+/g, '');
 }
 
+function replaceCommasWithPeriod(amount: string): string {
+    return amount.replace(/,+/g, '.');
+}
+
 /**
  * Strip decimals from the amount
  */
@@ -26,36 +29,37 @@ function stripDecimalsFromAmount(amount: string): string {
  * Adds a leading zero to the amount if user entered just the decimal separator
  *
  * @param amount - Changed amount from user input
+ * @param shouldAllowNegative - Should allow negative numbers
  */
-function addLeadingZero(amount: string): string {
-    return amount.startsWith('.') ? `0${amount}` : amount;
-}
-
-/**
- * Calculate the length of the amount with leading zeroes
- */
-function calculateAmountLength(amount: string, decimals: number): number {
-    const leadingZeroes = amount.match(/^0+/);
-    const leadingZeroesLength = leadingZeroes?.[0]?.length ?? 0;
-    const absAmount = parseFloat((Number(stripCommaFromAmount(amount)) * 10 ** decimals).toFixed(2)).toString();
-
-    if (/\D/.test(absAmount)) {
-        return CONST.IOU.AMOUNT_MAX_LENGTH + 1;
+function addLeadingZero(amount: string, shouldAllowNegative = false): string {
+    if (shouldAllowNegative && amount.startsWith('-.')) {
+        return `-0${amount}`;
     }
-
-    return leadingZeroesLength + (absAmount === '0' ? 2 : absAmount.length);
+    return amount.startsWith('.') ? `0${amount}` : amount;
 }
 
 /**
  * Check if amount is a decimal up to 3 digits
  */
-function validateAmount(amount: string, decimals: number): boolean {
+function validateAmount(amount: string, decimals: number, amountMaxLength: number = CONST.IOU.AMOUNT_MAX_LENGTH, shouldAllowNegative = false): boolean {
     const regexString =
         decimals === 0
-            ? `^\\d+(,\\d*)*$` // Don't allow decimal point if decimals === 0
-            : `^\\d+(,\\d*)*(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
+            ? `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}$` // Don't allow decimal point if decimals === 0
+            : `^${shouldAllowNegative ? '-?' : ''}\\d{1,${amountMaxLength}}(\\.\\d{0,${decimals}})?$`; // Allow the decimal point and the desired number of digits after the point
     const decimalNumberRegex = new RegExp(regexString, 'i');
-    return amount === '' || (decimalNumberRegex.test(amount) && calculateAmountLength(amount, decimals) <= CONST.IOU.AMOUNT_MAX_LENGTH);
+    if (shouldAllowNegative) {
+        return amount === '' || amount === '-' || decimalNumberRegex.test(amount);
+    }
+    return amount === '' || decimalNumberRegex.test(amount);
+}
+
+/**
+ * Check if percentage is between 0 and 100
+ */
+function validatePercentage(amount: string): boolean {
+    const regexString = '^(100|[0-9]{1,2})$';
+    const percentageRegex = new RegExp(regexString, 'i');
+    return amount === '' || percentageRegex.test(amount);
 }
 
 /**
@@ -75,18 +79,4 @@ function replaceAllDigits(text: string, convertFn: (char: string) => string): st
         .join('');
 }
 
-/**
- * Check if distance request or not
- */
-function isDistanceRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
-    return iouType === CONST.IOU.TYPE.REQUEST && selectedTab === CONST.TAB_REQUEST.DISTANCE;
-}
-
-/**
- * Check if scan request or not
- */
-function isScanRequest(selectedTab: ValueOf<typeof CONST.TAB_REQUEST>): boolean {
-    return selectedTab === CONST.TAB_REQUEST.SCAN;
-}
-
-export {stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, addLeadingZero, validateAmount, replaceAllDigits, isDistanceRequest, isScanRequest};
+export {addLeadingZero, replaceAllDigits, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, replaceCommasWithPeriod, validateAmount, validatePercentage};

@@ -5,13 +5,13 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Request} from '@src/types/onyx';
 import proxyConfig from '../../config/proxyConfig';
-import * as Environment from './Environment/Environment';
+import {getEnvironment} from './Environment/Environment';
 
 // To avoid rebuilding native apps, native apps use production config for both staging and prod
 // We use the async environment check because it works on all platforms
 let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
 let shouldUseStagingServer = false;
-Environment.getEnvironment().then((envName) => {
+getEnvironment().then((envName) => {
     ENV_NAME = envName;
 
     // We connect here, so we have the updated ENV_NAME when Onyx callback runs
@@ -31,19 +31,21 @@ Environment.getEnvironment().then((envName) => {
 });
 
 /**
- * Get the currently used API endpoint
+ * Get the currently used API endpoint, unless forceProduction is set to true
  * (Non-production environments allow for dynamically switching the API)
  */
-function getApiRoot(request?: Request): string {
+function getApiRoot(request?: Request, forceProduction = false): string {
     const shouldUseSecure = request?.shouldUseSecure ?? false;
 
-    if (shouldUseStagingServer) {
-        if (CONFIG.IS_USING_WEB_PROXY) {
+    if (shouldUseStagingServer && forceProduction !== true) {
+        if (CONFIG.IS_USING_WEB_PROXY && !request?.shouldSkipWebProxy) {
             return shouldUseSecure ? proxyConfig.STAGING_SECURE : proxyConfig.STAGING;
         }
         return shouldUseSecure ? CONFIG.EXPENSIFY.STAGING_SECURE_API_ROOT : CONFIG.EXPENSIFY.STAGING_API_ROOT;
     }
-
+    if (request?.shouldSkipWebProxy) {
+        return shouldUseSecure ? CONFIG.EXPENSIFY.SECURE_EXPENSIFY_URL : CONFIG.EXPENSIFY.EXPENSIFY_URL;
+    }
     return shouldUseSecure ? CONFIG.EXPENSIFY.DEFAULT_SECURE_API_ROOT : CONFIG.EXPENSIFY.DEFAULT_API_ROOT;
 }
 
@@ -52,7 +54,8 @@ function getApiRoot(request?: Request): string {
  * @param - the name of the API command
  */
 function getCommandURL(request: Request): string {
-    return `${getApiRoot(request)}api?command=${request.command}`;
+    // If request.command already contains ? then we don't need to append it
+    return `${getApiRoot(request)}api/${request.command}${request.command.includes('?') ? '' : '?'}`;
 }
 
 /**

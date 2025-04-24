@@ -1,48 +1,43 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 import RenderHTML from '@components/RenderHTML';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as IOUUtils from '@libs/IOUUtils';
+import {isIOUReportPendingCurrencyConversion} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
+import {
+    getOriginalMessage,
+    isDeletedParentAction as isDeletedParentActionReportActionsUtils,
+    isMoneyRequestAction,
+    isReversedTransaction as isReversedTransactionReportActionsUtils,
+    isSplitBillAction as isSplitBillActionReportActionsUtils,
+    isTrackExpenseAction as isTrackExpenseActionReportActionsUtils,
+} from '@libs/ReportActionsUtils';
+import {generateReportID} from '@libs/ReportUtils';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import * as Report from '@userActions/Report';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import CONST from '@src/CONST';
+import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import MoneyRequestPreview from './MoneyRequestPreview';
 
-type MoneyRequestActionOnyxProps = {
-    /** Chat report associated with iouReport */
-    chatReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** IOU report data object */
-    iouReport: OnyxEntry<OnyxTypes.Report>;
-
-    /** Report actions for this report */
-    reportActions: OnyxEntry<OnyxTypes.ReportActions>;
-};
-
-type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
+type MoneyRequestActionProps = {
     /** All the data of the action */
     action: OnyxTypes.ReportAction;
 
     /** The ID of the associated chatReport */
-    chatReportID: string;
+    chatReportID: string | undefined;
 
-    /** The ID of the associated request report */
-    requestReportID: string;
+    /** The ID of the associated expense report */
+    requestReportID: string | undefined;
 
     /** The ID of the current report */
-    reportID: string;
+    reportID: string | undefined;
 
     /** Is this IOUACTION the most recent? */
     isMostRecentIOUReportAction: boolean;
@@ -61,6 +56,9 @@ type MoneyRequestActionProps = MoneyRequestActionOnyxProps & {
 
     /** Styles to be assigned to Container */
     style?: StyleProp<ViewStyle>;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 function MoneyRequestAction({
@@ -71,42 +69,45 @@ function MoneyRequestAction({
     isMostRecentIOUReportAction,
     contextMenuAnchor,
     checkIfContextMenuActive = () => {},
-    chatReport,
-    iouReport,
-    reportActions,
     isHovered = false,
     style,
     isWhisper = false,
+    shouldDisplayContextMenu = true,
 }: MoneyRequestActionProps) {
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`);
+    const [reportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`, {canEvict: false});
+
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-
-    const isSplitBillAction = action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && action.originalMessage.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
+    const isSplitBillAction = isSplitBillActionReportActionsUtils(action);
+    const isTrackExpenseAction = isTrackExpenseActionReportActionsUtils(action);
 
     const onMoneyRequestPreviewPressed = () => {
+        if (contextMenuRef.current?.isContextMenuOpening) {
+            return;
+        }
         if (isSplitBillAction) {
-            const reportActionID = action.reportActionID ?? '0';
-            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, reportActionID));
+            Navigation.navigate(ROUTES.SPLIT_BILL_DETAILS.getRoute(chatReportID, action.reportActionID, Navigation.getReportRHPActiveRoute()));
             return;
         }
 
-        // If the childReportID is not present, we need to create a new thread
-        const childReportID = action?.childReportID;
-        if (!childReportID) {
-            const thread = ReportUtils.buildTransactionThread(action, requestReportID);
-            const userLogins = PersonalDetailsUtils.getLoginsByAccountIDs(thread.participantAccountIDs ?? []);
-            Report.openReport(thread.reportID, userLogins, thread, action.reportActionID);
-            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(thread.reportID));
+        // In case the childReportID is not present it probably means the transaction thread was not created yet,
+        // so we need to send the parentReportActionID and the transactionID to the route so we can call OpenReport correctly
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : CONST.DEFAULT_NUMBER_ID;
+        if (!action?.childReportID && transactionID && action.reportActionID) {
+            const optimisticReportID = generateReportID();
+            Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, action.reportActionID, transactionID));
             return;
         }
-        Report.openReport(childReportID);
-        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(childReportID));
+
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(action?.childReportID));
     };
 
     let shouldShowPendingConversionMessage = false;
-    const isDeletedParentAction = ReportActionsUtils.isDeletedParentAction(action);
-    const isReversedTransaction = ReportActionsUtils.isReversedTransaction(action);
+    const isDeletedParentAction = isDeletedParentActionReportActionsUtils(action);
+    const isReversedTransaction = isReversedTransactionReportActionsUtils(action);
     if (
         !isEmptyObject(iouReport) &&
         !isEmptyObject(reportActions) &&
@@ -115,17 +116,29 @@ function MoneyRequestAction({
         action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD &&
         isOffline
     ) {
-        shouldShowPendingConversionMessage = IOUUtils.isIOUReportPendingCurrencyConversion(iouReport);
+        shouldShowPendingConversionMessage = isIOUReportPendingCurrencyConversion(iouReport);
     }
 
-    return isDeletedParentAction || isReversedTransaction ? (
-        <RenderHTML html={`<comment>${translate(isReversedTransaction ? 'parentReportAction.reversedTransaction' : 'parentReportAction.deletedRequest')}</comment>`} />
-    ) : (
+    if (isDeletedParentAction || isReversedTransaction) {
+        let message: TranslationPaths;
+        if (isReversedTransaction) {
+            message = 'parentReportAction.reversedTransaction';
+        } else {
+            message = 'parentReportAction.deletedExpense';
+        }
+        return <RenderHTML html={`<deleted-action ${CONST.REVERSED_TRANSACTION_ATTRIBUTE}="${isReversedTransaction}">${translate(message)}</deleted-action>`} />;
+    }
+
+    // NOTE: this part of code is needed here if we want to replace MoneyRequestPreview with TransactionPreview
+    // const renderCondition = lodashIsEmpty(iouReport) && !(isSplitBillAction || isTrackExpenseAction);
+    // return renderCondition ? null : (
+    return (
         <MoneyRequestPreview
             iouReportID={requestReportID}
             chatReportID={chatReportID}
             reportID={reportID}
             isBillSplit={isSplitBillAction}
+            isTrackExpense={isTrackExpenseAction}
             action={action}
             contextMenuAnchor={contextMenuAnchor}
             checkIfContextMenuActive={checkIfContextMenuActive}
@@ -134,21 +147,11 @@ function MoneyRequestAction({
             containerStyles={[styles.cursorPointer, isHovered ? styles.reportPreviewBoxHoverBorder : undefined, style]}
             isHovered={isHovered}
             isWhisper={isWhisper}
+            shouldDisplayContextMenu={shouldDisplayContextMenu}
         />
     );
 }
 
 MoneyRequestAction.displayName = 'MoneyRequestAction';
 
-export default withOnyx<MoneyRequestActionProps, MoneyRequestActionOnyxProps>({
-    chatReport: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`,
-    },
-    iouReport: {
-        key: ({requestReportID}) => `${ONYXKEYS.COLLECTION.REPORT}${requestReportID}`,
-    },
-    reportActions: {
-        key: ({chatReportID}) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`,
-        canEvict: false,
-    },
-})(MoneyRequestAction);
+export default MoneyRequestAction;

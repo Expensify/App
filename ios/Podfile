@@ -2,6 +2,8 @@ require File.join(File.dirname(`node --print "require.resolve('expo/package.json
 # Set the type of Mapbox SDK to use
 # This value is used by $RNMapboxMaps
 $RNMapboxMapsImpl = 'mapbox'
+$VCDisableFrameProcessors = true
+ENV['PROJECT_ROOT_PATH'] = "./";
 
 def node_require(script)
   # Resolve script with node to allow for hoisting
@@ -15,9 +17,9 @@ end
 node_require('react-native/scripts/react_native_pods.rb')
 node_require('react-native-permissions/scripts/setup.rb')
 
-# Our min supported iOS version is higher than the default (min_ios_version_supported) to support libraires such as Airship
-platform :ios, 13.4
+platform :ios, min_ios_version_supported
 prepare_react_native_project!
+
 
 setup_permissions([
   'Camera',
@@ -25,17 +27,6 @@ setup_permissions([
   'LocationAlways',
   'LocationWhenInUse'
 ])
-
-# If you are using a `react-native-flipper` your iOS build will fail when `NO_FLIPPER=1` is set.
-# because `react-native-flipper` depends on (FlipperKit,...) that will be excluded
-#
-# To fix this you can also exclude `react-native-flipper` using a `react-native.config.js`
-# ```js
-# module.exports = {
-#   dependencies: {
-#     ...(process.env.NO_FLIPPER ? { 'react-native-flipper': { platforms: { ios: null } } } : {}),
-# ```
-flipper_config = ENV['NO_FLIPPER'] == "1" ? FlipperConfiguration.disabled : FlipperConfiguration.enabled(['DebugProduction', 'DebugDevelopment', 'DebugAdHoc'])
 
 linkage = ENV['USE_FRAMEWORKS']
 if linkage != nil
@@ -54,6 +45,16 @@ def __apply_Xcode_14_3_RC_post_install_workaround(installer)
       if current_target.to_f < minimum_target.to_f
         config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = minimum_target
       end
+    end
+  end
+end
+
+# Pods does not derive :debug type from NewExpensify's debug configurations so we need to set it manually before react-native-post-install. 
+# Based on this value react-native-post-install will set the correct GCC_PREPROCESSOR_DEFINITIONS e.g. ENABLE_HERMES_DEBUGGER
+def __set_debug_type_for_debug_configurations(installer)
+  installer.pods_project.build_configurations.each do |config|
+    if config.name.downcase.include?("debug")
+      installer.pods_project.add_build_configuration(config.name, :debug)
     end
   end
 end
@@ -80,36 +81,35 @@ target 'NewExpensify' do
     'DebugProduction' => :debug,
     'ReleaseDevelopment' => :release,
     'ReleaseAdHoc' => :release,
-    'ReleaseProduction' => :release
+    'ReleaseProduction' => :release,
+    'Debug' => :debug
 
-  config = use_native_modules!
+  config = use_native_modules!(['npx', 'rnef', 'config', '-p', 'ios'])
+
+  # Flags change depending on the env values.
+  flags = get_default_flags()
+
+  # ENV Variable enables/disables TurboModules
+  ENV['RCT_NEW_ARCH_ENABLED'] = '1';
+
 
   use_react_native!(
     :path => config[:reactNativePath],
-    # Enables Flipper.
-    #
-    # Note that if you have use_frameworks! enabled, Flipper will not work and
-    # you should disable the next line.
-    :flipper_configuration => flipper_config,
     # An absolute path to your application root.
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
-
-
-  target 'NewExpensifyTests' do
-    inherit! :complete
-    # Pods for testing
-  end
 
   post_install do |installer|
     # Configure Mapbox after installation
     $RNMapboxMaps.post_install(installer)
 
+    __set_debug_type_for_debug_configurations(installer)
     # https://github.com/facebook/react-native/blob/main/scripts/react_native_pods.rb#L197-L202
     react_native_post_install(
       installer,
       config[:reactNativePath],
-      :mac_catalyst_enabled => false
+      :mac_catalyst_enabled => false,
+      # :ccache_enabled => true
     )
     __apply_Xcode_14_3_RC_post_install_workaround(installer)
 
@@ -125,4 +125,8 @@ end
 
 target 'NotificationServiceExtension' do
   pod 'AirshipServiceExtension'
+  pod 'GzipSwift'
+  pod 'AppLogs', :path => '../node_modules/react-native-app-logs/AppLogsPod'
 end
+
+pod 'FullStory', :http => 'https://ios-releases.fullstory.com/fullstory-1.52.0-xcframework.tar.gz'

@@ -1,5 +1,4 @@
 import type {ListItem} from '@components/SelectionList/types';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type ValuePickerListItem = ListItem & {
     value?: string;
@@ -30,9 +29,17 @@ type ValueSelectorModalProps = {
     /** Function to call when the user closes the modal */
     onClose?: () => void;
 
-    /** Whether to show the toolip text */
+    /** Function to call when the user presses on the modal backdrop */
+    onBackdropPress?: () => void;
+
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Flag to indicate if the keyboard avoiding view should be enabled */
+    shouldEnableKeyboardAvoidingView?: boolean;
 };
+
+type ValueSelectionListProps = Pick<ValueSelectorModalProps, 'items' | 'selectedItem' | 'onItemSelected' | 'shouldShowTooltips'>;
 
 type ValuePickerProps = {
     /** Item to display */
@@ -48,7 +55,7 @@ type ValuePickerProps = {
     placeholder?: string;
 
     /** Form Error description */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Callback to call when the input changes */
     onInputChange?: (value: string | undefined) => void;
@@ -56,8 +63,11 @@ type ValuePickerProps = {
     /** Text to display under the main menu item */
     furtherDetails?: string;
 
-    /** Whether to show the toolip text */
+    /** Whether to show the tooltip text */
     shouldShowTooltips?: boolean;
+
+    /** Whether to show the selector modal */
+    shouldShowModal?: boolean;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem};
+export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

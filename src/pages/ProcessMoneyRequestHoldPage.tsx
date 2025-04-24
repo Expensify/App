@@ -1,50 +1,33 @@
-import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
-import HeaderPageLayout from '@components/HeaderPageLayout';
-import HoldMenuSectionList from '@components/HoldMenuSectionList';
-import Text from '@components/Text';
-import TextPill from '@components/TextPill';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import Navigation from '@libs/Navigation/Navigation';
-import * as IOU from '@userActions/IOU';
+import {useFocusEffect} from '@react-navigation/native';
+import React, {useCallback, useRef} from 'react';
+import {InteractionManager} from 'react-native';
+import ProcessMoneyRequestHoldMenu from '@components/ProcessMoneyRequestHoldMenu';
+import blurActiveElement from '@libs/Accessibility/blurActiveElement';
+import {dismissHoldUseExplanation} from '@userActions/IOU';
+import CONST from '@src/CONST';
 
 function ProcessMoneyRequestHoldPage() {
-    const styles = useThemeStyles();
-    const {translate} = useLocalize();
-
-    const onConfirm = useCallback(() => {
-        IOU.setShownHoldUseExplanation();
-        Navigation.goBack();
-    }, []);
-
-    const footerComponent = useMemo(
-        () => (
-            <Button
-                success
-                text={translate('common.buttonConfirm')}
-                onPress={onConfirm}
-            />
-        ),
-        [onConfirm, translate],
+    const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    useFocusEffect(
+        useCallback(() => {
+            focusTimeoutRef.current = setTimeout(() => {
+                InteractionManager.runAfterInteractions(() => {
+                    blurActiveElement();
+                });
+            }, CONST.ANIMATED_TRANSITION);
+            return () => focusTimeoutRef.current && clearTimeout(focusTimeoutRef.current);
+        }, []),
     );
 
+    const onConfirm = useCallback(() => {
+        dismissHoldUseExplanation();
+    }, []);
+
     return (
-        <HeaderPageLayout
-            title={translate('common.back')}
-            footer={footerComponent}
-            onBackButtonPress={() => Navigation.goBack()}
-            testID={ProcessMoneyRequestHoldPage.displayName}
-        >
-            <View style={[styles.mh5, styles.flex1]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.mb5]}>
-                    <Text style={[styles.textHeadline, styles.mr2]}>{translate('iou.holdEducationalTitle')}</Text>
-                    <TextPill textStyles={styles.holdRequestInline}>{translate('iou.hold')}</TextPill>
-                </View>
-                <HoldMenuSectionList />
-            </View>
-        </HeaderPageLayout>
+        <ProcessMoneyRequestHoldMenu
+            onClose={onConfirm}
+            onConfirm={onConfirm}
+        />
     );
 }
 

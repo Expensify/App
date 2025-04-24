@@ -2,7 +2,7 @@
     "applinks": {
         "details": [
             {
-                "appIDs": ["368M544MTT.com.chat.expensify.chat"],
+                "appIDs": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"],
                 "components": [
                     {
                        "/": "/r/*",
@@ -33,10 +33,6 @@
                         "comment": "I Owe You reports"
                     },
                     {
-                        "/": "/request/*",
-                        "comment": "Money request"
-                    },
-                    {
                         "/": "/enable-payments/*",
                         "comment": "Payments setup"
                     },
@@ -54,11 +50,15 @@
                     },
                     {
                         "/": "/split/*",
-                        "comment": "Split Bill"
+                        "comment": "Split Expense"
+                    },
+                    {
+                        "/": "/submit/*",
+                        "comment": "Submit Expense"
                     },
                     {
                         "/": "/request/*",
-                        "comment": "Request Money"
+                        "comment": "Submit Expense"
                     },
                     {
                         "/": "/new/*",
@@ -81,18 +81,30 @@
                         "comment": "Search"
                     },
                     {
+                        "/": "/pay/*",
+                        "comment": "Pay someone"
+                    },
+                    {
                         "/": "/send/*",
-                        "comment": "Send money"
+                        "comment": "Pay someone"
                     },
                     {
                         "/": "/money2020/*",
                         "comment": "Money 2020"
+                    },
+                    {
+                        "/": "/track-expense/*",
+                        "comment": "Track Expense"
+                    },
+                    {
+                        "/": "/submit-expense/*",
+                        "comment": "Submit Expense"
                     }
                 ]
             }
         ]
     },
     "webcredentials": {
-        "apps": ["368M544MTT.com.chat.expensify.chat"]
+        "apps": ["368M544MTT.com.chat.expensify.chat", "452835FXHF.com.expensify.expensifylite"]
     }
 }

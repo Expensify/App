@@ -1,3 +1,3 @@
-type GetPlaidOAuthReceivedRedirectURI = () => null | string;
+type GetPlaidOAuthReceivedRedirectURI = () => undefined | string;
 
 export default GetPlaidOAuthReceivedRedirectURI;

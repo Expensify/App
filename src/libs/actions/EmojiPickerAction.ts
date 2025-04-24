@@ -9,15 +9,15 @@ import type CONST from '@src/CONST';
 type AnchorOrigin = {
     horizontal: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
     vertical: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_VERTICAL>;
+    shiftVertical?: number;
 };
 
 type EmojiPopoverAnchor = MutableRefObject<View | HTMLDivElement | TextInput | null>;
 
-type OnWillShowPicker = (callback: CloseContextMenuCallback) => void;
+type OnWillShowPicker = (callback?: CloseContextMenuCallback) => void;
 
-type OnModalHideValue = () => void;
+type OnModalHideValue = (isNavigating?: boolean) => void;
 
-// TODO: Move this type to src/components/EmojiPicker/EmojiPicker.js once it is converted to TS
 type EmojiPickerRef = {
     showEmojiPicker: (
         onModalHideValue: OnModalHideValue,
@@ -79,8 +79,8 @@ function hideEmojiPicker(isNavigating?: boolean) {
 /**
  * Whether Emoji Picker is active for the given id.
  */
-function isActive(id: string): boolean {
-    if (!emojiPickerRef.current) {
+function isActive(id?: string): boolean {
+    if (!emojiPickerRef.current || !id) {
         return false;
     }
 
@@ -112,4 +112,4 @@ function resetEmojiPopoverAnchor() {
 }
 
 export {emojiPickerRef, showEmojiPicker, hideEmojiPicker, isActive, clearActive, isEmojiPickerVisible, resetEmojiPopoverAnchor};
-export type {AnchorOrigin};
+export type {AnchorOrigin, OnModalHideValue, OnEmojiSelected, EmojiPopoverAnchor, OnWillShowPicker, EmojiPickerRef};

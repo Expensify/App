@@ -1,12 +1,70 @@
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {Connection, OnyxEntry} from 'react-native-onyx';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
+
+let connection: Connection;
 
 /**
  * Makes a backup copy of a transaction object that can be restored when the user cancels editing a transaction.
  */
-function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
+function createBackupTransaction(transaction: OnyxEntry<Transaction>, isDraft: boolean) {
+    if (!transaction) {
+        return;
+    }
+
+    // In Strict Mode, the backup logic useEffect is triggered twice on mount. The restore logic is delayed because we need to connect to the onyx first,
+    // so it's possible that the restore logic is executed after creating the backup for the 2nd time which will completely clear the backup.
+    // To avoid that, we need to cancel the pending connection.
+    Onyx.disconnect(connection);
+    const newTransaction = {
+        ...transaction,
+    };
+    const conn = Onyx.connect({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`,
+        callback: (transactionBackup) => {
+            Onyx.disconnect(conn);
+            if (transactionBackup) {
+                // If the transactionBackup exists it means we haven't properly restored original value on unmount
+                // such as on page refresh, so we will just restore the transaction from the transactionBackup here.
+                Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transactionBackup);
+                return;
+            }
+            // Use set so that it will always fully overwrite any backup transaction that could have existed before
+            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transaction.transactionID}`, newTransaction);
+        },
+    });
+}
+
+/**
+ * Removes a transaction from Onyx that was only used temporary in the edit flow
+ */
+function removeBackupTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`, null);
+}
+
+function restoreOriginalTransactionFromBackup(transactionID: string | undefined, isDraft: boolean) {
+    if (!transactionID) {
+        return;
+    }
+
+    connection = Onyx.connect({
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_BACKUP}${transactionID}`,
+        callback: (backupTransaction) => {
+            Onyx.disconnect(connection);
+
+            // Use set to completely overwrite the original transaction
+            Onyx.set(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction ?? null);
+            removeBackupTransaction(transactionID);
+        },
+    });
+}
+
+function createDraftTransaction(transaction: OnyxEntry<Transaction>) {
     if (!transaction) {
         return;
     }
@@ -19,24 +77,12 @@ function createBackupTransaction(transaction: OnyxEntry<Transaction>) {
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
 }
 
-/**
- * Removes a transaction from Onyx that was only used temporary in the edit flow
- */
-function removeBackupTransaction(transactionID: string) {
+function removeDraftTransaction(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
+
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-function restoreOriginalTransactionFromBackup(transactionID: string) {
-    const connectionID = Onyx.connect({
-        key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
-        callback: (backupTransaction) => {
-            Onyx.disconnect(connectionID);
-
-            // Use set to completely overwrite the original transaction
-            Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, backupTransaction);
-            removeBackupTransaction(transactionID);
-        },
-    });
-}
-
-export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup};
+export {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup, createDraftTransaction, removeDraftTransaction};

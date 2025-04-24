@@ -1,10 +1,10 @@
 import {deepEqual} from 'fast-equals';
-import React, {useEffect, useMemo, useRef} from 'react';
-import * as ReportUtils from '@libs/ReportUtils';
+import React, {useMemo, useRef} from 'react';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import SidebarUtils from '@libs/SidebarUtils';
-import * as Report from '@userActions/Report';
 import CONST from '@src/CONST';
 import type {OptionData} from '@src/libs/ReportUtils';
+import {hasReportViolations, isReportOwner, isSettled, shouldDisplayViolationsRBRInLHN} from '@src/libs/ReportUtils';
 import OptionRowLHN from './OptionRowLHN';
 import type {OptionRowLHNDataProps} from './types';
 
@@ -17,75 +17,85 @@ import type {OptionRowLHNDataProps} from './types';
 function OptionRowLHNData({
     isFocused = false,
     fullReport,
+    oneTransactionThreadReport,
+    reportNameValuePairs,
     reportActions,
     personalDetails = {},
     preferredLocale = CONST.LOCALES.DEFAULT,
-    comment,
     policy,
+    invoiceReceiverPolicy,
     receiptTransactions,
     parentReportAction,
+    iouReportReportActions,
     transaction,
-    lastReportActionTransaction = {},
+    lastReportActionTransaction,
     transactionViolations,
-    canUseViolations,
-    reportErrors,
+    lastMessageTextFromReport,
     ...propsToForward
 }: OptionRowLHNDataProps) {
     const reportID = propsToForward.reportID;
+    const currentReportIDValue = useCurrentReportID();
+    const isReportFocused = isFocused && currentReportIDValue?.currentReportID === reportID;
 
     const optionItemRef = useRef<OptionData>();
 
-    const hasViolations = canUseViolations && ReportUtils.doesTransactionThreadHaveViolations(fullReport, transactionViolations, parentReportAction ?? null);
+    const shouldDisplayViolations = shouldDisplayViolationsRBRInLHN(fullReport, transactionViolations);
+    const isReportSettled = isSettled(fullReport);
+    const shouldDisplayReportViolations = !isReportSettled && isReportOwner(fullReport) && hasReportViolations(reportID);
 
     const optionItem = useMemo(() => {
         // Note: ideally we'd have this as a dependent selector in onyx!
         const item = SidebarUtils.getOptionData({
             report: fullReport,
+            oneTransactionThreadReport,
+            reportNameValuePairs,
+            reportActions,
             personalDetails,
             preferredLocale: preferredLocale ?? CONST.LOCALES.DEFAULT,
             policy,
             parentReportAction,
-            reportErrors,
-            hasViolations: !!hasViolations,
+            hasViolations: !!shouldDisplayViolations || shouldDisplayReportViolations,
+            lastMessageTextFromReport,
+            transactionViolations,
+            invoiceReceiverPolicy,
         });
+        // eslint-disable-next-line react-compiler/react-compiler
         if (deepEqual(item, optionItemRef.current)) {
+            // eslint-disable-next-line react-compiler/react-compiler
             return optionItemRef.current;
         }
 
+        // eslint-disable-next-line react-compiler/react-compiler
         optionItemRef.current = item;
 
         return item;
         // Listen parentReportAction to update title of thread report when parentReportAction changed
         // Listen to transaction to update title of transaction report when transaction changed
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [
         fullReport,
+        oneTransactionThreadReport,
+        reportNameValuePairs,
         lastReportActionTransaction,
         reportActions,
         personalDetails,
         preferredLocale,
         policy,
         parentReportAction,
+        iouReportReportActions,
         transaction,
         transactionViolations,
-        canUseViolations,
         receiptTransactions,
-        reportErrors,
+        invoiceReceiverPolicy,
+        shouldDisplayReportViolations,
+        lastMessageTextFromReport,
     ]);
-
-    useEffect(() => {
-        if (!optionItem || !!optionItem.hasDraftComment || !comment || comment.length <= 0 || isFocused) {
-            return;
-        }
-        Report.setReportWithDraft(reportID, true);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
 
     return (
         <OptionRowLHN
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...propsToForward}
-            isFocused={isFocused}
+            isFocused={isReportFocused}
             optionItem={optionItem}
         />
     );

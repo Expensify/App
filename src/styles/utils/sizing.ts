@@ -6,12 +6,23 @@ import type {ViewStyle} from 'react-native';
  * https://getbootstrap.com/docs/5.0/utilities/sizing/
  */
 export default {
+    h0: {
+        height: 0,
+    },
     h100: {
         height: '100%',
     },
 
+    h10: {
+        height: 40,
+    },
+
     h68: {
         height: 272,
+    },
+
+    h13: {
+        height: 52,
     },
 
     w15: {
@@ -26,8 +37,39 @@ export default {
         width: '25%',
     },
 
+    mh100: {
+        maxHeight: '100%',
+    },
+
+    mh65vh: {
+        maxHeight: '65vh',
+    },
+
+    mh85vh: {
+        maxHeight: '85vh',
+    },
+
     mnh100: {
         minHeight: '100%',
+    },
+
+    mnh20: {
+        minHeight: 80,
+    },
+    mnh40: {
+        minHeight: 40,
+    },
+
+    mnh0: {
+        minHeight: 0,
+    },
+
+    mnh13: {
+        minHeight: 52,
+    },
+
+    mnw0: {
+        minWidth: 0,
     },
 
     mnw2: {
@@ -44,6 +86,13 @@ export default {
 
     mnw100: {
         minWidth: '100%',
+    },
+    mnw64p: {
+        minWidth: 64,
+    },
+
+    mnw100p: {
+        minWidth: 100,
     },
 
     mnw120: {
@@ -66,12 +115,20 @@ export default {
         width: '80%',
     },
 
+    w90: {
+        width: '90%',
+    },
+
     w100: {
         width: '100%',
     },
 
     mwn: {
         maxWidth: 'auto',
+    },
+
+    mw50: {
+        maxWidth: '50%',
     },
 
     mw75: {
@@ -83,5 +140,8 @@ export default {
     },
     wAuto: {
         width: 'auto',
+    },
+    wFitContent: {
+        width: 'fit-content',
     },
 } satisfies Record<string, ViewStyle>;

@@ -5,14 +5,22 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {RequestType} from '@src/types/onyx/Request';
 import type Response from '@src/types/onyx/Response';
-import * as NetworkActions from './actions/Network';
-import * as UpdateRequired from './actions/UpdateRequired';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
-import * as ApiUtils from './ApiUtils';
+import {setTimeSkew} from './actions/Network';
+import {alertUser} from './actions/UpdateRequired';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
+import {getCommandURL} from './ApiUtils';
 import HttpsError from './Errors/HttpsError';
+import prepareRequestPayload from './prepareRequestPayload';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
+
+const ABORT_COMMANDS = {
+    All: 'All',
+    [READ_COMMANDS.SEARCH_FOR_REPORTS]: READ_COMMANDS.SEARCH_FOR_REPORTS,
+} as const;
+
+type AbortCommand = keyof typeof ABORT_COMMANDS;
 
 Onyx.connect({
     key: ONYXKEYS.NETWORK,
@@ -20,38 +28,42 @@ Onyx.connect({
         if (!network) {
             return;
         }
-        shouldFailAllRequests = Boolean(network.shouldFailAllRequests);
-        shouldForceOffline = Boolean(network.shouldForceOffline);
+        shouldFailAllRequests = !!network.shouldFailAllRequests;
+        shouldForceOffline = !!network.shouldForceOffline;
     },
 });
 
 // We use the AbortController API to terminate pending request in `cancelPendingRequests`
-let cancellationController = new AbortController();
-
-// Some existing old commands (6+ years) exempted from the auth writes count check
-const exemptedCommandsWithAuthWrites: string[] = ['SetWorkspaceAutoReportingFrequency'];
+const abortControllerMap = new Map<AbortCommand, AbortController>();
+abortControllerMap.set(ABORT_COMMANDS.All, new AbortController());
+abortControllerMap.set(ABORT_COMMANDS.SearchForReports, new AbortController());
 
 /**
  * The API commands that require the skew calculation
  */
-const addSkewList: string[] = [SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
+const addSkewList: string[] = [WRITE_COMMANDS.OPEN_REPORT, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, WRITE_COMMANDS.OPEN_APP];
 
 /**
  * Regex to get API command from the command
  */
-const APICommandRegex = /[?&]command=([^&]+)/;
+const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
  */
-function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, canCancel = true): Promise<Response> {
+function processHTTPRequest(url: string, method: RequestType = 'get', body: FormData | null = null, abortSignal: AbortSignal | undefined = undefined): Promise<Response> {
     const startTime = new Date().valueOf();
     return fetch(url, {
         // We hook requests to the same Controller signal, so we can cancel them all at once
-        signal: canCancel ? cancellationController.signal : undefined,
+        signal: abortSignal,
         method,
         body,
+        // On Web fetch already defaults to 'omit' for credentials, but it seems that this is not the case for the ReactNative implementation
+        // so to avoid sending cookies with the request we set it to 'omit' explicitly
+        // this avoids us sending specially the expensifyWeb cookie, which makes a CSRF token required
+        // more on that here: https://stackoverflowteams.com/c/expensify/questions/93
+        credentials: 'omit',
     })
         .then((response) => {
             // We are calculating the skew to minimize the delay when posting the messages
@@ -62,7 +74,7 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 const endTime = new Date().valueOf();
                 const latency = (endTime - startTime) / 2;
                 const skew = serverTime - startTime + latency;
-                NetworkActions.setTimeSkew(dateHeaderValue ? skew : 0);
+                setTimeSkew(dateHeaderValue ? skew : 0);
             }
             return response;
         })
@@ -124,19 +136,16 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
                 });
             }
 
-            if (response.jsonCode === CONST.JSON_CODE.MANY_WRITES_ERROR && !exemptedCommandsWithAuthWrites.includes(response.data?.phpCommandName ?? '')) {
-                if (response.data) {
-                    const {phpCommandName, authWriteCommands} = response.data;
-                    // eslint-disable-next-line max-len
-                    const message = `The API call (${phpCommandName}) did more Auth write requests than allowed. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
-                        ', ',
-                    )}. Check the APIWriteCommands class in Web-Expensify`;
-                    alert('Too many auth writes', message);
-                }
+            if (response.data && (response.data?.authWriteCommands?.length ?? 0)) {
+                const {phpCommandName, authWriteCommands} = response.data;
+                const message = `The API command ${phpCommandName} is doing too many Auth writes. Count ${authWriteCommands.length}, commands: ${authWriteCommands.join(
+                    ', ',
+                )}. If you modified this command, you MUST refactor it to remove the extra Auth writes. Otherwise, update the allowed write count in Web-Expensify APIWriteCommands.`;
+                alert('Too many auth writes', message);
             }
             if (response.jsonCode === CONST.JSON_CODE.UPDATE_REQUIRED) {
                 // Trigger a modal and disable the app as the user needs to upgrade to the latest minimum version to continue
-                UpdateRequired.alertUser();
+                alertUser();
             }
             return response as Promise<Response>;
         });
@@ -149,25 +158,23 @@ function processHTTPRequest(url: string, method: RequestType = 'get', body: Form
  * @param type HTTP request type (get/post)
  * @param shouldUseSecure should we use the secure server
  */
-function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false): Promise<Response> {
-    const formData = new FormData();
-    Object.keys(data).forEach((key) => {
-        if (typeof data[key] === 'undefined') {
-            return;
-        }
-        formData.append(key, data[key] as string | Blob);
-    });
+function xhr(command: string, data: Record<string, unknown>, type: RequestType = CONST.NETWORK.METHOD.POST, shouldUseSecure = false, initiatedOffline = false): Promise<Response> {
+    return prepareRequestPayload(command, data, initiatedOffline).then((formData) => {
+        const url = getCommandURL({shouldUseSecure, command});
+        const abortSignalController = data.canCancel ? abortControllerMap.get(command as AbortCommand) ?? abortControllerMap.get(ABORT_COMMANDS.All) : undefined;
 
-    const url = ApiUtils.getCommandURL({shouldUseSecure, command});
-    return processHTTPRequest(url, type, formData, Boolean(data.canCancel));
+        return processHTTPRequest(url, type, formData, abortSignalController?.signal);
+    });
 }
 
-function cancelPendingRequests() {
-    cancellationController.abort();
+function cancelPendingRequests(command: AbortCommand = ABORT_COMMANDS.All) {
+    const controller = abortControllerMap.get(command);
+
+    controller?.abort();
 
     // We create a new instance because once `abort()` is called any future requests using the same controller would
     // automatically get rejected: https://dom.spec.whatwg.org/#abortcontroller-api-integration
-    cancellationController = new AbortController();
+    abortControllerMap.set(command, new AbortController());
 }
 
 export default {

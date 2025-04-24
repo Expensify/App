@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import * as CurrencyUtils from '@libs/CurrencyUtils';
 import * as MoneyRequestUtils from '@libs/MoneyRequestUtils';
 import type {BaseTextInputRef} from '@src/components/TextInput/BaseTextInput/types';
-import type TextInputWithCurrencySymbolProps from './types';
+import type BaseTextInputWithCurrencySymbolProps from './types';
 
 function BaseTextInputWithCurrencySymbol(
     {
@@ -20,7 +20,11 @@ function BaseTextInputWithCurrencySymbol(
         onSelectionChange = () => {},
         onKeyPress = () => {},
         isCurrencyPressable = true,
-    }: TextInputWithCurrencySymbolProps,
+        hideCurrencySymbol = false,
+        extraSymbol,
+        style,
+        ...rest
+    }: BaseTextInputWithCurrencySymbolProps,
     ref: React.ForwardedRef<BaseTextInputRef>,
 ) {
     const {fromLocaleDigit} = useLocalize();
@@ -28,7 +32,7 @@ function BaseTextInputWithCurrencySymbol(
     const isCurrencySymbolLTR = CurrencyUtils.isCurrencySymbolLTR(selectedCurrencyCode);
     const styles = useThemeStyles();
 
-    const currencySymbolButton = (
+    const currencySymbolButton = !hideCurrencySymbol && (
         <CurrencySymbolButton
             currencySymbol={currencySymbol ?? ''}
             onCurrencyButtonPress={onCurrencyButtonPress}
@@ -57,7 +61,9 @@ function BaseTextInputWithCurrencySymbol(
                 onSelectionChange(event);
             }}
             onKeyPress={onKeyPress}
-            style={styles.pr1}
+            style={[styles.pr1, style]}
+            // eslint-disable-next-line react/jsx-props-no-spreading
+            {...rest}
         />
     );
 
@@ -66,6 +72,7 @@ function BaseTextInputWithCurrencySymbol(
             <>
                 {currencySymbolButton}
                 {amountTextInput}
+                {extraSymbol}
             </>
         );
     }
@@ -74,6 +81,7 @@ function BaseTextInputWithCurrencySymbol(
         <>
             {amountTextInput}
             {currencySymbolButton}
+            {extraSymbol}
         </>
     );
 }

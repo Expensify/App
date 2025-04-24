@@ -1,0 +1,13 @@
+diff --git a/node_modules/react-native-pdf/index.js b/node_modules/react-native-pdf/index.js
+index bea7af8..bf767c9 100644
+--- a/node_modules/react-native-pdf/index.js
++++ b/node_modules/react-native-pdf/index.js
+@@ -233,7 +233,7 @@ export default class Pdf extends Component {
+                 } else {
+                     if (this._mounted) {
+                        this.setState({
+-                            path: unescape(uri.replace(/file:\/\//i, '')),
++                            path: decodeURIComponent(uri.replace(/file:\/\//i, '')),
+                             isDownloaded: true,
+                         });
+                     }

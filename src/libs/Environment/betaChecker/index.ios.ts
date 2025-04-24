@@ -1,5 +1,5 @@
 import {NativeModules} from 'react-native';
-import type IsBetaBuild from './types';
+import type {IsBetaBuild} from './types';
 
 /**
  * Check to see if the build is staging (TestFlight) or production

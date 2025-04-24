@@ -9,9 +9,11 @@ source scripts/shellUtils.sh
 
 declare -r DIRECTORIES_TO_IGNORE=(
   './node_modules'
+  './desktop/node_modules'
   './vendor'
   './ios/Pods'
   './.husky'
+  './docs/vendor'
 )
 
 # This lists all shell scripts in this repo except those in directories we want to ignore

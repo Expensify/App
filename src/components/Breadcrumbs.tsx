@@ -1,6 +1,6 @@
 import React from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import {PixelRatio, View} from 'react-native';
 import LogoComponent from '@assets/images/expensify-wordmark.svg';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -36,10 +36,11 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const [primaryBreadcrumb, secondaryBreadcrumb] = breadcrumbs;
-
+    const isRootBreadcrumb = primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT;
+    const fontScale = PixelRatio.getFontScale() > CONST.LOGO_MAX_SCALE ? CONST.LOGO_MAX_SCALE : PixelRatio.getFontScale();
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap1, styles.w100, styles.breadcrumsContainer, style]}>
-            {primaryBreadcrumb.type === CONST.BREADCRUMB_TYPE.ROOT ? (
+            {isRootBreadcrumb ? (
                 <View style={styles.breadcrumbLogo}>
                     <Header
                         title={
@@ -47,10 +48,11 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                                 contentFit="contain"
                                 src={LogoComponent}
                                 fill={theme.text}
-                                width={variables.lhnLogoWidth}
-                                height={variables.lhnLogoHeight}
+                                width={variables.lhnLogoWidth * fontScale}
+                                height={variables.lhnLogoHeight * fontScale}
                             />
                         }
+                        style={styles.justifyContentCenter}
                         shouldShowEnvironmentBadge
                     />
                 </View>
@@ -68,7 +70,7 @@ function Breadcrumbs({breadcrumbs, style}: BreadcrumbsProps) {
                     <Text style={[styles.breadcrumbSeparator]}>/</Text>
                     <Text
                         numberOfLines={1}
-                        style={[styles.mw75, styles.flexShrink0, styles.breadcrumb]}
+                        style={[styles.mw75, styles.breadcrumb, isRootBreadcrumb ? styles.flex1 : styles.flexShrink0]}
                     >
                         {secondaryBreadcrumb.text}
                     </Text>

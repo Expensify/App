@@ -1,35 +1,42 @@
 import React, {useMemo} from 'react';
-import {withOnyx} from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
+import type {StyleProp, ViewStyle} from 'react-native';
+import {useOnyx} from 'react-native-onyx';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
+import * as CategoryOptionsListUtils from '@libs/CategoryOptionListUtils';
+import type {Category} from '@libs/CategoryOptionListUtils';
 import * as OptionsListUtils from '@libs/OptionsListUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import SelectionList from './SelectionList';
 import RadioListItem from './SelectionList/RadioListItem';
 import type {ListItem} from './SelectionList/types';
 
-type CategoryPickerOnyxProps = {
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
-    policyRecentlyUsedCategories: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
-};
-
-type CategoryPickerProps = CategoryPickerOnyxProps & {
-    /** It's used by withOnyx HOC */
-    // eslint-disable-next-line react/no-unused-prop-types
-    policyID: string;
-    selectedCategory: string;
+type CategoryPickerProps = {
+    policyID: string | undefined;
+    selectedCategory?: string;
     onSubmit: (item: ListItem) => void;
+    contentContainerStyle?: StyleProp<ViewStyle>;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedCategories, onSubmit}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, addBottomSafeAreaPadding = false, contentContainerStyle}: CategoryPickerProps) {
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategoriesDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES_DRAFT}${policyID}`);
+    const [policyRecentlyUsedCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`);
+    const {isOffline} = useNetwork();
+
     const {translate} = useLocalize();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
+    const offlineMessage = isOffline ? `${translate('common.youAppearToBeOffline')} ${translate('search.resultsAreLimited')}` : '';
 
-    const selectedOptions = useMemo(() => {
+    const selectedOptions = useMemo((): Category[] => {
         if (!selectedCategory) {
             return [];
         }
@@ -37,40 +44,32 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
         return [
             {
                 name: selectedCategory,
-                enabled: true,
-                accountID: null,
                 isSelected: true,
+                enabled: true,
             },
         ];
     }, [selectedCategory]);
 
     const [sections, headerMessage, shouldShowTextInput] = useMemo(() => {
-        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter((p) => !isEmptyObject(p));
-        const {categoryOptions} = OptionsListUtils.getFilteredOptions(
-            {},
-            {},
-            [],
-            debouncedSearchValue,
+        const categories = policyCategories ?? policyCategoriesDraft ?? {};
+        const validPolicyRecentlyUsedCategories = policyRecentlyUsedCategories?.filter?.((p) => !isEmptyObject(p));
+        const categoryOptions = CategoryOptionsListUtils.getCategoryListSections({
+            searchValue: debouncedSearchValue,
             selectedOptions,
-            [],
-            false,
-            false,
-            true,
-            policyCategories ?? {},
-            validPolicyRecentlyUsedCategories,
-            false,
-        );
+            categories,
+            recentlyUsedCategories: validPolicyRecentlyUsedCategories,
+        });
 
-        const categoryData = categoryOptions?.[0]?.data ?? [];
+        const categoryData = categoryOptions?.at(0)?.data ?? [];
         const header = OptionsListUtils.getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue);
-        const policiesCount = OptionsListUtils.getEnabledCategoriesCount(policyCategories ?? {});
-        const isCategoriesCountBelowThreshold = policiesCount < CONST.CATEGORY_LIST_THRESHOLD;
+        const categoriesCount = OptionsListUtils.getEnabledCategoriesCount(categories);
+        const isCategoriesCountBelowThreshold = categoriesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
         const showInput = !isCategoriesCountBelowThreshold;
 
         return [categoryOptions, header, showInput];
-    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories]);
+    }, [policyRecentlyUsedCategories, debouncedSearchValue, selectedOptions, policyCategories, policyCategoriesDraft]);
 
-    const selectedOptionKey = useMemo(() => (sections?.[0]?.data ?? []).filter((category) => category.searchText === selectedCategory)[0]?.keyForList, [sections, selectedCategory]);
+    const selectedOptionKey = useMemo(() => (sections?.at(0)?.data ?? []).filter((category) => category.searchText === selectedCategory).at(0)?.keyForList, [sections, selectedCategory]);
 
     return (
         <SelectionList
@@ -78,22 +77,18 @@ function CategoryPicker({selectedCategory, policyCategories, policyRecentlyUsedC
             headerMessage={headerMessage}
             textInputValue={searchValue}
             textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
+            textInputHint={offlineMessage}
             onChangeText={setSearchValue}
             onSelectRow={onSubmit}
             ListItem={RadioListItem}
             initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
             isRowMultilineSupported
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
+            contentContainerStyle={contentContainerStyle}
         />
     );
 }
 
 CategoryPicker.displayName = 'CategoryPicker';
 
-export default withOnyx<CategoryPickerProps, CategoryPickerOnyxProps>({
-    policyCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`,
-    },
-    policyRecentlyUsedCategories: {
-        key: ({policyID}) => `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${policyID}`,
-    },
-})(CategoryPicker);
+export default CategoryPicker;

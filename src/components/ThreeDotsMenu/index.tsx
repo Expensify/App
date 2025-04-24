@@ -1,65 +1,23 @@
-import React, {useEffect, useRef, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as Browser from '@libs/Browser';
+import {isMobile} from '@libs/Browser';
+import type {AnchorPosition} from '@styles/index';
+import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnchorPosition} from '@src/styles';
-import type {Modal} from '@src/types/onyx';
-import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type IconAsset from '@src/types/utils/IconAsset';
-
-type ThreeDotsMenuOnyxProps = {
-    /** Details about any modals being used */
-    modal: OnyxEntry<Modal>;
-};
-
-type ThreeDotsMenuProps = ThreeDotsMenuOnyxProps & {
-    /** Tooltip for the popup icon */
-    iconTooltip?: TranslationPaths;
-
-    /** icon for the popup trigger */
-    icon?: IconAsset;
-
-    /** Any additional styles to pass to the icon container. */
-    iconStyles?: StyleProp<ViewStyle>;
-
-    /** The fill color to pass into the icon. */
-    iconFill?: string;
-
-    /** Function to call on icon press */
-    onIconPress?: () => void;
-
-    /** menuItems that'll show up on toggle of the popup menu */
-    menuItems: PopoverMenuItem[];
-
-    /** The anchor position of the menu */
-    anchorPosition: AnchorPosition;
-
-    /** The anchor alignment of the menu */
-    anchorAlignment?: AnchorAlignment;
-
-    /** Whether the popover menu should overlay the current view */
-    shouldOverlay?: boolean;
-
-    /** Whether the menu is disabled */
-    disabled?: boolean;
-
-    /** Should we announce the Modal visibility changes? */
-    shouldSetModalVisibility?: boolean;
-};
+import type ThreeDotsMenuProps from './types';
 
 function ThreeDotsMenu({
     iconTooltip = 'common.more',
@@ -73,15 +31,23 @@ function ThreeDotsMenu({
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP, // we assume that popover menu opens below the button, anchor is at TOP
     },
+    getAnchorPosition,
     shouldOverlay = false,
     shouldSetModalVisibility = true,
     disabled = false,
-    modal = {},
+    hideProductTrainingTooltip,
+    renderProductTrainingTooltipContent,
+    shouldShowProductTrainingTooltip = false,
+    isNested = false,
+    threeDotsMenuRef,
 }: ThreeDotsMenuProps) {
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+
     const theme = useTheme();
     const styles = useThemeStyles();
     const [isPopupMenuVisible, setPopupMenuVisible] = useState(false);
-    const buttonRef = useRef<HTMLDivElement | null>(null);
+    const [position, setPosition] = useState<AnchorPosition>();
+    const buttonRef = useRef<View>(null);
     const {translate} = useLocalize();
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
 
@@ -89,9 +55,17 @@ function ThreeDotsMenu({
         setPopupMenuVisible(true);
     };
 
-    const hidePopoverMenu = () => {
+    const hidePopoverMenu = (selectedItem?: PopoverMenuItem) => {
+        if (selectedItem && selectedItem.shouldKeepModalOpen) {
+            return;
+        }
         setPopupMenuVisible(false);
     };
+
+    useImperativeHandle(threeDotsMenuRef as React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}> | undefined, () => ({
+        isPopupMenuVisible,
+        hidePopoverMenu,
+    }));
 
     useEffect(() => {
         if (!isBehindModal || !isPopupMenuVisible) {
@@ -100,52 +74,81 @@ function ThreeDotsMenu({
         hidePopoverMenu();
     }, [isBehindModal, isPopupMenuVisible]);
 
+    const onThreeDotsPress = () => {
+        if (isPopupMenuVisible) {
+            hidePopoverMenu();
+            return;
+        }
+        hideProductTrainingTooltip?.();
+        buttonRef.current?.blur();
+
+        if (getAnchorPosition) {
+            getAnchorPosition().then((value) => {
+                setPosition(value);
+                showPopoverMenu();
+            });
+        } else {
+            showPopoverMenu();
+        }
+
+        onIconPress?.();
+    };
+
+    const TooltipToRender = shouldShowProductTrainingTooltip ? EducationalTooltip : Tooltip;
+    const tooltipProps = shouldShowProductTrainingTooltip
+        ? {
+              renderTooltipContent: renderProductTrainingTooltipContent,
+              shouldRender: shouldShowProductTrainingTooltip,
+              anchorAlignment: {
+                  horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+                  vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM,
+              },
+              shiftHorizontal: variables.savedSearchShiftHorizontal,
+              shiftVertical: variables.savedSearchShiftVertical,
+              wrapperStyle: [styles.mh4, styles.pv2, styles.productTrainingTooltipWrapper],
+              onTooltipPress: onThreeDotsPress,
+          }
+        : {text: translate(iconTooltip), shouldRender: true};
+
     return (
         <>
             <View>
-                <Tooltip text={translate(iconTooltip)}>
+                {/* eslint-disable-next-line react/jsx-props-no-spreading */}
+                <TooltipToRender {...tooltipProps}>
                     <PressableWithoutFeedback
-                        onPress={() => {
-                            if (isPopupMenuVisible) {
-                                hidePopoverMenu();
-                                return;
-                            }
-                            buttonRef.current?.blur();
-                            showPopoverMenu();
-                            if (onIconPress) {
-                                onIconPress();
-                            }
-                        }}
+                        onPress={onThreeDotsPress}
                         disabled={disabled}
                         onMouseDown={(e) => {
                             /* Keep the focus state on mWeb like we did on the native apps. */
-                            if (!Browser.isMobile()) {
+                            if (!isMobile()) {
                                 return;
                             }
                             e.preventDefault();
                         }}
                         ref={buttonRef}
                         style={[styles.touchableButtonImage, iconStyles]}
-                        role={CONST.ROLE.BUTTON}
+                        role={getButtonRole(isNested)}
+                        isNested={isNested}
                         accessibilityLabel={translate(iconTooltip)}
                     >
                         <Icon
                             src={icon}
-                            fill={iconFill ?? theme.icon}
+                            fill={iconFill ?? isPopupMenuVisible ? theme.success : theme.icon}
                         />
                     </PressableWithoutFeedback>
-                </Tooltip>
+                </TooltipToRender>
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
                 isVisible={isPopupMenuVisible && !isBehindModal}
-                anchorPosition={anchorPosition}
+                anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={hidePopoverMenu}
                 menuItems={menuItems}
                 withoutOverlay={!shouldOverlay}
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
+                shouldEnableNewFocusManagement
             />
         </>
     );
@@ -153,8 +156,4 @@ function ThreeDotsMenu({
 
 ThreeDotsMenu.displayName = 'ThreeDotsMenu';
 
-export default withOnyx<ThreeDotsMenuProps, ThreeDotsMenuOnyxProps>({
-    modal: {
-        key: ONYXKEYS.MODAL,
-    },
-})(ThreeDotsMenu);
+export default ThreeDotsMenu;

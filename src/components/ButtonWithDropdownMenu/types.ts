@@ -10,14 +10,29 @@ type PaymentType = DeepValueOf<typeof CONST.IOU.PAYMENT_TYPE | typeof CONST.IOU.
 
 type WorkspaceMemberBulkActionType = DeepValueOf<typeof CONST.POLICY.MEMBERS_BULK_ACTION_TYPES>;
 
+type RoomMemberBulkActionType = DeepValueOf<typeof CONST.REPORT.ROOM_MEMBERS_BULK_ACTION_TYPES>;
+
+type WorkspaceDistanceRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
+
+type WorkspaceTaxRatesBulkActionType = DeepValueOf<typeof CONST.POLICY.BULK_ACTION_TYPES>;
+
+type ReportExportType = DeepValueOf<typeof CONST.REPORT.EXPORT_OPTIONS>;
+
 type DropdownOption<TValueType> = {
     value: TValueType;
     text: string;
-    icon: IconAsset;
+    icon?: IconAsset;
     iconWidth?: number;
     iconHeight?: number;
     iconDescription?: string;
+    additionalIconStyles?: StyleProp<ViewStyle>;
     onSelected?: () => void;
+    disabled?: boolean;
+    iconFill?: string;
+    interactive?: boolean;
+    numberOfLinesTitle?: number;
+    titleStyle?: ViewStyle;
+    shouldCloseModalOnSelect?: boolean;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -33,6 +48,12 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** Callback to execute when a dropdown option is selected */
     onOptionSelected?: (option: DropdownOption<TValueType>) => void;
 
+    /** Callback when the options popover is shown */
+    onOptionsMenuShow?: () => void;
+
+    /** Callback when the options popover is shown */
+    onOptionsMenuHide?: () => void;
+
     /** Call the onPress function on main button when Enter key is pressed */
     pressOnEnter?: boolean;
 
@@ -40,13 +61,16 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     isLoading?: boolean;
 
     /** The size of button size */
-    buttonSize: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
+    buttonSize?: ValueOf<typeof CONST.DROPDOWN_BUTTON_SIZE>;
 
     /** Should the confirmation button be disabled? */
     isDisabled?: boolean;
 
     /** Additional styles to add to the component */
     style?: StyleProp<ViewStyle>;
+
+    /** Additional styles to add to the component when it's disabled */
+    disabledStyle?: StyleProp<ViewStyle>;
 
     /** Menu options to display */
     /** e.g. [{text: 'Pay with Expensify', icon: Wallet}] */
@@ -55,8 +79,16 @@ type ButtonWithDropdownMenuProps<TValueType> = {
     /** The anchor alignment of the popover menu */
     anchorAlignment?: AnchorAlignment;
 
+    /**
+     * Determines how the popover menu should be horizontally positioned relative to the button.
+     * - 'right': Anchors to the right edge of the button (default)
+     * - 'left': Anchors to the left edge of the button
+     * - 'center': Anchors to the center of the button
+     */
+    popoverHorizontalOffsetType?: ValueOf<typeof CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL>;
+
     /* ref for the button */
-    buttonRef: RefObject<View>;
+    buttonRef?: RefObject<View>;
 
     /** The priority to assign the enter key event listener to buttons. 0 is the highest priority. */
     enterKeyEventListenerPriority?: number;
@@ -66,6 +98,39 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** Whether the dropdown menu should be shown even if it has only one option */
     shouldAlwaysShowDropdownMenu?: boolean;
+
+    /** Additional style to add to the wrapper */
+    wrapperStyle?: StyleProp<ViewStyle>;
+
+    /** Whether the button should use split style or not */
+    isSplitButton?: boolean;
+
+    /** Whether to use keyboard shortcuts for confirmation or not */
+    useKeyboardShortcuts?: boolean;
+
+    /** Determines if a style utility function should be used for calculating the PopoverMenu anchor position. */
+    shouldUseStyleUtilityForAnchorPosition?: boolean;
+
+    /** Decides which index in menuItems should be selected */
+    defaultSelectedIndex?: number;
+
+    /** Whether selected items should be marked as selected */
+    shouldShowSelectedItemCheck?: boolean;
+
+    /** Used to locate the component in the tests */
+    testID?: string;
+
+    /** The second line text displays under the first line */
+    secondLineText?: string;
 };
 
-export type {PaymentType, WorkspaceMemberBulkActionType, DropdownOption, ButtonWithDropdownMenuProps};
+export type {
+    PaymentType,
+    WorkspaceMemberBulkActionType,
+    RoomMemberBulkActionType,
+    WorkspaceDistanceRatesBulkActionType,
+    DropdownOption,
+    ButtonWithDropdownMenuProps,
+    WorkspaceTaxRatesBulkActionType,
+    ReportExportType,
+};

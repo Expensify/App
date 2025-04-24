@@ -46,7 +46,7 @@ type GetModalStylesStyleUtil = {
 
 const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({theme, styles}) => ({
     getModalStyles: (type, windowDimensions, popoverAnchorPosition = {}, innerContainerStyle = {}, outerStyle = {}): GetModalStyles => {
-        const {isSmallScreenWidth, windowWidth} = windowDimensions;
+        const {windowWidth, isSmallScreenWidth} = windowDimensions;
 
         let modalStyle: GetModalStyles['modalStyle'] = {
             margin: 0,
@@ -64,6 +64,12 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
         let shouldAddTopSafeAreaPadding = false;
 
         switch (type) {
+            case CONST.MODAL.MODAL_TYPE.FULLSCREEN:
+                modalContainerStyle = {};
+                swipeDirection = 'down';
+                animationIn = 'slideInUp';
+                animationOut = 'slideOutDown';
+                break;
             case CONST.MODAL.MODAL_TYPE.CONFIRM:
                 // A confirm modal is one that has a visible backdrop
                 // and can be dismissed by clicking outside of the modal.
@@ -74,8 +80,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
-                    borderRadius: 12,
+                    boxShadow: theme.shadow,
+                    borderRadius: variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     width: variables.sideBarWidth,
                 };
@@ -98,17 +104,47 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
-                    borderRadius: isSmallScreenWidth ? 0 : 12,
+                    borderRadius: isSmallScreenWidth ? 0 : variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
                 };
 
                 // Allow this modal to be dismissed with a swipe down or swipe right
                 swipeDirection = ['down', 'right'];
+                animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
+                animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
+                shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
+                shouldAddBottomSafeAreaMargin = !isSmallScreenWidth;
+                shouldAddTopSafeAreaPadding = isSmallScreenWidth;
+                shouldAddBottomSafeAreaPadding = false;
+                break;
+            case CONST.MODAL.MODAL_TYPE.CENTERED_SWIPABLE_TO_RIGHT:
+                // A centered modal is one that has a visible backdrop
+                // and can be dismissed by clicking outside of the modal.
+                // This modal should take up the entire visible area when
+                // viewed on a smaller device (e.g. mobile or mobile web).
+                modalStyle = {
+                    ...modalStyle,
+                    ...{
+                        alignItems: 'center',
+                    },
+                };
+                modalContainerStyle = {
+                    boxShadow: theme.shadow,
+                    flex: 1,
+                    marginTop: isSmallScreenWidth ? 0 : 20,
+                    marginBottom: isSmallScreenWidth ? 0 : 20,
+                    borderRadius: isSmallScreenWidth ? 0 : variables.componentBorderRadiusLarge,
+                    overflow: 'hidden',
+                    ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth),
+                };
+
+                // Allow this modal to be dismissed with a swipe to the right, required when we want to have a list in centered modal
+                swipeDirection = ['right'];
                 animationIn = isSmallScreenWidth ? 'slideInRight' : 'fadeIn';
                 animationOut = isSmallScreenWidth ? 'slideOutRight' : 'fadeOut';
                 shouldAddTopSafeAreaMargin = !isSmallScreenWidth;
@@ -125,11 +161,11 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
+                    boxShadow: theme.shadow,
                     flex: 1,
                     marginTop: isSmallScreenWidth ? 0 : 20,
                     marginBottom: isSmallScreenWidth ? 0 : 20,
-                    borderRadius: isSmallScreenWidth ? 0 : 12,
+                    borderRadius: isSmallScreenWidth ? 0 : variables.componentBorderRadiusLarge,
                     overflow: 'hidden',
                     ...getCenteredModalStyles(styles, windowWidth, isSmallScreenWidth, true),
                 };
@@ -150,8 +186,8 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    boxShadow: '0px 0px 5px 5px rgba(0, 0, 0, 0.1)',
-                    borderRadius: 12,
+                    boxShadow: theme.shadow,
+                    borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 0,
                 };
 
@@ -174,11 +210,13 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                 };
                 modalContainerStyle = {
                     width: '100%',
-                    borderTopLeftRadius: 20,
-                    borderTopRightRadius: 20,
-                    paddingTop: 12,
+                    borderTopLeftRadius: variables.componentBorderRadiusLarge,
+                    borderTopRightRadius: variables.componentBorderRadiusLarge,
+                    paddingTop: variables.componentBorderRadiusLarge,
+                    paddingBottom: variables.componentBorderRadiusLarge,
                     justifyContent: 'center',
                     overflow: 'hidden',
+                    boxShadow: theme.shadow,
                 };
 
                 shouldAddBottomSafeAreaPadding = true;
@@ -197,12 +235,12 @@ const createModalStyleUtils: StyleUtilGenerator<GetModalStylesStyleUtil> = ({the
                     },
                 };
                 modalContainerStyle = {
-                    borderRadius: 12,
+                    borderRadius: variables.componentBorderRadiusLarge,
                     borderWidth: 1,
                     borderColor: theme.border,
                     justifyContent: 'center',
                     overflow: 'hidden',
-                    boxShadow: variables.popoverMenuShadow,
+                    boxShadow: theme.shadow,
                 };
 
                 hideBackdrop = true;

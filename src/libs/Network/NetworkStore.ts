@@ -1,11 +1,13 @@
 import Onyx from 'react-native-onyx';
-import {SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import type {ValueOf} from 'type-fest';
+import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Credentials from '@src/types/onyx/Credentials';
 
-let credentials: Credentials | null = null;
-let authToken: string | null = null;
-let supportAuthToken: string | null = null;
+let credentials: Credentials | null | undefined;
+let authToken: string | null | undefined;
+let authTokenType: ValueOf<typeof CONST.AUTH_TOKEN_TYPES> | null;
 let currentUserEmail: string | null = null;
 let offline = false;
 let authenticating = false;
@@ -51,7 +53,7 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         authToken = val?.authToken ?? null;
-        supportAuthToken = val?.supportAuthToken ?? null;
+        authTokenType = val?.authTokenType ?? null;
         currentUserEmail = val?.email ?? null;
         checkRequiredData();
     },
@@ -60,7 +62,7 @@ Onyx.connect({
 Onyx.connect({
     key: ONYXKEYS.CREDENTIALS,
     callback: (val) => {
-        credentials = val;
+        credentials = val ?? null;
         checkRequiredData();
     },
 });
@@ -79,11 +81,11 @@ Onyx.connect({
             triggerReconnectCallback();
         }
 
-        offline = Boolean(network.shouldForceOffline) || !!network.isOffline;
+        offline = !!network.shouldForceOffline || !!network.isOffline;
     },
 });
 
-function getCredentials(): Credentials | null {
+function getCredentials(): Credentials | null | undefined {
     return credentials;
 }
 
@@ -91,20 +93,43 @@ function isOffline(): boolean {
     return offline;
 }
 
-function getAuthToken(): string | null {
+function getAuthToken(): string | null | undefined {
     return authToken;
 }
 
 function isSupportRequest(command: string): boolean {
-    return [WRITE_COMMANDS.OPEN_APP, SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP, SIDE_EFFECT_REQUEST_COMMANDS.OPEN_REPORT].some((cmd) => cmd === command);
+    return [
+        WRITE_COMMANDS.OPEN_APP,
+        WRITE_COMMANDS.SEARCH,
+        WRITE_COMMANDS.UPDATE_NEWSLETTER_SUBSCRIPTION,
+        WRITE_COMMANDS.OPEN_REPORT,
+        SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP,
+        READ_COMMANDS.OPEN_CARD_DETAILS_PAGE,
+        READ_COMMANDS.GET_POLICY_CATEGORIES,
+        READ_COMMANDS.OPEN_POLICY_CATEGORIES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_COMPANY_CARDS_FEED,
+        READ_COMMANDS.OPEN_POLICY_DISTANCE_RATES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_ACCOUNTING_PAGE,
+        READ_COMMANDS.OPEN_POLICY_EXPENSIFY_CARDS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_MORE_FEATURES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_PROFILE_PAGE,
+        READ_COMMANDS.OPEN_POLICY_REPORT_FIELDS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_INITIAL_PAGE,
+        READ_COMMANDS.OPEN_INITIAL_SETTINGS_PAGE,
+        READ_COMMANDS.OPEN_POLICY_TAGS_PAGE,
+        READ_COMMANDS.OPEN_SUBSCRIPTION_PAGE,
+        READ_COMMANDS.OPEN_POLICY_TAXES_PAGE,
+        READ_COMMANDS.OPEN_POLICY_WORKFLOWS_PAGE,
+        READ_COMMANDS.OPEN_WORKSPACE_VIEW,
+        READ_COMMANDS.OPEN_PAYMENTS_PAGE,
+        READ_COMMANDS.OPEN_WORKSPACE_MEMBERS_PAGE,
+        READ_COMMANDS.SEARCH_FOR_REPORTS,
+    ].some((cmd) => cmd === command);
 }
 
-function getSupportAuthToken(): string | null {
-    return supportAuthToken;
-}
-
-function setSupportAuthToken(newSupportAuthToken: string) {
-    supportAuthToken = newSupportAuthToken;
+function isSupportAuthToken(): boolean {
+    return authTokenType === CONST.AUTH_TOKEN_TYPES.SUPPORT;
 }
 
 function setAuthToken(newAuthToken: string | null) {
@@ -139,7 +164,6 @@ export {
     setIsAuthenticating,
     getCredentials,
     checkRequiredData,
-    getSupportAuthToken,
-    setSupportAuthToken,
+    isSupportAuthToken,
     isSupportRequest,
 };

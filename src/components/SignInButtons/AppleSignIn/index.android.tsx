@@ -5,6 +5,7 @@ import Log from '@libs/Log';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
+import type {AppleSignInProps} from '.';
 
 /**
  * Apple Sign In Configuration for Android.
@@ -33,20 +34,23 @@ function appleSignInRequest(): Promise<string | undefined> {
 /**
  * Apple Sign In button for Android.
  */
-function AppleSignIn() {
+function AppleSignIn({onPress = () => {}}: AppleSignInProps) {
     const handleSignIn = () => {
         appleSignInRequest()
             .then((token) => Session.beginAppleSignIn(token))
-            .catch((e) => {
-                if (e.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
+            .catch((error: Record<string, unknown>) => {
+                if (error.message === appleAuthAndroid.Error.SIGNIN_CANCELLED) {
                     return null;
                 }
-                Log.alert('[Apple Sign In] Apple authentication failed', e);
+                Log.alert('[Apple Sign In] Apple authentication failed', error);
             });
     };
     return (
         <IconButton
-            onPress={handleSignIn}
+            onPress={() => {
+                onPress();
+                handleSignIn();
+            }}
             provider={CONST.SIGN_IN_METHOD.APPLE}
         />
     );

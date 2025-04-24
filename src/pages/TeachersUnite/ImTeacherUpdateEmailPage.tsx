@@ -14,13 +14,12 @@ import ROUTES from '@src/ROUTES';
 function ImTeacherUpdateEmailPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const activeRoute = Navigation.getActiveRouteWithoutParams();
 
     return (
         <ScreenWrapper testID={ImTeacherUpdateEmailPage.displayName}>
             <HeaderWithBackButton
                 title={translate('teachersUnitePage.iAmATeacher')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.TEACHERS_UNITE)}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             <BlockingView
                 shouldShowLink
@@ -29,16 +28,17 @@ function ImTeacherUpdateEmailPage() {
                 title={translate('teachersUnitePage.updateYourEmail')}
                 subtitle={translate('teachersUnitePage.schoolMailAsDefault')}
                 linkKey="teachersUnitePage.contactMethods"
-                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
+                onLinkPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
                 iconWidth={variables.signInLogoWidthLargeScreen}
                 iconHeight={variables.signInLogoHeightLargeScreen}
             />
             <FixedFooter style={[styles.flexGrow0]}>
                 <Button
                     success
+                    large
                     accessibilityLabel={translate('teachersUnitePage.updateEmail')}
                     text={translate('teachersUnitePage.updateEmail')}
-                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(activeRoute))}
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRouteWithoutParams()))}
                 />
             </FixedFooter>
         </ScreenWrapper>

@@ -44,7 +44,7 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     const report = createRandomReport(1);
     const reportAction = {
         ...createRandomReportAction(1),
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIEDEXPENSE,
+        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
         originalMessage: {
             amount: randAmount(),
             currency: CONST.CURRENCY.USD,
@@ -59,5 +59,5 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     });
 
     await waitForBatchedUpdates();
-    await measureFunction(() => ModifiedExpenseMessage.getForReportAction(report.reportID, reportAction));
+    await measureFunction(() => ModifiedExpenseMessage.getForReportAction({reportOrID: report.reportID, reportAction}));
 });

@@ -14,7 +14,6 @@ inputs:
     GITHUB_TOKEN:
         description: "Github token for authentication"
         required: true
-        default: "${{ github.token }}"
     ANDROID:
         description: "Android job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
@@ -27,6 +26,12 @@ inputs:
     WEB:
         description: "Web job result ('success', 'failure', 'cancelled', or 'skipped')"
         required: true
+    DATE:
+        description: "The date of deployment"
+        required: false
+    NOTE:
+        description: "Additional note from the deployer"
+        required: false
 runs:
     using: "node20"
     main: "./index.js"

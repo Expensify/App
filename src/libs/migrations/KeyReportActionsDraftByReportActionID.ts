@@ -1,4 +1,4 @@
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxInputValue} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,20 +14,20 @@ type ReportActionsDraftsKey = `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFT
  * After: reportActionsDrafts_reportID: {[reportActionID]: value}
  */
 export default function () {
-    return new Promise<void>((resolve) => {
-        const connectionID = Onyx.connect({
+    return new Promise<void | void[]>((resolve) => {
+        const connection = Onyx.connect({
             key: ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS,
             waitForCollectionCallback: true,
             // eslint-disable-next-line @typescript-eslint/no-misused-promises
             callback: (allReportActionsDrafts) => {
-                Onyx.disconnect(connectionID);
+                Onyx.disconnect(connection);
 
                 if (!allReportActionsDrafts) {
                     Log.info('[Migrate Onyx] Skipped migration KeyReportActionsDraftByReportActionID because there were no reportActionsDrafts');
                     return resolve();
                 }
 
-                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxEntry<ReportActionsDrafts>> = {};
+                const newReportActionsDrafts: Record<ReportActionsDraftsKey, OnyxInputValue<ReportActionsDrafts>> = {};
                 Object.entries(allReportActionsDrafts).forEach(([onyxKey, reportActionDraft]) => {
                     if (typeof reportActionDraft !== 'string') {
                         return;
@@ -47,6 +47,7 @@ export default function () {
 
                     // If newReportActionsDrafts[newOnyxKey] isn't set, fall back on the migrated draft if there is one
                     const currentActionsDrafts = newReportActionsDrafts[newOnyxKey] ?? allReportActionsDrafts[newOnyxKey];
+
                     newReportActionsDrafts[newOnyxKey] = {
                         ...currentActionsDrafts,
                         [reportActionID]: reportActionDraft,

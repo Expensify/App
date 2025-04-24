@@ -1,13 +1,16 @@
 import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import type {FormOnyxValues} from '@components/Form/types';
 import * as API from '@libs/API';
 import type {
     OpenPublicProfilePageParams,
+    SetPersonalDetailsAndShipExpensifyCardsParams,
     UpdateAutomaticTimezoneParams,
     UpdateDateOfBirthParams,
     UpdateDisplayNameParams,
     UpdateHomeAddressParams,
     UpdateLegalNameParams,
+    UpdatePhoneNumberParams,
     UpdatePronounsParams,
     UpdateSelectedTimezoneParams,
     UpdateUserAvatarParams,
@@ -15,6 +18,8 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
 import DateUtils from '@libs/DateUtils';
+import * as ErrorUtils from '@libs/ErrorUtils';
+import * as LoginUtils from '@libs/LoginUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
 import * as UserUtils from '@libs/UserUtils';
@@ -25,7 +30,6 @@ import ROUTES from '@src/ROUTES';
 import type {DateOfBirthForm} from '@src/types/form';
 import type {PersonalDetails, PersonalDetailsList, PrivatePersonalDetails} from '@src/types/onyx';
 import type {SelectedTimezone, Timezone} from '@src/types/onyx/PersonalDetails';
-import * as Session from './Session';
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -33,87 +37,120 @@ Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
         currentUserEmail = val?.email ?? '';
-        currentUserAccountID = val?.accountID ?? -1;
+        currentUserAccountID = val?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
-let allPersonalDetails: OnyxEntry<PersonalDetailsList> = null;
+let allPersonalDetails: OnyxEntry<PersonalDetailsList>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (val) => (allPersonalDetails = val),
 });
 
-let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails> = null;
+let privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
     callback: (val) => (privatePersonalDetails = val),
 });
 
 function updatePronouns(pronouns: string) {
-    if (currentUserAccountID) {
-        const parameters: UpdatePronounsParams = {pronouns};
-
-        API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            pronouns,
-                        },
-                    },
-                },
-            ],
-        });
+    if (!currentUserAccountID) {
+        return;
     }
 
-    Navigation.goBack();
-}
+    const parameters: UpdatePronounsParams = {pronouns};
 
-function updateDisplayName(firstName: string, lastName: string) {
-    if (currentUserAccountID) {
-        const parameters: UpdateDisplayNameParams = {firstName, lastName};
-
-        API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
-            optimisticData: [
-                {
-                    onyxMethod: Onyx.METHOD.MERGE,
-                    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-                    value: {
-                        [currentUserAccountID]: {
-                            firstName,
-                            lastName,
-                            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
-                                firstName,
-                                lastName,
-                            }),
-                        },
-                    },
-                },
-            ],
-        });
-    }
-
-    Navigation.goBack();
-}
-
-function updateLegalName(legalFirstName: string, legalLastName: string) {
-    const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
-
-    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
+    API.write(WRITE_COMMANDS.UPDATE_PRONOUNS, parameters, {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
                 value: {
-                    legalFirstName,
-                    legalLastName,
+                    [currentUserAccountID]: {
+                        pronouns,
+                    },
                 },
             },
         ],
     });
+}
 
+function setDisplayName(firstName: string, lastName: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        [currentUserAccountID]: {
+            firstName,
+            lastName,
+            displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                firstName,
+                lastName,
+            }),
+        },
+    });
+}
+
+function updateDisplayName(firstName: string, lastName: string) {
+    if (!currentUserAccountID) {
+        return;
+    }
+
+    const parameters: UpdateDisplayNameParams = {firstName, lastName};
+
+    API.write(WRITE_COMMANDS.UPDATE_DISPLAY_NAME, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+                value: {
+                    [currentUserAccountID]: {
+                        firstName,
+                        lastName,
+                        displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                            firstName,
+                            lastName,
+                        }),
+                    },
+                },
+            },
+        ],
+    });
+}
+
+function updateLegalName(legalFirstName: string, legalLastName: string) {
+    const parameters: UpdateLegalNameParams = {legalFirstName, legalLastName};
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+            value: {
+                legalFirstName,
+                legalLastName,
+            },
+        },
+    ];
+    // In case the user does not have a display name, we will update the display name based on the legal name
+    if (!allPersonalDetails?.[currentUserAccountID]?.firstName && !allPersonalDetails?.[currentUserAccountID]?.lastName) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: {
+                [currentUserAccountID]: {
+                    displayName: PersonalDetailsUtils.createDisplayName(currentUserEmail ?? '', {
+                        firstName: legalFirstName,
+                        lastName: legalLastName,
+                    }),
+                    firstName: legalFirstName,
+                    lastName: legalLastName,
+                },
+            },
+        });
+    }
+    API.write(WRITE_COMMANDS.UPDATE_LEGAL_NAME, parameters, {
+        optimisticData,
+    });
     Navigation.goBack();
 }
 
@@ -138,6 +175,41 @@ function updateDateOfBirth({dob}: DateOfBirthForm) {
     Navigation.goBack();
 }
 
+function updatePhoneNumber(phoneNumber: string, currenPhoneNumber: string) {
+    const parameters: UpdatePhoneNumberParams = {phoneNumber};
+    API.write(WRITE_COMMANDS.UPDATE_PHONE_NUMBER, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    phoneNumber: currenPhoneNumber,
+                    errorFields: {
+                        phoneNumber: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('privatePersonalDetails.error.invalidPhoneNumber'),
+                    },
+                },
+            },
+        ],
+    });
+}
+
+function clearPhoneNumberError() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errorFields: {
+            phoneNumber: null,
+        },
+    });
+}
+
 function updateAddress(street: string, street2: string, city: string, state: string, zip: string, country: Country | '') {
     const parameters: UpdateHomeAddressParams = {
         homeAddressStreet: street,
@@ -160,13 +232,17 @@ function updateAddress(street: string, street2: string, city: string, state: str
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
                 value: {
-                    address: {
-                        street: PersonalDetailsUtils.getFormattedStreet(street, street2),
-                        city,
-                        state,
-                        zip,
-                        country,
-                    },
+                    addresses: [
+                        ...(privatePersonalDetails?.addresses ?? []),
+                        {
+                            street: PersonalDetailsUtils.getFormattedStreet(street, street2),
+                            city,
+                            state,
+                            zip,
+                            country,
+                            current: true,
+                        },
+                    ],
                 },
             },
         ],
@@ -180,10 +256,6 @@ function updateAddress(street: string, street2: string, city: string, state: str
  * selected timezone if set to automatically update.
  */
 function updateAutomaticTimezone(timezone: Timezone) {
-    if (Session.isAnonymousUser()) {
-        return;
-    }
-
     if (!currentUserAccountID) {
         return;
     }
@@ -241,43 +313,6 @@ function updateSelectedTimezone(selectedTimezone: SelectedTimezone) {
 }
 
 /**
- * Fetches additional personal data like legal name, date of birth, address
- */
-function openPersonalDetails() {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    API.read(READ_COMMANDS.OPEN_PERSONAL_DETAILS, {}, {optimisticData, successData, failureData});
-}
-
-/**
  * Fetches public profile info about a given user.
  * The API will only return the accountID, displayName, and avatar for the user
  * but the profile page will use other info (e.g. contact methods and pronouns) if they are already available in Onyx
@@ -286,7 +321,7 @@ function openPublicProfilePage(accountID: number) {
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: true,
@@ -298,7 +333,7 @@ function openPublicProfilePage(accountID: number) {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: false,
@@ -310,7 +345,7 @@ function openPublicProfilePage(accountID: number) {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            key: ONYXKEYS.PERSONAL_DETAILS_METADATA,
             value: {
                 [accountID]: {
                     isLoading: false,
@@ -423,7 +458,7 @@ function deleteAvatar() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, {}, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.DELETE_USER_AVATAR, null, {optimisticData, failureData});
 }
 
 /**
@@ -447,24 +482,66 @@ function clearAvatarErrors() {
 }
 
 /**
- * Get private personal details value
+ * Clear errors for the current user's personal details
  */
-function getPrivatePersonalDetails(): OnyxEntry<PrivatePersonalDetails> {
-    return privatePersonalDetails;
+function clearPersonalDetailsErrors() {
+    Onyx.merge(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, {
+        errors: null,
+    });
+}
+
+function updatePersonalDetailsAndShipExpensifyCards(values: FormOnyxValues<typeof ONYXKEYS.FORMS.PERSONAL_DETAILS_FORM>, validateCode: string) {
+    const parameters: SetPersonalDetailsAndShipExpensifyCardsParams = {
+        legalFirstName: values.legalFirstName?.trim() ?? '',
+        legalLastName: values.legalLastName?.trim() ?? '',
+        phoneNumber: LoginUtils.appendCountryCode(values.phoneNumber?.trim() ?? ''),
+        addressCity: values.city.trim(),
+        addressStreet: values.addressLine1?.trim() ?? '',
+        addressStreet2: values.addressLine2?.trim() ?? '',
+        addressZip: values.zipPostCode?.trim().toUpperCase() ?? '',
+        addressCountry: values.country,
+        addressState: values.state.trim(),
+        dob: values.dob,
+        validateCode,
+    };
+
+    API.write(WRITE_COMMANDS.SET_PERSONAL_DETAILS_AND_SHIP_EXPENSIFY_CARDS, parameters, {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: true,
+                },
+            },
+        ],
+        finallyData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: ONYXKEYS.PRIVATE_PERSONAL_DETAILS,
+                value: {
+                    isLoading: false,
+                },
+            },
+        ],
+    });
 }
 
 export {
     clearAvatarErrors,
     deleteAvatar,
-    getPrivatePersonalDetails,
-    openPersonalDetails,
     openPublicProfilePage,
     updateAddress,
     updateAutomaticTimezone,
     updateAvatar,
     updateDateOfBirth,
+    setDisplayName,
     updateDisplayName,
     updateLegalName,
+    updatePhoneNumber,
+    clearPhoneNumberError,
     updatePronouns,
     updateSelectedTimezone,
+    updatePersonalDetailsAndShipExpensifyCards,
+    clearPersonalDetailsErrors,
 };

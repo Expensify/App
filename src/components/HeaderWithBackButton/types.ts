@@ -1,9 +1,13 @@
 import type {ReactNode} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {Action} from '@hooks/useSingleExecution';
-import type {StepCounterParams} from '@src/languages/types';
+import type {StepCounterParams} from '@src/languages/params';
 import type {AnchorPosition} from '@src/styles';
-import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
+import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
 
@@ -35,6 +39,15 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
      * */
     icon?: IconAsset;
 
+    /** Icon Width */
+    iconWidth?: number;
+
+    /** Icon Height */
+    iconHeight?: number;
+
+    /** Any additional styles to pass to the icon container. */
+    iconStyles?: StyleProp<ViewStyle>;
+
     /** Method to trigger when pressing download button of the header */
     onDownloadButtonPress?: () => void;
 
@@ -53,11 +66,8 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a download button */
     shouldShowDownloadButton?: boolean;
 
-    /** Whether we should show a get assistance (question mark) button */
-    shouldShowGetAssistanceButton?: boolean;
-
-    /** Whether we should disable the get assistance button */
-    shouldDisableGetAssistanceButton?: boolean;
+    /** Whether we should show a loading indicator replacing the download button */
+    isDownloading?: boolean;
 
     /** Whether we should show a pin button */
     shouldShowPinButton?: boolean;
@@ -72,10 +82,19 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     shouldSetModalVisibility?: boolean;
 
     /** List of menu items for more(three dots) menu */
-    threeDotsMenuItems?: ThreeDotsMenuItem[];
+    threeDotsMenuItems?: PopoverMenuItem[];
 
     /** The anchor position of the menu */
     threeDotsAnchorPosition?: AnchorPosition;
+
+    /** The anchor alignment of the menu */
+    threeDotsAnchorAlignment?: AnchorAlignment;
+
+    /** Icon displayed on the right of the title */
+    threeDotsMenuIcon?: IconAsset;
+
+    /** The fill color to pass into the icon. */
+    threeDotsMenuIconFill?: string;
 
     /** Whether we should show a close button */
     shouldShowCloseButton?: boolean;
@@ -83,14 +102,11 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** Whether we should show a back button */
     shouldShowBackButton?: boolean;
 
-    /** The guides call taskID to associate with the get assistance button, if we show it */
-    guidesCallTaskID?: string;
-
     /** Data to display a step counter in the header */
     stepCounter?: StepCounterParams;
 
-    /** Whether we should show an avatar */
-    shouldShowAvatarWithDisplay?: boolean;
+    /** Whether we should show a report avatar */
+    shouldShowReportAvatarWithDisplay?: boolean;
 
     /** Parent report, if provided it will override props.report for AvatarWithDisplay */
     parentReport?: OnyxEntry<Report>;
@@ -101,14 +117,14 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
     /** The report's policy, if we're showing the details for a report and need info about it for AvatarWithDisplay */
     policy?: OnyxEntry<Policy>;
 
-    /** Policies, if we're showing the details for a report and need participant details for AvatarWithDisplay */
-    personalDetails?: OnyxCollection<PersonalDetails>;
-
     /** Single execution function to prevent concurrent navigation actions */
     singleExecution?: <T extends unknown[]>(action: Action<T>) => Action<T>;
 
     /** Whether we should navigate to report page when the route have a topMostReport  */
     shouldNavigateToTopMostReport?: boolean;
+
+    /** Whether the header should use the headline header style */
+    shouldUseHeadlineHeader?: boolean;
 
     /** The fill color for the icon. Can be hex, rgb, rgba, or valid react-native named color such as 'red' or 'blue'. */
     iconFill?: string;
@@ -121,6 +137,24 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** Whether we should overlay the 3 dots menu */
     shouldOverlayDots?: boolean;
+
+    /** Whether we should display the button that opens the Help Panel */
+    shouldDisplayHelpButton?: boolean;
+
+    /** Whether we should display the button that opens new SearchRouter */
+    shouldDisplaySearchRouter?: boolean;
+
+    /** 0 - 100 number indicating current progress of the progress bar */
+    progressBarPercentage?: number;
+
+    /** Policy avatar to display in the header */
+    policyAvatar?: Icon;
+
+    /** Additional styles to add to the component */
+    style?: StyleProp<ViewStyle>;
+
+    /** The URL link associated with the attachment's subtitle, if available */
+    subTitleLink?: string;
 };
 
 export type {ThreeDotsMenuItem};

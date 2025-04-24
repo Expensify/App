@@ -1,0 +1,20 @@
+ - (void)_setShowSoftInputOnFocus:(BOOL)showSoftInputOnFocus
+diff --git a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+index 694b789..f1c148e 100644
+--- a/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
++++ b/node_modules/react-native/ReactCommon/react/renderer/components/textinput/platform/android/react/renderer/components/androidtextinput/AndroidTextInputShadowNode.cpp
+@@ -183,14 +183,6 @@ void AndroidTextInputShadowNode::updateStateIfNeeded() {
+ Size AndroidTextInputShadowNode::measureContent(
+     const LayoutContext& layoutContext,
+     const LayoutConstraints& layoutConstraints) const {
+-  if (getStateData().cachedAttributedStringId != 0) {
+-    return textLayoutManager_
+-        ->measureCachedSpannableById(
+-            getStateData().cachedAttributedStringId,
+-            getConcreteProps().paragraphAttributes,
+-            layoutConstraints)
+-        .size;
+-  }
+ 
+   // Layout is called right after measure.
+   // Measure is marked as `const`, and `layout` is not; so State can be updated

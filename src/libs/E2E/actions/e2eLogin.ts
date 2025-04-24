@@ -43,7 +43,7 @@ export default function (): Promise<boolean> {
 
     // Subscribe to auth token, to check if we are authenticated
     return new Promise((resolve, reject) => {
-        const connectionId = Onyx.connect({
+        const connection = Onyx.connect({
             key: ONYXKEYS.SESSION,
             callback: (session) => {
                 if (session?.authToken == null || session.authToken.length === 0) {
@@ -52,9 +52,10 @@ export default function (): Promise<boolean> {
                     // authenticate with a predefined user
                     console.debug('[E2E] Signing in…');
                     Authenticate(e2eUserCredentials)
-                        .then((response) => {
+                        ?.then((response) => {
                             Onyx.merge(ONYXKEYS.SESSION, {
                                 authToken: response.authToken,
+                                creationDate: new Date().getTime(),
                                 email: e2eUserCredentials.email,
                             });
                             console.debug('[E2E] Signed in finished!');
@@ -67,7 +68,7 @@ export default function (): Promise<boolean> {
                 }
                 // signal that auth was completed
                 resolve(neededLogin);
-                Onyx.disconnect(connectionId);
+                Onyx.disconnect(connection);
             },
         });
     });

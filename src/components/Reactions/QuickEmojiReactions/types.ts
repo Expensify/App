@@ -3,7 +3,7 @@ import type {TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {Emoji} from '@assets/emojis/types';
 import type {AnchorOrigin} from '@userActions/EmojiPickerAction';
-import type {Locale, ReportAction, ReportActionReactions} from '@src/types/onyx';
+import type {ReportAction, ReportActionReactions} from '@src/types/onyx';
 
 type PickerRefElement = RefObject<TextInput | View>;
 
@@ -18,7 +18,7 @@ type BaseReactionsProps = {
     /**
      * Will be called when the emoji picker is about to show.
      */
-    onWillShowPicker?: (callback: CloseContextMenuCallback) => void;
+    onWillShowPicker?: (callback?: CloseContextMenuCallback) => void;
 
     /**
      * Callback to fire when the "open emoji picker" button is pressed.
@@ -32,27 +32,21 @@ type BaseReactionsProps = {
 
     /** Id of the ReportAction for EmojiPicker. */
     reportActionID: string;
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-type BaseQuickEmojiReactionsOnyxProps = {
-    /** All the emoji reactions for the report action. */
-    emojiReactions: OnyxEntry<ReportActionReactions>;
-
-    /** The user's preferred locale. */
-    preferredLocale: OnyxEntry<Locale>;
-
-    /** The user's preferred skin tone. */
-    preferredSkinTone: OnyxEntry<string | number>;
-};
-
-type BaseQuickEmojiReactionsProps = BaseReactionsProps & BaseQuickEmojiReactionsOnyxProps;
+type BaseQuickEmojiReactionsProps = BaseReactionsProps;
 
 type QuickEmojiReactionsProps = BaseReactionsProps & {
     /**
      * Function that can be called to close the context menu
      * in which this component is rendered.
      */
-    closeContextMenu: (callback: CloseContextMenuCallback) => void;
+    closeContextMenu: (callback?: CloseContextMenuCallback) => void;
+
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
-export type {BaseQuickEmojiReactionsProps, BaseQuickEmojiReactionsOnyxProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, PickerRefElement};
+export type {BaseQuickEmojiReactionsProps, QuickEmojiReactionsProps, OpenPickerCallback, CloseContextMenuCallback, PickerRefElement};

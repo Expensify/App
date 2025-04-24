@@ -1,23 +1,7 @@
 import Config from '../../../tests/e2e/config';
 import Routes from '../../../tests/e2e/server/routes';
-import type {NetworkCacheMap, TestConfig} from './types';
-
-type TestResult = {
-    /** Name of the test */
-    name: string;
-
-    /** The branch where test were running */
-    branch?: string;
-
-    /** Duration in milliseconds */
-    duration?: number;
-
-    /** Optional, if set indicates that the test run failed and has no valid results. */
-    error?: string;
-
-    /** Render count */
-    renderCount?: number;
-};
+import type {NetworkCacheMap, TestConfig, TestResult} from './types';
+import {waitForActiveRequestsToBeEmpty} from './utils/NetworkInterceptor';
 
 type NativeCommandPayload = {
     text: string;
@@ -39,8 +23,8 @@ const defaultRequestInit: RequestInit = {
     headers: defaultHeaders,
 };
 
-const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> =>
-    fetch(url, {
+const sendRequest = (url: string, data: Record<string, unknown>): Promise<Response> => {
+    return fetch(url, {
         method: 'POST',
         headers: {
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -62,6 +46,7 @@ const sendRequest = (url: string, data: Record<string, unknown>): Promise<Respon
                 throw new Error(errorMsg);
             });
     });
+};
 
 /**
  * Submits a test result to the server.
@@ -74,7 +59,7 @@ const submitTestResults = (testResult: TestResult): Promise<void> => {
     });
 };
 
-const submitTestDone = () => fetch(`${SERVER_ADDRESS}${Routes.testDone}`, defaultRequestInit);
+const submitTestDone = () => waitForActiveRequestsToBeEmpty().then(() => fetch(`${SERVER_ADDRESS}${Routes.testDone}`, defaultRequestInit));
 
 let currentActiveTestConfig: TestConfig | null = null;
 
@@ -122,4 +107,4 @@ export default {
     updateNetworkCache,
     getNetworkCache,
 };
-export type {TestResult, NativeCommand};
+export type {TestResult, NativeCommand, NativeCommandPayload};

@@ -26,7 +26,7 @@ type KeyboardShortcutConfig = {
  * Register a keyboard shortcut handler.
  * Recommendation: To ensure stability, wrap the `callback` function with the useCallback hook before using it with this hook.
  */
-export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: GestureResponderEvent | KeyboardEvent) => void, config: KeyboardShortcutConfig | Record<string, never> = {}) {
+export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: GestureResponderEvent | KeyboardEvent) => void, config: KeyboardShortcutConfig = {}) {
     const {
         captureOnInputs = true,
         shouldBubble = false,
@@ -63,6 +63,6 @@ export default function useKeyboardShortcut(shortcut: Shortcut, callback: (e?: G
         return () => {
             unsubscribe();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [isActive, callback, captureOnInputs, excludedNodes, priority, shortcut.descriptionKey, shortcut.modifiers.join(), shortcut.shortcutKey, shouldBubble, shouldPreventDefault]);
 }

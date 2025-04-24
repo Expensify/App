@@ -1,79 +1,93 @@
-import PropTypes from 'prop-types';
-import type {ComponentType, ForwardedRef, ReactElement, RefAttributes} from 'react';
-import React, {createContext, forwardRef, useEffect, useMemo, useState} from 'react';
-import {Keyboard} from 'react-native';
-import getComponentDisplayName from '@libs/getComponentDisplayName';
+import type {MutableRefObject, ReactElement} from 'react';
+import React, {createContext, useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {KeyboardEvents, useKeyboardHandler} from 'react-native-keyboard-controller';
+import {runOnJS} from 'react-native-reanimated';
+import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
+import getKeyboardHeight from '@libs/getKeyboardHeight';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 
 type KeyboardStateContextValue = {
     /** Whether the keyboard is open */
     isKeyboardShown: boolean;
 
+    /** Whether the keyboard is animating or shown */
+    isKeyboardActive: boolean;
+
     /** Height of the keyboard in pixels */
     keyboardHeight: number;
-};
 
-// TODO: Remove - left for backwards compatibility with existing components (https://github.com/Expensify/App/issues/25151)
-const keyboardStatePropTypes = {
-    /** Whether the keyboard is open */
-    isKeyboardShown: PropTypes.bool.isRequired,
-
-    /** Height of the keyboard in pixels */
-    keyboardHeight: PropTypes.number.isRequired,
+    /** Ref to check if the keyboard is animating */
+    isKeyboardAnimatingRef: MutableRefObject<boolean>;
 };
 
 const KeyboardStateContext = createContext<KeyboardStateContextValue>({
     isKeyboardShown: false,
+    isKeyboardActive: false,
     keyboardHeight: 0,
+    isKeyboardAnimatingRef: {current: false},
 });
 
 function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
+    const {bottom} = useSafeAreaInsets();
     const [keyboardHeight, setKeyboardHeight] = useState(0);
+    const isKeyboardAnimatingRef = useRef(false);
+    const [isKeyboardActive, setIsKeyboardActive] = useState(false);
 
     useEffect(() => {
-        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', (e) => {
-            setKeyboardHeight(e.endCoordinates.height);
+        const keyboardDidShowListener = KeyboardEvents.addListener('keyboardDidShow', (e) => {
+            setKeyboardHeight(getKeyboardHeight(e.height, bottom));
+            setIsKeyboardActive(true);
         });
-        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+        const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
             setKeyboardHeight(0);
+            setIsKeyboardActive(false);
+        });
+        const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', () => {
+            setIsKeyboardActive(true);
+        });
+        const keyboardWillHideListener = KeyboardEvents.addListener('keyboardWillHide', () => {
+            setIsKeyboardActive(false);
         });
 
         return () => {
             keyboardDidShowListener.remove();
             keyboardDidHideListener.remove();
+            keyboardWillShowListener.remove();
+            keyboardWillHideListener.remove();
         };
+    }, [bottom]);
+
+    const setIsKeyboardAnimating = useCallback((isAnimating: boolean) => {
+        isKeyboardAnimatingRef.current = isAnimating;
     }, []);
+
+    useKeyboardHandler(
+        {
+            onStart: () => {
+                'worklet';
+
+                runOnJS(setIsKeyboardAnimating)(true);
+            },
+            onEnd: () => {
+                'worklet';
+
+                runOnJS(setIsKeyboardAnimating)(false);
+            },
+        },
+        [],
+    );
 
     const contextValue = useMemo(
         () => ({
             keyboardHeight,
             isKeyboardShown: keyboardHeight !== 0,
+            isKeyboardAnimatingRef,
+            isKeyboardActive,
         }),
-        [keyboardHeight],
+        [isKeyboardActive, keyboardHeight],
     );
     return <KeyboardStateContext.Provider value={contextValue}>{children}</KeyboardStateContext.Provider>;
 }
 
-export default function withKeyboardState<TProps extends KeyboardStateContextValue, TRef>(
-    WrappedComponent: ComponentType<TProps & RefAttributes<TRef>>,
-): (props: Omit<TProps, keyof KeyboardStateContextValue> & React.RefAttributes<TRef>) => ReactElement | null {
-    function WithKeyboardState(props: Omit<TProps, keyof KeyboardStateContextValue>, ref: ForwardedRef<TRef>) {
-        return (
-            <KeyboardStateContext.Consumer>
-                {(keyboardStateProps) => (
-                    <WrappedComponent
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...keyboardStateProps}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...(props as TProps)}
-                        ref={ref}
-                    />
-                )}
-            </KeyboardStateContext.Consumer>
-        );
-    }
-    WithKeyboardState.displayName = `withKeyboardState(${getComponentDisplayName(WrappedComponent)})`;
-    return forwardRef(WithKeyboardState);
-}
-
-export {KeyboardStateProvider, keyboardStatePropTypes, type KeyboardStateContextValue, KeyboardStateContext};
+export type {KeyboardStateContextValue};
+export {KeyboardStateProvider, KeyboardStateContext};

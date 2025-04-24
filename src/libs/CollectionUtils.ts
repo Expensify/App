@@ -17,7 +17,7 @@ function lastItem<T>(object: Record<string, T> = {}): T | undefined {
  * e.g. reportActions_1 -> 1
  */
 function extractCollectionItemID(key: `${OnyxCollectionKey}${string}`): string {
-    return key.split('_')[1];
+    return key.split('_').at(1) ?? '';
 }
 
 export {lastItem, extractCollectionItemID};

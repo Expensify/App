@@ -30,6 +30,10 @@ export default {
         flex: 4,
     },
 
+    flex5: {
+        flex: 5,
+    },
+
     flexRow: {
         flexDirection: 'row',
     },
@@ -59,6 +63,10 @@ export default {
 
     justifyContentAround: {
         justifyContent: 'space-around',
+    },
+
+    justifyContentEvenly: {
+        justifyContent: 'space-evenly',
     },
 
     alignSelfStretch: {
@@ -131,6 +139,10 @@ export default {
 
     flexBasisAuto: {
         flexBasis: 'auto',
+    },
+
+    flexBasis100: {
+        flexBasis: '100%',
     },
 
     flexBasis0: {

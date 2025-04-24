@@ -1,21 +1,30 @@
-import Str from 'expensify-common/lib/str';
+import {Str} from 'expensify-common';
+import lodashMapValues from 'lodash/mapValues';
 import lodashSortBy from 'lodash/sortBy';
 import type {ForwardedRef} from 'react';
-import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
+import React, {forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import type {OnyxCollection} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import * as Expensicons from '@components/Icon/Expensicons';
 import type {Mention} from '@components/MentionSuggestions';
 import MentionSuggestions from '@components/MentionSuggestions';
 import {usePersonalDetails} from '@components/OnyxProvider';
 import useArrowKeyFocusManager from '@hooks/useArrowKeyFocusManager';
+import useCurrentReportID from '@hooks/useCurrentReportID';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDebounce from '@hooks/useDebounce';
 import useLocalize from '@hooks/useLocalize';
-import usePrevious from '@hooks/usePrevious';
-import * as LoginUtils from '@libs/LoginUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as SuggestionsUtils from '@libs/SuggestionUtils';
-import * as UserUtils from '@libs/UserUtils';
+import localeCompare from '@libs/LocaleCompare';
+import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
+import {getDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import getPolicyEmployeeAccountIDs from '@libs/PolicyEmployeeListUtils';
+import {canReportBeMentionedWithinPolicy, doesReportBelongToWorkspace, getDisplayNameForParticipant, isGroupChat, isReportParticipant} from '@libs/ReportUtils';
+import {trimLeadingSpace} from '@libs/SuggestionUtils';
+import {isValidRoomName} from '@libs/ValidationUtils';
+import {searchInServer} from '@userActions/Report';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import type {SuggestionsRef} from './ReportActionCompose';
 import type {SuggestionProps} from './Suggestions';
 
@@ -24,6 +33,7 @@ type SuggestionValues = {
     atSignIndex: number;
     shouldShowSuggestionMenu: boolean;
     mentionPrefix: string;
+    prefixType: string;
 };
 
 /**
@@ -36,19 +46,86 @@ const defaultSuggestionsValues: SuggestionValues = {
     atSignIndex: -1,
     shouldShowSuggestionMenu: false,
     mentionPrefix: '',
+    prefixType: '',
 };
 
+type SuggestionPersonalDetailsList = Record<
+    string,
+    | (PersonalDetails & {
+          weight: number;
+      })
+    | null
+>;
+
+function getDisplayName(details: PersonalDetails) {
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID});
+    if (!displayNameFromAccountID) {
+        return details.login?.length ? details.login : '';
+    }
+    return displayNameFromAccountID;
+}
+
+/**
+ * Comparison function to sort users. It compares weights, display names, and accountIDs in that order
+ */
+function compareUserInList(first: PersonalDetails & {weight: number}, second: PersonalDetails & {weight: number}) {
+    if (first.weight !== second.weight) {
+        return first.weight - second.weight;
+    }
+
+    const displayNameLoginOrder = localeCompare(getDisplayName(first), getDisplayName(second));
+    if (displayNameLoginOrder !== 0) {
+        return displayNameLoginOrder;
+    }
+
+    return first.accountID - second.accountID;
+}
+
 function SuggestionMention(
-    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainer, isComposerFocused}: SuggestionProps,
+    {value, selection, setSelection, updateComment, isAutoSuggestionPickerLarge, measureParentContainerAndReportCursor, isComposerFocused, isGroupPolicyReport, policyID}: SuggestionProps,
     ref: ForwardedRef<SuggestionsRef>,
 ) {
-    const personalDetails = usePersonalDetails() ?? CONST.EMPTY_OBJECT;
+    const personalDetails = usePersonalDetails();
     const {translate, formatPhoneNumber} = useLocalize();
-    const previousValue = usePrevious(value);
     const [suggestionValues, setSuggestionValues] = useState(defaultSuggestionsValues);
+    const suggestionValuesRef = useRef(suggestionValues);
+    // eslint-disable-next-line react-compiler/react-compiler
+    suggestionValuesRef.current = suggestionValues;
+
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const isMentionSuggestionsMenuVisible = !!suggestionValues.suggestedMentions.length && suggestionValues.shouldShowSuggestionMenu;
+
+    const currentReportID = useCurrentReportID();
+    const currentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${currentReportID?.currentReportID}`];
+    // Smaller weight means higher order in suggestion list
+    const getPersonalDetailsWeight = useCallback(
+        (detail: PersonalDetails, policyEmployeeAccountIDs: number[]): number => {
+            if (isReportParticipant(detail.accountID, currentReport)) {
+                return 0;
+            }
+            if (policyEmployeeAccountIDs.includes(detail.accountID)) {
+                return 1;
+            }
+            return 2;
+        },
+        [currentReport],
+    );
+    const weightedPersonalDetails: PersonalDetailsList | SuggestionPersonalDetailsList | undefined = useMemo(() => {
+        const policyEmployeeAccountIDs = getPolicyEmployeeAccountIDs(policyID);
+        if (!isGroupChat(currentReport) && !doesReportBelongToWorkspace(currentReport, policyEmployeeAccountIDs, policyID)) {
+            return personalDetails;
+        }
+        return lodashMapValues(personalDetails, (detail) =>
+            detail
+                ? {
+                      ...detail,
+                      weight: getPersonalDetailsWeight(detail, policyEmployeeAccountIDs),
+                  }
+                : null,
+        );
+    }, [policyID, currentReport, personalDetails, getPersonalDetailsWeight]);
 
     const [highlightedMentionIndex, setHighlightedMentionIndex] = useArrowKeyFocusManager({
         isActive: isMentionSuggestionsMenuVisible,
@@ -56,8 +133,35 @@ function SuggestionMention(
         shouldExcludeTextAreaNodes: false,
     });
 
+    // Used to store the selection index of the last inserted mention
+    const suggestionInsertionIndexRef = useRef<number | null>(null);
+
+    // Used to detect if the selection has changed since the last suggestion insertion
+    // If so, we reset the suggestionInsertionIndexRef
+    // eslint-disable-next-line react-compiler/react-compiler
+    const hasSelectionChanged = !(selection.end === selection.start && selection.start === suggestionInsertionIndexRef.current);
+    if (hasSelectionChanged) {
+        // eslint-disable-next-line react-compiler/react-compiler
+        suggestionInsertionIndexRef.current = null;
+    }
+
     // Used to decide whether to block the suggestions list from showing to prevent flickering
     const shouldBlockCalc = useRef(false);
+
+    /**
+     * Search for reports suggestions in server.
+     *
+     * The function is debounced to not perform requests on every keystroke.
+     */
+    const debouncedSearchInServer = useDebounce(
+        useCallback(() => {
+            const foundSuggestionsCount = suggestionValues.suggestedMentions.length;
+            if (suggestionValues.prefixType === '#' && foundSuggestionsCount < 5 && isGroupPolicyReport) {
+                searchInServer(suggestionValues.mentionPrefix, policyID);
+            }
+        }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, suggestionValues.mentionPrefix, policyID, isGroupPolicyReport]),
+        CONST.TIMING.SEARCH_OPTION_LIST_DEBOUNCE_TIME,
+    );
 
     const formatLoginPrivateDomain = useCallback(
         (displayText = '', userLogin = '') => {
@@ -65,14 +169,25 @@ function SuggestionMention(
                 return displayText;
             }
             // If the emails are not in the same private domain, we also return the displayText
-            if (!LoginUtils.areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
+            if (!areEmailsFromSamePrivateDomain(displayText, currentUserPersonalDetails.login ?? '')) {
                 return Str.removeSMSDomain(displayText);
             }
 
             // Otherwise, the emails must be of the same private domain, so we should remove the domain part
-            return displayText.split('@')[0];
+            return displayText.split('@').at(0);
         },
         [currentUserPersonalDetails.login],
+    );
+
+    const getMentionCode = useCallback(
+        (mention: Mention, mentionType: string): string => {
+            if (mentionType === '#') {
+                // room mention case
+                return mention.handle ?? '';
+            }
+            return mention.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT : `@${formatLoginPrivateDomain(mention.handle, mention.handle)}`;
+        },
+        [formatLoginPrivateDomain],
     );
 
     /**
@@ -81,24 +196,36 @@ function SuggestionMention(
     const insertSelectedMention = useCallback(
         (highlightedMentionIndexInner: number) => {
             const commentBeforeAtSign = value.slice(0, suggestionValues.atSignIndex);
-            const mentionObject = suggestionValues.suggestedMentions[highlightedMentionIndexInner];
-            const mentionCode =
-                mentionObject.text === CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
-                    ? CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT
-                    : `@${formatLoginPrivateDomain(mentionObject.login, mentionObject.login)}`;
+            const mentionObject = suggestionValues.suggestedMentions.at(highlightedMentionIndexInner);
+            if (!mentionObject || highlightedMentionIndexInner === -1) {
+                return;
+            }
+            const mentionCode = getMentionCode(mentionObject, suggestionValues.prefixType);
             const commentAfterMention = value.slice(suggestionValues.atSignIndex + suggestionValues.mentionPrefix.length + 1);
 
-            updateComment(`${commentBeforeAtSign}${mentionCode} ${SuggestionsUtils.trimLeadingSpace(commentAfterMention)}`, true);
+            updateComment(`${commentBeforeAtSign}${mentionCode} ${trimLeadingSpace(commentAfterMention)}`, true);
+            const selectionPosition = suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH;
             setSelection({
-                start: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
-                end: suggestionValues.atSignIndex + mentionCode.length + CONST.SPACE_LENGTH,
+                start: selectionPosition,
+                end: selectionPosition,
             });
+            suggestionInsertionIndexRef.current = selectionPosition;
             setSuggestionValues((prevState) => ({
                 ...prevState,
                 suggestedMentions: [],
+                shouldShowSuggestionMenu: false,
             }));
         },
-        [value, suggestionValues.atSignIndex, suggestionValues.suggestedMentions, suggestionValues.mentionPrefix, updateComment, setSelection, formatLoginPrivateDomain],
+        [
+            value,
+            suggestionValues.atSignIndex,
+            suggestionValues.suggestedMentions,
+            suggestionValues.prefixType,
+            suggestionValues.mentionPrefix.length,
+            getMentionCode,
+            updateComment,
+            setSelection,
+        ],
     );
 
     /**
@@ -136,8 +263,8 @@ function SuggestionMention(
         [highlightedMentionIndex, insertSelectedMention, resetSuggestions, suggestionValues.suggestedMentions.length],
     );
 
-    const getMentionOptions = useCallback(
-        (personalDetailsParam: PersonalDetailsList, searchValue = ''): Mention[] => {
+    const getUserMentionOptions = useCallback(
+        (personalDetailsParam: PersonalDetailsList | SuggestionPersonalDetailsList | undefined, searchValue = ''): Mention[] => {
             const suggestions = [];
 
             if (CONST.AUTO_COMPLETE_SUGGESTER.HERE_TEXT.includes(searchValue.toLowerCase())) {
@@ -153,6 +280,8 @@ function SuggestionMention(
                 });
             }
 
+            // Create a set to track logins that have already been seen
+            const seenLogins = new Set<string>();
             const filteredPersonalDetails = Object.values(personalDetailsParam ?? {}).filter((detail) => {
                 // If we don't have user's primary login, that member is not known to the current user and hence we do not allow them to be mentioned
                 if (!detail?.login || detail.isOptimisticPersonalDetail) {
@@ -162,27 +291,43 @@ function SuggestionMention(
                 if (CONST.RESTRICTED_EMAILS.includes(detail.login) || CONST.RESTRICTED_ACCOUNT_IDS.includes(detail.accountID)) {
                     return false;
                 }
-                const displayName = PersonalDetailsUtils.getDisplayNameOrDefault(detail);
+                const displayName = getDisplayNameOrDefault(detail);
                 const displayText = displayName === formatPhoneNumber(detail.login) ? displayName : `${displayName} ${detail.login}`;
                 if (searchValue && !displayText.toLowerCase().includes(searchValue.toLowerCase())) {
                     return false;
                 }
-                return true;
-            });
 
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- nullish coalescing cannot be used if left side can be empty string
-            const sortedPersonalDetails = lodashSortBy(filteredPersonalDetails, (detail) => detail?.displayName || detail?.login);
+                // Given the mention is inserted by user, we don't want to show the mention options unless the
+                // selection index changes. In that case, suggestionInsertionIndexRef.current will be null.
+                // See https://github.com/Expensify/App/issues/38358 for more context
+                if (suggestionInsertionIndexRef.current) {
+                    return false;
+                }
+
+                // on staging server, in specific cases (see issue) BE returns duplicated personalDetails
+                // entries with the same `login` which we need to filter out
+                if (seenLogins.has(detail.login)) {
+                    return false;
+                }
+                seenLogins.add(detail.login);
+                return true;
+            }) as Array<PersonalDetails & {weight: number}>;
+
+            // At this point we are sure that the details are not null, since empty user details have been filtered in the previous step
+            const sortedPersonalDetails = filteredPersonalDetails.sort(compareUserInList);
+
             sortedPersonalDetails.slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS - suggestions.length).forEach((detail) => {
                 suggestions.push({
-                    text: formatLoginPrivateDomain(PersonalDetailsUtils.getDisplayNameOrDefault(detail), detail?.login),
+                    text: formatLoginPrivateDomain(getDisplayNameOrDefault(detail), detail?.login),
                     alternateText: `@${formatLoginPrivateDomain(detail?.login, detail?.login)}`,
-                    login: detail?.login,
+                    handle: detail?.login,
                     icons: [
                         {
                             name: detail?.login,
-                            source: UserUtils.getAvatar(detail?.avatar, detail?.accountID),
+                            source: detail?.avatar ?? Expensicons.FallbackAvatar,
                             type: CONST.ICON_TYPE_AVATAR,
                             fallbackIcon: detail?.fallbackIcon,
+                            id: detail?.accountID,
                         },
                     ],
                 });
@@ -193,46 +338,59 @@ function SuggestionMention(
         [translate, formatPhoneNumber, formatLoginPrivateDomain],
     );
 
+    const getRoomMentionOptions = useCallback(
+        (searchTerm: string, reportBatch: OnyxCollection<Report>): Mention[] => {
+            const filteredRoomMentions: Mention[] = [];
+            Object.values(reportBatch ?? {}).forEach((report) => {
+                if (!canReportBeMentionedWithinPolicy(report, policyID)) {
+                    return;
+                }
+                if (report?.reportName?.toLowerCase().includes(searchTerm.toLowerCase())) {
+                    filteredRoomMentions.push({
+                        text: report.reportName,
+                        handle: report.reportName,
+                        alternateText: report.reportName,
+                    });
+                }
+            });
+
+            return lodashSortBy(filteredRoomMentions, 'handle').slice(0, CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS);
+        },
+        [policyID],
+    );
+
     const calculateMentionSuggestion = useCallback(
-        (selectionEnd: number) => {
-            if (shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
+        (newValue: string, selectionStart?: number, selectionEnd?: number) => {
+            if (selectionEnd !== selectionStart || !selectionEnd || shouldBlockCalc.current || selectionEnd < 1 || !isComposerFocused) {
                 shouldBlockCalc.current = false;
                 resetSuggestions();
                 return;
             }
 
-            const valueAfterTheCursor = value.substring(selectionEnd);
-            const indexOfFirstSpecialCharOrEmojiAfterTheCursor = valueAfterTheCursor.search(CONST.REGEX.MENTION_BREAKER);
-
-            let suggestionEndIndex;
-            if (indexOfFirstSpecialCharOrEmojiAfterTheCursor === -1) {
-                // We didn't find a special char/whitespace/emoji after the cursor, so we will use the entire string
-                suggestionEndIndex = value.length;
-            } else {
-                suggestionEndIndex = indexOfFirstSpecialCharOrEmojiAfterTheCursor + selectionEnd;
-            }
-
-            const afterLastBreakLineIndex = value.lastIndexOf('\n', selectionEnd - 1) + 1;
-            const leftString = value.substring(afterLastBreakLineIndex, suggestionEndIndex);
+            const afterLastBreakLineIndex = newValue.lastIndexOf('\n', selectionEnd - 1) + 1;
+            const leftString = newValue.substring(afterLastBreakLineIndex, selectionEnd);
             const words = leftString.split(CONST.REGEX.SPACE_OR_EMOJI);
             const lastWord: string = words.at(-1) ?? '';
-            const secondToLastWord = words[words.length - 3];
+            const secondToLastWord = words.at(-3);
 
             let atSignIndex: number | undefined;
             let suggestionWord = '';
             let prefix: string;
+            let prefixType = '';
 
             // Detect if the last two words contain a mention (two words are needed to detect a mention with a space in it)
-            if (lastWord.startsWith('@')) {
+            if (lastWord.startsWith('@') || lastWord.startsWith('#')) {
                 atSignIndex = leftString.lastIndexOf(lastWord) + afterLastBreakLineIndex;
                 suggestionWord = lastWord;
 
                 prefix = suggestionWord.substring(1);
+                prefixType = suggestionWord.substring(0, 1);
             } else if (secondToLastWord && secondToLastWord.startsWith('@') && secondToLastWord.length > 1) {
                 atSignIndex = leftString.lastIndexOf(secondToLastWord) + afterLastBreakLineIndex;
                 suggestionWord = `${secondToLastWord} ${lastWord}`;
 
                 prefix = suggestionWord.substring(1);
+                prefixType = suggestionWord.substring(0, 1);
             } else {
                 prefix = lastWord.substring(1);
             }
@@ -241,15 +399,28 @@ function SuggestionMention(
                 suggestedMentions: [],
                 atSignIndex,
                 mentionPrefix: prefix,
+                prefixType,
             };
 
-            const isCursorBeforeTheMention = valueAfterTheCursor.startsWith(suggestionWord);
-
-            if (!isCursorBeforeTheMention && isMentionCode(suggestionWord)) {
-                const suggestions = getMentionOptions(personalDetails, prefix);
-
+            if (isMentionCode(suggestionWord) && prefixType === '@') {
+                const suggestions = getUserMentionOptions(weightedPersonalDetails, prefix);
                 nextState.suggestedMentions = suggestions;
                 nextState.shouldShowSuggestionMenu = !!suggestions.length;
+            }
+
+            const shouldDisplayRoomMentionsSuggestions = isGroupPolicyReport && (isValidRoomName(suggestionWord.toLowerCase()) || prefix === '');
+            if (prefixType === '#' && shouldDisplayRoomMentionsSuggestions) {
+                // Filter reports by room name and current policy
+                nextState.suggestedMentions = getRoomMentionOptions(prefix, reports);
+
+                // Even if there are no reports, we should show the suggestion menu - to perform live search
+                nextState.shouldShowSuggestionMenu = true;
+            }
+
+            // Early return if there is no update
+            const currentState = suggestionValuesRef.current;
+            if (currentState.suggestedMentions.length === 0 && nextState.suggestedMentions?.length === 0) {
+                return;
             }
 
             setSuggestionValues((prevState) => ({
@@ -258,19 +429,16 @@ function SuggestionMention(
             }));
             setHighlightedMentionIndex(0);
         },
-        [getMentionOptions, personalDetails, resetSuggestions, setHighlightedMentionIndex, value, isComposerFocused],
+        [isComposerFocused, isGroupPolicyReport, setHighlightedMentionIndex, resetSuggestions, getUserMentionOptions, weightedPersonalDetails, getRoomMentionOptions, reports],
     );
 
     useEffect(() => {
-        if (value.length < previousValue.length) {
-            // A workaround to not show the suggestions list when the user deletes a character before the mention.
-            // It is caused by a buggy behavior of the TextInput on iOS. Should be fixed after migration to Fabric.
-            // See: https://github.com/facebook/react-native/pull/36930#issuecomment-1593028467
-            return;
-        }
+        calculateMentionSuggestion(value, selection.start, selection.end);
+    }, [value, selection, calculateMentionSuggestion]);
 
-        calculateMentionSuggestion(selection.end);
-    }, [selection, value, previousValue, calculateMentionSuggestion]);
+    useEffect(() => {
+        debouncedSearchInServer();
+    }, [suggestionValues.suggestedMentions.length, suggestionValues.prefixType, policyID, value, debouncedSearchInServer]);
 
     const updateShouldShowSuggestionMenuToFalse = useCallback(() => {
         setSuggestionValues((prevState) => {
@@ -289,6 +457,7 @@ function SuggestionMention(
     );
 
     const getSuggestions = useCallback(() => suggestionValues.suggestedMentions, [suggestionValues]);
+    const getIsSuggestionsMenuVisible = useCallback(() => isMentionSuggestionsMenuVisible, [isMentionSuggestionsMenuVisible]);
 
     useImperativeHandle(
         ref,
@@ -298,8 +467,9 @@ function SuggestionMention(
             setShouldBlockSuggestionCalc,
             updateShouldShowSuggestionMenuToFalse,
             getSuggestions,
+            getIsSuggestionsMenuVisible,
         }),
-        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions],
+        [resetSuggestions, setShouldBlockSuggestionCalc, triggerHotkeyActions, updateShouldShowSuggestionMenuToFalse, getSuggestions, getIsSuggestionsMenuVisible],
     );
 
     if (!isMentionSuggestionsMenuVisible) {
@@ -313,7 +483,8 @@ function SuggestionMention(
             prefix={suggestionValues.mentionPrefix}
             onSelect={insertSelectedMention}
             isMentionPickerLarge={!!isAutoSuggestionPickerLarge}
-            measureParentContainer={measureParentContainer}
+            measureParentContainerAndReportCursor={measureParentContainerAndReportCursor}
+            resetSuggestions={resetSuggestions}
         />
     );
 }
@@ -321,3 +492,5 @@ function SuggestionMention(
 SuggestionMention.displayName = 'SuggestionMention';
 
 export default forwardRef(SuggestionMention);
+
+export {compareUserInList};

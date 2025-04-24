@@ -200,18 +200,20 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
         const sizes: number[] = [];
         let columnIndex = -1;
 
-        if (table[rowIndex].length > mostCellsPerRow) {
-            mostCellsPerRow = table[rowIndex].length;
+        const rowData = table.at(rowIndex) ?? [];
+
+        if (rowData.length > mostCellsPerRow) {
+            mostCellsPerRow = rowData.length;
         }
 
-        while (++columnIndex < table[rowIndex].length) {
-            const cell = serialize(table[rowIndex][columnIndex]);
+        while (++columnIndex < rowData.length) {
+            const cell = serialize(rowData.at(columnIndex));
 
             if (options.alignDelimiters !== false) {
                 const size = stringLength(cell);
                 sizes[columnIndex] = size;
 
-                if (longestCellByColumn[columnIndex] === undefined || size > longestCellByColumn[columnIndex]) {
+                if (longestCellByColumn.at(columnIndex) === undefined || size > (longestCellByColumn.at(columnIndex) ?? 0)) {
                     longestCellByColumn[columnIndex] = size;
                 }
             }
@@ -228,7 +230,7 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
 
     if (typeof align === 'object' && 'length' in align) {
         while (++columnIndex < mostCellsPerRow) {
-            alignments[columnIndex] = toAlignment(align[columnIndex]);
+            alignments[columnIndex] = toAlignment(align.at(columnIndex));
         }
     } else {
         const code = toAlignment(align);
@@ -244,7 +246,7 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
     const sizes: number[] = [];
 
     while (++columnIndex < mostCellsPerRow) {
-        const code = alignments[columnIndex];
+        const code = alignments.at(columnIndex);
         let before = '';
         let after = '';
 
@@ -258,14 +260,14 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
         }
 
         // There *must* be at least one hyphen-minus in each alignment cell.
-        let size = options.alignDelimiters === false ? 1 : Math.max(1, longestCellByColumn[columnIndex] - before.length - after.length);
+        let size = options.alignDelimiters === false ? 1 : Math.max(1, (longestCellByColumn.at(columnIndex) ?? 0) - before.length - after.length);
 
         const cell = before + '-'.repeat(size) + after;
 
         if (options.alignDelimiters !== false) {
             size = before.length + size + after.length;
 
-            if (size > longestCellByColumn[columnIndex]) {
+            if (size > (longestCellByColumn.at(columnIndex) ?? 0)) {
                 longestCellByColumn[columnIndex] = size;
             }
 
@@ -283,19 +285,19 @@ function markdownTable(table: Array<Array<string | null | undefined>>, options: 
     const lines: string[] = [];
 
     while (++rowIndex < cellMatrix.length) {
-        const matrixRow = cellMatrix[rowIndex];
-        const matrixSizes = sizeMatrix[rowIndex];
+        const matrixRow = cellMatrix.at(rowIndex);
+        const matrixSizes = sizeMatrix.at(rowIndex);
         columnIndex = -1;
         const line: string[] = [];
 
         while (++columnIndex < mostCellsPerRow) {
-            const cell = matrixRow[columnIndex] || '';
+            const cell = matrixRow?.at(columnIndex) ?? '';
             let before = '';
             let after = '';
 
             if (options.alignDelimiters !== false) {
-                const size = longestCellByColumn[columnIndex] - (matrixSizes[columnIndex] || 0);
-                const code = alignments[columnIndex];
+                const size = (longestCellByColumn.at(columnIndex) ?? 0) - (matrixSizes?.at(columnIndex) ?? 0);
+                const code = alignments.at(columnIndex);
 
                 if (code === 114 /* `r` */) {
                     before = ' '.repeat(size);

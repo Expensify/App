@@ -22,18 +22,20 @@ export default function useBasePopoverReactionList({emojiName, emojiReactions, a
                 emojiCodes: [],
                 hasUserReacted: false,
                 users: [],
+                isReady: false,
             };
         }
 
         const {emojiCodes, reactionCount, hasUserReacted, userAccountIDs} = EmojiUtils.getEmojiReactionDetails(emojiName, selectedReaction, accountID);
 
-        const users = PersonalDetailsUtils.getPersonalDetailsByIDs(userAccountIDs, accountID, true);
+        const users = PersonalDetailsUtils.getPersonalDetailsByIDs({accountIDs: userAccountIDs, currentUserAccountID: accountID, shouldChangeUserDisplayName: true});
         return {
             emojiName,
             emojiCodes,
             reactionCount,
             hasUserReacted,
             users,
+            isReady: true,
         };
     }
 

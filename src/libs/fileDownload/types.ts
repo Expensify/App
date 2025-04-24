@@ -1,14 +1,23 @@
 import type {Asset} from 'react-native-image-picker';
+import type {RequestType} from '@src/types/onyx/Request';
 
-type FileDownload = (url: string, fileName: string, successMessage?: string) => Promise<void>;
-
+type FileDownload = (
+    url: string,
+    fileName?: string,
+    successMessage?: string,
+    shouldOpenExternalLink?: boolean,
+    formData?: FormData,
+    requestType?: RequestType,
+    onDownloadFailed?: () => void,
+    shouldUnlink?: boolean,
+) => Promise<void>;
 type ImageResolution = {width: number; height: number};
 type GetImageResolution = (url: File | Asset) => Promise<ImageResolution>;
 
 type ExtensionAndFileName = {fileName: string; fileExtension: string};
 type SplitExtensionFromFileName = (fileName: string) => ExtensionAndFileName;
 
-type ReadFileAsync = (path: string, fileName: string, onSuccess: (file: File) => void, onFailure: (error?: unknown) => void, fileType?: string) => Promise<File | void>;
+type ReadFileAsync = (path: string, fileName: string, onSuccess: (file: File) => void, onFailure?: (error?: unknown) => void, fileType?: string) => Promise<File | void>;
 
 type AttachmentDetails = {
     previewSourceURL: null | string;

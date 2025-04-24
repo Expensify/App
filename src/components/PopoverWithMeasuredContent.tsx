@@ -2,18 +2,32 @@ import isEqual from 'lodash/isEqual';
 import React, {useMemo, useState} from 'react';
 import type {LayoutChangeEvent} from 'react-native';
 import {View} from 'react-native';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
+import ComposerFocusManager from '@libs/ComposerFocusManager';
 import PopoverWithMeasuredContentUtils from '@libs/PopoverWithMeasuredContentUtils';
 import CONST from '@src/CONST';
-import type {AnchorPosition} from '@src/styles';
+import type {AnchorDimensions, AnchorPosition} from '@src/styles';
+import type {PopoverAnchorPosition} from './Modal/types';
 import Popover from './Popover';
-import type {PopoverProps} from './Popover/types';
-import type {WindowDimensionsProps} from './withWindowDimensions/types';
+import type PopoverProps from './Popover/types';
 
-type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition' | keyof WindowDimensionsProps> & {
+type PopoverWithMeasuredContentProps = Omit<PopoverProps, 'anchorPosition'> & {
     /** The horizontal and vertical anchors points for the popover */
     anchorPosition: AnchorPosition;
+
+    /** The dimension of anchor component */
+    anchorDimensions?: AnchorDimensions;
+
+    /** Whether we should change the vertical position if the popover's position is overflow */
+    shoudSwitchPositionIfOverflow?: boolean;
+
+    /** Whether handle navigation back when modal show. */
+    shouldHandleNavigationBack?: boolean;
+
+    /** Whether we should should use top side for the anchor positioning */
+    shouldMeasureAnchorPositionFromTop?: boolean;
 };
 
 /**
@@ -40,8 +54,18 @@ function PopoverWithMeasuredContent({
     shouldCloseOnOutsideClick = false,
     shouldSetModalVisibility = true,
     statusBarTranslucent = true,
+    navigationBarTranslucent = true,
     avoidKeyboard = false,
     hideModalContentWhileAnimating = false,
+    anchorDimensions = {
+        height: 0,
+        width: 0,
+    },
+    shoudSwitchPositionIfOverflow = false,
+    shouldHandleNavigationBack = false,
+    shouldEnableNewFocusManagement,
+    shouldMeasureAnchorPositionFromTop = false,
+    shouldUseNewModal = false,
     ...props
 }: PopoverWithMeasuredContentProps) {
     const styles = useThemeStyles();
@@ -49,18 +73,16 @@ function PopoverWithMeasuredContent({
     const [popoverWidth, setPopoverWidth] = useState(popoverDimensions.width);
     const [popoverHeight, setPopoverHeight] = useState(popoverDimensions.height);
     const [isContentMeasured, setIsContentMeasured] = useState(popoverWidth > 0 && popoverHeight > 0);
-    const [isPopoverVisible, setIsPopoverVisible] = useState(false);
+    const prevIsVisible = usePrevious(isVisible);
 
-    /**
-     * When Popover becomes visible, we need to recalculate the Dimensions.
-     * Skip render on Popover until recalculations are done by setting isContentMeasured to false as early as possible.
-     */
-    if (!isPopoverVisible && isVisible) {
-        // When Popover is shown recalculate
-        setIsContentMeasured(popoverDimensions.width > 0 && popoverDimensions.height > 0);
-        setIsPopoverVisible(true);
-    } else if (isPopoverVisible && !isVisible) {
-        setIsPopoverVisible(false);
+    const modalId = useMemo(() => ComposerFocusManager.getId(), []);
+
+    if (!prevIsVisible && isVisible && shouldEnableNewFocusManagement) {
+        ComposerFocusManager.saveFocusState(modalId);
+    }
+
+    if (!prevIsVisible && isVisible && isContentMeasured) {
+        setIsContentMeasured(false);
     }
 
     /**
@@ -102,7 +124,6 @@ function PopoverWithMeasuredContent({
             default:
                 verticalConstraint = {top: anchorPosition.vertical};
         }
-
         return {
             ...horizontalConstraint,
             ...verticalConstraint,
@@ -110,14 +131,32 @@ function PopoverWithMeasuredContent({
     }, [anchorPosition, anchorAlignment, popoverWidth, popoverHeight]);
 
     const horizontalShift = PopoverWithMeasuredContentUtils.computeHorizontalShift(adjustedAnchorPosition.left, popoverWidth, windowWidth);
-    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(adjustedAnchorPosition.top, popoverHeight, windowHeight);
-    const shiftedAnchorPosition = {
+    const verticalShift = PopoverWithMeasuredContentUtils.computeVerticalShift(
+        adjustedAnchorPosition.top,
+        popoverHeight,
+        windowHeight,
+        anchorDimensions.height,
+        shoudSwitchPositionIfOverflow,
+    );
+    const shiftedAnchorPosition: PopoverAnchorPosition = {
         left: adjustedAnchorPosition.left + horizontalShift,
-        bottom: windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift,
+        ...(shouldMeasureAnchorPositionFromTop ? {top: adjustedAnchorPosition.top + verticalShift} : {}),
     };
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP) {
+        const top = adjustedAnchorPosition.top + verticalShift;
+        const maxTop = windowHeight - popoverHeight - verticalShift;
+        shiftedAnchorPosition.top = Math.min(Math.max(verticalShift, top), maxTop);
+    }
+
+    if (anchorAlignment.vertical === CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM) {
+        shiftedAnchorPosition.bottom = windowHeight - (adjustedAnchorPosition.top + popoverHeight) - verticalShift;
+    }
+
     return isContentMeasured ? (
         <Popover
-            popoverDimensions={popoverDimensions}
+            shouldHandleNavigationBack={shouldHandleNavigationBack}
+            popoverDimensions={{height: popoverHeight, width: popoverWidth}}
             anchorAlignment={anchorAlignment}
             isVisible={isVisible}
             withoutOverlay={withoutOverlay}
@@ -125,11 +164,15 @@ function PopoverWithMeasuredContent({
             shouldCloseOnOutsideClick={shouldCloseOnOutsideClick}
             shouldSetModalVisibility={shouldSetModalVisibility}
             statusBarTranslucent={statusBarTranslucent}
+            navigationBarTranslucent={navigationBarTranslucent}
             avoidKeyboard={avoidKeyboard}
             hideModalContentWhileAnimating={hideModalContentWhileAnimating}
+            modalId={modalId}
+            shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
             // eslint-disable-next-line react/jsx-props-no-spreading
             {...props}
             anchorPosition={shiftedAnchorPosition}
+            shouldUseNewModal={shouldUseNewModal}
         >
             <View onLayout={measurePopover}>{children}</View>
         </Popover>
@@ -156,3 +199,5 @@ export default React.memo(PopoverWithMeasuredContent, (prevProps, nextProps) => 
     }
     return isEqual(prevProps, nextProps);
 });
+
+export type {PopoverWithMeasuredContentProps};

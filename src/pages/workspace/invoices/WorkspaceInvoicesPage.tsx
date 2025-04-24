@@ -1,37 +1,49 @@
-import type {StackScreenProps} from '@react-navigation/stack';
 import React from 'react';
 import {View} from 'react-native';
+import * as Illustrations from '@components/Icon/Illustrations';
 import useLocalize from '@hooks/useLocalize';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import type {CentralPaneNavigatorParamList} from '@navigation/types';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 import CONST from '@src/CONST';
 import type SCREENS from '@src/SCREENS';
-import WorkspaceInvoicesNoVBAView from './WorkspaceInvoicesNoVBAView';
-import WorkspaceInvoicesVBAView from './WorkspaceInvoicesVBAView';
+import WorkspaceInvoiceBalanceSection from './WorkspaceInvoiceBalanceSection';
+import WorkspaceInvoiceVBASection from './WorkspaceInvoiceVBASection';
+import WorkspaceInvoicingDetailsSection from './WorkspaceInvoicingDetailsSection';
 
-type WorkspaceInvoicesPageProps = StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
-
+type WorkspaceInvoicesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.INVOICES>;
 function WorkspaceInvoicesPage({route}: WorkspaceInvoicesPageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isSmallScreenWidth} = useWindowDimensions();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
+
     return (
-        <WorkspacePageWithSections
-            shouldUseScrollView
-            headerText={translate('workspace.common.invoices')}
-            guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_INVOICES}
-            shouldShowOfflineIndicatorInWideScreen
-            route={route}
+        <AccessOrNotFoundWrapper
+            accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
+            policyID={route.params.policyID}
+            featureName={CONST.POLICY.MORE_FEATURES.ARE_INVOICES_ENABLED}
         >
-            {(hasVBA?: boolean, policyID?: string) => (
-                <View style={[styles.mt3, isSmallScreenWidth ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-                    {!hasVBA && policyID && <WorkspaceInvoicesNoVBAView policyID={policyID} />}
-                    {hasVBA && policyID && <WorkspaceInvoicesVBAView policyID={policyID} />}
-                </View>
-            )}
-        </WorkspacePageWithSections>
+            <WorkspacePageWithSections
+                shouldUseScrollView
+                headerText={translate('workspace.common.invoices')}
+                shouldShowOfflineIndicatorInWideScreen
+                shouldSkipVBBACall={false}
+                route={route}
+                icon={Illustrations.InvoiceBlue}
+                addBottomSafeAreaPadding
+            >
+                {(_hasVBA?: boolean, policyID?: string) => (
+                    <View style={[styles.mt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                        {!!policyID && <WorkspaceInvoiceBalanceSection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoiceVBASection policyID={policyID} />}
+                        {!!policyID && <WorkspaceInvoicingDetailsSection policyID={policyID} />}
+                    </View>
+                )}
+            </WorkspacePageWithSections>
+        </AccessOrNotFoundWrapper>
     );
 }
 

@@ -115,10 +115,14 @@ const setHtml: SetHtml = (html: string, text: string) => {
         // See https://webkit.org/blog/10855/async-clipboard-api/ for more details.
         setHTMLSync(html, text);
     } else {
+        const htmlNonClosingTags = html
+            .replace(/<mention-report reportID="(\d+)" *\/>/gi, '<mention-report reportID="$1"></mention-report>')
+            .replace(/<mention-user accountID="(\d+)" *\/>/gi, '<mention-user accountID="$1"></mention-user>');
+
         navigator.clipboard.write([
             new ClipboardItem({
                 /* eslint-disable @typescript-eslint/naming-convention */
-                'text/html': new Blob([html], {type: 'text/html'}),
+                'text/html': new Blob([htmlNonClosingTags], {type: 'text/html'}),
                 'text/plain': new Blob([text], {type: 'text/plain'}),
             }),
         ]);

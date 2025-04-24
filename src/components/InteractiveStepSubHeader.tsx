@@ -25,6 +25,12 @@ type InteractiveStepSubHeaderProps = {
 type InteractiveStepSubHeaderHandle = {
     /** Move to the next step */
     moveNext: () => void;
+
+    /** Move to the previous step */
+    movePrevious: () => void;
+
+    /** Move to a specific step */
+    moveTo: (step: number) => void;
 };
 
 const MIN_AMOUNT_FOR_EXPANDING = 3;
@@ -45,6 +51,12 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
             moveNext: () => {
                 setCurrentStep((actualStep) => actualStep + 1);
             },
+            movePrevious: () => {
+                setCurrentStep((actualStep) => actualStep - 1);
+            },
+            moveTo: (step: number) => {
+                setCurrentStep(step);
+            },
         }),
         [],
     );
@@ -64,7 +76,10 @@ function InteractiveStepSubHeader({stepNames, startStepIndex = 0, onStepSelected
                         return;
                     }
                     setCurrentStep(index);
-                    onStepSelected(stepNames[index]);
+                    const step = stepNames.at(index);
+                    if (step) {
+                        onStepSelected(step);
+                    }
                 };
 
                 return (

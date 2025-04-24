@@ -70,13 +70,6 @@ function parseFloatAnyLocale(value: string): number {
 }
 
 /**
- * Given an input number p and another number q, returns the largest number that's less than p and divisible by q.
- */
-function roundDownToLargestMultiple(p: number, q: number) {
-    return Math.floor(p / q) * q;
-}
-
-/**
  * Rounds a number to two decimal places.
  * @returns the rounded value
  */
@@ -92,4 +85,12 @@ function clamp(value: number, min: number, max: number): number {
     return Math.min(Math.max(value, min), max);
 }
 
-export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundDownToLargestMultiple, roundToTwoDecimalPlaces, clamp};
+function generateNewRandomInt(old: number, min: number, max: number): number {
+    let newNum = old;
+    while (newNum === old) {
+        newNum = generateRandomInt(min, max);
+    }
+    return newNum;
+}
+
+export {rand64, generateHexadecimalValue, generateRandomInt, parseFloatAnyLocale, roundToTwoDecimalPlaces, clamp, generateNewRandomInt};

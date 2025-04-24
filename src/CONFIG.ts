@@ -1,3 +1,4 @@
+import HybridAppModule from '@expensify/react-native-hybrid-app';
 import {Platform} from 'react-native';
 import type {NativeConfig} from 'react-native-config';
 import Config from 'react-native-config';
@@ -21,7 +22,7 @@ const secureExpensifyUrl = Url.addTrailingForwardSlash(get(Config, 'SECURE_EXPEN
 const useNgrok = get(Config, 'USE_NGROK', 'false') === 'true';
 const useWebProxy = get(Config, 'USE_WEB_PROXY', 'true') === 'true';
 const expensifyComWithProxy = getPlatform() === 'web' && useWebProxy ? '/' : expensifyURL;
-const googleGeolocationAPIKey = get(Config, 'GOOGLE_GEOLOCATION_API_KEY', 'AIzaSyBqg6bMvQU7cPWDKhhzpYqJrTEnSorpiLI');
+const googleGeolocationAPIKey = get(Config, 'GCP_GEOLOCATION_API_KEY', '');
 
 // Throw errors on dev if config variables are not set correctly
 if (ENVIRONMENT === CONST.ENVIRONMENT.DEV) {
@@ -48,6 +49,7 @@ export default {
     EXPENSIFY: {
         // Note: This will be EXACTLY what is set for EXPENSIFY_URL whether the proxy is enabled or not.
         EXPENSIFY_URL: expensifyURL,
+        SECURE_EXPENSIFY_URL: secureExpensifyUrl,
         NEW_EXPENSIFY_URL: newExpensifyURL,
 
         // The DEFAULT API is the API used by most environments, except staging, where we use STAGING (defined below)
@@ -72,7 +74,7 @@ export default {
     IS_USING_LOCAL_WEB: useNgrok || expensifyURLRoot.includes('dev'),
     PUSHER: {
         APP_KEY: get(Config, 'PUSHER_APP_KEY', '268df511a204fbb60884'),
-        SUFFIX: get(Config, 'PUSHER_DEV_SUFFIX', ''),
+        SUFFIX: ENVIRONMENT === CONST.ENVIRONMENT.DEV ? get(Config, 'PUSHER_DEV_SUFFIX', '') : '',
         CLUSTER: 'mt1',
     },
     SITE_TITLE: 'New Expensify',
@@ -94,5 +96,16 @@ export default {
         WEB_CLIENT_ID: '921154746561-gpsoaqgqfuqrfsjdf8l7vohfkfj7b9up.apps.googleusercontent.com',
         IOS_CLIENT_ID: '921154746561-s3uqn2oe4m85tufi6mqflbfbuajrm2i3.apps.googleusercontent.com',
     },
-    GOOGLE_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
+    GCP_GEOLOCATION_API_KEY: googleGeolocationAPIKey,
+    FIREBASE_WEB_CONFIG: {
+        apiKey: get(Config, 'FB_API_KEY', 'AIzaSyBrLKgCuo6Vem6Xi5RPokdumssW8HaWBow'),
+        appId: get(Config, 'FB_APP_ID', '1:1008697809946:web:ca25268d2645fc285445a3'),
+        projectId: get(Config, 'FB_PROJECT_ID', 'expensify-mobile-app'),
+    },
+    // to read more about StrictMode see: contributingGuides/STRICT_MODE.md
+    USE_REACT_STRICT_MODE_IN_DEV: false,
+    ELECTRON_DISABLE_SECURITY_WARNINGS: 'true',
+    IS_TEST_ENV: process.env.NODE_ENV === 'test',
+    // eslint-disable-next-line no-restricted-properties
+    IS_HYBRID_APP: HybridAppModule.isHybridApp(),
 } as const;

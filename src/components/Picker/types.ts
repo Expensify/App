@@ -1,6 +1,5 @@
 import type {ChangeEvent, Component, ReactElement} from 'react';
 import type {MeasureLayoutOnSuccessCallback, NativeMethods, StyleProp, ViewStyle} from 'react-native';
-import type {MaybePhraseKey} from '@libs/Localize';
 
 type MeasureLayoutOnFailCallback = () => void;
 
@@ -59,7 +58,7 @@ type BasePickerProps<TPickerValue> = {
     placeholder?: PickerPlaceholder;
 
     /** Error text to display */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Customize the BasePicker container */
     containerStyles?: StyleProp<ViewStyle>;
@@ -70,11 +69,17 @@ type BasePickerProps<TPickerValue> = {
     /** The ID used to uniquely identify the input in a Form */
     inputID?: string;
 
+    /** Show disabled style when disabled */
+    shouldAllowDisabledStyle?: boolean;
+
     /** Saves a draft of the input value when used in a form */
     shouldSaveDraft?: boolean;
 
+    /** Show only picker's label and value when disabled */
+    shouldShowOnlyTextWhenDisabled?: boolean;
+
     /** A callback method that is called when the value changes and it receives the selected value as an argument */
-    onInputChange: (value: TPickerValue, index?: number) => void;
+    onInputChange?: (value: TPickerValue, index?: number) => void;
 
     /** Size of a picker component */
     size?: PickerSize;
@@ -95,4 +100,4 @@ type BasePickerProps<TPickerValue> = {
     hintText?: string;
 };
 
-export type {BasePickerHandle, BasePickerProps, AdditionalPickerEventsCallback, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};
+export type {BasePickerHandle, BasePickerProps, PickerSize, AdditionalPickerEvents, OnMouseDown, OnChange};

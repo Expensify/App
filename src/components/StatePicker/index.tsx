@@ -1,93 +1,59 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
+import type {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useState} from 'react';
-import type {ForwardedRef} from 'react';
-import {View} from 'react-native';
-import FormHelpMessage from '@components/FormHelpMessage';
-import type {MenuItemProps} from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
-import type {CountryData} from '@libs/searchCountryOptions';
+import Navigation from '@libs/Navigation/Navigation';
+import type {Option} from '@libs/searchOptions';
+import CONST from '@src/CONST';
 import StateSelectorModal from './StateSelectorModal';
-import type {State} from './StateSelectorModal';
+
+type State = keyof typeof COMMON_CONST.STATES;
 
 type StatePickerProps = {
-    /** Error text to display */
-    errorText?: MaybePhraseKey;
+    /** Current value of the selected item */
+    value?: string;
 
-    /** State to display */
-    value?: State;
+    /** Callback when the list item is selected */
+    onInputChange?: (value: string, key?: string) => void;
 
-    /** Callback to call when the input changes */
-    onInputChange?: (value: string) => void;
-
-    /** Label to display on field */
-    label?: string;
-
-    /** Any additional styles to apply */
-    wrapperStyle?: MenuItemProps['wrapperStyle'];
-
-    /**  Callback to call when the picker modal is dismissed */
-    onBlur?: () => void;
+    /** Form Error description */
+    errorText?: string;
 };
 
-function StatePicker({value, onInputChange, label, onBlur, errorText = '', wrapperStyle}: StatePickerProps, ref: ForwardedRef<View>) {
-    const styles = useThemeStyles();
+function StatePicker({value, errorText, onInputChange = () => {}}: StatePickerProps) {
     const {translate} = useLocalize();
     const [isPickerVisible, setIsPickerVisible] = useState(false);
-    const [searchValue, setSearchValue] = useState('');
 
-    const showPickerModal = () => {
-        setIsPickerVisible(true);
-    };
-
-    const hidePickerModal = (shouldBlur = true) => {
-        if (shouldBlur) {
-            onBlur?.();
-        }
+    const hidePickerModal = () => {
         setIsPickerVisible(false);
     };
 
-    const updateStateInput = (state: CountryData) => {
-        if (state.value !== value) {
-            onInputChange?.(state.value);
-        }
-        // If the user selects any state, call the hidePickerModal function with shouldBlur = false
-        // to prevent the onBlur function from being called.
-        hidePickerModal(false);
+    const updateInput = (item: Option) => {
+        onInputChange?.(item.value);
+        hidePickerModal();
     };
 
-    const title = value && Object.keys(COMMON_CONST.STATES).includes(value) ? translate(`allStates.${value}.stateName`) : '';
-    const descStyle = title.length === 0 ? styles.textNormal : null;
-
     return (
-        <View>
+        <>
             <MenuItemWithTopDescription
-                ref={ref}
                 shouldShowRightIcon
-                title={title}
-                description={label ?? translate('common.state')}
-                descriptionTextStyle={descStyle}
-                onPress={showPickerModal}
-                wrapperStyle={wrapperStyle}
+                title={value ? translate(`allStates.${value as State}.stateName`) : undefined}
+                description={translate('common.state')}
+                onPress={() => setIsPickerVisible(true)}
+                brickRoadIndicator={errorText ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                errorText={errorText}
             />
-            <View style={styles.ml5}>
-                <FormHelpMessage message={errorText} />
-            </View>
             <StateSelectorModal
                 isVisible={isPickerVisible}
-                currentState={value}
+                currentState={value ?? ''}
+                onStateSelected={updateInput}
                 onClose={hidePickerModal}
-                onStateSelected={updateStateInput}
-                searchValue={searchValue}
-                setSearchValue={setSearchValue}
-                label={label}
+                label={translate('common.state')}
+                onBackdropPress={Navigation.dismissModal}
             />
-        </View>
+        </>
     );
 }
 
 StatePicker.displayName = 'StatePicker';
-
-export default React.forwardRef(StatePicker);
+export default StatePicker;

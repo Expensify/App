@@ -1,6 +1,6 @@
 import Onyx from 'react-native-onyx';
 import {measureFunction} from 'reassure';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+import {getLastClosedReportAction, getLastVisibleAction, getLastVisibleMessage, getMostRecentIOURequestActionID, getSortedReportActionsForDisplay} from '@libs/ReportActionsUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
@@ -20,13 +20,13 @@ const getMockedReportActionsMap = (reportsLength = 10, actionsPerReportLength = 
     const reportKeysMap = Array.from({length: reportsLength}, (v, i) => {
         const key = i + 1;
 
-        return {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`]: Object.assign({}, ...mockReportActions)};
+        return {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${key}`]: Object.assign({}, ...mockReportActions) as Partial<ReportAction>};
     });
 
     return Object.assign({}, ...reportKeysMap) as Partial<ReportAction>;
 };
 
-const mockedReportActionsMap = getMockedReportActionsMap(2, 10000);
+const mockedReportActionsMap: Partial<ReportAction> = getMockedReportActionsMap(2, 10000);
 
 const reportActions = createCollection<ReportAction>(
     (item) => `${item.reportActionID}`,
@@ -63,7 +63,7 @@ describe('ReportActionsUtils', () => {
      */
     test('[ReportActionsUtils] getLastVisibleAction on 10k reportActions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId));
+        await measureFunction(() => getLastVisibleAction(reportId));
     });
 
     test('[ReportActionsUtils] getLastVisibleAction on 10k reportActions with actionsToMerge', async () => {
@@ -89,19 +89,19 @@ describe('ReportActionsUtils', () => {
         } as unknown as ReportActions;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastVisibleAction(reportId, actionsToMerge));
+        await measureFunction(() => getLastVisibleAction(reportId, true, actionsToMerge));
     });
 
     test('[ReportActionsUtils] getMostRecentIOURequestActionID on 10k ReportActions', async () => {
-        const reportActionsArray = ReportActionsUtils.getSortedReportActionsForDisplay(reportActions);
+        const reportActionsArray = getSortedReportActionsForDisplay(reportActions, true);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getMostRecentIOURequestActionID(reportActionsArray));
+        await measureFunction(() => getMostRecentIOURequestActionID(reportActionsArray));
     });
 
     test('[ReportActionsUtils] getLastVisibleMessage on 10k ReportActions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId));
+        await measureFunction(() => getLastVisibleMessage(reportId));
     });
 
     test('[ReportActionsUtils] getLastVisibleMessage on 10k ReportActions with actionsToMerge', async () => {
@@ -127,21 +127,16 @@ describe('ReportActionsUtils', () => {
         } as unknown as ReportActions;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastVisibleMessage(reportId, actionsToMerge));
+        await measureFunction(() => getLastVisibleMessage(reportId, true, actionsToMerge));
     });
 
     test('[ReportActionsUtils] getSortedReportActionsForDisplay on 10k ReportActions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getSortedReportActionsForDisplay(reportActions));
+        await measureFunction(() => getSortedReportActionsForDisplay(reportActions, true));
     });
 
     test('[ReportActionsUtils] getLastClosedReportAction on 10k ReportActions', async () => {
         await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getLastClosedReportAction(reportActions));
-    });
-
-    test('[ReportActionsUtils] getMostRecentReportActionLastModified', async () => {
-        await waitForBatchedUpdates();
-        await measureFunction(() => ReportActionsUtils.getMostRecentReportActionLastModified());
+        await measureFunction(() => getLastClosedReportAction(reportActions));
     });
 });

@@ -1,82 +1,124 @@
-import React, {useMemo, useState} from 'react';
-import type {EdgeInsets} from 'react-native-safe-area-context';
+import React, {useCallback, useMemo, useState} from 'react';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
+import {shouldUseTransactionDraft} from '@libs/IOUUtils';
+import Navigation from '@libs/Navigation/Navigation';
+import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
+import {getTaxRatesSection} from '@libs/TaxOptionsListUtils';
+import type {Tax, TaxRatesOption} from '@libs/TaxOptionsListUtils';
+import {getEnabledTaxRateCount} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
-import type {TaxRatesWithDefault} from '@src/types/onyx';
-import OptionsSelector from './OptionsSelector';
+import type {IOUAction} from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import SelectionList from './SelectionList';
+import RadioListItem from './SelectionList/RadioListItem';
 
 type TaxPickerProps = {
-    /** Collection of tax rates attached to a policy */
-    taxRates: TaxRatesWithDefault;
-
     /** The selected tax rate of an expense */
     selectedTaxRate?: string;
 
-    /**
-     * Safe area insets required for reflecting the portion of the view,
-     * that is not covered by navigation bars, tab bars, toolbars, and other ancestor views.
-     */
-    insets?: EdgeInsets;
+    /** ID of the policy */
+    policyID?: string;
+
+    /** ID of the transaction */
+    transactionID?: string;
 
     /** Callback to fire when a tax is pressed */
-    onSubmit: () => void;
+    onSubmit: (tax: TaxRatesOption) => void;
+
+    /** The action to take */
+    action?: IOUAction;
+
+    /** The type of IOU */
+    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+
+    onDismiss: () => void;
+
+    /**
+     * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
+     */
+    addBottomSafeAreaPadding?: boolean;
 };
 
-function TaxPicker({selectedTaxRate = '', taxRates, insets, onSubmit}: TaxPickerProps) {
-    const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+function TaxPicker({selectedTaxRate = '', policyID, transactionID, onSubmit, action, iouType, onDismiss = Navigation.goBack, addBottomSafeAreaPadding}: TaxPickerProps) {
     const {translate} = useLocalize();
     const [searchValue, setSearchValue] = useState('');
+    const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
-    const taxRatesCount = TransactionUtils.getEnabledTaxRateCount(taxRates.taxes);
-    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.TAX_RATES_LIST_THRESHOLD;
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [transaction] = useOnyx(
+        (() => {
+            if (shouldUseTransactionDraft(action)) {
+                return `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}` as `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+            }
+            return `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        })(),
+    );
+
+    const isEditing = action === CONST.IOU.ACTION.EDIT;
+    const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
+    const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
+
+    const taxRates = policy?.taxRates;
+    const taxRatesCount = getEnabledTaxRateCount(taxRates?.taxes ?? {});
+    const isTaxRatesCountBelowThreshold = taxRatesCount < CONST.STANDARD_LIST_ITEM_LIMIT;
 
     const shouldShowTextInput = !isTaxRatesCountBelowThreshold;
 
-    const selectedOptions = useMemo(() => {
+    const selectedOptions = useMemo<Tax[]>(() => {
         if (!selectedTaxRate) {
             return [];
         }
 
         return [
             {
-                name: selectedTaxRate,
-                enabled: true,
+                modifiedName: selectedTaxRate,
+                isDisabled: false,
                 accountID: null,
             },
         ];
     }, [selectedTaxRate]);
 
-    const sections = useMemo(() => {
-        const {taxRatesOptions} = OptionsListUtils.getFilteredOptions({}, {}, [], searchValue, selectedOptions, [], false, false, false, {}, [], false, {}, [], false, false, true, taxRates);
-        return taxRatesOptions;
-    }, [taxRates, searchValue, selectedOptions]);
+    const sections = useMemo(
+        () =>
+            getTaxRatesSection({
+                policy,
+                searchValue,
+                selectedOptions,
+                transaction: currentTransaction,
+            }),
+        [searchValue, selectedOptions, policy, currentTransaction],
+    );
 
-    const selectedOptionKey = sections?.[0]?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList;
+    const headerMessage = getHeaderMessageForNonUserList((sections.at(0)?.data?.length ?? 0) > 0, searchValue);
+
+    const selectedOptionKey = useMemo(() => sections?.at(0)?.data?.find((taxRate) => taxRate.searchText === selectedTaxRate)?.keyForList, [sections, selectedTaxRate]);
+
+    const handleSelectRow = useCallback(
+        (newSelectedOption: TaxRatesOption) => {
+            if (selectedOptionKey === newSelectedOption.keyForList) {
+                onDismiss();
+                return;
+            }
+            onSubmit(newSelectedOption);
+        },
+        [onSubmit, onDismiss, selectedOptionKey],
+    );
 
     return (
-        <OptionsSelector
-            // @ts-expect-error TODO: Remove this once OptionsSelector (https://github.com/Expensify/App/issues/25125) is migrated to TypeScript.
-            contentContainerStyles={[{paddingBottom: StyleUtils.getSafeAreaMargins(insets).marginBottom}]}
-            optionHoveredStyle={styles.hoveredComponentBG}
-            sectionHeaderStyle={styles.mt5}
+        <SelectionList
             sections={sections}
-            selectedOptions={selectedOptions}
-            value={searchValue}
-            // Focus the first option when searching
-            focusedIndex={0}
-            initiallyFocusedOptionKey={selectedOptionKey}
-            textInputLabel={translate('common.search')}
-            boldStyle
-            highlightSelectedOptions
-            isRowMultilineSupported
-            shouldShowTextInput={shouldShowTextInput}
+            headerMessage={headerMessage}
+            textInputValue={searchValue}
+            textInputLabel={shouldShowTextInput ? translate('common.search') : undefined}
             onChangeText={setSearchValue}
-            onSelectRow={onSubmit}
+            onSelectRow={handleSelectRow}
+            ListItem={RadioListItem}
+            initiallyFocusedOptionKey={selectedOptionKey ?? undefined}
+            isRowMultilineSupported
+            addBottomSafeAreaPadding={addBottomSafeAreaPadding}
         />
     );
 }

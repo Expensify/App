@@ -1,18 +1,22 @@
 package com.expensify.chat
 
-import expo.modules.ReactActivityDelegateWrapper
-
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.KeyEvent
 import android.view.View
 import android.view.WindowInsets
 import com.expensify.chat.bootsplash.BootSplash
+import com.expensify.chat.intenthandler.IntentHandlerFactory
 import com.expensify.reactnativekeycommand.KeyCommandModule
 import com.facebook.react.ReactActivity
 import com.facebook.react.ReactActivityDelegate
 import com.facebook.react.defaults.DefaultNewArchitectureEntryPoint.fabricEnabled
 import com.facebook.react.defaults.DefaultReactActivityDelegate
+import expo.modules.ReactActivityDelegateWrapper
+
+import com.oblador.performance.RNPerformance
 
 class MainActivity : ReactActivity() {
     /**
@@ -50,6 +54,25 @@ class MainActivity : ReactActivity() {
                 defaultInsets.systemWindowInsetBottom
             )
         }
+
+        if (intent != null) {
+            handleIntent(intent)
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent) // Must store the new intent unless getIntent() will return the old one
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent) {
+        try {
+            val intenthandler = IntentHandlerFactory.getIntentHandler(this, intent.type, intent.toString())
+            intenthandler?.handle(intent)
+        } catch (exception: Exception) {
+            Log.e("handleIntentException", exception.toString())
+        }
     }
 
     /**
@@ -81,5 +104,10 @@ class MainActivity : ReactActivity() {
         }
         KeyCommandModule.getInstance().onKeyDownEvent(keyCode, event)
         return super.onKeyUp(keyCode, event)
+    }
+
+    override fun onStart() {
+        super.onStart()
+        RNPerformance.getInstance().mark("appCreationEnd", false);
     }
 }

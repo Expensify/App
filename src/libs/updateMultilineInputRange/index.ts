@@ -1,4 +1,3 @@
-import * as Browser from '@libs/Browser';
 import type UpdateMultilineInputRange from './types';
 
 /**
@@ -15,15 +14,10 @@ const updateMultilineInputRange: UpdateMultilineInputRange = (input, shouldAutoF
         return;
     }
 
-    if ('value' in input && input.value && input.setSelectionRange) {
+    if ('value' in input && typeof input.value === 'string' && input.setSelectionRange) {
         const length = input.value.length;
-
-        // For mobile Safari, updating the selection prop on an unfocused input will cause it to automatically gain focus
-        // and subsequent programmatic focus shifts (e.g., modal focus trap) to show the blue frame (:focus-visible style),
-        // so we need to ensure that it is only updated after focus.
-        const shouldSetSelection = !(Browser.isMobileSafari() && !shouldAutoFocus);
-        if (shouldSetSelection) {
-            input.setSelectionRange(length, length);
+        if (shouldAutoFocus) {
+            (input as HTMLInputElement).setSelectionRange(length, length);
         }
         // eslint-disable-next-line no-param-reassign
         input.scrollTop = input.scrollHeight;

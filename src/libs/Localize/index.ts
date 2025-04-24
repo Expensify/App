@@ -1,15 +1,15 @@
-import PropTypes from 'prop-types';
 import * as RNLocalize from 'react-native-localize';
 import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
+import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
 import Config from '@src/CONFIG';
 import CONST from '@src/CONST';
 import translations from '@src/languages/translations';
-import type {TranslationFlatObject, TranslationPaths} from '@src/languages/types';
+import type {PluralForm, TranslationParameters, TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Locale} from '@src/types/onyx';
-import type {ReceiptError} from '@src/types/onyx/Transaction';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import LocaleListener from './LocaleListener';
 import BaseLocaleListener from './LocaleListener/BaseLocaleListener';
 
@@ -46,94 +46,129 @@ function init() {
     }, {});
 }
 
-type PhraseParameters<T> = T extends (...args: infer A) => string ? A : never[];
-type Phrase<TKey extends TranslationPaths> = TranslationFlatObject[TKey] extends (...args: infer A) => unknown ? (...args: A) => string : string;
+/**
+ * Helper function to get the translated string for given
+ * locale and phrase. This function is used to avoid
+ * duplicate code in getTranslatedPhrase and translate functions.
+ *
+ * This function first checks if the phrase is already translated
+ * and in the cache, it returns the translated value from the cache.
+ *
+ * If the phrase is not translated, it checks if the phrase is
+ * available in the given locale. If it is, it translates the
+ * phrase and stores the translated value in the cache and returns
+ * the translated value.
+ */
+function getTranslatedPhrase<TKey extends TranslationPaths>(
+    language: 'en' | 'es' | 'es-ES',
+    phraseKey: TKey,
+    fallbackLanguage: 'en' | 'es' | null,
+    ...parameters: TranslationParameters<TKey>
+): string | null {
+    const translatedPhrase = translations?.[language]?.[phraseKey];
+
+    if (translatedPhrase) {
+        if (typeof translatedPhrase === 'function') {
+            /**
+             * If the result of `translatedPhrase` is an object, check if it contains the 'count' parameter
+             * to handle pluralization logic.
+             * Alternatively, before evaluating the translated result, we can check if the 'count' parameter
+             * exists in the passed parameters.
+             */
+            const translateFunction = translatedPhrase as unknown as (...parameters: TranslationParameters<TKey>) => string | PluralForm;
+            const translateResult = translateFunction(...parameters);
+
+            if (typeof translateResult === 'string') {
+                return translateResult;
+            }
+
+            const phraseObject = parameters[0] as {count?: number};
+            if (typeof phraseObject?.count !== 'number') {
+                throw new Error(`Invalid plural form for '${phraseKey}'`);
+            }
+
+            const pluralRule = new Intl.PluralRules(language).select(phraseObject.count);
+
+            const pluralResult = translateResult[pluralRule];
+            if (pluralResult) {
+                if (typeof pluralResult === 'string') {
+                    return pluralResult;
+                }
+
+                return pluralResult(phraseObject.count);
+            }
+
+            if (typeof translateResult.other === 'string') {
+                return translateResult.other;
+            }
+
+            return translateResult.other(phraseObject.count);
+        }
+
+        return translatedPhrase;
+    }
+
+    if (!fallbackLanguage) {
+        return null;
+    }
+
+    // Phrase is not found in full locale, search it in fallback language e.g. es
+    const fallbackTranslatedPhrase = getTranslatedPhrase(fallbackLanguage, phraseKey, null, ...parameters);
+
+    if (fallbackTranslatedPhrase) {
+        return fallbackTranslatedPhrase;
+    }
+
+    if (fallbackLanguage !== CONST.LOCALES.DEFAULT) {
+        Log.alert(`${phraseKey} was not found in the ${fallbackLanguage} locale`);
+    }
+
+    // Phrase is not translated, search it in default language (en)
+    return getTranslatedPhrase(CONST.LOCALES.DEFAULT, phraseKey, null, ...parameters);
+}
+
+const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
+    maxArgs: 2,
+    equality: 'shallow',
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    skipCache: (params) => !isEmptyObject(params.at(3)),
+});
 
 /**
  * Return translated string for given locale and phrase
  *
  * @param [desiredLanguage] eg 'en', 'es-ES'
- * @param [phraseParameters] Parameters to supply if the phrase is a template literal.
+ * @param [parameters] Parameters to supply if the phrase is a template literal.
  */
-function translate<TKey extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', phraseKey: TKey, ...phraseParameters: PhraseParameters<Phrase<TKey>>): string {
+function translate<TPath extends TranslationPaths>(desiredLanguage: 'en' | 'es' | 'es-ES' | 'es_ES', path: TPath, ...parameters: TranslationParameters<TPath>): string {
     // Search phrase in full locale e.g. es-ES
     const language = desiredLanguage === CONST.LOCALES.ES_ES_ONFIDO ? CONST.LOCALES.ES_ES : desiredLanguage;
-    let translatedPhrase = translations?.[language]?.[phraseKey] as Phrase<TKey>;
-    if (translatedPhrase) {
-        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
-    }
-
     // Phrase is not found in full locale, search it in fallback language e.g. es
     const languageAbbreviation = desiredLanguage.substring(0, 2) as 'en' | 'es';
-    translatedPhrase = translations?.[languageAbbreviation]?.[phraseKey] as Phrase<TKey>;
-    if (translatedPhrase) {
-        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
-    }
 
-    if (languageAbbreviation !== CONST.LOCALES.DEFAULT) {
-        Log.alert(`${phraseKey} was not found in the ${languageAbbreviation} locale`);
-    }
-
-    // Phrase is not translated, search it in default language (en)
-    translatedPhrase = translations?.[CONST.LOCALES.DEFAULT]?.[phraseKey] as Phrase<TKey>;
-    if (translatedPhrase) {
-        return typeof translatedPhrase === 'function' ? translatedPhrase(...phraseParameters) : translatedPhrase;
+    const translatedPhrase = memoizedGetTranslatedPhrase(language, path, languageAbbreviation, ...parameters);
+    if (translatedPhrase !== null && translatedPhrase !== undefined) {
+        return translatedPhrase;
     }
 
     // Phrase is not found in default language, on production and staging log an alert to server
     // on development throw an error
     if (Config.IS_IN_PRODUCTION || Config.IS_IN_STAGING) {
-        const phraseString: string = Array.isArray(phraseKey) ? phraseKey.join('.') : phraseKey;
+        const phraseString = Array.isArray(path) ? path.join('.') : path;
         Log.alert(`${phraseString} was not found in the en locale`);
         if (userEmail.includes(CONST.EMAIL.EXPENSIFY_EMAIL_DOMAIN)) {
             return CONST.MISSING_TRANSLATION;
         }
         return phraseString;
     }
-    throw new Error(`${phraseKey} was not found in the default language`);
+    throw new Error(`${path} was not found in the default language`);
 }
 
 /**
  * Uses the locale in this file updated by the Onyx subscriber.
  */
-function translateLocal<TKey extends TranslationPaths>(phrase: TKey, ...variables: PhraseParameters<Phrase<TKey>>) {
-    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...variables);
-}
-
-/**
- * Traslatable text with phrase key and/or variables
- * Use MaybePhraseKey for Typescript
- *
- * E.g. ['common.error.characterLimitExceedCounter', {length: 5, limit: 20}]
- */
-const translatableTextPropTypes = PropTypes.oneOfType([PropTypes.string, PropTypes.arrayOf(PropTypes.oneOfType([PropTypes.string, PropTypes.object]))]);
-
-type MaybePhraseKey = string | null | [string, Record<string, unknown> & {isTranslated?: boolean}] | [];
-
-/**
- * Return translated string for given error.
- */
-function translateIfPhraseKey(message: MaybePhraseKey): string;
-function translateIfPhraseKey(message: ReceiptError): ReceiptError;
-function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError;
-function translateIfPhraseKey(message: MaybePhraseKey | ReceiptError): string | ReceiptError {
-    if (!message || (Array.isArray(message) && message.length === 0)) {
-        return '';
-    }
-
-    try {
-        // check if error message has a variable parameter
-        const [phrase, variables] = Array.isArray(message) ? message : [message];
-
-        // This condition checks if the error is already translated. For example, if there are multiple errors per input, we handle translation in ErrorUtils.addErrorMessage due to the inability to concatenate error keys.
-        if (variables?.isTranslated) {
-            return phrase;
-        }
-
-        return translateLocal(phrase as TranslationPaths, variables as never);
-    } catch (error) {
-        return Array.isArray(message) ? message[0] : message;
-    }
+function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parameters: TranslationParameters<TPath>) {
+    return translate(BaseLocaleListener.getPreferredLocale(), phrase, ...parameters);
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
@@ -187,5 +222,4 @@ function getDevicePreferredLocale(): Locale {
     return RNLocalize.findBestAvailableLanguage([CONST.LOCALES.EN, CONST.LOCALES.ES])?.languageTag ?? CONST.LOCALES.DEFAULT;
 }
 
-export {translatableTextPropTypes, translate, translateLocal, translateIfPhraseKey, formatList, formatMessageElementList, getDevicePreferredLocale};
-export type {PhraseParameters, Phrase, MaybePhraseKey};
+export {translate, translateLocal, formatList, formatMessageElementList, getDevicePreferredLocale};

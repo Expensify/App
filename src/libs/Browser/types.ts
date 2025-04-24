@@ -2,12 +2,20 @@ type GetBrowser = () => string;
 
 type IsMobile = () => boolean;
 
+type IsMobileIOS = () => boolean;
+
 type IsMobileSafari = () => boolean;
 
 type IsMobileChrome = () => boolean;
 
+type IsMobileWebKit = () => boolean;
+
+type IsChromeIOS = () => boolean;
+
 type IsSafari = () => boolean;
 
-type OpenRouteInDesktopApp = (shortLivedAuthToken?: string, email?: string) => void;
+type IsModernSafari = () => boolean;
 
-export type {GetBrowser, IsMobile, IsMobileSafari, IsMobileChrome, IsSafari, OpenRouteInDesktopApp};
+type OpenRouteInDesktopApp = (shortLivedAuthToken?: string, email?: string, initialRoute?: string) => void;
+
+export type {GetBrowser, IsMobile, IsMobileIOS, IsMobileSafari, IsMobileChrome, IsMobileWebKit, IsSafari, IsModernSafari, IsChromeIOS, OpenRouteInDesktopApp};

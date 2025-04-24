@@ -8,7 +8,7 @@ type DragAndDropProviderProps = {
     isDisabled?: boolean;
 
     /** Indicate that users are dragging file or not */
-    setIsDraggingOver: (value: boolean) => void;
+    setIsDraggingOver?: (value: boolean) => void;
 };
 
 type SetOnDropHandlerCallback = (event: DragEvent) => void;

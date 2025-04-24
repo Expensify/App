@@ -1,7 +1,7 @@
 import React from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
-import type {GestureResponderEvent, Text as RNText, View} from 'react-native';
+import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
@@ -16,26 +16,37 @@ type OnCancel = () => void;
 
 type ContextMenuType = ValueOf<typeof CONST.CONTEXT_MENU_TYPES>;
 
-type ContextMenuAnchor = View | RNText | null | undefined;
+type ContextMenuAnchor = View | RNText | TextInput | HTMLDivElement | null | undefined;
 
-type ShowContextMenu = (
-    type: ContextMenuType,
-    event: GestureResponderEvent | MouseEvent,
-    selection: string,
-    contextMenuAnchor: ContextMenuAnchor,
-    reportID?: string,
-    reportActionID?: string,
-    originalReportID?: string,
-    draftMessage?: string,
-    onShow?: () => void,
-    onHide?: () => void,
-    isArchivedRoom?: boolean,
-    isChronosReport?: boolean,
-    isPinnedChat?: boolean,
-    isUnreadChat?: boolean,
-    disabledOptions?: ContextMenuAction[],
-    shouldCloseOnTarget?: boolean,
-) => void;
+type ShowContextMenuParams = {
+    type: ContextMenuType;
+    event: GestureResponderEvent | MouseEvent;
+    selection: string;
+    contextMenuAnchor: ContextMenuAnchor;
+    report?: {
+        reportID?: string;
+        originalReportID?: string;
+        isArchivedRoom?: boolean;
+        isChronos?: boolean;
+        isPinnedChat?: boolean;
+        isUnreadChat?: boolean;
+    };
+    reportAction?: {
+        reportActionID?: string;
+        draftMessage?: string;
+        isThreadReportParentAction?: boolean;
+    };
+    callbacks?: {
+        onShow?: () => void;
+        onHide?: () => void;
+        setIsEmojiPickerActive?: (state: boolean) => void;
+    };
+    disabledOptions?: ContextMenuAction[];
+    shouldCloseOnTarget?: boolean;
+    isOverflowMenu?: boolean;
+};
+
+type ShowContextMenu = (params: ShowContextMenuParams) => void;
 
 type ReportActionContextMenu = {
     showContextMenu: ShowContextMenu;
@@ -43,10 +54,11 @@ type ReportActionContextMenu = {
     showDeleteModal: (reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) => void;
     hideDeleteModal: () => void;
     isActiveReportAction: (accountID: string | number) => boolean;
-    instanceID: string;
+    instanceIDRef: RefObject<string>;
     runAndResetOnPopoverHide: () => void;
     clearActiveReportAction: () => void;
     contentRef: RefObject<View>;
+    isContextMenuOpening: boolean;
 };
 
 const contextMenuRef = React.createRef<ReportActionContextMenu>();
@@ -63,16 +75,15 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
     }
     if (!shouldDelay) {
         contextMenuRef.current.hideContextMenu(onHideCallback);
-
         return;
     }
 
     // Save the active instanceID for which hide action was called.
     // If menu is being closed with a delay, check that whether the same instance exists or a new was created.
     // If instance is not same, cancel the hide action
-    const instanceID = contextMenuRef.current.instanceID;
+    const instanceID = contextMenuRef.current.instanceIDRef.current;
     setTimeout(() => {
-        if (contextMenuRef.current?.instanceID !== instanceID) {
+        if (contextMenuRef.current?.instanceIDRef.current !== instanceID) {
             return;
         }
 
@@ -98,52 +109,22 @@ function hideContextMenu(shouldDelay?: boolean, onHideCallback = () => {}) {
  * @param isPinnedChat - Flag to check if the chat is pinned in the LHN. Used for the Pin/Unpin action
  * @param isUnreadChat - Flag to check if the chat has unread messages in the LHN. Used for the Mark as Read/Unread action
  */
-function showContextMenu(
-    type: ContextMenuType,
-    event: GestureResponderEvent | MouseEvent,
-    selection: string,
-    contextMenuAnchor: ContextMenuAnchor,
-    reportID = '0',
-    reportActionID = '0',
-    originalReportID = '0',
-    draftMessage: string | undefined = undefined,
-    onShow = () => {},
-    onHide = () => {},
-    isArchivedRoom = false,
-    isChronosReport = false,
-    isPinnedChat = false,
-    isUnreadChat = false,
-    disabledActions: ContextMenuAction[] = [],
-    shouldCloseOnTarget = false,
-) {
+function showContextMenu(showContextMenuParams: ShowContextMenuParams) {
     if (!contextMenuRef.current) {
         return;
     }
+    const show = () => {
+        contextMenuRef.current?.showContextMenu(showContextMenuParams);
+    };
+
     // If there is an already open context menu, close it first before opening
     // a new one.
-    if (contextMenuRef.current.instanceID) {
-        hideContextMenu();
-        contextMenuRef.current.runAndResetOnPopoverHide();
+    if (contextMenuRef.current.instanceIDRef.current) {
+        hideContextMenu(false, show);
+        return;
     }
 
-    contextMenuRef.current.showContextMenu(
-        type,
-        event,
-        selection,
-        contextMenuAnchor,
-        reportID,
-        reportActionID,
-        originalReportID,
-        draftMessage,
-        onShow,
-        onHide,
-        isArchivedRoom,
-        isChronosReport,
-        isPinnedChat,
-        isUnreadChat,
-        disabledActions,
-        shouldCloseOnTarget,
-    );
+    show();
 }
 
 /**
@@ -159,8 +140,8 @@ function hideDeleteModal() {
 /**
  * Opens the Confirm delete action modal
  */
-function showDeleteModal(reportID: string, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
-    if (!contextMenuRef.current) {
+function showDeleteModal(reportID: string | undefined, reportAction: OnyxEntry<ReportAction>, shouldSetModalVisibility?: boolean, onConfirm?: OnConfirm, onCancel?: OnCancel) {
+    if (!contextMenuRef.current || !reportID) {
         return;
     }
     contextMenuRef.current.showDeleteModal(reportID, reportAction, shouldSetModalVisibility, onConfirm, onCancel);
@@ -185,4 +166,4 @@ function clearActiveReportAction() {
 }
 
 export {contextMenuRef, showContextMenu, hideContextMenu, isActiveReportAction, clearActiveReportAction, showDeleteModal, hideDeleteModal};
-export type {ContextMenuType, ShowContextMenu, ReportActionContextMenu, ContextMenuAnchor};
+export type {ContextMenuType, ReportActionContextMenu, ContextMenuAnchor};

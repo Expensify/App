@@ -1,72 +1,236 @@
-import type {ParamListBase, StackNavigationState} from '@react-navigation/native';
-import type {StackScreenProps} from '@react-navigation/stack';
 import {format} from 'date-fns';
-import fastMerge from 'expensify-common/lib/fastMerge';
-import Str from 'expensify-common/lib/str';
+import {fastMerge, Str} from 'expensify-common';
+import {InteractionManager} from 'react-native';
+import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxInputValue, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+import type {PartialDeep, SetRequired, ValueOf} from 'type-fest';
 import ReceiptGeneric from '@assets/images/receipt-generic.png';
+import type {PaymentMethod} from '@components/KYCWall/types';
 import * as API from '@libs/API';
 import type {
     ApproveMoneyRequestParams,
+    CategorizeTrackedExpenseParams as CategorizeTrackedExpenseApiParams,
     CompleteSplitBillParams,
     CreateDistanceRequestParams,
+    CreatePerDiemRequestParams,
+    CreateWorkspaceParams,
     DeleteMoneyRequestParams,
     DetachReceiptParams,
-    EditMoneyRequestParams,
+    MergeDuplicatesParams,
+    PayInvoiceParams,
     PayMoneyRequestParams,
     ReplaceReceiptParams,
     RequestMoneyParams,
+    ResolveDuplicatesParams,
+    SendInvoiceParams,
     SendMoneyParams,
+    SetNameValuePairParams,
+    ShareTrackedExpenseParams,
     SplitBillParams,
     StartSplitBillParams,
     SubmitReportParams,
+    TrackExpenseParams,
+    UnapproveExpenseReportParams,
     UpdateMoneyRequestParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import * as CurrencyUtils from '@libs/CurrencyUtils';
+import {convertAmountToDisplayString, convertToDisplayString} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as FileUtils from '@libs/fileDownload/FileUtils';
-import * as IOUUtils from '@libs/IOUUtils';
-import * as LocalePhoneNumber from '@libs/LocalePhoneNumber';
+import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import {getMicroSecondOnyxErrorObject, getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import GoogleTagManager from '@libs/GoogleTagManager';
+import {
+    calculateAmount as calculateIOUAmount,
+    formatCurrentUserToAttendee,
+    isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
+    navigateToStartMoneyRequestStep,
+    updateIOUOwnerAndTotal,
+} from '@libs/IOUUtils';
+import isFileUploadable from '@libs/isFileUploadable';
+import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import * as Localize from '@libs/Localize';
+import Log from '@libs/Log';
+import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import * as NextStepUtils from '@libs/NextStepUtils';
-import * as NumberUtils from '@libs/NumberUtils';
-import Permissions from '@libs/Permissions';
-import * as PhoneNumber from '@libs/PhoneNumber';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as ReportActionsUtils from '@libs/ReportActionsUtils';
-import * as ReportUtils from '@libs/ReportUtils';
-import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, TransactionDetails} from '@libs/ReportUtils';
-import * as TransactionUtils from '@libs/TransactionUtils';
-import * as UserUtils from '@libs/UserUtils';
+import {buildNextStep} from '@libs/NextStepUtils';
+import {rand64} from '@libs/NumberUtils';
+import {getManagerMcTestParticipant, getPersonalDetailsForAccountIDs} from '@libs/OptionsListUtils';
+import {getCustomUnitID} from '@libs/PerDiemRequestUtils';
+import Performance from '@libs/Performance';
+import {getAccountIDsByLogins} from '@libs/PersonalDetailsUtils';
+import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
+import {
+    getPerDiemCustomUnit,
+    getPersonalPolicy,
+    getPolicy,
+    getSubmitToAccountID,
+    hasDependentTags,
+    isControlPolicy,
+    isPaidGroupPolicy,
+    isPolicyAdmin,
+    isSubmitAndClose,
+} from '@libs/PolicyUtils';
+import {
+    getAllReportActions,
+    getIOUReportIDFromReportActionPreview,
+    getLastVisibleAction,
+    getLastVisibleMessage,
+    getOriginalMessage,
+    getReportAction,
+    getReportActionHtml,
+    getReportActionMessage,
+    getReportActionText,
+    getTrackExpenseActionableWhisper,
+    isActionableTrackExpense,
+    isCreatedAction,
+    isMoneyRequestAction,
+    isReportPreviewAction,
+} from '@libs/ReportActionsUtils';
+import type {OptimisticChatReport, OptimisticCreatedReportAction, OptimisticIOUReportAction, OptionData, TransactionDetails} from '@libs/ReportUtils';
+import {
+    buildOptimisticActionableTrackExpenseWhisper,
+    buildOptimisticApprovedReportAction,
+    buildOptimisticCancelPaymentReportAction,
+    buildOptimisticChatReport,
+    buildOptimisticCreatedReportAction,
+    buildOptimisticDetachReceipt,
+    buildOptimisticDismissedViolationReportAction,
+    buildOptimisticExpenseReport,
+    buildOptimisticHoldReportAction,
+    buildOptimisticHoldReportActionComment,
+    buildOptimisticInvoiceReport,
+    buildOptimisticIOUReport,
+    buildOptimisticIOUReportAction,
+    buildOptimisticModifiedExpenseReportAction,
+    buildOptimisticMoneyRequestEntities,
+    buildOptimisticMovedTrackedExpenseModifiedReportAction,
+    buildOptimisticReportPreview,
+    buildOptimisticResolvedDuplicatesReportAction,
+    buildOptimisticSubmittedReportAction,
+    buildOptimisticUnapprovedReportAction,
+    buildOptimisticUnHoldReportAction,
+    canBeAutoReimbursed,
+    canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
+    getAllHeldTransactions as getAllHeldTransactionsReportUtils,
+    getApprovalChain,
+    getChatByParticipants,
+    getDisplayedReportID,
+    getInvoiceChatByParticipants,
+    getMoneyRequestSpendBreakdown,
+    getOptimisticDataForParentReportAction,
+    getOutstandingChildRequest,
+    getParsedComment,
+    getPersonalDetailsForAccountID,
+    getReportNotificationPreference,
+    getReportOrDraftReport,
+    getReportTransactions,
+    getTransactionDetails,
+    hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
+    isArchivedReport,
+    isArchivedReportWithID,
+    isClosedReport as isClosedReportUtil,
+    isDraftReport,
+    isExpenseReport,
+    isIndividualInvoiceRoom,
+    isInvoiceReport as isInvoiceReportReportUtils,
+    isInvoiceRoom,
+    isMoneyRequestReport as isMoneyRequestReportReportUtils,
+    isOneOnOneChat,
+    isOneTransactionThread,
+    isOpenExpenseReport as isOpenExpenseReportReportUtils,
+    isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
+    isOptimisticPersonalDetail,
+    isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
+    isPayer as isPayerReportUtils,
+    isPolicyExpenseChat as isPolicyExpenseChatReportUtil,
+    isReportApproved,
+    isReportManager,
+    isSelectedManagerMcTest,
+    isSelfDM,
+    isSettled,
+    isTestTransactionReport,
+    isTrackExpenseReport,
+    shouldCreateNewMoneyRequestReport as shouldCreateNewMoneyRequestReportReportUtils,
+    updateReportPreview,
+} from '@libs/ReportUtils';
+import {getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {getSession} from '@libs/SessionUtils';
+import playSound, {SOUNDS} from '@libs/Sound';
+import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {
+    allHavePendingRTERViolation,
+    buildOptimisticTransaction,
+    getAmount,
+    getCategoryTaxCodeAndAmount,
+    getCurrency,
+    getDistanceInMeters,
+    getMerchant,
+    getTransaction,
+    getUpdatedTransaction,
+    hasAnyTransactionWithoutRTERViolation,
+    hasDuplicateTransactions,
+    hasReceipt as hasReceiptTransactionUtils,
+    isAmountMissing,
+    isCustomUnitRateIDForP2P,
+    isDistanceRequest as isDistanceRequestTransactionUtils,
+    isDuplicate,
+    isExpensifyCardTransaction,
+    isFetchingWaypointsFromServer,
+    isOnHold,
+    isPartialMerchant,
+    isPending,
+    isPendingCardOrScanningTransaction,
+    isPerDiemRequest as isPerDiemRequestTransactionUtils,
+    isReceiptBeingScanned as isReceiptBeingScannedTransactionUtils,
+    isScanRequest as isScanRequestTransactionUtils,
+    removeSettledAndApprovedTransactions,
+} from '@libs/TransactionUtils';
 import ViolationsUtils from '@libs/Violations/ViolationsUtils';
-import type {MoneyRequestNavigatorParamList, NavigationPartialRoute} from '@navigation/types';
+import type {IOUAction, IOUActionParams, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import type {Route} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
-import type {Participant, Split} from '@src/types/onyx/IOU';
+import type {Attendee, Participant, Split} from '@src/types/onyx/IOU';
 import type {ErrorFields, Errors} from '@src/types/onyx/OnyxCommon';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type {QuickActionName} from '@src/types/onyx/QuickAction';
+import type {InvoiceReceiver, InvoiceReceiverType} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {OnyxData} from '@src/types/onyx/Request';
-import type {Comment, Receipt, ReceiptSource, TaxRate, TransactionChanges, WaypointCollection} from '@src/types/onyx/Transaction';
-import type {EmptyObject} from '@src/types/utils/EmptyObject';
+import type {SearchDataTypes, SearchPolicy, SearchReport, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {Comment, Receipt, ReceiptSource, Routes, SplitShares, TransactionChanges, TransactionCustomUnit, WaypointCollection} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import * as CachedPDFPaths from './CachedPDFPaths';
-import * as Policy from './Policy';
-import * as Report from './Report';
-
-type MoneyRequestRoute = StackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.CONFIRMATION>['route'];
+import {clearByKey as clearPdfByOnyxKey} from './CachedPDFPaths';
+import {buildOptimisticPolicyRecentlyUsedCategories} from './Policy/Category';
+import {buildOptimisticPolicyRecentlyUsedDestinations} from './Policy/PerDiem';
+import {buildOptimisticRecentlyUsedCurrencies, buildPolicyData, generatePolicyID} from './Policy/Policy';
+import {buildOptimisticPolicyRecentlyUsedTags} from './Policy/Tag';
+import {completeOnboarding, getCurrentUserAccountID, notifyNewAction} from './Report';
+import {clearAllRelatedReportActionErrors} from './ReportActions';
+import {getRecentWaypoints, sanitizeRecentWaypoints} from './Transaction';
+import {removeDraftTransaction} from './TransactionEdit';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
 type OneOnOneIOUReport = OnyxTypes.Report | undefined | null;
+
+type BaseTransactionParams = {
+    amount: number;
+    currency: string;
+    created: string;
+    merchant: string;
+    comment: string;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    customUnitRateID?: string;
+};
 
 type MoneyRequestInformation = {
     payerAccountID: number;
@@ -75,11 +239,72 @@ type MoneyRequestInformation = {
     chatReport: OnyxTypes.Report;
     transaction: OnyxTypes.Transaction;
     iouAction: OptimisticIOUReportAction;
-    createdChatReportActionID: string;
-    createdIOUReportActionID: string;
+    createdChatReportActionID?: string;
+    createdIOUReportActionID?: string;
     reportPreviewAction: OnyxTypes.ReportAction;
     transactionThreadReportID: string;
-    createdReportActionIDForThread: string;
+    createdReportActionIDForThread: string | undefined;
+    onyxData: OnyxData;
+    billable?: boolean;
+};
+
+type TrackExpenseInformation = {
+    createdWorkspaceParams?: CreateWorkspaceParams;
+    iouReport?: OnyxTypes.Report;
+    chatReport: OnyxTypes.Report;
+    transaction: OnyxTypes.Transaction;
+    iouAction: OptimisticIOUReportAction;
+    createdChatReportActionID?: string;
+    createdIOUReportActionID?: string;
+    reportPreviewAction?: OnyxTypes.ReportAction;
+    transactionThreadReportID: string;
+    createdReportActionIDForThread: string | undefined;
+    actionableWhisperReportActionIDParam?: string;
+    onyxData: OnyxData;
+};
+
+type TrackedExpenseTransactionParams = Omit<BaseTransactionParams, 'taxCode' | 'taxAmount'> & {
+    waypoints?: string;
+    transactionID: string | undefined;
+    receipt?: Receipt;
+    taxCode: string;
+    taxAmount: number;
+};
+
+type TrackedExpensePolicyParams = {
+    policyID: string | undefined;
+    isDraftPolicy?: boolean;
+};
+type TrackedExpenseReportInformation = {
+    moneyRequestPreviewReportActionID: string | undefined;
+    moneyRequestReportID: string | undefined;
+    moneyRequestCreatedReportActionID: string | undefined;
+    actionableWhisperReportActionID: string | undefined;
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID: string;
+    transactionThreadReportID: string | undefined;
+    reportPreviewReportActionID: string | undefined;
+};
+type TrackedExpenseParams = {
+    onyxData?: OnyxData;
+    reportInformation: TrackedExpenseReportInformation;
+    transactionParams: TrackedExpenseTransactionParams;
+    policyParams: TrackedExpensePolicyParams;
+    createdWorkspaceParams?: CreateWorkspaceParams;
+};
+
+type SendInvoiceInformation = {
+    senderWorkspaceID: string | undefined;
+    receiver: Partial<OnyxTypes.PersonalDetails>;
+    invoiceRoom: OnyxTypes.Report;
+    createdChatReportActionID: string;
+    invoiceReportID: string;
+    reportPreviewReportActionID: string;
+    transactionID: string;
+    transactionThreadReportID: string;
+    createdIOUReportActionID: string;
+    createdReportActionIDForThread: string | undefined;
+    reportActionID: string;
     onyxData: OnyxData;
 };
 
@@ -89,6 +314,7 @@ type SplitData = {
     reportActionID: string;
     policyID?: string;
     createdReportActionID?: string;
+    chatType?: string;
 };
 
 type SplitsAndOnyxData = {
@@ -103,7 +329,7 @@ type UpdateMoneyRequestData = {
 };
 
 type PayMoneyRequestData = {
-    params: PayMoneyRequestParams;
+    params: PayMoneyRequestParams & Partial<PayInvoiceParams>;
     optimisticData: OnyxUpdate[];
     successData: OnyxUpdate[];
     failureData: OnyxUpdate[];
@@ -116,15 +342,230 @@ type SendMoneyParamsData = {
     failureData: OnyxUpdate[];
 };
 
-type OutstandingChildRequest = {
-    hasOutstandingChildRequest?: boolean;
+type GPSPoint = {
+    lat: number;
+    long: number;
 };
 
-let betas: OnyxTypes.Beta[] = [];
-Onyx.connect({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => (betas = value ?? []),
-});
+type RequestMoneyTransactionParams = Omit<BaseTransactionParams, 'comment'> & {
+    attendees?: Attendee[];
+    actionableWhisperReportActionID?: string;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID?: string;
+    receipt?: Receipt;
+    waypoints?: WaypointCollection;
+    comment?: string;
+};
+
+type PerDiemExpenseTransactionParams = Omit<BaseTransactionParams, 'amount' | 'merchant' | 'customUnitRateID' | 'taxAmount' | 'taxCode' | 'comment'> & {
+    customUnit: TransactionCustomUnit;
+    comment?: string;
+};
+
+type BasePolicyParams = {
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
+type RequestMoneyParticipantParams = {
+    payeeEmail: string | undefined;
+    payeeAccountID: number;
+    participant: Participant;
+};
+
+type PerDiemExpenseInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    transactionParams: PerDiemExpenseTransactionParams;
+};
+
+type PerDiemExpenseInformationParams = {
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    transactionParams: PerDiemExpenseTransactionParams;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    moneyRequestReportID?: string;
+};
+
+type RequestMoneyInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    gpsPoints?: GPSPoint;
+    action?: IOUAction;
+    reimbursible?: boolean;
+    transactionParams: RequestMoneyTransactionParams;
+    isRetry?: boolean;
+};
+
+type MoneyRequestInformationParams = {
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    transactionParams: RequestMoneyTransactionParams;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    moneyRequestReportID?: string;
+    existingTransactionID?: string;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+};
+
+type MoneyRequestOptimisticParams = {
+    chat: {
+        report: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
+        createdAction: OptimisticCreatedReportAction;
+        reportPreviewAction: ReportAction;
+    };
+    iou: {
+        report: OnyxTypes.Report;
+        createdAction: OptimisticCreatedReportAction;
+        action: OptimisticIOUReportAction;
+    };
+    transactionParams: {
+        transaction: OnyxTypes.Transaction;
+        transactionThreadReport: OptimisticChatReport | null;
+        transactionThreadCreatedReportAction: OptimisticCreatedReportAction | null;
+    };
+    policyRecentlyUsed: {
+        categories?: string[];
+        tags?: OnyxTypes.RecentlyUsedTags;
+        currencies?: string[];
+        destinations?: string[];
+    };
+    personalDetailListAction?: OnyxTypes.PersonalDetailsList;
+    nextStep?: OnyxTypes.ReportNextStep | null;
+};
+
+type BuildOnyxDataForMoneyRequestParams = {
+    isNewChatReport: boolean;
+    shouldCreateNewMoneyRequestReport: boolean;
+    isOneOnOneSplit?: boolean;
+    existingTransactionThreadReportID?: string;
+    policyParams?: BasePolicyParams;
+    optimisticParams: MoneyRequestOptimisticParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    participant?: Participant;
+};
+
+type DistanceRequestTransactionParams = BaseTransactionParams & {
+    validWaypoints: WaypointCollection;
+    splitShares?: SplitShares;
+};
+
+type CreateDistanceRequestInformation = {
+    report: OnyxEntry<OnyxTypes.Report>;
+    participants: Participant[];
+    currentUserLogin?: string;
+    currentUserAccountID?: number;
+    iouType?: ValueOf<typeof CONST.IOU.TYPE>;
+    existingTransaction?: OnyxEntry<OnyxTypes.Transaction>;
+    transactionParams: DistanceRequestTransactionParams;
+    policyParams?: BasePolicyParams;
+};
+
+type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
+    splitShares: SplitShares;
+    iouRequestType?: IOURequestType;
+};
+
+type CreateSplitsAndOnyxDataParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    existingSplitChatReportID?: string;
+    transactionParams: CreateSplitsTransactionParams;
+};
+
+type TrackExpenseTransactionParams = {
+    amount: number;
+    currency: string;
+    created: string | undefined;
+    merchant?: string;
+    comment?: string;
+    receipt?: Receipt;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    validWaypoints?: WaypointCollection;
+    gpsPoints?: GPSPoint;
+    actionableWhisperReportActionID?: string;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+    linkedTrackedExpenseReportID?: string;
+    customUnitRateID?: string;
+};
+
+type CreateTrackExpenseParams = {
+    report: OnyxTypes.Report;
+    isDraftPolicy: boolean;
+    action?: IOUAction;
+    participantParams: RequestMoneyParticipantParams;
+    policyParams?: BasePolicyParams;
+    transactionParams: TrackExpenseTransactionParams;
+    isRetry?: boolean;
+};
+
+type BuildOnyxDataForInvoiceParams = {
+    chat: {
+        report: OnyxEntry<OnyxTypes.Report>;
+        createdAction: OptimisticCreatedReportAction;
+        reportPreviewAction: ReportAction;
+        isNewReport: boolean;
+    };
+    iou: {
+        createdAction: OptimisticCreatedReportAction;
+        action: OptimisticIOUReportAction;
+        report: OnyxTypes.Report;
+    };
+    transactionParams: {
+        transaction: OnyxTypes.Transaction;
+        threadReport: OptimisticChatReport;
+        threadCreatedReportAction: OptimisticCreatedReportAction | null;
+    };
+    policyParams: BasePolicyParams;
+    optimisticData: {
+        recentlyUsedCurrencies?: string[];
+        policyRecentlyUsedCategories: string[];
+        policyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags;
+        personalDetailListAction: OnyxTypes.PersonalDetailsList;
+    };
+    companyName?: string;
+    companyWebsite?: string;
+    participant?: Participant;
+};
+
+type GetTrackExpenseInformationTransactionParams = {
+    comment: string;
+    amount: number;
+    currency: string;
+    created: string;
+    merchant: string;
+    receipt: OnyxEntry<Receipt>;
+    category?: string;
+    tag?: string;
+    taxCode?: string;
+    taxAmount?: number;
+    billable?: boolean;
+    linkedTrackedExpenseReportAction?: OnyxTypes.ReportAction;
+};
+
+type GetTrackExpenseInformationParticipantParams = {
+    payeeEmail?: string;
+    payeeAccountID?: number;
+    participant: Participant;
+};
+
+type GetTrackExpenseInformationParams = {
+    parentChatReport: OnyxEntry<OnyxTypes.Report>;
+    moneyRequestReportID?: string;
+    existingTransactionID?: string;
+    participantParams: GetTrackExpenseInformationParticipantParams;
+    policyParams: BasePolicyParams;
+    transactionParams: GetTrackExpenseInformationTransactionParams;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+};
 
 let allPersonalDetails: OnyxTypes.PersonalDetailsList = {};
 Onyx.connect({
@@ -134,12 +575,31 @@ Onyx.connect({
     },
 });
 
-let allReports: OnyxCollection<OnyxTypes.Report> = null;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    waitForCollectionCallback: true,
-    callback: (value) => (allReports = value),
-});
+type StartSplitBilActionParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    comment: string;
+    receipt: Receipt;
+    existingSplitChatReportID?: string;
+    billable?: boolean;
+    category: string | undefined;
+    tag: string | undefined;
+    currency: string;
+    taxCode: string;
+    taxAmount: number;
+};
+
+type ReplaceReceipt = {
+    transactionID: string;
+    file?: File;
+    source: string;
+};
+
+type GetSearchOnyxUpdateParams = {
+    transaction: OnyxTypes.Transaction;
+    participant?: Participant;
+};
 
 let allTransactions: NonNullable<OnyxCollection<OnyxTypes.Transaction>> = {};
 Onyx.connect({
@@ -196,21 +656,39 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<OnyxTypes.Report>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
+let allReportNameValuePairs: OnyxCollection<OnyxTypes.ReportNameValuePairs>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReportNameValuePairs = value;
+    },
+});
+
 let userAccountID = -1;
 let currentUserEmail = '';
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (value) => {
         currentUserEmail = value?.email ?? '';
-        userAccountID = value?.accountID ?? -1;
+        userAccountID = value?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     },
 });
 
-let currentUserPersonalDetails: OnyxTypes.PersonalDetails | EmptyObject = {};
+let currentUserPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetails>;
 Onyx.connect({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
-        currentUserPersonalDetails = value?.[userAccountID] ?? {};
+        currentUserPersonalDetails = value?.[userAccountID] ?? undefined;
     },
 });
 
@@ -222,25 +700,140 @@ Onyx.connect({
     },
 });
 
+let quickAction: OnyxEntry<OnyxTypes.QuickAction> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+    callback: (value) => {
+        quickAction = value;
+    },
+});
+
+let allReportActions: OnyxCollection<OnyxTypes.ReportActions>;
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+    waitForCollectionCallback: true,
+    callback: (actions) => {
+        if (!actions) {
+            return;
+        }
+        allReportActions = actions;
+    },
+});
+
+let activePolicyID: OnyxEntry<string>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_ACTIVE_POLICY_ID,
+    callback: (value) => (activePolicyID = value),
+});
+
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected>;
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (value) => (introSelected = value),
+});
+
+let personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+Onyx.connect({
+    key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+    callback: (value) => (personalDetailsList = value),
+});
+
 /**
- * Initialize money request info
+ * @private
+ * After finishing the action in RHP from the Inbox tab, besides dismissing the modal, we should open the report.
+ * It is a helper function used only in this file.
+ */
+function dismissModalAndOpenReportInInboxTab(reportID?: string) {
+    if (isSearchTopmostFullScreenRoute() || !reportID) {
+        Navigation.dismissModal();
+        return;
+    }
+    Navigation.dismissModalWithReport({reportID});
+}
+
+/**
+ * Find the report preview action from given chat report and iou report
+ */
+function getReportPreviewAction(chatReportID: string | undefined, iouReportID: string | undefined): OnyxInputValue<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> {
+    const reportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReportID}`] ?? {};
+
+    // Find the report preview action from the chat report
+    return (
+        Object.values(reportActions).find(
+            (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> =>
+                reportAction && isReportPreviewAction(reportAction) && getOriginalMessage(reportAction)?.linkedReportID === iouReportID,
+        ) ?? null
+    );
+}
+
+/**
+ * Initialize expense info
  * @param reportID to attach the transaction to
+ * @param policy
+ * @param isFromGlobalCreate
  * @param iouRequestType one of manual/scan/distance
  */
-function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequestType: IOURequestType = CONST.IOU.REQUEST_TYPE.MANUAL) {
+function initMoneyRequest(
+    reportID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    isFromGlobalCreate: boolean,
+    currentIouRequestType: IOURequestType | undefined,
+    newIouRequestType: IOURequestType,
+) {
     // Generate a brand new transactionID
+    const personalPolicy = getPolicy(getPersonalPolicy()?.id);
     const newTransactionID = CONST.IOU.OPTIMISTIC_TRANSACTION_ID;
+    const currency = policy?.outputCurrency ?? personalPolicy?.outputCurrency ?? CONST.CURRENCY.USD;
+
     // Disabling this line since currentDate can be an empty string
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const created = currentDate || format(new Date(), 'yyyy-MM-dd');
-    const comment: Comment = {};
 
-    // Add initial empty waypoints when starting a distance request
-    if (iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
+    // in case we have to re-init money request, but the IOU request type is the same with the old draft transaction,
+    // we should keep most of the existing data by using the ONYX MERGE operation
+    if (currentIouRequestType === newIouRequestType) {
+        // so, we just need to update the reportID, isFromGlobalCreate, created, currency
+        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${newTransactionID}`, {
+            reportID,
+            isFromGlobalCreate,
+            created,
+            currency,
+            transactionID: newTransactionID,
+        });
+        return;
+    }
+
+    const comment: Comment = {
+        attendees: formatCurrentUserToAttendee(currentUserPersonalDetails, reportID),
+    };
+    let requestCategory: string | null = null;
+
+    // Add initial empty waypoints when starting a distance expense
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE) {
         comment.waypoints = {
-            waypoint0: {},
-            waypoint1: {},
+            waypoint0: {keyForList: 'start_waypoint'},
+            waypoint1: {keyForList: 'stop_waypoint'},
         };
+        if (!isFromGlobalCreate) {
+            const customUnitRateID = DistanceRequestUtils.getCustomUnitRateID(reportID);
+            comment.customUnit = {customUnitRateID};
+        }
+    }
+
+    if (newIouRequestType === CONST.IOU.REQUEST_TYPE.PER_DIEM) {
+        comment.customUnit = {
+            attributes: {
+                dates: {
+                    start: DateUtils.getStartOfToday(),
+                    end: DateUtils.getStartOfToday(),
+                },
+            },
+        };
+        if (!isFromGlobalCreate) {
+            const {customUnitID, category} = getCustomUnitID(reportID);
+            comment.customUnit = {...comment.customUnit, customUnitID};
+            requestCategory = category ?? null;
+        }
     }
 
     // Store the transaction in Onyx and mark it as not saved so it can be cleaned up later
@@ -249,73 +842,67 @@ function initMoneyRequest(reportID: string, isFromGlobalCreate: boolean, iouRequ
         amount: 0,
         comment,
         created,
-        currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-        iouRequestType,
+        currency,
+        category: requestCategory,
+        iouRequestType: newIouRequestType,
         reportID,
         transactionID: newTransactionID,
         isFromGlobalCreate,
         merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        splitPayerAccountIDs: currentUserPersonalDetails ? [currentUserPersonalDetails.accountID] : undefined,
     });
 }
 
-function clearMoneyRequest(transactionID: string) {
+function createDraftTransaction(transaction: OnyxTypes.Transaction) {
+    if (!transaction) {
+        return;
+    }
+
+    const newTransaction = {
+        ...transaction,
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, newTransaction);
+}
+
+function clearMoneyRequest(transactionID: string, skipConfirmation = false) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, skipConfirmation);
     Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, null);
 }
 
-/**
- * Update money request-related pages IOU type params
- */
-function updateMoneyRequestTypeParams(routes: StackNavigationState<ParamListBase>['routes'] | NavigationPartialRoute[], newIouType: string, tab: string) {
-    routes.forEach((route) => {
-        const tabList = [CONST.TAB_REQUEST.DISTANCE, CONST.TAB_REQUEST.MANUAL, CONST.TAB_REQUEST.SCAN] as string[];
-        if (!route.name.startsWith('Money_Request_') && !tabList.includes(route.name)) {
+function startMoneyRequest(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string, requestType?: IOURequestType, skipConfirmation = false) {
+    Performance.markStart(CONST.TIMING.OPEN_CREATE_EXPENSE);
+    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, skipConfirmation);
+    switch (requestType) {
+        case CONST.IOU.REQUEST_TYPE.MANUAL:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_MANUAL.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
             return;
-        }
-        const newParams: Record<string, unknown> = {iouType: newIouType};
-        if (route.name === 'Money_Request_Create') {
-            // Both screen and nested params are needed to properly update the nested tab navigator
-            newParams.params = {...newParams};
-            newParams.screen = tab;
-        }
-        Navigation.setParams(newParams, route.key ?? '');
-
-        // Recursively update nested money request tab params
-        updateMoneyRequestTypeParams(route.state?.routes ?? [], newIouType, tab);
-    });
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function startMoneyRequest_temporaryForRefactor(iouType: ValueOf<typeof CONST.IOU.TYPE>, reportID: string) {
-    clearMoneyRequest(CONST.IOU.OPTIMISTIC_TRANSACTION_ID);
-    Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
-}
-
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestAmount_temporaryForRefactor(transactionID: string, amount: number, currency: string, removeOriginalCurrency = false) {
-    if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, originalCurrency: null});
-        return;
+        case CONST.IOU.REQUEST_TYPE.SCAN:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        case CONST.IOU.REQUEST_TYPE.DISTANCE:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE_TAB_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
+            return;
+        default:
+            Navigation.navigate(ROUTES.MONEY_REQUEST_CREATE.getRoute(CONST.IOU.ACTION.CREATE, iouType, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID));
     }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
+function setMoneyRequestAmount(transactionID: string, amount: number, currency: string, shouldShowOriginalAmount = false) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {amount, currency, shouldShowOriginalAmount});
+}
+
 function setMoneyRequestCreated(transactionID: string, created: string, isDraft: boolean) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {created});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestCurrency_temporaryForRefactor(transactionID: string, currency: string, removeOriginalCurrency = false) {
-    if (removeOriginalCurrency) {
-        Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency, originalCurrency: null});
-        return;
-    }
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {currency});
+function setMoneyRequestDateAttribute(transactionID: string, start: string, end: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {attributes: {dates: {start, end}}}}});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestOriginalCurrency_temporaryForRefactor(transactionID: string, originalCurrency: string) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {originalCurrency});
+function setMoneyRequestCurrency(transactionID: string, currency: string, isEditing = false) {
+    const fieldToUpdate = isEditing ? 'modifiedCurrency' : 'currency';
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {[fieldToUpdate]: currency});
 }
 
 function setMoneyRequestDescription(transactionID: string, comment: string, isDraft: boolean) {
@@ -326,136 +913,336 @@ function setMoneyRequestMerchant(transactionID: string, merchant: string, isDraf
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {merchant});
 }
 
+function setMoneyRequestAttendees(transactionID: string, attendees: Attendee[], isDraft: boolean) {
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {comment: {attendees}});
+}
+
 function setMoneyRequestPendingFields(transactionID: string, pendingFields: OnyxTypes.Transaction['pendingFields']) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {pendingFields});
 }
 
-function setMoneyRequestCategory(transactionID: string, category: string) {
+function setMoneyRequestCategory(transactionID: string, category: string, policyID?: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {category});
+    if (!policyID) {
+        setMoneyRequestTaxRate(transactionID, '');
+        setMoneyRequestTaxAmount(transactionID, null);
+        return;
+    }
+    const transaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`];
+    const {categoryTaxCode, categoryTaxAmount} = getCategoryTaxCodeAndAmount(category, transaction, getPolicy(policyID));
+    if (categoryTaxCode && categoryTaxAmount !== undefined) {
+        setMoneyRequestTaxRate(transactionID, categoryTaxCode);
+        setMoneyRequestTaxAmount(transactionID, categoryTaxAmount);
+    }
 }
 
 function setMoneyRequestTag(transactionID: string, tag: string) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {tag});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestBillable_temporaryForRefactor(transactionID: string, billable: boolean) {
+function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-// eslint-disable-next-line @typescript-eslint/naming-convention
-function setMoneyRequestParticipants_temporaryForRefactor(transactionID: string, participants: Participant[]) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants});
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], shouldUpdateReportID = false) {
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, reportID: shouldUpdateReportID ? participants.at(0)?.reportID : undefined});
 }
 
-function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string) {
+function setSplitPayer(transactionID: string, payerAccountID: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {splitPayerAccountIDs: [payerAccountID]});
+}
+
+function setMoneyRequestReceipt(transactionID: string, source: string, filename: string, isDraft: boolean, type?: string, isTestReceipt = false) {
     Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        receipt: {source, type: type ?? ''},
+        // isTestReceipt = false is being converted to null because we don't really need to store it in Onyx in that case
+        receipt: {source, type: type ?? '', isTestReceipt: isTestReceipt ? true : null},
         filename,
     });
 }
 
-/** Reset money request info from the store with its initial value */
-function resetMoneyRequestInfo(id = '') {
-    // Disabling this line since currentDate can be an empty string
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const created = currentDate || format(new Date(), CONST.DATE.FNS_FORMAT_STRING);
-    Onyx.merge(ONYXKEYS.IOU, {
-        id,
-        amount: 0,
-        currency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
-        comment: '',
-        participants: [],
-        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        category: '',
-        tag: '',
-        created,
-        receiptPath: '',
-        receiptFilename: '',
-        transactionID: '',
-        billable: null,
-        isSplitRequest: false,
+/**
+ * Set custom unit rateID for the transaction draft
+ */
+function setCustomUnitRateID(transactionID: string, customUnitRateID: string | undefined) {
+    const isFakeP2PRate = customUnitRateID === CONST.CUSTOM_UNITS.FAKE_P2P_ID;
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!isFakeP2PRate && {defaultP2PRate: null}),
+            },
+        },
     });
 }
 
-/** Helper function to get the receipt error for money requests, or the generic error if there's no receipt */
-function getReceiptError(receipt?: Receipt, filename?: string, isScanRequest = true): Errors | ErrorFields {
-    return isEmptyObject(receipt) || !isScanRequest
-        ? ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage')
-        : ErrorUtils.getMicroSecondOnyxErrorObject({error: CONST.IOU.RECEIPT_ERROR, source: receipt.source?.toString() ?? '', filename: filename ?? ''});
-}
-
-function needsToBeManuallySubmitted(iouReport: OnyxTypes.Report) {
-    const isPolicyExpenseChat = ReportUtils.isExpenseReport(iouReport);
-
-    if (isPolicyExpenseChat) {
-        const policy = ReportUtils.getPolicy(iouReport.policyID);
-        const isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy);
-
-        // If the scheduled submit is turned off on the policy, user needs to manually submit the report which is indicated by GBR in LHN
-        return isFromPaidPolicy && !policy.harvesting?.enabled;
+/**
+ * Revert custom unit of the draft transaction to the original transaction's value
+ */
+function resetDraftTransactionsCustomUnit(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
     }
 
-    return true;
+    const originalTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (!originalTransaction) {
+        return;
+    }
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        comment: {
+            customUnit: originalTransaction.comment?.customUnit ?? {},
+        },
+    });
 }
 
 /**
- * Return the object to update hasOutstandingChildRequest
+ * Set custom unit ID for the transaction draft
  */
-function getOutstandingChildRequest(policy: OnyxEntry<OnyxTypes.Policy> | EmptyObject, iouReport: OnyxTypes.Report): OutstandingChildRequest {
-    if (!needsToBeManuallySubmitted(iouReport)) {
-        return {
-            hasOutstandingChildRequest: false,
-        };
+function setCustomUnitID(transactionID: string, customUnitID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {customUnitID}}});
+}
+
+function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1);
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function updateSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
+    }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index >= existingSubrates.length) {
+        return;
     }
 
-    if (PolicyUtils.isPolicyAdmin(policy)) {
-        return {
-            hasOutstandingChildRequest: true,
-        };
+    const newSubrates = [...existingSubrates];
+    newSubrates.splice(index, 1, {quantity, id, name, rate});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+function clearSubrates(transactionID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {comment: {customUnit: {subRates: []}}});
+}
+
+function addSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string, quantity: number, id: string, name: string, rate: number) {
+    // Index comes from the route params and is a string
+    const index = Number(currentIndex);
+    if (index === -1) {
+        return;
     }
+    const existingSubrates = transaction?.comment?.customUnit?.subRates ?? [];
+
+    if (index !== existingSubrates.length) {
+        return;
+    }
+
+    const newSubrates = [...existingSubrates];
+    newSubrates.push({quantity, id, name, rate});
+
+    // Onyx.merge won't remove the null nested object values, this is a workaround
+    // to remove nested keys while also preserving other object keys
+    // Doing a deep clone of the transaction to avoid mutating the original object and running into a cache issue when using Onyx.set
+    const newTransaction: OnyxTypes.Transaction = {
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        ...(transaction as OnyxTypes.Transaction),
+        comment: {
+            ...transaction?.comment,
+            customUnit: {
+                ...transaction?.comment?.customUnit,
+                subRates: newSubrates,
+                quantity: null,
+            },
+        },
+    };
+
+    Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction?.transactionID}`, newTransaction);
+}
+
+/**
+ * Set the distance rate of a transaction.
+ * Used when creating a new transaction or moving an existing one from Self DM
+ */
+function setMoneyRequestDistanceRate(transactionID: string, customUnitRateID: string, policy: OnyxEntry<OnyxTypes.Policy>, isDraft: boolean) {
+    if (policy) {
+        Onyx.merge(ONYXKEYS.NVP_LAST_SELECTED_DISTANCE_RATES, {[policy.id]: customUnitRateID});
+    }
+
+    const distanceRate = DistanceRequestUtils.getRateByCustomUnitRateID({policy, customUnitRateID});
+    const transaction = isDraft ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`] : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    let newDistance;
+    if (distanceRate?.unit && distanceRate?.unit !== transaction?.comment?.customUnit?.distanceUnit) {
+        newDistance = DistanceRequestUtils.convertDistanceUnit(getDistanceInMeters(transaction, transaction?.comment?.customUnit?.distanceUnit), distanceRate.unit);
+    }
+    Onyx.merge(`${isDraft ? ONYXKEYS.COLLECTION.TRANSACTION_DRAFT : ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        comment: {
+            customUnit: {
+                customUnitRateID,
+                ...(!!policy && {defaultP2PRate: null}),
+                ...(distanceRate && {distanceUnit: distanceRate.unit}),
+                ...(newDistance && {quantity: newDistance}),
+            },
+        },
+    });
+}
+
+/** Helper function to get the receipt error for expenses, or the generic error if there's no receipt */
+function getReceiptError(
+    receipt: OnyxEntry<Receipt>,
+    filename?: string,
+    isScanRequest = true,
+    errorKey?: number,
+    action?: IOUActionParams,
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt,
+): Errors | ErrorFields {
+    const formattedRetryParams = typeof retryParams === 'string' ? retryParams : JSON.stringify(retryParams);
+
+    return isEmptyObject(receipt) || !isScanRequest
+        ? getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage', errorKey)
+        : getMicroSecondOnyxErrorObject(
+              {
+                  error: CONST.IOU.RECEIPT_ERROR,
+                  source: receipt.source?.toString() ?? '',
+                  filename: filename ?? '',
+                  action: action ?? '',
+                  retryParams: formattedRetryParams,
+              },
+              errorKey,
+          );
+}
+
+/** Helper function to get optimistic fields violations onyx data */
+function getFieldViolationsOnyxData(iouReport: OnyxTypes.Report): SetRequired<OnyxData, 'optimisticData' | 'failureData'> {
+    const missingFields: OnyxTypes.ReportFieldsViolations = {};
+    const excludedFields = Object.values(CONST.REPORT_VIOLATIONS_EXCLUDED_FIELDS) as string[];
+
+    Object.values(iouReport.fieldList ?? {}).forEach((field) => {
+        if (excludedFields.includes(field.fieldID) || !!field.value || !!field.defaultValue) {
+            return;
+        }
+        // in case of missing field violation the empty object is indicator.
+        missingFields[field.fieldID] = {};
+    });
 
     return {
-        hasOutstandingChildRequest: iouReport.managerID === userAccountID && iouReport.total !== 0,
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
+                value: {
+                    fieldRequired: missingFields,
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_VIOLATIONS}${iouReport.reportID}`,
+                value: null,
+            },
+        ],
     };
 }
 
-/** Builds the Onyx data for a money request */
-function buildOnyxDataForMoneyRequest(
-    chatReport: OnyxEntry<OnyxTypes.Report>,
-    iouReport: OnyxTypes.Report,
-    transaction: OnyxTypes.Transaction,
-    chatCreatedAction: OptimisticCreatedReportAction,
-    iouCreatedAction: OptimisticCreatedReportAction,
-    iouAction: OptimisticIOUReportAction,
-    optimisticPersonalDetailListAction: OnyxTypes.PersonalDetailsList,
-    reportPreviewAction: ReportAction,
-    optimisticPolicyRecentlyUsedCategories: string[],
-    optimisticPolicyRecentlyUsedTags: OnyxTypes.RecentlyUsedTags,
-    isNewChatReport: boolean,
-    transactionThreadReport: OptimisticChatReport,
-    transactionThreadCreatedReportAction: OptimisticCreatedReportAction,
-    shouldCreateNewMoneyRequestReport: boolean,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    optimisticNextStep?: OnyxTypes.ReportNextStep | null,
-): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
-    const isScanRequest = TransactionUtils.isScanRequest(transaction);
-    const outstandingChildRequest = getOutstandingChildRequest(policy ?? {}, iouReport);
-    const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
-    const optimisticData: OnyxUpdate[] = [];
+/** Builds the Onyx data for an expense */
+function buildOnyxDataForMoneyRequest(moneyRequestParams: BuildOnyxDataForMoneyRequestParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const {
+        isNewChatReport,
+        shouldCreateNewMoneyRequestReport,
+        isOneOnOneSplit = false,
+        existingTransactionThreadReportID,
+        policyParams = {},
+        optimisticParams,
+        retryParams,
+        participant,
+    } = moneyRequestParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {
+        chat,
+        iou,
+        transactionParams: {transaction, transactionThreadReport, transactionThreadCreatedReportAction},
+        policyRecentlyUsed,
+        personalDetailListAction,
+        nextStep,
+    } = optimisticParams;
 
-    if (chatReport) {
+    const isScanRequest = isScanRequestTransactionUtils(transaction);
+    const isPerDiemRequest = isPerDiemRequestTransactionUtils(transaction);
+    const outstandingChildRequest = getOutstandingChildRequest(iou.report);
+    const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
+    const isMoneyRequestToManagerMcTest = isTestTransactionReport(iou.report);
+
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    let newQuickAction: ValueOf<typeof CONST.QUICK_ACTIONS>;
+    if (isScanRequest) {
+        newQuickAction = CONST.QUICK_ACTIONS.REQUEST_SCAN;
+    } else if (isPerDiemRequest) {
+        newQuickAction = CONST.QUICK_ACTIONS.PER_DIEM;
+    } else {
+        newQuickAction = CONST.QUICK_ACTIONS.REQUEST_MANUAL;
+    }
+
+    if (isDistanceRequestTransactionUtils(transaction)) {
+        newQuickAction = CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
+    }
+    const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
+
+    if (chat.report) {
         optimisticData.push({
             // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
             onyxMethod: isNewChatReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
             value: {
-                ...chatReport,
+                ...chat.report,
                 lastReadTime: DateUtils.getDBTime(),
-                lastMessageTranslationKey: '',
-                iouReportID: iouReport.reportID,
+                ...(shouldCreateNewMoneyRequestReport ? {lastVisibleActionCreated: chat.reportPreviewAction.created} : {}),
+                iouReportID: iou.report.reportID,
                 ...outstandingChildRequest,
                 ...(isNewChatReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
             },
@@ -465,11 +1252,12 @@ function buildOnyxDataForMoneyRequest(
     optimisticData.push(
         {
             onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
-                ...iouReport,
-                lastMessageText: iouAction.message?.[0].text,
-                lastMessageHtml: iouAction.message?.[0].html,
+                ...iou.report,
+                lastMessageText: getReportActionText(iou.action),
+                lastMessageHtml: getReportActionHtml(iou.action),
+                lastVisibleActionCreated: iou.action.created,
                 pendingFields: {
                     ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
                 },
@@ -483,117 +1271,247 @@ function buildOnyxDataForMoneyRequest(
         isNewChatReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
                   value: {
-                      [chatCreatedAction.reportActionID]: chatCreatedAction,
-                      [reportPreviewAction.reportActionID]: reportPreviewAction,
+                      [chat.createdAction.reportActionID]: chat.createdAction,
+                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
                   },
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
                   value: {
-                      [reportPreviewAction.reportActionID]: reportPreviewAction,
+                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
                   },
               },
         shouldCreateNewMoneyRequestReport
             ? {
                   onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                   value: {
-                      [iouCreatedAction.reportActionID]: iouCreatedAction as OnyxTypes.ReportAction,
-                      [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                      [iou.createdAction.reportActionID]: iou.createdAction as OnyxTypes.ReportAction,
+                      [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
                   },
               }
             : {
                   onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
                   value: {
-                      [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                      [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
                   },
               },
-
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
-            value: transactionThreadReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
             value: {
-                [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
+                ...transactionThreadReport,
+                pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
             },
         },
-
-        // Remove the temporary transaction used during the creation flow
         {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
         },
     );
 
-    if (optimisticPolicyRecentlyUsedCategories.length) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport.policyID}`,
-            value: optimisticPolicyRecentlyUsedCategories,
-        });
-    }
-
-    if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
+    if (isNewChatReport) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport.policyID}`,
-            value: optimisticPolicyRecentlyUsedTags,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
         });
     }
 
-    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+    if (shouldCreateNewMoneyRequestReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
+            },
+        });
+    }
+
+    if (policyRecentlyUsed.categories?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iou.report.policyID}`,
+            value: policyRecentlyUsed.categories,
+        });
+    }
+
+    if (policyRecentlyUsed.currencies?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            value: policyRecentlyUsed.currencies,
+        });
+    }
+
+    if (!isEmptyObject(policyRecentlyUsed.tags)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iou.report.policyID}`,
+            value: policyRecentlyUsed.tags,
+        });
+    }
+
+    if (policyRecentlyUsed.destinations?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_DESTINATIONS}${iou.report.policyID}`,
+            value: policyRecentlyUsed.destinations,
+        });
+    }
+
+    if (isMoneyRequestToManagerMcTest) {
+        const date = new Date();
+        const isTestReceipt = transaction.receipt?.isTestReceipt ?? false;
+        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+        const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+            type: isScanRequest && !isTestReceipt ? CONST.IOU.REPORT_ACTION_TYPE.CREATE : CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            amount: iou.report?.total ?? 0,
+            currency: iou.report?.currency ?? '',
+            comment: '',
+            participants: [managerMcTestParticipant],
+            paymentType: isScanRequest && !isTestReceipt ? undefined : CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+            iouReportID: iou.report.reportID,
+            transactionID: transaction.transactionID,
+        });
+
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING}`,
+                value: {[CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP]: DateUtils.getDBTime(date.valueOf())},
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
+                value: {
+                    ...iou.report,
+                    ...(!isScanRequest || isTestReceipt ? {lastActionType: CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED} : undefined),
+                    hasOutstandingChildRequest: false,
+                    lastActorAccountID: currentUserPersonalDetails?.accountID,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
+                value: {
+                    [iou.action.reportActionID]: {
+                        ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    ...transaction,
+                },
+            },
+        );
+    }
+
+    const redundantParticipants: Record<number, null> = {};
+    if (!isEmptyObject(personalDetailListAction)) {
+        const successPersonalDetailListAction: Record<number, null> = {};
+
+        // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+        Object.keys(personalDetailListAction).forEach((accountIDKey) => {
+            const accountID = Number(accountIDKey);
+            successPersonalDetailListAction[accountID] = null;
+            redundantParticipants[accountID] = null;
+        });
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: optimisticPersonalDetailListAction,
+            value: personalDetailListAction,
         });
-    }
-
-    if (!isEmptyObject(optimisticNextStep)) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
-            value: optimisticNextStep,
-        });
-    }
-
-    const successData: OnyxUpdate[] = [];
-
-    if (isNewChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: {
-                pendingFields: null,
-                errorFields: null,
-            },
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: successPersonalDetailListAction,
         });
+    }
+
+    if (!isEmptyObject(nextStep)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
+            value: nextStep,
+        });
+    }
+
+    if (isNewChatReport) {
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
+                value: {
+                    participants: redundantParticipants,
+                    pendingFields: null,
+                    errorFields: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
     }
 
     successData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report.reportID}`,
             value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            value: {
+                participants: redundantParticipants,
                 pendingFields: null,
                 errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: false,
             },
         },
         {
@@ -602,49 +1520,43 @@ function buildOnyxDataForMoneyRequest(
             value: {
                 pendingAction: null,
                 pendingFields: clearedPendingFields,
+                // The routes contains the distance in meters. Clearing the routes ensures we use the distance
+                // in the correct unit stored under the transaction customUnit once the request is created.
+                // The route is also not saved in the backend, so we can't rely on it.
+                routes: null,
             },
         },
 
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
             value: {
                 ...(isNewChatReport
                     ? {
-                          [chatCreatedAction.reportActionID]: {
+                          [chat.createdAction.reportActionID]: {
                               pendingAction: null,
                               errors: null,
                           },
                       }
                     : {}),
-                [reportPreviewAction.reportActionID]: {
+                [chat.reportPreviewAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
             value: {
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
-                          [iouCreatedAction.reportActionID]: {
+                          [iou.createdAction.reportActionID]: {
                               pendingAction: null,
                               errors: null,
                           },
                       }
                     : {}),
-                [iouAction.reportActionID]: {
-                    pendingAction: null,
-                    errors: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
-            value: {
-                [transactionThreadCreatedReportAction.reportActionID]: {
+                [iou.action.reportActionID]: {
                     pendingAction: null,
                     errors: null,
                 },
@@ -652,19 +1564,35 @@ function buildOnyxDataForMoneyRequest(
         },
     );
 
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        });
+    }
+
+    const errorKey = DateUtils.getMicroseconds();
+
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
             value: {
-                iouReportID: chatReport?.iouReportID,
-                lastReadTime: chatReport?.lastReadTime,
+                iouReportID: chat.report?.iouReportID,
+                lastReadTime: chat.report?.lastReadTime,
+                lastVisibleActionCreated: chat.report?.lastVisibleActionCreated,
                 pendingFields: null,
-                hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
+                hasOutstandingChildRequest: chat.report?.hasOutstandingChildRequest,
                 ...(isNewChatReport
                     ? {
                           errorFields: {
-                              createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                              createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                           },
                       }
                     : {}),
@@ -672,101 +1600,144 @@ function buildOnyxDataForMoneyRequest(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report.reportID}`,
             value: {
                 pendingFields: null,
                 errorFields: {
-                    ...(shouldCreateNewMoneyRequestReport ? {createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage')} : {}),
+                    ...(shouldCreateNewMoneyRequestReport ? {createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')} : {}),
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
             value: {
-                errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
-                },
+                pendingFields: null,
+                errorFields: existingTransactionThreadReport
+                    ? null
+                    : {
+                          createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                      },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                pendingAction: null,
+                errors: getReceiptError(
+                    transaction.receipt,
+                    // Disabling this line since transaction.filename can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    transaction.filename || transaction.receipt?.filename,
+                    isScanRequest,
+                    errorKey,
+                    CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                    retryParams,
+                ),
                 pendingFields: clearedPendingFields,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                ...(isNewChatReport
-                    ? {
-                          [chatCreatedAction.reportActionID]: {
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction?.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
-                          },
-                          [reportPreviewAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError(null),
-                          },
-                      }
-                    : {
-                          [reportPreviewAction.reportActionID]: {
-                              created: reportPreviewAction.created,
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction?.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
-                          },
-                      }),
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report.reportID}`,
             value: {
                 ...(shouldCreateNewMoneyRequestReport
                     ? {
-                          [iouCreatedAction.reportActionID]: {
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                          [iou.createdAction.reportActionID]: {
+                              errors: getReceiptError(
+                                  transaction.receipt,
+                                  // Disabling this line since transaction.filename can be an empty string
+                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                  transaction.filename || transaction.receipt?.filename,
+                                  isScanRequest,
+                                  errorKey,
+                                  CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                                  retryParams,
+                              ),
                           },
-                          [iouAction.reportActionID]: {
-                              errors: ErrorUtils.getMicroSecondOnyxError(null),
+                          [iou.action.reportActionID]: {
+                              errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
                           },
                       }
                     : {
-                          [iouAction.reportActionID]: {
-                              // Disabling this line since transaction.filename can be an empty string
-                              // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                              errors: getReceiptError(transaction.receipt, transaction.filename || transaction.receipt?.filename, isScanRequest),
+                          [iou.action.reportActionID]: {
+                              errors: getReceiptError(
+                                  transaction.receipt,
+                                  // Disabling this line since transaction.filename can be an empty string
+                                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                  transaction.filename || transaction.receipt?.filename,
+                                  isScanRequest,
+                                  errorKey,
+                                  CONST.IOU.ACTION_PARAMS.MONEY_REQUEST,
+                                  retryParams,
+                              ),
                           },
                       }),
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport.reportID}`,
-            value: {
-                [transactionThreadCreatedReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                },
             },
         },
     ];
 
+    if (!isOneOnOneSplit) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: {
+                action: newQuickAction,
+                chatReportID: chat.report?.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
+        });
+    }
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                },
+            },
+        });
+    }
+
+    const searchUpdate = getSearchOnyxUpdate({
+        transaction,
+        participant,
+    });
+
+    if (searchUpdate) {
+        optimisticData.push({...searchUpdate});
+    }
+
     // We don't need to compute violations unless we're on a paid policy
-    if (!policy || !PolicyUtils.isPaidGroupPolicy(policy)) {
+    if (!policy || !isPaidGroupPolicy(policy)) {
         return [optimisticData, successData, failureData];
     }
 
-    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(transaction, [], !!policy.requiresTag, policyTagList ?? {}, !!policy.requiresCategory, policyCategories ?? {});
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        policy,
+        policyTagList ?? {},
+        policyCategories ?? {},
+        hasDependentTags(policy, policyTagList ?? {}),
+        false,
+    );
 
     if (violationsOnyxData) {
-        optimisticData.push(violationsOnyxData);
+        const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+
+        optimisticData.push(violationsOnyxData, {
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iou.report.reportID}`,
+            onyxMethod: Onyx.METHOD.SET,
+            value: buildNextStep(iou.report, iou.report.statusNum ?? CONST.REPORT.STATE_NUM.OPEN, shouldFixViolations),
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
@@ -777,31 +1748,1280 @@ function buildOnyxDataForMoneyRequest(
     return [optimisticData, successData, failureData];
 }
 
+/** Builds the Onyx data for an invoice */
+function buildOnyxDataForInvoice(invoiceParams: BuildOnyxDataForInvoiceParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const {chat, iou, transactionParams, policyParams, optimisticData: optimisticDataParams, companyName, companyWebsite, participant} = invoiceParams;
+    const transaction = transactionParams.transaction;
+
+    const clearedPendingFields = Object.fromEntries(Object.keys(transactionParams.transaction.pendingFields ?? {}).map((key) => [key, null]));
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report?.reportID}`,
+            value: {
+                ...iou.report,
+                lastMessageText: getReportActionText(iou.action),
+                lastMessageHtml: getReportActionHtml(iou.action),
+                pendingFields: {
+                    createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionParams.transaction.transactionID}`,
+            value: transactionParams.transaction,
+        },
+        chat.isNewReport
+            ? {
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
+                  value: {
+                      [chat.createdAction.reportActionID]: chat.createdAction,
+                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
+                  },
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
+                  value: {
+                      [chat.reportPreviewAction.reportActionID]: chat.reportPreviewAction,
+                  },
+              },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report?.reportID}`,
+            value: {
+                [iou.createdAction.reportActionID]: iou.createdAction as OnyxTypes.ReportAction,
+                [iou.action.reportActionID]: iou.action as OnyxTypes.ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionParams.threadReport.reportID}`,
+            value: transactionParams.threadReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionParams.threadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+    ];
+
+    if (transactionParams.threadCreatedReportAction?.reportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParams.threadReport.reportID}`,
+            value: {
+                [transactionParams.threadCreatedReportAction.reportActionID]: transactionParams.threadCreatedReportAction,
+            },
+        });
+    }
+
+    const successData: OnyxUpdate[] = [];
+
+    if (chat.report) {
+        optimisticData.push({
+            // Use SET for new reports because it doesn't exist yet, is faster and we need the data to be available when we navigate to the chat page
+            onyxMethod: chat.isNewReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report.reportID}`,
+            value: {
+                ...chat.report,
+                lastReadTime: DateUtils.getDBTime(),
+                iouReportID: iou.report?.reportID,
+                ...(chat.isNewReport ? {pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD}} : {}),
+            },
+        });
+
+        if (chat.isNewReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+        }
+    }
+
+    if (optimisticDataParams.policyRecentlyUsedCategories.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iou.report?.policyID}`,
+            value: optimisticDataParams.policyRecentlyUsedCategories,
+        });
+    }
+
+    if (optimisticDataParams.recentlyUsedCurrencies?.length) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+            value: optimisticDataParams.recentlyUsedCurrencies,
+        });
+    }
+
+    if (!isEmptyObject(optimisticDataParams.policyRecentlyUsedTags)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iou.report?.policyID}`,
+            value: optimisticDataParams.policyRecentlyUsedTags,
+        });
+    }
+
+    const redundantParticipants: Record<number, null> = {};
+    if (!isEmptyObject(optimisticDataParams.personalDetailListAction)) {
+        const successPersonalDetailListAction: Record<number, null> = {};
+
+        // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+        Object.keys(optimisticDataParams.personalDetailListAction).forEach((accountIDKey) => {
+            const accountID = Number(accountIDKey);
+            successPersonalDetailListAction[accountID] = null;
+            redundantParticipants[accountID] = null;
+        });
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticDataParams.personalDetailListAction,
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: successPersonalDetailListAction,
+        });
+    }
+
+    successData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report?.reportID}`,
+            value: {
+                participants: redundantParticipants,
+                pendingFields: null,
+                errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iou.report?.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionParams.threadReport.reportID}`,
+            value: {
+                participants: redundantParticipants,
+                pendingFields: null,
+                errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionParams.threadReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionParams.transaction.transactionID}`,
+            value: {
+                pendingAction: null,
+                pendingFields: clearedPendingFields,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chat.report?.reportID}`,
+            value: {
+                ...(chat.isNewReport
+                    ? {
+                          [chat.createdAction.reportActionID]: {
+                              pendingAction: null,
+                              errors: null,
+                          },
+                      }
+                    : {}),
+                [chat.reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report?.reportID}`,
+            value: {
+                [iou.createdAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+                [iou.action.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        },
+    );
+
+    if (transactionParams.threadCreatedReportAction?.reportActionID) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParams.threadReport.reportID}`,
+            value: {
+                [transactionParams.threadCreatedReportAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        });
+    }
+
+    if (chat.isNewReport) {
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
+                value: {
+                    participants: redundantParticipants,
+                    pendingFields: null,
+                    errorFields: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chat.report?.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            },
+        );
+    }
+
+    const errorKey = DateUtils.getMicroseconds();
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chat.report?.reportID}`,
+            value: {
+                iouReportID: chat.report?.iouReportID,
+                lastReadTime: chat.report?.lastReadTime,
+                pendingFields: null,
+                hasOutstandingChildRequest: chat.report?.hasOutstandingChildRequest,
+                ...(chat.isNewReport
+                    ? {
+                          errorFields: {
+                              createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                          },
+                      }
+                    : {}),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iou.report?.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: {
+                    createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionParams.threadReport.reportID}`,
+            value: {
+                errorFields: {
+                    createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionParams.transaction.transactionID}`,
+            value: {
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateInvoiceFailureMessage'),
+                pendingFields: clearedPendingFields,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iou.report?.reportID}`,
+            value: {
+                [iou.createdAction.reportActionID]: {
+                    // Disabling this line since transactionParams.transaction.filename can be an empty string
+                    errors: getReceiptError(
+                        transactionParams.transaction.receipt,
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        transactionParams.transaction?.filename || transactionParams.transaction.receipt?.filename,
+                        false,
+                        errorKey,
+                    ),
+                },
+                [iou.action.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateInvoiceFailureMessage'),
+                },
+            },
+        },
+    ];
+
+    if (transactionParams.threadCreatedReportAction?.reportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionParams.threadReport.reportID}`,
+            value: {
+                [transactionParams.threadCreatedReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateInvoiceFailureMessage', errorKey),
+                },
+            },
+        });
+    }
+
+    if (companyName && companyWebsite) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyParams.policy?.id}`,
+            value: {
+                invoice: {
+                    companyName,
+                    companyWebsite,
+                    pendingFields: {
+                        companyName: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                        companyWebsite: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyParams.policy?.id}`,
+            value: {
+                invoice: {
+                    pendingFields: {
+                        companyName: null,
+                        companyWebsite: null,
+                    },
+                },
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyParams.policy?.id}`,
+            value: {
+                invoice: {
+                    companyName: null,
+                    companyWebsite: null,
+                    pendingFields: {
+                        companyName: null,
+                        companyWebsite: null,
+                    },
+                },
+            },
+        });
+    }
+
+    const searchUpdate = getSearchOnyxUpdate({
+        transaction,
+        participant,
+    });
+
+    if (searchUpdate) {
+        optimisticData.push({...searchUpdate});
+    }
+
+    // We don't need to compute violations unless we're on a paid policy
+    if (!policyParams.policy || !isPaidGroupPolicy(policyParams.policy)) {
+        return [optimisticData, successData, failureData];
+    }
+
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transactionParams.transaction,
+        [],
+        policyParams.policy,
+        policyParams.policyTagList ?? {},
+        policyParams.policyCategories ?? {},
+        hasDependentTags(policyParams.policy, policyParams.policyTagList ?? {}),
+        true,
+    );
+
+    if (violationsOnyxData) {
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionParams.transaction.transactionID}`,
+            value: [],
+        });
+    }
+
+    return [optimisticData, successData, failureData];
+}
+
+type BuildOnyxDataForTrackExpenseParams = {
+    chat: {report: OnyxInputValue<OnyxTypes.Report>; previewAction: OnyxInputValue<ReportAction>};
+    iou: {report: OnyxInputValue<OnyxTypes.Report>; createdAction: OptimisticCreatedReportAction; action: OptimisticIOUReportAction};
+    transactionParams: {transaction: OnyxTypes.Transaction; threadReport: OptimisticChatReport | null; threadCreatedReportAction: OptimisticCreatedReportAction | null};
+    policyParams: {policy?: OnyxInputValue<OnyxTypes.Policy>; tagList?: OnyxInputValue<OnyxTypes.PolicyTagLists>; categories?: OnyxInputValue<OnyxTypes.PolicyCategories>};
+    shouldCreateNewMoneyRequestReport: boolean;
+    existingTransactionThreadReportID?: string;
+    actionableTrackExpenseWhisper?: OnyxInputValue<OnyxTypes.ReportAction>;
+    retryParams?: StartSplitBilActionParams | CreateTrackExpenseParams | RequestMoneyInformation | ReplaceReceipt;
+    participant?: Participant;
+};
+
+/** Builds the Onyx data for track expense */
+function buildOnyxDataForTrackExpense({
+    chat,
+    iou,
+    transactionParams,
+    policyParams = {},
+    shouldCreateNewMoneyRequestReport,
+    existingTransactionThreadReportID,
+    actionableTrackExpenseWhisper,
+    retryParams,
+    participant,
+}: BuildOnyxDataForTrackExpenseParams): [OnyxUpdate[], OnyxUpdate[], OnyxUpdate[]] {
+    const {report: chatReport, previewAction: reportPreviewAction} = chat;
+    const {report: iouReport, createdAction: iouCreatedAction, action: iouAction} = iou;
+    const {transaction, threadReport: transactionThreadReport, threadCreatedReportAction: transactionThreadCreatedReportAction} = transactionParams;
+    const {policy, tagList: policyTagList, categories: policyCategories} = policyParams;
+
+    const isScanRequest = isScanRequestTransactionUtils(transaction);
+    const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+    const clearedPendingFields = Object.fromEntries(Object.keys(transaction.pendingFields ?? {}).map((key) => [key, null]));
+
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const isSelfDMReport = isSelfDM(chatReport);
+    let newQuickAction: QuickActionName = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_MANUAL : CONST.QUICK_ACTIONS.REQUEST_MANUAL;
+    if (isScanRequest) {
+        newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_SCAN : CONST.QUICK_ACTIONS.REQUEST_SCAN;
+    } else if (isDistanceRequest) {
+        newQuickAction = isSelfDMReport ? CONST.QUICK_ACTIONS.TRACK_DISTANCE : CONST.QUICK_ACTIONS.REQUEST_DISTANCE;
+    }
+    const existingTransactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingTransactionThreadReportID}`] ?? null;
+
+    if (chatReport) {
+        optimisticData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    ...chatReport,
+                    lastMessageText: getReportActionText(iouAction),
+                    lastMessageHtml: getReportActionHtml(iouAction),
+                    lastReadTime: DateUtils.getDBTime(),
+                    iouReportID: iouReport?.reportID,
+                    lastVisibleActionCreated: shouldCreateNewMoneyRequestReport ? reportPreviewAction?.created : chatReport.lastVisibleActionCreated,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+                value: {
+                    action: newQuickAction,
+                    chatReportID: chatReport.reportID,
+                    isFirstQuickAction: isEmptyObject(quickAction),
+                },
+            },
+        );
+
+        if (actionableTrackExpenseWhisper && !iouReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableTrackExpenseWhisper.reportActionID]: actionableTrackExpenseWhisper,
+                },
+            });
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                value: {
+                    lastVisibleActionCreated: actionableTrackExpenseWhisper.created,
+                    lastMessageText: CONST.ACTIONABLE_TRACK_EXPENSE_WHISPER_MESSAGE,
+                },
+            });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    [actionableTrackExpenseWhisper.reportActionID]: {pendingAction: null, errors: null},
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {[actionableTrackExpenseWhisper.reportActionID]: null},
+            });
+        }
+    }
+
+    if (iouReport) {
+        optimisticData.push(
+            {
+                onyxMethod: shouldCreateNewMoneyRequestReport ? Onyx.METHOD.SET : Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: {
+                    ...iouReport,
+                    lastMessageText: getReportActionText(iouAction),
+                    lastMessageHtml: getReportActionHtml(iouAction),
+                    pendingFields: {
+                        ...(shouldCreateNewMoneyRequestReport ? {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : {preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}),
+                    },
+                },
+            },
+            shouldCreateNewMoneyRequestReport
+                ? {
+                      onyxMethod: Onyx.METHOD.SET,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [iouCreatedAction.reportActionID]: iouCreatedAction as OnyxTypes.ReportAction,
+                          [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                      },
+                  }
+                : {
+                      onyxMethod: Onyx.METHOD.MERGE,
+                      key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                      value: {
+                          [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+                      },
+                  },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    ...(reportPreviewAction && {[reportPreviewAction.reportActionID]: reportPreviewAction}),
+                },
+            },
+        );
+        if (shouldCreateNewMoneyRequestReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+                value: {
+                    isOptimisticReport: true,
+                },
+            });
+        }
+    } else {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [iouAction.reportActionID]: iouAction as OnyxTypes.ReportAction,
+            },
+        });
+    }
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: transaction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            value: {
+                ...transactionThreadReport,
+                pendingFields: {createChat: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+    );
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction.reportActionID]: transactionThreadCreatedReportAction,
+            },
+        });
+    }
+
+    if (iouReport) {
+        successData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                value: {
+                    pendingFields: null,
+                    errorFields: null,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    ...(shouldCreateNewMoneyRequestReport
+                        ? {
+                              [iouCreatedAction.reportActionID]: {
+                                  pendingAction: null,
+                                  errors: null,
+                              },
+                          }
+                        : {}),
+                    [iouAction.reportActionID]: {
+                        pendingAction: null,
+                        errors: null,
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+                value: {
+                    ...(reportPreviewAction && {[reportPreviewAction.reportActionID]: {pendingAction: null}}),
+                },
+            },
+        );
+        if (shouldCreateNewMoneyRequestReport) {
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${iouReport.reportID}`,
+                value: {
+                    isOptimisticReport: false,
+                },
+            });
+        }
+    } else {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [iouAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+                ...(reportPreviewAction && {[reportPreviewAction.reportActionID]: {pendingAction: null}}),
+            },
+        });
+    }
+
+    successData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionThreadReport?.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                pendingAction: null,
+                pendingFields: clearedPendingFields,
+                routes: null,
+            },
+        },
+    );
+
+    if (!isEmptyObject(transactionThreadCreatedReportAction)) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        });
+    }
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: quickAction ?? null,
+    });
+
+    if (iouReport) {
+        failureData.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+                value: {
+                    pendingFields: null,
+                    errorFields: {
+                        ...(shouldCreateNewMoneyRequestReport ? {createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage')} : {}),
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+                value: {
+                    ...(shouldCreateNewMoneyRequestReport
+                        ? {
+                              [iouCreatedAction.reportActionID]: {
+                                  errors: getReceiptError(
+                                      transaction.receipt,
+                                      // Disabling this line since transaction.filename can be an empty string
+                                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                      transaction.filename || transaction.receipt?.filename,
+                                      isScanRequest,
+                                      undefined,
+                                      CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                                      retryParams,
+                                  ),
+                              },
+                              [iouAction.reportActionID]: {
+                                  errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                              },
+                          }
+                        : {
+                              [iouAction.reportActionID]: {
+                                  errors: getReceiptError(
+                                      transaction.receipt,
+                                      // Disabling this line since transaction.filename can be an empty string
+                                      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                                      transaction.filename || transaction.receipt?.filename,
+                                      isScanRequest,
+                                      undefined,
+                                      CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                                      retryParams,
+                                  ),
+                              },
+                          }),
+                },
+            },
+        );
+    } else {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [iouAction.reportActionID]: {
+                    errors: getReceiptError(
+                        transaction.receipt,
+                        // Disabling this line since transaction.filename can be an empty string
+                        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                        transaction.filename || transaction.receipt?.filename,
+                        isScanRequest,
+                        undefined,
+                        CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                        retryParams,
+                    ),
+                },
+            },
+        });
+    }
+
+    failureData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                lastReadTime: chatReport?.lastReadTime,
+                lastMessageText: chatReport?.lastMessageText,
+                lastMessageHtml: chatReport?.lastMessageHtml,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.reportID}`,
+            value: {
+                pendingFields: null,
+                errorFields: existingTransactionThreadReport
+                    ? null
+                    : {
+                          createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
+                      },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+            value: {
+                errors: getReceiptError(
+                    transaction.receipt,
+                    // Disabling this line since transaction.filename can be an empty string
+                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                    transaction.filename || transaction.receipt?.filename,
+                    isScanRequest,
+                    undefined,
+                    CONST.IOU.ACTION_PARAMS.TRACK_EXPENSE,
+                    retryParams,
+                ),
+                pendingFields: clearedPendingFields,
+            },
+        },
+    );
+
+    if (transactionThreadCreatedReportAction?.reportActionID) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReport?.reportID}`,
+            value: {
+                [transactionThreadCreatedReportAction?.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                },
+            },
+        });
+    }
+
+    const searchUpdate = getSearchOnyxUpdate({
+        transaction,
+        participant,
+    });
+
+    if (searchUpdate) {
+        optimisticData.push({...searchUpdate});
+    }
+
+    // We don't need to compute violations unless we're on a paid policy
+    if (!policy || !isPaidGroupPolicy(policy)) {
+        return [optimisticData, successData, failureData];
+    }
+
+    const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+        transaction,
+        [],
+        policy,
+        policyTagList ?? {},
+        policyCategories ?? {},
+        hasDependentTags(policy, policyTagList ?? {}),
+        false,
+    );
+
+    if (violationsOnyxData) {
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+            value: [],
+        });
+    }
+
+    // Show field violations only for control policies
+    if (isControlPolicy(policy) && iouReport) {
+        const {optimisticData: fieldViolationsOptimisticData, failureData: fieldViolationsFailureData} = getFieldViolationsOnyxData(iouReport);
+        optimisticData.push(...fieldViolationsOptimisticData);
+        failureData.push(...fieldViolationsFailureData);
+    }
+
+    return [optimisticData, successData, failureData];
+}
+
+function getDeleteTrackExpenseInformation(
+    chatReportID: string,
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    shouldDeleteTransactionFromOnyx = true,
+    isMovingTransactionFromTrackExpense = false,
+    actionableWhisperReportActionID = '',
+    resolution = '',
+) {
+    // STEP 1: Get all collections we're updating
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const transactionThreadID = reportAction.childReportID;
+    let transactionThread = null;
+    if (transactionThreadID) {
+        transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`] ?? null;
+    }
+
+    // STEP 2: Decide if we need to:
+    // 1. Delete the transactionThread - delete if there are no visible comments in the thread and we're not moving the transaction
+    // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted and we're not moving the transaction
+    const shouldDeleteTransactionThread = !isMovingTransactionFromTrackExpense && (transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false);
+
+    const shouldShowDeletedRequestMessage = !isMovingTransactionFromTrackExpense && !!transactionThreadID && !shouldDeleteTransactionThread;
+
+    // STEP 3: Update the IOU reportAction.
+    const updatedReportAction = {
+        [reportAction.reportActionID]: {
+            pendingAction: shouldShowDeletedRequestMessage ? CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE : CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+            previousMessage: reportAction.message,
+            message: [
+                {
+                    type: 'COMMENT',
+                    html: '',
+                    text: '',
+                    isEdited: true,
+                    isDeletedParentAction: shouldShowDeletedRequestMessage,
+                },
+            ],
+            originalMessage: {
+                IOUTransactionID: null,
+            },
+            errors: undefined,
+        },
+        ...(actionableWhisperReportActionID && {[actionableWhisperReportActionID]: {originalMessage: {resolution}}}),
+    } as OnyxTypes.ReportActions;
+    let canUserPerformWriteAction = true;
+    if (chatReport) {
+        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+    }
+    const lastVisibleAction = getLastVisibleAction(chatReportID, canUserPerformWriteAction, updatedReportAction);
+    const {lastMessageText = '', lastMessageHtml = ''} = getLastVisibleMessage(chatReportID, canUserPerformWriteAction, updatedReportAction);
+
+    // STEP 4: Build Onyx data
+    const optimisticData: OnyxUpdate[] = [];
+
+    if (shouldDeleteTransactionFromOnyx) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: null,
+        });
+    }
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
+
+    if (shouldDeleteTransactionThread) {
+        optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                value: {
+                    reportID: null,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    participants: {
+                        [userAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                value: null,
+            },
+        );
+    }
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: updatedReportAction,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                lastMessageText,
+                lastVisibleActionCreated: lastVisibleAction?.created,
+                lastMessageHtml: !lastMessageHtml ? lastMessageText : lastMessageHtml,
+            },
+        },
+    );
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
+    if (shouldDeleteTransactionThread && transactionThread) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: null,
+        });
+    }
+
+    const failureData: OnyxUpdate[] = [];
+
+    if (shouldDeleteTransactionFromOnyx) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction ?? null,
+        });
+    }
+
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: transactionViolations ?? null,
+    });
+
+    if (shouldDeleteTransactionThread) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: transactionThread,
+        });
+    }
+
+    if (actionableWhisperReportActionID) {
+        const actionableWhisperReportAction = getReportAction(chatReportID, actionableWhisperReportActionID);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [actionableWhisperReportActionID]: {
+                    originalMessage: {
+                        resolution: isActionableTrackExpense(actionableWhisperReportAction) ? getOriginalMessage(actionableWhisperReportAction)?.resolution ?? null : null,
+                    },
+                },
+            },
+        });
+    }
+    failureData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [reportAction.reportActionID]: {
+                    ...reportAction,
+                    pendingAction: null,
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericDeleteFailureMessage'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: chatReport,
+        },
+    );
+
+    const parameters: DeleteMoneyRequestParams = {
+        transactionID,
+        reportActionID: reportAction.reportActionID,
+    };
+
+    return {parameters, optimisticData, successData, failureData, shouldDeleteTransactionThread, chatReport};
+}
+
 /**
- * Gathers all the data needed to make a money request. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * Get the invoice receiver type based on the receiver participant.
+ * @param receiverParticipant The participant who will receive the invoice or the invoice receiver object directly.
+ * @returns The invoice receiver type.
+ */
+function getReceiverType(receiverParticipant: Participant | InvoiceReceiver | undefined): InvoiceReceiverType {
+    if (!receiverParticipant) {
+        Log.warn('getReceiverType called with no receiverParticipant');
+        return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+    }
+    if ('type' in receiverParticipant && receiverParticipant.type) {
+        return receiverParticipant.type;
+    }
+    if ('policyID' in receiverParticipant && receiverParticipant.policyID) {
+        return CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS;
+    }
+    return CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL;
+}
+
+/** Gathers all the data needed to create an invoice. */
+function getSendInvoiceInformation(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    currentUserAccountID: number,
+    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
+    receipt?: Receipt,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    companyName?: string,
+    companyWebsite?: string,
+): SendInvoiceInformation {
+    const {amount = 0, currency = '', created = '', merchant = '', category = '', tag = '', taxCode = '', taxAmount = 0, billable, comment, participants} = transaction ?? {};
+    const trimmedComment = (comment?.comment ?? '').trim();
+    const senderWorkspaceID = participants?.find((participant) => participant?.isSender)?.policyID;
+    const receiverParticipant: Participant | InvoiceReceiver | undefined = participants?.find((participant) => participant?.accountID) ?? invoiceChatReport?.invoiceReceiver;
+    const receiverAccountID = receiverParticipant && 'accountID' in receiverParticipant && receiverParticipant.accountID ? receiverParticipant.accountID : CONST.DEFAULT_NUMBER_ID;
+    let receiver = getPersonalDetailsForAccountID(receiverAccountID);
+    let optimisticPersonalDetailListAction = {};
+    const receiverType = getReceiverType(receiverParticipant);
+
+    // STEP 1: Get existing chat report OR build a new optimistic one
+    let isNewChatReport = false;
+    let chatReport = !isEmptyObject(invoiceChatReport) && invoiceChatReport?.reportID ? invoiceChatReport : null;
+
+    if (!chatReport) {
+        chatReport = getInvoiceChatByParticipants(receiverAccountID, receiverType, senderWorkspaceID) ?? null;
+    }
+
+    if (!chatReport) {
+        isNewChatReport = true;
+        chatReport = buildOptimisticChatReport({
+            participantList: [receiverAccountID, currentUserAccountID],
+            chatType: CONST.REPORT.CHAT_TYPE.INVOICE,
+            policyID: senderWorkspaceID,
+        });
+    }
+
+    // STEP 2: Create a new optimistic invoice report.
+    const optimisticInvoiceReport = buildOptimisticInvoiceReport(
+        chatReport.reportID,
+        senderWorkspaceID,
+        receiverAccountID,
+        receiver.displayName ?? (receiverParticipant as Participant)?.login ?? '',
+        amount,
+        currency,
+    );
+
+    // STEP 3: Build optimistic receipt and transaction
+    const receiptObject: Receipt = {};
+    let filename;
+    if (receipt?.source) {
+        receiptObject.source = receipt.source;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
+        filename = receipt.name;
+    }
+    const optimisticTransaction = buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID: optimisticInvoiceReport.reportID,
+            comment: trimmedComment,
+            created,
+            merchant,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            filename,
+        },
+    });
+
+    const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(optimisticInvoiceReport.policyID, category);
+    const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(optimisticInvoiceReport.policyID, tag);
+    const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+
+    // STEP 4: Add optimistic personal details for participant
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[receiverAccountID];
+    if (shouldCreateOptimisticPersonalDetails) {
+        const receiverLogin = receiverParticipant && 'login' in receiverParticipant && receiverParticipant.login ? receiverParticipant.login : '';
+        receiver = {
+            accountID: receiverAccountID,
+            displayName: formatPhoneNumber(receiverLogin),
+            login: receiverLogin,
+            isOptimisticPersonalDetail: true,
+        };
+
+        optimisticPersonalDetailListAction = {[receiverAccountID]: receiver};
+    }
+
+    // STEP 5: Build optimistic reportActions.
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticInvoiceReport, trimmedComment, optimisticTransaction);
+    optimisticInvoiceReport.parentReportActionID = reportPreviewAction.reportActionID;
+    chatReport.lastVisibleActionCreated = reportPreviewAction.created;
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+        buildOptimisticMoneyRequestEntities({
+            iouReport: optimisticInvoiceReport,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment: trimmedComment,
+            payeeEmail: receiver.login ?? '',
+            participants: [receiver],
+            transactionID: optimisticTransaction.transactionID,
+        });
+
+    // STEP 6: Build Onyx Data
+    const [optimisticData, successData, failureData] = buildOnyxDataForInvoice({
+        chat: {report: chatReport, createdAction: optimisticCreatedActionForChat, reportPreviewAction, isNewReport: isNewChatReport},
+        iou: {createdAction: optimisticCreatedActionForIOUReport, action: iouAction, report: optimisticInvoiceReport},
+        transactionParams: {
+            transaction: optimisticTransaction,
+            threadReport: optimisticTransactionThread,
+            threadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+        },
+        policyParams: {policy, policyTagList, policyCategories},
+        optimisticData: {
+            personalDetailListAction: optimisticPersonalDetailListAction,
+            recentlyUsedCurrencies: optimisticRecentlyUsedCurrencies,
+            policyRecentlyUsedCategories: optimisticPolicyRecentlyUsedCategories,
+            policyRecentlyUsedTags: optimisticPolicyRecentlyUsedTags,
+        },
+        participant: receiver,
+        companyName,
+        companyWebsite,
+    });
+
+    return {
+        createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        reportActionID: iouAction.reportActionID,
+        senderWorkspaceID,
+        receiver,
+        invoiceRoom: chatReport,
+        createdChatReportActionID: optimisticCreatedActionForChat.reportActionID,
+        invoiceReportID: optimisticInvoiceReport.reportID,
+        reportPreviewReportActionID: reportPreviewAction.reportActionID,
+        transactionID: optimisticTransaction.transactionID,
+        transactionThreadReportID: optimisticTransactionThread.reportID,
+        onyxData: {
+            optimisticData,
+            successData,
+            failureData,
+        },
+    };
+}
+
+/**
+ * Gathers all the data needed to submit an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
  * it creates optimistic versions of them and uses those instead
  */
-function getMoneyRequestInformation(
-    parentChatReport: OnyxEntry<OnyxTypes.Report> | EmptyObject,
-    participant: Participant,
-    comment: string,
-    amount: number,
-    currency: string,
-    created: string,
-    merchant: string,
-    receipt: Receipt | undefined,
-    existingTransactionID: string | undefined,
-    category: string | undefined,
-    tag: string | undefined,
-    billable: boolean | undefined,
-    policy: OnyxEntry<OnyxTypes.Policy> | undefined,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList> | undefined,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories> | undefined,
-    payeeAccountID = userAccountID,
-    payeeEmail = currentUserEmail,
-    moneyRequestReportID = '',
-): MoneyRequestInformation {
-    const payerEmail = PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '');
+function getMoneyRequestInformation(moneyRequestInformation: MoneyRequestInformationParams): MoneyRequestInformation {
+    const {
+        parentChatReport,
+        transactionParams,
+        participantParams,
+        policyParams = {},
+        existingTransaction,
+        existingTransactionID,
+        moneyRequestReportID = '',
+        retryParams,
+    } = moneyRequestInformation;
+    const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {attendees, amount, comment = '', currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+
+    const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
     const payerAccountID = Number(participant.accountID);
     const isPolicyExpenseChat = participant.isPolicyExpenseChat;
 
@@ -816,81 +3036,75 @@ function getMoneyRequestInformation(
     }
 
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([payerAccountID]);
+        chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
     }
 
     // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
     if (!chatReport) {
         isNewChatReport = true;
-        chatReport = ReportUtils.buildOptimisticChatReport([payerAccountID]);
+        chatReport = buildOptimisticChatReport({
+            participantList: [payerAccountID, payeeAccountID],
+        });
     }
 
-    // STEP 2: Get the money request report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
-    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic money request report.
-    let iouReport: OnyxEntry<OnyxTypes.Report> = null;
-    const shouldCreateNewMoneyRequestReport = !moneyRequestReportID && (!chatReport.iouReportID || ReportUtils.hasIOUWaitingOnCurrentUserBankAccount(chatReport));
+    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
+    let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
     if (moneyRequestReportID) {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
-    } else if (!shouldCreateNewMoneyRequestReport) {
+    } else {
         iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
     }
 
-    let isFromPaidPolicy = false;
-    if (isPolicyExpenseChat) {
-        isFromPaidPolicy = PolicyUtils.isPaidGroupPolicy(policy ?? null);
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport);
 
-        // If the linked expense report on paid policy is not draft and not instantly submitted, we need to create a new draft expense report
-        if (iouReport && isFromPaidPolicy && !ReportUtils.isDraftExpenseReport(iouReport) && !ReportUtils.isExpenseReportWithInstantSubmittedState(iouReport)) {
-            iouReport = null;
-        }
-    }
-
-    if (iouReport) {
-        if (isPolicyExpenseChat) {
-            iouReport = {...iouReport};
-            if (iouReport?.currency === currency && typeof iouReport.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+    if (!iouReport || shouldCreateNewMoneyRequestReport) {
+        iouReport = isPolicyExpenseChat
+            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+    } else if (isPolicyExpenseChat) {
+        iouReport = {...iouReport};
+        // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+        if (iouReport?.currency === currency) {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
                 iouReport.total -= amount;
             }
-        } else {
-            iouReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
+
+            if (typeof iouReport.unheldTotal === 'number') {
+                iouReport.unheldTotal -= amount;
+            }
         }
     } else {
-        iouReport = isPolicyExpenseChat
-            ? ReportUtils.buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID ?? '', payeeAccountID, amount, currency)
-            : ReportUtils.buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+        iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
     }
 
-    // STEP 3: Build optimistic receipt and transaction
-    const receiptObject: Receipt = {};
-    let filename;
-    if (receipt?.source) {
-        receiptObject.source = receipt.source;
-        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
-        filename = receipt.name;
-    }
-    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    // STEP 3: Build an optimistic transaction with the receipt
     const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
-    let optimisticTransaction = TransactionUtils.buildOptimisticTransaction(
-        ReportUtils.isExpenseReport(iouReport) ? -amount : amount,
-        currency,
-        iouReport.reportID,
-        comment,
-        created,
-        '',
-        '',
-        merchant,
-        receiptObject,
-        filename,
+    let optimisticTransaction = buildOptimisticTransaction({
         existingTransactionID,
-        category,
-        tag,
-        billable,
-        isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
-    );
+        existingTransaction,
+        policy,
+        transactionParams: {
+            amount: isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: iouReport.reportID,
+            comment,
+            attendees,
+            created,
+            merchant,
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount: isExpenseReport(iouReport) ? -(taxAmount ?? 0) : taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        },
+    });
 
-    const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
-    const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
     // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
     // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
@@ -906,34 +3120,30 @@ function getMoneyRequestInformation(
     // 2. CREATED action for the iouReport
     // 3. IOU action for the iouReport
     // 4. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
-    // 5. REPORTPREVIEW action for the chatReport
+    // 5. REPORT_PREVIEW action for the chatReport
     // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-    const currentTime = DateUtils.getDBTime();
-    const optimisticCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
-    const optimisticCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail, DateUtils.subtractMillisecondsFromDateTime(currentTime, 1));
-    const iouAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        amount,
-        currency,
-        comment,
-        [participant],
-        optimisticTransaction.transactionID,
-        undefined,
-        iouReport.reportID,
-        false,
-        false,
-        receiptObject,
-        false,
-        currentTime,
-    );
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(iouAction, iouReport.reportID);
-    const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(payeeEmail);
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+        buildOptimisticMoneyRequestEntities({
+            iouReport,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment,
+            payeeEmail,
+            participants: [participant],
+            transactionID: optimisticTransaction.transactionID,
+            paymentType: isSelectedManagerMcTest(participant.login) ? CONST.IOU.PAYMENT_TYPE.ELSEWHERE : undefined,
+            existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+            linkedTrackedExpenseReportAction,
+        });
 
-    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
     if (reportPreviewAction) {
-        reportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
     } else {
-        reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        chatReport.lastVisibleActionCreated = reportPreviewAction.created;
 
         // Generated ReportPreview action is a parent report action of the iou report.
         // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
@@ -946,39 +3156,54 @@ function getMoneyRequestInformation(
         ? {
               [payerAccountID]: {
                   accountID: payerAccountID,
-                  avatar: UserUtils.getDefaultAvatarURL(payerAccountID),
                   // Disabling this line since participant.displayName can be an empty string
                   // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                  displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || payerEmail),
+                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
                   login: participant.login,
                   isOptimisticPersonalDetail: true,
               },
           }
         : {};
 
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.OPEN);
+    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
 
     // STEP 5: Build Onyx Data
-    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest(
-        chatReport,
-        iouReport,
-        optimisticTransaction,
-        optimisticCreatedActionForChat,
-        optimisticCreatedActionForIOU,
-        iouAction,
-        optimisticPersonalDetailListAction,
-        reportPreviewAction,
-        optimisticPolicyRecentlyUsedCategories,
-        optimisticPolicyRecentlyUsedTags,
+    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
+        participant,
         isNewChatReport,
-        optimisticTransactionThread,
-        optimisticCreatedActionForTransactionThread,
         shouldCreateNewMoneyRequestReport,
-        policy,
-        policyTagList,
-        policyCategories,
-        optimisticNextStep,
-    );
+        policyParams: {
+            policy,
+            policyCategories,
+            policyTagList,
+        },
+        optimisticParams: {
+            chat: {
+                report: chatReport,
+                createdAction: optimisticCreatedActionForChat,
+                reportPreviewAction,
+            },
+            iou: {
+                report: iouReport,
+                createdAction: optimisticCreatedActionForIOUReport,
+                action: iouAction,
+            },
+            transactionParams: {
+                transaction: optimisticTransaction,
+                transactionThreadReport: optimisticTransactionThread,
+                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            },
+            policyRecentlyUsed: {
+                categories: optimisticPolicyRecentlyUsedCategories,
+                tags: optimisticPolicyRecentlyUsedTags,
+                currencies: optimisticPolicyRecentlyUsedCurrencies,
+            },
+            personalDetailListAction: optimisticPersonalDetailListAction,
+            nextStep: optimisticNextStep,
+        },
+        retryParams,
+    });
 
     return {
         payerAccountID,
@@ -987,11 +3212,11 @@ function getMoneyRequestInformation(
         chatReport,
         transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : '0',
-        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOU.reportActionID : '0',
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : undefined,
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
         reportPreviewAction,
-        transactionThreadReportID: optimisticTransactionThread.reportID,
-        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+        transactionThreadReportID: optimisticTransactionThread?.reportID,
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
         onyxData: {
             optimisticData,
             successData,
@@ -1000,116 +3225,468 @@ function getMoneyRequestInformation(
     };
 }
 
-/** Requests money based on a distance (eg. mileage from a map) */
-function createDistanceRequest(
-    report: OnyxTypes.Report,
-    participant: Participant,
-    comment: string,
-    created: string,
-    category: string | undefined,
-    tag: string | undefined,
-    amount: number,
-    currency: string,
-    merchant: string,
-    billable: boolean | undefined,
-    validWaypoints: WaypointCollection,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
-    // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
+    const subRates = customUnit.subRates ?? [];
+    return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
+}
 
-    const optimisticReceipt: Receipt = {
-        source: ReceiptGeneric as ReceiptSource,
-        state: CONST.IOU.RECEIPT_STATE.OPEN,
-    };
-    const {
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
+    if (!customUnit.customUnitRateID) {
+        return '';
+    }
+    const policyCustomUnit = getPerDiemCustomUnit(policy);
+    const rate = policyCustomUnit?.rates?.[customUnit.customUnitRateID];
+    const locationName = rate?.name ?? '';
+    const startDate = customUnit.attributes?.dates.start;
+    const endDate = customUnit.attributes?.dates.end;
+    if (!startDate || !endDate) {
+        return locationName;
+    }
+    const formattedTime = DateUtils.getFormattedDateRangeForPerDiem(new Date(startDate), new Date(endDate));
+    return `${locationName}, ${formattedTime}`;
+}
+
+function computeDefaultPerDiemExpenseComment(customUnit: TransactionCustomUnit, currency: string) {
+    const subRates = customUnit.subRates ?? [];
+    const subRateComments = subRates.map((subRate) => {
+        const rate = subRate.rate ?? 0;
+        const rateComment = subRate.name ?? '';
+        const quantity = subRate.quantity ?? 0;
+        return `${quantity}x ${rateComment} @ ${convertAmountToDisplayString(rate, currency)}`;
+    });
+    return subRateComments.join(', ');
+}
+
+/**
+ * Gathers all the data needed to submit a per diem expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * it creates optimistic versions of them and uses those instead
+ */
+function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
+    const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
+    const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable} = transactionParams;
+
+    const amount = computePerDiemExpenseAmount(customUnit);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
+    const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
+    const finalComment = comment || defaultComment;
+
+    const payerEmail = addSMSDomainIfPhoneNumber(participant.login ?? '');
+    const payerAccountID = Number(participant.accountID);
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+
+    // STEP 1: Get existing chat report OR build a new optimistic one
+    let isNewChatReport = false;
+    let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
+
+    // If this is a policyExpenseChat, the chatReport must exist and we can get it from Onyx.
+    // report is null if the flow is initiated from the global create menu. However, participant always stores the reportID if it exists, which is the case for policyExpenseChats
+    if (!chatReport && isPolicyExpenseChat) {
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? null;
+    }
+
+    if (!chatReport) {
+        chatReport = getChatByParticipants([payerAccountID, payeeAccountID]) ?? null;
+    }
+
+    // If we still don't have a report, it likely doens't exist and we need to build an optimistic one
+    if (!chatReport) {
+        isNewChatReport = true;
+        chatReport = buildOptimisticChatReport({
+            participantList: [payerAccountID, payeeAccountID],
+        });
+    }
+
+    // STEP 2: Get the Expense/IOU report. If the moneyRequestReportID has been provided, we want to add the transaction to this specific report.
+    // If no such reportID has been provided, let's use the chatReport.iouReportID property. In case that is not present, build a new optimistic Expense/IOU report.
+    let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
+    if (moneyRequestReportID) {
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
+    } else {
+        iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+    }
+
+    const shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport);
+
+    if (!iouReport || shouldCreateNewMoneyRequestReport) {
+        iouReport = isPolicyExpenseChat
+            ? buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency)
+            : buildOptimisticIOUReport(payeeAccountID, payerAccountID, amount, chatReport.reportID, currency);
+    } else if (isPolicyExpenseChat) {
+        iouReport = {...iouReport};
+        // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+        if (iouReport?.currency === currency) {
+            if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+                iouReport.total -= amount;
+            }
+
+            if (typeof iouReport.unheldTotal === 'number') {
+                iouReport.unheldTotal -= amount;
+            }
+        }
+    } else {
+        iouReport = updateIOUOwnerAndTotal(iouReport, payeeAccountID, amount, currency);
+    }
+
+    // STEP 3: Build an optimistic transaction
+    const optimisticTransaction = buildOptimisticTransaction({
+        policy,
+        transactionParams: {
+            amount: isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: iouReport.reportID,
+            comment: finalComment,
+            created,
+            category,
+            merchant,
+            tag,
+            customUnit,
+            billable,
+            pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+        },
+    });
+    // This is to differentiate between a normal expense and a per diem expense
+    optimisticTransaction.iouRequestType = CONST.IOU.REQUEST_TYPE.PER_DIEM;
+    optimisticTransaction.hasEReceipt = true;
+
+    const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(iouReport.policyID, category);
+    const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport.policyID, tag);
+    const optimisticPolicyRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
+    const optimisticPolicyRecentlyUsedDestinations = buildOptimisticPolicyRecentlyUsedDestinations(iouReport.policyID, customUnit.customUnitRateID);
+
+    // STEP 4: Build optimistic reportActions. We need:
+    // 1. CREATED action for the chatReport
+    // 2. CREATED action for the iouReport
+    // 3. IOU action for the iouReport
+    // 4. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
+    // 5. REPORT_PREVIEW action for the chatReport
+    // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+        buildOptimisticMoneyRequestEntities({
+            iouReport,
+            type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+            amount,
+            currency,
+            comment,
+            payeeEmail,
+            participants: [participant],
+            transactionID: optimisticTransaction.transactionID,
+        });
+
+    let reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
+    if (reportPreviewAction) {
+        reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+    } else {
+        reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+        chatReport.lastVisibleActionCreated = reportPreviewAction.created;
+
+        // Generated ReportPreview action is a parent report action of the iou report.
+        // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
+        iouReport.parentReportActionID = reportPreviewAction.reportActionID;
+    }
+
+    const shouldCreateOptimisticPersonalDetails = isNewChatReport && !allPersonalDetails[payerAccountID];
+    // Add optimistic personal details for participant
+    const optimisticPersonalDetailListAction = shouldCreateOptimisticPersonalDetails
+        ? {
+              [payerAccountID]: {
+                  accountID: payerAccountID,
+                  // Disabling this line since participant.displayName can be an empty string
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  displayName: formatPhoneNumber(participant.displayName || payerEmail),
+                  login: participant.login,
+                  isOptimisticPersonalDetail: true,
+              },
+          }
+        : {};
+
+    const predictedNextStatus = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.OPEN;
+    const optimisticNextStep = buildNextStep(iouReport, predictedNextStatus);
+
+    // STEP 5: Build Onyx Data
+    const [optimisticData, successData, failureData] = buildOnyxDataForMoneyRequest({
+        isNewChatReport,
+        shouldCreateNewMoneyRequestReport,
+        policyParams: {
+            policy,
+            policyCategories,
+            policyTagList,
+        },
+        optimisticParams: {
+            chat: {
+                report: chatReport,
+                createdAction: optimisticCreatedActionForChat,
+                reportPreviewAction,
+            },
+            iou: {
+                report: iouReport,
+                createdAction: optimisticCreatedActionForIOUReport,
+                action: iouAction,
+            },
+            transactionParams: {
+                transaction: optimisticTransaction,
+                transactionThreadReport: optimisticTransactionThread,
+                transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            },
+            policyRecentlyUsed: {
+                categories: optimisticPolicyRecentlyUsedCategories,
+                tags: optimisticPolicyRecentlyUsedTags,
+                currencies: optimisticPolicyRecentlyUsedCurrencies,
+                destinations: optimisticPolicyRecentlyUsedDestinations,
+            },
+            personalDetailListAction: optimisticPersonalDetailListAction,
+            nextStep: optimisticNextStep,
+        },
+    });
+
+    return {
+        payerAccountID,
+        payerEmail,
         iouReport,
         chatReport,
-        transaction,
+        transaction: optimisticTransaction,
         iouAction,
-        createdChatReportActionID,
-        createdIOUReportActionID,
+        createdChatReportActionID: isNewChatReport ? optimisticCreatedActionForChat.reportActionID : undefined,
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
         reportPreviewAction,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-        onyxData,
-    } = getMoneyRequestInformation(
-        currentChatReport,
-        participant,
-        comment,
+        transactionThreadReportID: optimisticTransactionThread?.reportID,
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        onyxData: {
+            optimisticData,
+            successData,
+            failureData,
+        },
+        billable,
+    };
+}
+
+/**
+ * Gathers all the data needed to make an expense. It attempts to find existing reports, iouReports, and receipts. If it doesn't find them, then
+ * it creates optimistic versions of them and uses those instead
+ */
+function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): TrackExpenseInformation | null {
+    const {parentChatReport, moneyRequestReportID = '', existingTransactionID, participantParams, policyParams, transactionParams, retryParams} = params;
+    const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const {comment, amount, currency, created, merchant, receipt, category, tag, taxCode, taxAmount, billable, linkedTrackedExpenseReportAction} = transactionParams;
+
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    const isPolicyExpenseChat = participant.isPolicyExpenseChat;
+
+    // STEP 1: Get existing chat report
+    let chatReport = !isEmptyObject(parentChatReport) && parentChatReport?.reportID ? parentChatReport : null;
+    // The chatReport always exists, and we can get it from Onyx if chatReport is null.
+    if (!chatReport) {
+        chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.reportID}`] ?? null;
+    }
+
+    // If we still don't have a report, it likely doesn't exist, and we will early return here as it should not happen
+    // Maybe later, we can build an optimistic selfDM chat.
+    if (!chatReport) {
+        return null;
+    }
+
+    // Check if the report is a draft
+    const isDraftReportLocal = isDraftReport(chatReport?.reportID);
+
+    let createdWorkspaceParams: CreateWorkspaceParams | undefined;
+
+    if (isDraftReportLocal) {
+        const workspaceData = buildPolicyData(undefined, policy?.makeMeAdmin, policy?.name, policy?.id, chatReport?.reportID, CONST.ONBOARDING_CHOICES.TRACK_WORKSPACE);
+        createdWorkspaceParams = workspaceData.params;
+        optimisticData.push(...workspaceData.optimisticData);
+        successData.push(...workspaceData.successData);
+        failureData.push(...workspaceData.failureData);
+    }
+
+    // STEP 2: If not in the self-DM flow, we need to use the expense report.
+    // For this, first use the chatReport.iouReportID property. Build a new optimistic expense report if needed.
+    const shouldUseMoneyReport = !!isPolicyExpenseChat;
+
+    let iouReport: OnyxInputValue<OnyxTypes.Report> = null;
+    let shouldCreateNewMoneyRequestReport = false;
+
+    if (shouldUseMoneyReport) {
+        if (moneyRequestReportID) {
+            iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${moneyRequestReportID}`] ?? null;
+        } else {
+            iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReport.iouReportID}`] ?? null;
+        }
+
+        shouldCreateNewMoneyRequestReport = shouldCreateNewMoneyRequestReportReportUtils(iouReport, chatReport);
+        if (!iouReport || shouldCreateNewMoneyRequestReport) {
+            iouReport = buildOptimisticExpenseReport(chatReport.reportID, chatReport.policyID, payeeAccountID, amount, currency, amount);
+        } else {
+            iouReport = {...iouReport};
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            if (iouReport?.currency === currency) {
+                if (!Number.isNaN(iouReport.total) && iouReport.total !== undefined && typeof iouReport.nonReimbursableTotal === 'number') {
+                    iouReport.total -= amount;
+                    iouReport.nonReimbursableTotal -= amount;
+                }
+
+                if (typeof iouReport.unheldTotal === 'number' && typeof iouReport.unheldNonReimbursableTotal === 'number') {
+                    iouReport.unheldTotal -= amount;
+                    iouReport.unheldNonReimbursableTotal -= amount;
+                }
+            }
+        }
+    }
+
+    // If shouldUseMoneyReport is true, the iouReport was defined.
+    // But we'll use the `shouldUseMoneyReport && iouReport` check further instead of `shouldUseMoneyReport` to avoid TS errors.
+
+    // STEP 3: Build optimistic receipt and transaction
+    const receiptObject: Receipt = {};
+    let filename;
+    if (receipt?.source) {
+        receiptObject.source = receipt.source;
+        receiptObject.state = receipt.state ?? CONST.IOU.RECEIPT_STATE.SCANREADY;
+        filename = receipt.name;
+    }
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID ?? CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    if (!filename) {
+        filename = existingTransaction?.filename;
+    }
+    const isDistanceRequest = existingTransaction && isDistanceRequestTransactionUtils(existingTransaction);
+    let optimisticTransaction = buildOptimisticTransaction({
+        existingTransactionID,
+        existingTransaction,
+        policy,
+        transactionParams: {
+            amount: isExpenseReport(iouReport) ? -amount : amount,
+            currency,
+            reportID: shouldUseMoneyReport && iouReport ? iouReport.reportID : undefined,
+            comment,
+            created,
+            merchant,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+            reimbursable: false,
+            filename,
+        },
+    });
+
+    // If there is an existing transaction (which is the case for distance requests), then the data from the existing transaction
+    // needs to be manually merged into the optimistic transaction. This is because buildOnyxDataForMoneyRequest() uses `Onyx.set()` for the transaction
+    // data. This is a big can of worms to change it to `Onyx.merge()` as explored in https://expensify.slack.com/archives/C05DWUDHVK7/p1692139468252109.
+    // I want to clean this up at some point, but it's possible this will live in the code for a while so I've created https://github.com/Expensify/App/issues/25417
+    // to remind me to do this.
+    if (isDistanceRequest) {
+        optimisticTransaction = fastMerge(existingTransaction, optimisticTransaction, false);
+    }
+
+    // STEP 4: Build optimistic reportActions. We need:
+    // 1. CREATED action for the iouReport (if tracking in the Expense chat)
+    // 2. IOU action for the iouReport (if tracking in the Expense chat), otherwise – for chatReport
+    // 3. The transaction thread, which requires the iouAction, and CREATED action for the transaction thread
+    // 4. REPORT_PREVIEW action for the chatReport (if tracking in the Expense chat)
+    const [, optimisticCreatedActionForIOUReport, iouAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] = buildOptimisticMoneyRequestEntities({
+        iouReport: shouldUseMoneyReport && iouReport ? iouReport : chatReport,
+        type: CONST.IOU.REPORT_ACTION_TYPE.TRACK,
         amount,
         currency,
-        currentCreated,
-        merchant,
-        optimisticReceipt,
-        undefined,
-        category,
-        tag,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        userAccountID,
-        currentUserEmail,
-        moneyRequestReportID,
-    );
-
-    const parameters: CreateDistanceRequestParams = {
         comment,
-        iouReportID: iouReport.reportID,
-        chatReportID: chatReport.reportID,
-        transactionID: transaction.transactionID,
-        reportActionID: iouAction.reportActionID,
-        createdChatReportActionID,
-        createdIOUReportActionID,
-        reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        waypoints: JSON.stringify(validWaypoints),
-        created: currentCreated,
-        category,
-        tag,
-        billable,
-        transactionThreadReportID,
-        createdReportActionIDForThread,
-    };
+        payeeEmail,
+        participants: [participant],
+        transactionID: optimisticTransaction.transactionID,
+        isPersonalTrackingExpense: !shouldUseMoneyReport,
+        existingTransactionThreadReportID: linkedTrackedExpenseReportAction?.childReportID,
+        linkedTrackedExpenseReportAction,
+    });
 
-    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    Navigation.dismissModal(isMoneyRequestReport ? report.reportID : chatReport.reportID);
-    Report.notifyNewAction(chatReport.reportID, userAccountID);
+    let reportPreviewAction: OnyxInputValue<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = null;
+    if (shouldUseMoneyReport && iouReport) {
+        reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewAction(chatReport.reportID, iouReport.reportID);
+
+        if (reportPreviewAction) {
+            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, false, comment, optimisticTransaction);
+        } else {
+            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, comment, optimisticTransaction);
+            // Generated ReportPreview action is a parent report action of the iou report.
+            // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
+            iouReport.parentReportActionID = reportPreviewAction.reportActionID;
+        }
+    }
+
+    let actionableTrackExpenseWhisper: OnyxInputValue<OnyxTypes.ReportAction> = null;
+    if (!isPolicyExpenseChat) {
+        actionableTrackExpenseWhisper = buildOptimisticActionableTrackExpenseWhisper(iouAction, optimisticTransaction.transactionID);
+    }
+
+    // STEP 5: Build Onyx Data
+    const trackExpenseOnyxData = buildOnyxDataForTrackExpense({
+        participant,
+        chat: {report: chatReport, previewAction: reportPreviewAction},
+        iou: {report: iouReport, action: iouAction, createdAction: optimisticCreatedActionForIOUReport},
+        transactionParams: {
+            transaction: optimisticTransaction,
+            threadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+            threadReport: optimisticTransactionThread ?? {},
+        },
+        policyParams: {policy, tagList: policyTagList, categories: policyCategories},
+        shouldCreateNewMoneyRequestReport,
+        actionableTrackExpenseWhisper,
+        retryParams,
+    });
+
+    return {
+        createdWorkspaceParams,
+        chatReport,
+        iouReport: iouReport ?? undefined,
+        transaction: optimisticTransaction,
+        iouAction,
+        createdIOUReportActionID: shouldCreateNewMoneyRequestReport ? optimisticCreatedActionForIOUReport.reportActionID : undefined,
+        reportPreviewAction: reportPreviewAction ?? undefined,
+        transactionThreadReportID: optimisticTransactionThread.reportID,
+        createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+        actionableWhisperReportActionIDParam: actionableTrackExpenseWhisper?.reportActionID,
+        onyxData: {
+            optimisticData: optimisticData.concat(trackExpenseOnyxData[0]),
+            successData: successData.concat(trackExpenseOnyxData[1]),
+            failureData: failureData.concat(trackExpenseOnyxData[2]),
+        },
+    };
 }
 
 /**
  * Compute the diff amount when we update the transaction
  */
-function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTransaction: OnyxEntry<OnyxTypes.Transaction>, transaction: OnyxEntry<OnyxTypes.Transaction>): number {
+function calculateDiffAmount(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>,
+    updatedTransaction: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Transaction>,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+): number | null {
     if (!iouReport) {
         return 0;
     }
-    const isExpenseReport = ReportUtils.isExpenseReport(iouReport);
-    const updatedCurrency = TransactionUtils.getCurrency(updatedTransaction);
-    const currentCurrency = TransactionUtils.getCurrency(transaction);
+    const isExpenseReportLocal = isExpenseReport(iouReport);
+    const updatedCurrency = getCurrency(updatedTransaction);
+    const currentCurrency = getCurrency(transaction);
 
-    const currentAmount = TransactionUtils.getAmount(transaction, isExpenseReport);
-    const updatedAmount = TransactionUtils.getAmount(updatedTransaction, isExpenseReport);
+    const currentAmount = getAmount(transaction, isExpenseReportLocal);
+    const updatedAmount = getAmount(updatedTransaction, isExpenseReportLocal);
 
-    if (updatedCurrency === iouReport?.currency && currentCurrency !== iouReport?.currency) {
-        // Add the diff to the total if we change the currency from a different currency to the currency of the IOU report
-        return updatedAmount;
+    if (updatedCurrency === currentCurrency && currentAmount === updatedAmount) {
+        return 0;
     }
-    if (updatedCurrency !== iouReport?.currency && currentCurrency === iouReport?.currency) {
-        // Subtract the diff from the total if we change the currency from the currency of IOU report to a different currency
-        return -updatedAmount;
-    }
-    if (updatedCurrency === iouReport?.currency && updatedAmount !== currentAmount) {
-        // Calculate the diff between the updated amount and the current amount if we change the amount and the currency of the transaction is the currency of the report
+
+    if (updatedCurrency === iouReport.currency && currentCurrency === iouReport.currency) {
+        // Calculate the diff between the updated amount and the current amount if the currency of the updated and current transactions have the same currency as the report
         return updatedAmount - currentAmount;
     }
 
-    return 0;
+    return null;
 }
 
 /**
@@ -1120,19 +3697,414 @@ function calculateDiffAmount(iouReport: OnyxEntry<OnyxTypes.Report>, updatedTran
  * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
  * @param policyTagList
  * @param policyCategories
- * @param onlyIncludeChangedFields
- *               When 'true', then the returned params will only include the transaction details for the fields that were changed.
- *               When `false`, then the returned params will include all the transaction details, regardless of which fields were changed.
- *               This setting is necessary while the UpdateDistanceRequest API is refactored to be fully 1:1:1 in https://github.com/Expensify/App/issues/28358
  */
 function getUpdateMoneyRequestParams(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     transactionChanges: TransactionChanges,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-    onlyIncludeChangedFields: boolean,
+    policyTagList: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxTypes.OnyxInputOrEntry<OnyxTypes.PolicyCategories>,
+    violations?: OnyxEntry<OnyxTypes.TransactionViolations>,
+    hash?: number,
+): UpdateMoneyRequestData {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // Step 1: Set any "pending fields" (ones updated while the user was offline) to have error messages in the failureData
+    const pendingFields: OnyxTypes.Transaction['pendingFields'] = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE]));
+    const clearedPendingFields = Object.fromEntries(Object.keys(transactionChanges).map((key) => [key, null]));
+    const errorFields = Object.fromEntries(Object.keys(pendingFields).map((key) => [key, {[DateUtils.getMicroseconds()]: Localize.translateLocal('iou.error.genericEditFailureMessage')}]));
+
+    // Step 2: Get all the collections being updated
+    const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isTransactionOnHold = isOnHold(transaction);
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+    const isFromExpenseReport = isExpenseReport(iouReport);
+    const isScanning = hasReceiptTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction);
+    const updatedTransaction: OnyxEntry<OnyxTypes.Transaction> = transaction
+        ? getUpdatedTransaction({
+              transaction,
+              transactionChanges,
+              isFromExpenseReport,
+              policy,
+          })
+        : undefined;
+    const transactionDetails = getTransactionDetails(updatedTransaction);
+
+    if (transactionDetails?.waypoints) {
+        // This needs to be a JSON string since we're sending this to the MapBox API
+        transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
+    }
+
+    const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)));
+
+    const params: UpdateMoneyRequestParams = {
+        ...dataToIncludeInParams,
+        reportID: iouReport?.reportID,
+        transactionID,
+    };
+
+    const hasPendingWaypoints = 'waypoints' in transactionChanges;
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    const hasModifiedCreated = 'created' in transactionChanges;
+    const hasModifiedAmount = 'amount' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
+        // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
+        successData.push({
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`,
+            value: null,
+        });
+
+        // Revert the transaction's amount to the original value on failure.
+        // The IOU Report will be fully reverted in the failureData further below.
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                amount: transaction.amount,
+                modifiedAmount: transaction.modifiedAmount,
+                modifiedMerchant: transaction.modifiedMerchant,
+                modifiedCurrency: transaction.modifiedCurrency,
+            },
+        });
+    }
+
+    // Step 3: Build the modified expense report actions
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
+    const updatedReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport, policy, updatedTransaction);
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction))) {
+        params.reportActionID = updatedReportAction.reportActionID;
+
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
+            },
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            value: {
+                lastVisibleActionCreated: updatedReportAction.created,
+                lastReadTime: updatedReportAction.created,
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.reportID}`,
+            value: {
+                lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated,
+                lastReadTime: transactionThread?.lastReadTime,
+            },
+        });
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: {pendingAction: null},
+            },
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
+            value: {
+                [updatedReportAction.reportActionID]: {
+                    ...(updatedReportAction as OnyxTypes.ReportAction),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+                },
+            },
+        });
+    }
+
+    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
+    const calculatedDiffAmount = calculateDiffAmount(iouReport, updatedTransaction, transaction);
+    // If calculatedDiffAmount is null it means we cannot calculate the new iou report total from front-end due to currency differences.
+    const isTotalIndeterministic = calculatedDiffAmount === null;
+    const diff = calculatedDiffAmount ?? 0;
+
+    let updatedMoneyRequestReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report>;
+    if (!iouReport) {
+        updatedMoneyRequestReport = null;
+    } else if ((isExpenseReport(iouReport) || isInvoiceReportReportUtils(iouReport)) && !Number.isNaN(iouReport.total) && iouReport.total !== undefined) {
+        // For expense report, the amount is negative, so we should subtract total from diff
+        updatedMoneyRequestReport = {
+            ...iouReport,
+            total: iouReport.total - diff,
+        };
+        if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.nonReimbursableTotal === 'number') {
+            updatedMoneyRequestReport.nonReimbursableTotal -= diff;
+        }
+        if (!isTransactionOnHold) {
+            if (typeof updatedMoneyRequestReport.unheldTotal === 'number') {
+                updatedMoneyRequestReport.unheldTotal -= diff;
+            }
+            if (!transaction?.reimbursable && typeof updatedMoneyRequestReport.unheldNonReimbursableTotal === 'number') {
+                updatedMoneyRequestReport.unheldNonReimbursableTotal -= diff;
+            }
+        }
+    } else {
+        updatedMoneyRequestReport = updateIOUOwnerAndTotal(
+            iouReport,
+            updatedReportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            diff,
+            getCurrency(transaction),
+            false,
+            true,
+            isTransactionOnHold,
+        );
+    }
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {...updatedMoneyRequestReport, ...(isTotalIndeterministic && {pendingFields: {total: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE}})},
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
+            value: getOutstandingChildRequest(updatedMoneyRequestReport),
+        },
+    );
+    if (isOneTransactionThread(transactionThreadReportID, iouReport?.reportID, undefined)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                lastReadTime: updatedReportAction.created,
+            },
+        });
+    }
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+        value: {pendingAction: null, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
+    });
+
+    // Optimistically modify the transaction and the transaction thread
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            ...updatedTransaction,
+            pendingFields,
+            errorFields: null,
+        },
+    });
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: {
+            lastActorAccountID: updatedReportAction.actorAccountID,
+        },
+    });
+
+    if (isScanning && ('amount' in transactionChanges || 'currency' in transactionChanges)) {
+        if (transactionThread?.parentReportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+                value: {
+                    [transactionThread?.parentReportActionID]: {
+                        originalMessage: {
+                            whisperedTo: [],
+                        },
+                    },
+                },
+            });
+        }
+
+        if (iouReport?.parentReportActionID) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
+                value: {
+                    [iouReport.parentReportActionID]: {
+                        originalMessage: {
+                            whisperedTo: [],
+                        },
+                    },
+                },
+            });
+        }
+    }
+
+    // Update recently used categories if the category is changed
+    const hasModifiedCategory = 'category' in transactionChanges;
+    if (hasModifiedCategory) {
+        const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
+        if (optimisticPolicyRecentlyUsedCategories.length) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport?.policyID}`,
+                value: optimisticPolicyRecentlyUsedCategories,
+            });
+        }
+    }
+
+    // Update recently used currencies if the currency is changed
+    if ('currency' in transactionChanges) {
+        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(transactionChanges.currency);
+        if (optimisticRecentlyUsedCurrencies.length) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                value: optimisticRecentlyUsedCurrencies,
+            });
+        }
+    }
+
+    // Update recently used categories if the tag is changed
+    const hasModifiedTag = 'tag' in transactionChanges;
+    if (hasModifiedTag) {
+        const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
+        if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport?.policyID}`,
+                value: optimisticPolicyRecentlyUsedTags,
+            });
+        }
+    }
+
+    const overLimitViolation = violations?.find((violation) => violation.name === 'overLimit');
+    // Update violation limit, if we modify attendees. The given limit value is for a single attendee, if we have multiple attendees we should multpiply limit by attende count
+    if ('attendees' in transactionChanges && !!overLimitViolation) {
+        const limitForSingleAttendee = ViolationsUtils.getViolationAmountLimit(overLimitViolation);
+        if (limitForSingleAttendee * (transactionChanges?.attendees?.length ?? 1) > Math.abs(getAmount(transaction))) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: violations?.filter((violation) => violation.name !== 'overLimit') ?? [],
+            });
+        }
+    }
+
+    if (Array.isArray(params?.attendees)) {
+        params.attendees = JSON.stringify(params?.attendees);
+    }
+
+    // Clear out the error fields and loading states on success
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            pendingFields: clearedPendingFields,
+            isLoading: false,
+            errorFields: null,
+            routes: null,
+        },
+    });
+
+    // Clear out loading states, pending fields, and add the error fields
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+        value: {
+            ...transaction,
+            pendingFields: clearedPendingFields,
+            isLoading: false,
+            errorFields,
+        },
+    });
+
+    if (iouReport) {
+        // Reset the iouReport to its original state
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {...iouReport, ...(isTotalIndeterministic && {pendingFields: {total: null}})},
+        });
+    }
+
+    if (policy && isPaidGroupPolicy(policy) && updatedTransaction && (hasModifiedTag || hasModifiedCategory || hasModifiedDistanceRate || hasModifiedAmount || hasModifiedCreated)) {
+        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+        const violationsOnyxData = ViolationsUtils.getViolationsOnyxData(
+            updatedTransaction,
+            currentTransactionViolations,
+            policy,
+            policyTagList ?? {},
+            policyCategories ?? {},
+            hasDependentTags(policy, policyTagList ?? {}),
+            isInvoiceReportReportUtils(iouReport),
+        );
+        optimisticData.push(violationsOnyxData);
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: currentTransactionViolations,
+        });
+        if (hash) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: violationsOnyxData.value,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
+                value: {
+                    data: {
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`]: currentTransactionViolations,
+                    },
+                },
+            });
+        }
+        if (violationsOnyxData) {
+            const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? {};
+            const shouldFixViolations = Array.isArray(violationsOnyxData.value) && violationsOnyxData.value.length > 0;
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
+                value: buildNextStep(iouReport ?? undefined, iouReport?.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN, shouldFixViolations),
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
+                value: currentNextStep,
+            });
+        }
+    }
+
+    // Reset the transaction thread to its original state
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
+        value: transactionThread,
+    });
+
+    return {
+        params,
+        onyxData: {optimisticData, successData, failureData},
+    };
+}
+
+/**
+ * @param transactionID
+ * @param transactionThreadReportID
+ * @param transactionChanges
+ * @param [transactionChanges.created] Present when updated the date field
+ * @param policy  May be undefined, an empty object, or an object matching the Policy type (src/types/onyx/Policy.ts)
+ */
+function getUpdateTrackExpenseParams(
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
+    transactionChanges: TransactionChanges,
+    policy: OnyxEntry<OnyxTypes.Policy>,
 ): UpdateMoneyRequestData {
     const optimisticData: OnyxUpdate[] = [];
     const successData: OnyxUpdate[] = [];
@@ -1146,36 +4118,34 @@ function getUpdateMoneyRequestParams(
     // Step 2: Get all the collections being updated
     const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
-    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
-    const isScanning = TransactionUtils.hasReceipt(transaction) && TransactionUtils.isReceiptBeingScanned(transaction);
-    let updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
-    const transactionDetails = ReportUtils.getTransactionDetails(updatedTransaction);
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
+    const isScanning = hasReceiptTransactionUtils(transaction) && isReceiptBeingScannedTransactionUtils(transaction);
+    const updatedTransaction = transaction
+        ? getUpdatedTransaction({
+              transaction,
+              transactionChanges,
+              isFromExpenseReport: false,
+              policy,
+          })
+        : null;
+    const transactionDetails = getTransactionDetails(updatedTransaction);
 
     if (transactionDetails?.waypoints) {
         // This needs to be a JSON string since we're sending this to the MapBox API
         transactionDetails.waypoints = JSON.stringify(transactionDetails.waypoints);
     }
 
-    const dataToIncludeInParams: Partial<TransactionDetails> | undefined = onlyIncludeChangedFields
-        ? Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)))
-        : transactionDetails;
+    const dataToIncludeInParams: Partial<TransactionDetails> = Object.fromEntries(Object.entries(transactionDetails ?? {}).filter(([key]) => Object.keys(transactionChanges).includes(key)));
 
     const params: UpdateMoneyRequestParams = {
         ...dataToIncludeInParams,
-        reportID: iouReport?.reportID,
+        reportID: chatReport?.reportID,
         transactionID,
     };
 
     const hasPendingWaypoints = 'waypoints' in transactionChanges;
-    if (transaction && updatedTransaction && hasPendingWaypoints) {
-        updatedTransaction = {
-            ...updatedTransaction,
-            amount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedAmount: CONST.IOU.DEFAULT_AMOUNT,
-            modifiedMerchant: Localize.translateLocal('iou.routePending'),
-        };
-
+    const hasModifiedDistanceRate = 'customUnitRateID' in transactionChanges;
+    if (transaction && updatedTransaction && (hasPendingWaypoints || hasModifiedDistanceRate)) {
         // Delete the draft transaction when editing waypoints when the server responds successfully and there are no errors
         successData.push({
             onyxMethod: Onyx.METHOD.SET,
@@ -1197,11 +4167,13 @@ function getUpdateMoneyRequestParams(
     }
 
     // Step 3: Build the modified expense report actions
-    // We don't create a modified report action if we're updating the waypoints,
-    // since there isn't actually any optimistic data we can create for them and the report action is created on the server
-    // with the response from the MapBox API
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
-    if (!hasPendingWaypoints) {
+    // We don't create a modified report action if:
+    // - we're updating the waypoints
+    // - we're updating the distance rate while the waypoints are still pending
+    // In these cases, there isn't a valid optimistic mileage data we can use,
+    // and the report action is created on the server with the distance-related response from the MapBox API
+    const updatedReportAction = buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, false, policy, updatedTransaction);
+    if (!hasPendingWaypoints && !(hasModifiedDistanceRate && isFetchingWaypointsFromServer(transaction))) {
         params.reportActionID = updatedReportAction.reportActionID;
 
         optimisticData.push({
@@ -1224,47 +4196,13 @@ function getUpdateMoneyRequestParams(
             value: {
                 [updatedReportAction.reportActionID]: {
                     ...(updatedReportAction as OnyxTypes.ReportAction),
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
                 },
             },
         });
     }
 
-    // Step 4: Compute the IOU total and update the report preview message (and report header) so LHN amount owed is correct.
-    let updatedMoneyRequestReport = {...iouReport};
-    const diff = calculateDiffAmount(iouReport, updatedTransaction, transaction);
-
-    if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-        // For expense report, the amount is negative so we should subtract total from diff
-        updatedMoneyRequestReport.total -= diff;
-    } else {
-        updatedMoneyRequestReport = iouReport
-            ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false, true)
-            : {};
-    }
-    updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, transactionDetails?.currency);
-
-    optimisticData.push(
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedMoneyRequestReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.parentReportID}`,
-            value: {
-                hasOutstandingChildRequest:
-                    iouReport && needsToBeManuallySubmitted(iouReport) && updatedMoneyRequestReport.managerID === userAccountID && updatedMoneyRequestReport.total !== 0,
-            },
-        },
-    );
-    successData.push({
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-        value: {pendingAction: null},
-    });
-
+    // Step 4: Update the report preview message (and report header) so LHN amount tracked is correct.
     // Optimistically modify the transaction and the transaction thread
     optimisticData.push({
         onyxMethod: Onyx.METHOD.MERGE,
@@ -1272,7 +4210,6 @@ function getUpdateMoneyRequestParams(
         value: {
             ...updatedTransaction,
             pendingFields,
-            isLoading: hasPendingWaypoints,
             errorFields: null,
         },
     });
@@ -1285,51 +4222,12 @@ function getUpdateMoneyRequestParams(
         },
     });
 
-    if (isScanning && ('amount' in transactionChanges || 'currency' in transactionChanges)) {
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-                value: {
-                    [transactionThread?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
-                value: {
-                    [iouReport?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
-                    },
-                },
-            },
-        );
-    }
-
-    // Update recently used categories if the category is changed
-    if ('category' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
-        if (optimisticPolicyRecentlyUsedCategories.length) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport?.policyID}`,
-                value: optimisticPolicyRecentlyUsedCategories,
-            });
-        }
-    }
-
-    // Update recently used categories if the tag is changed
-    if ('tag' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
-        if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport?.policyID}`,
-                value: optimisticPolicyRecentlyUsedTags,
-            });
-        }
+    if (isScanning && transactionThread?.parentReportActionID && ('amount' in transactionChanges || 'currency' in transactionChanges)) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {[transactionThread.parentReportActionID]: {originalMessage: {whisperedTo: []}}},
+        });
     }
 
     // Clear out the error fields and loading states on success
@@ -1340,6 +4238,7 @@ function getUpdateMoneyRequestParams(
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields: null,
+            routes: null,
         },
     });
 
@@ -1348,39 +4247,12 @@ function getUpdateMoneyRequestParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         value: {
+            ...transaction,
             pendingFields: clearedPendingFields,
             isLoading: false,
             errorFields,
         },
     });
-
-    if (iouReport) {
-        // Reset the iouReport to its original state
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: iouReport,
-        });
-    }
-
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        optimisticData.push(
-            ViolationsUtils.getViolationsOnyxData(
-                updatedTransaction,
-                currentTransactionViolations,
-                !!policy.requiresTag,
-                policyTagList ?? {},
-                !!policy.requiresCategory,
-                policyCategories ?? {},
-            ),
-        );
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
-    }
 
     // Reset the transaction thread to its original state
     failureData.push({
@@ -1395,160 +4267,663 @@ function getUpdateMoneyRequestParams(
     };
 }
 
-/** Updates the created date of a money request */
+/** Updates the created date of an expense */
 function updateMoneyRequestDate(
     transactionID: string,
     transactionThreadReportID: string,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTags: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTags: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         created: value,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories, true);
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
+    let data: UpdateMoneyRequestData;
+    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
+    }
+    const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DATE, params, onyxData);
 }
 
-/** Updates the billable field of a money request */
+/** Updates the billable field of an expense */
 function updateMoneyRequestBillable(
-    transactionID: string,
-    transactionThreadReportID: string,
+    transactionID: string | undefined,
+    transactionThreadReportID: string | undefined,
     value: boolean,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    if (!transactionID || !transactionThreadReportID) {
+        return;
+    }
     const transactionChanges: TransactionChanges = {
         billable: value,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_BILLABLE, params, onyxData);
 }
 
-/** Updates the merchant field of a money request */
+/** Updates the merchant field of an expense */
 function updateMoneyRequestMerchant(
     transactionID: string,
     transactionThreadReportID: string,
     value: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
     const transactionChanges: TransactionChanges = {
         merchant: value,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
+    let data: UpdateMoneyRequestData;
+    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    }
+    const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_MERCHANT, params, onyxData);
 }
 
-/** Updates the tag of a money request */
-function updateMoneyRequestTag(
+/** Updates the attendees list of an expense */
+function updateMoneyRequestAttendees(
     transactionID: string,
     transactionThreadReportID: string,
+    attendees: Attendee[],
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    violations: OnyxEntry<OnyxTypes.TransactionViolations> | undefined,
+) {
+    const transactionChanges: TransactionChanges = {
+        attendees,
+    };
+    const data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, violations);
+    const {params, onyxData} = data;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_ATTENDEES, params, onyxData);
+}
+
+/** Updates the tag of an expense */
+function updateMoneyRequestTag(
+    transactionID: string,
+    transactionThreadReportID: string | undefined,
     tag: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    hash?: number,
 ) {
     const transactionChanges: TransactionChanges = {
         tag,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, undefined, hash);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_TAG, params, onyxData);
 }
 
-/** Updates the waypoints of a distance money request */
-function updateMoneyRequestDistance(
+/** Updates the created tax amount of an expense */
+function updateMoneyRequestTaxAmount(
     transactionID: string,
-    transactionThreadReportID: string,
-    waypoints: WaypointCollection,
+    optimisticReportActionID: string,
+    taxAmount: number,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
-    const transactionChanges: TransactionChanges = {
-        waypoints,
+    const transactionChanges = {
+        taxAmount,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
+    API.write('UpdateMoneyRequestTaxAmount', params, onyxData);
+}
+
+type UpdateMoneyRequestTaxRateParams = {
+    transactionID: string;
+    optimisticReportActionID: string;
+    taxCode: string;
+    taxAmount: number;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>;
+};
+
+/** Updates the created tax rate of an expense */
+function updateMoneyRequestTaxRate({transactionID, optimisticReportActionID, taxCode, taxAmount, policy, policyTagList, policyCategories}: UpdateMoneyRequestTaxRateParams) {
+    const transactionChanges = {
+        taxCode,
+        taxAmount,
+    };
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, optimisticReportActionID, transactionChanges, policy, policyTagList, policyCategories);
+    API.write('UpdateMoneyRequestTaxRate', params, onyxData);
+}
+
+type UpdateMoneyRequestDistanceParams = {
+    transactionID: string | undefined;
+    transactionThreadReportID: string | undefined;
+    waypoints: WaypointCollection;
+    routes?: Routes;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    transactionBackup: OnyxEntry<OnyxTypes.Transaction>;
+};
+
+/** Updates the waypoints of a distance expense */
+function updateMoneyRequestDistance({
+    transactionID,
+    transactionThreadReportID,
+    waypoints,
+    routes = undefined,
+    policy = {} as OnyxTypes.Policy,
+    policyTagList = {},
+    policyCategories = {},
+    transactionBackup,
+}: UpdateMoneyRequestDistanceParams) {
+    const transactionChanges: TransactionChanges = {
+        waypoints: sanitizeRecentWaypoints(waypoints),
+        routes,
+    };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
+    let data: UpdateMoneyRequestData;
+    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    }
+    const {params, onyxData} = data;
+
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+    onyxData?.failureData?.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+        value: recentServerValidatedWaypoints,
+    });
+
+    if (transactionBackup) {
+        const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+
+        // We need to include all keys of the optimisticData's waypoints in the failureData for onyx merge to properly reset
+        // waypoint keys that do not exist in the failureData's waypoints. For instance, if the optimisticData waypoints had
+        // three keys and the failureData waypoint had only 2 keys then the third key that doesn't exist in the failureData
+        // waypoints should be explicitly reset otherwise onyx merge will leave it intact.
+        const allWaypointKeys = [...new Set([...Object.keys(transactionBackup.comment?.waypoints ?? {}), ...Object.keys(transaction?.comment?.waypoints ?? {})])];
+        const onyxWaypoints = allWaypointKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
+            acc[key] = transactionBackup.comment?.waypoints?.[key] ? {...transactionBackup.comment?.waypoints?.[key]} : null;
+            return acc;
+        }, {});
+        const allModifiedWaypointsKeys = [...new Set([...Object.keys(waypoints ?? {}), ...Object.keys(transaction?.modifiedWaypoints ?? {})])];
+        const onyxModifiedWaypoints = allModifiedWaypointsKeys.reduce((acc: NullishDeep<WaypointCollection>, key) => {
+            acc[key] = transactionBackup.modifiedWaypoints?.[key] ? {...transactionBackup.modifiedWaypoints?.[key]} : null;
+            return acc;
+        }, {});
+        onyxData?.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    waypoints: onyxWaypoints,
+                    customUnit: {
+                        quantity: transactionBackup?.comment?.customUnit?.quantity,
+                    },
+                },
+                modifiedWaypoints: onyxModifiedWaypoints,
+                routes: null,
+            },
+        });
+    }
+
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE, params, onyxData);
 }
 
-/** Updates the category of a money request */
+/** Updates the category of an expense */
 function updateMoneyRequestCategory(
     transactionID: string,
     transactionThreadReportID: string,
     category: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    hash?: number,
 ) {
     const transactionChanges: TransactionChanges = {
         category,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+
+    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, undefined, hash);
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_CATEGORY, params, onyxData);
 }
 
-/** Updates the description of a money request */
+/** Updates the description of an expense */
 function updateMoneyRequestDescription(
     transactionID: string,
     transactionThreadReportID: string,
     comment: string,
     policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
     policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
 ) {
+    const parsedComment = getParsedComment(comment);
     const transactionChanges: TransactionChanges = {
-        comment,
+        comment: parsedComment,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
+    let data: UpdateMoneyRequestData;
+    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    }
+    const {params, onyxData} = data;
+    params.description = parsedComment;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DESCRIPTION, params, onyxData);
 }
 
-/** Edits an existing distance request */
-function updateDistanceRequest(
+/** Updates the distance rate of an expense */
+function updateMoneyRequestDistanceRate(
     transactionID: string,
     transactionThreadReportID: string,
-    transactionChanges: TransactionChanges,
-    policy: OnyxTypes.Policy,
-    policyTagList: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
+    rateID: string,
+    policy: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
+    updatedTaxAmount?: number,
+    updatedTaxCode?: string,
 ) {
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, false);
-    API.write(WRITE_COMMANDS.UPDATE_DISTANCE_REQUEST, params, onyxData);
+    const transactionChanges: TransactionChanges = {
+        customUnitRateID: rateID,
+        ...(typeof updatedTaxAmount === 'number' ? {taxAmount: updatedTaxAmount} : {}),
+        ...(updatedTaxCode ? {taxCode: updatedTaxCode} : {}),
+    };
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
+
+    const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    if (transaction) {
+        const existingDistanceUnit = transaction?.comment?.customUnit?.distanceUnit;
+        const newDistanceUnit = DistanceRequestUtils.getRateByCustomUnitRateID({customUnitRateID: rateID, policy})?.unit;
+
+        // If the distanceUnit is set and the rate is changed to one that has a different unit, mark the merchant as modified to make the distance field pending
+        if (existingDistanceUnit && newDistanceUnit && newDistanceUnit !== existingDistanceUnit) {
+            transactionChanges.merchant = getMerchant(transaction);
+        }
+    }
+
+    let data: UpdateMoneyRequestData;
+    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories);
+    }
+    const {params, onyxData} = data;
+    // `taxAmount` & `taxCode` only needs to be updated in the optimistic data, so we need to remove them from the params
+    const {taxAmount, taxCode, ...paramsWithoutTaxUpdated} = params;
+    API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE, paramsWithoutTaxUpdated, onyxData);
+}
+
+const getConvertTrackedExpenseInformation = (
+    transactionID: string | undefined,
+    actionableWhisperReportActionID: string | undefined,
+    moneyRequestReportID: string | undefined,
+    linkedTrackedExpenseReportAction: OnyxTypes.ReportAction,
+    linkedTrackedExpenseReportID: string,
+    transactionThreadReportID: string | undefined,
+    resolution: IOUAction,
+) => {
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    // Delete the transaction from the track expense report
+    const {
+        optimisticData: deleteOptimisticData,
+        successData: deleteSuccessData,
+        failureData: deleteFailureData,
+    } = getDeleteTrackExpenseInformation(linkedTrackedExpenseReportID, transactionID, linkedTrackedExpenseReportAction, false, true, actionableWhisperReportActionID, resolution);
+
+    optimisticData?.push(...deleteOptimisticData);
+    successData?.push(...deleteSuccessData);
+    failureData?.push(...deleteFailureData);
+
+    // Build modified expense report action with the transaction changes
+    const modifiedExpenseReportAction = buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadReportID, moneyRequestReportID);
+
+    optimisticData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction as OnyxTypes.ReportAction,
+        },
+    });
+    successData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: {pendingAction: null},
+        },
+    });
+    failureData?.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [modifiedExpenseReportAction.reportActionID]: {
+                ...(modifiedExpenseReportAction as OnyxTypes.ReportAction),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+            },
+        },
+    });
+
+    return {optimisticData, successData, failureData, modifiedExpenseReportActionID: modifiedExpenseReportAction.reportActionID};
+};
+
+type ConvertTrackedWorkspaceParams = {
+    category: string | undefined;
+    tag: string | undefined;
+    taxCode: string;
+    taxAmount: number;
+    billable: boolean | undefined;
+    policyID: string;
+    receipt: Receipt | undefined;
+    waypoints?: string;
+    customUnitRateID?: string;
+};
+
+type AddTrackedExpenseToPolicyParam = {
+    amount: number;
+    currency: string;
+    comment: string;
+    created: string;
+    merchant: string;
+    transactionID: string;
+    reimbursable: boolean;
+    actionableWhisperReportActionID: string | undefined;
+    moneyRequestReportID: string;
+    reportPreviewReportActionID: string;
+    modifiedExpenseReportActionID: string;
+    moneyRequestCreatedReportActionID: string | undefined;
+    moneyRequestPreviewReportActionID: string;
+} & ConvertTrackedWorkspaceParams;
+
+type ConvertTrackedExpenseToRequestParams = {
+    payerParams: {
+        accountID: number;
+        email: string;
+    };
+    transactionParams: {
+        transactionID: string;
+        actionableWhisperReportActionID: string | undefined;
+        linkedTrackedExpenseReportAction: OnyxTypes.ReportAction;
+        linkedTrackedExpenseReportID: string;
+        amount: number;
+        currency: string;
+        comment: string;
+        merchant: string;
+        created: string;
+        attendees?: Attendee[];
+        transactionThreadReportID: string;
+    };
+    chatParams: {
+        reportID: string;
+        createdReportActionID: string | undefined;
+        reportPreviewReportActionID: string;
+    };
+    iouParams: {
+        reportID: string;
+        createdReportActionID: string | undefined;
+        reportActionID: string;
+    };
+    onyxData: OnyxData;
+    workspaceParams?: ConvertTrackedWorkspaceParams;
+};
+
+function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData) {
+    API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
+}
+
+function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams} = convertTrackedExpenseParams;
+    const {accountID: payerAccountID, email: payerEmail} = payerParams;
+    const {
+        transactionID,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        amount,
+        currency,
+        comment,
+        merchant,
+        created,
+        attendees,
+        transactionThreadReportID,
+    } = transactionParams;
+    const {optimisticData: convertTransactionOptimisticData = [], successData: convertTransactionSuccessData = [], failureData: convertTransactionFailureData = []} = onyxData;
+
+    const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        iouParams.reportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        CONST.IOU.ACTION.SUBMIT,
+    );
+
+    optimisticData?.push(...convertTransactionOptimisticData);
+    successData?.push(...convertTransactionSuccessData);
+    failureData?.push(...convertTransactionFailureData);
+
+    if (workspaceParams) {
+        const params = {
+            amount,
+            currency,
+            comment,
+            created,
+            merchant,
+            reimbursable: true,
+            transactionID,
+            actionableWhisperReportActionID,
+            moneyRequestReportID: iouParams.reportID,
+            moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
+            moneyRequestPreviewReportActionID: iouParams.reportActionID,
+            modifiedExpenseReportActionID,
+            reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
+            ...workspaceParams,
+        };
+
+        addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
+        return;
+    }
+
+    const parameters = {
+        attendees,
+        amount,
+        currency,
+        comment,
+        created,
+        merchant,
+        payerAccountID,
+        payerEmail,
+        chatReportID: chatParams.reportID,
+        transactionID,
+        actionableWhisperReportActionID,
+        createdChatReportActionID: chatParams.createdReportActionID,
+        moneyRequestReportID: iouParams.reportID,
+        moneyRequestCreatedReportActionID: iouParams.createdReportActionID,
+        moneyRequestPreviewReportActionID: iouParams.reportActionID,
+        transactionThreadReportID,
+        modifiedExpenseReportActionID,
+        reportPreviewReportActionID: chatParams.reportPreviewReportActionID,
+    };
+    API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
+}
+
+function categorizeTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
+    const {optimisticData, successData, failureData} = onyxData ?? {};
+    const {transactionID} = transactionParams;
+    const {isDraftPolicy} = policyParams;
+    const {actionableWhisperReportActionID, moneyRequestReportID, linkedTrackedExpenseReportAction, linkedTrackedExpenseReportID, transactionThreadReportID} = reportInformation;
+    const {
+        optimisticData: moveTransactionOptimisticData,
+        successData: moveTransactionSuccessData,
+        failureData: moveTransactionFailureData,
+        modifiedExpenseReportActionID,
+    } = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        CONST.IOU.ACTION.CATEGORIZE,
+    );
+
+    optimisticData?.push(...moveTransactionOptimisticData);
+    successData?.push(...moveTransactionSuccessData);
+    failureData?.push(...moveTransactionFailureData);
+
+    const parameters: CategorizeTrackedExpenseApiParams = {
+        ...{
+            ...reportInformation,
+            linkedTrackedExpenseReportAction: undefined,
+        },
+        ...policyParams,
+        ...transactionParams,
+        modifiedExpenseReportActionID,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        engagementChoice: createdWorkspaceParams?.engagementChoice,
+        guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        description: transactionParams.comment,
+    };
+
+    API.write(WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
+
+    // If a draft policy was used, then the CategorizeTrackedExpense command will create a real one
+    // so let's track that conversion here
+    if (isDraftPolicy) {
+        GoogleTagManager.publishEvent(CONST.ANALYTICS.EVENT.WORKSPACE_CREATED, userAccountID);
+    }
+}
+
+function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
+    const {onyxData, reportInformation, transactionParams, policyParams, createdWorkspaceParams} = trackedExpenseParams;
+    const {optimisticData: shareTrackedExpenseOptimisticData = [], successData: shareTrackedExpenseSuccessData = [], failureData: shareTrackedExpenseFailureData = []} = onyxData ?? {};
+    const {transactionID} = transactionParams;
+    const {
+        actionableWhisperReportActionID,
+        moneyRequestPreviewReportActionID,
+        moneyRequestCreatedReportActionID,
+        reportPreviewReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+    } = reportInformation;
+
+    const {optimisticData, successData, failureData, modifiedExpenseReportActionID} = getConvertTrackedExpenseInformation(
+        transactionID,
+        actionableWhisperReportActionID,
+        moneyRequestReportID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        transactionThreadReportID,
+        CONST.IOU.ACTION.SHARE,
+    );
+
+    optimisticData?.push(...shareTrackedExpenseOptimisticData);
+    successData?.push(...shareTrackedExpenseSuccessData);
+    failureData?.push(...shareTrackedExpenseFailureData);
+
+    const parameters: ShareTrackedExpenseParams = {
+        ...transactionParams,
+        policyID: policyParams?.policyID,
+        moneyRequestPreviewReportActionID,
+        moneyRequestReportID,
+        moneyRequestCreatedReportActionID,
+        actionableWhisperReportActionID,
+        modifiedExpenseReportActionID,
+        reportPreviewReportActionID,
+        policyExpenseChatReportID: createdWorkspaceParams?.expenseChatReportID,
+        policyExpenseCreatedReportActionID: createdWorkspaceParams?.expenseCreatedReportActionID,
+        adminsChatReportID: createdWorkspaceParams?.adminsChatReportID,
+        adminsCreatedReportActionID: createdWorkspaceParams?.adminsCreatedReportActionID,
+        engagementChoice: createdWorkspaceParams?.engagementChoice,
+        guidedSetupData: createdWorkspaceParams?.guidedSetupData,
+        policyName: createdWorkspaceParams?.policyName,
+        description: transactionParams.comment,
+    };
+
+    API.write(WRITE_COMMANDS.SHARE_TRACKED_EXPENSE, parameters, {optimisticData, successData, failureData});
 }
 
 /**
- * Request money from another user
+ * Submit expense to another user
  */
-function requestMoney(
-    report: OnyxTypes.Report,
-    amount: number,
-    currency: string,
-    created: string,
-    merchant: string,
-    payeeEmail: string,
-    payeeAccountID: number,
-    participant: Participant,
-    comment: string,
-    receipt: Receipt,
-    category?: string,
-    tag?: string,
-    taxCode = '',
-    taxAmount = 0,
-    billable?: boolean,
-    policy?: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
-    gpsPoints = undefined,
-) {
+function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursible} = requestMoneyInformation;
+    const {payeeAccountID} = participantParams;
+    const parsedComment = getParsedComment(transactionParams.comment ?? '');
+    transactionParams.comment = parsedComment;
+    const {
+        amount,
+        currency,
+        merchant,
+        comment = '',
+        receipt,
+        category,
+        tag,
+        taxCode = '',
+        taxAmount = 0,
+        billable,
+        created,
+        attendees,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        waypoints,
+        customUnitRateID,
+    } = transactionParams;
+
+    const sanitizedWaypoints = waypoints ? JSON.stringify(sanitizeRecentWaypoints(waypoints)) : undefined;
+
     // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
-    const isMoneyRequestReport = ReportUtils.isMoneyRequestReport(report);
-    const currentChatReport = isMoneyRequestReport ? ReportUtils.getReport(report.chatReportID) : report;
-    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+    const existingTransactionID =
+        isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
+            ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+            : undefined;
+    const existingTransaction =
+        action === CONST.IOU.ACTION.SUBMIT
+            ? allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${existingTransactionID}`]
+            : allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${existingTransactionID}`];
+
+    const retryParams = {
+        ...requestMoneyInformation,
+        participantParams: {
+            ...requestMoneyInformation.participantParams,
+            participant: (({icons, ...rest}) => rest)(requestMoneyInformation.participantParams.participant),
+        },
+        transactionParams: {
+            ...requestMoneyInformation.transactionParams,
+            receipt: undefined,
+        },
+    };
+
     const {
         payerAccountID,
         payerEmail,
@@ -1562,36 +4937,176 @@ function requestMoney(
         transactionThreadReportID,
         createdReportActionIDForThread,
         onyxData,
-    } = getMoneyRequestInformation(
-        currentChatReport,
-        participant,
-        comment,
-        amount,
-        currency,
-        currentCreated,
-        merchant,
-        receipt,
-        undefined,
-        category,
-        tag,
-        billable,
-        policy,
-        policyTagList,
-        policyCategories,
-        payeeAccountID,
-        payeeEmail,
+    } = getMoneyRequestInformation({
+        parentChatReport: isMovingTransactionFromTrackExpense ? undefined : currentChatReport,
+        participantParams,
+        policyParams,
+        transactionParams,
         moneyRequestReportID,
-    );
-    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport.reportID;
+        existingTransactionID,
+        existingTransaction: isDistanceRequestTransactionUtils(existingTransaction) ? existingTransaction : undefined,
+        retryParams,
+    });
+    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
 
-    const parameters: RequestMoneyParams = {
-        debtorEmail: payerEmail,
-        debtorAccountID: payerAccountID,
-        amount,
+    switch (action) {
+        case CONST.IOU.ACTION.SUBMIT: {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
+                return;
+            }
+            const workspaceParams =
+                isPolicyExpenseChatReportUtil(chatReport) && chatReport.policyID
+                    ? {
+                          receipt: isFileUploadable(receipt) ? receipt : undefined,
+                          category,
+                          tag,
+                          taxCode,
+                          taxAmount,
+                          billable,
+                          policyID: chatReport.policyID,
+                          waypoints: sanitizedWaypoints,
+                          customUnitRateID,
+                      }
+                    : undefined;
+            convertTrackedExpenseToRequest({
+                payerParams: {
+                    accountID: payerAccountID,
+                    email: payerEmail,
+                },
+                transactionParams: {
+                    amount,
+                    currency,
+                    comment,
+                    merchant,
+                    created,
+                    attendees,
+                    transactionID: transaction.transactionID,
+                    actionableWhisperReportActionID,
+                    linkedTrackedExpenseReportAction,
+                    linkedTrackedExpenseReportID,
+                    transactionThreadReportID,
+                },
+                chatParams: {
+                    reportID: chatReport.reportID,
+                    createdReportActionID: createdChatReportActionID,
+                    reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                },
+                iouParams: {
+                    reportID: iouReport.reportID,
+                    createdReportActionID: createdIOUReportActionID,
+                    reportActionID: iouAction.reportActionID,
+                },
+                onyxData,
+                workspaceParams,
+            });
+            break;
+        }
+        default: {
+            const parameters: RequestMoneyParams = {
+                debtorEmail: payerEmail,
+                debtorAccountID: payerAccountID,
+                amount,
+                currency,
+                comment,
+                created,
+                merchant,
+                iouReportID: iouReport.reportID,
+                chatReportID: chatReport.reportID,
+                transactionID: transaction.transactionID,
+                reportActionID: iouAction.reportActionID,
+                createdChatReportActionID,
+                createdIOUReportActionID,
+                reportPreviewReportActionID: reportPreviewAction.reportActionID,
+                receipt: isFileUploadable(receipt) ? receipt : undefined,
+                receiptState: receipt?.state,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+                // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                transactionThreadReportID,
+                createdReportActionIDForThread,
+                reimbursible,
+                description: parsedComment,
+                attendees: attendees ? JSON.stringify(attendees) : undefined,
+            };
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls
+            API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+        }
+    }
+
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    if (!requestMoneyInformation.isRetry) {
+        dismissModalAndOpenReportInInboxTab(activeReportID);
+    }
+
+    const trackReport = Navigation.getReportRouteByID(linkedTrackedExpenseReportAction?.childReportID);
+    if (trackReport?.key) {
+        Navigation.removeScreenByKey(trackReport.key);
+    }
+
+    if (activeReportID) {
+        notifyNewAction(activeReportID, payeeAccountID);
+    }
+}
+
+/**
+ * Submit per diem expense to another user
+ */
+function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
+    const {report, participantParams, policyParams = {}, transactionParams} = submitPerDiemExpenseInformation;
+    const {payeeAccountID} = participantParams;
+    const {currency, comment = '', category, tag, created, customUnit} = transactionParams;
+
+    if (
+        isEmptyObject(policyParams.policy) ||
+        isEmptyObject(customUnit) ||
+        !customUnit.customUnitID ||
+        !customUnit.customUnitRateID ||
+        (customUnit.subRates ?? []).length === 0 ||
+        isEmptyObject(customUnit.attributes)
+    ) {
+        return;
+    }
+
+    // If the report is iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+
+    const {
+        iouReport,
+        chatReport,
+        transaction,
+        iouAction,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewAction,
+        transactionThreadReportID,
+        createdReportActionIDForThread,
+        onyxData,
+        billable,
+    } = getPerDiemExpenseInformation({
+        parentChatReport: currentChatReport,
+        participantParams,
+        policyParams,
+        transactionParams,
+        moneyRequestReportID,
+    });
+    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport.reportID;
+
+    const parameters: CreatePerDiemRequestParams = {
+        policyID: policyParams.policy.id,
+        customUnitID: customUnit.customUnitID,
+        customUnitRateID: customUnit.customUnitRateID,
+        subRates: JSON.stringify(customUnit.subRates),
+        startDateTime: customUnit.attributes.dates.start,
+        endDateTime: customUnit.attributes.dates.end,
         currency,
-        comment,
-        created: currentCreated,
-        merchant,
+        description: comment,
+        created,
         iouReportID: iouReport.reportID,
         chatReportID: chatReport.reportID,
         transactionID: transaction.transactionID,
@@ -1599,23 +5114,393 @@ function requestMoney(
         createdChatReportActionID,
         createdIOUReportActionID,
         reportPreviewReportActionID: reportPreviewAction.reportActionID,
-        receipt,
-        receiptState: receipt?.state,
         category,
         tag,
-        taxCode,
-        taxAmount,
-        billable,
-        // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
-        gpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
         transactionThreadReportID,
         createdReportActionIDForThread,
+        billable,
     };
 
-    API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
-    resetMoneyRequestInfo();
-    Navigation.dismissModal(activeReportID);
-    Report.notifyNewAction(activeReportID, payeeAccountID);
+    API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
+
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    dismissModalAndOpenReportInInboxTab(activeReportID);
+
+    if (activeReportID) {
+        notifyNewAction(activeReportID, payeeAccountID);
+    }
+}
+
+function sendInvoice(
+    currentUserAccountID: number,
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    invoiceChatReport?: OnyxEntry<OnyxTypes.Report>,
+    receiptFile?: Receipt,
+    policy?: OnyxEntry<OnyxTypes.Policy>,
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>,
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>,
+    companyName?: string,
+    companyWebsite?: string,
+) {
+    const parsedComment = getParsedComment(transaction?.comment?.comment?.trim() ?? '');
+    if (transaction?.comment) {
+        // eslint-disable-next-line no-param-reassign
+        transaction.comment.comment = parsedComment;
+    }
+    const {
+        senderWorkspaceID,
+        receiver,
+        invoiceRoom,
+        createdChatReportActionID,
+        invoiceReportID,
+        reportPreviewReportActionID,
+        transactionID,
+        transactionThreadReportID,
+        createdIOUReportActionID,
+        createdReportActionIDForThread,
+        reportActionID,
+        onyxData,
+    } = getSendInvoiceInformation(transaction, currentUserAccountID, invoiceChatReport, receiptFile, policy, policyTagList, policyCategories, companyName, companyWebsite);
+
+    const parameters: SendInvoiceParams = {
+        createdIOUReportActionID,
+        createdReportActionIDForThread,
+        reportActionID,
+        senderWorkspaceID,
+        accountID: currentUserAccountID,
+        amount: transaction?.amount ?? 0,
+        currency: transaction?.currency ?? '',
+        comment: parsedComment,
+        merchant: transaction?.merchant ?? '',
+        category: transaction?.category,
+        date: transaction?.created ?? '',
+        invoiceRoomReportID: invoiceRoom.reportID,
+        createdChatReportActionID,
+        invoiceReportID,
+        reportPreviewReportActionID,
+        transactionID,
+        transactionThreadReportID,
+        companyName,
+        companyWebsite,
+        description: parsedComment,
+        ...(invoiceChatReport?.reportID ? {receiverInvoiceRoomID: invoiceChatReport.reportID} : {receiverEmail: receiver.login ?? ''}),
+    };
+
+    API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+
+    if (isSearchTopmostFullScreenRoute()) {
+        Navigation.dismissModal();
+    } else {
+        Navigation.dismissModalWithReport({report: invoiceRoom});
+    }
+
+    notifyNewAction(invoiceRoom.reportID, receiver.accountID);
+}
+
+/**
+ * Track an expense
+ */
+function trackExpense(params: CreateTrackExpenseParams) {
+    const {report, action, isDraftPolicy, participantParams, policyParams: policyData = {}, transactionParams: transactionData} = params;
+    const {participant, payeeAccountID, payeeEmail} = participantParams;
+    const {policy, policyCategories, policyTagList} = policyData;
+    const parsedComment = getParsedComment(transactionData.comment ?? '');
+    transactionData.comment = parsedComment;
+    const {
+        amount,
+        currency,
+        created = '',
+        merchant = '',
+        comment = '',
+        receipt,
+        category,
+        tag,
+        taxCode = '',
+        taxAmount = 0,
+        billable,
+        gpsPoints,
+        validWaypoints,
+        actionableWhisperReportActionID,
+        linkedTrackedExpenseReportAction,
+        linkedTrackedExpenseReportID,
+        customUnitRateID,
+    } = transactionData;
+
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report.reportID : '';
+    const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
+
+    // Pass an open receipt so the distance expense will show a map with the route optimistically
+    const trackedReceipt = validWaypoints ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : receipt;
+    const sanitizedWaypoints = validWaypoints ? JSON.stringify(sanitizeRecentWaypoints(validWaypoints)) : undefined;
+
+    const retryParams: CreateTrackExpenseParams = {
+        report,
+        isDraftPolicy,
+        action,
+        participantParams: {
+            participant,
+            payeeAccountID,
+            payeeEmail,
+        },
+        transactionParams: {
+            amount,
+            currency,
+            created,
+            merchant,
+            comment,
+            receipt: undefined,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            validWaypoints,
+            gpsPoints,
+            actionableWhisperReportActionID,
+            linkedTrackedExpenseReportAction,
+            linkedTrackedExpenseReportID,
+            customUnitRateID,
+        },
+    };
+
+    const {
+        createdWorkspaceParams,
+        iouReport,
+        chatReport,
+        transaction,
+        iouAction,
+        createdChatReportActionID,
+        createdIOUReportActionID,
+        reportPreviewAction,
+        transactionThreadReportID,
+        createdReportActionIDForThread,
+        actionableWhisperReportActionIDParam,
+        onyxData,
+    } =
+        getTrackExpenseInformation({
+            parentChatReport: currentChatReport,
+            moneyRequestReportID,
+            existingTransactionID:
+                isMovingTransactionFromTrackExpense && linkedTrackedExpenseReportAction && isMoneyRequestAction(linkedTrackedExpenseReportAction)
+                    ? getOriginalMessage(linkedTrackedExpenseReportAction)?.IOUTransactionID
+                    : undefined,
+            participantParams: {
+                participant,
+                payeeAccountID,
+                payeeEmail,
+            },
+            transactionParams: {
+                comment,
+                amount,
+                currency,
+                created,
+                merchant,
+                receipt: trackedReceipt,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+                linkedTrackedExpenseReportAction,
+            },
+            policyParams: {
+                policy,
+                policyCategories,
+                policyTagList,
+            },
+            retryParams,
+        }) ?? {};
+    const activeReportID = isMoneyRequestReport ? report.reportID : chatReport?.reportID;
+
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+    onyxData?.failureData?.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+        value: recentServerValidatedWaypoints,
+    });
+
+    const mileageRate = isCustomUnitRateIDForP2P(transaction) ? undefined : customUnitRateID;
+
+    switch (action) {
+        case CONST.IOU.ACTION.CATEGORIZE: {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
+                return;
+            }
+            const transactionParams: TrackedExpenseTransactionParams = {
+                transactionID: transaction?.transactionID,
+                amount,
+                currency,
+                comment,
+                merchant,
+                created,
+                taxCode,
+                taxAmount,
+                category,
+                tag,
+                billable,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID: mileageRate,
+            };
+            const policyParams: TrackedExpensePolicyParams = {
+                policyID: chatReport?.policyID,
+                isDraftPolicy,
+            };
+            const reportInformation: TrackedExpenseReportInformation = {
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID,
+                moneyRequestReportID: iouReport?.reportID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+                actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID,
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+            };
+            const trackedExpenseParams: TrackedExpenseParams = {
+                onyxData,
+                reportInformation,
+                transactionParams,
+                policyParams,
+                createdWorkspaceParams,
+            };
+
+            categorizeTrackedExpense(trackedExpenseParams);
+            break;
+        }
+        case CONST.IOU.ACTION.SHARE: {
+            if (!linkedTrackedExpenseReportAction || !linkedTrackedExpenseReportID) {
+                return;
+            }
+            const transactionParams: TrackedExpenseTransactionParams = {
+                transactionID: transaction?.transactionID,
+                amount,
+                currency,
+                comment,
+                merchant,
+                created,
+                taxCode: taxCode ?? '',
+                taxAmount: taxAmount ?? 0,
+                category,
+                tag,
+                billable,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID: mileageRate,
+            };
+            const policyParams: TrackedExpensePolicyParams = {
+                policyID: chatReport?.policyID,
+            };
+            const reportInformation: TrackedExpenseReportInformation = {
+                moneyRequestPreviewReportActionID: iouAction?.reportActionID,
+                moneyRequestReportID: iouReport?.reportID,
+                moneyRequestCreatedReportActionID: createdIOUReportActionID,
+                actionableWhisperReportActionID,
+                linkedTrackedExpenseReportAction,
+                linkedTrackedExpenseReportID,
+                transactionThreadReportID,
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+            };
+            const trackedExpenseParams: TrackedExpenseParams = {
+                onyxData,
+                reportInformation,
+                transactionParams,
+                policyParams,
+                createdWorkspaceParams,
+            };
+            shareTrackedExpense(trackedExpenseParams);
+            break;
+        }
+        default: {
+            const parameters: TrackExpenseParams = {
+                amount,
+                currency,
+                comment,
+                created,
+                merchant,
+                iouReportID: iouReport?.reportID,
+                chatReportID: chatReport?.reportID,
+                transactionID: transaction?.transactionID,
+                reportActionID: iouAction?.reportActionID,
+                createdChatReportActionID,
+                createdIOUReportActionID,
+                reportPreviewReportActionID: reportPreviewAction?.reportActionID,
+                receipt: isFileUploadable(trackedReceipt) ? trackedReceipt : undefined,
+                receiptState: trackedReceipt?.state,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+                // This needs to be a string of JSON because of limitations with the fetch() API and nested objects
+                receiptGpsPoints: gpsPoints ? JSON.stringify(gpsPoints) : undefined,
+                transactionThreadReportID,
+                createdReportActionIDForThread,
+                waypoints: sanitizedWaypoints,
+                customUnitRateID,
+                description: parsedComment,
+            };
+            if (actionableWhisperReportActionIDParam) {
+                parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
+            }
+            API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
+        }
+    }
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    if (!params.isRetry) {
+        dismissModalAndOpenReportInInboxTab(activeReportID);
+    }
+
+    if (action === CONST.IOU.ACTION.SHARE) {
+        if (isSearchTopmostFullScreenRoute() && activeReportID) {
+            Navigation.setNavigationActionToMicrotaskQueue(() => {
+                Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(activeReportID), {forceReplace: true});
+            });
+        }
+        Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.ROOM_INVITE.getRoute(activeReportID, CONST.IOU.SHARE.ROLE.ACCOUNTANT)));
+    }
+
+    notifyNewAction(activeReportID, payeeAccountID);
+}
+
+function getOrCreateOptimisticSplitChatReport(existingSplitChatReportID: string | undefined, participants: Participant[], participantAccountIDs: number[], currentUserAccountID: number) {
+    // The existing chat report could be passed as reportID or exist on the sole "participant" (in this case a report option)
+    const existingChatReportID = existingSplitChatReportID ?? participants.at(0)?.reportID;
+
+    // Check if the report is available locally if we do have one
+    const existingSplitChatOnyxData = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingChatReportID}`];
+    let existingSplitChatReport = existingChatReportID && existingSplitChatOnyxData ? {...existingSplitChatOnyxData} : undefined;
+
+    const allParticipantsAccountIDs = [...participantAccountIDs, currentUserAccountID];
+    if (!existingSplitChatReport) {
+        existingSplitChatReport = getChatByParticipants(allParticipantsAccountIDs, undefined, participantAccountIDs.length > 1);
+    }
+
+    // We found an existing chat report we are done...
+    if (existingSplitChatReport) {
+        // Yes, these are the same, but give the caller a way to identify if we created a new report or not
+        return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
+    }
+
+    // Create a Group Chat if we have multiple participants
+    if (participants.length > 1) {
+        const splitChatReport = buildOptimisticChatReport({
+            participantList: allParticipantsAccountIDs,
+            reportName: '',
+            chatType: CONST.REPORT.CHAT_TYPE.GROUP,
+            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+        });
+
+        return {existingSplitChatReport: null, splitChatReport};
+    }
+
+    // Otherwise, create a new 1:1 chat report
+    const splitChatReport = buildOptimisticChatReport({
+        participantList: participantAccountIDs,
+    });
+    return {existingSplitChatReport: null, splitChatReport};
 }
 
 /**
@@ -1630,68 +5515,84 @@ function requestMoney(
  *      {email: 'user3', amount: 100, iouReportID: '200', chatReportID: '210', transactionID: '220', reportActionID: '230'}
  *  ]
  * @param amount - always in the smallest unit of the currency
- * @param existingSplitChatReportID - the report ID where the split bill happens, could be a group chat or a workspace chat
+ * @param existingSplitChatReportID - the report ID where the split expense happens, could be a group chat or a workspace chat
  */
-function createSplitsAndOnyxData(
-    participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    amount: number,
-    comment: string,
-    currency: string,
-    merchant: string,
-    created: string,
-    category: string,
-    tag: string,
-    existingSplitChatReportID = '',
-    billable = false,
-): SplitsAndOnyxData {
-    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
-    const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const existingSplitChatReport =
-        existingSplitChatReportID || participants[0].reportID
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
-    const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
-
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(
+function createSplitsAndOnyxData({
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    existingSplitChatReportID,
+    transactionParams: {
         amount,
-        currency,
-        CONST.REPORT.SPLIT_REPORTID,
         comment,
+        currency,
+        merchant,
         created,
-        '',
-        '',
-        merchant || Localize.translateLocal('iou.request'),
-        undefined,
-        undefined,
-        undefined,
         category,
         tag,
-        billable,
-    );
+        splitShares = {},
+        billable = false,
+        iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+        taxCode = '',
+        taxAmount = 0,
+    },
+}: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
+    const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
+    const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
+
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
+    const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
+
+    // Pass an open receipt so the distance expense will show a map with the route optimistically
+    const receipt: Receipt | undefined = iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? {source: ReceiptGeneric as ReceiptSource, state: CONST.IOU.RECEIPT_STATE.OPEN} : undefined;
+
+    const existingTransaction = allTransactionDrafts[`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`];
+    const isDistanceRequest = existingTransaction && existingTransaction.iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE;
+    let splitTransaction = buildOptimisticTransaction({
+        existingTransaction,
+        transactionParams: {
+            amount,
+            currency,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
+            comment,
+            created,
+            merchant: merchant || Localize.translateLocal('iou.expense'),
+            receipt,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            pendingFields: isDistanceRequest ? {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD} : undefined,
+        },
+    });
+
+    // Important data is set on the draft distance transaction, such as the iouRequestType marking it as a distance request, so merge it into the optimistic split transaction
+    if (isDistanceRequest) {
+        splitTransaction = fastMerge(existingTransaction, splitTransaction, false);
+    }
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const splitCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+    const splitCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+    const splitIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
         amount,
         currency,
         comment,
         participants,
-        splitTransaction.transactionID,
-        undefined,
-        '',
-        false,
-        false,
-        {},
+        transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
-    );
+    });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
-    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0].text;
-    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0].html;
+    splitChatReport.lastMessageText = getReportActionText(splitIOUReportAction);
+    splitChatReport.lastMessageHtml = getReportActionHtml(splitIOUReportAction);
+    splitChatReport.lastActorAccountID = currentUserAccountID;
+    splitChatReport.lastVisibleActionCreated = splitIOUReportAction.created;
+
+    if (splitChatReport.participants && getReportNotificationPreference(splitChatReport) === CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN) {
+        splitChatReport.participants[currentUserAccountID] = {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS};
+    }
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
@@ -1707,6 +5608,15 @@ function createSplitsAndOnyxData(
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: {
+                action: iouRequestType === CONST.IOU.REQUEST_TYPE.DISTANCE ? CONST.QUICK_ACTIONS.SPLIT_DISTANCE : CONST.QUICK_ACTIONS.SPLIT_MANUAL,
+                chatReportID: splitChatReport.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
         },
         existingSplitChatReport
             ? {
@@ -1729,12 +5639,17 @@ function createSplitsAndOnyxData(
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: splitTransaction,
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${CONST.IOU.OPTIMISTIC_TRANSACTION_ID}`,
-            value: null,
-        },
     ];
+
+    if (!existingSplitChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
 
     const successData: OnyxUpdate[] = [
         {
@@ -1748,15 +5663,26 @@ function createSplitsAndOnyxData(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
-            value: {pendingAction: null},
+            value: {pendingAction: null, pendingFields: null},
         },
     ];
 
     if (!existingSplitChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        });
+    }
+
+    const redundantParticipants: Record<number, null> = {};
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}},
+            value: {pendingFields: {createChat: null}, participants: redundantParticipants},
         });
     }
 
@@ -1765,8 +5691,15 @@ function createSplitsAndOnyxData(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
+                pendingAction: null,
+                pendingFields: null,
             },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
         },
     ];
 
@@ -1776,7 +5709,7 @@ function createSplitsAndOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
                 },
             },
         });
@@ -1787,7 +5720,7 @@ function createSplitsAndOnyxData(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
                 value: {
                     errorFields: {
-                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
@@ -1796,7 +5729,7 @@ function createSplitsAndOnyxData(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
                 value: {
                     [splitIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
                     },
                 },
             },
@@ -1804,17 +5737,27 @@ function createSplitsAndOnyxData(
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const splitAmount = IOUUtils.calculateAmount(participants.length, amount, currency, false);
-    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: IOUUtils.calculateAmount(participants.length, amount, currency, true)}];
+    const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, true);
+    const currentUserTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, true);
+
+    const splits: Split[] = [{email: currentUserEmailForIOUSplit, accountID: currentUserAccountID, amount: currentUserAmount, taxAmount: currentUserTaxAmount}];
 
     const hasMultipleParticipants = participants.length > 1;
     participants.forEach((participant) => {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
+        const splitAmount = splitShares?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false);
+        const splitTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, false);
+
+        // To exclude someone from a split, the amount can be 0. The scenario for this is when creating a split from a group chat, we have remove the option to deselect users to exclude them.
+        // We can input '0' next to someone we want to exclude.
+        if (splitAmount === 0) {
+            return;
+        }
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
-        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
+        const email = isOwnPolicyExpenseChat || isPolicyExpenseChat ? '' : addSMSDomainIfPhoneNumber(participant.login ?? '').toLowerCase();
         const accountID = isOwnPolicyExpenseChat || isPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -1832,131 +5775,152 @@ function createSplitsAndOnyxData(
         // or, if the split is being made from the workspace chat, then the oneOnOneChatReport is the same as the splitChatReport
         // in this case existingSplitChatReport will belong to the policy expense chat and we won't be
         // entering code that creates optimistic personal details
-        if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat) {
+        if ((!hasMultipleParticipants && !existingSplitChatReportID) || isOwnPolicyExpenseChat || isOneOnOneChat(splitChatReport)) {
             oneOnOneChatReport = splitChatReport;
             shouldCreateOptimisticPersonalDetails = !existingSplitChatReport && !personalDetailExists;
         } else {
-            const existingChatReport = ReportUtils.getChatByParticipants([accountID]);
+            const existingChatReport = getChatByParticipants([accountID, currentUserAccountID]);
             isNewOneOnOneChatReport = !existingChatReport;
             shouldCreateOptimisticPersonalDetails = isNewOneOnOneChatReport && !personalDetailExists;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport([accountID]);
+            oneOnOneChatReport =
+                existingChatReport ??
+                buildOptimisticChatReport({
+                    participantList: [accountID, currentUserAccountID],
+                });
         }
 
         // STEP 2: Get existing IOU/Expense report and update its total OR build a new optimistic one
-        // For Control policy expense chats, if the report is already approved, create a new expense report
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport =
-            !oneOnOneIOUReport || (isOwnPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isOwnPolicyExpenseChat
-                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID ?? '', currentUserAccountID, splitAmount, currency)
-                : ReportUtils.buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+                ? buildOptimisticExpenseReport(oneOnOneChatReport.reportID, oneOnOneChatReport.policyID, currentUserAccountID, splitAmount, currency)
+                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
         } else if (isOwnPolicyExpenseChat) {
-            if (typeof oneOnOneIOUReport?.total === 'number') {
-                // Because of the Expense reports are stored as negative values, we subtract the total from the amount
-                oneOnOneIOUReport.total -= splitAmount;
+            // Because of the Expense reports are stored as negative values, we subtract the total from the amount
+            if (oneOnOneIOUReport?.currency === currency) {
+                if (typeof oneOnOneIOUReport.total === 'number') {
+                    oneOnOneIOUReport.total -= splitAmount;
+                }
+
+                if (typeof oneOnOneIOUReport.unheldTotal === 'number') {
+                    oneOnOneIOUReport.unheldTotal -= splitAmount;
+                }
             }
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
+            oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, currentUserAccountID, splitAmount, currency);
         }
 
         // STEP 3: Build optimistic transaction
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            ReportUtils.isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
-            currency,
-            oneOnOneIOUReport.reportID,
-            comment,
-            created,
-            CONST.IOU.TYPE.SPLIT,
-            splitTransaction.transactionID,
-            merchant || Localize.translateLocal('iou.request'),
-            undefined,
-            undefined,
-            undefined,
-            category,
-            tag,
-            billable,
-        );
+        let oneOnOneTransaction = buildOptimisticTransaction({
+            originalTransactionID: splitTransaction.transactionID,
+            transactionParams: {
+                amount: isExpenseReport(oneOnOneIOUReport) ? -splitAmount : splitAmount,
+                currency,
+                reportID: oneOnOneIOUReport.reportID,
+                comment,
+                created,
+                merchant: merchant || Localize.translateLocal('iou.expense'),
+                category,
+                tag,
+                taxCode,
+                taxAmount: isExpenseReport(oneOnOneIOUReport) ? -splitTaxAmount : splitTaxAmount,
+                billable,
+                source: CONST.IOU.TYPE.SPLIT,
+            },
+        });
+
+        if (isDistanceRequest) {
+            oneOnOneTransaction = fastMerge(existingTransaction, oneOnOneTransaction, false);
+        }
 
         // STEP 4: Build optimistic reportActions. We need:
         // 1. CREATED action for the chatReport
         // 2. CREATED action for the iouReport
         // 3. IOU action for the iouReport
-        // 4. REPORTPREVIEW action for the chatReport
-        // Note: The CREATED action for the IOU report must be optimistically generated before the IOU action so there's no chance that it appears after the IOU action in the chat
-        const currentTime = DateUtils.getDBTime();
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit, DateUtils.subtractMillisecondsFromDateTime(currentTime, 1));
-        const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            splitAmount,
-            currency,
-            comment,
-            [participant],
-            oneOnOneTransaction.transactionID,
-            undefined,
-            oneOnOneIOUReport.reportID,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            currentTime,
-        );
+        // 4. Transaction Thread and the CREATED action for it
+        // 5. REPORT_PREVIEW action for the chatReport
+        const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+            buildOptimisticMoneyRequestEntities({
+                iouReport: oneOnOneIOUReport,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: splitAmount,
+                currency,
+                comment,
+                payeeEmail: currentUserEmailForIOUSplit,
+                participants: [participant],
+                transactionID: oneOnOneTransaction.transactionID,
+            });
 
         // Add optimistic personal details for new participants
         const oneOnOnePersonalDetailListAction: OnyxTypes.PersonalDetailsList = shouldCreateOptimisticPersonalDetails
             ? {
                   [accountID]: {
                       accountID,
-                      avatar: UserUtils.getDefaultAvatarURL(accountID),
                       // Disabling this line since participant.displayName can be an empty string
                       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                      displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                      displayName: formatPhoneNumber(participant.displayName || email),
                       login: participant.login,
                       isOptimisticPersonalDetail: true,
                   },
               }
             : {};
 
-        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        if (shouldCreateOptimisticPersonalDetails) {
+            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+            redundantParticipants[accountID] = null;
+        }
+
+        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport);
         }
 
         // Add category to optimistic policy recently used categories when a participant is a workspace
-        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
+        const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category) : [];
+
+        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
         // Add tag to optimistic policy recently used tags when a participant is a workspace
-        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
-
-        // Create optimistic transactionThread
-        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
-        const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+        const optimisticPolicyRecentlyUsedTags = isPolicyExpenseChat ? buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag) : {};
 
         // STEP 5: Build Onyx Data
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
-            oneOnOneChatReport,
-            oneOnOneIOUReport,
-            oneOnOneTransaction,
-            oneOnOneCreatedActionForChat,
-            oneOnOneCreatedActionForIOU,
-            oneOnOneIOUAction,
-            oneOnOnePersonalDetailListAction,
-            oneOnOneReportPreviewAction,
-            optimisticPolicyRecentlyUsedCategories,
-            optimisticPolicyRecentlyUsedTags,
-            isNewOneOnOneChatReport,
-            optimisticTransactionThread,
-            optimisticCreatedActionForTransactionThread,
-            shouldCreateNewOneOnOneIOUReport,
-        );
+        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+            isNewChatReport: isNewOneOnOneChatReport,
+            shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
+            isOneOnOneSplit: true,
+            optimisticParams: {
+                chat: {
+                    report: oneOnOneChatReport,
+                    createdAction: oneOnOneCreatedActionForChat,
+                    reportPreviewAction: oneOnOneReportPreviewAction,
+                },
+                iou: {
+                    report: oneOnOneIOUReport,
+                    createdAction: oneOnOneCreatedActionForIOU,
+                    action: oneOnOneIOUAction,
+                },
+                transactionParams: {
+                    transaction: oneOnOneTransaction,
+                    transactionThreadReport: optimisticTransactionThread,
+                    transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                },
+                policyRecentlyUsed: {
+                    categories: optimisticPolicyRecentlyUsedCategories,
+                    tags: optimisticPolicyRecentlyUsedTags,
+                    currencies: optimisticRecentlyUsedCurrencies,
+                },
+                personalDetailListAction: oneOnOnePersonalDetailListAction,
+            },
+        });
 
         const individualSplit = {
             email,
             accountID,
+            isOptimisticAccount: isOptimisticPersonalDetail(accountID),
             amount: splitAmount,
             iouReportID: oneOnOneIOUReport.reportID,
             chatReportID: oneOnOneChatReport.reportID,
@@ -1966,7 +5930,8 @@ function createSplitsAndOnyxData(
             createdIOUReportActionID: oneOnOneCreatedActionForIOU.reportActionID,
             reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
-            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
+            taxAmount: splitTaxAmount,
         };
 
         splits.push(individualSplit);
@@ -1975,11 +5940,22 @@ function createSplitsAndOnyxData(
         failureData.push(...oneOnOneFailureData);
     });
 
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
+        value: {
+            comment: {
+                splits: splits.map((split) => ({accountID: split.accountID, amount: split.amount})),
+            },
+        },
+    });
+
     const splitData: SplitData = {
         chatReportID: splitChatReport.reportID,
         transactionID: splitTransaction.transactionID,
         reportActionID: splitIOUReportAction.reportActionID,
         policyID: splitChatReport.policyID,
+        chatType: splitChatReport.chatType,
     };
 
     if (!existingSplitChatReport) {
@@ -1993,82 +5969,145 @@ function createSplitsAndOnyxData(
     };
 }
 
+type SplitBillActionsParams = {
+    participants: Participant[];
+    currentUserLogin: string;
+    currentUserAccountID: number;
+    amount: number;
+    comment: string;
+    currency: string;
+    merchant: string;
+    created: string;
+    category?: string;
+    tag?: string;
+    billable?: boolean;
+    iouRequestType?: IOURequestType;
+    existingSplitChatReportID?: string;
+    splitShares?: SplitShares;
+    splitPayerAccountIDs?: number[];
+    taxCode?: string;
+    taxAmount?: number;
+    isRetry?: boolean;
+};
+
 /**
  * @param amount - always in smallest currency unit
  * @param existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function splitBill(
-    participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    amount: number,
-    comment: string,
-    currency: string,
-    merchant: string,
-    created: string,
-    category: string,
-    tag: string,
-    existingSplitChatReportID = '',
+function splitBill({
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    amount,
+    comment,
+    currency,
+    merchant,
+    created,
+    category = '',
+    tag = '',
     billable = false,
-) {
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(
+    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    existingSplitChatReportID,
+    splitShares = {},
+    splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
+}: SplitBillActionsParams) {
+    const parsedComment = getParsedComment(comment);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData({
         participants,
         currentUserLogin,
         currentUserAccountID,
-        amount,
-        comment,
-        currency,
-        merchant,
-        currentCreated,
-        category,
-        tag,
         existingSplitChatReportID,
-        billable,
-    );
+        transactionParams: {
+            amount,
+            comment: parsedComment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares,
+            billable,
+            iouRequestType,
+            taxCode,
+            taxAmount,
+        },
+    });
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
         amount,
         splits: JSON.stringify(splits),
         currency,
-        comment,
+        comment: parsedComment,
         category,
         merchant,
-        created: currentCreated,
+        created,
         tag,
         billable,
         transactionID: splitData.transactionID,
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
+        chatType: splitData.chatType,
+        splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    resetMoneyRequestInfo();
-    Navigation.dismissModal();
-    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
+    dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
+
+    notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
 /**
- * @param amount - always in smallest currency unit
+ * @param amount - always in the smallest currency unit
  */
-function splitBillAndOpenReport(
-    participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    amount: number,
-    comment: string,
-    currency: string,
-    merchant: string,
-    created: string,
-    category: string,
-    tag: string,
-    billable: boolean,
-) {
-    const currentCreated = DateUtils.enrichMoneyRequestTimestamp(created);
-    const {splitData, splits, onyxData} = createSplitsAndOnyxData(participants, currentUserLogin, currentUserAccountID, amount, comment, currency, merchant, currentCreated, category, tag);
+function splitBillAndOpenReport({
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    amount,
+    comment,
+    currency,
+    merchant,
+    created,
+    category = '',
+    tag = '',
+    billable = false,
+    iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
+    splitShares = {},
+    splitPayerAccountIDs = [],
+    taxCode = '',
+    taxAmount = 0,
+    existingSplitChatReportID,
+}: SplitBillActionsParams) {
+    const parsedComment = getParsedComment(comment);
+    const {splitData, splits, onyxData} = createSplitsAndOnyxData({
+        participants,
+        currentUserLogin,
+        currentUserAccountID,
+        existingSplitChatReportID,
+        transactionParams: {
+            amount,
+            comment: parsedComment,
+            currency,
+            merchant,
+            created,
+            category,
+            tag,
+            splitShares,
+            billable,
+            iouRequestType,
+            taxCode,
+            taxAmount,
+        },
+    });
 
     const parameters: SplitBillParams = {
         reportID: splitData.chatReportID,
@@ -2076,8 +6115,8 @@ function splitBillAndOpenReport(
         splits: JSON.stringify(splits),
         currency,
         merchant,
-        created: currentCreated,
-        comment,
+        created,
+        comment: parsedComment,
         category,
         tag,
         billable,
@@ -2085,81 +6124,81 @@ function splitBillAndOpenReport(
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
         policyID: splitData.policyID,
+        chatType: splitData.chatType,
+        splitPayerAccountIDs,
+        taxCode,
+        taxAmount,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
 
-    resetMoneyRequestInfo();
-    Navigation.dismissModal(splitData.chatReportID);
-    Report.notifyNewAction(splitData.chatReportID, currentUserAccountID);
+    dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
+    notifyNewAction(splitData.chatReportID, currentUserAccountID);
 }
 
-/** Used exclusively for starting a split bill request that contains a receipt, the split request will be completed once the receipt is scanned
+/** Used exclusively for starting a split expense request that contains a receipt, the split request will be completed once the receipt is scanned
  *  or user enters details manually.
  *
  * @param existingSplitChatReportID - Either a group DM or a workspace chat
  */
-function startSplitBill(
-    participants: Participant[],
-    currentUserLogin: string,
-    currentUserAccountID: number,
-    comment: string,
-    category: string,
-    tag: string,
-    receipt: Receipt,
-    existingSplitChatReportID = '',
+function startSplitBill({
+    participants,
+    currentUserLogin,
+    currentUserAccountID,
+    comment,
+    receipt,
+    existingSplitChatReportID,
     billable = false,
-) {
-    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(currentUserLogin);
+    category = '',
+    tag = '',
+    currency,
+    taxCode = '',
+    taxAmount = 0,
+}: StartSplitBilActionParams) {
+    const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
-    const existingSplitChatReport =
-        existingSplitChatReportID || participants[0].reportID
-            ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${existingSplitChatReportID || participants[0].reportID}`]
-            : ReportUtils.getChatByParticipants(participantAccountIDs);
-    const splitChatReport = existingSplitChatReport ?? ReportUtils.buildOptimisticChatReport(participantAccountIDs);
+    const {splitChatReport, existingSplitChatReport} = getOrCreateOptimisticSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
     const isOwnPolicyExpenseChat = !!splitChatReport.isOwnPolicyExpenseChat;
+    const parsedComment = getParsedComment(comment);
 
     const {name: filename, source, state = CONST.IOU.RECEIPT_STATE.SCANREADY} = receipt;
     const receiptObject: Receipt = {state, source};
 
     // ReportID is -2 (aka "deleted") on the group transaction
-    const splitTransaction = TransactionUtils.buildOptimisticTransaction(
-        0,
-        CONST.CURRENCY.USD,
-        CONST.REPORT.SPLIT_REPORTID,
-        comment,
-        '',
-        '',
-        '',
-        CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
-        receiptObject,
-        filename,
-        undefined,
-        category,
-        tag,
-        billable,
-    );
+    const splitTransaction = buildOptimisticTransaction({
+        transactionParams: {
+            amount: 0,
+            currency,
+            reportID: CONST.REPORT.SPLIT_REPORTID,
+            comment: parsedComment,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            receipt: receiptObject,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            filename,
+        },
+    });
 
     // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const splitChatCreatedReportAction = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-    const splitIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        0,
-        CONST.CURRENCY.USD,
-        comment,
+    const splitChatCreatedReportAction = buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
+    const splitIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
+        amount: 0,
+        currency: CONST.CURRENCY.USD,
+        comment: parsedComment,
         participants,
-        splitTransaction.transactionID,
-        undefined,
-        '',
-        false,
-        false,
-        receiptObject,
+        transactionID: splitTransaction.transactionID,
         isOwnPolicyExpenseChat,
-    );
+    });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
-    splitChatReport.lastMessageText = splitIOUReportAction.message?.[0].text;
-    splitChatReport.lastMessageHtml = splitIOUReportAction.message?.[0].html;
+    splitChatReport.lastMessageText = getReportActionText(splitIOUReportAction);
+    splitChatReport.lastMessageHtml = getReportActionHtml(splitIOUReportAction);
 
     // If we have an existing splitChatReport (group chat or workspace) use it's pending fields, otherwise indicate that we are adding a chat
     if (!existingSplitChatReport) {
@@ -2175,6 +6214,15 @@ function startSplitBill(
             onyxMethod: existingSplitChatReport ? Onyx.METHOD.MERGE : Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
             value: splitChatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: {
+                action: CONST.QUICK_ACTIONS.SPLIT_SCAN,
+                chatReportID: splitChatReport.reportID,
+                isFirstQuickAction: isEmptyObject(quickAction),
+            },
         },
         existingSplitChatReport
             ? {
@@ -2199,6 +6247,16 @@ function startSplitBill(
         },
     ];
 
+    if (!existingSplitChatReport) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        });
+    }
+
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -2218,8 +6276,19 @@ function startSplitBill(
     if (!existingSplitChatReport) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${splitChatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        });
+    }
+
+    const redundantParticipants: Record<number, null> = {};
+    if (!existingSplitChatReport) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
-            value: {pendingFields: {createChat: null}},
+            value: {pendingFields: {createChat: null}, participants: redundantParticipants},
         });
     }
 
@@ -2228,10 +6297,30 @@ function startSplitBill(
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransaction.transactionID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
+        },
     ];
+
+    const retryParams = {
+        participants: participants.map(({icons, ...rest}) => rest),
+        currentUserLogin,
+        currentUserAccountID,
+        comment,
+        receipt: receiptObject,
+        existingSplitChatReportID,
+        billable,
+        category,
+        tag,
+        currency,
+        taxCode,
+        taxAmount,
+    };
 
     if (existingSplitChatReport) {
         failureData.push({
@@ -2239,7 +6328,7 @@ function startSplitBill(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
             value: {
                 [splitIOUReportAction.reportActionID]: {
-                    errors: getReceiptError(receipt, filename),
+                    errors: getReceiptError(receipt, filename, undefined, undefined, CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams),
                 },
             },
         });
@@ -2250,7 +6339,7 @@ function startSplitBill(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${splitChatReport.reportID}`,
                 value: {
                     errorFields: {
-                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
@@ -2259,10 +6348,10 @@ function startSplitBill(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitChatReport.reportID}`,
                 value: {
                     [splitChatCreatedReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                     [splitIOUReportAction.reportActionID]: {
-                        errors: getReceiptError(receipt, filename),
+                        errors: getReceiptError(receipt, filename, undefined, undefined, CONST.IOU.ACTION_PARAMS.START_SPLIT_BILL, retryParams),
                     },
                 },
             },
@@ -2274,7 +6363,7 @@ function startSplitBill(
     participants.forEach((participant) => {
         // Disabling this line since participant.login can be an empty string
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-        const email = participant.isOwnPolicyExpenseChat ? '' : PhoneNumber.addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
+        const email = participant.isOwnPolicyExpenseChat ? '' : addSMSDomainIfPhoneNumber(participant.login || participant.text || '').toLowerCase();
         const accountID = participant.isOwnPolicyExpenseChat ? 0 : Number(participant.accountID);
         if (email === currentUserEmailForIOUSplit) {
             return;
@@ -2289,7 +6378,7 @@ function startSplitBill(
             return;
         }
 
-        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? -1];
+        const participantPersonalDetails = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
         if (!participantPersonalDetails) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.MERGE,
@@ -2297,10 +6386,9 @@ function startSplitBill(
                 value: {
                     [accountID]: {
                         accountID,
-                        avatar: UserUtils.getDefaultAvatarURL(accountID),
                         // Disabling this line since participant.displayName can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                        displayName: LocalePhoneNumber.formatPhoneNumber(participant.displayName || email),
+                        displayName: formatPhoneNumber(participant.displayName || email),
                         // Disabling this line since participant.login can be an empty string
                         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                         login: participant.login || participant.text,
@@ -2308,6 +6396,8 @@ function startSplitBill(
                     },
                 },
             });
+            // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+            redundantParticipants[accountID] = null;
         }
 
         splits.push({
@@ -2317,19 +6407,28 @@ function startSplitBill(
     });
 
     participants.forEach((participant) => {
-        const isPolicyExpenseChat = ReportUtils.isPolicyExpenseChat(participant);
+        const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
         if (!isPolicyExpenseChat) {
             return;
         }
 
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
+        const optimisticPolicyRecentlyUsedCategories = buildOptimisticPolicyRecentlyUsedCategories(participant.policyID, category);
+        const optimisticPolicyRecentlyUsedTags = buildOptimisticPolicyRecentlyUsedTags(participant.policyID, tag);
+        const optimisticRecentlyUsedCurrencies = buildOptimisticRecentlyUsedCurrencies(currency);
 
         if (optimisticPolicyRecentlyUsedCategories.length > 0) {
             optimisticData.push({
                 onyxMethod: Onyx.METHOD.SET,
                 key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${participant.policyID}`,
                 value: optimisticPolicyRecentlyUsedCategories,
+            });
+        }
+
+        if (optimisticRecentlyUsedCurrencies.length > 0) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: ONYXKEYS.RECENTLY_USED_CURRENCIES,
+                value: optimisticRecentlyUsedCurrencies,
             });
         }
 
@@ -2359,22 +6458,26 @@ function startSplitBill(
         transactionID: splitTransaction.transactionID,
         splits: JSON.stringify(splits),
         receipt,
-        comment,
+        comment: parsedComment,
         category,
         tag,
+        currency,
         isFromGroupDM: !existingSplitChatReport,
         billable,
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
+        chatType: splitChatReport?.chatType,
+        taxCode,
+        taxAmount,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
 
-    resetMoneyRequestInfo();
-    Navigation.dismissModalWithReport(splitChatReport);
-    Report.notifyNewAction(splitChatReport.chatReportID ?? '', currentUserAccountID);
+    Navigation.dismissModalWithReport({report: splitChatReport});
+    notifyNewAction(splitChatReport.reportID, currentUserAccountID);
 }
 
-/** Used for editing a split bill while it's still scanning or when SmartScan fails, it completes a split bill started by startSplitBill above.
+/** Used for editing a split expense while it's still scanning or when SmartScan fails, it completes a split expense started by startSplitBill above.
  *
  * @param chatReportID - The group chat or workspace reportID
  * @param reportAction - The split action that lives in the chatReport above
@@ -2382,9 +6485,20 @@ function startSplitBill(
  * @param sessionAccountID - accountID of the current user
  * @param sessionEmail - email of the current user
  */
-function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportAction, updatedTransaction: OnyxTypes.Transaction, sessionAccountID: number, sessionEmail: string) {
-    const currentUserEmailForIOUSplit = PhoneNumber.addSMSDomainIfPhoneNumber(sessionEmail);
-    const {transactionID} = updatedTransaction;
+function completeSplitBill(
+    chatReportID: string,
+    reportAction: OnyxTypes.ReportAction,
+    updatedTransaction: OnyxEntry<OnyxTypes.Transaction>,
+    sessionAccountID: number,
+    sessionEmail?: string,
+) {
+    const parsedComment = getParsedComment(updatedTransaction?.comment?.comment ?? '');
+    if (updatedTransaction?.comment) {
+        // eslint-disable-next-line no-param-reassign
+        updatedTransaction.comment.comment = parsedComment;
+    }
+    const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(sessionEmail);
+    const transactionID = updatedTransaction?.transactionID;
     const unmodifiedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
     // Save optimistic updated transaction and action
@@ -2405,7 +6519,9 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             value: {
                 [reportAction.reportActionID]: {
                     lastModified: DateUtils.getDBTime(),
-                    whisperedToAccountIDs: [],
+                    originalMessage: {
+                        whisperedTo: [],
+                    },
                 },
             },
         },
@@ -2430,7 +6546,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
                 ...unmodifiedTransaction,
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
             },
         },
         {
@@ -2439,17 +6555,19 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             value: {
                 [reportAction.reportActionID]: {
                     ...reportAction,
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
                 },
             },
         },
     ];
 
-    const splitParticipants: Split[] = updatedTransaction.comment.splits ?? [];
-    const {modifiedAmount: amount, modifiedCurrency: currency} = updatedTransaction;
+    const splitParticipants: Split[] = updatedTransaction?.comment?.splits ?? [];
+    const amount = updatedTransaction?.modifiedAmount;
+    const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
-    const splitAmount = IOUUtils.calculateAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
+    const splitAmount = calculateIOUAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
+    const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
     splitParticipants.forEach((participant) => {
@@ -2463,7 +6581,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             // In case this is still the optimistic accountID saved in the splits array, return early as we cannot know
             // if there is an existing chat between the split creator and this participant
             // Instead, we will rely on Auth generating the report IDs and the user won't see any optimistic chats or reports created
-            const participantPersonalDetails: OnyxTypes.PersonalDetails | EmptyObject = allPersonalDetails[participant?.accountID ?? -1] ?? {};
+            const participantPersonalDetails: OnyxTypes.PersonalDetails | null = allPersonalDetails[participant?.accountID ?? CONST.DEFAULT_NUMBER_ID];
             if (!participantPersonalDetails || participantPersonalDetails.isOptimisticPersonalDetail) {
                 splits.push({
                     email: participant.email,
@@ -2472,90 +6590,99 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             }
         }
 
-        let oneOnOneChatReport: OnyxTypes.Report | null;
+        let oneOnOneChatReport: OnyxEntry<OnyxTypes.Report>;
         let isNewOneOnOneChatReport = false;
         if (isPolicyExpenseChat) {
-            // The workspace chat reportID is saved in the splits array when starting a split bill with a workspace
-            oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`] ?? null;
+            // The workspace chat reportID is saved in the splits array when starting a split expense with a workspace
+            oneOnOneChatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${participant.chatReportID}`];
         } else {
-            const existingChatReport = ReportUtils.getChatByParticipants(participant.accountID ? [participant.accountID] : []);
+            const existingChatReport = getChatByParticipants(participant.accountID ? [participant.accountID, sessionAccountID] : []);
             isNewOneOnOneChatReport = !existingChatReport;
-            oneOnOneChatReport = existingChatReport ?? ReportUtils.buildOptimisticChatReport(participant.accountID ? [participant.accountID] : []);
+            oneOnOneChatReport =
+                existingChatReport ??
+                buildOptimisticChatReport({
+                    participantList: participant.accountID ? [participant.accountID, sessionAccountID] : [],
+                });
         }
 
         let oneOnOneIOUReport: OneOnOneIOUReport = oneOnOneChatReport?.iouReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${oneOnOneChatReport.iouReportID}`] : null;
-        const shouldCreateNewOneOnOneIOUReport =
-            !oneOnOneIOUReport || (isPolicyExpenseChat && ReportUtils.isControlPolicyExpenseReport(oneOnOneIOUReport) && ReportUtils.isReportApproved(oneOnOneIOUReport));
+        const shouldCreateNewOneOnOneIOUReport = shouldCreateNewMoneyRequestReportReportUtils(oneOnOneIOUReport, oneOnOneChatReport);
 
         if (!oneOnOneIOUReport || shouldCreateNewOneOnOneIOUReport) {
             oneOnOneIOUReport = isPolicyExpenseChat
-                ? ReportUtils.buildOptimisticExpenseReport(oneOnOneChatReport?.reportID ?? '', participant.policyID ?? '', sessionAccountID, splitAmount, currency ?? '')
-                : ReportUtils.buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? -1, splitAmount, oneOnOneChatReport?.reportID ?? '', currency ?? '');
+                ? buildOptimisticExpenseReport(oneOnOneChatReport?.reportID, participant.policyID, sessionAccountID, splitAmount, currency ?? '')
+                : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
         } else if (isPolicyExpenseChat) {
             if (typeof oneOnOneIOUReport?.total === 'number') {
                 // Because of the Expense reports are stored as negative values, we subtract the total from the amount
                 oneOnOneIOUReport.total -= splitAmount;
             }
         } else {
-            oneOnOneIOUReport = IOUUtils.updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
+            oneOnOneIOUReport = updateIOUOwnerAndTotal(oneOnOneIOUReport, sessionAccountID, splitAmount, currency ?? '');
         }
 
-        const oneOnOneTransaction = TransactionUtils.buildOptimisticTransaction(
-            isPolicyExpenseChat ? -splitAmount : splitAmount,
-            currency ?? '',
-            oneOnOneIOUReport?.reportID ?? '',
-            updatedTransaction.comment.comment,
-            updatedTransaction.modifiedCreated,
-            CONST.IOU.TYPE.SPLIT,
-            transactionID,
-            updatedTransaction.modifiedMerchant,
-            {...updatedTransaction.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
-            updatedTransaction.filename,
-            undefined,
-            updatedTransaction.category,
-            updatedTransaction.tag,
-            updatedTransaction.billable,
-        );
+        const oneOnOneTransaction = buildOptimisticTransaction({
+            originalTransactionID: transactionID,
+            transactionParams: {
+                amount: isPolicyExpenseChat ? -splitAmount : splitAmount,
+                currency: currency ?? '',
+                reportID: oneOnOneIOUReport?.reportID,
+                comment: parsedComment,
+                created: updatedTransaction?.modifiedCreated,
+                merchant: updatedTransaction?.modifiedMerchant,
+                receipt: {...updatedTransaction?.receipt, state: CONST.IOU.RECEIPT_STATE.OPEN},
+                category: updatedTransaction?.category,
+                tag: updatedTransaction?.tag,
+                taxCode: updatedTransaction?.taxCode,
+                taxAmount: isPolicyExpenseChat ? -splitTaxAmount : splitAmount,
+                billable: updatedTransaction?.billable,
+                source: CONST.IOU.TYPE.SPLIT,
+                filename: updatedTransaction?.filename,
+            },
+        });
 
-        const oneOnOneCreatedActionForChat = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-        const oneOnOneCreatedActionForIOU = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-        const oneOnOneIOUAction = ReportUtils.buildOptimisticIOUReportAction(
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            splitAmount,
-            currency ?? '',
-            updatedTransaction.comment.comment ?? '',
-            [participant],
-            oneOnOneTransaction.transactionID,
-            undefined,
-            oneOnOneIOUReport?.reportID,
-        );
+        const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+            buildOptimisticMoneyRequestEntities({
+                iouReport: oneOnOneIOUReport,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: splitAmount,
+                currency: currency ?? '',
+                comment: parsedComment,
+                payeeEmail: currentUserEmailForIOUSplit,
+                participants: [participant],
+                transactionID: oneOnOneTransaction.transactionID,
+            });
 
-        let oneOnOneReportPreviewAction = ReportActionsUtils.getReportPreviewAction(oneOnOneChatReport?.reportID ?? '', oneOnOneIOUReport?.reportID ?? '');
+        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = ReportUtils.updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
         } else {
-            oneOnOneReportPreviewAction = ReportUtils.buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction);
         }
 
-        const optimisticTransactionThread = ReportUtils.buildTransactionThread(oneOnOneIOUAction, oneOnOneIOUReport.reportID);
-        const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(currentUserEmailForIOUSplit);
-
-        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest(
-            oneOnOneChatReport,
-            oneOnOneIOUReport,
-            oneOnOneTransaction,
-            oneOnOneCreatedActionForChat,
-            oneOnOneCreatedActionForIOU,
-            oneOnOneIOUAction,
-            {},
-            oneOnOneReportPreviewAction,
-            [],
-            {},
-            isNewOneOnOneChatReport,
-            optimisticTransactionThread,
-            optimisticCreatedActionForTransactionThread,
-            shouldCreateNewOneOnOneIOUReport,
-        );
+        const [oneOnOneOptimisticData, oneOnOneSuccessData, oneOnOneFailureData] = buildOnyxDataForMoneyRequest({
+            isNewChatReport: isNewOneOnOneChatReport,
+            isOneOnOneSplit: true,
+            shouldCreateNewMoneyRequestReport: shouldCreateNewOneOnOneIOUReport,
+            optimisticParams: {
+                chat: {
+                    report: oneOnOneChatReport,
+                    createdAction: oneOnOneCreatedActionForChat,
+                    reportPreviewAction: oneOnOneReportPreviewAction,
+                },
+                iou: {
+                    report: oneOnOneIOUReport,
+                    createdAction: oneOnOneCreatedActionForIOU,
+                    action: oneOnOneIOUAction,
+                },
+                transactionParams: {
+                    transaction: oneOnOneTransaction,
+                    transactionThreadReport: optimisticTransactionThread,
+                    transactionThreadCreatedReportAction: optimisticCreatedActionForTransactionThread,
+                },
+                policyRecentlyUsed: {},
+            },
+        });
 
         splits.push({
             email: participant.email,
@@ -2569,7 +6696,7 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
             createdIOUReportActionID: oneOnOneCreatedActionForIOU.reportActionID,
             reportPreviewReportActionID: oneOnOneReportPreviewAction.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
-            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
         });
 
         optimisticData.push(...oneOnOneOptimisticData);
@@ -2585,7 +6712,10 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         comment: transactionComment,
         category: transactionCategory,
         tag: transactionTag,
-    } = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
+        taxCode: transactionTaxCode,
+        taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
+    } = getTransactionDetails(updatedTransaction) ?? {};
 
     const parameters: CompleteSplitBillParams = {
         transactionID,
@@ -2597,323 +6727,257 @@ function completeSplitBill(chatReportID: string, reportAction: OnyxTypes.ReportA
         category: transactionCategory,
         tag: transactionTag,
         splits: JSON.stringify(splits),
+        taxCode: transactionTaxCode,
+        taxAmount: transactionTaxAmount,
+        billable: transactionBillable,
+        description: parsedComment,
     };
 
     API.write(WRITE_COMMANDS.COMPLETE_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-    Navigation.dismissModal(chatReportID);
-    Report.notifyNewAction(chatReportID, sessionAccountID);
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    dismissModalAndOpenReportInInboxTab(chatReportID);
+    notifyNewAction(chatReportID, sessionAccountID);
 }
 
-function setDraftSplitTransaction(transactionID: string, transactionChanges: TransactionChanges = {}) {
+function setDraftSplitTransaction(transactionID: string | undefined, transactionChanges: TransactionChanges = {}, policy?: OnyxEntry<OnyxTypes.Policy>) {
+    if (!transactionID) {
+        return undefined;
+    }
     let draftSplitTransaction = allDraftSplitTransactions[`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`];
 
     if (!draftSplitTransaction) {
         draftSplitTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     }
 
-    const updatedTransaction = draftSplitTransaction ? TransactionUtils.getUpdatedTransaction(draftSplitTransaction, transactionChanges, false, false) : null;
+    const updatedTransaction = draftSplitTransaction
+        ? getUpdatedTransaction({
+              transaction: draftSplitTransaction,
+              transactionChanges,
+              isFromExpenseReport: false,
+              shouldUpdateReceiptState: false,
+              policy,
+          })
+        : null;
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`, updatedTransaction);
 }
 
-function editRegularMoneyRequest(
-    transactionID: string,
-    transactionThreadReportID: string,
-    transactionChanges: TransactionChanges,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
-) {
-    // STEP 1: Get all collections we're updating
-    const transactionThread = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThread?.parentReportID}`] ?? null;
-    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`] ?? null;
-    const isFromExpenseReport = ReportUtils.isExpenseReport(iouReport);
+/** Requests money based on a distance (e.g. mileage from a map) */
+function createDistanceRequest(distanceRequestInformation: CreateDistanceRequestInformation) {
+    const {
+        report,
+        participants,
+        currentUserLogin = '',
+        currentUserAccountID = -1,
+        iouType = CONST.IOU.TYPE.SUBMIT,
+        existingTransaction,
+        transactionParams,
+        policyParams = {},
+    } = distanceRequestInformation;
+    const {policy, policyCategories, policyTagList} = policyParams;
+    const parsedComment = getParsedComment(transactionParams.comment);
+    transactionParams.comment = parsedComment;
+    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
 
-    // STEP 2: Build new modified expense report action.
-    const updatedReportAction = ReportUtils.buildOptimisticModifiedExpenseReportAction(transactionThread, transaction, transactionChanges, isFromExpenseReport);
-    const updatedTransaction = transaction ? TransactionUtils.getUpdatedTransaction(transaction, transactionChanges, isFromExpenseReport) : null;
+    // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
+    const currentChatReport = isMoneyRequestReport ? getReportOrDraftReport(report?.chatReportID) : report;
+    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
 
-    // STEP 3: Compute the IOU total and update the report preview message so LHN amount owed is correct
-    // Should only update if the transaction matches the currency of the report, else we wait for the update
-    // from the server with the currency conversion
-    let updatedMoneyRequestReport = {...iouReport};
-    const updatedChatReport = {...chatReport};
-    const diff = TransactionUtils.getAmount(transaction, true) - TransactionUtils.getAmount(updatedTransaction, true);
-    if (updatedTransaction?.currency === iouReport?.currency && updatedTransaction?.modifiedAmount && diff !== 0) {
-        if (ReportUtils.isExpenseReport(iouReport) && typeof updatedMoneyRequestReport.total === 'number') {
-            updatedMoneyRequestReport.total += diff;
-        } else {
-            updatedMoneyRequestReport = iouReport
-                ? IOUUtils.updateIOUOwnerAndTotal(iouReport, updatedReportAction.actorAccountID ?? -1, diff, TransactionUtils.getCurrency(transaction), false)
-                : {};
-        }
-
-        updatedMoneyRequestReport.cachedTotal = CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedTransaction.currency);
-
-        // Update the last message of the IOU report
-        const lastMessage = ReportUtils.getIOUReportActionMessage(
-            iouReport?.reportID ?? '',
-            CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-            updatedMoneyRequestReport.total ?? 0,
-            '',
-            updatedTransaction.currency,
-            '',
-            false,
-        );
-        updatedMoneyRequestReport.lastMessageText = lastMessage[0].text;
-        updatedMoneyRequestReport.lastMessageHtml = lastMessage[0].html;
-
-        // Update the last message of the chat report
-        const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
-        const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-            payer: ReportUtils.getPersonalDetailsForAccountID(updatedMoneyRequestReport.managerID ?? -1).login ?? '',
-            amount: CurrencyUtils.convertToDisplayString(updatedMoneyRequestReport.total, updatedMoneyRequestReport.currency),
-        });
-        updatedChatReport.lastMessageText = messageText;
-        updatedChatReport.lastMessageHtml = messageText;
-    }
-
-    const isScanning = TransactionUtils.hasReceipt(updatedTransaction) && TransactionUtils.isReceiptBeingScanned(updatedTransaction);
-
-    // STEP 4: Compose the optimistic data
-    const currentTime = DateUtils.getDBTime();
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
-            value: {
-                [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: updatedTransaction,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: updatedMoneyRequestReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`,
-            value: updatedChatReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-            value: {
-                lastReadTime: currentTime,
-                lastVisibleActionCreated: currentTime,
-            },
-        },
-    ];
-
-    if (!isScanning) {
-        optimisticData.push(
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
-                value: {
-                    [transactionThread?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
-                    },
-                },
-            },
-            {
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.parentReportID}`,
-                value: {
-                    [iouReport?.parentReportActionID ?? '']: {
-                        whisperedToAccountIDs: [],
-                    },
-                },
-            },
-        );
-    }
-
-    // Update recently used categories if the category is changed
-    if ('category' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedCategories = Policy.buildOptimisticPolicyRecentlyUsedCategories(iouReport?.policyID, transactionChanges.category);
-        if (optimisticPolicyRecentlyUsedCategories.length) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.SET,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_CATEGORIES}${iouReport?.policyID}`,
-                value: optimisticPolicyRecentlyUsedCategories,
-            });
-        }
-    }
-
-    // Update recently used categories if the tag is changed
-    if ('tag' in transactionChanges) {
-        const optimisticPolicyRecentlyUsedTags = Policy.buildOptimisticPolicyRecentlyUsedTags(iouReport?.policyID, transactionChanges.tag);
-        if (!isEmptyObject(optimisticPolicyRecentlyUsedTags)) {
-            optimisticData.push({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${iouReport?.policyID}`,
-                value: optimisticPolicyRecentlyUsedTags,
-            });
-        }
-    }
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
-            value: {
-                [updatedReportAction.reportActionID]: {pendingAction: null},
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                pendingFields: {
-                    comment: null,
-                    amount: null,
-                    created: null,
-                    currency: null,
-                    merchant: null,
-                    billable: null,
-                    category: null,
-                    tag: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {pendingAction: null},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThread?.reportID}`,
-            value: {
-                [updatedReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericEditFailureMessage'),
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                ...transaction,
-                modifiedCreated: transaction?.modifiedCreated ? transaction.modifiedCreated : null,
-                modifiedAmount: transaction?.modifiedAmount ? transaction.modifiedAmount : null,
-                modifiedCurrency: transaction?.modifiedCurrency ? transaction.modifiedCurrency : null,
-                modifiedMerchant: transaction?.modifiedMerchant ? transaction.modifiedMerchant : null,
-                modifiedWaypoints: transaction?.modifiedWaypoints ? transaction.modifiedWaypoints : null,
-                pendingFields: null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
-            value: {
-                ...iouReport,
-                cachedTotal: iouReport?.cachedTotal ? iouReport?.cachedTotal : null,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`,
-            value: chatReport,
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`,
-            value: {
-                lastReadTime: transactionThread?.lastReadTime,
-                lastVisibleActionCreated: transactionThread?.lastVisibleActionCreated,
-            },
-        },
-    ];
-
-    // Add transaction violations if we have a paid policy and an updated transaction
-    if (policy && PolicyUtils.isPaidGroupPolicy(policy) && updatedTransaction) {
-        const currentTransactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
-        const updatedViolationsOnyxData = ViolationsUtils.getViolationsOnyxData(
-            updatedTransaction,
-            currentTransactionViolations,
-            !!policy.requiresTag,
-            policyTags,
-            !!policy.requiresCategory,
-            policyCategories,
-        );
-        optimisticData.push(updatedViolationsOnyxData);
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: currentTransactionViolations,
-        });
-    }
-
-    // STEP 6: Call the API endpoint
-    const {created, amount, currency, comment, merchant, category, billable, tag} = ReportUtils.getTransactionDetails(updatedTransaction) ?? {};
-
-    const parameters: EditMoneyRequestParams = {
-        transactionID,
-        reportActionID: updatedReportAction.reportActionID,
-        created,
-        amount,
-        currency,
-        comment,
-        merchant,
-        category,
-        billable,
-        tag,
+    const optimisticReceipt: Receipt = {
+        source: ReceiptGeneric as ReceiptSource,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
     };
 
-    API.write(WRITE_COMMANDS.EDIT_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-}
+    let parameters: CreateDistanceRequestParams;
+    let onyxData: OnyxData;
+    const sanitizedWaypoints = sanitizeRecentWaypoints(validWaypoints);
+    if (iouType === CONST.IOU.TYPE.SPLIT) {
+        const {
+            splitData,
+            splits,
+            onyxData: splitOnyxData,
+        } = createSplitsAndOnyxData({
+            participants,
+            currentUserLogin: currentUserLogin ?? '',
+            currentUserAccountID,
+            existingSplitChatReportID: report?.reportID,
+            transactionParams: {
+                amount,
+                comment,
+                currency,
+                merchant,
+                created,
+                category: category ?? '',
+                tag: tag ?? '',
+                splitShares,
+                billable,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                taxCode,
+                taxAmount,
+            },
+        });
+        onyxData = splitOnyxData;
 
-function editMoneyRequest(
-    transaction: OnyxTypes.Transaction,
-    transactionThreadReportID: string,
-    transactionChanges: TransactionChanges,
-    policy: OnyxTypes.Policy,
-    policyTags: OnyxTypes.PolicyTagList,
-    policyCategories: OnyxTypes.PolicyCategories,
-) {
-    if (TransactionUtils.isDistanceRequest(transaction)) {
-        updateDistanceRequest(transaction.transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
+        // Splits don't use the IOU report param. The split transaction isn't linked to a report shown in the UI, it's linked to a special default reportID of -2.
+        // Therefore, any params related to the IOU report are irrelevant and omitted below.
+        parameters = {
+            transactionID: splitData.transactionID,
+            chatReportID: splitData.chatReportID,
+            createdChatReportActionID: splitData.createdReportActionID,
+            reportActionID: splitData.reportActionID,
+            waypoints: JSON.stringify(sanitizedWaypoints),
+            customUnitRateID,
+            comment,
+            created,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            splits: JSON.stringify(splits),
+            chatType: splitData.chatType,
+            description: parsedComment,
+        };
     } else {
-        editRegularMoneyRequest(transaction.transactionID, transactionThreadReportID, transactionChanges, policy, policyTags, policyCategories);
+        const participant = participants.at(0) ?? {};
+        const {
+            iouReport,
+            chatReport,
+            transaction,
+            iouAction,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewAction,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            payerEmail,
+            onyxData: moneyRequestOnyxData,
+        } = getMoneyRequestInformation({
+            parentChatReport: currentChatReport,
+            existingTransaction,
+            moneyRequestReportID,
+            participantParams: {
+                participant,
+                payeeAccountID: userAccountID,
+                payeeEmail: currentUserEmail,
+            },
+            policyParams: {
+                policy,
+                policyCategories,
+                policyTagList,
+            },
+            transactionParams: {
+                amount,
+                currency,
+                comment,
+                created,
+                merchant,
+                receipt: optimisticReceipt,
+                category,
+                tag,
+                taxCode,
+                taxAmount,
+                billable,
+            },
+        });
+
+        onyxData = moneyRequestOnyxData;
+
+        parameters = {
+            comment,
+            iouReportID: iouReport.reportID,
+            chatReportID: chatReport.reportID,
+            transactionID: transaction.transactionID,
+            reportActionID: iouAction.reportActionID,
+            createdChatReportActionID,
+            createdIOUReportActionID,
+            reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            waypoints: JSON.stringify(sanitizedWaypoints),
+            created,
+            category,
+            tag,
+            taxCode,
+            taxAmount,
+            billable,
+            transactionThreadReportID,
+            createdReportActionIDForThread,
+            payerEmail,
+            customUnitRateID,
+            description: parsedComment,
+        };
     }
+
+    const recentServerValidatedWaypoints = getRecentWaypoints().filter((item) => !item.pendingAction);
+    onyxData?.failureData?.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.NVP_RECENT_WAYPOINTS}`,
+        value: recentServerValidatedWaypoints,
+    });
+
+    API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
+    InteractionManager.runAfterInteractions(() => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID));
+    const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
+    dismissModalAndOpenReportInInboxTab(activeReportID);
+    notifyNewAction(activeReportID, userAccountID);
 }
 
-/** Updates the amount and currency fields of a money request */
-function updateMoneyRequestAmountAndCurrency(
-    transactionID: string,
-    transactionThreadReportID: string,
-    currency: string,
-    amount: number,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    policyTagList: OnyxEntry<OnyxTypes.PolicyTagList>,
-    policyCategories: OnyxEntry<OnyxTypes.PolicyCategories>,
-) {
+type UpdateMoneyRequestAmountAndCurrencyParams = {
+    transactionID: string;
+    transactionThreadReportID: string;
+    currency: string;
+    amount: number;
+    taxAmount: number;
+    policy?: OnyxEntry<OnyxTypes.Policy>;
+    policyTagList?: OnyxEntry<OnyxTypes.PolicyTagLists>;
+    policyCategories?: OnyxEntry<OnyxTypes.PolicyCategories>;
+    taxCode: string;
+};
+
+/** Updates the amount and currency fields of an expense */
+function updateMoneyRequestAmountAndCurrency({
+    transactionID,
+    transactionThreadReportID,
+    currency,
+    amount,
+    taxAmount,
+    policy,
+    policyTagList,
+    policyCategories,
+    taxCode,
+}: UpdateMoneyRequestAmountAndCurrencyParams) {
     const transactionChanges = {
         amount,
         currency,
+        taxCode,
+        taxAmount,
     };
-    const {params, onyxData} = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList, policyCategories, true);
+    const transactionThreadReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`] ?? null;
+    const parentReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReport?.parentReportID}`] ?? null;
+    let data: UpdateMoneyRequestData;
+    if (isTrackExpenseReport(transactionThreadReport) && isSelfDM(parentReport)) {
+        data = getUpdateTrackExpenseParams(transactionID, transactionThreadReportID, transactionChanges, policy);
+    } else {
+        data = getUpdateMoneyRequestParams(transactionID, transactionThreadReportID, transactionChanges, policy, policyTagList ?? null, policyCategories ?? null);
+    }
+    const {params, onyxData} = data;
     API.write(WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY, params, onyxData);
 }
 
-function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+/**
+ *
+ * @param transactionID  - The transactionID of IOU
+ * @param reportAction - The reportAction of the transaction in the IOU report
+ * @return the url to navigate back once the money request is deleted
+ */
+function prepareToCleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction) {
     // STEP 1: Get all collections we're updating
-    const iouReportID = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU ? reportAction.originalMessage.IOUReportID : '';
+    const iouReportID = isMoneyRequestAction(reportAction) ? getOriginalMessage(reportAction)?.IOUReportID : undefined;
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] ?? null;
     const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`];
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(iouReport?.chatReportID ?? '', iouReport?.reportID ?? '');
+    const reportPreviewAction = getReportPreviewAction(iouReport?.chatReportID, iouReport?.reportID);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const isTransactionOnHold = isOnHold(transaction);
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
     const transactionThreadID = reportAction.childReportID;
     let transactionThread = null;
@@ -2923,7 +6987,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
 
     // STEP 2: Decide if we need to:
     // 1. Delete the transactionThread - delete if there are no visible comments in the thread
-    // 2. Update the moneyRequestPreview to show [Deleted request] - update if the transactionThread exists AND it isn't being deleted
+    // 2. Update the moneyRequestPreview to show [Deleted expense] - update if the transactionThread exists AND it isn't being deleted
     const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
     const shouldShowDeletedRequestMessage = !!transactionThreadID && !shouldDeleteTransactionThread;
 
@@ -2944,52 +7008,356 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
             originalMessage: {
                 IOUTransactionID: null,
             },
-            errors: undefined,
+            errors: null,
         },
-    } as OnyxTypes.ReportActions;
+    } as Record<string, NullishDeep<OnyxTypes.ReportAction>>;
 
-    const lastVisibleAction = ReportActionsUtils.getLastVisibleAction(iouReport?.reportID ?? '', updatedReportAction);
-    const iouReportLastMessageText = ReportActionsUtils.getLastVisibleMessage(iouReport?.reportID ?? '', updatedReportAction).lastMessageText;
-    const shouldDeleteIOUReport =
-        iouReportLastMessageText.length === 0 && !ReportActionsUtils.isDeletedParentAction(lastVisibleAction) && (!transactionThreadID || shouldDeleteTransactionThread);
+    let canUserPerformWriteAction = true;
+    if (chatReport) {
+        canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+    }
+    // If we are deleting the last transaction on a report, then delete the report too
+    const shouldDeleteIOUReport = getReportTransactions(iouReportID).length === 1;
 
     // STEP 4: Update the iouReport and reportPreview with new totals and messages if it wasn't deleted
-    let updatedIOUReport: OnyxTypes.Report | null;
-    const currency = TransactionUtils.getCurrency(transaction);
-    const updatedReportPreviewAction: OnyxTypes.ReportAction | EmptyObject = {...reportPreviewAction};
+    let updatedIOUReport: OnyxInputValue<OnyxTypes.Report>;
+    const currency = getCurrency(transaction);
+    const updatedReportPreviewAction: Partial<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>> = {...reportPreviewAction};
     updatedReportPreviewAction.pendingAction = shouldDeleteIOUReport ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-    if (iouReport && ReportUtils.isExpenseReport(iouReport)) {
+    if (iouReport && isExpenseReport(iouReport)) {
         updatedIOUReport = {...iouReport};
 
         if (typeof updatedIOUReport.total === 'number' && currency === iouReport?.currency) {
             // Because of the Expense reports are stored as negative values, we add the total from the amount
-            updatedIOUReport.total += TransactionUtils.getAmount(transaction, true);
+            const amountDiff = getAmount(transaction, true);
+            updatedIOUReport.total += amountDiff;
+
+            if (!transaction?.reimbursable && typeof updatedIOUReport.nonReimbursableTotal === 'number') {
+                updatedIOUReport.nonReimbursableTotal += amountDiff;
+            }
+
+            if (!isTransactionOnHold) {
+                if (typeof updatedIOUReport.unheldTotal === 'number') {
+                    updatedIOUReport.unheldTotal += amountDiff;
+                }
+
+                if (!transaction?.reimbursable && typeof updatedIOUReport.unheldNonReimbursableTotal === 'number') {
+                    updatedIOUReport.unheldNonReimbursableTotal += amountDiff;
+                }
+            }
         }
     } else {
-        updatedIOUReport = IOUUtils.updateIOUOwnerAndTotal(iouReport, reportAction.actorAccountID ?? -1, TransactionUtils.getAmount(transaction, false), currency, true);
+        updatedIOUReport = updateIOUOwnerAndTotal(
+            iouReport,
+            reportAction.actorAccountID ?? CONST.DEFAULT_NUMBER_ID,
+            getAmount(transaction, false),
+            currency,
+            true,
+            false,
+            isTransactionOnHold,
+        );
     }
 
     if (updatedIOUReport) {
+        const lastVisibleAction = getLastVisibleAction(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction);
+        const iouReportLastMessageText = getLastVisibleMessage(iouReport?.reportID, canUserPerformWriteAction, updatedReportAction).lastMessageText;
         updatedIOUReport.lastMessageText = iouReportLastMessageText;
         updatedIOUReport.lastVisibleActionCreated = lastVisibleAction?.created;
     }
 
-    const hasNonReimbursableTransactions = ReportUtils.hasNonReimbursableTransactions(iouReport?.reportID);
+    const hasNonReimbursableTransactions = hasNonReimbursableTransactionsReportUtils(iouReport?.reportID);
     const messageText = Localize.translateLocal(hasNonReimbursableTransactions ? 'iou.payerSpentAmount' : 'iou.payerOwesAmount', {
-        payer: ReportUtils.getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? -1).login ?? '',
-        amount: CurrencyUtils.convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
+        payer: getPersonalDetailsForAccountID(updatedIOUReport?.managerID ?? CONST.DEFAULT_NUMBER_ID).login ?? '',
+        amount: convertToDisplayString(updatedIOUReport?.total, updatedIOUReport?.currency),
     });
 
-    if (updatedReportPreviewAction?.message?.[0]) {
-        updatedReportPreviewAction.message[0].text = messageText;
-        updatedReportPreviewAction.message[0].html = shouldDeleteIOUReport ? '' : messageText;
+    if (getReportActionMessage(updatedReportPreviewAction)) {
+        if (Array.isArray(updatedReportPreviewAction?.message)) {
+            const message = updatedReportPreviewAction.message.at(0);
+            if (message) {
+                message.text = messageText;
+                message.html = messageText;
+                message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
+            }
+        } else if (!Array.isArray(updatedReportPreviewAction.message) && updatedReportPreviewAction.message) {
+            updatedReportPreviewAction.message.text = messageText;
+            updatedReportPreviewAction.message.deleted = shouldDeleteIOUReport ? DateUtils.getDBTime() : '';
+        }
     }
 
     if (updatedReportPreviewAction && reportPreviewAction?.childMoneyRequestCount && reportPreviewAction?.childMoneyRequestCount > 0) {
         updatedReportPreviewAction.childMoneyRequestCount = reportPreviewAction.childMoneyRequestCount - 1;
     }
 
-    // STEP 5: Build Onyx data
+    return {
+        shouldDeleteTransactionThread,
+        shouldDeleteIOUReport,
+        updatedReportAction,
+        updatedIOUReport,
+        updatedReportPreviewAction,
+        transactionThreadID,
+        transactionThread,
+        chatReport,
+        transaction,
+        transactionViolations,
+        reportPreviewAction,
+        iouReport,
+    };
+}
+
+/**
+ * Calculate the URL to navigate to after a money request deletion
+ * @param transactionID - The ID of the money request being deleted
+ * @param reportAction - The report action associated with the money request
+ * @param isSingleTransactionView - whether we are in the transaction thread report
+ * @returns The URL to navigate to
+ */
+function getNavigationUrlOnMoneyRequestDelete(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false): Route | undefined {
+    if (!transactionID) {
+        return undefined;
+    }
+
+    const {shouldDeleteTransactionThread, shouldDeleteIOUReport, iouReport} = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+
+    // Determine which report to navigate back to
+    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID);
+    }
+
+    if (iouReport?.chatReportID && shouldDeleteIOUReport) {
+        return ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID);
+    }
+
+    return undefined;
+}
+
+/**
+ * Calculate the URL to navigate to after a track expense deletion
+ * @param chatReportID - The ID of the chat report containing the track expense
+ * @param transactionID - The ID of the track expense being deleted
+ * @param reportAction - The report action associated with the track expense
+ * @param isSingleTransactionView - Whether we're in single transaction view
+ * @returns The URL to navigate to
+ */
+function getNavigationUrlAfterTrackExpenseDelete(
+    chatReportID: string | undefined,
+    transactionID: string | undefined,
+    reportAction: OnyxTypes.ReportAction,
+    isSingleTransactionView = false,
+): Route | undefined {
+    if (!chatReportID || !transactionID) {
+        return undefined;
+    }
+
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+
+    // If not a self DM, handle it as a regular money request
+    if (!isSelfDM(chatReport)) {
+        return getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    }
+
+    const transactionThreadID = reportAction.childReportID;
+    const shouldDeleteTransactionThread = transactionThreadID ? (reportAction?.childVisibleActionCount ?? 0) === 0 : false;
+
+    // Only navigate if in single transaction view and the thread will be deleted
+    if (isSingleTransactionView && shouldDeleteTransactionThread && chatReport?.reportID) {
+        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
+        return ROUTES.REPORT_WITH_ID.getRoute(chatReport.reportID);
+    }
+
+    return undefined;
+}
+
+/**
+ *
+ * @param transactionID  - The transactionID of IOU
+ * @param reportAction - The reportAction of the transaction in the IOU report
+ * @param isSingleTransactionView - whether we are in the transaction thread report
+ * @return the url to navigate back once the money request is deleted
+ */
+function cleanUpMoneyRequest(transactionID: string, reportAction: OnyxTypes.ReportAction, reportID: string, isSingleTransactionView = false) {
+    const {
+        shouldDeleteTransactionThread,
+        shouldDeleteIOUReport,
+        updatedReportAction,
+        updatedIOUReport,
+        updatedReportPreviewAction,
+        transactionThreadID,
+        chatReport,
+        iouReport,
+        reportPreviewAction,
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+    // build Onyx data
+
+    // Onyx operations to delete the transaction, update the IOU report action and chat report action
+    const reportActionsOnyxUpdates: OnyxUpdate[] = [];
+    const onyxUpdates: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: null,
+        },
+    ];
+    reportActionsOnyxUpdates.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: {
+            [reportAction.reportActionID]: shouldDeleteIOUReport
+                ? null
+                : {
+                      pendingAction: null,
+                  },
+        },
+    });
+
+    if (reportPreviewAction?.reportActionID) {
+        reportActionsOnyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {
+                [reportPreviewAction.reportActionID]: {
+                    ...updatedReportPreviewAction,
+                    pendingAction: null,
+                    errors: null,
+                },
+            },
+        });
+    }
+
+    // added the operation to delete associated transaction violations
+    onyxUpdates.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
+
+    // added the operation to delete transaction thread
+    if (shouldDeleteTransactionThread) {
+        onyxUpdates.push(
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+                value: null,
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadID}`,
+                value: null,
+            },
+        );
+    }
+
+    // added operations to update IOU report and chat report
+    reportActionsOnyxUpdates.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+        value: updatedReportAction,
+    });
+    onyxUpdates.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: updatedIOUReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: getOutstandingChildRequest(updatedIOUReport),
+        },
+    );
+
+    if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
+        onyxUpdates.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+            value: {
+                hasOutstandingChildRequest: false,
+            },
+        });
+    }
+
+    if (shouldDeleteIOUReport) {
+        let canUserPerformWriteAction = true;
+        if (chatReport) {
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+        }
+
+        const lastMessageText = getLastVisibleMessage(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.lastMessageText;
+        const lastVisibleActionCreated = getLastVisibleAction(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.created;
+
+        onyxUpdates.push(
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
+                value: {
+                    hasOutstandingChildRequest: false,
+                    iouReportID: null,
+                    lastMessageText,
+                    lastVisibleActionCreated,
+                },
+            },
+            {
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+                value: null,
+            },
+        );
+    }
+
+    clearAllRelatedReportActionErrors(reportID, reportAction);
+
+    // First, update the reportActions to ensure related actions are not displayed.
+    Onyx.update(reportActionsOnyxUpdates).then(() => {
+        Navigation.goBack(urlToNavigateBack);
+        InteractionManager.runAfterInteractions(() => {
+            // After navigation, update the remaining data.
+            Onyx.update(onyxUpdates);
+        });
+    });
+}
+
+/**
+ *
+ * @param transactionID  - The transactionID of IOU
+ * @param reportAction - The reportAction of the transaction in the IOU report
+ * @param isSingleTransactionView - whether we are in the transaction thread report
+ * @return the url to navigate back once the money request is deleted
+ */
+function deleteMoneyRequest(transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    if (!transactionID) {
+        return;
+    }
+
+    // STEP 1: Calculate and prepare the data
+    const {
+        shouldDeleteTransactionThread,
+        shouldDeleteIOUReport,
+        updatedReportAction,
+        updatedIOUReport,
+        updatedReportPreviewAction,
+        transactionThreadID,
+        transactionThread,
+        chatReport,
+        transaction,
+        transactionViolations,
+        iouReport,
+        reportPreviewAction,
+    } = prepareToCleanUpMoneyRequest(transactionID, reportAction);
+
+    const urlToNavigateBack = getNavigationUrlOnMoneyRequestDelete(transactionID, reportAction, isSingleTransactionView);
+
+    // STEP 2: Build Onyx data
+    // The logic mostly resembles the cleanUpMoneyRequest function
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
@@ -2998,20 +7366,79 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
     ];
 
-    if (Permissions.canUseViolations(betas)) {
-        optimisticData.push({
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: null,
+    });
+
+    const failureData: OnyxUpdate[] = [
+        {
             onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: null,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: transaction ?? null,
+        },
+    ];
+
+    if (transactionViolations) {
+        removeSettledAndApprovedTransactions(
+            transactionViolations.filter((violation) => violation?.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION).flatMap((violation) => violation?.data?.duplicates ?? []),
+        ).forEach((duplicateID) => {
+            const duplicateTransactionsViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`];
+            if (!duplicateTransactionsViolations) {
+                return;
+            }
+
+            const duplicateViolation = duplicateTransactionsViolations.find((violation) => violation.name === CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            if (!duplicateViolation?.data?.duplicates) {
+                return;
+            }
+
+            const duplicateTransactionIDs = duplicateViolation.data.duplicates.filter((duplicateTransactionID) => duplicateTransactionID !== transactionID);
+
+            const optimisticViolations: OnyxTypes.TransactionViolations = duplicateTransactionsViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+
+            if (duplicateTransactionIDs.length > 0) {
+                optimisticViolations.push({
+                    ...duplicateViolation,
+                    data: {
+                        ...duplicateViolation.data,
+                        duplicates: duplicateTransactionIDs,
+                    },
+                });
+            }
+
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+                value: optimisticViolations.length > 0 ? optimisticViolations : null,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.SET,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${duplicateID}`,
+                value: duplicateTransactionsViolations,
+            });
         });
     }
 
     if (shouldDeleteTransactionThread) {
         optimisticData.push(
+            // Use merge instead of set to avoid deleting the report too quickly, which could cause a brief "not found" page to appear.
+            // The remaining parts of the report object will be removed after the API call is successful.
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
-                value: null,
+                value: {
+                    reportID: null,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                    participants: {
+                        [userAccountID]: {
+                            notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.HIDDEN,
+                        },
+                    },
+                },
             },
             {
                 onyxMethod: Onyx.METHOD.SET,
@@ -3034,21 +7461,20 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
-            value: {
-                [reportPreviewAction?.reportActionID ?? '']: updatedReportPreviewAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
-            value: {
-                hasOutstandingChildRequest: iouReport && needsToBeManuallySubmitted(iouReport) && updatedIOUReport?.managerID === userAccountID && updatedIOUReport.total !== 0,
-            },
+            value: getOutstandingChildRequest(updatedIOUReport),
         },
     );
 
-    if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
+    if (reportPreviewAction?.reportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
+            value: {[reportPreviewAction.reportActionID]: updatedReportPreviewAction},
+        });
+    }
+
+    if (!shouldDeleteIOUReport && updatedReportPreviewAction?.childMoneyRequestCount === 0) {
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
@@ -3059,14 +7485,39 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
     }
 
     if (shouldDeleteIOUReport) {
+        let canUserPerformWriteAction = true;
+        if (chatReport) {
+            canUserPerformWriteAction = !!canUserPerformWriteActionReportUtils(chatReport);
+        }
+
+        const lastMessageText = getLastVisibleMessage(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.lastMessageText;
+        const lastVisibleActionCreated = getLastVisibleAction(
+            iouReport?.chatReportID,
+            canUserPerformWriteAction,
+            reportPreviewAction?.reportActionID ? {[reportPreviewAction.reportActionID]: null} : {},
+        )?.created;
+
         optimisticData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
             value: {
                 hasOutstandingChildRequest: false,
                 iouReportID: null,
-                lastMessageText: ReportActionsUtils.getLastVisibleMessage(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null})?.lastMessageText,
-                lastVisibleActionCreated: ReportActionsUtils.getLastVisibleAction(iouReport?.chatReportID ?? '', {[reportPreviewAction?.reportActionID ?? '']: null})?.created,
+                lastMessageText,
+                lastVisibleActionCreated,
+            },
+        });
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                pendingFields: {
+                    preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                },
             },
         });
     }
@@ -3083,19 +7534,30 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                       },
             },
         },
-        {
+    ];
+
+    if (reportPreviewAction?.reportActionID) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '']: shouldDeleteIOUReport
-                    ? null
-                    : {
-                          pendingAction: null,
-                          errors: null,
-                      },
+                [reportPreviewAction.reportActionID]: {
+                    pendingAction: null,
+                    errors: null,
+                },
             },
-        },
-    ];
+        });
+    }
+
+    // Ensure that any remaining data is removed upon successful completion, even if the server sends a report removal response.
+    // This is done to prevent the removal update from lingering in the applyHTTPSOnyxUpdates function.
+    if (shouldDeleteTransactionThread && transactionThread) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${transactionThreadID}`,
+            value: null,
+        });
+    }
 
     if (shouldDeleteIOUReport) {
         successData.push({
@@ -3105,21 +7567,11 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         });
     }
 
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
-        },
-    ];
-
-    if (Permissions.canUseViolations(betas)) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.SET,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
-            value: transactionViolations,
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+        value: transactionViolations ?? null,
+    });
 
     if (shouldDeleteTransactionThread) {
         failureData.push({
@@ -3129,6 +7581,8 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         });
     }
 
+    const errorKey = DateUtils.getMicroseconds();
+
     failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3137,7 +7591,9 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                 [reportAction.reportActionID]: {
                     ...reportAction,
                     pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                    errors: {
+                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                    },
                 },
             },
         },
@@ -3152,18 +7608,23 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
                   key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
                   value: iouReport,
               },
-        {
+    );
+
+    if (reportPreviewAction?.reportActionID) {
+        failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`,
             value: {
-                [reportPreviewAction?.reportActionID ?? '']: {
+                [reportPreviewAction.reportActionID]: {
                     ...reportPreviewAction,
                     pendingAction: null,
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericDeleteFailureMessage'),
+                    errors: {
+                        [errorKey]: Localize.translateLocal('iou.error.genericDeleteFailureMessage'),
+                    },
                 },
             },
-        },
-    );
+        });
+    }
 
     if (chatReport && shouldDeleteIOUReport) {
         failureData.push({
@@ -3173,7 +7634,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         });
     }
 
-    if (!shouldDeleteIOUReport && updatedReportPreviewAction.childMoneyRequestCount === 0) {
+    if (!shouldDeleteIOUReport && updatedReportPreviewAction?.childMoneyRequestCount === 0) {
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport?.reportID}`,
@@ -3188,21 +7649,45 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
         reportActionID: reportAction.reportActionID,
     };
 
-    // STEP 6: Make the API request
+    // STEP 3: Make the API request
     API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
-    CachedPDFPaths.clearByKey(transactionID);
+    clearPdfByOnyxKey(transactionID);
 
-    // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
-    if (iouReport && isSingleTransactionView && shouldDeleteTransactionThread && !shouldDeleteIOUReport) {
-        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
+    return urlToNavigateBack;
+}
+
+function deleteTrackExpense(chatReportID: string | undefined, transactionID: string | undefined, reportAction: OnyxTypes.ReportAction, isSingleTransactionView = false) {
+    if (!chatReportID || !transactionID) {
         return;
     }
 
-    if (iouReport?.chatReportID && shouldDeleteIOUReport) {
-        // Pop the deleted report screen before navigating. This prevents navigating to the Concierge chat due to the missing report.
-        Navigation.goBack(ROUTES.REPORT_WITH_ID.getRoute(iouReport.chatReportID));
+    const urlToNavigateBack = getNavigationUrlAfterTrackExpenseDelete(chatReportID, transactionID, reportAction, isSingleTransactionView);
+
+    // STEP 1: Get all collections we're updating
+    const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] ?? null;
+    if (!isSelfDM(chatReport)) {
+        deleteMoneyRequest(transactionID, reportAction, isSingleTransactionView);
+        return urlToNavigateBack;
     }
+
+    const whisperAction = getTrackExpenseActionableWhisper(transactionID, chatReportID);
+    const actionableWhisperReportActionID = whisperAction?.reportActionID;
+    const {parameters, optimisticData, successData, failureData} = getDeleteTrackExpenseInformation(
+        chatReportID,
+        transactionID,
+        reportAction,
+        undefined,
+        undefined,
+        actionableWhisperReportActionID,
+        CONST.REPORT.ACTIONABLE_TRACK_EXPENSE_WHISPER_RESOLUTION.NOTHING,
+    );
+
+    // STEP 6: Make the API request
+    API.write(WRITE_COMMANDS.DELETE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
+    clearPdfByOnyxKey(transactionID);
+
+    // STEP 7: Navigate the user depending on which page they are on and which resources were deleted
+    return urlToNavigateBack;
 }
 
 /**
@@ -3210,7 +7695,7 @@ function deleteMoneyRequest(transactionID: string, reportAction: OnyxTypes.Repor
  * @param recipient - The user receiving the money
  */
 function getSendMoneyParams(
-    report: OnyxTypes.Report,
+    report: OnyxEntry<OnyxTypes.Report>,
     amount: number,
     currency: string,
     comment: string,
@@ -3218,7 +7703,7 @@ function getSendMoneyParams(
     managerID: number,
     recipient: Participant,
 ): SendMoneyParamsData {
-    const recipientEmail = PhoneNumber.addSMSDomainIfPhoneNumber(recipient.login ?? '');
+    const recipientEmail = addSMSDomainIfPhoneNumber(recipient.login ?? '');
     const recipientAccountID = Number(recipient.accountID);
     const newIOUReportDetails = JSON.stringify({
         amount,
@@ -3229,43 +7714,45 @@ function getSendMoneyParams(
         idempotencyKey: Str.guid(),
     });
 
-    let chatReport = report.reportID ? report : null;
+    let chatReport = !isEmptyObject(report) && report?.reportID ? report : getChatByParticipants([recipientAccountID, managerID]);
     let isNewChat = false;
     if (!chatReport) {
-        chatReport = ReportUtils.getChatByParticipants([recipientAccountID]);
-    }
-    if (!chatReport) {
-        chatReport = ReportUtils.buildOptimisticChatReport([recipientAccountID]);
+        chatReport = buildOptimisticChatReport({
+            participantList: [recipientAccountID, managerID],
+        });
         isNewChat = true;
     }
-    const optimisticIOUReport = ReportUtils.buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
+    const optimisticIOUReport = buildOptimisticIOUReport(recipientAccountID, managerID, amount, chatReport.reportID, currency, true);
 
-    const optimisticTransaction = TransactionUtils.buildOptimisticTransaction(amount, currency, optimisticIOUReport.reportID, comment);
+    const optimisticTransaction = buildOptimisticTransaction({
+        transactionParams: {
+            amount,
+            currency,
+            reportID: optimisticIOUReport.reportID,
+            comment,
+        },
+    });
     const optimisticTransactionData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
         value: optimisticTransaction,
     };
 
-    // Note: The created action must be optimistically generated before the IOU action so there's no chance that the created action appears after the IOU action in the chat
-    const optimisticCreatedAction = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        amount,
-        currency,
-        comment,
-        [recipient],
-        optimisticTransaction.transactionID,
-        paymentMethodType,
-        optimisticIOUReport.reportID,
-        false,
-        true,
-    );
+    const [optimisticCreatedActionForChat, optimisticCreatedActionForIOUReport, optimisticIOUReportAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
+        buildOptimisticMoneyRequestEntities({
+            iouReport: optimisticIOUReport,
+            type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+            amount,
+            currency,
+            comment,
+            payeeEmail: recipientEmail,
+            participants: [recipient],
+            transactionID: optimisticTransaction.transactionID,
+            paymentType: paymentMethodType,
+            isSendMoneyFlow: true,
+        });
 
-    const reportPreviewAction = ReportUtils.buildOptimisticReportPreview(chatReport, optimisticIOUReport);
-
-    const optimisticTransactionThread = ReportUtils.buildTransactionThread(optimisticIOUReportAction, optimisticIOUReport.reportID);
-    const optimisticCreatedActionForTransactionThread = ReportUtils.buildOptimisticCreatedReportAction(recipientEmail);
+    const reportPreviewAction = buildOptimisticReportPreview(chatReport, optimisticIOUReport);
 
     // Change the method to set for new reports because it doesn't exist yet, is faster,
     // and we need the data to be available when we navigate to the chat page
@@ -3290,13 +7777,22 @@ function getSendMoneyParams(
                   lastVisibleActionCreated: reportPreviewAction.created,
               },
           };
+    const optimisticQuickActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.SET,
+        key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+        value: {
+            action: CONST.QUICK_ACTIONS.SEND_MONEY,
+            chatReportID: chatReport.reportID,
+            isFirstQuickAction: isEmptyObject(quickAction),
+        },
+    };
     const optimisticIOUReportData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.SET,
         key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
         value: {
             ...optimisticIOUReport,
-            lastMessageText: optimisticIOUReportAction.message?.[0].text,
-            lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
+            lastMessageText: getReportActionText(optimisticIOUReportAction),
+            lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
         },
     };
     const optimisticTransactionThreadData: OnyxUpdate = {
@@ -3308,6 +7804,7 @@ function getSendMoneyParams(
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
         value: {
+            [optimisticCreatedActionForIOUReport.reportActionID]: optimisticCreatedActionForIOUReport,
             [optimisticIOUReportAction.reportActionID]: {
                 ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
@@ -3321,15 +7818,92 @@ function getSendMoneyParams(
             [reportPreviewAction.reportActionID]: reportPreviewAction,
         },
     };
-    const optimisticTransactionThreadReportActionsData: OnyxUpdate = {
-        onyxMethod: Onyx.METHOD.MERGE,
-        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-        value: {
-            [optimisticCreatedActionForTransactionThread.reportActionID]: optimisticCreatedActionForTransactionThread,
-        },
-    };
+    const optimisticTransactionThreadReportActionsData: OnyxUpdate | undefined = optimisticCreatedActionForTransactionThread
+        ? {
+              onyxMethod: Onyx.METHOD.MERGE,
+              key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+              value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: optimisticCreatedActionForTransactionThread},
+          }
+        : undefined;
 
-    const successData: OnyxUpdate[] = [
+    const optimisticMetaData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTransactionThread.reportID}`,
+            value: {
+                isOptimisticReport: true,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [];
+
+    // Add optimistic personal details for recipient
+    let optimisticPersonalDetailListData: OnyxUpdate | null = null;
+    const optimisticPersonalDetailListAction = isNewChat
+        ? {
+              [recipientAccountID]: {
+                  accountID: recipientAccountID,
+                  // Disabling this line since participant.displayName can be an empty string
+                  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                  displayName: recipient.displayName || recipient.login,
+                  login: recipient.login,
+              },
+          }
+        : {};
+
+    const redundantParticipants: Record<number, null> = {};
+    if (!isEmptyObject(optimisticPersonalDetailListAction)) {
+        const successPersonalDetailListAction: Record<number, null> = {};
+
+        // BE will send different participants. We clear the optimistic ones to avoid duplicated entries
+        Object.keys(optimisticPersonalDetailListAction).forEach((accountIDKey) => {
+            const accountID = Number(accountIDKey);
+            successPersonalDetailListAction[accountID] = null;
+            redundantParticipants[accountID] = null;
+        });
+
+        optimisticPersonalDetailListData = {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: optimisticPersonalDetailListAction,
+        };
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
+            value: successPersonalDetailListAction,
+        });
+    }
+
+    successData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticIOUReport.reportID}`,
+            value: {
+                participants: redundantParticipants,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
+            value: {
+                participants: redundantParticipants,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${optimisticTransactionThread.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
@@ -3346,6 +7920,13 @@ function getSendMoneyParams(
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_METADATA}${chatReport.reportID}`,
+            value: {
+                isOptimisticReport: false,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
             value: {
                 [reportPreviewAction.reportActionID]: {
@@ -3353,23 +7934,14 @@ function getSendMoneyParams(
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {
-                [optimisticCreatedActionForTransactionThread.reportActionID]: {
-                    pendingAction: null,
-                },
-            },
-        },
-    ];
+    );
 
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${optimisticTransaction.transactionID}`,
             value: {
-                errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
             },
         },
         {
@@ -3377,29 +7949,36 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticTransactionThread.reportID}`,
             value: {
                 errorFields: {
-                    createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                    createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                 },
             },
         },
         {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
-            value: {
-                [optimisticCreatedActionForTransactionThread.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.genericCreateFailureMessage'),
-                },
-            },
+            onyxMethod: Onyx.METHOD.SET,
+            key: ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE,
+            value: quickAction ?? null,
         },
     ];
 
-    let optimisticPersonalDetailListData: OnyxUpdate | EmptyObject = {};
+    if (optimisticCreatedActionForTransactionThread?.reportActionID) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+            value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: {pendingAction: null}},
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticTransactionThread.reportID}`,
+            value: {[optimisticCreatedActionForTransactionThread?.reportActionID]: {errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage')}},
+        });
+    }
 
     // Now, let's add the data we need just when we are creating a new chat report
     if (isNewChat) {
         successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: {pendingFields: null},
+            value: {pendingFields: null, participants: redundantParticipants},
         });
         failureData.push(
             {
@@ -3407,7 +7986,7 @@ function getSendMoneyParams(
                 key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                 value: {
                     errorFields: {
-                        createChat: ErrorUtils.getMicroSecondOnyxError('report.genericCreateReportFailureMessage'),
+                        createChat: getMicroSecondOnyxErrorWithTranslationKey('report.genericCreateReportFailureMessage'),
                     },
                 },
             },
@@ -3416,31 +7995,17 @@ function getSendMoneyParams(
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
                 value: {
                     [optimisticIOUReportAction.reportActionID]: {
-                        errors: ErrorUtils.getMicroSecondOnyxError(null),
+                        errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericCreateFailureMessage'),
                     },
                 },
             },
         );
 
-        // Add optimistic personal details for recipient
-        optimisticPersonalDetailListData = {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            value: {
-                [recipientAccountID]: {
-                    accountID: recipientAccountID,
-                    avatar: UserUtils.getDefaultAvatarURL(recipient.accountID),
-                    // Disabling this line since participant.displayName can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    displayName: recipient.displayName || recipient.login,
-                    login: recipient.login,
-                },
-            },
-        };
+        const optimisticChatReportActionsValue = optimisticChatReportActionsData.value as Record<string, OnyxTypes.ReportAction>;
 
-        if (optimisticChatReportActionsData.value) {
+        if (optimisticChatReportActionsValue) {
             // Add an optimistic created action to the optimistic chat reportActions data
-            optimisticChatReportActionsData.value[optimisticCreatedAction.reportActionID] = optimisticCreatedAction;
+            optimisticChatReportActionsValue[optimisticCreatedActionForChat.reportActionID] = optimisticCreatedActionForChat;
         }
     } else {
         failureData.push({
@@ -3448,7 +8013,7 @@ function getSendMoneyParams(
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticIOUReport.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
         });
@@ -3456,14 +8021,18 @@ function getSendMoneyParams(
 
     const optimisticData: OnyxUpdate[] = [
         optimisticChatReportData,
+        optimisticQuickActionData,
         optimisticIOUReportData,
         optimisticChatReportActionsData,
         optimisticIOUReportActionsData,
         optimisticTransactionData,
         optimisticTransactionThreadData,
-        optimisticTransactionThreadReportActionsData,
+        ...optimisticMetaData,
     ];
 
+    if (optimisticTransactionThreadReportActionsData) {
+        optimisticData.push(optimisticTransactionThreadReportActionsData);
+    }
     if (!isEmptyObject(optimisticPersonalDetailListData)) {
         optimisticData.push(optimisticPersonalDetailListData);
     }
@@ -3476,10 +8045,11 @@ function getSendMoneyParams(
             paymentMethodType,
             transactionID: optimisticTransaction.transactionID,
             newIOUReportDetails,
-            createdReportActionID: isNewChat ? optimisticCreatedAction.reportActionID : '0',
+            createdReportActionID: isNewChat ? optimisticCreatedActionForChat.reportActionID : undefined,
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
+            createdIOUReportActionID: optimisticCreatedActionForIOUReport.reportActionID,
             transactionThreadReportID: optimisticTransactionThread.reportID,
-            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread.reportActionID,
+            createdReportActionIDForThread: optimisticCreatedActionForTransactionThread?.reportActionID,
         },
         optimisticData,
         successData,
@@ -3487,48 +8057,387 @@ function getSendMoneyParams(
     };
 }
 
-function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report, recipient: Participant, paymentMethodType: PaymentMethodType): PayMoneyRequestData {
-    const total = iouReport.total ?? 0;
-    const optimisticIOUReportAction = ReportUtils.buildOptimisticIOUReportAction(
-        CONST.IOU.REPORT_ACTION_TYPE.PAY,
-        ReportUtils.isExpenseReport(iouReport) ? -total : total,
-        iouReport.currency ?? '',
+type OptimisticHoldReportExpenseActionID = {
+    optimisticReportActionID: string;
+    oldReportActionID: string;
+};
+
+function getHoldReportActionsAndTransactions(reportID: string | undefined) {
+    const iouReportActions = getAllReportActions(reportID);
+    const holdReportActions: Array<OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> = [];
+    const holdTransactions: OnyxTypes.Transaction[] = [];
+
+    Object.values(iouReportActions).forEach((action) => {
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID : undefined;
+        const transaction = getTransaction(transactionID);
+
+        if (transaction?.comment?.hold) {
+            holdReportActions.push(action as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>);
+            holdTransactions.push(transaction);
+        }
+    });
+
+    return {holdReportActions, holdTransactions};
+}
+
+function getReportFromHoldRequestsOnyxData(
+    chatReport: OnyxTypes.Report,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    recipient: Participant,
+): {
+    optimisticHoldReportID: string;
+    optimisticHoldActionID: string;
+    optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
+    optimisticData: OnyxUpdate[];
+    successData: OnyxUpdate[];
+    failureData: OnyxUpdate[];
+} {
+    const {holdReportActions, holdTransactions} = getHoldReportActionsAndTransactions(iouReport?.reportID);
+    const firstHoldTransaction = holdTransactions.at(0);
+    const newParentReportActionID = rand64();
+
+    const coefficient = isExpenseReport(iouReport) ? -1 : 1;
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
+    const holdAmount = ((iouReport?.total ?? 0) - (iouReport?.unheldTotal ?? 0)) * coefficient;
+    const holdNonReimbursableAmount = ((iouReport?.nonReimbursableTotal ?? 0) - (iouReport?.unheldNonReimbursableTotal ?? 0)) * coefficient;
+    const optimisticExpenseReport = isPolicyExpenseChat
+        ? buildOptimisticExpenseReport(
+              chatReport.reportID,
+              chatReport.policyID ?? iouReport?.policyID,
+              recipient.accountID ?? 1,
+              holdAmount,
+              iouReport?.currency ?? '',
+              holdNonReimbursableAmount,
+              newParentReportActionID,
+          )
+        : buildOptimisticIOUReport(
+              iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID,
+              iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID,
+              holdAmount,
+              chatReport.reportID,
+              iouReport?.currency ?? '',
+              false,
+              newParentReportActionID,
+          );
+
+    const optimisticExpenseReportPreview = buildOptimisticReportPreview(
+        chatReport,
+        optimisticExpenseReport,
         '',
-        [recipient],
-        '',
-        paymentMethodType,
-        iouReport.reportID,
-        true,
+        firstHoldTransaction,
+        optimisticExpenseReport.reportID,
+        newParentReportActionID,
     );
 
-    // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
-    // hence we need to make the updates to the action safely.
-    let optimisticReportPreviewAction = null;
-    const reportPreviewAction = ReportActionsUtils.getReportPreviewAction(chatReport.reportID, iouReport.reportID);
-    if (reportPreviewAction) {
-        optimisticReportPreviewAction = ReportUtils.updateReportPreview(iouReport, reportPreviewAction, true);
-    }
+    const updateHeldReports: Record<string, Pick<OnyxTypes.Report, 'parentReportActionID' | 'parentReportID' | 'chatReportID'>> = {};
+    const addHoldReportActions: OnyxTypes.ReportActions = {};
+    const addHoldReportActionsSuccess: OnyxCollection<NullishDeep<ReportAction>> = {};
+    const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
+    const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
 
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`] ?? null;
-    const optimisticNextStep = NextStepUtils.buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED, {isPaidWithExpensify: paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA});
+    holdReportActions.forEach((holdReportAction) => {
+        const originalMessage = getOriginalMessage(holdReportAction);
+
+        deleteHoldReportActions[holdReportAction.reportActionID] = {
+            message: [
+                {
+                    deleted: DateUtils.getDBTime(),
+                    type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                    text: '',
+                },
+            ],
+        };
+
+        const reportActionID = rand64();
+        addHoldReportActions[reportActionID] = {
+            ...holdReportAction,
+            reportActionID,
+            originalMessage: {
+                ...originalMessage,
+                IOUReportID: optimisticExpenseReport.reportID,
+            },
+            pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+        };
+        addHoldReportActionsSuccess[reportActionID] = {
+            pendingAction: null,
+        };
+
+        const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
+        if (heldReport) {
+            optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: holdReportAction.reportActionID});
+
+            updateHeldReports[`${ONYXKEYS.COLLECTION.REPORT}${heldReport.reportID}`] = {
+                parentReportActionID: reportActionID,
+                parentReportID: optimisticExpenseReport.reportID,
+                chatReportID: optimisticExpenseReport.reportID,
+            };
+        }
+    });
+
+    const updateHeldTransactions: Record<string, Pick<OnyxTypes.Transaction, 'reportID'>> = {};
+    holdTransactions.forEach((transaction) => {
+        updateHeldTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = {
+            reportID: optimisticExpenseReport.reportID,
+        };
+    });
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                ...chatReport,
-                lastReadTime: DateUtils.getDBTime(),
-                lastVisibleActionCreated: optimisticIOUReportAction.created,
-                hasOutstandingChildRequest: false,
-                iouReportID: null,
-                lastMessageText: optimisticIOUReportAction.message?.[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
+                iouReportID: optimisticExpenseReport.reportID,
+                lastVisibleActionCreated: optimisticExpenseReportPreview.created,
+            },
+        },
+        // add new optimistic expense report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
+            value: {
+                ...optimisticExpenseReport,
+                unheldTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            },
+        },
+        // add preview report action to main chat
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: optimisticExpenseReportPreview,
+            },
+        },
+        // remove hold report actions from old iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: deleteHoldReportActions,
+        },
+        // add hold report actions to new iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: addHoldReportActions,
+        },
+        // update held reports with new parentReportActionID
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.REPORT}`,
+            value: updateHeldReports,
+        },
+        // update transactions with new iouReportID
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+            value: updateHeldTransactions,
+        },
+    ];
+
+    const bringReportActionsBack: Record<string, OnyxTypes.ReportAction> = {};
+    holdReportActions.forEach((reportAction) => {
+        bringReportActionsBack[reportAction.reportActionID] = reportAction;
+    });
+
+    const bringHeldTransactionsBack: Record<string, OnyxTypes.Transaction> = {};
+    holdTransactions.forEach((transaction) => {
+        bringHeldTransactionsBack[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
+    });
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: {
+                    pendingAction: null,
+                },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: addHoldReportActionsSuccess,
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: chatReport.iouReportID,
+                lastVisibleActionCreated: chatReport.lastVisibleActionCreated,
+            },
+        },
+        // remove added optimistic expense report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${optimisticExpenseReport.reportID}`,
+            value: null,
+        },
+        // remove preview report action from the main chat
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`,
+            value: {
+                [optimisticExpenseReportPreview.reportActionID]: null,
+            },
+        },
+        // add hold report actions back to old iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
+            value: bringReportActionsBack,
+        },
+        // remove hold report actions from the new iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticExpenseReport.reportID}`,
+            value: null,
+        },
+        // add hold transactions back to old iou report
+        {
+            onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}`,
+            value: bringHeldTransactionsBack,
+        },
+    ];
+
+    return {
+        optimisticData,
+        optimisticHoldActionID: optimisticExpenseReportPreview.reportActionID,
+        failureData,
+        successData,
+        optimisticHoldReportID: optimisticExpenseReport.reportID,
+        optimisticHoldReportExpenseActionIDs,
+    };
+}
+
+function hasOutstandingChildRequest(chatReport: OnyxTypes.Report, excludedIOUReport: OnyxEntry<OnyxTypes.Report>, policyId?: string) {
+    const policy = getPolicy(policyId);
+    if (!policy?.achAccount?.bankAccountID) {
+        return false;
+    }
+    const reportActions = getAllReportActions(chatReport.reportID);
+    return !!Object.values(reportActions).find((action) => {
+        const iouReportID = getIOUReportIDFromReportActionPreview(action);
+        if (iouReportID === excludedIOUReport?.reportID) {
+            return false;
+        }
+        const iouReport = getReportOrDraftReport(iouReportID);
+        const transactions = getReportTransactions(iouReportID);
+        return canIOUBePaid(iouReport, chatReport, policy, transactions) || canIOUBePaid(iouReport, chatReport, policy, transactions, true);
+    });
+}
+
+function getPayMoneyRequestParams(
+    initialChatReport: OnyxTypes.Report,
+    iouReport: OnyxEntry<OnyxTypes.Report>,
+    recipient: Participant,
+    paymentMethodType: PaymentMethodType,
+    full: boolean,
+    payAsBusiness?: boolean,
+): PayMoneyRequestData {
+    const isInvoiceReport = isInvoiceReportReportUtils(iouReport);
+    const activePolicy = getPolicy(activePolicyID);
+    let payerPolicyID = activePolicyID;
+    let chatReport = initialChatReport;
+    let policyParams = {};
+    const optimisticData: OnyxUpdate[] = [];
+    const successData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+    const shouldCreatePolicy = !activePolicy || !isPolicyAdmin(activePolicy) || !isPaidGroupPolicy(activePolicy);
+
+    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && shouldCreatePolicy) {
+        payerPolicyID = generatePolicyID();
+        const {
+            optimisticData: policyOptimisticData,
+            failureData: policyFailureData,
+            successData: policySuccessData,
+            params,
+        } = buildPolicyData(currentUserEmail, true, undefined, payerPolicyID);
+        const {adminsChatReportID, adminsCreatedReportActionID, expenseChatReportID, expenseCreatedReportActionID, customUnitRateID, customUnitID, ownerEmail, policyName} = params;
+
+        policyParams = {
+            policyID: payerPolicyID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        };
+
+        optimisticData.push(...policyOptimisticData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: payerPolicyID});
+        successData.push(...policySuccessData);
+        failureData.push(...policyFailureData, {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_ACTIVE_POLICY_ID, value: activePolicyID ?? null});
+    }
+
+    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && activePolicyID) {
+        const existingB2BInvoiceRoom = getInvoiceChatByParticipants(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport.policyID);
+        if (existingB2BInvoiceRoom) {
+            chatReport = existingB2BInvoiceRoom;
+        }
+    }
+
+    let total = (iouReport?.total ?? 0) - (iouReport?.nonReimbursableTotal ?? 0);
+    if (hasHeldExpensesReportUtils(iouReport?.reportID) && !full && !!iouReport?.unheldTotal) {
+        total = iouReport.unheldTotal - (iouReport?.unheldNonReimbursableTotal ?? 0);
+    }
+
+    const optimisticIOUReportAction = buildOptimisticIOUReportAction({
+        type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+        amount: isExpenseReport(iouReport) ? -total : total,
+        currency: iouReport?.currency ?? '',
+        comment: '',
+        participants: [recipient],
+        transactionID: '',
+        paymentType: paymentMethodType,
+        iouReportID: iouReport?.reportID,
+        isSettlingUp: true,
+    });
+
+    // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
+    // hence we need to make the updates to the action safely.
+    let optimisticReportPreviewAction = null;
+    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport?.reportID);
+    if (reportPreviewAction) {
+        optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, true);
+    }
+    let currentNextStep = null;
+    let optimisticNextStep = null;
+    if (!isInvoiceReport) {
+        currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`] ?? null;
+        optimisticNextStep = buildNextStep(iouReport, CONST.REPORT.STATUS_NUM.REIMBURSED);
+    }
+
+    const optimisticChatReport = {
+        ...chatReport,
+        lastReadTime: DateUtils.getDBTime(),
+        hasOutstandingChildRequest: hasOutstandingChildRequest(chatReport, iouReport, iouReport?.policyID),
+        iouReportID: null,
+        lastMessageText: getReportActionText(optimisticIOUReportAction),
+        lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+    };
+    if (isIndividualInvoiceRoom(chatReport) && payAsBusiness && payerPolicyID) {
+        optimisticChatReport.invoiceReceiver = {
+            type: CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS,
+            policyID: payerPolicyID,
+        };
+    }
+
+    optimisticData.push(
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: optimisticChatReport,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     ...(optimisticIOUReportAction as OnyxTypes.ReportAction),
@@ -3538,67 +8447,79 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
             value: {
                 ...iouReport,
-                lastMessageText: optimisticIOUReportAction.message?.[0].text,
-                lastMessageHtml: optimisticIOUReportAction.message?.[0].html,
+                lastMessageText: getReportActionText(optimisticIOUReportAction),
+                lastMessageHtml: getReportActionHtml(optimisticIOUReportAction),
+                lastVisibleActionCreated: optimisticIOUReportAction.created,
                 hasOutstandingChildRequest: false,
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
                 pendingFields: {
                     preview: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                     reimbursed: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
+                errors: null,
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
-            value: {[iouReport.policyID ?? '']: paymentMethodType},
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
             value: optimisticNextStep,
         },
-    ];
+    );
 
-    const successData: OnyxUpdate[] = [
+    if (iouReport?.policyID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_LAST_PAYMENT_METHOD,
+            value: {
+                [iouReport.policyID]: paymentMethodType,
+            },
+        });
+    }
+
+    successData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                pendingFields: {
+                    preview: null,
+                    reimbursed: null,
+                    partial: null,
+                },
+                errors: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
                     pendingAction: null,
                 },
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: {
-                pendingFields: {
-                    preview: null,
-                    reimbursed: null,
-                },
-            },
-        },
-    ];
+    );
 
-    const failureData: OnyxUpdate[] = [
+    failureData.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
             value: {
                 [optimisticIOUReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
-            value: iouReport,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport?.reportID}`,
+            value: {
+                ...iouReport,
+            },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3607,10 +8528,10 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport.reportID}`,
+            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${iouReport?.reportID}`,
             value: currentNextStep,
         },
-    ];
+    );
 
     // In case the report preview action is loaded locally, let's update it.
     if (optimisticReportPreviewAction) {
@@ -3632,12 +8553,76 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
         });
     }
 
+    // Optimistically unhold all transactions if we pay all requests
+    if (full) {
+        const reportTransactions = getReportTransactions(iouReport?.reportID);
+        for (const transaction of reportTransactions) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: null,
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: transaction.comment?.hold,
+                    },
+                },
+            });
+        }
+
+        const optimisticTransactionViolations: OnyxUpdate[] = reportTransactions.map(({transactionID}) => {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: null,
+            };
+        });
+        optimisticData.push(...optimisticTransactionViolations);
+
+        const failureTransactionViolations: OnyxUpdate[] = reportTransactions.map(({transactionID}) => {
+            const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+                value: violations,
+            };
+        });
+        failureData.push(...failureTransactionViolations);
+    }
+
+    let optimisticHoldReportID;
+    let optimisticHoldActionID;
+    let optimisticHoldReportExpenseActionIDs;
+    if (!full) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, iouReport, recipient);
+
+        optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
+        failureData.push(...holdReportOnyxData.failureData);
+        optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+        optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+    }
+
     return {
         params: {
-            iouReportID: iouReport.reportID,
+            iouReportID: iouReport?.reportID,
             chatReportID: chatReport.reportID,
             reportActionID: optimisticIOUReportAction.reportActionID,
             paymentMethodType,
+            full,
+            amount: Math.abs(total),
+            optimisticHoldReportID,
+            optimisticHoldActionID,
+            optimisticHoldReportExpenseActionIDs,
+            ...policyParams,
         },
         optimisticData,
         successData,
@@ -3649,34 +8634,245 @@ function getPayMoneyRequestParams(chatReport: OnyxTypes.Report, iouReport: OnyxT
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyElsewhere(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
+function sendMoneyElsewhere(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.ELSEWHERE, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_ELSEWHERE, params, {optimisticData, successData, failureData});
 
-    resetMoneyRequestInfo();
-    Navigation.dismissModal(params.chatReportID);
-    Report.notifyNewAction(params.chatReportID, managerID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
+    notifyNewAction(params.chatReportID, managerID);
 }
 
 /**
  * @param managerID - Account ID of the person sending the money
  * @param recipient - The user receiving the money
  */
-function sendMoneyWithWallet(report: OnyxTypes.Report, amount: number, currency: string, comment: string, managerID: number, recipient: Participant) {
+function sendMoneyWithWallet(report: OnyxEntry<OnyxTypes.Report>, amount: number, currency: string, comment: string, managerID: number, recipient: Participant | OptionData) {
     const {params, optimisticData, successData, failureData} = getSendMoneyParams(report, amount, currency, comment, CONST.IOU.PAYMENT_TYPE.EXPENSIFY, managerID, recipient);
 
     API.write(WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, params, {optimisticData, successData, failureData});
 
-    resetMoneyRequestInfo();
-    Navigation.dismissModal(params.chatReportID);
-    Report.notifyNewAction(params.chatReportID, managerID);
+    dismissModalAndOpenReportInInboxTab(params.chatReportID);
+    notifyNewAction(params.chatReportID, managerID);
 }
 
-function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
+function canApproveIOU(iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport, policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy) {
+    // Only expense reports can be approved
+    if (!isExpenseReport(iouReport) || !(policy && isPaidGroupPolicy(policy))) {
+        return false;
+    }
+
+    const isOnSubmitAndClosePolicy = isSubmitAndClose(policy);
+    if (isOnSubmitAndClosePolicy) {
+        return false;
+    }
+
+    const managerID = iouReport?.managerID ?? CONST.DEFAULT_NUMBER_ID;
+    const isCurrentUserManager = managerID === userAccountID;
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
+    const isApproved = isReportApproved({report: iouReport});
+    const iouSettled = isSettled(iouReport);
+    const reportNameValuePairs = allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
+    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
+    const reportTransactions = getReportTransactions(iouReport?.reportID);
+    const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every(isPendingCardOrScanningTransaction);
+    if (hasOnlyPendingCardOrScanningTransactions) {
+        return false;
+    }
+    const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, reportTransactions);
+    const isClosedReport = isClosedReportUtil(iouReport);
+    return (
+        reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
+    );
+}
+
+function canUnapproveIOU(iouReport: OnyxEntry<OnyxTypes.Report>, policy: OnyxEntry<OnyxTypes.Policy>) {
+    return (
+        isExpenseReport(iouReport) &&
+        (isReportManager(iouReport) || isPolicyAdmin(policy)) &&
+        isReportApproved({report: iouReport}) &&
+        !isSubmitAndClose(policy) &&
+        !iouReport?.isWaitingOnBankAccount
+    );
+}
+
+function canIOUBePaid(
+    iouReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
+    chatReport: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxTypes.OnyxInputOrEntry<OnyxTypes.Policy> | SearchPolicy,
+    transactions?: OnyxTypes.Transaction[] | SearchTransaction[],
+    onlyShowPayElsewhere = false,
+    chatReportRNVP?: OnyxTypes.ReportNameValuePairs,
+    invoiceReceiverPolicy?: SearchPolicy,
+    shouldCheckApprovedState = true,
+) {
+    const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(chatReport);
+    const reportNameValuePairs = chatReportRNVP ?? allReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${chatReport?.reportID}`];
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+    const iouSettled = isSettled(iouReport);
+
+    if (isEmptyObject(iouReport)) {
+        return false;
+    }
+
+    if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO) {
+        if (!onlyShowPayElsewhere) {
+            return false;
+        }
+        if (iouReport?.statusNum !== CONST.REPORT.STATUS_NUM.SUBMITTED) {
+            return false;
+        }
+    }
+
+    if (isInvoiceReportReportUtils(iouReport)) {
+        if (isChatReportArchived || iouSettled || isOpenInvoiceReportReportUtils(iouReport)) {
+            return false;
+        }
+        if (chatReport?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL) {
+            return chatReport?.invoiceReceiver?.accountID === userAccountID;
+        }
+        return (invoiceReceiverPolicy ?? getPolicy(chatReport?.invoiceReceiver?.policyID))?.role === CONST.POLICY.ROLE.ADMIN;
+    }
+
+    const isPayer = isPayerReportUtils(
+        {
+            email: currentUserEmail,
+            accountID: userAccountID,
+        },
+        iouReport,
+        onlyShowPayElsewhere,
+        policy,
+    );
+
+    const isOpenExpenseReport = isPolicyExpenseChat && isOpenExpenseReportReportUtils(iouReport);
+
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
+    const isAutoReimbursable = policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES ? false : canBeAutoReimbursed(iouReport, policy);
+    const shouldBeApproved = canApproveIOU(iouReport, policy);
+
+    const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport?.reportID, transactions);
+    return (
+        isPayer &&
+        !isOpenExpenseReport &&
+        !iouSettled &&
+        !iouReport?.isWaitingOnBankAccount &&
+        reimbursableSpend > 0 &&
+        !isChatReportArchived &&
+        !isAutoReimbursable &&
+        (!shouldBeApproved || !shouldCheckApprovedState) &&
+        !isPayAtEndExpenseReport
+    );
+}
+
+function canCancelPayment(iouReport: OnyxEntry<OnyxTypes.Report>, session: OnyxEntry<OnyxTypes.Session>) {
+    return isPayerReportUtils(session, iouReport) && (isSettled(iouReport) || iouReport?.isWaitingOnBankAccount) && isExpenseReport(iouReport);
+}
+
+function canSubmitReport(
+    report: OnyxEntry<OnyxTypes.Report> | SearchReport,
+    policy: OnyxEntry<OnyxTypes.Policy> | SearchPolicy,
+    transactions: OnyxTypes.Transaction[] | SearchTransaction[],
+    allViolations: OnyxCollection<OnyxTypes.TransactionViolations> | undefined,
+) {
+    const currentUserAccountID = getCurrentUserAccountID();
+    const isOpenExpenseReport = isOpenExpenseReportReportUtils(report);
+    const isArchived = isArchivedReportWithID(report?.reportID);
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+    const transactionIDList = transactions.map((transaction) => transaction.transactionID);
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactionIDList, allViolations);
+    const hasTransactionWithoutRTERViolation = hasAnyTransactionWithoutRTERViolation(transactionIDList, allViolations);
+    const hasOnlyPendingCardOrScanFailTransactions =
+        transactions.length > 0 &&
+        transactions.every((t) => (isExpensifyCardTransaction(t) && isPending(t)) || (isPartialMerchant(getMerchant(t)) && isAmountMissing(t)) || isReceiptBeingScannedTransactionUtils(t));
+
+    return (
+        transactions.length > 0 &&
+        isOpenExpenseReport &&
+        !isArchived &&
+        !hasOnlyPendingCardOrScanFailTransactions &&
+        !hasAllPendingRTERViolations &&
+        hasTransactionWithoutRTERViolation &&
+        (report?.ownerAccountID === currentUserAccountID || isAdmin || report?.managerID === currentUserAccountID)
+    );
+}
+
+function getIOUReportActionToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string | undefined): OnyxEntry<ReportAction> {
+    const chatReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`] ?? {};
+
+    return Object.values(chatReportActions).find((action) => {
+        if (!action) {
+            return false;
+        }
+        const iouReport = getReportOrDraftReport(action.childReportID);
+        const policy = getPolicy(iouReport?.policyID);
+        const shouldShowSettlementButton = canIOUBePaid(iouReport, chatReport, policy) || canApproveIOU(iouReport, policy);
+        return action.childReportID?.toString() !== excludedIOUReportID && action.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && shouldShowSettlementButton;
+    });
+}
+
+function hasIOUToApproveOrPay(chatReport: OnyxEntry<OnyxTypes.Report>, excludedIOUReportID: string | undefined): boolean {
+    return !!getIOUReportActionToApproveOrPay(chatReport, excludedIOUReportID);
+}
+
+function isLastApprover(approvalChain: string[]): boolean {
+    if (approvalChain.length === 0) {
+        return true;
+    }
+    return approvalChain.at(-1) === currentUserEmail;
+}
+
+function getNextApproverAccountID(report: OnyxEntry<OnyxTypes.Report>, isUnapproved = false) {
+    const policy = getPolicy(report?.policyID);
+    const approvalChain = getApprovalChain(policy, report);
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (isUnapproved) {
+        if (approvalChain.includes(currentUserEmail)) {
+            return userAccountID;
+        }
+
+        return report?.managerID;
+    }
+
+    if (approvalChain.length === 0) {
+        return submitToAccountID;
+    }
+
+    const nextApproverEmail = approvalChain.length === 1 ? approvalChain.at(0) : approvalChain.at(approvalChain.indexOf(currentUserEmail) + 1);
+    if (!nextApproverEmail) {
+        return submitToAccountID;
+    }
+
+    return getAccountIDsByLogins([nextApproverEmail]).at(0);
+}
+
+function approveMoneyRequest(expenseReport: OnyxEntry<OnyxTypes.Report>, full?: boolean) {
+    if (!expenseReport) {
+        return;
+    }
+
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
+        return;
+    }
+
     const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const optimisticApprovedReportAction = ReportUtils.buildOptimisticApprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.APPROVED);
+    let total = expenseReport.total ?? 0;
+    const hasHeldExpenses = hasHeldExpensesReportUtils(expenseReport.reportID);
+    const hasDuplicates = hasDuplicateTransactions(expenseReport.reportID);
+    if (hasHeldExpenses && !full && !!expenseReport.unheldTotal) {
+        total = expenseReport.unheldTotal;
+    }
+    const optimisticApprovedReportAction = buildOptimisticApprovedReportAction(total, expenseReport.currency ?? '', expenseReport.reportID);
+
+    const approvalChain = getApprovalChain(getPolicy(expenseReport.policyID), expenseReport);
+
+    const predictedNextStatus = isLastApprover(approvalChain) ? CONST.REPORT.STATUS_NUM.APPROVED : CONST.REPORT.STATUS_NUM.SUBMITTED;
+    const predictedNextState = isLastApprover(approvalChain) ? CONST.REPORT.STATE_NUM.APPROVED : CONST.REPORT.STATE_NUM.SUBMITTED;
+    const managerID = isLastApprover(approvalChain) ? expenseReport.managerID : getNextApproverAccountID(expenseReport);
+
+    const optimisticNextStep = buildNextStep(expenseReport, predictedNextStatus);
+    const chatReport = getReportOrDraftReport(expenseReport.chatReportID);
 
     const optimisticReportActionsData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
@@ -3693,18 +8889,31 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
         key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
         value: {
             ...expenseReport,
-            lastMessageText: optimisticApprovedReportAction.message?.[0].text,
-            lastMessageHtml: optimisticApprovedReportAction.message?.[0].html,
-            stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            lastMessageText: getReportActionText(optimisticApprovedReportAction),
+            lastMessageHtml: getReportActionHtml(optimisticApprovedReportAction),
+            stateNum: predictedNextState,
+            statusNum: predictedNextStatus,
+            managerID,
+            pendingFields: {
+                partial: full ? null : CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
         },
     };
+
+    const optimisticChatReportData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+        value: {
+            hasOutstandingChildRequest: hasIOUToApproveOrPay(chatReport, expenseReport.reportID),
+        },
+    };
+
     const optimisticNextStepData: OnyxUpdate = {
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
         value: optimisticNextStep,
     };
-    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData];
+    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionsData, optimisticNextStepData, optimisticChatReportData];
 
     const successData: OnyxUpdate[] = [
         {
@@ -3716,6 +8925,15 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
                 },
             },
         },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+            },
+        },
     ];
 
     const failureData: OnyxUpdate[] = [
@@ -3723,8 +8941,18 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [expenseReport.reportActionID ?? '']: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                [optimisticApprovedReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.chatReportID}`,
+            value: {
+                hasOutstandingChildRequest: chatReport?.hasOutstandingChildRequest,
+                pendingFields: {
+                    partial: null,
                 },
             },
         },
@@ -3735,30 +8963,133 @@ function approveMoneyRequest(expenseReport: OnyxTypes.Report | EmptyObject) {
         },
     ];
 
+    // Clear hold reason of all transactions if we approve all requests
+    if (full && hasHeldExpenses) {
+        const heldTransactions = getAllHeldTransactionsReportUtils(expenseReport.reportID);
+        heldTransactions.forEach((heldTransaction) => {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: '',
+                    },
+                },
+            });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`,
+                value: {
+                    comment: {
+                        hold: heldTransaction.comment?.hold,
+                    },
+                },
+            });
+        });
+    }
+
+    let optimisticHoldReportID;
+    let optimisticHoldActionID;
+    let optimisticHoldReportExpenseActionIDs;
+    if (!full && !!chatReport && !!expenseReport) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData(chatReport, expenseReport, {accountID: expenseReport.ownerAccountID});
+
+        optimisticData.push(...holdReportOnyxData.optimisticData);
+        successData.push(...holdReportOnyxData.successData);
+        failureData.push(...holdReportOnyxData.failureData);
+        optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
+        optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
+        optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+    }
+
+    // Remove duplicates violations if we approve the report
+    if (hasDuplicates) {
+        const transactions = getReportTransactions(expenseReport.reportID).filter((transaction) => isDuplicate(transaction.transactionID, true));
+        if (!full) {
+            transactions.filter((transaction) => !isOnHold(transaction));
+        }
+
+        transactions.forEach((transaction) => {
+            const transactionViolations = allTransactionViolations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`] ?? [];
+            const newTransactionViolations = transactionViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION);
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: newTransactionViolations,
+            });
+
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`,
+                value: transactionViolations,
+            });
+        });
+    }
+
     const parameters: ApproveMoneyRequestParams = {
         reportID: expenseReport.reportID,
         approvedReportActionID: optimisticApprovedReportAction.reportActionID,
+        full,
+        optimisticHoldReportID,
+        optimisticHoldActionID,
+        optimisticHoldReportExpenseActionIDs,
     };
 
+    playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.APPROVE_MONEY_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
-function submitReport(expenseReport: OnyxTypes.Report) {
-    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
-    const optimisticSubmittedReportAction = ReportUtils.buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
-    const parentReport = ReportUtils.getReport(expenseReport.parentReportID);
-    const policy = ReportUtils.getPolicy(expenseReport.policyID);
-    const isCurrentUserManager = currentUserPersonalDetails.accountID === expenseReport.managerID;
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED);
+function unapproveExpenseReport(expenseReport: OnyxEntry<OnyxTypes.Report>) {
+    if (isEmptyObject(expenseReport)) {
+        return;
+    }
 
-    const optimisticData: OnyxUpdate[] = [
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
+
+    const optimisticUnapprovedReportAction = buildOptimisticUnapprovedReportAction(expenseReport.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID);
+    const optimisticNextStep = buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.SUBMITTED, false, true);
+
+    const optimisticReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+        value: {
+            [optimisticUnapprovedReportAction.reportActionID]: {
+                ...(optimisticUnapprovedReportAction as OnyxTypes.ReportAction),
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            },
+        },
+    };
+    const optimisticIOUReportData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+        value: {
+            ...expenseReport,
+            lastMessageText: getReportActionText(optimisticUnapprovedReportAction),
+            lastMessageHtml: getReportActionHtml(optimisticUnapprovedReportAction),
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            pendingFields: {
+                partial: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+            },
+            isCancelledIOU: false,
+        },
+    };
+
+    const optimisticNextStepData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: optimisticNextStep,
+    };
+
+    const optimisticData: OnyxUpdate[] = [optimisticIOUReportData, optimisticReportActionData, optimisticNextStepData];
+
+    const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
-                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                [optimisticUnapprovedReportAction.reportActionID]: {
+                    pendingAction: null,
                 },
             },
         },
@@ -3766,19 +9097,134 @@ function submitReport(expenseReport: OnyxTypes.Report) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
-                ...expenseReport,
-                lastMessageText: optimisticSubmittedReportAction.message?.[0].text ?? '',
-                lastMessageHtml: optimisticSubmittedReportAction.message?.[0].html ?? '',
-                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
-                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                pendingFields: {
+                    partial: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticUnapprovedReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                },
             },
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: optimisticNextStep,
+            value: currentNextStep,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+            value: {
+                pendingFields: {
+                    partial: null,
+                },
+                isCancelledIOU: true,
+            },
         },
     ];
+
+    if (expenseReport.parentReportID && expenseReport.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    childStatusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: expenseReport.stateNum,
+                    childStatusNum: expenseReport.statusNum,
+                },
+            },
+        });
+    }
+
+    const parameters: UnapproveExpenseReportParams = {
+        reportID: expenseReport.reportID,
+        reportActionID: optimisticUnapprovedReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.UNAPPROVE_EXPENSE_REPORT, parameters, {optimisticData, successData, failureData});
+}
+
+function submitReport(expenseReport?: OnyxTypes.Report) {
+    if (!expenseReport) {
+        return;
+    }
+    if (expenseReport.policyID && shouldRestrictUserBillableActions(expenseReport.policyID)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(expenseReport.policyID));
+        return;
+    }
+
+    const currentNextStep = allNextSteps[`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`] ?? null;
+    const parentReport = getReportOrDraftReport(expenseReport.parentReportID);
+    const policy = getPolicy(expenseReport.policyID);
+    const isCurrentUserManager = currentUserPersonalDetails?.accountID === expenseReport.managerID;
+    const isSubmitAndClosePolicy = isSubmitAndClose(policy);
+    const adminAccountID = policy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserPersonalDetails?.accountID : undefined;
+    const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(expenseReport?.total ?? 0, expenseReport.currency ?? '', expenseReport.reportID, adminAccountID);
+    const optimisticNextStep = buildNextStep(expenseReport, isSubmitAndClosePolicy ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.SUBMITTED);
+    const approvalChain = getApprovalChain(policy, expenseReport);
+    const managerID = getAccountIDsByLogins(approvalChain).at(0);
+
+    const optimisticData: OnyxUpdate[] = !isSubmitAndClosePolicy
+        ? [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+                  value: {
+                      [optimisticSubmittedReportAction.reportActionID]: {
+                          ...(optimisticSubmittedReportAction as OnyxTypes.ReportAction),
+                          pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                      },
+                  },
+              },
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                  value: {
+                      ...expenseReport,
+                      managerID,
+                      lastMessageText: getReportActionText(optimisticSubmittedReportAction),
+                      lastMessageHtml: getReportActionHtml(optimisticSubmittedReportAction),
+                      stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                      statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                  },
+              },
+          ]
+        : [
+              {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
+                  value: {
+                      ...expenseReport,
+                      stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                      statusNum: CONST.REPORT.STATUS_NUM.CLOSED,
+                  },
+              },
+          ];
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: optimisticNextStep,
+    });
 
     if (parentReport?.reportID) {
         optimisticData.push({
@@ -3793,8 +9239,9 @@ function submitReport(expenseReport: OnyxTypes.Report) {
         });
     }
 
-    const successData: OnyxUpdate[] = [
-        {
+    const successData: OnyxUpdate[] = [];
+    if (!isSubmitAndClosePolicy) {
+        successData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
@@ -3802,19 +9249,10 @@ function submitReport(expenseReport: OnyxTypes.Report) {
                     pendingAction: null,
                 },
             },
-        },
-    ];
+        });
+    }
 
     const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
-            value: {
-                [optimisticSubmittedReportAction.reportActionID]: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
-                },
-            },
-        },
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
@@ -3829,6 +9267,17 @@ function submitReport(expenseReport: OnyxTypes.Report) {
             value: currentNextStep,
         },
     ];
+    if (!isSubmitAndClosePolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
+            value: {
+                [optimisticSubmittedReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
+                },
+            },
+        });
+    }
 
     if (parentReport?.reportID) {
         failureData.push({
@@ -3843,25 +9292,28 @@ function submitReport(expenseReport: OnyxTypes.Report) {
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: policy.submitsTo ?? expenseReport.managerID,
+        managerAccountID: getSubmitToAccountID(policy, expenseReport) ?? expenseReport.managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
     };
 
     API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {optimisticData, successData, failureData});
 }
 
-function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Report) {
-    const optimisticReportAction = ReportUtils.buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
-    const policy = ReportUtils.getPolicy(chatReport.policyID);
-    const isFree = policy && policy.type === CONST.POLICY.TYPE.FREE;
-    const approvalMode = policy.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
-    let stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = CONST.REPORT.STATE_NUM.SUBMITTED;
-    let statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = CONST.REPORT.STATUS_NUM.SUBMITTED;
-    if (!isFree) {
-        stateNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
-        statusNum = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.CLOSED : CONST.REPORT.STATUS_NUM.APPROVED;
+function cancelPayment(expenseReport: OnyxEntry<OnyxTypes.Report>, chatReport: OnyxTypes.Report) {
+    if (isEmptyObject(expenseReport)) {
+        return;
     }
-    const optimisticNextStep = NextStepUtils.buildNextStep(expenseReport, statusNum);
+
+    const optimisticReportAction = buildOptimisticCancelPaymentReportAction(expenseReport.reportID, -(expenseReport.total ?? 0), expenseReport.currency ?? '');
+    const policy = getPolicy(chatReport.policyID);
+    const approvalMode = policy?.approvalMode ?? CONST.POLICY.APPROVAL_MODE.BASIC;
+    const stateNum: ValueOf<typeof CONST.REPORT.STATE_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATE_NUM.SUBMITTED : CONST.REPORT.STATE_NUM.APPROVED;
+    const statusNum: ValueOf<typeof CONST.REPORT.STATUS_NUM> = approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL ? CONST.REPORT.STATUS_NUM.SUBMITTED : CONST.REPORT.STATUS_NUM.APPROVED;
+    const optimisticNextStep = buildNextStep(expenseReport, statusNum);
+    const iouReportActions = getAllReportActions(chatReport.iouReportID);
+    const expenseReportActions = getAllReportActions(expenseReport.reportID);
+    const iouCreatedAction = Object.values(iouReportActions).find((action) => isCreatedAction(action));
+    const expenseCreatedAction = Object.values(expenseReportActions).find((action) => isCreatedAction(action));
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -3875,24 +9327,33 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                // The report created later will become the iouReportID of the chat report
+                iouReportID: (iouCreatedAction?.created ?? '') > (expenseCreatedAction?.created ?? '') ? chatReport?.iouReportID : expenseReport.reportID,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 ...expenseReport,
-                lastMessageText: optimisticReportAction.message?.[0].text,
-                lastMessageHtml: optimisticReportAction.message?.[0].html,
+                isWaitingOnBankAccount: false,
+                lastVisibleActionCreated: optimisticReportAction?.created,
+                lastMessageText: getReportActionText(optimisticReportAction),
+                lastMessageHtml: getReportActionHtml(optimisticReportAction),
                 stateNum,
                 statusNum,
+                isCancelledIOU: true,
             },
         },
     ];
 
-    if (!isFree) {
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: optimisticNextStep,
-        });
-    }
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: optimisticNextStep,
+    });
 
     const successData: OnyxUpdate[] = [
         {
@@ -3911,8 +9372,8 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`,
             value: {
-                [optimisticReportAction.reportActionID ?? '']: {
-                    errors: ErrorUtils.getMicroSecondOnyxError('iou.error.other'),
+                [optimisticReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.other'),
                 },
             },
         },
@@ -3921,295 +9382,217 @@ function cancelPayment(expenseReport: OnyxTypes.Report, chatReport: OnyxTypes.Re
             key: `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`,
             value: {
                 statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                isWaitingOnBankAccount: expenseReport.isWaitingOnBankAccount,
+                isCancelledIOU: false,
             },
         },
     ];
 
+    if (expenseReport.parentReportID && expenseReport.parentReportActionID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: stateNum,
+                    childStatusNum: statusNum,
+                },
+            },
+        });
+
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.parentReportID}`,
+            value: {
+                [expenseReport.parentReportActionID]: {
+                    childStateNum: expenseReport.stateNum,
+                    childStatusNum: expenseReport.statusNum,
+                },
+            },
+        });
+    }
+
     if (chatReport?.reportID) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: {
+                iouReportID: expenseReport.reportID,
+            },
+        });
         failureData.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: {
-                hasOutstandingChildRequest: true,
-                iouReportID: expenseReport.reportID,
+                hasOutstandingChildRequest: chatReport.hasOutstandingChildRequest,
+                iouReportID: chatReport.iouReportID,
             },
         });
     }
-    if (!isFree) {
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
-            value: NextStepUtils.buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.REIMBURSED),
-        });
-    }
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`,
+        value: buildNextStep(expenseReport, CONST.REPORT.STATUS_NUM.REIMBURSED),
+    });
 
     API.write(
         WRITE_COMMANDS.CANCEL_PAYMENT,
         {
             iouReportID: expenseReport.reportID,
             chatReportID: chatReport.reportID,
-            managerAccountID: expenseReport.managerID ?? 0,
+            managerAccountID: expenseReport.managerID ?? CONST.DEFAULT_NUMBER_ID,
             reportActionID: optimisticReportAction.reportActionID,
         },
         {optimisticData, successData, failureData},
     );
+    notifyNewAction(expenseReport.reportID, userAccountID);
 }
 
-function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxTypes.Report) {
-    const recipient = {accountID: iouReport.ownerAccountID};
-    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType);
+/**
+ * Completes onboarding for invite link flow based on the selected payment option
+ *
+ * @param paymentSelected based on which we choose the onboarding choice and concierge message
+ */
+function completePaymentOnboarding(paymentSelected: ValueOf<typeof CONST.PAYMENT_SELECTED>, adminsChatReportID?: string, onboardingPolicyID?: string) {
+    const isInviteOnboardingComplete = introSelected?.isInviteOnboardingComplete ?? false;
 
-    // For now we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
+    if (isInviteOnboardingComplete || !introSelected?.choice || !introSelected?.inviteType) {
+        return;
+    }
+
+    const session = getSession();
+
+    const personalDetailsListValues = Object.values(getPersonalDetailsForAccountIDs(session?.accountID ? [session.accountID] : [], personalDetailsList));
+    const personalDetails = personalDetailsListValues.at(0);
+
+    let onboardingPurpose = introSelected?.choice;
+    if (introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.IOU && paymentSelected === CONST.IOU.PAYMENT_SELECTED.BBA) {
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.MANAGE_TEAM;
+    }
+
+    if (introSelected?.inviteType === CONST.ONBOARDING_INVITE_TYPES.INVOICE && paymentSelected !== CONST.IOU.PAYMENT_SELECTED.BBA) {
+        onboardingPurpose = CONST.ONBOARDING_CHOICES.CHAT_SPLIT;
+    }
+
+    completeOnboarding({
+        engagementChoice: onboardingPurpose,
+        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurpose],
+        firstName: personalDetails?.firstName,
+        lastName: personalDetails?.lastName,
+        adminsChatReportID,
+        onboardingPolicyID,
+        paymentSelected,
+        wasInvited: true,
+    });
+}
+function payMoneyRequest(paymentType: PaymentMethodType, chatReport: OnyxTypes.Report, iouReport: OnyxEntry<OnyxTypes.Report>, full = true) {
+    if (chatReport.policyID && shouldRestrictUserBillableActions(chatReport.policyID)) {
+        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(chatReport.policyID));
+        return;
+    }
+
+    const paymentSelected = paymentType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    completePaymentOnboarding(paymentSelected);
+
+    const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const {params, optimisticData, successData, failureData} = getPayMoneyRequestParams(chatReport, iouReport, recipient, paymentType, full);
+
+    // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
     // Expensify Wallets.
     const apiCommand = paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY ? WRITE_COMMANDS.PAY_MONEY_REQUEST_WITH_WALLET : WRITE_COMMANDS.PAY_MONEY_REQUEST;
 
+    playSound(SOUNDS.SUCCESS);
     API.write(apiCommand, params, {optimisticData, successData, failureData});
-    Navigation.dismissModalWithReport(chatReport);
+    notifyNewAction(Navigation.getTopmostReportId() ?? iouReport?.reportID, userAccountID);
 }
 
-function detachReceipt(transactionID: string) {
+function payInvoice(
+    paymentMethodType: PaymentMethodType,
+    chatReport: OnyxTypes.Report,
+    invoiceReport: OnyxEntry<OnyxTypes.Report>,
+    payAsBusiness = false,
+    methodID?: number,
+    paymentMethod?: PaymentMethod,
+) {
+    const recipient = {accountID: invoiceReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
+    const {
+        optimisticData,
+        successData,
+        failureData,
+        params: {
+            reportActionID,
+            policyID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        },
+    } = getPayMoneyRequestParams(chatReport, invoiceReport, recipient, paymentMethodType, true, payAsBusiness);
+
+    const paymentSelected = paymentMethodType === CONST.IOU.PAYMENT_TYPE.VBBA ? CONST.IOU.PAYMENT_SELECTED.BBA : CONST.IOU.PAYMENT_SELECTED.PBA;
+    completePaymentOnboarding(paymentSelected);
+
+    let params: PayInvoiceParams = {
+        reportID: invoiceReport?.reportID,
+        reportActionID,
+        paymentMethodType,
+        payAsBusiness,
+    };
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT) {
+        params.bankAccountID = methodID;
+    }
+
+    if (paymentMethod === CONST.PAYMENT_METHODS.DEBIT_CARD) {
+        params.fundID = methodID;
+    }
+
+    if (policyID) {
+        params = {
+            ...params,
+            policyID,
+            adminsChatReportID,
+            adminsCreatedReportActionID,
+            expenseChatReportID,
+            expenseCreatedReportActionID,
+            customUnitRateID,
+            customUnitID,
+            ownerEmail,
+            policyName,
+        };
+    }
+
+    playSound(SOUNDS.SUCCESS);
+    API.write(WRITE_COMMANDS.PAY_INVOICE, params, {optimisticData, successData, failureData});
+}
+
+function detachReceipt(transactionID: string | undefined) {
+    if (!transactionID) {
+        return;
+    }
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const newTransaction = transaction ? {...transaction, filename: '', receipt: {}} : null;
+    const newTransaction = transaction
+        ? {
+              ...transaction,
+              filename: '',
+              receipt: {
+                  source: '',
+              },
+          }
+        : null;
 
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.SET,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: newTransaction,
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: transaction,
-        },
-    ];
-
-    const parameters: DetachReceiptParams = {transactionID};
-
-    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, failureData});
-}
-
-function replaceReceipt(transactionID: string, file: File, source: string) {
-    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-    const oldReceipt = transaction?.receipt ?? {};
-    const receiptOptimistic = {
-        source,
-        state: CONST.IOU.RECEIPT_STATE.OPEN,
-    };
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
-                receipt: receiptOptimistic,
-                filename: file.name,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                receipt: oldReceipt,
-                filename: transaction?.filename,
-                errors: getReceiptError(receiptOptimistic, file.name),
-            },
-        },
-    ];
-
-    const parameters: ReplaceReceiptParams = {
-        transactionID,
-        receipt: file,
-    };
-
-    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, failureData});
-}
-
-/**
- * Finds the participants for an IOU based on the attached report
- * @param transactionID of the transaction to set the participants of
- * @param report attached to the transaction
- */
-function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxTypes.Report) {
-    // If the report is iou or expense report, we should get the chat report to set participant for request money
-    const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
-    const currentUserAccountID = currentUserPersonalDetails.accountID;
-    const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
-        ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
-        : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
-
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
-}
-
-/** Initialize money request info and navigate to the MoneyRequest page */
-function startMoneyRequest(iouType: string, reportID = '') {
-    resetMoneyRequestInfo(`${iouType}${reportID}`);
-    Navigation.navigate(ROUTES.MONEY_REQUEST.getRoute(iouType, reportID));
-}
-
-function setMoneyRequestId(id: string) {
-    Onyx.merge(ONYXKEYS.IOU, {id});
-}
-
-function setMoneyRequestAmount(amount: number) {
-    Onyx.merge(ONYXKEYS.IOU, {amount});
-}
-
-function setMoneyRequestCurrency(currency: string) {
-    Onyx.merge(ONYXKEYS.IOU, {currency});
-}
-
-function setMoneyRequestTaxRate(transactionID: string, taxRate: TaxRate) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxRate});
-}
-
-function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number) {
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
-}
-
-function setMoneyRequestBillable(billable: boolean) {
-    Onyx.merge(ONYXKEYS.IOU, {billable});
-}
-
-function setMoneyRequestParticipants(participants: Participant[], isSplitRequest?: boolean) {
-    Onyx.merge(ONYXKEYS.IOU, {participants, isSplitRequest});
-}
-
-function setShownHoldUseExplanation() {
-    Onyx.set(ONYXKEYS.NVP_HOLD_USE_EXPLAINED, true);
-}
-
-function setUpDistanceTransaction() {
-    const transactionID = NumberUtils.rand64();
-    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
-        transactionID,
-        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT, customUnit: {name: CONST.CUSTOM_UNITS.NAME_DISTANCE}},
-    });
-    Onyx.merge(ONYXKEYS.IOU, {transactionID});
-}
-
-/** Navigates to the next IOU page based on where the IOU request was started */
-function navigateToNextPage(iou: OnyxEntry<OnyxTypes.IOU>, iouType: string, report?: OnyxTypes.Report, path = '') {
-    const moneyRequestID = `${iouType}${report?.reportID ?? ''}`;
-    const shouldReset = iou?.id !== moneyRequestID && !!report?.reportID;
-
-    // If the money request ID in Onyx does not match the ID from params, we want to start a new request
-    // with the ID from params. We need to clear the participants in case the new request is initiated from FAB.
-    if (shouldReset) {
-        resetMoneyRequestInfo(moneyRequestID);
-    }
-
-    // If we're adding a receipt, that means the user came from the confirmation page and we need to navigate back to it.
-    if (path.slice(1) === ROUTES.MONEY_REQUEST_RECEIPT.getRoute(iouType, report?.reportID)) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report?.reportID));
-        return;
-    }
-
-    // If a request is initiated on a report, skip the participants selection step and navigate to the confirmation page.
-    if (report?.reportID) {
-        // If the report is iou or expense report, we should get the chat report to set participant for request money
-        const chatReport = ReportUtils.isMoneyRequestReport(report) ? ReportUtils.getReport(report.chatReportID) : report;
-        // Reinitialize the participants when the money request ID in Onyx does not match the ID from params
-        if (!iou?.participants?.length || shouldReset) {
-            const currentUserAccountID = currentUserPersonalDetails.accountID;
-            const participants: Participant[] = ReportUtils.isPolicyExpenseChat(chatReport)
-                ? [{reportID: chatReport?.reportID, isPolicyExpenseChat: true, selected: true}]
-                : (chatReport?.participantAccountIDs ?? []).filter((accountID) => currentUserAccountID !== accountID).map((accountID) => ({accountID, selected: true}));
-            setMoneyRequestParticipants(participants);
-        }
-        Navigation.navigate(ROUTES.MONEY_REQUEST_CONFIRMATION.getRoute(iouType, report.reportID));
-        return;
-    }
-    Navigation.navigate(ROUTES.MONEY_REQUEST_PARTICIPANTS.getRoute(iouType));
-}
-
-/**
- *  When the money request or split bill creation flow is initialized via FAB, the reportID is not passed as a navigation
- * parameter.
- * Gets a report id from the first participant of the IOU object stored in Onyx.
- */
-function getIOUReportID(iou?: OnyxTypes.IOU, route?: MoneyRequestRoute): string {
-    // Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    return route?.params.reportID || iou?.participants?.[0]?.reportID || '';
-}
-
-/**
- * Put money request on HOLD
- */
-function putOnHold(transactionID: string, comment: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticHoldReportAction(comment);
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: createdReportAction.reportActionID,
-                },
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: null,
-                },
-            },
-        },
-    ];
-
-    API.write(
-        'HoldRequest',
-        {
-            transactionID,
-            comment,
-            reportActionID: createdReportAction.reportActionID,
-        },
-        {optimisticData, successData, failureData},
-    );
-}
-
-/**
- * Remove money request from HOLD
- */
-function unholdRequest(transactionID: string, reportID: string) {
-    const createdReportAction = ReportUtils.buildOptimisticUnHoldReportAction();
-
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
-            value: {
-                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-            value: {
-                comment: {
-                    hold: null,
+                ...newTransaction,
+                pendingFields: {
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 },
             },
         },
@@ -4220,6 +9603,515 @@ function unholdRequest(transactionID: string, reportID: string) {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
             value: {
+                pendingFields: {
+                    receipt: null,
+                },
+            },
+        },
+    ];
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                ...(transaction ?? null),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.receiptDeleteFailureError'),
+                pendingFields: {
+                    receipt: null,
+                },
+            },
+        },
+    ];
+    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`] ?? null;
+    const updatedReportAction = buildOptimisticDetachReceipt(expenseReport?.reportID, transactionID, transaction?.merchant);
+
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${updatedReportAction?.reportID}`,
+        value: {
+            [updatedReportAction.reportActionID]: updatedReportAction as OnyxTypes.ReportAction,
+        },
+    });
+    optimisticData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
+        value: {
+            lastVisibleActionCreated: updatedReportAction.created,
+            lastReadTime: updatedReportAction.created,
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${updatedReportAction?.reportID}`,
+        value: {
+            lastVisibleActionCreated: expenseReport?.lastVisibleActionCreated,
+            lastReadTime: expenseReport?.lastReadTime,
+        },
+    });
+    successData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        value: {
+            [updatedReportAction.reportActionID]: {pendingAction: null},
+        },
+    });
+    failureData.push({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.reportID}`,
+        value: {
+            [updatedReportAction.reportActionID]: {
+                ...(updatedReportAction as OnyxTypes.ReportAction),
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
+            },
+        },
+    });
+
+    const parameters: DetachReceiptParams = {transactionID, reportActionID: updatedReportAction.reportActionID};
+
+    API.write(WRITE_COMMANDS.DETACH_RECEIPT, parameters, {optimisticData, successData, failureData});
+}
+
+function replaceReceipt({transactionID, file, source}: ReplaceReceipt) {
+    if (!file) {
+        return;
+    }
+
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const oldReceipt = transaction?.receipt ?? {};
+    const receiptOptimistic = {
+        source,
+        state: CONST.IOU.RECEIPT_STATE.OPEN,
+    };
+
+    const retryParams = {transactionID, file: undefined, source};
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                receipt: receiptOptimistic,
+                filename: file.name,
+                pendingFields: {
+                    receipt: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                },
+                errors: null,
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingFields: {
+                    receipt: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                receipt: !isEmptyObject(oldReceipt) ? oldReceipt : null,
+                filename: transaction?.filename,
+                errors: getReceiptError(receiptOptimistic, file.name, undefined, undefined, CONST.IOU.ACTION_PARAMS.REPLACE_RECEIPT, retryParams),
+                pendingFields: {
+                    receipt: null,
+                },
+            },
+        },
+    ];
+
+    const parameters: ReplaceReceiptParams = {
+        transactionID,
+        receipt: file,
+    };
+
+    API.write(WRITE_COMMANDS.REPLACE_RECEIPT, parameters, {optimisticData, successData, failureData});
+}
+
+/**
+ * Finds the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ */
+function getMoneyRequestParticipantsFromReport(report: OnyxEntry<OnyxTypes.Report>): Participant[] {
+    // If the report is iou or expense report, we should get the chat report to set participant for request money
+    const chatReport = isMoneyRequestReportReportUtils(report) ? getReportOrDraftReport(report?.chatReportID) : report;
+    const currentUserAccountID = currentUserPersonalDetails?.accountID;
+    const shouldAddAsReport = !isEmptyObject(chatReport) && isSelfDM(chatReport);
+    let participants: Participant[] = [];
+
+    if (isPolicyExpenseChatReportUtil(chatReport) || shouldAddAsReport) {
+        participants = [{accountID: 0, reportID: chatReport?.reportID, isPolicyExpenseChat: isPolicyExpenseChatReportUtil(chatReport), selected: true}];
+    } else if (isInvoiceRoom(chatReport)) {
+        participants = [
+            {reportID: chatReport?.reportID, selected: true},
+            {
+                policyID: chatReport?.policyID,
+                isSender: true,
+                selected: false,
+            },
+        ];
+    } else {
+        const chatReportOtherParticipants = Object.keys(chatReport?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
+        participants = chatReportOtherParticipants.map((accountID) => ({accountID, selected: true}));
+    }
+
+    return participants;
+}
+
+/**
+ * Sets the participants for an IOU based on the attached report
+ * @param transactionID of the transaction to set the participants of
+ * @param report attached to the transaction
+ */
+function setMoneyRequestParticipantsFromReport(transactionID: string, report: OnyxEntry<OnyxTypes.Report>) {
+    const participants = getMoneyRequestParticipantsFromReport(report);
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, participantsAutoAssigned: true});
+}
+
+function setMoneyRequestTaxRate(transactionID: string, taxCode: string | null) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxCode});
+}
+
+function setMoneyRequestTaxAmount(transactionID: string, taxAmount: number | null) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {taxAmount});
+}
+
+function dismissHoldUseExplanation() {
+    const parameters: SetNameValuePairParams = {
+        name: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
+        value: true,
+    };
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_DISMISSED_HOLD_USE_EXPLANATION,
+            value: true,
+        },
+    ];
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {
+        optimisticData,
+    });
+}
+
+/**
+ * Sets the `splitShares` map that holds individual shares of a split bill
+ */
+function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[]) {
+    if (!transaction) {
+        return;
+    }
+    const oldAccountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
+
+    // Create an array containing unique IDs of the current transaction participants and the new ones
+    // The current userAccountID might not be included in newAccountIDs if this is called from the participants step using Global Create
+    // If this is called from an existing group chat, it'll be included. So we manually add them to account for both cases.
+    const accountIDs = [...new Set<number>([userAccountID, ...newAccountIDs, ...oldAccountIDs])];
+
+    const splitShares: SplitShares = accountIDs.reduce((acc: SplitShares, accountID): SplitShares => {
+        // We want to replace the contents of splitShares to contain only `newAccountIDs` entries
+        // In the case of going back to the participants page and removing a participant
+        // a simple merge will have the previous participant still present in the splitshares object
+        // So we manually set their entry to null
+        if (!newAccountIDs.includes(accountID) && accountID !== userAccountID) {
+            acc[accountID] = null;
+            return acc;
+        }
+
+        const isPayer = accountID === userAccountID;
+        const participantsLength = newAccountIDs.includes(userAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
+        const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer);
+        acc[accountID] = {
+            amount: splitAmount,
+            isModified: false,
+        };
+        return acc;
+    }, {});
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
+}
+
+function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount?: number, currency?: string) {
+    if (!transaction) {
+        return;
+    }
+    const accountIDs = Object.keys(transaction.splitShares ?? {}).map((key) => Number(key));
+    if (!accountIDs) {
+        return;
+    }
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs);
+}
+
+/**
+ * Sets an individual split share of the participant accountID supplied
+ */
+function setIndividualShare(transactionID: string, participantAccountID: number, participantShare: number) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        splitShares: {
+            [participantAccountID]: {amount: participantShare, isModified: true},
+        },
+    });
+}
+
+/**
+ * Adjusts remaining unmodified shares when another share is modified
+ * E.g. if total bill is $100 and split between 3 participants, when the user changes the first share to $50, the remaining unmodified shares will become $25 each.
+ */
+function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transaction>) {
+    const modifiedShares = Object.keys(transaction.splitShares ?? {}).filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified);
+
+    if (!modifiedShares.length) {
+        return;
+    }
+
+    const sumOfManualShares = modifiedShares
+        .map((key: string): number => transaction?.splitShares?.[Number(key)]?.amount ?? 0)
+        .reduce((prev: number, current: number): number => prev + current, 0);
+
+    const unmodifiedSharesAccountIDs = Object.keys(transaction.splitShares ?? {})
+        .filter((key: string) => !transaction?.splitShares?.[Number(key)]?.isModified)
+        .map((key: string) => Number(key));
+
+    const remainingTotal = transaction.amount - sumOfManualShares;
+    if (remainingTotal < 0) {
+        return;
+    }
+
+    const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((acc: SplitShares, accountID: number, index: number): SplitShares => {
+        const splitAmount = calculateIOUAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
+        acc[accountID] = {
+            amount: splitAmount,
+        };
+        return acc;
+    }, {});
+
+    Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transaction.transactionID}`, {splitShares});
+}
+
+/**
+ * Put expense on HOLD
+ */
+function putOnHold(transactionID: string, comment: string, reportID: string, searchHash?: number) {
+    const currentTime = DateUtils.getDBTime();
+    const createdReportAction = buildOptimisticHoldReportAction(currentTime);
+    const createdReportActionComment = buildOptimisticHoldReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(currentTime, 1));
+    const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
+    const updatedViolations = [...transactionViolations, newViolation];
+    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+                [createdReportActionComment.reportActionID]: createdReportActionComment as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: updatedViolations,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportActionComment.created,
+            },
+        },
+    ];
+
+    if (iouReport && iouReport.currency === transaction?.currency) {
+        const isExpenseReportLocal = isExpenseReport(iouReport);
+        const coefficient = isExpenseReportLocal ? -1 : 1;
+        const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                unheldTotal: (iouReport.unheldTotal ?? 0) - transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) - transactionAmount : iouReport.unheldNonReimbursableTotal,
+            },
+        });
+    }
+
+    parentReportActionOptimistic.forEach((parentActionData) => {
+        if (!parentActionData) {
+            return;
+        }
+        optimisticData.push(parentActionData);
+    });
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+                comment: {
+                    hold: null,
+                },
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+                [createdReportActionComment.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+            },
+        },
+    ];
+
+    // If we are holding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: true,
+                        canUnhold: false,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+    }
+
+    API.write(
+        'HoldRequest',
+        {
+            transactionID,
+            comment,
+            reportActionID: createdReportAction.reportActionID,
+            commentReportActionID: createdReportActionComment.reportActionID,
+        },
+        {optimisticData, successData, failureData},
+    );
+
+    const currentReportID = getDisplayedReportID(reportID);
+    Navigation.setNavigationActionToMicrotaskQueue(() => notifyNewAction(currentReportID, userAccountID));
+}
+
+/**
+ * Remove expense from HOLD
+ */
+function unholdRequest(transactionID: string, reportID: string, searchHash?: number) {
+    const createdReportAction = buildOptimisticUnHoldReportAction();
+    const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`];
+    const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
+    const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction as ReportAction,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                comment: {
+                    hold: null,
+                },
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations?.filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD) ?? [],
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: createdReportAction.created,
+            },
+        },
+    ];
+
+    if (iouReport && iouReport.currency === transaction?.currency) {
+        const isExpenseReportLocal = isExpenseReport(iouReport);
+        const coefficient = isExpenseReportLocal ? -1 : 1;
+        const transactionAmount = getAmount(transaction, isExpenseReportLocal) * coefficient;
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
+            value: {
+                unheldTotal: (iouReport.unheldTotal ?? 0) + transactionAmount,
+                unheldNonReimbursableTotal: !transaction?.reimbursable ? (iouReport.unheldNonReimbursableTotal ?? 0) + transactionAmount : iouReport.unheldNonReimbursableTotal,
+            },
+        });
+    }
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
                 comment: {
                     hold: null,
                 },
@@ -4227,25 +10119,87 @@ function unholdRequest(transactionID: string, reportID: string) {
         },
     ];
 
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
+            value: {
+                [createdReportAction.reportActionID]: null,
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                pendingAction: null,
+                errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericUnholdExpenseFailureMessage'),
+            },
+        },
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`,
+            value: transactionViolations ?? null,
+        },
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
+            value: {
+                lastVisibleActionCreated: report?.lastVisibleActionCreated,
+            },
+        },
+    ];
+
+    // If we are unholding from the search page, we optimistically update the snapshot data that search uses so that it is kept in sync
+    if (searchHash) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: true,
+                        canUnhold: false,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}`,
+            value: {
+                data: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: {
+                        canHold: false,
+                        canUnhold: true,
+                    },
+                },
+            } as Record<string, Record<string, Partial<SearchTransaction>>>,
+        });
+    }
+
     API.write(
         'UnHoldRequest',
         {
             transactionID,
             reportActionID: createdReportAction.reportActionID,
         },
-        {optimisticData, successData, failureData: []},
+        {optimisticData, successData, failureData},
     );
+
+    const currentReportID = getDisplayedReportID(reportID);
+    notifyNewAction(currentReportID, userAccountID);
 }
 // eslint-disable-next-line rulesdir/no-negated-variables
 function navigateToStartStepIfScanFileCannotBeRead(
-    receiptFilename: string,
-    receiptPath: string,
+    receiptFilename: string | undefined,
+    receiptPath: ReceiptSource | undefined,
     onSuccess: (file: File) => void,
-    requestType: ValueOf<typeof CONST.IOU.REQUEST_TYPE>,
-    iouType: ValueOf<typeof CONST.IOU.TYPE>,
+    requestType: IOURequestType,
+    iouType: IOUType,
     transactionID: string,
     reportID: string,
-    receiptType: string,
+    receiptType: string | undefined,
+    onFailureCallback?: () => void,
 ) {
     if (!receiptFilename || !receiptPath) {
         return;
@@ -4254,77 +10208,498 @@ function navigateToStartStepIfScanFileCannotBeRead(
     const onFailure = () => {
         setMoneyRequestReceipt(transactionID, '', '', true);
         if (requestType === CONST.IOU.REQUEST_TYPE.MANUAL) {
+            if (onFailureCallback) {
+                onFailureCallback();
+                return;
+            }
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SCAN.getRoute(CONST.IOU.ACTION.CREATE, iouType, transactionID, reportID, Navigation.getActiveRouteWithoutParams()));
             return;
         }
-        IOUUtils.navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
+        navigateToStartMoneyRequestStep(requestType, iouType, transactionID, reportID);
     };
-    FileUtils.readFileAsync(receiptPath, receiptFilename, onSuccess, onFailure, receiptType);
+    readFileAsync(receiptPath.toString(), receiptFilename, onSuccess, onFailure, receiptType);
 }
 
 /** Save the preferred payment method for a policy */
-function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType) {
-    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: paymentMethod});
+function savePreferredPaymentMethod(policyID: string, paymentMethod: PaymentMethodType, type: ValueOf<typeof CONST.LAST_PAYMENT_METHOD> | undefined) {
+    Onyx.merge(`${ONYXKEYS.NVP_LAST_PAYMENT_METHOD}`, {[policyID]: type ? {[type]: paymentMethod, [CONST.LAST_PAYMENT_METHOD.LAST_USED]: paymentMethod} : paymentMethod});
+}
+
+/** Get report policy id of IOU request */
+function getIOURequestPolicyID(transaction: OnyxEntry<OnyxTypes.Transaction>, report: OnyxEntry<OnyxTypes.Report>): string | undefined {
+    // Workspace sender will exist for invoices
+    const workspaceSender = transaction?.participants?.find((participant) => participant.isSender);
+    return workspaceSender?.policyID ?? report?.policyID;
+}
+
+function getIOUActionForTransactions(transactionIDList: Array<string | undefined>, iouReportID: string | undefined): Array<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>> {
+    return Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? {})?.filter(
+        (reportAction): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> => {
+            if (!isMoneyRequestAction(reportAction)) {
+                return false;
+            }
+            const message = getOriginalMessage(reportAction);
+            if (!message?.IOUTransactionID) {
+                return false;
+            }
+            return transactionIDList.includes(message.IOUTransactionID);
+        },
+    );
+}
+
+/** Merge several transactions into one by updating the fields of the one we want to keep and deleting the rest */
+function mergeDuplicates(params: MergeDuplicatesParams) {
+    const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+
+    const optimisticTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        value: {
+            ...originalSelectedTransaction,
+            billable: params.billable,
+            comment: {
+                comment: params.comment,
+            },
+            category: params.category,
+            created: params.created,
+            currency: params.currency,
+            modifiedMerchant: params.merchant,
+            reimbursable: params.reimbursable,
+            tag: params.tag,
+        },
+    };
+
+    const failureTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        value: originalSelectedTransaction as OnyxTypes.Transaction,
+    };
+
+    const optimisticTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
+        onyxMethod: Onyx.METHOD.SET,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        value: null,
+    }));
+
+    const failureTransactionDuplicatesData: OnyxUpdate[] = params.transactionIDList.map((id) => ({
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${id}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        value: allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] as OnyxTypes.Transaction,
+    }));
+
+    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+        };
+    });
+
+    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations,
+        };
+    });
+
+    const duplicateTransactionTotals = params.transactionIDList.reduce((total, id) => {
+        const duplicateTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`];
+        if (!duplicateTransaction) {
+            return total;
+        }
+        return total + duplicateTransaction.amount;
+    }, 0);
+
+    const expenseReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`];
+    const expenseReportOptimisticData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+        value: {
+            total: (expenseReport?.total ?? 0) - duplicateTransactionTotals,
+        },
+    };
+    const expenseReportFailureData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT}${params.reportID}`,
+        value: {
+            total: expenseReport?.total,
+        },
+    };
+
+    const iouActionsToDelete = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
+
+    const deletedTime = DateUtils.getDBTime();
+    const expenseReportActionsOptimisticData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
+        value: iouActionsToDelete.reduce<Record<string, PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>((val, reportAction) => {
+            const firstMessage = Array.isArray(reportAction.message) ? reportAction.message.at(0) : null;
+            // eslint-disable-next-line no-param-reassign
+            val[reportAction.reportActionID] = {
+                originalMessage: {
+                    deleted: deletedTime,
+                },
+                ...(firstMessage && {
+                    message: [
+                        {
+                            ...firstMessage,
+                            deleted: deletedTime,
+                        },
+                        ...(Array.isArray(reportAction.message) ? reportAction.message.slice(1) : []),
+                    ],
+                }),
+                ...(!Array.isArray(reportAction.message) && {
+                    message: {
+                        deleted: deletedTime,
+                    },
+                }),
+            };
+            return val;
+        }, {}),
+    };
+    const expenseReportActionsFailureData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${params.reportID}`,
+        value: iouActionsToDelete.reduce<Record<string, NullishDeep<PartialDeep<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>>>>((val, reportAction) => {
+            // eslint-disable-next-line no-param-reassign
+            val[reportAction.reportActionID] = {
+                originalMessage: {
+                    deleted: null,
+                },
+                message: reportAction.message,
+            };
+            return val;
+        }, {}),
+    };
+
+    const optimisticReportAction = buildOptimisticResolvedDuplicatesReportAction();
+
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const optimisticReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: optimisticReportAction,
+        },
+    };
+
+    const failureReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: null,
+        },
+    };
+
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    optimisticData.push(
+        optimisticTransactionData,
+        ...optimisticTransactionDuplicatesData,
+        ...optimisticTransactionViolations,
+        expenseReportOptimisticData,
+        expenseReportActionsOptimisticData,
+        optimisticReportActionData,
+    );
+    failureData.push(
+        failureTransactionData,
+        ...failureTransactionDuplicatesData,
+        ...failureTransactionViolations,
+        expenseReportFailureData,
+        expenseReportActionsFailureData,
+        failureReportActionData,
+    );
+
+    API.write(WRITE_COMMANDS.MERGE_DUPLICATES, {...params, reportActionID: optimisticReportAction.reportActionID}, {optimisticData, failureData});
+}
+
+function updateLastLocationPermissionPrompt() {
+    Onyx.set(ONYXKEYS.NVP_LAST_LOCATION_PERMISSION_PROMPT, new Date().toISOString());
+}
+
+/** Instead of merging the duplicates, it updates the transaction we want to keep and puts the others on hold without deleting them */
+function resolveDuplicates(params: MergeDuplicatesParams) {
+    if (!params.transactionID) {
+        return;
+    }
+
+    const originalSelectedTransaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`];
+
+    const optimisticTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        value: {
+            ...originalSelectedTransaction,
+            billable: params.billable,
+            comment: {
+                comment: params.comment,
+            },
+            category: params.category,
+            created: params.created,
+            currency: params.currency,
+            modifiedMerchant: params.merchant,
+            reimbursable: params.reimbursable,
+            tag: params.tag,
+        },
+    };
+
+    const failureTransactionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
+        // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
+        value: originalSelectedTransaction as OnyxTypes.Transaction,
+    };
+
+    const optimisticTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION};
+        const updatedViolations = id === params.transactionID ? violations : [...violations, newViolation];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: updatedViolations.filter((violation) => violation.name !== CONST.VIOLATIONS.DUPLICATED_TRANSACTION),
+        };
+    });
+
+    const failureTransactionViolations: OnyxUpdate[] = [...params.transactionIDList, params.transactionID].map((id) => {
+        const violations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`] ?? [];
+        return {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${id}`,
+            value: violations,
+        };
+    });
+
+    const iouActionList = params.reportID ? getIOUActionForTransactions(params.transactionIDList, params.reportID) : [];
+    const orderedTransactionIDList = iouActionList
+        .map((action) => {
+            const message = getOriginalMessage(action);
+            return message?.IOUTransactionID;
+        })
+        .filter((id): id is string => !!id);
+
+    const optimisticHoldActions: OnyxUpdate[] = [];
+    const failureHoldActions: OnyxUpdate[] = [];
+    const reportActionIDList: string[] = [];
+    const optimisticHoldTransactionActions: OnyxUpdate[] = [];
+    const failureHoldTransactionActions: OnyxUpdate[] = [];
+    iouActionList.forEach((action) => {
+        const transactionThreadReportID = action?.childReportID;
+        const createdReportAction = buildOptimisticHoldReportAction();
+        reportActionIDList.push(createdReportAction.reportActionID);
+        const transactionID = isMoneyRequestAction(action) ? getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID : CONST.DEFAULT_NUMBER_ID;
+        optimisticHoldTransactionActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: createdReportAction.reportActionID,
+                },
+            },
+        });
+        failureHoldTransactionActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            value: {
+                comment: {
+                    hold: null,
+                },
+            },
+        });
+        optimisticHoldActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {
+                [createdReportAction.reportActionID]: createdReportAction,
+            },
+        });
+        failureHoldActions.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+            value: {
+                [createdReportAction.reportActionID]: {
+                    errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericHoldExpenseFailureMessage'),
+                },
+            },
+        });
+    });
+
+    const transactionThreadReportID = params.reportID ? getIOUActionForTransactions([params.transactionID], params.reportID).at(0)?.childReportID : undefined;
+    const optimisticReportAction = buildOptimisticDismissedViolationReportAction({
+        reason: 'manual',
+        violationName: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+    });
+
+    const optimisticReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: optimisticReportAction,
+        },
+    };
+
+    const failureReportActionData: OnyxUpdate = {
+        onyxMethod: Onyx.METHOD.MERGE,
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
+        value: {
+            [optimisticReportAction.reportActionID]: null,
+        },
+    };
+
+    const optimisticData: OnyxUpdate[] = [];
+    const failureData: OnyxUpdate[] = [];
+
+    optimisticData.push(optimisticTransactionData, ...optimisticTransactionViolations, ...optimisticHoldActions, ...optimisticHoldTransactionActions, optimisticReportActionData);
+    failureData.push(failureTransactionData, ...failureTransactionViolations, ...failureHoldActions, ...failureHoldTransactionActions, failureReportActionData);
+    const {reportID, transactionIDList, receiptID, ...otherParams} = params;
+
+    const parameters: ResolveDuplicatesParams = {
+        ...otherParams,
+        transactionID: params.transactionID,
+        reportActionIDList,
+        transactionIDList: orderedTransactionIDList,
+        dismissedViolationReportActionID: optimisticReportAction.reportActionID,
+    };
+
+    API.write(WRITE_COMMANDS.RESOLVE_DUPLICATES, parameters, {optimisticData, failureData});
+}
+
+function getSearchOnyxUpdate({participant, transaction}: GetSearchOnyxUpdateParams) {
+    const toAccountID = participant?.accountID;
+    const fromAccountID = currentUserPersonalDetails?.accountID;
+    const currentSearchQueryJSON = getCurrentSearchQueryJSON();
+
+    if (currentSearchQueryJSON && toAccountID != null && fromAccountID != null) {
+        const validSearchTypes: SearchDataTypes[] = [CONST.SEARCH.DATA_TYPES.EXPENSE, CONST.SEARCH.DATA_TYPES.INVOICE];
+        const shouldOptimisticallyUpdate =
+            currentSearchQueryJSON.status === CONST.SEARCH.STATUS.EXPENSE.ALL && validSearchTypes.includes(currentSearchQueryJSON.type) && currentSearchQueryJSON.flatFilters.length === 0;
+
+        if (shouldOptimisticallyUpdate) {
+            return {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}` as const,
+                value: {
+                    data: {
+                        [ONYXKEYS.PERSONAL_DETAILS_LIST]: {
+                            [toAccountID]: {
+                                accountID: toAccountID,
+                                displayName: participant?.displayName,
+                                login: participant?.login,
+                            },
+                            [fromAccountID]: {
+                                accountID: fromAccountID,
+                                avatar: currentUserPersonalDetails?.avatar,
+                                displayName: currentUserPersonalDetails?.displayName,
+                                login: currentUserPersonalDetails?.login,
+                            },
+                        },
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: {
+                            accountID: fromAccountID,
+                            managerID: toAccountID,
+                            ...transaction,
+                        },
+                    },
+                },
+            };
+        }
+    }
 }
 
 export {
-    setMoneyRequestParticipants,
-    createDistanceRequest,
-    deleteMoneyRequest,
-    splitBill,
-    splitBillAndOpenReport,
-    setDraftSplitTransaction,
-    startSplitBill,
-    completeSplitBill,
-    requestMoney,
-    sendMoneyElsewhere,
+    adjustRemainingSplitShares,
+    getNextApproverAccountID,
     approveMoneyRequest,
-    submitReport,
-    payMoneyRequest,
-    sendMoneyWithWallet,
-    startMoneyRequest,
-    initMoneyRequest,
-    startMoneyRequest_temporaryForRefactor,
-    resetMoneyRequestInfo,
+    canApproveIOU,
+    canUnapproveIOU,
+    cancelPayment,
+    canIOUBePaid,
+    canCancelPayment,
+    cleanUpMoneyRequest,
     clearMoneyRequest,
-    updateMoneyRequestTypeParams,
-    setMoneyRequestAmount_temporaryForRefactor,
-    setMoneyRequestBillable_temporaryForRefactor,
-    setMoneyRequestCreated,
-    setMoneyRequestCurrency_temporaryForRefactor,
-    setMoneyRequestDescription,
-    setMoneyRequestOriginalCurrency_temporaryForRefactor,
-    setMoneyRequestParticipants_temporaryForRefactor,
-    setMoneyRequestPendingFields,
-    setMoneyRequestReceipt,
+    completeSplitBill,
+    createDistanceRequest,
+    createDraftTransaction,
+    deleteMoneyRequest,
+    deleteTrackExpense,
+    detachReceipt,
+    dismissHoldUseExplanation,
+    getIOURequestPolicyID,
+    initMoneyRequest,
+    navigateToStartStepIfScanFileCannotBeRead,
+    completePaymentOnboarding,
+    payInvoice,
+    payMoneyRequest,
+    putOnHold,
+    replaceReceipt,
+    requestMoney,
+    resetSplitShares,
+    resetDraftTransactionsCustomUnit,
+    savePreferredPaymentMethod,
+    sendInvoice,
+    sendMoneyElsewhere,
+    sendMoneyWithWallet,
+    setCustomUnitRateID,
+    setCustomUnitID,
+    removeSubrate,
+    addSubrate,
+    updateSubrate,
+    clearSubrates,
+    setDraftSplitTransaction,
+    setIndividualShare,
     setMoneyRequestAmount,
+    setMoneyRequestAttendees,
     setMoneyRequestBillable,
     setMoneyRequestCategory,
+    setMoneyRequestCreated,
+    setMoneyRequestDateAttribute,
     setMoneyRequestCurrency,
-    setMoneyRequestId,
+    setMoneyRequestDescription,
+    setMoneyRequestDistanceRate,
     setMoneyRequestMerchant,
+    setMoneyRequestParticipants,
     setMoneyRequestParticipantsFromReport,
+    getMoneyRequestParticipantsFromReport,
+    setMoneyRequestPendingFields,
+    setMoneyRequestReceipt,
     setMoneyRequestTag,
     setMoneyRequestTaxAmount,
     setMoneyRequestTaxRate,
-    setUpDistanceTransaction,
-    setShownHoldUseExplanation,
-    navigateToNextPage,
-    updateMoneyRequestDate,
+    setSplitPayer,
+    setSplitShares,
+    splitBill,
+    splitBillAndOpenReport,
+    startMoneyRequest,
+    startSplitBill,
+    submitReport,
+    trackExpense,
+    unapproveExpenseReport,
+    unholdRequest,
+    updateMoneyRequestAttendees,
+    updateMoneyRequestAmountAndCurrency,
     updateMoneyRequestBillable,
+    updateMoneyRequestCategory,
+    updateMoneyRequestDate,
+    updateMoneyRequestDescription,
+    updateMoneyRequestDistance,
+    updateMoneyRequestDistanceRate,
     updateMoneyRequestMerchant,
     updateMoneyRequestTag,
-    updateMoneyRequestDistance,
-    updateMoneyRequestCategory,
-    updateMoneyRequestAmountAndCurrency,
-    updateMoneyRequestDescription,
-    replaceReceipt,
-    detachReceipt,
-    getIOUReportID,
-    editMoneyRequest,
-    putOnHold,
-    unholdRequest,
-    cancelPayment,
-    navigateToStartStepIfScanFileCannotBeRead,
-    savePreferredPaymentMethod,
+    updateMoneyRequestTaxAmount,
+    updateMoneyRequestTaxRate,
+    mergeDuplicates,
+    updateLastLocationPermissionPrompt,
+    resolveDuplicates,
+    getIOUReportActionToApproveOrPay,
+    getNavigationUrlOnMoneyRequestDelete,
+    getNavigationUrlAfterTrackExpenseDelete,
+    canSubmitReport,
+    submitPerDiemExpense,
+    calculateDiffAmount,
 };
+export type {GPSPoint as GpsPoint, IOURequestType, StartSplitBilActionParams, CreateTrackExpenseParams, RequestMoneyInformation, ReplaceReceipt};

@@ -1,38 +1,47 @@
 import React from 'react';
 import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import * as ReportUtils from '@libs/ReportUtils';
-import * as Session from '@userActions/Session';
-import * as Task from '@userActions/Task';
-import ONYXKEYS from '@src/ONYXKEYS';
+import {canWriteInReport, isCompletedTaskReport} from '@libs/ReportUtils';
+import {isActiveTaskEditRoute} from '@libs/TaskUtils';
+import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+import {canActionTask, completeTask, reopenTask} from '@userActions/Task';
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import Button from './Button';
+import {useSession} from './OnyxProvider';
 
-type TaskHeaderActionButtonOnyxProps = {
-    /** Current user session */
-    session: OnyxEntry<OnyxTypes.Session>;
-};
-
-type TaskHeaderActionButtonProps = TaskHeaderActionButtonOnyxProps & {
+type TaskHeaderActionButtonProps = {
     /** The report currently being looked at */
     report: OnyxTypes.Report;
 };
 
-function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) {
+function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const session = useSession();
+
+    if (!canWriteInReport(report)) {
+        return null;
+    }
 
     return (
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!Task.canModifyTask(report, session?.accountID ?? 0)}
-                medium
-                text={translate(ReportUtils.isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
-                onPress={Session.checkIfActionIsAllowed(() => (ReportUtils.isCompletedTaskReport(report) ? Task.reopenTask(report) : Task.completeTask(report)))}
+                isDisabled={!canActionTask(report, session?.accountID ?? CONST.DEFAULT_NUMBER_ID)}
+                text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
+                onPress={callFunctionIfActionIsAllowed(() => {
+                    // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
+                    if (isActiveTaskEditRoute(report.reportID)) {
+                        return;
+                    }
+                    if (isCompletedTaskReport(report)) {
+                        reopenTask(report);
+                    } else {
+                        completeTask(report);
+                    }
+                })}
                 style={styles.flex1}
             />
         </View>
@@ -41,8 +50,4 @@ function TaskHeaderActionButton({report, session}: TaskHeaderActionButtonProps) 
 
 TaskHeaderActionButton.displayName = 'TaskHeaderActionButton';
 
-export default withOnyx<TaskHeaderActionButtonProps, TaskHeaderActionButtonOnyxProps>({
-    session: {
-        key: ONYXKEYS.SESSION,
-    },
-})(TaskHeaderActionButton);
+export default TaskHeaderActionButton;

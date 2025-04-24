@@ -1,14 +1,15 @@
-import {CONST as COMMON_CONST} from 'expensify-common/lib/CONST';
-import React, {useEffect, useMemo} from 'react';
+import {CONST as COMMON_CONST} from 'expensify-common';
+import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Modal from '@components/Modal';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import RadioListItem from '@components/SelectionList/RadioListItem';
+import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
-import searchCountryOptions from '@libs/searchCountryOptions';
-import type {CountryData} from '@libs/searchCountryOptions';
+import searchOptions from '@libs/searchOptions';
+import type {Option} from '@libs/searchOptions';
 import StringUtils from '@libs/StringUtils';
 import CONST from '@src/CONST';
 
@@ -18,37 +19,27 @@ type StateSelectorModalProps = {
     /** Whether the modal is visible */
     isVisible: boolean;
 
-    /** State value selected  */
-    currentState?: State;
-
-    /** Function to call when the user selects a State */
-    onStateSelected?: (state: CountryData) => void;
-
-    /** Function to call when the user closes the State modal */
-    onClose?: () => void;
-
-    /** The search value from the selection list */
-    searchValue: string;
-
-    /** Function to call when the user types in the search input */
-    setSearchValue: (value: string) => void;
+    /** Function to call when the user closes the business type selector modal */
+    onClose: () => void;
 
     /** Label to display on field */
-    label?: string;
+    label: string;
+
+    /** State selected  */
+    currentState: string;
+
+    /** Function to call when the user selects a state */
+    onStateSelected: (value: Option) => void;
+
+    /** Function to call when the user presses on the modal backdrop */
+    onBackdropPress?: () => void;
 };
 
-function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStateSelected = () => {}, searchValue, setSearchValue, label}: StateSelectorModalProps) {
-    const styles = useThemeStyles();
+function StateSelectorModal({isVisible, currentState, onStateSelected, onClose, label, onBackdropPress}: StateSelectorModalProps) {
     const {translate} = useLocalize();
+    const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
 
-    useEffect(() => {
-        if (isVisible) {
-            return;
-        }
-        setSearchValue('');
-    }, [isVisible, setSearchValue]);
-
-    const countryStates: CountryData[] = useMemo(
+    const countryStates = useMemo(
         () =>
             Object.keys(COMMON_CONST.STATES).map((state) => {
                 const stateName = translate(`allStates.${state as State}.stateName`);
@@ -61,11 +52,14 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
                     searchValue: StringUtils.sanitizeString(`${stateISO}${stateName}`),
                 };
             }),
+
         [translate, currentState],
     );
 
-    const searchResults = searchCountryOptions(searchValue, countryStates);
-    const headerMessage = searchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+    const searchResults = searchOptions(debouncedSearchValue, countryStates);
+    const headerMessage = debouncedSearchValue.trim() && !searchResults.length ? translate('common.noResultsFound') : '';
+
+    const styles = useThemeStyles();
 
     return (
         <Modal
@@ -75,6 +69,7 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
             onModalHide={onClose}
             hideModalContentWhileAnimating
             useNativeDriver
+            onBackdropPress={onBackdropPress}
         >
             <ScreenWrapper
                 style={[styles.pb0]}
@@ -83,25 +78,22 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
                 testID={StateSelectorModal.displayName}
             >
                 <HeaderWithBackButton
-                    // Label can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    title={label || translate('common.state')}
+                    title={label}
                     shouldShowBackButton
                     onBackButtonPress={onClose}
                 />
                 <SelectionList
                     headerMessage={headerMessage}
-                    // Label can be an empty string
-                    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-                    textInputLabel={label || translate('common.state')}
+                    sections={[{data: searchResults}]}
                     textInputValue={searchValue}
-                    sections={[{data: searchResults, indexOffset: 0}]}
-                    onSelectRow={onStateSelected}
+                    textInputLabel={translate('common.search')}
                     onChangeText={setSearchValue}
+                    onSelectRow={onStateSelected}
+                    ListItem={RadioListItem}
                     initiallyFocusedOptionKey={currentState}
+                    shouldSingleExecuteRowSelect
                     shouldStopPropagation
                     shouldUseDynamicMaxToRenderPerBatch
-                    ListItem={RadioListItem}
                 />
             </ScreenWrapper>
         </Modal>
@@ -111,4 +103,3 @@ function StateSelectorModal({currentState, isVisible, onClose = () => {}, onStat
 StateSelectorModal.displayName = 'StateSelectorModal';
 
 export default StateSelectorModal;
-export type {State};

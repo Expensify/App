@@ -1,21 +1,22 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import type {NavigationProp} from '@react-navigation/core/src/types';
 import type * as Navigation from '@react-navigation/native';
-import type {ParamListBase} from '@react-navigation/routers';
 import {render} from '@testing-library/react-native';
 import type {ReactElement} from 'react';
 import React from 'react';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxProvider from '@components/OnyxProvider';
-import {CurrentReportIDContextProvider} from '@components/withCurrentReportID';
 import {EnvironmentProvider} from '@components/withEnvironment';
+import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
+import {SidebarOrderedReportIDsContextProvider} from '@hooks/useSidebarOrderedReportIDs';
 import DateUtils from '@libs/DateUtils';
+import {buildParticipantsFromAccountIDs} from '@libs/ReportUtils';
 import ReportActionItemSingle from '@pages/home/report/ReportActionItemSingle';
 import SidebarLinksData from '@pages/home/sidebar/SidebarLinksData';
 import CONST from '@src/CONST';
-import type {PersonalDetailsList, Policy, Report, ReportAction} from '@src/types/onyx';
-import type {ActionName} from '@src/types/onyx/OriginalMessage';
+import type {PersonalDetailsList, Policy, Report, ReportAction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
+import waitForBatchedUpdatesWithAct from './waitForBatchedUpdatesWithAct';
 
 type MockedReportActionItemSingleProps = {
     /** Determines if the avatar is displayed as a subscript (positioned lower than normal) */
@@ -33,22 +34,20 @@ type MockedSidebarLinksProps = {
     currentReportID?: string;
 };
 
-// we have to mock `useIsFocused` because it's used in the SidebarLinks component
-const mockedNavigate: jest.MockedFn<NavigationProp<ParamListBase>['navigate']> = jest.fn();
-jest.mock('@react-navigation/native', (): typeof Navigation => {
-    const actualNav = jest.requireActual('@react-navigation/native');
+jest.mock('@react-navigation/native', () => {
+    const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
     return {
         ...actualNav,
+        useNavigationState: () => true,
+        useRoute: jest.fn(),
         useFocusEffect: jest.fn(),
-        useIsFocused: () => ({
-            navigate: mockedNavigate,
-        }),
+        useIsFocused: () => true,
         useNavigation: () => ({
             navigate: jest.fn(),
             addListener: jest.fn(),
         }),
         createNavigationContainerRef: jest.fn(),
-    } as typeof Navigation;
+    };
 });
 
 const fakePersonalDetails: PersonalDetailsList = {
@@ -65,6 +64,7 @@ const fakePersonalDetails: PersonalDetailsList = {
         displayName: 'Email Two',
         avatar: 'none',
         firstName: 'Two',
+        pronouns: '__predefined_sheHerHers',
     },
     3: {
         accountID: 3,
@@ -115,16 +115,33 @@ const fakePersonalDetails: PersonalDetailsList = {
         avatar: 'none',
         firstName: 'Nine',
     },
+    10: {
+        accountID: 10,
+        login: 'email10@test.com',
+        displayName: 'Email Ten',
+        avatar: 'none',
+        firstName: 'Ten',
+    },
 };
 
 let lastFakeReportID = 0;
 let lastFakeReportActionID = 0;
+let lastFakeTransactionID = 0;
 
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false): Report {
+function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0, isUnread = false, adminIDs: number[] = []): Report {
     const lastVisibleActionCreated = DateUtils.getDBTime(Date.now() - millisecondsInThePast);
+
+    const participants = buildParticipantsFromAccountIDs(participantAccountIDs);
+
+    adminIDs.forEach((id) => {
+        participants[id] = {
+            notificationPreference: 'always',
+            role: CONST.REPORT.ROLE.ADMIN,
+        };
+    });
 
     return {
         type: CONST.REPORT.TYPE.CHAT,
@@ -132,7 +149,7 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
         reportName: 'Report',
         lastVisibleActionCreated,
         lastReadTime: isUnread ? DateUtils.subtractMillisecondsFromDateTime(lastVisibleActionCreated, 1) : lastVisibleActionCreated,
-        participantAccountIDs,
+        participants,
     };
 }
 
@@ -142,16 +159,15 @@ function getFakeReport(participantAccountIDs = [1, 2], millisecondsInThePast = 0
 function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     const timestamp = Date.now() - millisecondsInThePast;
     const created = DateUtils.getDBTime(timestamp);
+    const reportActionID = ++lastFakeReportActionID;
 
     return {
         actor,
         actorAccountID: 1,
-        reportActionID: `${++lastFakeReportActionID}`,
+        reportActionID: `${reportActionID}`,
         actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
         shouldShow: true,
         created,
-        timestamp,
-        reportActionTimestamp: timestamp,
         person: [
             {
                 type: 'TEXT',
@@ -159,7 +175,6 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 text: 'Email One',
             },
         ],
-        whisperedToAccountIDs: [],
         automatic: false,
         message: [
             {
@@ -169,51 +184,26 @@ function getFakeReportAction(actor = 'email1@test.com', millisecondsInThePast = 
                 isEdited: false,
                 whisperedTo: [],
                 isDeletedParentAction: false,
-                reactions: [
-                    {
-                        emoji: 'heart',
-                        users: [
-                            {
-                                accountID: 1,
-                                skinTone: -1,
-                            },
-                        ],
-                    },
-                ],
             },
         ],
         originalMessage: {
-            childReportID: `${++lastFakeReportActionID}`,
-            emojiReactions: {
-                heart: {
-                    createdAt: '2023-08-28 15:27:52',
-                    users: {
-                        1: {
-                            skinTones: {
-                                '-1': '2023-08-28 15:27:52',
-                            },
-                        },
-                    },
-                },
-            },
+            whisperedTo: [],
             html: 'hey',
             lastModified: '2023-08-28 15:28:12.432',
-            reactions: [
-                {
-                    emoji: 'heart',
-                    users: [
-                        {
-                            accountID: 1,
-                            skinTone: -1,
-                        },
-                    ],
-                },
-            ],
         },
     };
 }
 
-function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean, hasDraft: boolean): Report {
+function getFakeTransaction(expenseReportID: string, amount = 1, currency: string = CONST.CURRENCY.USD) {
+    return {
+        transactionID: `${++lastFakeTransactionID}`,
+        amount,
+        currency,
+        reportID: expenseReportID,
+    };
+}
+
+function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boolean, hasAddWorkspaceError: boolean, isUnread: boolean, isPinned: boolean): Report {
     return {
         ...getFakeReport([1, 2], 0, isUnread),
         type: CONST.REPORT.TYPE.CHAT,
@@ -222,7 +212,6 @@ function getAdvancedFakeReport(isArchived: boolean, isUserCreatedPolicyRoom: boo
         stateNum: isArchived ? CONST.REPORT.STATE_NUM.APPROVED : 0,
         errorFields: hasAddWorkspaceError ? {1708946640843000: {addWorkspaceRoom: 'blah'}} : undefined,
         isPinned,
-        hasDraft,
     };
 }
 
@@ -237,7 +226,7 @@ function getFakeReportWithPolicy(participantAccountIDs = [1, 2], millisecondsInT
         policyID: '08CE60F05A5D86E1',
         oldPolicyName: '',
         isOwnPolicyExpenseChat: false,
-        ownerAccountID: participantAccountIDs[0],
+        ownerAccountID: participantAccountIDs.at(0),
     };
 }
 
@@ -247,11 +236,11 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
         name,
         isFromFullPolicy: false,
         role: 'admin',
-        type: 'free',
+        type: CONST.POLICY.TYPE.TEAM,
         owner: 'myuser@gmail.com',
         outputCurrency: 'BRL',
-        avatar: '',
-        employeeList: [],
+        avatarURL: '',
+        employeeList: {},
         isPolicyExpenseChatEnabled: true,
         lastModified: '1697323926777105',
         autoReporting: true,
@@ -260,18 +249,25 @@ function getFakePolicy(id = '1', name = 'Workspace-Test-001'): Policy {
             enabled: true,
         },
         autoReportingOffset: 1,
-        preventSelfApprovalEnabled: true,
-        submitsTo: 123456,
+        preventSelfApproval: true,
         defaultBillable: false,
         disabledFields: {defaultBillable: true, reimbursable: false},
         approvalMode: 'BASIC',
     };
 }
 
+function getFakeTransactionViolation(violationName: ViolationName, showInReview = true): TransactionViolation {
+    return {
+        type: CONST.VIOLATION_TYPES.VIOLATION,
+        name: violationName,
+        showInReview,
+    };
+}
+
 /**
  * @param millisecondsInThePast the number of milliseconds in the past for the last message timestamp (to order reports by most recent messages)
  */
-function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
+function getFakeAdvancedReportAction(actionName: ReportActionName = 'IOU', actor = 'email1@test.com', millisecondsInThePast = 0): ReportAction {
     return {
         ...getFakeReportAction(actor, millisecondsInThePast),
         actionName,
@@ -280,19 +276,26 @@ function getFakeAdvancedReportAction(actionName: ActionName = 'IOU', actor = 'em
 
 function MockedSidebarLinks({currentReportID = ''}: MockedSidebarLinksProps) {
     return (
-        <ComposeProviders components={[OnyxProvider, LocaleContextProvider, EnvironmentProvider, CurrentReportIDContextProvider]}>
-            <SidebarLinksData
-                // @ts-expect-error TODO: Remove this once SidebarLinksData (https://github.com/Expensify/App/issues/25220) is migrated to TypeScript.
-                onLinkClick={() => {}}
-                insets={{
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                }}
-                isSmallScreenWidth={false}
-                currentReportID={currentReportID}
-            />
+        <ComposeProviders components={[OnyxProvider, LocaleContextProvider]}>
+            {/*
+             * Only required to make unit tests work, since we
+             * explicitly pass the currentReportID in LHNTestUtils
+             * to SidebarLinksData, so this context doesn't have an
+             * access to currentReportID in that case.
+             *
+             * So this is a work around to have currentReportID available
+             * only in testing environment.
+             *  */}
+            <SidebarOrderedReportIDsContextProvider currentReportIDForTests={currentReportID}>
+                <SidebarLinksData
+                    insets={{
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                    }}
+                />
+            </SidebarOrderedReportIDsContextProvider>
         </ComposeProviders>
     );
 }
@@ -310,6 +313,7 @@ function getDefaultRenderedSidebarLinks(currentReportID = '') {
         // and there are a lot of render warnings. It needs to be done like this because normally in
         // our app (App.js) is when the react application is wrapped in the context providers
         render(<MockedSidebarLinks currentReportID={currentReportID} />);
+        return waitForBatchedUpdatesWithAct();
     } catch (error) {
         console.error(error);
     }
@@ -370,4 +374,6 @@ export {
     getFakeReportWithPolicy,
     getFakePolicy,
     getFakeAdvancedReportAction,
+    getFakeTransactionViolation,
+    getFakeTransaction,
 };

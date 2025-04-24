@@ -1,5 +1,4 @@
 type ReconnectAppParams = {
-    mostRecentReportActionLastModified?: string;
     updateIDFrom?: number;
     policyIDList: string[];
 };

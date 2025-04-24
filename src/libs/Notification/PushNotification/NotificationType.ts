@@ -1,23 +1,41 @@
+import type {ValueOf} from 'type-fest';
 import type {OnyxServerUpdate} from '@src/types/onyx/OnyxUpdatesFromServer';
 
 const NotificationType = {
+    REPORT_ACTION: 'reportAction',
     REPORT_COMMENT: 'reportComment',
+    TRANSACTION: 'transaction',
 } as const;
 
+type NotificationTypes = ValueOf<typeof NotificationType>;
+
 type NotificationDataMap = {
-    [NotificationType.REPORT_COMMENT]: ReportCommentNotificationData;
+    [NotificationType.REPORT_ACTION]: ReportActionPushNotificationData;
+    [NotificationType.REPORT_COMMENT]: ReportActionPushNotificationData;
+    [NotificationType.TRANSACTION]: TransactionPushNotificationData;
 };
 
-type NotificationData = ReportCommentNotificationData;
+type PushNotificationData = ReportActionPushNotificationData | TransactionPushNotificationData;
 
-type ReportCommentNotificationData = {
+type BasePushNotificationData = {
     title: string;
-    type: typeof NotificationType.REPORT_COMMENT;
+    type: ValueOf<typeof NotificationType>;
+    onyxData?: OnyxServerUpdate[];
+    lastUpdateID?: number;
+    previousUpdateID?: number;
+    hasPendingOnyxUpdates?: boolean;
+};
+
+type ReportActionPushNotificationData = BasePushNotificationData & {
     reportID: number;
     reportActionID: string;
-    shouldScrollToLastUnread?: boolean;
     roomName?: string;
-    onyxData?: OnyxServerUpdate[];
+};
+
+type TransactionPushNotificationData = BasePushNotificationData & {
+    transactionID: number;
+    reportID: number;
+    roomName?: string;
 };
 
 /**
@@ -25,4 +43,4 @@ type ReportCommentNotificationData = {
  * types of push notifications sent by our API.
  */
 export default NotificationType;
-export type {NotificationDataMap, NotificationData, ReportCommentNotificationData};
+export type {NotificationTypes, NotificationDataMap, PushNotificationData, ReportActionPushNotificationData, TransactionPushNotificationData};

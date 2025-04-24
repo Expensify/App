@@ -1,16 +1,15 @@
-import {NetInfoCellularGeneration, NetInfoStateType} from '@react-native-community/netinfo';
 import type {addEventListener, configure, fetch, NetInfoState, refresh, useNetInfo} from '@react-native-community/netinfo';
 
-const defaultState: NetInfoState = {
-    type: NetInfoStateType?.cellular,
+const defaultState = {
+    type: 'cellular',
     isConnected: true,
     isInternetReachable: true,
     details: {
         isConnectionExpensive: true,
-        cellularGeneration: NetInfoCellularGeneration?.['3g'],
+        cellularGeneration: '3g',
         carrier: 'T-Mobile',
     },
-};
+} as NetInfoState;
 
 type NetInfoMock = {
     configure: typeof configure;

@@ -1,112 +1,166 @@
-import type {StackScreenProps} from '@react-navigation/stack';
+import {useIsFocused} from '@react-navigation/native';
 import lodashIsEqual from 'lodash/isEqual';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {TextInput} from 'react-native';
 import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-import {withOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
 import Badge from '@components/Badge';
-import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/Button';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import * as Expensicons from '@components/Icon/Expensicons';
-import * as Illustrations from '@components/Icon/Illustrations';
+import DecisionModal from '@components/DecisionModal';
+import {Download, FallbackAvatar, MakeAdmin, Plus, RemoveMembers, Table, User, UserEye} from '@components/Icon/Expensicons';
+import {ReceiptWrangler} from '@components/Icon/Illustrations';
 import MessagesRow from '@components/MessagesRow';
-import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
 import TableListItem from '@components/SelectionList/TableListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import type {ListItem, SelectionListHandle} from '@components/SelectionList/types';
+import SelectionListWithModal from '@components/SelectionListWithModal';
+import CustomListHeader from '@components/SelectionListWithModal/CustomListHeader';
 import Text from '@components/Text';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePrevious from '@hooks/usePrevious';
-import useStyleUtils from '@hooks/useStyleUtils';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useSearchBackPress from '@hooks/useSearchBackPress';
 import useThemeStyles from '@hooks/useThemeStyles';
-import useWindowDimensions from '@hooks/useWindowDimensions';
-import * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import useThreeDotsAnchorPosition from '@hooks/useThreeDotsAnchorPosition';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {
+    clearAddMemberError,
+    clearDeleteMemberError,
+    clearInviteDraft,
+    clearWorkspaceOwnerChangeFlow,
+    downloadMembersCSV,
+    isApprover,
+    openWorkspaceMembersPage,
+    removeMembers,
+    updateWorkspaceMembersRole,
+} from '@libs/actions/Policy/Member';
+import {removeApprovalWorkflow as removeApprovalWorkflowAction, updateApprovalWorkflow} from '@libs/actions/Workflow';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import {formatPhoneNumber as formatPhoneNumberUtil} from '@libs/LocalePhoneNumber';
 import Log from '@libs/Log';
+import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
-import type {CentralPaneNavigatorParamList} from '@libs/Navigation/types';
-import * as OptionsListUtils from '@libs/OptionsListUtils';
-import * as PersonalDetailsUtils from '@libs/PersonalDetailsUtils';
-import * as PolicyUtils from '@libs/PolicyUtils';
-import * as UserUtils from '@libs/UserUtils';
-import * as Policy from '@userActions/Policy';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
+import {isPersonalDetailsReady, sortAlphabetically} from '@libs/OptionsListUtils';
+import {getDisplayNameOrDefault, getPersonalDetailsByIDs} from '@libs/PersonalDetailsUtils';
+import {getMemberAccountIDsForWorkspace, isDeletedPolicyEmployee, isExpensifyTeam, isPaidGroupPolicy, isPolicyAdmin as isPolicyAdminUtils} from '@libs/PolicyUtils';
+import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
+import {close} from '@userActions/Modal';
+import {dismissAddedWithPrimaryLoginMessages} from '@userActions/Policy/Policy';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type {PersonalDetailsList, PolicyMember, PolicyMembers, Session} from '@src/types/onyx';
+import type {PersonalDetails, PersonalDetailsList, PolicyEmployeeList} from '@src/types/onyx';
 import type {Errors, PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {WithPolicyAndFullscreenLoadingProps} from './withPolicyAndFullscreenLoading';
 import withPolicyAndFullscreenLoading from './withPolicyAndFullscreenLoading';
-
-type WorkspaceMembersPageOnyxProps = {
-    /** Personal details of all users */
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    /** Session info for the currently logged in user. */
-    session: OnyxEntry<Session>;
-};
+import WorkspacePageWithSections from './WorkspacePageWithSections';
 
 type WorkspaceMembersPageProps = WithPolicyAndFullscreenLoadingProps &
     WithCurrentUserPersonalDetailsProps &
-    WorkspaceMembersPageOnyxProps &
-    StackScreenProps<CentralPaneNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
+    PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS>;
 
 /**
  * Inverts an object, equivalent of _.invert
  */
 function invertObject(object: Record<string, string>): Record<string, string> {
-    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key]);
-    const inverted: Record<string, string> = Object.fromEntries(invertedEntries);
-    return inverted;
+    const invertedEntries = Object.entries(object).map(([key, value]) => [value, key] as const);
+    return Object.fromEntries(invertedEntries);
 }
 
 type MemberOption = Omit<ListItem, 'accountID'> & {accountID: number};
 
-function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, session, currentUserPersonalDetails, isLoadingReportData = true}: WorkspaceMembersPageProps) {
+function WorkspaceMembersPage({personalDetails, route, policy, currentUserPersonalDetails}: WorkspaceMembersPageProps) {
+    const policyMemberEmailsToAccountIDs = useMemo(() => getMemberAccountIDsForWorkspace(policy?.employeeList, true), [policy?.employeeList]);
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const [selectedEmployees, setSelectedEmployees] = useState<number[]>([]);
     const [removeMembersConfirmModalVisible, setRemoveMembersConfirmModalVisible] = useState(false);
     const [errors, setErrors] = useState({});
     const {isOffline} = useNetwork();
+    const threeDotsAnchorPosition = useThreeDotsAnchorPosition(styles.threeDotsPopoverOffsetNoCloseButton);
     const prevIsOffline = usePrevious(isOffline);
-    const accountIDs = useMemo(() => Object.keys(policyMembers ?? {}).map((accountID) => Number(accountID)), [policyMembers]);
+    const accountIDs = useMemo(() => Object.values(policyMemberEmailsToAccountIDs ?? {}).map((accountID) => Number(accountID)), [policyMemberEmailsToAccountIDs]);
     const prevAccountIDs = usePrevious(accountIDs);
     const textInputRef = useRef<TextInput>(null);
-    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policyMembers) && isOffline;
+    const [isOfflineModalVisible, setIsOfflineModalVisible] = useState(false);
+    const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
+    const isOfflineAndNoMemberDataAvailable = isEmptyObject(policy?.employeeList) && isOffline;
     const prevPersonalDetails = usePrevious(personalDetails);
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
-    const {isSmallScreenWidth} = useWindowDimensions();
-    const dropdownButtonRef = useRef(null);
 
+    // We need to use isSmallScreenWidth instead of shouldUseNarrowLayout to apply the correct modal type for the decision modal
+    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
+    const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
+    const isPolicyAdmin = isPolicyAdminUtils(policy);
+    const isLoading = useMemo(
+        () => !isOfflineAndNoMemberDataAvailable && (!isPersonalDetailsReady(personalDetails) || isEmptyObject(policy?.employeeList)),
+        [isOfflineAndNoMemberDataAvailable, personalDetails, policy?.employeeList],
+    );
+
+    const [invitedEmailsToAccountIDsDraft] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_INVITE_MEMBERS_DRAFT}${route.params.policyID.toString()}`);
+    const {selectionMode} = useMobileSelectionMode();
+    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const currentUserAccountID = Number(session?.accountID);
+    const selectionListRef = useRef<SelectionListHandle>(null);
+    const isFocused = useIsFocused();
+    const policyID = route.params.policyID;
+
+    const ownerDetails = personalDetails?.[policy?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? ({} as PersonalDetails);
+    const policyApproverEmail = policy?.approver;
+    const {approvalWorkflows} = useMemo(
+        () =>
+            convertPolicyEmployeesToApprovalWorkflows({
+                employees: policy?.employeeList ?? {},
+                defaultApprover: policyApproverEmail ?? policy?.owner ?? '',
+                personalDetails: personalDetails ?? {},
+            }),
+        [personalDetails, policy?.employeeList, policy?.owner, policyApproverEmail],
+    );
+
+    const canSelectMultiple = isPolicyAdmin && (shouldUseNarrowLayout ? selectionMode?.isEnabled : true);
+
+    const confirmModalPrompt = useMemo(() => {
+        const approverAccountID = selectedEmployees.find((selectedEmployee) => isApprover(policy, selectedEmployee));
+        if (!approverAccountID) {
+            return translate('workspace.people.removeMembersPrompt', {
+                count: selectedEmployees.length,
+                memberName: formatPhoneNumberUtil(getPersonalDetailsByIDs({accountIDs: selectedEmployees, currentUserAccountID}).at(0)?.displayName ?? ''),
+            });
+        }
+        return translate('workspace.people.removeMembersWarningPrompt', {
+            memberName: getDisplayNameForParticipant({accountID: approverAccountID}),
+            ownerName: getDisplayNameForParticipant({accountID: policy?.ownerAccountID}),
+        });
+    }, [selectedEmployees, translate, policy, currentUserAccountID]);
     /**
-     * Get filtered personalDetails list with current policyMembers
+     * Get filtered personalDetails list with current employeeList
      */
-    const filterPersonalDetails = (members: OnyxEntry<PolicyMembers>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
-        Object.keys(members ?? {}).reduce((result, key) => {
-            if (details?.[key]) {
-                return {
-                    ...result,
-                    [key]: details[key],
-                };
+    const filterPersonalDetails = (members: OnyxEntry<PolicyEmployeeList>, details: OnyxEntry<PersonalDetailsList>): PersonalDetailsList =>
+        Object.keys(members ?? {}).reduce((acc, key) => {
+            const memberAccountIdKey = policyMemberEmailsToAccountIDs[key] ?? '';
+            if (details?.[memberAccountIdKey]) {
+                acc[memberAccountIdKey] = details[memberAccountIdKey];
             }
-            return result;
-        }, {});
-
+            return acc;
+        }, {} as PersonalDetailsList);
     /**
      * Get members for the current workspace
      */
     const getWorkspaceMembers = useCallback(() => {
-        Policy.openWorkspaceMembersPage(route.params.policyID, Object.keys(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails)));
-    }, [route.params.policyID, policyMembers, personalDetails]);
+        openWorkspaceMembersPage(route.params.policyID, Object.keys(getMemberAccountIDsForWorkspace(policy?.employeeList)));
+    }, [route.params.policyID, policy?.employeeList]);
 
     /**
      * Check if the current selection includes members that cannot be removed
@@ -120,13 +174,18 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             newErrors[member] = translate('workspace.people.error.cannotRemove');
         });
         setErrors(newErrors);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
     }, [selectedEmployees, policy?.owner, session?.accountID]);
 
+    // useFocus would make getWorkspaceMembers get called twice on fresh login because policyEmployee is a dependency of getWorkspaceMembers.
     useEffect(() => {
+        if (!isFocused) {
+            setSelectedEmployees([]);
+            return;
+        }
         getWorkspaceMembers();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [isFocused]);
 
     useEffect(() => {
         validateSelection();
@@ -138,20 +197,23 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         }
         setSelectedEmployees((prevSelected) => {
             // Filter all personal details in order to use the elements needed for the current workspace
-            const currentPersonalDetails = filterPersonalDetails(policyMembers, personalDetails);
+            const currentPersonalDetails = filterPersonalDetails(policy?.employeeList ?? {}, personalDetails);
             // We need to filter the previous selected employees by the new personal details, since unknown/new user id's change when transitioning from offline to online
             const prevSelectedElements = prevSelected.map((id) => {
-                const prevItem = prevPersonalDetails?.id;
+                const prevItem = prevPersonalDetails?.[id];
                 const res = Object.values(currentPersonalDetails).find((item) => prevItem?.login === item?.login);
                 return res?.accountID ?? id;
             });
+
+            const currentSelectedElements = Object.entries(getMemberAccountIDsForWorkspace(policy?.employeeList))
+                .filter((employee) => policy?.employeeList?.[employee[0]]?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+                .map((employee) => employee[1]);
+
             // This is an equivalent of the lodash intersection function. The reduce method below is used to filter the items that exist in both arrays.
-            return [prevSelectedElements, Object.values(PolicyUtils.getMemberAccountIDsForWorkspace(policyMembers, personalDetails))].reduce((prev, members) =>
-                prev.filter((item) => members.includes(item)),
-            );
+            return [prevSelectedElements, currentSelectedElements].reduce((prev, members) => prev.filter((item) => members.includes(item)));
         });
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [policyMembers]);
+        // eslint-disable-next-line react-compiler/react-compiler, react-hooks/exhaustive-deps
+    }, [policy?.employeeList, policyMemberEmailsToAccountIDs]);
 
     useEffect(() => {
         const isReconnecting = prevIsOffline && !isOffline;
@@ -164,9 +226,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     /**
      * Open the modal to invite a user
      */
-    const inviteUser = () => {
-        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID));
-    };
+    const inviteUser = useCallback(() => {
+        clearInviteDraft(route.params.policyID);
+        Navigation.navigate(ROUTES.WORKSPACE_INVITE.getRoute(route.params.policyID, Navigation.getActiveRouteWithoutParams()));
+    }, [route.params.policyID]);
 
     /**
      * Remove selected users from the workspace
@@ -180,9 +243,37 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
         // Remove the admin from the list
         const accountIDsToRemove = session?.accountID ? selectedEmployees.filter((id) => id !== session.accountID) : selectedEmployees;
 
-        Policy.removeMembers(accountIDsToRemove, route.params.policyID);
+        // Check if any of the account IDs are approvers
+        const hasApprovers = accountIDsToRemove.some((accountID) => isApprover(policy, accountID));
+
+        if (hasApprovers) {
+            const ownerEmail = ownerDetails.login;
+            accountIDsToRemove.forEach((accountID) => {
+                const removedApprover = personalDetails?.[accountID];
+                if (!removedApprover?.login || !ownerEmail) {
+                    return;
+                }
+                const updatedWorkflows = updateWorkflowDataOnApproverRemoval({
+                    approvalWorkflows,
+                    removedApprover,
+                    ownerDetails,
+                });
+                updatedWorkflows.forEach((workflow) => {
+                    if (workflow?.removeApprovalWorkflow) {
+                        const {removeApprovalWorkflow, ...updatedWorkflow} = workflow;
+                        removeApprovalWorkflowAction(policyID, updatedWorkflow);
+                    } else {
+                        updateApprovalWorkflow(policyID, workflow, [], []);
+                    }
+                });
+            });
+        }
+
         setSelectedEmployees([]);
         setRemoveMembersConfirmModalVisible(false);
+        InteractionManager.runAfterInteractions(() => {
+            removeMembers(accountIDsToRemove, route.params.policyID);
+        });
     };
 
     /**
@@ -199,10 +290,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      * Add or remove all users passed from the selectedEmployees list
      */
     const toggleAllUsers = (memberList: MemberOption[]) => {
-        const enabledAccounts = memberList.filter((member) => !member.isDisabled);
-        const everyoneSelected = enabledAccounts.every((member) => selectedEmployees.includes(member.accountID));
+        const enabledAccounts = memberList.filter((member) => !member.isDisabled && !member.isDisabledCheckbox);
+        const someSelected = enabledAccounts.some((member) => selectedEmployees.includes(member.accountID));
 
-        if (everyoneSelected) {
+        if (someSelected) {
             setSelectedEmployees([]);
         } else {
             const everyAccountId = enabledAccounts.map((member) => member.accountID);
@@ -239,6 +330,10 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
      */
     const toggleUser = useCallback(
         (accountID: number, pendingAction?: PendingAction) => {
+            if (accountID === policy?.ownerAccountID && accountID !== session?.accountID) {
+                return;
+            }
+
             if (pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                 return;
             }
@@ -250,7 +345,20 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
                 addUser(accountID);
             }
         },
-        [selectedEmployees, addUser, removeUser],
+        [selectedEmployees, addUser, removeUser, policy?.ownerAccountID, session?.accountID],
+    );
+
+    /** Opens the member details page */
+    const openMemberDetails = useCallback(
+        (item: MemberOption) => {
+            if (!isPolicyAdmin || !isPaidGroupPolicy(policy)) {
+                Navigation.navigate(ROUTES.PROFILE.getRoute(item.accountID));
+                return;
+            }
+            clearWorkspaceOwnerChangeFlow(policyID);
+            Navigation.navigate(ROUTES.WORKSPACE_MEMBER_DETAILS.getRoute(route.params.policyID, item.accountID));
+        },
+        [isPolicyAdmin, policy, policyID, route.params.policyID],
     );
 
     /**
@@ -259,31 +367,23 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
     const dismissError = useCallback(
         (item: MemberOption) => {
             if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                Policy.clearDeleteMemberError(route.params.policyID, item.accountID);
+                clearDeleteMemberError(route.params.policyID, item.accountID);
             } else {
-                Policy.clearAddMemberError(route.params.policyID, item.accountID);
+                clearAddMemberError(route.params.policyID, item.accountID);
             }
         },
         [route.params.policyID],
     );
 
-    /**
-     * Check if the policy member is deleted from the workspace
-     */
-    const isDeletedPolicyMember = (policyMember: PolicyMember): boolean =>
-        !isOffline && policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isEmptyObject(policyMember.errors);
     const policyOwner = policy?.owner;
     const currentUserLogin = currentUserPersonalDetails.login;
-    const policyID = route.params.policyID;
-
     const invitedPrimaryToSecondaryLogins = invertObject(policy?.primaryLoginsInvited ?? {});
-
-    const getUsers = (): MemberOption[] => {
+    const getUsers = useCallback((): MemberOption[] => {
         let result: MemberOption[] = [];
 
-        Object.entries(policyMembers ?? {}).forEach(([accountIDKey, policyMember]) => {
-            const accountID = Number(accountIDKey);
-            if (isDeletedPolicyMember(policyMember)) {
+        Object.entries(policy?.employeeList ?? {}).forEach(([email, policyEmployee]) => {
+            const accountID = Number(policyMemberEmailsToAccountIDs[email] ?? '');
+            if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
                 return;
             }
 
@@ -297,243 +397,366 @@ function WorkspaceMembersPage({policyMembers, personalDetails, route, policy, se
             // If this policy is owned by Expensify then show all support (expensify.com or team.expensify.com) emails
             // We don't want to show guides as policy members unless the user is a guide. Some customers get confused when they
             // see random people added to their policy, but guides having access to the policies help set them up.
-            if (PolicyUtils.isExpensifyTeam(details?.login ?? details?.displayName)) {
-                if (policyOwner && currentUserLogin && !PolicyUtils.isExpensifyTeam(policyOwner) && !PolicyUtils.isExpensifyTeam(currentUserLogin)) {
+            if (isExpensifyTeam(details?.login ?? details?.displayName)) {
+                if (policyOwner && currentUserLogin && !isExpensifyTeam(policyOwner) && !isExpensifyTeam(currentUserLogin)) {
                     return;
                 }
             }
 
-            const isSelected = selectedEmployees.includes(accountID);
+            const isSelected = selectedEmployees.includes(accountID) && canSelectMultiple;
 
             const isOwner = policy?.owner === details.login;
-            const isAdmin = session?.email === details.login || policyMember.role === CONST.POLICY.ROLE.ADMIN;
-
+            const isAdmin = policyEmployee.role === CONST.POLICY.ROLE.ADMIN;
+            const isAuditor = policyEmployee.role === CONST.POLICY.ROLE.AUDITOR;
             let roleBadge = null;
             if (isOwner || isAdmin) {
-                roleBadge = (
-                    <Badge
-                        text={isOwner ? translate('common.owner') : translate('common.admin')}
-                        textStyles={styles.textStrong}
-                        badgeStyles={[styles.justifyContentCenter, StyleUtils.getMinimumWidth(60), styles.badgeBordered, isSelected && styles.activeItemBadge]}
-                    />
-                );
+                roleBadge = <Badge text={isOwner ? translate('common.owner') : translate('common.admin')} />;
+            } else if (isAuditor) {
+                roleBadge = <Badge text={translate('common.auditor')} />;
             }
+            const isPendingDeleteOrError = isPolicyAdmin && (policyEmployee.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !isEmptyObject(policyEmployee.errors));
 
             result.push({
-                keyForList: accountIDKey,
+                keyForList: String(accountID),
                 accountID,
                 isSelected,
-                isDisabled:
-                    accountID === session?.accountID ||
-                    accountID === policy?.ownerAccountID ||
-                    policyMember.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
-                    !isEmptyObject(policyMember.errors),
-                text: formatPhoneNumber(PersonalDetailsUtils.getDisplayNameOrDefault(details)),
+                isDisabledCheckbox: !(isPolicyAdmin && accountID !== policy?.ownerAccountID && accountID !== session?.accountID),
+                isDisabled: isPendingDeleteOrError,
+                isInteractive: !details.isOptimisticPersonalDetail,
+                cursorStyle: details.isOptimisticPersonalDetail ? styles.cursorDefault : {},
+                text: formatPhoneNumber(getDisplayNameOrDefault(details)),
                 alternateText: formatPhoneNumber(details?.login ?? ''),
                 rightElement: roleBadge,
                 icons: [
                     {
-                        source: UserUtils.getAvatar(details.avatar, accountID),
+                        source: details.avatar ?? FallbackAvatar,
                         name: formatPhoneNumber(details?.login ?? ''),
                         type: CONST.ICON_TYPE_AVATAR,
                         id: accountID,
                     },
                 ],
-                errors: policyMember.errors,
-                pendingAction: policyMember.pendingAction,
-
+                errors: policyEmployee.errors,
+                pendingAction: policyEmployee.pendingAction,
                 // Note which secondary login was used to invite this primary login
                 invitedSecondaryLogin: details?.login ? invitedPrimaryToSecondaryLogins[details.login] ?? '' : '',
             });
         });
-
-        result = result.sort((a, b) => a.text.toLowerCase().localeCompare(b.text.toLowerCase()));
-
+        result = sortAlphabetically(result, 'text');
         return result;
-    };
-    const data = getUsers();
+    }, [
+        isOffline,
+        currentUserLogin,
+        formatPhoneNumber,
+        invitedPrimaryToSecondaryLogins,
+        personalDetails,
+        policy?.owner,
+        policy?.ownerAccountID,
+        policy?.employeeList,
+        policyMemberEmailsToAccountIDs,
+        policyOwner,
+        selectedEmployees,
+        session?.accountID,
+        translate,
+        styles.cursorDefault,
+        canSelectMultiple,
+        isPolicyAdmin,
+    ]);
+
+    const data = useMemo(() => getUsers(), [getUsers]);
+
+    useEffect(() => {
+        if (!isFocused) {
+            return;
+        }
+        if (isEmptyObject(invitedEmailsToAccountIDsDraft) || accountIDs === prevAccountIDs) {
+            return;
+        }
+        const invitedEmails = Object.values(invitedEmailsToAccountIDsDraft).map(String);
+        selectionListRef.current?.scrollAndHighlightItem?.(invitedEmails);
+        clearInviteDraft(route.params.policyID);
+    }, [invitedEmailsToAccountIDsDraft, isFocused, accountIDs, prevAccountIDs, route.params.policyID]);
 
     const getHeaderMessage = () => {
         if (isOfflineAndNoMemberDataAvailable) {
             return translate('workspace.common.mustBeOnlineToViewMembers');
         }
-        return !data.length ? translate('workspace.common.memberNotFound') : '';
+
+        return !isLoading && isEmptyObject(policy?.employeeList) ? translate('workspace.common.memberNotFound') : '';
     };
 
     const getHeaderContent = () => (
-        <>
+        <View style={shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection}>
             <Text style={[styles.pl5, styles.mb4, styles.mt3, styles.textSupporting]}>{translate('workspace.people.membersListTitle')}</Text>
             {!isEmptyObject(invitedPrimaryToSecondaryLogins) && (
                 <MessagesRow
                     type="success"
                     // eslint-disable-next-line @typescript-eslint/naming-convention
-                    messages={{0: 'workspace.people.addedWithPrimary'}}
+                    messages={{0: translate('workspace.people.addedWithPrimary')}}
                     containerStyles={[styles.pb5, styles.ph5]}
-                    onClose={() => Policy.dismissAddedWithPrimaryLoginMessages(policyID)}
+                    onClose={() => dismissAddedWithPrimaryLoginMessages(policyID)}
                 />
             )}
-        </>
-    );
-
-    const getCustomListHeader = () => (
-        <View style={[styles.flex1, styles.flexRow, styles.justifyContentBetween]}>
-            <View>
-                <Text style={[styles.searchInputStyle, styles.ml3]}>{translate('common.member')}</Text>
-            </View>
-            <View style={[StyleUtils.getMinimumWidth(60)]}>
-                <Text style={[styles.searchInputStyle, styles.textAlignCenter]}>{translate('common.role')}</Text>
-            </View>
         </View>
     );
 
-    const changeUserRole = (role: typeof CONST.POLICY.ROLE.ADMIN | typeof CONST.POLICY.ROLE.USER) => {
+    useEffect(() => {
+        if (selectionMode?.isEnabled) {
+            return;
+        }
+
+        setSelectedEmployees([]);
+    }, [setSelectedEmployees, selectionMode?.isEnabled]);
+
+    useSearchBackPress({
+        onClearSelection: () => setSelectedEmployees([]),
+        onNavigationCallBack: () => Navigation.goBack(),
+    });
+
+    const getCustomListHeader = () => {
+        return (
+            <CustomListHeader
+                canSelectMultiple={canSelectMultiple}
+                leftHeaderText={translate('common.member')}
+                rightHeaderText={translate('common.role')}
+            />
+        );
+    };
+
+    const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
         if (!isEmptyObject(errors)) {
             return;
         }
 
-        const accountIDsToUpdate = selectedEmployees.filter((id) => policyMembers?.[id].role !== role);
+        const accountIDsToUpdate = selectedEmployees.filter((accountID) => {
+            const email = personalDetails?.[accountID]?.login ?? '';
+            return policy?.employeeList?.[email]?.role !== role;
+        });
 
-        Policy.updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
+        updateWorkspaceMembersRole(route.params.policyID, accountIDsToUpdate, role);
         setSelectedEmployees([]);
     };
 
     const getBulkActionsButtonOptions = () => {
         const options: Array<DropdownOption<WorkspaceMemberBulkActionType>> = [
             {
-                text: translate('workspace.people.removeMembersTitle'),
+                text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
-                icon: Expensicons.RemoveMembers,
+                icon: RemoveMembers,
                 onSelected: askForConfirmationToRemove,
             },
         ];
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.ADMIN)) {
-            options.push({
-                text: translate('workspace.people.makeMember'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
-                icon: Expensicons.User,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
-            });
+        if (!isPaidGroupPolicy(policy)) {
+            return options;
         }
 
-        if (selectedEmployees.find((employee) => policyMembers?.[employee]?.role === CONST.POLICY.ROLE.USER)) {
-            options.push({
-                text: translate('workspace.people.makeAdmin'),
-                value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
-                icon: Expensicons.MakeAdmin,
-                onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
-            });
+        const selectedEmployeesRoles = selectedEmployees.map((accountID) => {
+            const email = personalDetails?.[accountID]?.login ?? '';
+            return policy?.employeeList?.[email]?.role;
+        });
+
+        const memberOption = {
+            text: translate('workspace.people.makeMember'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
+            icon: User,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
+        };
+        const adminOption = {
+            text: translate('workspace.people.makeAdmin'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_ADMIN,
+            icon: MakeAdmin,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.ADMIN),
+        };
+
+        const auditorOption = {
+            text: translate('workspace.people.makeAuditor'),
+            value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
+            icon: UserEye,
+            onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
+        };
+
+        const hasAtLeastOneNonAuditorRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.AUDITOR);
+        const hasAtLeastOneNonMemberRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.USER);
+        const hasAtLeastOneNonAdminRole = selectedEmployeesRoles.some((role) => role !== CONST.POLICY.ROLE.ADMIN);
+
+        if (hasAtLeastOneNonMemberRole) {
+            options.push(memberOption);
+        }
+
+        if (hasAtLeastOneNonAdminRole) {
+            options.push(adminOption);
+        }
+
+        if (hasAtLeastOneNonAuditorRole) {
+            options.push(auditorOption);
         }
 
         return options;
     };
 
-    const getHeaderButtons = () => (
-        <View style={styles.w100}>
-            {selectedEmployees.length > 0 ? (
-                <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
-                    shouldAlwaysShowDropdownMenu
-                    pressOnEnter
-                    customText={translate('workspace.people.selected', {selectedNumber: selectedEmployees.length})}
-                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
-                    onPress={() => null}
-                    options={getBulkActionsButtonOptions()}
-                    buttonRef={dropdownButtonRef}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
-                />
-            ) : (
-                <Button
-                    medium
-                    success
-                    onPress={inviteUser}
-                    text={translate('workspace.invite.member')}
-                    icon={Expensicons.Plus}
-                    iconStyles={{transform: [{scale: 0.6}]}}
-                    innerStyles={[isSmallScreenWidth && styles.alignItemsCenter]}
-                    style={[isSmallScreenWidth && styles.flexGrow1]}
-                />
-            )}
-        </View>
-    );
+    const getHeaderButtons = () => {
+        if (!isPolicyAdmin) {
+            return null;
+        }
+        return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
+            <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                shouldAlwaysShowDropdownMenu
+                pressOnEnter
+                customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
+                buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                onPress={() => null}
+                options={getBulkActionsButtonOptions()}
+                isSplitButton={false}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+                isDisabled={!selectedEmployees.length}
+            />
+        ) : (
+            <Button
+                success
+                onPress={inviteUser}
+                text={translate('workspace.invite.member')}
+                icon={Plus}
+                innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
+                style={[shouldUseNarrowLayout && styles.flexGrow1, shouldUseNarrowLayout && styles.mb3]}
+            />
+        );
+    };
+
+    const threeDotsMenuItems = useMemo(() => {
+        if (!isPolicyAdmin) {
+            return [];
+        }
+
+        const menuItems = [
+            {
+                icon: Table,
+                text: translate('spreadsheet.importSpreadsheet'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID));
+                },
+            },
+            {
+                icon: Download,
+                text: translate('spreadsheet.downloadCSV'),
+                onSelected: () => {
+                    if (isOffline) {
+                        close(() => setIsOfflineModalVisible(true));
+                        return;
+                    }
+
+                    close(() => {
+                        downloadMembersCSV(policyID, () => {
+                            setIsDownloadFailureModalVisible(true);
+                        });
+                    });
+                },
+            },
+        ];
+
+        return menuItems;
+    }, [policyID, translate, isOffline, isPolicyAdmin]);
+
+    const selectionModeHeader = selectionMode?.isEnabled && shouldUseNarrowLayout;
 
     return (
-        <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
-            style={[styles.defaultModalContainer]}
+        <WorkspacePageWithSections
+            headerText={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
+            route={route}
+            icon={!selectionModeHeader ? ReceiptWrangler : undefined}
+            headerContent={!shouldUseNarrowLayout && getHeaderButtons()}
             testID={WorkspaceMembersPage.displayName}
+            shouldShowLoading={false}
+            shouldUseHeadlineHeader={!selectionModeHeader}
             shouldShowOfflineIndicatorInWideScreen
+            shouldShowThreeDotsButton={isPolicyAdmin}
+            threeDotsMenuItems={threeDotsMenuItems}
+            threeDotsAnchorPosition={threeDotsAnchorPosition}
+            shouldShowNonAdmin
+            onBackButtonPress={() => {
+                if (selectionMode?.isEnabled) {
+                    setSelectedEmployees([]);
+                    turnOffMobileSelectionMode();
+                    return;
+                }
+                goBackFromWorkspaceCentralScreen(policyID);
+            }}
         >
-            <FullPageNotFoundView
-                shouldShow={(isEmptyObject(policy) && !isLoadingReportData) || !PolicyUtils.isPolicyAdmin(policy) || PolicyUtils.isPendingDeletePolicy(policy)}
-                subtitleKey={isEmptyObject(policy) ? undefined : 'workspace.common.notAuthorized'}
-                onBackButtonPress={PolicyUtils.goBackFromInvalidPolicy}
-                onLinkPress={PolicyUtils.goBackFromInvalidPolicy}
-            >
-                <HeaderWithBackButton
-                    title={translate('workspace.common.members')}
-                    icon={Illustrations.ReceiptWrangler}
-                    onBackButtonPress={() => {
-                        Navigation.goBack();
-                    }}
-                    shouldShowBackButton={isSmallScreenWidth}
-                    guidesCallTaskID={CONST.GUIDES_CALL_TASK_IDS.WORKSPACE_MEMBERS}
-                >
-                    {!isSmallScreenWidth && getHeaderButtons()}
-                </HeaderWithBackButton>
-                {isSmallScreenWidth && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
-                <ConfirmModal
-                    danger
-                    title={translate('workspace.people.removeMembersTitle')}
-                    isVisible={removeMembersConfirmModalVisible}
-                    onConfirm={removeUsers}
-                    onCancel={() => setRemoveMembersConfirmModalVisible(false)}
-                    prompt={translate('workspace.people.removeMembersPrompt')}
-                    confirmText={translate('common.remove')}
-                    cancelText={translate('common.cancel')}
-                    onModalHide={() => {
-                        InteractionManager.runAfterInteractions(() => {
-                            if (!textInputRef.current) {
-                                return;
-                            }
-                            textInputRef.current.focus();
-                        });
-                    }}
-                />
-                <View style={[styles.w100, styles.flex1]}>
-                    <SelectionList
-                        canSelectMultiple
-                        sections={[{data, indexOffset: 0, isDisabled: false}]}
-                        ListItem={TableListItem}
-                        disableKeyboardShortcuts={removeMembersConfirmModalVisible}
-                        headerMessage={getHeaderMessage()}
-                        headerContent={getHeaderContent()}
-                        onSelectRow={(item) => toggleUser(item.accountID)}
-                        onSelectAll={() => toggleAllUsers(data)}
-                        onDismissError={dismissError}
-                        showLoadingPlaceholder={!isOfflineAndNoMemberDataAvailable && (!OptionsListUtils.isPersonalDetailsReady(personalDetails) || isEmptyObject(policyMembers))}
-                        showScrollIndicator
-                        shouldPreventDefaultFocusOnSelectRow={!DeviceCapabilities.canUseTouchScreen()}
-                        ref={textInputRef}
-                        customListHeader={getCustomListHeader()}
-                        listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+            {() => (
+                <>
+                    {shouldUseNarrowLayout && <View style={[styles.pl5, styles.pr5]}>{getHeaderButtons()}</View>}
+                    <ConfirmModal
+                        isVisible={isOfflineModalVisible}
+                        onConfirm={() => setIsOfflineModalVisible(false)}
+                        title={translate('common.youAppearToBeOffline')}
+                        prompt={translate('common.thisFeatureRequiresInternet')}
+                        confirmText={translate('common.buttonConfirm')}
+                        shouldShowCancelButton={false}
                     />
-                </View>
-            </FullPageNotFoundView>
-        </ScreenWrapper>
+
+                    <ConfirmModal
+                        danger
+                        title={translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length})}
+                        isVisible={removeMembersConfirmModalVisible}
+                        onConfirm={removeUsers}
+                        onCancel={() => setRemoveMembersConfirmModalVisible(false)}
+                        prompt={confirmModalPrompt}
+                        confirmText={translate('common.remove')}
+                        cancelText={translate('common.cancel')}
+                        onModalHide={() => {
+                            InteractionManager.runAfterInteractions(() => {
+                                if (!textInputRef.current) {
+                                    return;
+                                }
+                                textInputRef.current.focus();
+                            });
+                        }}
+                    />
+                    <DecisionModal
+                        title={translate('common.downloadFailedTitle')}
+                        prompt={translate('common.downloadFailedDescription')}
+                        isSmallScreenWidth={isSmallScreenWidth}
+                        onSecondOptionSubmit={() => setIsDownloadFailureModalVisible(false)}
+                        secondOptionText={translate('common.buttonConfirm')}
+                        isVisible={isDownloadFailureModalVisible}
+                        onClose={() => setIsDownloadFailureModalVisible(false)}
+                    />
+                    <View style={[styles.w100, styles.flex1]}>
+                        <SelectionListWithModal
+                            ref={selectionListRef}
+                            canSelectMultiple={canSelectMultiple}
+                            sections={[{data, isDisabled: false}]}
+                            ListItem={TableListItem}
+                            turnOnSelectionModeOnLongPress={isPolicyAdmin}
+                            onTurnOnSelectionMode={(item) => item && toggleUser(item?.accountID)}
+                            shouldUseUserSkeletonView
+                            disableKeyboardShortcuts={removeMembersConfirmModalVisible}
+                            headerMessage={getHeaderMessage()}
+                            headerContent={!shouldUseNarrowLayout && getHeaderContent()}
+                            onSelectRow={openMemberDetails}
+                            shouldSingleExecuteRowSelect={!isPolicyAdmin}
+                            onCheckboxPress={(item) => toggleUser(item.accountID)}
+                            onSelectAll={() => toggleAllUsers(data)}
+                            onDismissError={dismissError}
+                            showLoadingPlaceholder={isLoading}
+                            shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
+                            textInputRef={textInputRef}
+                            customListHeader={getCustomListHeader()}
+                            listHeaderWrapperStyle={[styles.ph9, styles.pv3, styles.pb5]}
+                            listHeaderContent={shouldUseNarrowLayout ? <View style={[styles.pr5]}>{getHeaderContent()}</View> : null}
+                            showScrollIndicator={false}
+                            addBottomSafeAreaPadding
+                        />
+                    </View>
+                </>
+            )}
+        </WorkspacePageWithSections>
     );
 }
 
 WorkspaceMembersPage.displayName = 'WorkspaceMembersPage';
 
-export default withCurrentUserPersonalDetails(
-    withPolicyAndFullscreenLoading(
-        withOnyx<WorkspaceMembersPageProps, WorkspaceMembersPageOnyxProps>({
-            personalDetails: {
-                key: ONYXKEYS.PERSONAL_DETAILS_LIST,
-            },
-            session: {
-                key: ONYXKEYS.SESSION,
-            },
-        })(WorkspaceMembersPage),
-    ),
-);
+export default withCurrentUserPersonalDetails(withPolicyAndFullscreenLoading(WorkspaceMembersPage));

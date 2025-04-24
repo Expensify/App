@@ -1,7 +1,33 @@
+import Onyx from 'react-native-onyx';
 import * as Environment from '@libs/Environment/Environment';
 import getPlatform from '@libs/getPlatform';
 import CONFIG from '@src/CONFIG';
+import ONYXKEYS from '@src/ONYXKEYS';
+import pkg from '../../../package.json';
 import * as NetworkStore from './NetworkStore';
+
+// For all requests, we'll send the lastUpdateID that is applied to this client. This will
+// allow us to calculate previousUpdateID faster.
+let lastUpdateIDAppliedToClient = -1;
+Onyx.connect({
+    key: ONYXKEYS.ONYX_UPDATES_LAST_UPDATE_ID_APPLIED_TO_CLIENT,
+    callback: (value) => {
+        if (value) {
+            lastUpdateIDAppliedToClient = value;
+        } else {
+            lastUpdateIDAppliedToClient = -1;
+        }
+    },
+});
+
+// Check if the user is logged in as a delegate and send that if so
+let delegate = '';
+Onyx.connect({
+    key: ONYXKEYS.ACCOUNT,
+    callback: (val) => {
+        delegate = val?.delegatedAccess?.delegate ?? '';
+    },
+});
 
 /**
  * Does this command require an authToken?
@@ -16,12 +42,8 @@ function isAuthTokenRequired(command: string): boolean {
 export default function enhanceParameters(command: string, parameters: Record<string, unknown>): Record<string, unknown> {
     const finalParameters = {...parameters};
 
-    if (isAuthTokenRequired(command)) {
-        if (NetworkStore.getSupportAuthToken() && NetworkStore.isSupportRequest(command)) {
-            finalParameters.authToken = NetworkStore.getSupportAuthToken();
-        } else if (!parameters.authToken) {
-            finalParameters.authToken = NetworkStore.getAuthToken();
-        }
+    if (isAuthTokenRequired(command) && !parameters.authToken) {
+        finalParameters.authToken = NetworkStore.getAuthToken() ?? null;
     }
 
     finalParameters.referer = CONFIG.EXPENSIFY.EXPENSIFY_CASH_REFERER;
@@ -40,8 +62,13 @@ export default function enhanceParameters(command: string, parameters: Record<st
 
     finalParameters.isFromDevEnv = Environment.isDevelopment();
 
-    // idempotencyKey declared in JS is front-end-only. We delete it here so it doesn't interfere with idempotency in other layers.
-    delete finalParameters.idempotencyKey;
+    finalParameters.appversion = pkg.version;
+
+    finalParameters.clientUpdateID = lastUpdateIDAppliedToClient;
+
+    if (delegate) {
+        finalParameters.delegate = delegate;
+    }
 
     return finalParameters;
 }

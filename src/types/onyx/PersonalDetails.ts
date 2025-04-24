@@ -1,9 +1,12 @@
+import type {TupleToUnion} from 'type-fest';
 import type {AvatarSource} from '@libs/UserUtils';
 import type TIMEZONES from '@src/TIMEZONES';
 import type * as OnyxCommon from './OnyxCommon';
 
-type SelectedTimezone = (typeof TIMEZONES)[number];
+/** Selectable timezones */
+type SelectedTimezone = TupleToUnion<typeof TIMEZONES>;
 
+/** Model of timezone */
 type Timezone = {
     /** Value of selected timezone */
     selected?: SelectedTimezone;
@@ -12,6 +15,7 @@ type Timezone = {
     automatic?: boolean;
 };
 
+/** Model of user status */
 type Status = {
     /** The emoji code of the status */
     emojiCode: string;
@@ -23,6 +27,7 @@ type Status = {
     clearAfter: string; // ISO 8601 format;
 };
 
+/** Model of user personal details */
 type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** ID of the current user from their personal details */
     accountID: number;
@@ -48,6 +53,7 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Avatar thumbnail URL of the current user from their personal details */
     avatarThumbnail?: string;
 
+    /** Avatar original file name with extension */
     originalFileName?: string;
 
     /** Flag to set when Avatar uploading */
@@ -68,9 +74,6 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Flag for checking if data is from optimistic data */
     isOptimisticPersonalDetail?: boolean;
 
-    /** Whether we are loading the data via the API */
-    isLoading?: boolean;
-
     /** Field-specific server side errors keyed by microtime */
     errorFields?: OnyxCommon.ErrorFields<'avatar'>;
 
@@ -81,8 +84,15 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     status?: Status;
 }>;
 
+/** Model of personal details metadata */
+type PersonalDetailsMetadata = {
+    /** Whether we are waiting for the data to load via the API */
+    isLoading?: boolean;
+};
+
+/** Record of user personal details, indexed by user id */
 type PersonalDetailsList = Record<string, PersonalDetails | null>;
 
 export default PersonalDetails;
 
-export type {Timezone, Status, SelectedTimezone, PersonalDetailsList};
+export type {Timezone, Status, SelectedTimezone, PersonalDetailsList, PersonalDetailsMetadata};

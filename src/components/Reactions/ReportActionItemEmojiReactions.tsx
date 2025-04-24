@@ -23,7 +23,7 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
     emojiReactions: OnyxEntry<ReportActionReactions>;
 
     /** The user's preferred locale. */
-    preferredLocale: OnyxEntry<Locale>;
+    preferredLocale?: OnyxEntry<Locale>;
 
     /** The report action that these reactions are for */
     reportAction: ReportAction;
@@ -33,10 +33,13 @@ type ReportActionItemEmojiReactionsProps = WithCurrentUserPersonalDetailsProps &
      * This can also be an emoji the user already reacted with,
      * hence this function asks to toggle the reaction by emoji.
      */
-    toggleReaction: (emoji: Emoji) => void;
+    toggleReaction: (emoji: Emoji, ignoreSkinToneOnCompare?: boolean) => void;
 
     /** We disable reacting with emojis on report actions that have errors */
     shouldBlockReactions?: boolean;
+
+    /** Function to update emoji picker state */
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 type PopoverReactionListAnchors = Record<string, ReactionListAnchor>;
@@ -68,6 +71,8 @@ type FormattedReaction = {
 
     /** The type of action that's pending  */
     pendingAction?: PendingAction;
+
+    setIsEmojiPickerActive?: (state: boolean) => void;
 };
 
 function ReportActionItemEmojiReactions({
@@ -77,12 +82,11 @@ function ReportActionItemEmojiReactions({
     emojiReactions = {},
     shouldBlockReactions = false,
     preferredLocale = CONST.LOCALES.DEFAULT,
+    setIsEmojiPickerActive,
 }: ReportActionItemEmojiReactionsProps) {
     const styles = useThemeStyles();
     const reactionListRef = useContext(ReactionListContext);
     const popoverReactionListAnchors = useRef<PopoverReactionListAnchors>({});
-
-    let totalReactionCount = 0;
 
     const reportActionID = reportAction.reportActionID;
 
@@ -98,10 +102,9 @@ function ReportActionItemEmojiReactions({
             if (reactionCount === 0) {
                 return null;
             }
-            totalReactionCount += reactionCount;
 
             const onPress = () => {
-                toggleReaction(emoji);
+                toggleReaction(emoji, true);
             };
 
             const onReactionListOpen = (event: ReactionListEvent) => {
@@ -122,6 +125,8 @@ function ReportActionItemEmojiReactions({
         }),
         ['oldestTimestamp'],
     );
+
+    const totalReactionCount = formattedReactions.reduce((prev, curr) => (curr === null ? prev : prev + curr.reactionCount), 0);
 
     return (
         totalReactionCount > 0 && (
@@ -149,7 +154,7 @@ function ReportActionItemEmojiReactions({
                                     shouldDisableOpacity={!!reportAction.pendingAction}
                                 >
                                     <EmojiReactionBubble
-                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref)}
+                                        ref={(ref) => (popoverReactionListAnchors.current[reaction.reactionEmojiName] = ref ?? null)}
                                         count={reaction.reactionCount}
                                         emojiCodes={reaction.emojiCodes}
                                         onPress={reaction.onPress}
@@ -166,6 +171,7 @@ function ReportActionItemEmojiReactions({
                     <AddReactionBubble
                         onSelectEmoji={toggleReaction}
                         reportAction={reportAction}
+                        setIsEmojiPickerActive={setIsEmojiPickerActive}
                     />
                 )}
             </View>

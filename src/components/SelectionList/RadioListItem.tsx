@@ -1,54 +1,66 @@
 import React from 'react';
 import {View} from 'react-native';
 import TextWithTooltip from '@components/TextWithTooltip';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import variables from '@styles/variables';
+import CONST from '@src/CONST';
 import BaseListItem from './BaseListItem';
-import type {RadioListItemProps} from './types';
+import type {ListItem, RadioListItemProps} from './types';
 
-function RadioListItem({
+function RadioListItem<TItem extends ListItem>({
     item,
     isFocused,
     showTooltip,
     isDisabled,
-    canSelectMultiple,
     onSelectRow,
-    onCheckboxPress,
     onDismissError,
-    shouldPreventDefaultFocusOnSelectRow,
+    shouldPreventEnterKeySubmit,
     rightHandSideComponent,
     isMultilineSupported = false,
-}: RadioListItemProps) {
+    isAlternateTextMultilineSupported = false,
+    alternateTextNumberOfLines = 2,
+    onFocus,
+    shouldSyncFocus,
+    wrapperStyle,
+    titleStyles,
+}: RadioListItemProps<TItem>) {
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
+    const fullTitle = isMultilineSupported ? item.text?.trimStart() : item.text;
+    const indentsLength = (item.text?.length ?? 0) - (fullTitle?.length ?? 0);
+    const paddingLeft = Math.floor(indentsLength / CONST.INDENTS.length) * styles.ml3.marginLeft;
+    const alternateTextMaxWidth = variables.sideBarWidth - styles.ph5.paddingHorizontal * 2 - styles.ml3.marginLeft - variables.iconSizeNormal;
 
     return (
         <BaseListItem
             item={item}
-            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, isFocused && styles.sidebarLinkActive]}
-            selectMultipleStyle={[StyleUtils.getCheckboxContainerStyle(20), StyleUtils.getMultiselectListStyles(!!item.isSelected, !!item.isDisabled)]}
+            wrapperStyle={[styles.flex1, styles.justifyContentBetween, styles.sidebarLinkInner, styles.userSelectNone, styles.optionRow, wrapperStyle]}
             isFocused={isFocused}
             isDisabled={isDisabled}
             showTooltip={showTooltip}
-            canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
-            onCheckboxPress={onCheckboxPress}
             onDismissError={onDismissError}
-            shouldPreventDefaultFocusOnSelectRow={shouldPreventDefaultFocusOnSelectRow}
+            shouldPreventEnterKeySubmit={shouldPreventEnterKeySubmit}
             rightHandSideComponent={rightHandSideComponent}
             keyForList={item.keyForList}
+            onFocus={onFocus}
+            shouldSyncFocus={shouldSyncFocus}
+            pendingAction={item.pendingAction}
         >
             <>
+                {!!item.leftElement && item.leftElement}
                 <View style={[styles.flex1, styles.alignItemsStart]}>
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
-                        text={item.text}
+                        text={fullTitle ?? ''}
                         style={[
                             styles.optionDisplayName,
                             isFocused ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
                             item.alternateText ? styles.mb1 : null,
+                            isDisabled && styles.colorMuted,
+                            isMultilineSupported ? {paddingLeft} : null,
+                            titleStyles,
                         ]}
                         numberOfLines={isMultilineSupported ? 2 : 1}
                     />
@@ -57,7 +69,13 @@ function RadioListItem({
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}
-                            style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
+                            style={[
+                                styles.textLabelSupporting,
+                                styles.lh16,
+                                isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
+                                isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
+                            ]}
+                            numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />
                     )}
                 </View>

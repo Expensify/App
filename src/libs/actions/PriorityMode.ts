@@ -1,11 +1,13 @@
 import debounce from 'lodash/debounce';
-import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import * as CollectionUtils from '@libs/CollectionUtils';
+import type {OnyxCollection} from 'react-native-onyx';
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
-import * as ReportUtils from '@libs/ReportUtils';
+import navigationRef from '@libs/Navigation/navigationRef';
+import {isReportParticipant, isValidReport} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 import type {Report} from '@src/types/onyx';
 
 /**
@@ -22,7 +24,7 @@ let isReadyPromise = new Promise((resolve) => {
     resolveIsReadyPromise = resolve;
 });
 
-let currentUserAccountID: number | undefined | null;
+let currentUserAccountID: number | undefined;
 Onyx.connect({
     key: ONYXKEYS.SESSION,
     callback: (val) => {
@@ -35,27 +37,6 @@ Onyx.connect({
  */
 // eslint-disable-next-line @typescript-eslint/no-use-before-define
 const autoSwitchToFocusMode = debounce(tryFocusModeUpdate, 300, {leading: true});
-
-let allReports: OnyxCollection<Report> | undefined;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.REPORT,
-    callback: (report, key) => {
-        if (!key || !report) {
-            return;
-        }
-
-        if (!allReports) {
-            allReports = {};
-        }
-
-        const reportID = CollectionUtils.extractCollectionItemID(key);
-
-        allReports[reportID] = report;
-
-        // Each time a new report is added we will check to see if the user should be switched
-        autoSwitchToFocusMode();
-    },
-});
 
 let isLoadingReportData = true;
 Onyx.connect({
@@ -80,7 +61,7 @@ Onyx.connect({
     },
 });
 
-let hasTriedFocusMode: boolean | undefined | null;
+let hasTriedFocusMode: boolean | undefined;
 Onyx.connect({
     key: ONYXKEYS.NVP_TRY_FOCUS_MODE,
     callback: (val) => {
@@ -91,13 +72,21 @@ Onyx.connect({
     },
 });
 
+let allReports: OnyxCollection<Report> = {};
+Onyx.connect({
+    key: ONYXKEYS.COLLECTION.REPORT,
+    waitForCollectionCallback: true,
+    callback: (value) => {
+        allReports = value;
+    },
+});
+
 function resetHasReadRequiredDataFromStorage() {
     // Create a new promise and a new resolve function
     isReadyPromise = new Promise((resolve) => {
         resolveIsReadyPromise = resolve;
     });
     isLoadingReportData = true;
-    allReports = {};
 }
 
 function checkRequiredData() {
@@ -115,6 +104,15 @@ function tryFocusModeUpdate() {
             return;
         }
 
+        const currentRoute = navigationRef.getCurrentRoute();
+        if (getIsNarrowLayout()) {
+            if (currentRoute?.name !== SCREENS.HOME) {
+                return;
+            }
+        } else if (currentRoute?.name !== SCREENS.REPORT) {
+            return;
+        }
+
         // Check to see if the user is using #focus mode, has tried it before, or we have already switched them over automatically.
         if ((isInFocusMode ?? false) || hasTriedFocusMode) {
             Log.info('Not switching user to optimized focus mode.', false, {isInFocusMode, hasTriedFocusMode});
@@ -128,7 +126,7 @@ function tryFocusModeUpdate() {
                 return;
             }
 
-            if (!ReportUtils.isValidReport(report) || !ReportUtils.isReportParticipant(currentUserAccountID ?? 0, report)) {
+            if (!isValidReport(report) || !isReportParticipant(currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID, report)) {
                 return;
             }
 

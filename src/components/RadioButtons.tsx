@@ -3,7 +3,6 @@ import type {ForwardedRef} from 'react';
 import {View} from 'react-native';
 import type {StyleProp, ViewStyle} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {MaybePhraseKey} from '@libs/Localize';
 import FormHelpMessage from './FormHelpMessage';
 import RadioButtonWithLabel from './RadioButtonWithLabel';
 
@@ -24,7 +23,7 @@ type RadioButtonsProps = {
     onPress: (value: string) => void;
 
     /** Potential error text provided by a form InputWrapper */
-    errorText?: MaybePhraseKey;
+    errorText?: string;
 
     /** Style for radio button */
     radioButtonStyle?: StyleProp<ViewStyle>;

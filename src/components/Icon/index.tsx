@@ -25,6 +25,12 @@ type IconProps = {
     /** Is small icon */
     small?: boolean;
 
+    /** Is large icon */
+    large?: boolean;
+
+    /** Is medium icon */
+    medium?: boolean;
+
     /** Is inline icon */
     inline?: boolean;
 
@@ -42,6 +48,9 @@ type IconProps = {
 
     /** Determines how the image should be resized to fit its container */
     contentFit?: ImageContentFit;
+
+    /** Determines whether the icon is being used within a button. The icon size will remain the same for both icon-only buttons and buttons with text. */
+    isButtonIcon?: boolean;
 };
 
 function Icon({
@@ -50,17 +59,19 @@ function Icon({
     height = variables.iconSizeNormal,
     fill = undefined,
     small = false,
+    large = false,
+    medium = false,
     inline = false,
     additionalStyles = [],
     hovered = false,
     pressed = false,
     testID = '',
     contentFit = 'cover',
+    isButtonIcon = false,
 }: IconProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
-    const iconWidth = small ? variables.iconSizeSmall : width;
-    const iconHeight = small ? variables.iconSizeSmall : height;
+    const {width: iconWidth, height: iconHeight} = StyleUtils.getIconWidthAndHeightStyle(small, medium, large, width, height, isButtonIcon);
     const iconStyles = [StyleUtils.getWidthAndHeightStyle(width ?? 0, height), IconWrapperStyles, styles.pAbsolute, additionalStyles];
 
     if (inline) {
@@ -104,5 +115,4 @@ function Icon({
 
 Icon.displayName = 'Icon';
 
-export type {IconProps};
 export default Icon;
