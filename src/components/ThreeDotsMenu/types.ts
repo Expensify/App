@@ -49,7 +49,7 @@ type ThreeDotsMenuProps = {
     isNested?: boolean;
 
     /** Ref to the menu */
-    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean} | null>;
+    threeDotsMenuRef?: React.RefObject<{hidePopoverMenu: () => void; isPopupMenuVisible: boolean}>;
 };
 
 type ThreeDotsMenuWithOptionalAnchorProps =

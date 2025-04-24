@@ -197,8 +197,9 @@ type Phase = 'mount' | 'update' | 'nested-update';
  * @param baseDuration estimated time to render the entire subtree without memoization
  * @param startTime when React began rendering this update
  * @param commitTime when React committed this update
+ * @param interactions the Set of interactions belonging to this update
  */
-function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number): PerformanceMeasure {
+function traceRender(id: string, phase: Phase, actualDuration: number, baseDuration: number, startTime: number, commitTime: number, interactions: Set<unknown>): PerformanceMeasure {
     return performance.measure(id, {
         start: startTime,
         duration: actualDuration,
@@ -206,6 +207,7 @@ function traceRender(id: string, phase: Phase, actualDuration: number, baseDurat
             phase,
             baseDuration,
             commitTime,
+            interactions,
         },
     });
 }

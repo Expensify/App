@@ -122,7 +122,7 @@ function BaseValidateCodeForm({
     const [canShowError, setCanShowError] = useState<boolean>(false);
     const latestActionVerifiedError = getLatestErrorField(validateCodeAction, 'actionVerified');
 
-    const timerRef = useRef<NodeJS.Timeout>(undefined);
+    const timerRef = useRef<NodeJS.Timeout>();
 
     useImperativeHandle(innerRef, () => ({
         focus() {

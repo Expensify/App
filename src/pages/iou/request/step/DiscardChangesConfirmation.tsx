@@ -12,7 +12,7 @@ type DiscardChangesConfirmationProps = {
 function DiscardChangesConfirmation({getHasUnsavedChanges}: DiscardChangesConfirmationProps) {
     const {translate} = useLocalize();
     const [isVisible, setIsVisible] = useState(false);
-    const blockedNavigationAction = useRef<NavigationAction>(undefined);
+    const blockedNavigationAction = useRef<NavigationAction>();
 
     useBeforeRemove(
         useCallback(

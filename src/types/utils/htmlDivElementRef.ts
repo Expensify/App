@@ -1,5 +1,5 @@
 import type {View} from 'react-native';
 
-const htmlDivElementRef = (ref: React.RefObject<View | HTMLDivElement | null>) => ref as React.RefObject<HTMLDivElement | null>;
+const htmlDivElementRef = (ref: React.RefObject<View | HTMLDivElement>) => ref as React.RefObject<HTMLDivElement>;
 
 export default htmlDivElementRef;

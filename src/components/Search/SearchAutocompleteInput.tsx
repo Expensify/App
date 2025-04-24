@@ -38,7 +38,7 @@ type SearchAutocompleteInputProps = {
     onSubmit?: () => void;
 
     /** SearchAutocompleteList ref for managing TextInput and SearchAutocompleteList focus */
-    autocompleteListRef?: RefObject<SelectionListHandle | null>;
+    autocompleteListRef?: RefObject<SelectionListHandle>;
 
     /** Whether the input is full width */
     isFullWidth: boolean;

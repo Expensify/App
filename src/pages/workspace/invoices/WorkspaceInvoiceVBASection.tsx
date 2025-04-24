@@ -203,7 +203,7 @@ function WorkspaceInvoiceVBASection({policyID}: WorkspaceInvoiceVBASectionProps)
                     top: anchorPosition.anchorPositionTop,
                     right: anchorPosition.anchorPositionRight,
                 }}
-                anchorRef={paymentMethodButtonRef as RefObject<View | null>}
+                anchorRef={paymentMethodButtonRef as RefObject<View>}
             >
                 {!showConfirmDeleteModal && (
                     <View

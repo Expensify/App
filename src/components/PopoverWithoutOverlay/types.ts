@@ -24,7 +24,7 @@ type PopoverWithoutOverlayProps = ChildrenProps &
         disableAnimation?: boolean;
 
         /** The ref of the popover */
-        withoutOverlayRef: RefObject<View | HTMLDivElement | null>;
+        withoutOverlayRef: RefObject<View | HTMLDivElement>;
     };
 
 export default PopoverWithoutOverlayProps;

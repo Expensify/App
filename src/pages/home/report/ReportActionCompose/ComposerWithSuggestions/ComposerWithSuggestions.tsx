@@ -1,6 +1,6 @@
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import lodashDebounce from 'lodash/debounce';
-import type {ForwardedRef, RefObject} from 'react';
+import type {ForwardedRef, MutableRefObject, RefObject} from 'react';
 import React, {forwardRef, memo, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
 import type {
     LayoutChangeEvent,
@@ -126,10 +126,10 @@ type ComposerWithSuggestionsProps = Partial<ChildrenProps> & {
     raiseIsScrollLikelyLayoutTriggered: () => void;
 
     /** The ref to the suggestions */
-    suggestionsRef: React.RefObject<SuggestionsRef | null>;
+    suggestionsRef: React.RefObject<SuggestionsRef>;
 
     /** The ref to the next modal will open */
-    isNextModalWillOpenRef: RefObject<boolean | null>;
+    isNextModalWillOpenRef: MutableRefObject<boolean | null>;
 
     /** The last report action */
     lastReportAction?: OnyxEntry<OnyxTypes.ReportAction>;

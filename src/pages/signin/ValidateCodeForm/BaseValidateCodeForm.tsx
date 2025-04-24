@@ -65,9 +65,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
     const prevRequiresTwoFactorAuth = usePrevious(account?.requiresTwoFactorAuth);
     const prevValidateCode = usePrevious(credentials?.validateCode);
 
-    const inputValidateCodeRef = useRef<MagicCodeInputHandle>(undefined);
-    const input2FARef = useRef<MagicCodeInputHandle>(undefined);
-    const timerRef = useRef<NodeJS.Timeout>(undefined);
+    const inputValidateCodeRef = useRef<MagicCodeInputHandle>();
+    const input2FARef = useRef<MagicCodeInputHandle>();
+    const timerRef = useRef<NodeJS.Timeout>();
 
     const hasError = !!account && !isEmptyObject(account?.errors) && !needToClearError;
     const isLoadingResendValidationForm = account?.loadingForm === CONST.FORMS.RESEND_VALIDATE_CODE_FORM;

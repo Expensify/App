@@ -330,7 +330,7 @@ function SecuritySettingsPage() {
                             </View>
                             <PopoverMenu
                                 isVisible={shouldShowDelegatePopoverMenu}
-                                anchorRef={delegateButtonRef as RefObject<View | null>}
+                                anchorRef={delegateButtonRef as RefObject<View>}
                                 anchorPosition={{
                                     horizontal: anchorPosition.horizontal,
                                     vertical: anchorPosition.vertical,

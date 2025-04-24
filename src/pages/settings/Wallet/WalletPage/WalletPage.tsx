@@ -611,7 +611,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         top: anchorPosition.anchorPositionTop,
                         right: anchorPosition.anchorPositionRight,
                     }}
-                    anchorRef={paymentMethodButtonRef as RefObject<View | null>}
+                    anchorRef={paymentMethodButtonRef as RefObject<View>}
                 >
                     {!showConfirmDeleteModal && (
                         <View
@@ -679,7 +679,7 @@ function WalletPage({shouldListenForResize = false}: WalletPageProps) {
                         top: anchorPosition.anchorPositionTop,
                         right: anchorPosition.anchorPositionRight,
                     }}
-                    anchorRef={paymentMethodButtonRef as RefObject<View | null>}
+                    anchorRef={paymentMethodButtonRef as RefObject<View>}
                 >
                     <View
                         style={[

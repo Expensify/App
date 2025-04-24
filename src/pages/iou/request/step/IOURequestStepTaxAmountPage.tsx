@@ -65,11 +65,11 @@ function IOURequestStepTaxAmountPage({
     splitDraftTransaction,
 }: IOURequestStepTaxAmountPageProps) {
     const {translate} = useLocalize();
-    const textInput = useRef<BaseTextInputRef | null>(undefined);
+    const textInput = useRef<BaseTextInputRef | null>();
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplitBill = isEditing && iouType === CONST.IOU.TYPE.SPLIT;
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout>(undefined);
+    const focusTimeoutRef = useRef<NodeJS.Timeout>();
 
     const currentTransaction = isEditingSplitBill && !isEmptyObject(splitDraftTransaction) ? splitDraftTransaction : transaction;
     const transactionDetails = ReportUtils.getTransactionDetails(currentTransaction);

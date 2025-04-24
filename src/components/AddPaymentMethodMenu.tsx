@@ -37,7 +37,7 @@ type AddPaymentMethodMenuProps = {
     anchorAlignment?: AnchorAlignment;
 
     /** Popover anchor ref */
-    anchorRef: RefObject<View | HTMLDivElement | null>;
+    anchorRef: RefObject<View | HTMLDivElement>;
 
     /** Whether the personal bank account option should be shown */
     shouldShowPersonalBankAccountOption?: boolean;

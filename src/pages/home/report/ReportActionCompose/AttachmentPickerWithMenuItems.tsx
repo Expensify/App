@@ -84,7 +84,7 @@ type AttachmentPickerWithMenuItemsProps = {
     onItemSelected: () => void;
 
     /** A ref for the add action button */
-    actionButtonRef: React.RefObject<HTMLDivElement | View | null>;
+    actionButtonRef: React.RefObject<HTMLDivElement | View>;
 
     /** A function that toggles isScrollLikelyLayoutTriggered flag for a certain period of time */
     raiseIsScrollLikelyLayoutTriggered: () => void;

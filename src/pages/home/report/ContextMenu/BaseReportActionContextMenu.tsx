@@ -93,7 +93,7 @@ type BaseReportActionContextMenuProps = {
     isThreadReportParentAction?: boolean;
 
     /** Content Ref */
-    contentRef?: RefObject<View | null>;
+    contentRef?: RefObject<View>;
 
     /** Function to check if context menu is active */
     checkIfContextMenuActive?: () => void;
