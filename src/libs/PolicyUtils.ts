@@ -43,6 +43,7 @@ import {isOffline as isOfflineNetworkStore} from './Network/NetworkStore';
 import {getAccountIDsByLogins, getLoginByAccountID, getLoginsByAccountIDs, getPersonalDetailByEmail} from './PersonalDetailsUtils';
 import {getAllSortedTransactions, getCategory, getTag} from './TransactionUtils';
 import {isPublicDomain} from './ValidationUtils';
+import { isIOUReport } from './ReportUtils';
 
 type MemberEmailsToAccountIDs = Record<string, number>;
 
@@ -1120,6 +1121,12 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
 
     const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
     if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+        return false;
+    }
+
+    // The report payer must also be a payer in the policy
+    const payerLogin = report?.managerID ? getLoginByAccountID(report?.managerID) : undefined;
+    if (!isUserPolicyAdmin(newPolicy, payerLogin)) {
         return false;
     }
 
