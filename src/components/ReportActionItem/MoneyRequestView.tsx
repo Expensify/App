@@ -279,10 +279,10 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
         if (!isDistanceRequest && !isPerDiemRequest) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.cash')}`;
         }
-        if (isApproved) {
-            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
-        } else if (isCancelled) {
+        if (isCancelled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.canceled')}`;
+        } else if (isApproved) {
+            amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.approved')}`;
         } else if (isSettled) {
             amountDescription += ` ${CONST.DOT_SEPARATOR} ${translate('iou.settledExpensify')}`;
         }
@@ -459,6 +459,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                 <MenuItemWithTopDescription
                     description={name ?? translate('common.tag')}
                     title={tagForDisplay}
+                    numberOfLinesTitle={2}
                     interactive={canEdit}
                     shouldShowRightIcon={canEdit}
                     titleStyle={styles.flex1}
@@ -672,6 +673,7 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         <MenuItemWithTopDescription
                             description={translate('common.category')}
                             title={updatedTransaction?.category ?? transactionCategory}
+                            numberOfLinesTitle={2}
                             interactive={canEdit}
                             shouldShowRightIcon={canEdit}
                             titleStyle={styles.flex1}

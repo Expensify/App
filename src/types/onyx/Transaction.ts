@@ -214,27 +214,6 @@ type ReceiptError = {
 /** Collection of receipt errors, indexed by a UNIX timestamp of when the error occurred */
 type ReceiptErrors = Record<string, ReceiptError>;
 
-/** Tax rate data */
-type TaxRateData = {
-    /** Tax rate percentage */
-    value: string;
-
-    /** Tax rate code */
-    code?: string;
-};
-
-/** Model of tax rate */
-type TaxRate = {
-    /** Default name of the tax rate */
-    text: string;
-
-    /** Key of the tax rate to index it on options list */
-    keyForList: string;
-
-    /** Data of the tax rate */
-    data?: TaxRateData;
-};
-
 /** This represents the details of the traveler */
 type TravelerPersonalDetails = {
     /** Email of the traveler */
@@ -479,7 +458,7 @@ type Transaction = OnyxCommon.OnyxValueWithOfflineFeedback<
         isFromGlobalCreate?: boolean;
 
         /** The transaction tax rate */
-        taxRate?: TaxRate;
+        taxRate?: string | undefined;
 
         /** Card Transactions */
 
@@ -593,13 +572,11 @@ export type {
     ReceiptErrors,
     TransactionPendingFieldsKey,
     TransactionChanges,
-    TaxRate,
     Reservation,
     ReservationTimeDetails,
     ReservationType,
     ReceiptSource,
     TransactionCollectionDataSet,
-    SplitShare,
     SplitShares,
     TransactionCustomUnit,
 };
