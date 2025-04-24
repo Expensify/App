@@ -144,14 +144,15 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleSearchAction = useCallback((value: string) => {
-        if (!isAutocompleteListVisible) {
-            return;
-        }
-        handleSearch(value);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isAutocompleteListVisible]);
+    const handleSearchAction = useCallback(
+        (value: string) => {
+            if (!isAutocompleteListVisible) {
+                return;
+            }
+            handleSearch(value);
+        },
+        [isAutocompleteListVisible],
+    );
 
     const onSearchQueryChange = useCallback(
         (userQuery: string) => {

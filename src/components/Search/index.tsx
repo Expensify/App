@@ -47,14 +47,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import {useSearchContext} from './SearchContext';
 import SearchList from './SearchList';
 import SearchScopeProvider from './SearchScopeProvider';
-import type {
-    SearchColumnType,
-    SearchParams,
-    SearchQueryJSON,
-    SelectedTransactionInfo,
-    SelectedTransactions,
-    SortOrder,
-} from './types';
+import type {SearchColumnType, SearchParams, SearchQueryJSON, SelectedTransactionInfo, SelectedTransactions, SortOrder} from './types';
 
 type SearchProps = {
     queryJSON: SearchQueryJSON;
