@@ -70,11 +70,8 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const StyleUtils = useStyleUtils();
     const session = useSession();
     const {translate} = useLocalize();
-    const parentReport = useParentReport(taskItem.reportID);
+    const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-
-    const taskAssigneeID = taskItem.assignee.accountID;
-    const taskCreatorID = taskItem.createdBy.accountID;
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {
