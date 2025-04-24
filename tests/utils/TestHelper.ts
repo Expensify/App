@@ -1,6 +1,5 @@
 import {fireEvent, screen} from '@testing-library/react-native';
 import {Str} from 'expensify-common';
-import {Linking} from 'react-native';
 import Onyx from 'react-native-onyx';
 import type {ConnectOptions, OnyxKey} from 'react-native-onyx/dist/types';
 import type {ApiCommand, ApiRequestCommandParameters} from '@libs/API/types';
@@ -41,7 +40,6 @@ type FormData = {
 
 function setupApp() {
     beforeAll(() => {
-        Linking.setInitialURL('https://new.expensify.com/');
         appSetup();
 
         // Connect to Pusher
