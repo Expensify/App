@@ -23,7 +23,7 @@ jest.mock('@components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
 describe('actions/Task', () => {
-    describe('canModify and canAction tasl', () => {
+    describe('canModify and canAction task', () => {
         const managerAccountID = 1;
         const employeeAccountID = 2;
         const taskAssigneeAccountID = 3;
