@@ -9,6 +9,7 @@ import {
     getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     hasNoPolicyOtherThanPersonalType,
@@ -61,6 +62,12 @@ function isSubmitAction(report: Report, policy?: Policy): boolean {
     const isOpenReport = isOpenReportUtils(report);
 
     if (!isOpenReport) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
@@ -400,7 +407,7 @@ function getSecondaryReportActions(
         options.push(CONST.REPORT.SECONDARY_ACTIONS.ADD_EXPENSE);
     }
 
-    if (isSubmitAction(report, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 

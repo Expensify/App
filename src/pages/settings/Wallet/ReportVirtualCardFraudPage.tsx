@@ -28,15 +28,15 @@ type ReportVirtualCardFraudPageProps = PlatformStackScreenProps<SettingsNavigato
 
 function ReportVirtualCardFraudPage({
     route: {
-        params: {cardID = ''},
+        params: {cardID = '', backTo},
     },
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST);
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD);
+    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
+    const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: true});
     const primaryLogin = account?.primaryLogin ?? '';
     const loginData = loginList?.[primaryLogin];
 
@@ -102,7 +102,7 @@ function ReportVirtualCardFraudPage({
             <DelegateNoAccessWrapper accessDeniedVariants={[CONST.DELEGATE.DENIED_ACCESS_VARIANTS.DELEGATE]}>
                 <HeaderWithBackButton
                     title={translate('reportFraudPage.title')}
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_WALLET_DOMAINCARD.getRoute(cardID))}
+                    onBackButtonPress={() => Navigation.goBack(backTo)}
                 />
                 <View style={[styles.flex1, styles.justifyContentBetween]}>
                     <Text style={[styles.webViewStyles.baseFontStyle, styles.mh5]}>{translate('reportFraudPage.description')}</Text>

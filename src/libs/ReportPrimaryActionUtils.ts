@@ -8,6 +8,7 @@ import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPrefferedExporter,
@@ -36,6 +37,7 @@ import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
+    isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
@@ -54,6 +56,19 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
     const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
     return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
@@ -187,6 +202,10 @@ function isRemoveHoldAction(report: Report, reportTransactions: Transaction[]) {
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
     const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
     if (!hasDuplicates) {
@@ -240,6 +259,10 @@ function getReportPrimaryAction(
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
+    }
+
+    if (isReviewDuplicatesAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
     }
 
     if (isRemoveHoldAction(report, reportTransactions)) {

@@ -86,6 +86,7 @@ describe('getReportPreviewAction', () => {
         policy.type = CONST.POLICY.TYPE.CORPORATE;
         policy.approver = CURRENT_USER_EMAIL;
         policy.approvalMode = CONST.POLICY.APPROVAL_MODE.BASIC;
+        policy.preventSelfApproval = false;
 
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
