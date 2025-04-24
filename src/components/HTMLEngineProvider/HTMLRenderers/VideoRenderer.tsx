@@ -31,11 +31,11 @@ function VideoRenderer({tnode, key}: VideoRendererProps) {
         <ShowContextMenuContext.Consumer>
             {({report}) => (
                 <AttachmentContext.Consumer>
-                    {({accountID, type, hashKey}) => (
+                    {({accountID, type, hashKey, reportID}) => (
                         <VideoPlayerPreview
                             key={key}
                             videoUrl={sourceURL}
-                            reportID={report?.reportID}
+                            reportID={reportID ?? report?.reportID}
                             fileName={fileName}
                             thumbnailUrl={thumbnailUrl}
                             videoDimensions={{width, height}}

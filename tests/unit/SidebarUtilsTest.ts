@@ -617,6 +617,42 @@ describe('SidebarUtils', () => {
 
                 expect(optionData?.alternateText).toBe(`test message`);
             });
+            it("The text should not contain the last actor's name at prefix if the report is archived.", async () => {
+                const preferredLocale = 'en';
+                const policy: Policy = {
+                    ...createRandomPolicy(1),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: null,
+                };
+                const report: Report = {
+                    ...createRandomReport(2),
+                    chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                    policyID: policy.id,
+                    policyName: policy.name,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    lastActorAccountID: 1,
+                };
+                const reportNameValuePairs = {
+                    private_isArchived: DateUtils.getDBTime(),
+                };
+
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}1`, policy);
+
+                const optionData = SidebarUtils.getOptionData({
+                    report,
+                    reportNameValuePairs,
+                    reportActions: {},
+                    personalDetails: LHNTestUtils.fakePersonalDetails,
+                    preferredLocale,
+                    policy,
+                    parentReportAction: undefined,
+                    hasViolations: false,
+                    lastMessageTextFromReport: 'test message',
+                    oneTransactionThreadReport: undefined,
+                });
+
+                expect(optionData?.alternateText).toBe(`test message`);
+            });
             it('The text should not contain the policy name at prefix if we only have a workspace', async () => {
                 const preferredLocale = 'en';
                 const policy: Policy = {
@@ -752,7 +788,7 @@ describe('SidebarUtils', () => {
                 });
 
                 // Then the alternate text should be equal to the message of the last action prepended with the last actor display name.
-                expect(result?.alternateText).toBe(`You invited 1 user`);
+                expect(result?.alternateText).toBe(`You invited 1 member`);
             });
         });
     });
