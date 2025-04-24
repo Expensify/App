@@ -2,7 +2,6 @@ import truncate from 'lodash/truncate';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import {View} from 'react-native';
-import {useOnyx} from 'react-native-onyx';
 import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
 import Button from '@components/Button';
 import {getButtonRole} from '@components/Button/utils';
@@ -14,12 +13,14 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
+import {useSearchContext} from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
 import {showContextMenuForReport} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useOnyx from '@hooks/useOnyx';
 import usePaymentAnimations from '@hooks/usePaymentAnimations';
 import usePolicy from '@hooks/usePolicy';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
@@ -59,7 +60,6 @@ import {
     hasUpdatedTotal,
     hasViolations,
     hasWarningTypeViolations,
-    isAllowedToSubmitDraftExpenseReport,
     isArchivedReportWithID,
     isInvoiceReport as isInvoiceReportUtils,
     isInvoiceRoom as isInvoiceRoomReportUtils,
@@ -85,7 +85,7 @@ import {
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, canSubmitReport, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -130,6 +130,9 @@ type ReportPreviewProps = {
 
     /** Whether the corresponding report action item is hovered */
     isHovered?: boolean;
+
+    /** Whether  context menu should be shown on press */
+    shouldDisplayContextMenu?: boolean;
 };
 
 function ReportPreview({
@@ -144,6 +147,7 @@ function ReportPreview({
     checkIfContextMenuActive = () => {},
     onPaymentOptionsShow,
     onPaymentOptionsHide,
+    shouldDisplayContextMenu = true,
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
@@ -162,10 +166,11 @@ function ReportPreview({
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
+    const {isOnSearch} = useSearchContext();
 
     const {hasMissingSmartscanFields, areAllRequestsBeingSmartScanned, hasOnlyTransactionsWithPendingRoutes, hasNonReimbursableTransactions} = useMemo(
         () => ({
-            hasMissingSmartscanFields: hasMissingSmartscanFieldsReportUtils(iouReportID),
+            hasMissingSmartscanFields: hasMissingSmartscanFieldsReportUtils(iouReportID, transactions),
             areAllRequestsBeingSmartScanned: areAllRequestsBeingSmartScannedReportUtils(iouReportID, action),
             hasOnlyTransactionsWithPendingRoutes: hasOnlyTransactionsWithPendingRoutesReportUtils(iouReportID),
             hasNonReimbursableTransactions: hasNonReimbursableTransactionsReportUtils(iouReportID),
@@ -195,8 +200,8 @@ function ReportPreview({
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
-
-    const iouSettled = isSettled(iouReportID) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
+    const iouSettled = isSettled(iouReportID, isOnSearch ? reports : undefined) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
         opacity: previewMessageOpacity.get(),
@@ -210,13 +215,13 @@ function ReportPreview({
         transform: [{scale: thumbsUpScale.get()}],
     }));
 
-    const moneyRequestComment = action?.childLastMoneyRequestComment ?? '';
     const isPolicyExpenseChat = isPolicyExpenseChatReportUtils(chatReport);
     const isInvoiceRoom = isInvoiceRoomReportUtils(chatReport);
     const isTripRoom = isTripRoomReportUtils(chatReport);
 
     const canAllowSettlement = hasUpdatedTotal(iouReport, policy);
     const numberOfRequests = transactions?.length ?? 0;
+    const moneyRequestComment = numberOfRequests < 2 ? action?.childLastMoneyRequestComment ?? '' : '';
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID);
     const numberOfScanningReceipts = transactionsWithReceipts.filter((transaction) => isReceiptBeingScanned(transaction)).length;
     const numberOfPendingRequests = transactionsWithReceipts.filter((transaction) => isPending(transaction) && isCardTransaction(transaction)).length;
@@ -244,9 +249,6 @@ function ReportPreview({
     }
 
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
-    const filteredTransactions = transactions?.filter((transaction) => transaction) ?? [];
-    const shouldShowSubmitButton = canSubmitReport(iouReport, policy, filteredTransactions, violations);
-    const shouldDisableSubmitButton = shouldShowSubmitButton && !isAllowedToSubmitDraftExpenseReport(iouReport);
 
     // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
@@ -509,7 +511,6 @@ function ReportPreview({
                 success={isWaitingForSubmissionFromCurrentUser}
                 text={translate('common.submit')}
                 onPress={() => submitReport(iouReport)}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.APPROVE]: (
@@ -517,7 +518,6 @@ function ReportPreview({
                 text={translate('iou.approve')}
                 success
                 onPress={() => confirmApproval()}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
         [CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY]: (
@@ -566,7 +566,6 @@ function ReportPreview({
             <Button
                 text={translate('common.review')}
                 onPress={() => openReportFromPreview()}
-                isDisabled={shouldDisableSubmitButton}
                 icon={Expensicons.DotIndicator}
                 iconFill={theme.danger}
                 iconHoverFill={theme.dangerHover}
@@ -578,7 +577,6 @@ function ReportPreview({
                 onPress={() => {
                     openReportFromPreview();
                 }}
-                isDisabled={shouldDisableSubmitButton}
             />
         ),
     };
@@ -594,10 +592,16 @@ function ReportPreview({
                     onPress={openReportFromPreview}
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
-                    onLongPress={(event) => showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive)}
+                    onLongPress={(event) => {
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    }}
                     shouldUseHapticsOnLongPress
                     // This is added to omit console error about nested buttons as its forbidden on web platform
-                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox]}
+                    style={[styles.flexRow, styles.justifyContentBetween, styles.reportPreviewBox, isOnSearch ? styles.borderedContentCardLarge : {}]}
                     role={getButtonRole(true)}
                     isNested
                     accessibilityLabel={translate('iou.viewDetails')}

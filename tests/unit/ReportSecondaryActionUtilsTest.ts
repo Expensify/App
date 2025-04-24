@@ -179,7 +179,8 @@ describe('getSecondaryAction', () => {
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+            isWaitingOnBankAccount: true,
         } as unknown as Report;
         const policy = {role: CONST.POLICY.ROLE.ADMIN} as unknown as Policy;
         const TRANSACTION_ID = 'transaction_id';
@@ -435,7 +436,7 @@ describe('getSecondaryAction', () => {
         } as unknown as Report;
         const policy = {
             id: POLICY_ID,
-            employeeList: {[CURRENT_USER_EMAIL]: {}},
+            employeeList: {[CURRENT_USER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN}},
             role: CONST.POLICY.ROLE.ADMIN,
         } as unknown as Policy;
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
@@ -443,7 +444,8 @@ describe('getSecondaryAction', () => {
         const policy2 = {
             id: POLICY_ID2,
             ownerAccountID: CURRENT_USER_ACCOUNT_ID,
-            employeeList: {[CURRENT_USER_EMAIL]: {}},
+            employeeList: {[CURRENT_USER_EMAIL]: {role: CONST.POLICY.ROLE.ADMIN}},
+            role: CONST.POLICY.ROLE.ADMIN,
         };
         await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID2}`, policy2);
 

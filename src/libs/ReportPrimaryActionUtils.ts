@@ -8,13 +8,17 @@ import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     isPrefferedExporter,
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
+    getMoneyRequestSpendBreakdown,
     getParentReport,
+    getReportNameValuePairs,
+    isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
     isExpenseReport as isExpenseReportUtils,
@@ -33,6 +37,7 @@ import {
     hasPendingRTERViolation as hasPendingRTERViolationTransactionUtils,
     isDuplicate,
     isOnHold as isOnHoldTransactionUtils,
+    isReceiptBeingScanned,
     shouldShowBrokenConnectionViolationForMultipleTransactions,
     shouldShowBrokenConnectionViolation as shouldShowBrokenConnectionViolationTransactionUtils,
 } from './TransactionUtils';
@@ -42,8 +47,21 @@ function isSubmitAction(report: Report, reportTransactions: Transaction[], polic
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isOpenReport = isOpenReportUtils(report);
     const isManualSubmitEnabled = getCorrectedAutoReportingFrequency(policy) === CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
+    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && reportTransactions.length !== 0;
+    const isAnyReceiptBeingScanned = reportTransactions?.some((transaction) => isReceiptBeingScanned(transaction));
+
+    if (isAnyReceiptBeingScanned) {
+        return false;
+    }
+
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
+    return isExpenseReport && isReportSubmitter && isOpenReport && isManualSubmitEnabled && reportTransactions.length !== 0 && transactionAreComplete;
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
@@ -51,7 +69,14 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isApprovalEnabled = policy?.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
 
-    if (!isExpenseReport || !isReportApprover || !isApprovalEnabled) {
+    if (!isExpenseReport || !isReportApprover || !isApprovalEnabled || reportTransactions.length === 0) {
+        return false;
+    }
+
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
         return false;
     }
 
@@ -73,13 +98,24 @@ function isPayAction(report: Report, policy?: Policy) {
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
     const isReportApproved = isReportApprovedUtils({report});
     const isReportClosed = isClosedReportUtils(report);
-    const isReportFinished = isReportApproved || isReportClosed;
+    const isProcessingReport = isProcessingReportUtils(report);
 
-    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished) {
-        return true;
+    const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
+    const isSubmittedWithoutApprovalsEnabled = !isApprovalEnabled && isProcessingReport;
+
+    const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
+    const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
+
+    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
+    const isChatReportArchived = isArchivedReport(reportNameValuePairs);
+
+    if (isChatReportArchived) {
+        return false;
     }
 
-    const isProcessingReport = isProcessingReportUtils(report);
+    if (isReportPayer && isExpenseReport && arePaymentsEnabled && isReportFinished && reimbursableSpend > 0) {
+        return true;
+    }
 
     if (!isProcessingReport) {
         return false;
@@ -158,6 +194,10 @@ function isRemoveHoldAction(report: Report, reportTransactions: Transaction[]) {
 }
 
 function isReviewDuplicatesAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
+    if (reportTransactions.length !== 1) {
+        return false;
+    }
+
     const hasDuplicates = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
 
     if (!hasDuplicates) {
@@ -209,6 +249,10 @@ function getReportPrimaryAction(
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
+    if (isReviewDuplicatesAction(report, reportTransactions, policy)) {
+        return CONST.REPORT.PRIMARY_ACTIONS.REVIEW_DUPLICATES;
+    }
+
     if (isRemoveHoldAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.REMOVE_HOLD;
     }

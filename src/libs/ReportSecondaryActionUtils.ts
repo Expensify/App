@@ -9,6 +9,7 @@ import {
     getAllPolicies,
     getConnectedIntegration,
     getCorrectedAutoReportingFrequency,
+    getSubmitToAccountID,
     hasAccountingConnections,
     hasIntegrationAutoSync,
     hasNoPolicyOtherThanPersonalType,
@@ -33,7 +34,13 @@ import {
 import {getSession} from './SessionUtils';
 import {allHavePendingRTERViolation, isDuplicate, isOnHold as isOnHoldTransactionUtils, shouldShowBrokenConnectionViolationForMultipleTransactions} from './TransactionUtils';
 
-function isSubmitAction(report: Report, policy?: Policy): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    if (!transactionAreComplete) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || report?.total === 0) {
@@ -53,6 +60,18 @@ function isSubmitAction(report: Report, policy?: Policy): boolean {
         return false;
     }
 
+    const submitToAccountID = getSubmitToAccountID(policy, report);
+
+    if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
+        return false;
+    }
+
+    const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
+
+    if (isAdmin) {
+        return true;
+    }
+
     const autoReportingFrequency = getCorrectedAutoReportingFrequency(policy);
 
     const isScheduledSubmitEnabled = policy?.harvesting?.enabled && autoReportingFrequency !== CONST.POLICY.AUTO_REPORTING_FREQUENCIES.MANUAL;
@@ -65,6 +84,13 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], viol
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isProcessingReport = isProcessingReportUtils(report);
     const reportHasDuplicatedTransactions = reportTransactions.some((transaction) => isDuplicate(transaction.transactionID));
+
+    const isPreventSelfApprovalEnabled = policy?.preventSelfApproval;
+    const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
+
+    if (isPreventSelfApprovalEnabled && isReportSubmitter) {
+        return false;
+    }
 
     if (isExpenseReport && isReportApprover && isProcessingReport && reportHasDuplicatedTransactions) {
         return true;
@@ -90,6 +116,12 @@ function isUnapproveAction(report: Report, policy?: Policy): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
     const isReportApproved = isReportApprovedUtils({report});
+    const isReportSettled = isSettled(report);
+    const isPaymentProcessing = report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
+
+    if (isReportSettled || isPaymentProcessing) {
+        return false;
+    }
 
     return isExpenseReport && isReportApprover && isReportApproved;
 }
@@ -114,7 +146,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         return true;
     }
 
-    const isPaymentProcessing = isSettled(report);
+    const isPaymentProcessing = !!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED;
 
     const payActions = reportTransactions.reduce((acc, transaction) => {
         const action = getIOUActionForReportID(report.reportID, transaction.transactionID);
@@ -131,6 +163,7 @@ function isCancelPaymentAction(report: Report, reportTransactions: Transaction[]
         const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
         return nowUTC.getTime() < cutoffTimeUTC.getTime();
     });
+
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
 
@@ -239,8 +272,10 @@ function isHoldAction(report: Report, reportTransactions: Transaction[]): boolea
 
 function isHoldActionForTransation(report: Report, reportTransaction: Transaction): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
+    const iouOrExpenseReport = isExpenseReport || isIOUReport;
 
-    if (!isExpenseReport) {
+    if (!iouOrExpenseReport) {
         return false;
     }
 
@@ -329,11 +364,12 @@ function isChangeWorkspaceAction(report: Report, reportTransactions: Transaction
 
 function isDeleteAction(report: Report, reportTransactions: Transaction[]): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
+    const isIOUReport = isIOUReportUtils(report);
 
     // This should be removed when is merged https://github.com/Expensify/App/pull/58020
     const isSingleTransaction = reportTransactions.length === 1;
 
-    if (!isExpenseReport || !isSingleTransaction) {
+    if ((!isExpenseReport && !isIOUReport) || !isSingleTransaction) {
         return false;
     }
 
@@ -347,7 +383,11 @@ function isDeleteAction(report: Report, reportTransactions: Transaction[]): bool
     const isProcessingReport = isProcessingReportUtils(report);
     const isReportApproved = isReportApprovedUtils({report});
 
-    return isReportOpen || isProcessingReport || isReportApproved;
+    if (isReportApproved) {
+        return false;
+    }
+
+    return isReportOpen || isProcessingReport;
 }
 
 function getSecondaryReportActions(
@@ -358,7 +398,7 @@ function getSecondaryReportActions(
 ): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
 
-    if (isSubmitAction(report, policy)) {
+    if (isSubmitAction(report, reportTransactions, policy)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.SUBMIT);
     }
 

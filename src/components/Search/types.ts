@@ -1,5 +1,5 @@
 import type {ValueOf} from 'type-fest';
-import type {ReportActionListItemType, ReportListItemType, TransactionListItemType} from '@components/SelectionList/types';
+import type {ReportActionListItemType, ReportListItemType, TaskListItemType, TransactionListItemType} from '@components/SelectionList/types';
 import type CONST from '@src/CONST';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
@@ -57,7 +57,14 @@ type ExpenseSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.EXPENSE>;
 type InvoiceSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.INVOICE>;
 type TripSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TRIP>;
 type ChatSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.CHAT>;
-type SearchStatus = ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus>;
+type TaskSearchStatus = ValueOf<typeof CONST.SEARCH.STATUS.TASK>;
+type SearchStatus =
+    | ExpenseSearchStatus
+    | InvoiceSearchStatus
+    | TripSearchStatus
+    | ChatSearchStatus
+    | TaskSearchStatus
+    | Array<ExpenseSearchStatus | InvoiceSearchStatus | TripSearchStatus | ChatSearchStatus | TaskSearchStatus>;
 type SearchGroupBy = ValueOf<typeof CONST.SEARCH.GROUP_BY>;
 type TableColumnSize = ValueOf<typeof CONST.SEARCH.TABLE_COLUMN_SIZES>;
 
@@ -66,13 +73,18 @@ type SearchContext = {
     selectedTransactions: SelectedTransactions;
     selectedReports: SelectedReports[];
     setCurrentSearchHash: (hash: number) => void;
-    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[]) => void;
+    setSelectedTransactions: (selectedTransactions: SelectedTransactions, data: TransactionListItemType[] | ReportListItemType[] | ReportActionListItemType[] | TaskListItemType[]) => void;
     clearSelectedTransactions: (hash?: number, shouldTurnOffSelectionMode?: boolean) => void;
     shouldTurnOffSelectionMode: boolean;
     shouldShowStatusBarLoading: boolean;
     setShouldShowStatusBarLoading: (shouldShow: boolean) => void;
     setLastSearchType: (type: string | undefined) => void;
     lastSearchType: string | undefined;
+    shouldShowExportModeOption: boolean;
+    setShouldShowExportModeOption: (shouldShow: boolean) => void;
+    isExportMode: boolean;
+    setExportMode: (on: boolean) => void;
+    isOnSearch: boolean;
 };
 
 type ASTNode = {
@@ -85,6 +97,8 @@ type QueryFilter = {
     operator: ValueOf<typeof CONST.SEARCH.SYNTAX_OPERATORS>;
     value: string | number;
 };
+
+type SearchBooleanFilterKeys = typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.BILLABLE | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.REIMBURSABLE;
 
 type SearchDateFilterKeys =
     | typeof CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE
@@ -144,9 +158,9 @@ export type {
     SelectedTransactionInfo,
     SelectedTransactions,
     SearchColumnType,
+    SearchBooleanFilterKeys,
     SearchDateFilterKeys,
     SearchStatus,
-    SearchQueryAST,
     SearchQueryJSON,
     SearchQueryString,
     SortOrder,
@@ -160,8 +174,10 @@ export type {
     InvoiceSearchStatus,
     TripSearchStatus,
     ChatSearchStatus,
+    TaskSearchStatus,
     SearchAutocompleteResult,
     PaymentData,
     SearchAutocompleteQueryRange,
     TableColumnSize,
+    SearchGroupBy,
 };
