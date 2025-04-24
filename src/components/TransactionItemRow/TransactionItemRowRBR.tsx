@@ -3,6 +3,7 @@ import type {ViewStyle} from 'react-native';
 import {View} from 'react-native';
 import Icon from '@components/Icon';
 import {DotIndicator} from '@components/Icon/Expensicons';
+import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -38,7 +39,7 @@ function TransactionItemRowRBR({transaction, containerStyles}: {transaction: Tra
                     numberOfLines={1}
                     style={[styles.textMicroSupporting, styles.pre, styles.flexShrink1, {color: theme.danger}]}
                 >
-                    {RBRmessages}
+                    <RenderHTML html={`<alert-text>${RBRmessages}</alert-text>`} />
                 </Text>
             </View>
         )
