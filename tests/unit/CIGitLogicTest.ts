@@ -95,140 +95,119 @@ function initGithubAPIMocking() {
             const tagPairKey = `${base}...${head}`;
             console.log(`Mock compareCommits called with: ${tagPairKey}`);
 
-            let mockCommits: any[] = [];
-
-            switch (tagPairKey) {
-                case '2.0.0-0...2.0.0-1-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-0...2.0.0-2-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-1-staging...2.0.0-2-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-0...2.0.1-1-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr1_merge_alt', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr3_merge_alt', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-0...2.0.1-0':
-                    mockCommits = [
-                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-0...2.0.1-1':
-                    mockCommits = [
-                        { sha: 'sha_pr1_merge_v2', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr3_merge_v2', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-2-staging...2.0.2-0-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-2-staging...2.0.2-1-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.2-0-staging...2.0.2-1-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-2-staging...2.0.2-2-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.2-1-staging...2.0.2-2-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.0-2-staging...2.0.2-3-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr8_merge', commit: { message: 'Merge pull request #8 from Expensify/pr-8', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.2-2-staging...2.0.2-3-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr8_merge', commit: { message: 'Merge pull request #8 from Expensify/pr-8', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.1-1...2.0.2-4':
-                    mockCommits = [
-                        { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr8_merge', commit: { message: 'Merge pull request #8 from Expensify/pr-8', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr10_merge', commit: { message: 'Merge pull request #10 from Expensify/pr-10', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.2-4-staging...2.0.3-0-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr9_merge', commit: { message: 'Merge pull request #9 from Expensify/pr-9', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr11_merge', commit: { message: 'Merge pull request #11 from Expensify/pr-11', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.2-4-staging...2.0.3-1-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr9_merge', commit: { message: 'Merge pull request #9 from Expensify/pr-9', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr11_merge', commit: { message: 'Merge pull request #11 from Expensify/pr-11', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr13_merge', commit: { message: 'Merge pull request #13 from Expensify/pr-13', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.3-0-staging...2.0.3-1-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr13_merge', commit: { message: 'Merge pull request #13 from Expensify/pr-13', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.3-1-staging...2.0.4-0-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr12_merge', commit: { message: 'Merge pull request #12 from Expensify/pr-12', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.4-0-staging...5.0.0-0-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr14_merge', commit: { message: 'Merge pull request #14 from Expensify/pr-14', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '5.0.0-0-staging...8.0.0-0-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr15_merge', commit: { message: 'Merge pull request #15 from Expensify/pr-15', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                case '2.0.4-0-staging...8.0.0-0-staging':
-                    mockCommits = [
-                        { sha: 'sha_pr14_merge', commit: { message: 'Merge pull request #14 from Expensify/pr-14', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                        { sha: 'sha_pr15_merge', commit: { message: 'Merge pull request #15 from Expensify/pr-15', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
-                    ];
-                    break;
-                default:
-                    console.warn(`Unhandled tag pair in compareCommits mock: ${tagPairKey}`);
-                    break;
-            }
+            const mockCommits: any[] = (() => {
+                switch (tagPairKey) {
+                    case '2.0.0-0...2.0.0-1-staging':
+                        return [
+                            { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-0...2.0.0-2-staging':
+                        return [
+                            { sha: 'sha_pr1_merge', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-1-staging...2.0.0-2-staging':
+                        return [
+                            { sha: 'sha_pr3_merge', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-0...2.0.1-1-staging':
+                        return [
+                            { sha: 'sha_pr1_merge_alt', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr3_merge_alt', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-0...2.0.1-0':
+                        return [
+                            { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-0...2.0.1-1':
+                        return [
+                            { sha: 'sha_pr1_merge_v2', commit: { message: 'Merge pull request #1 from Expensify/pr-1', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr3_merge_v2', commit: { message: 'Merge pull request #3 from Expensify/pr-3', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-2-staging...2.0.2-0-staging':
+                        return [
+                            { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-2-staging...2.0.2-1-staging':
+                        return [
+                            { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.2-0-staging...2.0.2-1-staging':
+                        return [
+                            { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-2-staging...2.0.2-2-staging':
+                        return [
+                            { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.2-1-staging...2.0.2-2-staging':
+                        return [
+                            { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.0-2-staging...2.0.2-3-staging':
+                        return [
+                            { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr8_merge', commit: { message: 'Merge pull request #8 from Expensify/pr-8', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.2-2-staging...2.0.2-3-staging':
+                        return [
+                            { sha: 'sha_pr8_merge', commit: { message: 'Merge pull request #8 from Expensify/pr-8', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.1-1...2.0.2-4':
+                        return [
+                            { sha: 'sha_pr2_merge', commit: { message: 'Merge pull request #2 from Expensify/pr-2', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr5_merge', commit: { message: 'Merge pull request #5 from Expensify/pr-5', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr6_merge', commit: { message: 'Merge pull request #6 from Expensify/pr-6', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr7_merge', commit: { message: 'Merge pull request #7 from Expensify/pr-7', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr8_merge', commit: { message: 'Merge pull request #8 from Expensify/pr-8', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr10_merge', commit: { message: 'Merge pull request #10 from Expensify/pr-10', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.2-4-staging...2.0.3-0-staging':
+                        return [
+                            { sha: 'sha_pr9_merge', commit: { message: 'Merge pull request #9 from Expensify/pr-9', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr11_merge', commit: { message: 'Merge pull request #11 from Expensify/pr-11', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.2-4-staging...2.0.3-1-staging':
+                        return [
+                            { sha: 'sha_pr9_merge', commit: { message: 'Merge pull request #9 from Expensify/pr-9', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr11_merge', commit: { message: 'Merge pull request #11 from Expensify/pr-11', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr13_merge', commit: { message: 'Merge pull request #13 from Expensify/pr-13', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.3-0-staging...2.0.3-1-staging':
+                        return [
+                            { sha: 'sha_pr13_merge', commit: { message: 'Merge pull request #13 from Expensify/pr-13', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.3-1-staging...2.0.4-0-staging':
+                        return [
+                            { sha: 'sha_pr12_merge', commit: { message: 'Merge pull request #12 from Expensify/pr-12', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.4-0-staging...5.0.0-0-staging':
+                        return [
+                            { sha: 'sha_pr14_merge', commit: { message: 'Merge pull request #14 from Expensify/pr-14', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '5.0.0-0-staging...8.0.0-0-staging':
+                        return [
+                            { sha: 'sha_pr15_merge', commit: { message: 'Merge pull request #15 from Expensify/pr-15', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    case '2.0.4-0-staging...8.0.0-0-staging':
+                        return [
+                            { sha: 'sha_pr14_merge', commit: { message: 'Merge pull request #14 from Expensify/pr-14', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                            { sha: 'sha_pr15_merge', commit: { message: 'Merge pull request #15 from Expensify/pr-15', author: { name: 'Test Author' } }, author: { login: 'testuser' } },
+                        ];
+                    default:
+                        console.warn(`Unhandled tag pair in compareCommits mock: ${tagPairKey}`);
+                        return [];
+                }
+            })();
 
             return {
                 ...mockCompareCommitsResponseBase,
