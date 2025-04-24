@@ -96,6 +96,20 @@ const getReviewNavigationRoute = (
     return ROUTES.TRANSACTION_DUPLICATE_CONFIRMATION_PAGE.getRoute(route.params?.threadReportID, backTo);
 };
 
+const sumUpSplits = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+    const splits = transaction?.comment?.splits;
+
+    if (!splits || splits?.length === 0) {
+        return 0;
+    }
+
+    return splits.reduce((sum, split) => {
+        // eslint-disable-next-line no-param-reassign
+        sum += split?.amount ?? 0;
+        return sum;
+    }, 0);
+};
+
 type TranslationPathOrText = {
     translationPath?: TranslationPaths;
     text?: string;
@@ -219,7 +233,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(requestAmount, requestCurrency)};
+    const amount = isBillSplit ? sumUpSplits(transaction) : requestAmount;
+    let displayAmountText: TranslationPathOrText = isScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
