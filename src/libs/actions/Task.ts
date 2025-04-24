@@ -1236,7 +1236,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    if (!(ReportUtils.isExpenseReport(parentReport) || ReportUtils.isExpenseRequest(parentReport)) && isParentReportArchived) {
+    if (!parentReport || (!(ReportUtils.isExpenseReport(parentReport) || ReportUtils.isExpenseRequest(parentReport)) && isParentReportArchived)) {
         return false;
     }
 
