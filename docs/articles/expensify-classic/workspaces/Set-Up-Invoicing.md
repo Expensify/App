@@ -15,7 +15,7 @@ Before using the invoicing feature, you'll need to [connect a business bank acco
 
 Then, follow these steps to set up invoicing:
 1. Log into your Expensify account from the web (not the mobile app).
-2. Go to **Settings > Workspaces > Workspace Name > Invoices**.
+2. Go to **Settings > Workspaces > [Workspace Name] > Invoices**.
 
 Here, you can create a markup or add a payment account.
 
@@ -25,7 +25,7 @@ From your Expensify account on the web, go to **Settings > Account > Profile**. 
 
 ## Set the Workspace Currency
 
-To set the currency, go to **Settings > Workspace > Workspace Name > Overview > Report Currency**. Setting the currency adds default report-level fields to your invoices. You can see these at the bottom of the [**Reports**](https://expensify.com/reports) page.
+To set the currency, go to **Settings > Workspaces > [Workspace Name] > Overview > Report Currency**. Setting the currency adds default report-level fields to your invoices. You can see these at the bottom of the [**Reports**](https://expensify.com/reports) page.
 
 Below are the default report-level fields based on common currencies:
 - **GBP**: VAT Number & Supplier Address (your company address)
@@ -51,7 +51,7 @@ Click **Add** once you've set your field parameters.
 
 # Remove Fields from Invoices
 
-To delete a report field, click the red trashcan icon on the field under **Settings > Workspace > Workspace Name > Reports Fields**. This will remove the field from all future invoices.
+To delete a report field, click the red trashcan icon on the field under **Settings > Workspaces > [Workspace Name] > Reports Fields**. This will remove the field from all future invoices.
 
 Unsent invoices will have a red **X** next to the report field, which you can click to remove before sending the invoice to your customer.
 
