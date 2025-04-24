@@ -1042,25 +1042,25 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/account-select',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID?: string, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT route');
             }
-            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/account-select` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/card-select',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID?: string, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_SELECT route');
             }
-            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account/card-select` as const, backTo);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account/default-vendor-select',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_NON_REIMBURSABLE_DEFAULT_VENDOR_SELECT route');
             }
@@ -1069,7 +1069,12 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/company-card-expense-account',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/company-card-expense-account` as const, backTo);
+        },
     },
     WORKSPACE_ACCOUNTING_QUICKBOOKS_DESKTOP_ADVANCED: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/advanced',
@@ -1077,31 +1082,56 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/date-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_DATE_SELECT route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/date-select` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/preferred-exporter',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/preferred-exporter` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_PREFERRED_EXPORTER route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/preferred-exporter` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_ACCOUNT_SELECT route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/account-select` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select',
-        getRoute: (policyID: string) => `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select` as const,
+        getRoute: (policyID?: string, backTo?: string) => {
+            if (!policyID) {
+                Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT_OUT_OF_POCKET_EXPENSES_SELECT route');
+            }
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export/out-of-pocket-expense/entity-select` as const, backTo);
+        },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT: {
         route: 'settings/workspaces/:policyID/accounting/quickbooks-desktop/export',
-        getRoute: (policyID: string | undefined) => {
+        getRoute: (policyID: string | undefined, backTo?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_EXPORT route');
             }
-            return `settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const;
+            return getUrlWithBackToParam(`settings/workspaces/${policyID}/accounting/quickbooks-desktop/export` as const, backTo, false);
         },
     },
     POLICY_ACCOUNTING_QUICKBOOKS_DESKTOP_SETUP_MODAL: {
