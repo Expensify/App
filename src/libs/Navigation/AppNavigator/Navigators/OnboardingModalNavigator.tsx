@@ -2,6 +2,7 @@ import {CardStyleInterpolators} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
+import usePermissions from '@hooks/usePermissions';
 import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
@@ -39,8 +40,9 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
+    const {canUsePrivateDomainOnboarding} = usePermissions();
 
-    const isOnPrivateDomainAndHasAccessiblePolicies = !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
+    const isOnPrivateDomainAndHasAccessiblePolicies = canUsePrivateDomainOnboarding && !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
