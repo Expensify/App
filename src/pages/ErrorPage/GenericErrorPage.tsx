@@ -16,7 +16,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import * as Session from '@userActions/Session';
 import CONST from '@src/CONST';
+import ExportOnyxState from '@libs/ExportOnyxState';
 import ErrorBodyText from './ErrorBodyText';
+
+const exportOnyxState = () => {
+    ExportOnyxState.readFromOnyxDatabase().then((value: Record<string, unknown>) => {
+        const dataToShare = ExportOnyxState.maskOnyxState(value, true);
+        ExportOnyxState.shareAsFile(JSON.stringify(dataToShare));
+    });
+};
 
 function GenericErrorPage({error}: {error?: Error}) {
     const theme = useTheme();
@@ -62,6 +70,11 @@ function GenericErrorPage({error}: {error?: Error}) {
                                         text={translate('genericErrorPage.refresh')}
                                         style={styles.mr3}
                                         onPress={() => refreshPage(isChunkLoadError)}
+                                    />
+                                    <Button
+                                        text={translate('initialSettingsPage.troubleshoot.exportOnyxState')}
+                                        style={styles.mr3}
+                                        onPress={() => exportOnyxState()}
                                     />
                                     <Button
                                         text={translate('initialSettingsPage.signOut')}
