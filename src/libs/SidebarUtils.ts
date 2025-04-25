@@ -531,7 +531,9 @@ function getOptionData({
     // then try to get that from the last report action if that action is valid
     // to get data from.
     let lastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? personalDetails?.[lastActorAccountID] ?? null : null;
-
+    if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && lastActorDetails) {
+        lastActorDetails.accountID = lastAction.actorAccountID;
+    }
     if (!lastActorDetails && lastAction) {
         const lastActorDisplayName = lastAction?.person?.[0]?.text;
         lastActorDetails = lastActorDisplayName
