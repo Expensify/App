@@ -70,4 +70,4 @@ type ValuePickerProps = {
     shouldShowModal?: boolean;
 };
 
-export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValuePickerListItem, ValueSelectionListProps};
+export type {ValuePickerItem, ValueSelectorModalProps, ValuePickerProps, ValueSelectionListProps};

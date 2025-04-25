@@ -10,7 +10,7 @@ import TextInput from '@components/TextInput';
 import useLocalize from '@hooks/useLocalize';
 import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccountStepFormSubmit';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {BankInfoSubStepProps} from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
+import type BankInfoSubStepProps from '@pages/ReimbursementAccount/NonUSD/BankInfo/types';
 import {getBankInfoStepValues} from '@pages/ReimbursementAccount/NonUSD/utils/getBankInfoStepValues';
 import getInputForValueSet from '@pages/ReimbursementAccount/NonUSD/utils/getInputForValueSet';
 import CONST from '@src/CONST';
@@ -35,8 +35,8 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
         return acc;
     }, {} as Record<keyof ReimbursementAccountForm, keyof ReimbursementAccountForm>);
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const defaultValues = useMemo(
         () => getBankInfoStepValues(subStepKeys ?? {}, reimbursementAccountDraft, reimbursementAccount),
         [subStepKeys, reimbursementAccount, reimbursementAccountDraft],
