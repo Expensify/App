@@ -3,13 +3,14 @@ import {View} from 'react-native';
 import type {LayoutChangeEvent} from 'react-native';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
+import type {Transaction} from '@src/types/onyx';
 import EReceipt from './EReceipt';
 import type {TransactionListItemType} from './SelectionList/types';
 
 type EReceiptWithSizeCalculationProps = {
     transactionID: string | undefined;
 
-    transactionItem?: TransactionListItemType;
+    transactionItem?: TransactionListItemType | Transaction;
 };
 
 function EReceiptWithSizeCalculation(props: EReceiptWithSizeCalculationProps) {

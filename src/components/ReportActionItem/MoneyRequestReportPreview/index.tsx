@@ -11,6 +11,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {isIOUReport} from '@libs/ReportUtils';
 import Navigation from '@navigation/Navigation';
 import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import Timing from '@userActions/Timing';
@@ -63,6 +64,15 @@ function MoneyRequestReportPreview({
         [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
     );
 
+    const shouldShowIOUData = useMemo(() => {
+        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
+            return false;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+    }, [transactions, action.childType, iouReport]);
+
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
             return;
@@ -88,6 +98,7 @@ function MoneyRequestReportPreview({
             transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            shouldShowIOUData={shouldShowIOUData}
         />
     );
 
