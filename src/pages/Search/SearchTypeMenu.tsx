@@ -214,10 +214,10 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            <View style={[styles.pb4, styles.mh3]}>
+            <View style={[styles.pb4, styles.mh3, styles.gap4]}>
                 {typeMenuSections.map((section, i) => (
-                    <React.Fragment key={section.translationPath}>
-                        <Text style={[styles.sectionTitle, styles.pb1, styles.mt3]}>{translate(section.translationPath)}</Text>
+                    <View key={section.translationPath}>
+                        <Text style={[styles.sectionTitle, styles.pb2]}>{translate(section.translationPath)}</Text>
                         {section.menuItems.map((item, j) => {
                             const flattenedIndex = (i + 1) * j;
 
@@ -243,16 +243,16 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                                 />
                             );
                         })}
-                    </React.Fragment>
+                    </View>
                 ))}
+                {shouldShowSavedSearchesMenuItemTitle && (
+                    <View>
+                        <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
+                        {renderSavedSearchesSection(savedSearchesMenuItems)}
+                        <DeleteConfirmModal />
+                    </View>
+                )}
             </View>
-            {shouldShowSavedSearchesMenuItemTitle && (
-                <>
-                    <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate('search.savedSearchesMenuItemTitle')}</Text>
-                    {renderSavedSearchesSection(savedSearchesMenuItems)}
-                    <DeleteConfirmModal />
-                </>
-            )}
         </ScrollView>
     );
 }

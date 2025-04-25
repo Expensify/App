@@ -249,7 +249,7 @@ function SearchStatusBar({queryJSON, onStatusChange, headerButtonsOptions}: Sear
     const isScrolledRef = useRef(false);
     const {shouldShowStatusBarLoading} = useSearchContext();
     const {hash} = queryJSON;
-    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: false});
+    const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`, {canBeMissing: true});
     const {isOffline} = useNetwork();
 
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions ?? {}), [selectedTransactions]);
