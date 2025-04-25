@@ -38,6 +38,6 @@ type OnfidoStepProps = {
 
 type PersonalBankAccountForm = Form<InputID, BankAccountStepProps & PlaidAccountProps> & OnfidoStepProps;
 
-export type {BankAccountStepProps, PlaidAccountProps, PersonalBankAccountForm};
+export type {PersonalBankAccountForm};
 
 export default INPUT_IDS;

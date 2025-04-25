@@ -58,7 +58,7 @@ const useCardFeeds = (policyID: string | undefined): [CardFeeds | undefined, Res
 
                 return acc;
             },
-            {settings: {companyCards, companyCardNicknames, oAuthAccountDetails}},
+            {settings: {companyCards, companyCardNicknames, oAuthAccountDetails}, isLoading: !defaultFeed || defaultFeed?.isLoading},
         );
     }, [allFeeds, policyID, workspaceAccountID]);
 
