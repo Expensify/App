@@ -8,7 +8,6 @@ import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeed
 import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
@@ -28,9 +27,10 @@ type CalendarPickerProps = {
     /** A maximum date (earliest) allowed to select */
     maxDate?: Date;
 
-    /** Passed selectable dates on the calender when you wan the selection to be restricted to a few dates only */
+    /** Restrict selection to only specific dates */
     selectedableDates?: string[];
 
+    /** Day component to render for dates */
     DayComponent?: typeof Day;
 
     /** A function called when the date is selected */
