@@ -2,9 +2,9 @@ import type {ComponentType, ForwardedRef, RefAttributes} from 'react';
 import React, {forwardRef} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
-import {updateLastAccessedWorkspace} from '@libs/actions/Policy/Policy';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {AuthScreensParamList, ReimbursementAccountNavigatorParamList, SettingsNavigatorParamList, WorkspaceSplitNavigatorParamList} from '@navigation/types';
+import {updateLastAccessedWorkspace} from '@userActions/Policy/Policy';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
@@ -51,7 +51,7 @@ type PolicyRouteName =
 
 type PolicyRoute = PlatformStackRouteProp<NavigatorsParamList, PolicyRouteName>;
 
-function getPolicyIDFromRoute(route: PolicyRoute) {
+function getPolicyIDFromRoute(route: PolicyRoute): string | undefined {
     return route?.params?.policyID;
 }
 
@@ -84,7 +84,7 @@ export default function <TProps extends WithPolicyProps, TRef>(
         const [policyDraft, policyDraftResults] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${policyID}`, {canBeMissing: true});
         const isLoadingPolicy = isLoadingOnyxValue(policyResults, policyDraftResults);
 
-        if (!!policyID && policyID.length > 0) {
+        if (policyID && policyID.length > 0) {
             updateLastAccessedWorkspace(policyID);
         }
 
@@ -106,4 +106,4 @@ export default function <TProps extends WithPolicyProps, TRef>(
 }
 
 export {policyDefaultProps};
-export type {PolicyRoute, PolicyRouteName, WithPolicyOnyxProps, WithPolicyProps};
+export type {WithPolicyOnyxProps, WithPolicyProps};

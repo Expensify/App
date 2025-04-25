@@ -28,4 +28,4 @@ const ActionListContext = createContext<ActionListContextType>({flatListRef: nul
 const ReactionListContext = createContext<ReactionListContextType>(null);
 
 export {ActionListContext, ReactionListContext};
-export type {ReactionListRef, ActionListContextType, ReactionListContextType, FlatListRefType, ReactionListAnchor, ReactionListEvent, ScrollPosition};
+export type {ReactionListRef, ActionListContextType, FlatListRefType, ReactionListAnchor, ReactionListEvent, ScrollPosition};
