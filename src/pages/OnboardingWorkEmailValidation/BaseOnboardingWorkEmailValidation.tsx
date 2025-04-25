@@ -33,7 +33,6 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
     const [onboardingEmail] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM, {canBeMissing: true});
     const workEmail = onboardingEmail?.onboardingWorkEmail;
 
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const [onboardingValues] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {canBeMissing: true});
     const isVsb = onboardingValues && 'signupQualifier' in onboardingValues && onboardingValues.signupQualifier === CONST.ONBOARDING_SIGNUP_QUALIFIERS.VSB;
@@ -50,13 +49,14 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
             openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
             return;
         }
-
+        // Once we verify that shouldValidate is false, we need to force replace the screen
+        // so that we don't navigate back on back button press
         if (isVsb) {
-            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+            Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
             return;
         }
 
-        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+        Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
     }, [onboardingValues, isVsb, isFocused]);
 
     const sendValidateCode = useCallback(() => {
@@ -117,20 +117,22 @@ function BaseOnboardingWorkEmailValidation({shouldUseNativeStyles}: BaseOnboardi
                     <Text style={styles.textHeadlineH1}>{translate('onboarding.workEmailValidation.title')}</Text>
                     <Text style={[styles.textNormal, styles.colorMuted, styles.textAlignLeft, styles.mt5]}>{translate('onboarding.workEmailValidation.magicCodeSent', {workEmail})}</Text>
                     <ValidateCodeForm
-                        validateCodeAction={validateCodeAction}
                         handleSubmitForm={validateAccountAndMerge}
                         sendValidateCode={sendValidateCode}
+                        validateCodeActionErrorField="mergeIntoAccountAndLogIn"
                         clearError={() => setOnboardingErrorMessage('')}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd, styles.mb5]}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => {
                             setOnboardingErrorMessage('');
                             setOnboardingMergeAccountStepValue(true);
+                            // Once we skip the private email step, we need to force replace the screen
+                            // so that we don't navigate back on back button press
                             if (isVsb) {
-                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
+                                Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute(), {forceReplace: true});
                                 return;
                             }
-                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute());
+                            Navigation.navigate(ROUTES.ONBOARDING_PURPOSE.getRoute(), {forceReplace: true});
                         }}
                         isLoading={isValidateCodeFormSubmitting}
                         validateError={onboardingErrorMessage ? {invalidCodeError: onboardingErrorMessage} : undefined}

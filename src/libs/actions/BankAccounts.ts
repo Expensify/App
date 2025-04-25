@@ -48,20 +48,6 @@ export {openOnfidoFlow, answerQuestionsForWallet, verifyIdentity, acceptWalletTe
 
 type AccountFormValues = typeof ONYXKEYS.FORMS.PERSONAL_BANK_ACCOUNT_FORM | typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM;
 
-type BusinessAddress = {
-    addressStreet?: string;
-    addressCity?: string;
-    addressState?: string;
-    addressZipCode?: string;
-};
-
-type PersonalAddress = {
-    requestorAddressStreet?: string;
-    requestorAddressCity?: string;
-    requestorAddressState?: string;
-    requestorAddressZipCode?: string;
-};
-
 function clearPlaid(): Promise<void | void[]> {
     Onyx.set(ONYXKEYS.PLAID_LINK_TOKEN, '');
     Onyx.set(ONYXKEYS.PLAID_CURRENT_EVENT, null);
@@ -624,10 +610,6 @@ function finishCorpayBankAccountOnboarding(parameters: FinishCorpayBankAccountOn
     return API.write(WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING, parameters, onyxData);
 }
 
-function clearReimbursementAccount() {
-    Onyx.set(ONYXKEYS.REIMBURSEMENT_ACCOUNT, null);
-}
-
 function clearCorpayBankAccountFields() {
     Onyx.set(ONYXKEYS.CORPAY_FIELDS, null);
 }
@@ -905,7 +887,6 @@ export {
     addPersonalBankAccount,
     clearOnfidoToken,
     clearPersonalBankAccount,
-    clearPlaid,
     setPlaidEvent,
     openPlaidView,
     connectBankAccountManually,
@@ -915,7 +896,6 @@ export {
     handlePlaidError,
     setPersonalBankAccountContinueKYCOnSuccess,
     openPersonalBankAccountSetupView,
-    clearReimbursementAccount,
     openReimbursementAccountPage,
     updateBeneficialOwnersForBankAccount,
     updateCompanyInformationForBankAccount,
@@ -943,5 +923,3 @@ export {
     finishCorpayBankAccountOnboarding,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
 };
-
-export type {BusinessAddress, PersonalAddress};

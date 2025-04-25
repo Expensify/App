@@ -766,7 +766,10 @@ function updateNetSuiteExportToNextOpenPeriod(policyID: string, value: boolean, 
     API.write(WRITE_COMMANDS.UPDATE_NETSUITE_EXPORT_TO_NEXT_OPEN_PERIOD, parameters, onyxData);
 }
 
-function updateNetSuiteAutoSync(policyID: string, value: boolean) {
+function updateNetSuiteAutoSync(policyID: string | undefined, value: boolean) {
+    if (!policyID) {
+        return;
+    }
     const optimisticData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,

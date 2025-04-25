@@ -105,13 +105,13 @@ const ONYXKEYS = {
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
     /** Store the information of magic code */
-    VALIDATE_ACTION_CODE: 'validate_action_code',
+    VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
 
-    /** Flag to indicate if the joinablePolicies are loading */
-    JOINABLE_POLICIES_LOADING: 'joinablePoliciesLoading',
+    /* Contains meta data for the call to the API to get the joinable policies */
+    VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES: 'validateUserAndGetAccessiblePolicies',
 
     /** Information about the current session (authToken, accountID, email, loading, error) */
     SESSION: 'session',
@@ -235,7 +235,7 @@ const ONYXKEYS = {
     NVP_PRIVATE_FIRST_POLICY_CREATED_DATE: 'nvp_private_firstPolicyCreatedDate',
 
     /** If the user should see the team 2025 subscription pricing */
-    NVP_PRIVATE_MANUAL_TEAM_PRICING_2025: 'nvp_private_manualTeamPricing2025',
+    NVP_PRIVATE_MANUAL_TEAM_2025_PRICING: 'nvp_private_manualTeam2025Pricing',
 
     /** Plaid data (access tokens, bank accounts ...) */
     PLAID_DATA: 'plaidData',
@@ -1011,7 +1011,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.PENDING_CONTACT_ACTION]: OnyxTypes.PendingContactAction;
     [ONYXKEYS.VALIDATE_ACTION_CODE]: OnyxTypes.ValidateMagicCodeAction;
     [ONYXKEYS.JOINABLE_POLICIES]: OnyxTypes.JoinablePolicies;
-    [ONYXKEYS.JOINABLE_POLICIES_LOADING]: boolean;
+    [ONYXKEYS.VALIDATE_USER_AND_GET_ACCESSIBLE_POLICIES]: OnyxTypes.ValidateUserAndGetAccessiblePolicies;
     [ONYXKEYS.SESSION]: OnyxTypes.Session;
     [ONYXKEYS.USER_METADATA]: OnyxTypes.UserMetadata;
     [ONYXKEYS.STASHED_SESSION]: OnyxTypes.Session;
@@ -1122,7 +1122,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
-    [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_PRICING_2025]: string;
+    [ONYXKEYS.NVP_PRIVATE_MANUAL_TEAM_2025_PRICING]: string;
     [ONYXKEYS.NVP_PRIVATE_CANCELLATION_DETAILS]: OnyxTypes.CancellationDetails[];
     [ONYXKEYS.ROOM_MEMBERS_USER_SEARCH_PHRASE]: string;
     [ONYXKEYS.APPROVAL_WORKFLOW]: OnyxTypes.ApprovalWorkflowOnyx;
@@ -1148,7 +1148,7 @@ type OnyxValuesMapping = {
 
 type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
-    [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: Record<string, OnyxTypes.ReportAttributes>;
+    [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
