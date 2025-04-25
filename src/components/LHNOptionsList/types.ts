@@ -13,7 +13,6 @@ import type {
     ReportAction,
     ReportActions,
     ReportAttributesDerivedValue,
-    ReportMetadata,
     ReportNameValuePairs,
     Transaction,
     TransactionViolation,
