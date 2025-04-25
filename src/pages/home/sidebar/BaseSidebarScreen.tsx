@@ -31,7 +31,7 @@ function BaseSidebarScreen() {
     const {activeWorkspaceID} = useActiveWorkspace();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID ?? CONST.DEFAULT_NUMBER_ID}`);
+    const [activeWorkspace, activeWorkspaceResult] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activeWorkspaceID}`, {canBeMissing: true});
     const currentRoute = useRoute();
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
     const {canUseLeftHandBar} = usePermissions();
