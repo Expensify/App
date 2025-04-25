@@ -10,7 +10,9 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import * as Expensicons from '@components/Icon/Expensicons';
 import MoneyReportHeader from '@components/MoneyReportHeader';
+import MoneyReportHeaderOld from '@components/MoneyReportHeaderOld';
 import MoneyRequestHeader from '@components/MoneyRequestHeader';
+import MoneyRequestHeaderOld from '@components/MoneyRequestHeaderOld';
 import MoneyRequestReportActionsList from '@components/MoneyRequestReportView/MoneyRequestReportActionsList';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
@@ -146,7 +148,7 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const [firstRender, setFirstRender] = useState(true);
     const isSkippingOpenReport = useRef(false);
     const flatListRef = useRef<FlatList>(null);
-    const {canUseDefaultRooms} = usePermissions();
+    const {canUseDefaultRooms, canUseTableReportView} = usePermissions();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout, isInNarrowPaneModal} = useResponsiveLayout();
     const {activeWorkspaceID} = useActiveWorkspace();
@@ -313,7 +315,6 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     const didSubscribeToReportLeavingEvents = useRef(false);
     const isTransactionThreadView = isReportTransactionThread(report);
 
-    const {canUseTableReportView} = usePermissions();
     const isMoneyRequestOrInvoiceReport = isMoneyRequestReport(report) || isInvoiceReport(report);
 
     useEffect(() => {
@@ -355,8 +356,15 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     );
 
     if (isTransactionThreadView) {
-        headerView = (
+        headerView = canUseTableReportView ? (
             <MoneyRequestHeader
+                report={report}
+                policy={policy}
+                parentReportAction={parentReportAction}
+                onBackButtonPress={onBackButtonPress}
+            />
+        ) : (
+            <MoneyRequestHeaderOld
                 report={report}
                 policy={policy}
                 parentReportAction={parentReportAction}
@@ -366,8 +374,16 @@ function ReportScreen({route, navigation}: ReportScreenProps) {
     }
 
     if (isMoneyRequestOrInvoiceReport) {
-        headerView = (
+        headerView = canUseTableReportView ? (
             <MoneyReportHeader
+                report={report}
+                policy={policy}
+                transactionThreadReportID={transactionThreadReportID}
+                reportActions={reportActions}
+                onBackButtonPress={onBackButtonPress}
+            />
+        ) : (
+            <MoneyReportHeaderOld
                 report={report}
                 policy={policy}
                 transactionThreadReportID={transactionThreadReportID}
