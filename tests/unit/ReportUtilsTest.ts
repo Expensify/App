@@ -2058,7 +2058,7 @@ describe('ReportUtils', () => {
     });
 
     describe('canDeleteReportAction', () => {
-        it('should return false for delete button visibility if transaction is not allowed to be deleted', () => {
+        it('should return false for delete button visibility if transaction is not allowed to be deleted', async () => {
             const parentReport = LHNTestUtils.getFakeReport();
             const report = LHNTestUtils.getFakeReport();
             const parentReportAction: ReportAction = {
@@ -2109,9 +2109,8 @@ describe('ReportUtils', () => {
                 },
             };
 
-            Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction).then(() => {
-                expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
+            expect(canDeleteReportAction(moneyRequestAction, currentReportId)).toBe(false);
         });
     });
 
@@ -2263,7 +2262,7 @@ describe('ReportUtils', () => {
         });
         describe('basic/advance workflow', () => {
             describe('has no approver rule', () => {
-                it('should return list contain policy approver/owner and the forwardsTo of them if the policy use basic workflow', () => {
+                it('should return list contain policy approver/owner and the forwardsTo of them if the policy use basic workflow', async () => {
                     const policyTest: Policy = {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
@@ -2277,12 +2276,11 @@ describe('ReportUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                        const result = ['owner@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
-                    });
+                    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                    const result = ['owner@test.com'];
+                    expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                 });
-                it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them if the policy use advance workflow', () => {
+                it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them if the policy use advance workflow', async () => {
                     const policyTest: Policy = {
                         ...createRandomPolicy(0),
                         approver: 'owner@test.com',
@@ -2296,17 +2294,16 @@ describe('ReportUtils', () => {
                         ownerAccountID: employeeAccountID,
                         type: CONST.REPORT.TYPE.EXPENSE,
                     };
-                    Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails).then(() => {
-                        const result = ['admin@test.com'];
-                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
-                    });
+                    await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+                    const result = ['admin@test.com'];
+                    expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                 });
             });
 
             // This test is broken, so I am commenting it out. I have opened up https://github.com/Expensify/App/issues/60854 to get the test fixed
             describe('has approver rule', () => {
                 describe('has no transaction match with approver rule', () => {
-                    it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', () => {
+                    it('should return list contain submitsTo of ownerAccountID and the forwardsTo of them', async () => {
                         const policyTest: Policy = {
                             ...createRandomPolicy(0),
                             approver: 'owner@test.com',
@@ -2335,20 +2332,19 @@ describe('ReportUtils', () => {
                             created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                             reportID: expenseReport.reportID,
                         };
-                        Onyx.multiSet({
+                        await Onyx.multiSet({
                             [ONYXKEYS.PERSONAL_DETAILS_LIST]: personalDetails,
                             [ONYXKEYS.COLLECTION.TRANSACTION]: {
                                 [transaction1.transactionID]: transaction1,
                                 [transaction2.transactionID]: transaction2,
                             },
-                        }).then(() => {
-                            const result = ['owner@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
+                        const result = ['owner@test.com'];
+                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                     });
                 });
                 describe('has transaction match with approver rule', () => {
-                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', () => {
+                    it('should return the list with correct order of category/tag approver sorted by created/inserted of the transaction', async () => {
                         const policyTest: Policy = {
                             ...createRandomPolicy(1),
                             approver: 'owner@test.com',
@@ -2396,15 +2392,14 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
 
-                        return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                        await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
                             transactions_1: transaction1,
                             transactions_2: transaction2,
                             transactions_3: transaction3,
                             transactions_4: transaction4,
-                        }).then(() => {
-                            const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
-                            expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                         });
+                        const result = [categoryapprover2Email, categoryapprover1Email, tagapprover2Email, tagapprover1Email, 'admin@test.com'];
+                        expect(getApprovalChain(policyTest, expenseReport)).toStrictEqual(result);
                     });
                 });
             });
