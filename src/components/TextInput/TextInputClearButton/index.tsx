@@ -7,20 +7,22 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 type TextInputClearButtonProps = {
     onPressButton: () => void;
     shouldAddMarginTop?: boolean;
+    additionalStyles?: StyleProp<ViewStyle>;
 };
 
-function TextInputClearButton({onPressButton, shouldAddMarginTop = true}: TextInputClearButtonProps) {
+function TextInputClearButton({onPressButton, shouldAddMarginTop = true, additionalStyles}: TextInputClearButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     return (
         <Tooltip text={translate('common.clear')}>
             <PressableWithoutFeedback
-                style={[shouldAddMarginTop ? styles.mt4 : {}, styles.ml1]}
+                style={[shouldAddMarginTop && styles.mt4, styles.ml1, additionalStyles]}
                 accessibilityRole={CONST.ROLE.BUTTON}
                 accessibilityLabel={translate('common.clear')}
                 onMouseDown={(e) => {

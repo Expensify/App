@@ -407,6 +407,7 @@ function BaseTextInput(
                                         setValue('');
                                         onClearInput?.();
                                     }}
+                                    additionalStyles={styles.mt2}
                                 />
                             )}
                             {inputProps.isLoading !== undefined && (
