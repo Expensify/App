@@ -5,6 +5,7 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {TransactionListItemType} from '@components/SelectionList/types';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
+import type {TranslationPaths} from '@src/languages/types';
 import type {AnchorPosition} from '@src/styles';
 import type {Policy, Report} from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -16,8 +17,8 @@ type ThreeDotsMenuItem = {
     /** An icon element displayed on the left side */
     icon: IconAsset;
 
-    /** Text label */
-    text: string;
+    /** Translation key for the label */
+    translationKey: TranslationPaths;
 
     /** A callback triggered when the item is selected */
     onSelected: () => void;
