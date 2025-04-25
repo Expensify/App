@@ -1,6 +1,7 @@
 ---
 title: Connect to Accelo
 description: Learn how to integrate Accelo with Expensify to seamlessly import expense details and associate them with projects, tickets, or retainers.
+order: 1
 keywords: [Accelo, Expensify Classic, expense management, project expenses]
 ---
 <div id="expensify-classic" markdown="1">
