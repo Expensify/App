@@ -809,6 +809,7 @@ const CONST = {
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
