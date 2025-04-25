@@ -14,7 +14,7 @@ import type ImportOnyxStateProps from './types';
 
 export default function ImportOnyxState({setIsLoading}: ImportOnyxStateProps) {
     const [isErrorModalVisible, setIsErrorModalVisible] = useState(false);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
 
     const handleFileRead = (file: FileObject) => {
         if (!file.uri) {

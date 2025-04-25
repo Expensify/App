@@ -12,12 +12,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
 function ProfileAvatarModalContent({navigation, accountID = CONST.DEFAULT_NUMBER_ID}: AttachmentModalRouteProps) {
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
     const personalDetail = personalDetails?.[accountID];
-    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA);
+    const [personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_METADATA, {canBeMissing: false});
     const avatarURL = personalDetail?.avatar ?? '';
     const displayName = getDisplayNameOrDefault(personalDetail);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
 
     useEffect(() => {
         if (!isValidAccountRoute(accountID)) {

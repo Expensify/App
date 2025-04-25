@@ -152,7 +152,7 @@ const ImageRendererMemorize = memo(
 );
 
 function ImageRendererWrapper(props: CustomRendererProps<TBlock>) {
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
     return (
         <ImageRendererMemorize
             // eslint-disable-next-line react/jsx-props-no-spreading
