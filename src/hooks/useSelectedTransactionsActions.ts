@@ -5,7 +5,7 @@ import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
+import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, isExpenseReport as isExpenseReportUtils, isIOUReport as isIOUReportUtils} from '@libs/ReportUtils';
 import {getTransaction, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -30,9 +30,9 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
         const anyTransactionOnHold = selectedTransactions.some(isOnHold);
         const allTransactionOnHold = selectedTransactions.every(isOnHold);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-        const isExpense = isExpenseReport(report);
-        const isIOU = isIOUReport(report);
-        const iouOrExpenseReport = isExpense || isIOU;
+        const isExpenseReport = isExpenseReportUtils(report);
+        const isIOUReport = isIOUReportUtils(report);
+        const iouOrExpenseReport = isExpenseReport || isIOUReport;
 
         if (iouOrExpenseReport && !anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
             options.push({
