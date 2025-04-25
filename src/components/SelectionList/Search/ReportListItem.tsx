@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {View} from 'react-native';
 import Checkbox from '@components/Checkbox';
 import {useSearchContext} from '@components/Search/SearchContext';
@@ -21,6 +21,12 @@ import ActionCell from './ActionCell';
 import ExpenseItemHeaderNarrow from './ExpenseItemHeaderNarrow';
 import TransactionListItem from './TransactionListItem';
 import TransactionListItemRow from './TransactionListItemRow';
+import Collapsible from '@components/CollapsibleSection/Collapsible';
+import Icon from '@components/Icon';
+import * as Expensicons from '@src/components/Icon/Expensicons';
+import IconButton from '@components/VideoPlayer/IconButton';
+import ThreadDivider from '@pages/home/report/ThreadDivider';
+import RepliesDivider from '@pages/home/report/RepliesDivider';
 
 type CellProps = {
     // eslint-disable-next-line react/no-unused-prop-types
@@ -71,6 +77,8 @@ function ReportListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const StyleUtils = useStyleUtils();
     const {currentSearchHash} = useSearchContext();
+
+    const [isExpanded, setIsExpanded] = useState(false);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         borderRadius: variables.componentBorderRadius,
@@ -135,6 +143,8 @@ function ReportListItem<TItem extends ListItem>({
             />
         );
     }
+
+    const src = isExpanded ? Expensicons.UpArrow : Expensicons.DownArrow;
 
     return (
         <BaseListItem
@@ -206,26 +216,38 @@ function ReportListItem<TItem extends ListItem>({
                             />
                         </View>
                     )}
-                </View>
-                {reportItem.transactions.map((transaction) => (
-                    <TransactionListItemRow
-                        key={transaction.transactionID}
-                        parentAction={reportItem.action}
-                        item={transaction}
-                        showTooltip={showTooltip}
-                        onButtonPress={() => {
-                            openReportInRHP(transaction);
-                        }}
-                        onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
-                        showItemHeaderOnNarrowLayout={false}
-                        containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
-                        isChildListItem
-                        isDisabled={!!isDisabled}
-                        canSelectMultiple={!!canSelectMultiple}
-                        isButtonSelected={transaction.isSelected}
-                        shouldShowTransactionCheckbox
+                    <IconButton 
+                        fill={theme.icon}
+                        src={src}
+                        onPress={() => setIsExpanded(!isExpanded)}
+                        style={[styles.p0]}
+                        hoverStyle={[styles.bgTransparent]}
                     />
-                ))}
+                </View>
+                {isExpanded && <View style={[styles.threadDividerLine, styles.mb2]} />}
+                <Collapsible isOpened={isExpanded}>
+                    <View>
+                        {reportItem.transactions.map((transaction) => (
+                            <TransactionListItemRow
+                                key={transaction.transactionID}
+                                parentAction={reportItem.action}
+                                item={transaction}
+                                showTooltip={showTooltip}
+                                onButtonPress={() => {
+                                    openReportInRHP(transaction);
+                                }}
+                                onCheckboxPress={() => onCheckboxPress?.(transaction as unknown as TItem)}
+                                showItemHeaderOnNarrowLayout={false}
+                                containerStyle={[transaction.isSelected && styles.activeComponentBG, styles.ph3, styles.pv1half]}
+                                isChildListItem
+                                isDisabled={!!isDisabled}
+                                canSelectMultiple={!!canSelectMultiple}
+                                isButtonSelected={transaction.isSelected}
+                                shouldShowTransactionCheckbox
+                            />
+                        ))}
+                    </View>
+                </Collapsible>
             </View>
         </BaseListItem>
     );
