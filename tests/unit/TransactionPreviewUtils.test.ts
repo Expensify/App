@@ -81,11 +81,8 @@ describe('TransactionPreviewUtils', () => {
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
             const cashTransaction = getTransactionPreviewTextAndTranslationPaths(basicProps);
 
-            expect(cardTransaction.showCashOrCard).toEqual({translationPath: 'iou.card'});
-            expect(cashTransaction.showCashOrCard).toEqual({translationPath: 'iou.cash'});
-
-            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([cardTransaction.showCashOrCard]));
-            expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([cashTransaction.showCashOrCard]));
+            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.card'}]));
+            expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
         });
 
         it('displays appropriate header text if the transaction is bill split', () => {
@@ -131,12 +128,6 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeTruthy();
-        });
-
-        it("should disable onPress when it's a bill split with empty transaction data", () => {
-            const functionArgs = {...basicProps, isBillSplit: true, transaction: undefined};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldDisableOnPress).toBeTruthy();
         });
 
         it("should not show category if it's not a policy expense chat", () => {
@@ -198,12 +189,6 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowRBR).toBeTruthy();
-        });
-
-        it('should not disable onPress when bill split but transaction data is full', () => {
-            const functionArgs = {...basicProps, isBillSplit: true, transaction: {...basicProps.transaction}};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldDisableOnPress).toBeFalsy();
         });
 
         it('should ensure RBR is not shown when no violation and no hold', () => {
