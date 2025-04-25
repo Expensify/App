@@ -24,7 +24,7 @@ function WorkspaceCardListLabels({policyID, cardSettings}: WorkspaceCardListLabe
 
     const workspaceAccountID = useWorkspaceAccountID(policyID);
 
-    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`);
+    const [cardManualBilling] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_MANUAL_BILLING}${workspaceAccountID}`, {canBeMissing: true});
     const shouldShowSettlementButtonOrDate = !!cardSettings?.isMonthlySettlementAllowed || cardManualBilling;
 
     const isLessThanMediumScreen = isMediumScreenWidth || isSmallScreenWidth;
