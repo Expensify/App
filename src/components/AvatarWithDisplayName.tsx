@@ -36,6 +36,8 @@ import {FallbackAvatar} from './Icon/Expensicons';
 import MultipleAvatars from './MultipleAvatars';
 import ParentNavigationSubtitle from './ParentNavigationSubtitle';
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
+import SearchReportHeader from './SearchReportHeader';
+import type {TransactionListItemType} from './SelectionList/types';
 import SubscriptAvatar from './SubscriptAvatar';
 import Text from './Text';
 
@@ -54,6 +56,12 @@ type AvatarWithDisplayNameProps = {
 
     /** Whether we should enable detail page navigation */
     shouldEnableDetailPageNavigation?: boolean;
+
+    /** Whether we should enable custom title logic designed for search lis */
+    useCustomSearchTitleName?: boolean;
+
+    /** Transactions inside report */
+    transactions?: TransactionListItemType[];
 };
 
 const fallbackIcon: Icon = {
@@ -63,7 +71,15 @@ const fallbackIcon: Icon = {
     id: -1,
 };
 
-function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONST.AVATAR_SIZE.DEFAULT, shouldEnableDetailPageNavigation = false}: AvatarWithDisplayNameProps) {
+function AvatarWithDisplayName({
+    policy,
+    report,
+    isAnonymous = false,
+    size = CONST.AVATAR_SIZE.DEFAULT,
+    shouldEnableDetailPageNavigation = false,
+    useCustomSearchTitleName = false,
+    transactions = [],
+}: AvatarWithDisplayNameProps) {
     const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report?.parentReportID}`, {canEvict: false});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST) ?? CONST.EMPTY_OBJECT;
 
@@ -127,7 +143,7 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
-
+    debugger;
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (
@@ -155,16 +171,27 @@ function AvatarWithDisplayName({policy, report, isAnonymous = false, size = CONS
                         </View>
                     </PressableWithoutFeedback>
                     <View style={[styles.flex1, styles.flexColumn]}>
-                        <CaretWrapper>
-                            <DisplayNames
-                                fullTitle={title}
+                        {useCustomSearchTitleName ? (
+                            <SearchReportHeader
+                                report={report}
+                                title={title}
                                 displayNamesWithTooltips={displayNamesWithTooltips}
-                                tooltipEnabled
-                                numberOfLines={1}
-                                textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
                                 shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                                transactions={transactions}
+                                tooltipEnabled
                             />
-                        </CaretWrapper>
+                        ) : (
+                            <CaretWrapper>
+                                <DisplayNames
+                                    fullTitle={title}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                    tooltipEnabled
+                                    numberOfLines={1}
+                                    textStyles={[isAnonymous ? styles.headerAnonymousFooter : styles.headerText, styles.pre]}
+                                    shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
+                                />
+                            </CaretWrapper>
+                        )}
                         {Object.keys(parentNavigationSubtitleData).length > 0 && (
                             <ParentNavigationSubtitle
                                 parentNavigationSubtitleData={parentNavigationSubtitleData}

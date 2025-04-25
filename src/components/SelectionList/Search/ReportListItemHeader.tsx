@@ -80,7 +80,6 @@ function ReportListItemHeader<TItem extends ListItem>({
     const handleOnButtonPress = () => {
         handleActionButtonPress(currentSearchHash, reportItem, () => onSelectRow(item));
     };
-
     return (
         <View>
             <View style={[styles.pt0, styles.flexRow, styles.alignItemsCenter, styles.justifyContentStart, styles.pr3, styles.pl3, styles.gap3]}>
@@ -104,6 +103,8 @@ function ReportListItemHeader<TItem extends ListItem>({
                         shouldDisplaySearchRouter={shouldDisplaySearchRouter}
                         onBackButtonPress={onBackButtonPress}
                         style={[{maxWidth: 700}]}
+                        useCustomSearchTitleName
+                        transactions={reportItem.transactions}
                     />
                 </View>
                 <View style={[styles.justifyContentEnd]}>

@@ -2,6 +2,7 @@ import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import type {TransactionListItemType} from '@components/SelectionList/types';
 import type {Action} from '@hooks/useSingleExecution';
 import type {StepCounterParams} from '@src/languages/params';
 import type {AnchorPosition} from '@src/styles';
@@ -155,6 +156,12 @@ type HeaderWithBackButtonProps = Partial<ChildrenProps> & {
 
     /** The URL link associated with the attachment's subtitle, if available */
     subTitleLink?: string;
+
+    /** Whether we should enable custom title logic designed for search lis */
+    useCustomSearchTitleName?: boolean;
+
+    /** Transactions inside report */
+    transactions?: TransactionListItemType[];
 };
 
 export type {ThreeDotsMenuItem};
