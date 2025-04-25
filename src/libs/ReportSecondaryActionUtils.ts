@@ -45,7 +45,13 @@ function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     return canAddTransaction(report);
 }
 
-function isSubmitAction(report: Report, policy?: Policy): boolean {
+function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy): boolean {
+    const transactionAreComplete = reportTransactions.every((transaction) => transaction.amount !== 0 || transaction.modifiedAmount !== 0);
+
+    if (!transactionAreComplete) {
+        return false;
+    }
+
     const isExpenseReport = isExpenseReportUtils(report);
 
     if (!isExpenseReport || report?.total === 0) {
@@ -54,25 +60,21 @@ function isSubmitAction(report: Report, policy?: Policy): boolean {
 
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
     const isReportApprover = isApproverUtils(policy, getCurrentUserAccountID());
-
     if (!isReportSubmitter && !isReportApprover) {
         return false;
     }
 
     const isOpenReport = isOpenReportUtils(report);
-
     if (!isOpenReport) {
         return false;
     }
 
     const submitToAccountID = getSubmitToAccountID(policy, report);
-
     if (submitToAccountID === report.ownerAccountID && policy?.preventSelfApproval) {
         return false;
     }
 
     const isAdmin = policy?.role === CONST.POLICY.ROLE.ADMIN;
-
     if (isAdmin) {
         return true;
     }
