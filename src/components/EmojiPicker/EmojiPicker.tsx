@@ -44,8 +44,8 @@ function EmojiPicker({viewportOffsetTop}: EmojiPickerProps, ref: ForwardedRef<Em
     });
     const onModalHide = useRef<OnModalHideValue>(() => {});
     const onEmojiSelected = useRef<OnEmojiSelected>(() => {});
-    const activeEmoji = useRef<string | undefined>();
-    const emojiSearchInput = useRef<BaseTextInputRef | null>();
+    const activeEmoji = useRef<string | undefined>(undefined);
+    const emojiSearchInput = useRef<BaseTextInputRef | null>(null);
     const {windowHeight} = useWindowDimensions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
 

@@ -1,3 +1,4 @@
+import type {OnyxUpdate} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import type CONST from './CONST';
 import type {OnboardingCompanySize} from './CONST';
@@ -105,7 +106,7 @@ const ONYXKEYS = {
     PENDING_CONTACT_ACTION: 'pendingContactAction',
 
     /** Store the information of magic code */
-    VALIDATE_ACTION_CODE: 'validate_action_code',
+    VALIDATE_ACTION_CODE: 'validateActionCode',
 
     /** A list of policies that a user can join */
     JOINABLE_POLICIES: 'joinablePolicies',
@@ -502,6 +503,9 @@ const ONYXKEYS = {
 
     /** Information about loading states while talking with AI sales */
     TALK_TO_AI_SALES: 'talkToAISales',
+
+    /** Onyx updates that should be stored after sequential queue is flushed */
+    QUEUE_FLUSHED_DATA: 'queueFlushedData',
 
     /** Set when we are loading bill when downgrade */
     IS_LOADING_BILL_WHEN_DOWNGRADE: 'isLoadingBillWhenDowngrade',
@@ -1022,6 +1026,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIORITY_MODE]: ValueOf<typeof CONST.PRIORITY_MODE>;
     [ONYXKEYS.NVP_BLOCKED_FROM_CONCIERGE]: OnyxTypes.BlockedFromConcierge;
     [ONYXKEYS.TALK_TO_AI_SALES]: OnyxTypes.TalkToAISales;
+    [ONYXKEYS.QUEUE_FLUSHED_DATA]: OnyxUpdate[];
 
     // The value of this nvp is a string representation of the date when the block expires, or an empty string if the user is not blocked
     [ONYXKEYS.NVP_BLOCKED_FROM_CHAT]: string;
@@ -1150,7 +1155,7 @@ type OnyxValuesMapping = {
 
 type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CONCIERGE_CHAT_REPORT_ID]: string | undefined;
-    [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: Record<string, OnyxTypes.ReportAttributes>;
+    [ONYXKEYS.DERIVED.REPORT_ATTRIBUTES]: OnyxTypes.ReportAttributesDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;
