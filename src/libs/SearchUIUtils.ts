@@ -446,7 +446,11 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
     return Object.keys(data)
         .filter(isReportEntry)
         .map((key) => {
-            const taskItem = data[key] as SearchTask;
+            const taskItem = data[key] as SearchListItem;
+            if (!isTaskListItemType(taskItem)) {
+                return taskItem;
+            }
+
             const personalDetails = data.personalDetailsList;
 
             const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
@@ -488,7 +492,8 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             }
 
             return result;
-        });
+        })
+        .filter(isTaskListItemType);
 }
 
 /**
