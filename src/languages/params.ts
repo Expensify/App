@@ -693,7 +693,7 @@ type ReviewParams = {
 
 type ScheduleCallSlotsParams = {
     date: string;
-}
+};
 
 type CurrencyInputDisabledTextParams = {
     currency: string;

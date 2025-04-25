@@ -1,9 +1,9 @@
 import React from 'react';
 import {View} from 'react-native';
+import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import Text from '@components/Text';
 
 type DayProps = {
     /** Whether day is disabled */

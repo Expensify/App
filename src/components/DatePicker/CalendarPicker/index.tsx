@@ -13,10 +13,10 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import CONST from '@src/CONST';
 import ArrowIcon from './ArrowIcon';
+import Day from './Day';
 import generateMonthMatrix from './generateMonthMatrix';
 import type CalendarPickerListItem from './types';
 import YearPickerModal from './YearPickerModal';
-import Day from './Day';
 
 type CalendarPickerProps = {
     /** An initial value of date string */
@@ -55,7 +55,7 @@ function CalendarPicker({
     maxDate = setYear(new Date(), CONST.CALENDAR_PICKER.MAX_YEAR),
     onSelected,
     DayComponent = Day,
-    selectedableDates
+    selectedableDates,
 }: CalendarPickerProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {isSmallScreenWidth} = useResponsiveLayout();
@@ -257,7 +257,7 @@ function CalendarPicker({
                             const currentDate = new Date(currentYearView, currentMonthView, day);
                             const isBeforeMinDate = currentDate < startOfDay(new Date(minDate));
                             const isAfterMaxDate = currentDate > startOfDay(new Date(maxDate));
-                            const isSelectable = selectedableDates ? selectedableDates?.some(date => isSameDay(parseISO(date), currentDate)) : true;
+                            const isSelectable = selectedableDates ? selectedableDates?.some((date) => isSameDay(parseISO(date), currentDate)) : true;
                             const isDisabled = !day || isBeforeMinDate || isAfterMaxDate || !isSelectable;
                             const isSelected = !!day && isSameDay(parseISO(value.toString()), new Date(currentYearView, currentMonthView, day));
                             const handleOnPress = () => {
@@ -279,7 +279,16 @@ function CalendarPicker({
                                     accessible={!!day}
                                     dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                                 >
-                                    {({hovered, pressed}) => <DayComponent selected={isSelected} disabled={isDisabled} hovered={hovered} pressed={pressed}>{day}</DayComponent>}
+                                    {({hovered, pressed}) => (
+                                        <DayComponent
+                                            selected={isSelected}
+                                            disabled={isDisabled}
+                                            hovered={hovered}
+                                            pressed={pressed}
+                                        >
+                                            {day}
+                                        </DayComponent>
+                                    )}
                                 </PressableWithoutFeedback>
                             );
                         })}

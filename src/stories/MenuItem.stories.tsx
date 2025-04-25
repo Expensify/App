@@ -17,7 +17,7 @@ const story: Meta<typeof MenuItem> = {
     component: MenuItem,
     args: {
         interactive: true,
-    }
+    },
 };
 
 function Template(props: MenuItemProps) {

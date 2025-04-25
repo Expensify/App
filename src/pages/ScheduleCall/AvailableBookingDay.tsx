@@ -1,10 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import type {DayProps} from '@components/DatePicker/CalendarPicker/Day';
+import Text from '@components/Text';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
-import Text from '@components/Text';
-import type { DayProps } from '@components/DatePicker/CalendarPicker/Day';
 
 function AvailableBookingDay({disabled, selected, pressed, hovered, children}: DayProps) {
     const themeStyles = useThemeStyles();

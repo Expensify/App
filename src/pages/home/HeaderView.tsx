@@ -70,12 +70,12 @@ import {callFunctionIfActionIsAllowed} from '@userActions/Session';
 import {deleteTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import TalkToSalesButton from './TalkToSalesButton';
-import ROUTES from '@src/ROUTES';
 
 type HeaderViewProps = {
     /** Toggles the navigationMenu open and closed */
@@ -163,7 +163,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
         return true;
     };
 
-    const shouldShowGuideBooking = true || !!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink;
+    const shouldShowGuideBooking = true || (!!account && report?.reportID === account?.adminsRoomReportID && !!account?.guideDetails?.calendarLink);
 
     const join = callFunctionIfActionIsAllowed(() => joinRoom(report));
 
@@ -219,7 +219,7 @@ function HeaderView({report, parentReportAction, onNavigationMenuButtonClicked, 
             success={!shouldShowGuideBookingButtonInEarlyDiscountBanner}
             text={translate('getAssistancePage.scheduleADemo')}
             onPress={() => {
-                if(!report?.reportID){
+                if (!report?.reportID) {
                     return;
                 }
                 Navigation.navigate(ROUTES.SCHEDULE_CALL_BOOK.getRoute(report?.reportID));

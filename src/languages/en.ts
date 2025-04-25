@@ -6257,19 +6257,19 @@ const translations = {
         talkToConcierge: 'Talk to Concierge',
         hangUp: 'Hang up',
     },
-    schdeuledCall:{
+    schdeuledCall: {
         book: {
             title: 'Schedule a Call',
             description: 'Find a time that works for you.',
-            slots: ({date}: ScheduleCallSlotsParams)  => `Available times for ${date}`,
+            slots: ({date}: ScheduleCallSlotsParams) => `Available times for ${date}`,
         },
         confirmation: {
             title: 'Confirm Call',
-            description: 'Make sure the details below look good to you. Once you confirm the call, we\'ll send an invite with more info.',
+            description: "Make sure the details below look good to you. Once you confirm the call, we'll send an invite with more info.",
             setupSpecialist: 'Your setup specialist',
             meetingLength: 'Meeting length',
             dateTime: 'Date & time',
-        }
+        },
     },
     testDrive: {
         modal: {

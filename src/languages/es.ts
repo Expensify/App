@@ -6794,7 +6794,7 @@ const translations = {
             setupSpecialist: 'Tu especialista asignado',
             meetingLength: 'Duración de la reunión',
             dateTime: 'Fecha y hora',
-        }
+        },
     },
     testDrive: {
         modal: {
