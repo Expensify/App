@@ -51,7 +51,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
-    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID);
+    const transactionReport = Object.values(allReports ?? {}).find((report) => report?.reportID === transaction?.reportID || (transaction?.participants && report?.reportID === transaction?.participants?.at(0)?.reportID));
     const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
