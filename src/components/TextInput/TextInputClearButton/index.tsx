@@ -1,4 +1,5 @@
 import React from 'react';
+import type {StyleProp, ViewStyle} from 'react-native';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
 import {PressableWithoutFeedback} from '@components/Pressable';
@@ -7,7 +8,6 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
-import type {StyleProp, ViewStyle} from 'react-native';
 
 type TextInputClearButtonProps = {
     onPressButton: () => void;
