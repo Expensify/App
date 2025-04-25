@@ -8,7 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {SearchResults} from '@src/types/onyx';
 import usePrevious from './usePrevious';
 
-type UseSearchHighlightAndScrollProps = {
+type UseSearchHighlightAndScroll = {
     searchResults: OnyxEntry<SearchResults>;
     queryJSON: SearchQueryJSON;
 };
@@ -16,7 +16,7 @@ type UseSearchHighlightAndScrollProps = {
 /**
  * Hook used to handle highlighting and scrolling for new search results.
  */
-function useSearchHighlightAndScroll<T extends SearchListItem = SearchListItem>({searchResults, queryJSON}: UseSearchHighlightAndScrollProps) {
+function useSearchHighlightAndScroll<T extends SearchListItem = SearchListItem>({searchResults, queryJSON}: UseSearchHighlightAndScroll) {
     const [newSearchResultKey, setNewSearchResultKey] = useState<string | null>(null);
     const highlightedIDs = useRef<Set<string>>(new Set());
     const initializedRef = useRef(false);
@@ -174,4 +174,4 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 }
 
 export default useSearchHighlightAndScroll;
-export type {UseSearchHighlightAndScrollProps};
+export type {UseSearchHighlightAndScroll};
