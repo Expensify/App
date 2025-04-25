@@ -4,6 +4,7 @@ import type {EventMapCore, NavigationState, ScreenListeners} from '@react-naviga
 import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useContext, useEffect, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
+import type {NativeProps} from 'react-native-pager-view/lib/typescript/specs/PagerViewNativeComponent';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
 import type {TabSelectorProps} from '@components/TabSelector/TabSelector';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -47,6 +48,9 @@ type OnyxTabNavigatorProps = ChildrenProps & {
 
     /** Disable swipe between tabs */
     disableSwipe?: boolean;
+
+    /** Callback to handle the PagerView onPageSelected method */
+    onPageSelected?: NativeProps['onPageSelected'];
 };
 
 // eslint-disable-next-line rulesdir/no-inline-named-export
@@ -74,7 +78,7 @@ function OnyxTabNavigator({
 }: OnyxTabNavigatorProps) {
     // Mapping of tab name to focus trap container element
     const [focusTrapContainerElementMapping, setFocusTrapContainerElementMapping] = useState<Record<string, HTMLElement>>({});
-    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`);
+    const [selectedTab, selectedTabResult] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${id}`, {canBeMissing: false});
 
     // This callback is used to register the focus trap container element of each avaiable tab screen
     const setTabFocusTrapContainerElement = useCallback((tabName: string, containerElement: HTMLElement | null) => {

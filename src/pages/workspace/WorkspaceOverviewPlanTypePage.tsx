@@ -4,7 +4,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import Button from '@components/Button';
-import FixedFooter from '@components/FixedFooter';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
@@ -104,6 +103,7 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
             <ScreenWrapper
                 testID={WorkspaceOverviewPlanTypePage.displayName}
                 shouldShowOfflineIndicatorInWideScreen
+                enableEdgeToEdgeBottomSafeAreaPadding
             >
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
@@ -140,16 +140,17 @@ function WorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                             shouldUpdateFocusedIndex
                             shouldSingleExecuteRowSelect
                             initiallyFocusedOptionKey={workspacePlanTypes.find((mode) => mode.isSelected)?.keyForList}
+                            addBottomSafeAreaPadding
+                            footerContent={
+                                <Button
+                                    success
+                                    large
+                                    text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
+                                    style={styles.mt6}
+                                    onPress={handleUpdatePlan}
+                                />
+                            }
                         />
-                        <FixedFooter>
-                            <Button
-                                success
-                                large
-                                text={isPlanTypeLocked ? translate('common.buttonConfirm') : translate('common.save')}
-                                style={styles.mt6}
-                                onPress={handleUpdatePlan}
-                            />
-                        </FixedFooter>
                     </>
                 )}
             </ScreenWrapper>

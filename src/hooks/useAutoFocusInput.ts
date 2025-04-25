@@ -5,7 +5,9 @@ import type {TextInput} from 'react-native';
 import {InteractionManager} from 'react-native';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenStateContext} from '@src/SplashScreenStateContext';
+import useOnyx from './useOnyx';
 import usePrevious from './usePrevious';
 import useSidePanel from './useSidePanel';
 
@@ -14,9 +16,11 @@ type UseAutoFocusInput = {
     inputRef: RefObject<TextInput | null>;
 };
 
-export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInput {
+export default function useAutoFocusInput(isMultiline = false, isDisabled = false): UseAutoFocusInput {
     const [isInputInitialized, setIsInputInitialized] = useState(false);
     const [isScreenTransitionEnded, setIsScreenTransitionEnded] = useState(false);
+    const [modal] = useOnyx(ONYXKEYS.MODAL, {canBeMissing: true});
+    const isPopoverVisible = modal?.willAlertModalBecomeVisible && modal?.isPopover;
 
     const {splashScreenState} = useSplashScreenStateContext();
 
@@ -24,7 +28,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
     const focusTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     useEffect(() => {
-        if (!isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN) {
+        if (isDisabled || !isScreenTransitionEnded || !isInputInitialized || !inputRef.current || splashScreenState !== CONST.BOOT_SPLASH_STATE.HIDDEN || isPopoverVisible) {
             return;
         }
         const focusTaskHandle = InteractionManager.runAfterInteractions(() => {
@@ -38,7 +42,7 @@ export default function useAutoFocusInput(isMultiline = false): UseAutoFocusInpu
         return () => {
             focusTaskHandle.cancel();
         };
-    }, [isMultiline, isScreenTransitionEnded, isInputInitialized, splashScreenState]);
+    }, [isMultiline, isDisabled, isScreenTransitionEnded, isInputInitialized, splashScreenState, isPopoverVisible]);
 
     useFocusEffect(
         useCallback(() => {
