@@ -104,7 +104,7 @@ import {
     buildOptimisticIOUReportAction,
     buildOptimisticModifiedExpenseReportAction,
     buildOptimisticMoneyRequestEntities,
-    buildOptimisticMovedTrackedExpenseModifiedReportAction,
+    buildOptimisticMovedTransactionAction,
     buildOptimisticReportPreview,
     buildOptimisticResolvedDuplicatesReportAction,
     buildOptimisticSubmittedReportAction,
@@ -4600,13 +4600,13 @@ const getConvertTrackedExpenseInformation = (
     failureData?.push(...deleteFailureData);
 
     // Build modified expense report action with the transaction changes
-    const modifiedExpenseReportAction = buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadReportID, moneyRequestReportID);
+    const modifiedExpenseReportAction = buildOptimisticMovedTransactionAction(transactionThreadReportID, moneyRequestReportID ?? CONST.REPORT.UNREPORTED_REPORTID);
 
     optimisticData?.push({
         onyxMethod: Onyx.METHOD.MERGE,
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
-            [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction as OnyxTypes.ReportAction,
+            [modifiedExpenseReportAction.reportActionID]: modifiedExpenseReportAction,
         },
     });
     successData?.push({
@@ -4621,7 +4621,7 @@ const getConvertTrackedExpenseInformation = (
         key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`,
         value: {
             [modifiedExpenseReportAction.reportActionID]: {
-                ...(modifiedExpenseReportAction as OnyxTypes.ReportAction),
+                ...modifiedExpenseReportAction,
                 errors: getMicroSecondOnyxErrorWithTranslationKey('iou.error.genericEditFailureMessage'),
             },
         },
