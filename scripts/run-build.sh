@@ -12,22 +12,6 @@ GREEN='\033[1;32m'
 RED='\033[1;31m'
 NC='\033[0m'
 
-# Function to start repack in a new terminal window and wait for it to be ready
-function start_repack {
-    # Start repack in a new terminal window and activate it
-    osascript -e 'tell application "Terminal"
-        do script "cd \"'"$PWD"'\" && npx rnef start"
-        activate
-    end tell'
-    
-    # Wait for repack to be ready
-    echo -e "${GREEN}Waiting for repack to be ready...${NC}"
-    while ! nc -z localhost 8081; do   
-        sleep 1
-    done
-    echo -e "${GREEN}repack is ready!${NC}"
-}
-
 # Function to print error message and exit
 function print_error_and_exit {
     echo -e "${RED}Error: Invalid invocation. Please use one of: [ios, ipad, ipad-sm, android].${NC}"
@@ -66,9 +50,6 @@ else
     PROJECT_ROOT_PATH="./"
     unset CUSTOM_APK_NAME
 fi
-
-# Start repack before running any build
-start_repack
 
 # Check if the argument is one of the desired values
 case "$BUILD" in
