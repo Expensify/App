@@ -382,16 +382,10 @@ const styles = (theme: ThemeColors) =>
             flexDirection: 'row',
         },
 
-        textWithMiddleEllipsisFirstPart: {
+        textWithMiddleEllipsisText: {
             overflow: 'hidden',
             textOverflow: 'clip',
             whiteSpace: 'nowrap',
-        },
-
-        textWithMiddleEllipsisSecondPart: {
-            overflow: 'hidden',
-            direction: 'rtl',
-            textOverflow: 'ellipsis',
         },
 
         verticalAlignTopText: {

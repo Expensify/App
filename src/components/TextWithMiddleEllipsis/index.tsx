@@ -1,8 +1,10 @@
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+import React, { useRef } from 'react';
+// eslint-disable-next-line no-restricted-imports
+import type {StyleProp, TextStyle, ViewStyle, Text as RNText} from 'react-native';
 import {View} from 'react-native';
 import Text from '@components/Text';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useTextWithMiddleEllipsis from '@hooks/useTextWithMiddleEllipsis';
 
 type TextWithMiddleEllipsisProps = {
     /** The text to display */
@@ -18,8 +20,12 @@ type TextWithMiddleEllipsisProps = {
 function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsisProps) {
     const styles = useThemeStyles();
 
-    const firstPart = text.substring(0, Math.ceil(text.length / 2));
-    const secondPart = text.substring(Math.ceil(text.length / 2));
+    const ref = useRef<RNText>(null);
+
+    const displayText = useTextWithMiddleEllipsis({
+        text,
+        ref,
+    });
 
     return (
         <View
@@ -32,20 +38,12 @@ function TextWithMiddleEllipsis({text, style, textStyle}: TextWithMiddleEllipsis
             <Text
                 style={[
                     textStyle,
-                    styles.textWithMiddleEllipsisFirstPart,
+                    styles.textWithMiddleEllipsisText,
                 ]}
                 numberOfLines={1}
+                ref={ref}
             >
-                {firstPart}
-            </Text>
-            <Text
-                style={[
-                    textStyle,
-                    styles.textWithMiddleEllipsisSecondPart,
-                ]}
-                numberOfLines={1}
-            >
-                {secondPart}
+                {displayText}
             </Text>
         </View>
     );
