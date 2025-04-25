@@ -39,12 +39,10 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
     const {isOffline} = useNetwork();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const validateError = getLatestErrorMessageField(issueNewCard);
     const [isValidateCodeActionModalVisible, setIsValidateCodeActionModalVisible] = useState(false);
     const data = issueNewCard?.data;
     const isSuccessful = issueNewCard?.isSuccessful;
-    const validateCodeSent = validateCodeAction?.validateCodeSent;
     const defaultFundID = useDefaultFundID(policyID);
 
     const submitButton = useRef<View>(null);
@@ -144,9 +142,9 @@ function ConfirmationStep({policyID, backTo}: ConfirmationStepProps) {
                 <ValidateCodeActionModal
                     handleSubmitForm={submit}
                     isLoading={issueNewCard?.isLoading}
-                    sendValidateCode={() => requestValidateCodeAction()}
+                    sendValidateCode={requestValidateCodeAction}
+                    validateCodeActionErrorField="createAdminIssuedVirtualCard"
                     validateError={validateError}
-                    hasMagicCodeBeenSent={validateCodeSent}
                     clearError={() => clearIssueNewCardError(policyID)}
                     onClose={() => setIsValidateCodeActionModalVisible(false)}
                     isVisible={isValidateCodeActionModalVisible}
