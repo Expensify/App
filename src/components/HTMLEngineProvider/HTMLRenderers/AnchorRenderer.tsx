@@ -1,6 +1,6 @@
 import {Str} from 'expensify-common';
-import type {StyleProp, TextStyle} from 'react-native';
 import React, {useContext, useMemo} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import {TNodeChildrenRenderer} from 'react-native-render-html';
 import type {CustomRendererProps, TBlock} from 'react-native-render-html';
