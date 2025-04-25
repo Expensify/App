@@ -18,8 +18,10 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
+import useParentReport from '@hooks/useParentReport';
 import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -29,7 +31,7 @@ import {openExternalLink, openOldDotLink, openTravelDotLink} from '@libs/actions
 import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import {createNewReport, startNewChat} from '@libs/actions/Report';
 import {isAnonymousUser} from '@libs/actions/Session';
-import {canActionTask as canActionTaskUtils, canModifyTask as canModifyTaskUtils, completeTask} from '@libs/actions/Task';
+import {canActionTask, canModifyTask, completeTask} from '@libs/actions/Task';
 import {setSelfTourViewed} from '@libs/actions/Welcome';
 import getIconForAction from '@libs/getIconForAction';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
@@ -472,8 +474,10 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`);
 
-    const canModifyTask = canModifyTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
-    const canActionTask = canActionTaskUtils(viewTourTaskReport, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(viewTourTaskReport?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskModifiable = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const isTravelEnabled = useMemo(() => {
         if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
@@ -586,7 +590,7 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                       onSelected: () => {
                           openExternalLink(navatticURL);
                           setSelfTourViewed(isAnonymousUser());
-                          if (viewTourTaskReport && canModifyTask && canActionTask) {
+                          if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
                               completeTask(viewTourTaskReport);
                           }
                       },
