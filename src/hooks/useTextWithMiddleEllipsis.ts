@@ -1,8 +1,7 @@
-import {useState, useCallback, useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {Text as RNText} from 'react-native';
-
 
 const ELLIPSIS = '...';
 
@@ -16,13 +15,13 @@ type TruncateProps = {
 
 /**
  * Hook for intelligently truncating text with an ellipsis in the middle.
- * 
+ *
  * This hook:
  * - Measures the width of the referenced text element
  * - Determines if truncation is needed
  * - Preserves text from both the beginning and end for better context
  * - Places an ellipsis in the middle where text is removed
- * 
+ *
  * @param props Object containing text to truncate and ref to the element
  * @returns Truncated text with ellipsis in the middle if needed, or original text
  */
@@ -34,7 +33,7 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
     const [displayText, setDisplayText] = useState(text);
     const [elementStyle, setElementStyle] = useState<CSSStyleDeclaration | null>(null);
     const measureDivRef = useRef<HTMLDivElement | null>(null);
-    
+
     /**
      * Creates or retrieves the measurement div element
      */
@@ -42,7 +41,7 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
         if (measureDivRef.current) {
             return measureDivRef.current;
         }
-        
+
         const div = document.createElement('div');
         div.style.position = 'fixed';
         div.style.visibility = 'hidden';
@@ -54,7 +53,7 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
         measureDivRef.current = div;
         return div;
     }, []);
-    
+
     // Remove measurement div when component unmounts
     useEffect(() => {
         return () => {
@@ -65,21 +64,24 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
             measureDivRef.current = null;
         };
     }, []);
-    
+
     /**
      * Efficiently measures text width by reusing a single div element
      */
-    const measureText = useCallback((textToMeasure: string, style: CSSStyleDeclaration) => {
-        const div = getMeasureDiv();
-        div.textContent = textToMeasure;
-        div.style.fontWeight = style.fontWeight;
-        div.style.fontStyle = style.fontStyle;
-        div.style.fontSize = style.fontSize;
-        div.style.lineHeight = style.lineHeight;
-        div.style.fontFamily = style.fontFamily;
-        
-        return div.getBoundingClientRect().width;
-    }, [getMeasureDiv]);
+    const measureText = useCallback(
+        (textToMeasure: string, style: CSSStyleDeclaration) => {
+            const div = getMeasureDiv();
+            div.textContent = textToMeasure;
+            div.style.fontWeight = style.fontWeight;
+            div.style.fontStyle = style.fontStyle;
+            div.style.fontSize = style.fontSize;
+            div.style.lineHeight = style.lineHeight;
+            div.style.fontFamily = style.fontFamily;
+
+            return div.getBoundingClientRect().width;
+        },
+        [getMeasureDiv],
+    );
 
     /**
      * Calculates the target width and determines if truncation is needed
@@ -97,7 +99,7 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
         const targetW = rect.width;
 
         setTargetWidth(rect.width);
-        
+
         if (style && text) {
             const measureWidth = measureText(text, style);
             setShouldTruncate(measureWidth > targetW);
@@ -122,20 +124,20 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
         const len = text.length;
         let headChars = Math.floor(len / 2);
         let tailChars = len - headChars;
-        
+
         let head = text.slice(0, headChars);
         let tail = text.slice(len - tailChars);
-        
+
         // Binary search to find optimal split point
         while (headChars > 0 && tailChars > 0) {
             const combined = head + ELLIPSIS + tail;
             const combinedWidth = measureText(combined, elementStyle);
-            
+
             if (combinedWidth <= targetWidth) {
                 setDisplayText(combined);
                 return;
             }
-            
+
             // Reduce characters, prioritizing balance between head and tail
             if (headChars > tailChars && headChars > 1) {
                 headChars--;
@@ -147,7 +149,7 @@ function useTextWithMiddleEllipsis(props: TruncateProps): string {
                 break;
             }
         }
-        
+
         // Fallback for extreme truncation
         const minTruncated = text.slice(0, 1) + ELLIPSIS + text.slice(len - 1);
         setDisplayText(minTruncated);
