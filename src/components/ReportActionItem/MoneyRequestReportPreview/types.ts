@@ -55,6 +55,9 @@ type MoneyRequestReportPreviewProps = {
 
     /** Whether the report is an invoice preview */
     isInvoice?: boolean;
+
+    /** Whether to show a border to separate Reports Chat Item and Money Request Report Preview */
+    shouldShowBorder?: boolean;
 };
 
 type MoneyRequestReportPreviewContentOnyxProps = {
@@ -70,6 +73,21 @@ type MoneyRequestReportPreviewContentOnyxProps = {
 };
 
 type MoneyRequestReportPreviewContentProps = MoneyRequestReportPreviewContentOnyxProps &
-    MoneyRequestReportPreviewProps & {renderItem: ListRenderItem<Transaction>; getCurrentWidth: (e: LayoutChangeEvent) => void; reportPreviewStyles: MoneyRequestReportPreviewStyleType};
+    Omit<MoneyRequestReportPreviewProps, 'policyID'> & {
+        /** Extra styles passed used by MoneyRequestReportPreviewContent */
+        reportPreviewStyles: MoneyRequestReportPreviewStyleType;
+
+        /** MoneyRequestReportPreview's current width */
+        currentWidth: number;
+
+        /** Callback passed to onLayout  */
+        onLayout: (e: LayoutChangeEvent) => void;
+
+        /** Callback to render a transaction preview item */
+        renderTransactionItem: ListRenderItem<Transaction>;
+
+        /** Callback called when the whole preview is pressed */
+        onPress: () => void;
+    };
 
 export type {MoneyRequestReportPreviewContentProps, MoneyRequestReportPreviewProps, MoneyRequestReportPreviewStyleType};

@@ -224,7 +224,7 @@ function AttachmentModalBaseContent({
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const transactionID = (isMoneyRequestAction(parentReportAction) && getOriginalMessage(parentReportAction)?.IOUTransactionID) || CONST.DEFAULT_NUMBER_ID;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
     const [currentAttachmentLink, setCurrentAttachmentLink] = useState(attachmentLink);
 
     const fallbackFile = useMemo(() => (originalFileName ? {name: originalFileName} : undefined), [originalFileName]);

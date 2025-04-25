@@ -431,7 +431,6 @@ export type {
     SignerInfoStepProps,
     ACHContractStepProps,
     ReimbursementAccountProps,
-    NonUSDReimbursementAccountAdditionalProps,
     InputID,
 };
 export default INPUT_IDS;
