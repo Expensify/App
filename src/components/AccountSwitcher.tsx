@@ -12,7 +12,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 import {clearDelegatorErrors, connect, disconnect} from '@libs/actions/Delegate';
 import {close} from '@libs/actions/Modal';
-import {getProcessedText, splitTextWithEmojis} from '@libs/EmojiUtils';
 import {getLatestError} from '@libs/ErrorUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import variables from '@styles/variables';
@@ -37,9 +36,9 @@ function AccountSwitcher() {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [user] = useOnyx(ONYXKEYS.USER);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
     const buttonRef = useRef<HTMLDivElement>(null);
     const {windowHeight} = useWindowDimensions();
     const {canUseLeftHandBar} = usePermissions();
@@ -50,7 +49,6 @@ function AccountSwitcher() {
 
     const isActingAsDelegate = !!account?.delegatedAccess?.delegate ?? false;
     const canSwitchAccounts = delegators.length > 0 || isActingAsDelegate;
-    const processedTextArray = splitTextWithEmojis(currentUserPersonalDetails?.displayName);
     const accountSwitcherPopoverStyle = canUseLeftHandBar ? styles.accountSwitcherPopoverWithLHB : styles.accountSwitcherPopover;
 
     const createBaseMenuItem = (
@@ -148,7 +146,7 @@ function AccountSwitcher() {
                     pressDimmingValue={canSwitchAccounts ? undefined : 1}
                     wrapperStyle={[styles.flexGrow1, styles.flex1, styles.mnw0, styles.justifyContentCenter]}
                 >
-                    <View style={[styles.flexRow, styles.gap3]}>
+                    <View style={[styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
                         <Avatar
                             type={CONST.ICON_TYPE_AVATAR}
                             size={CONST.AVATAR_SIZE.DEFAULT}
@@ -160,9 +158,9 @@ function AccountSwitcher() {
                             <View style={[styles.flexRow, styles.gap1]}>
                                 <Text
                                     numberOfLines={1}
-                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1]}
+                                    style={[styles.textBold, styles.textLarge, styles.flexShrink1, styles.lineHeightXLarge]}
                                 >
-                                    {processedTextArray.length !== 0 ? getProcessedText(processedTextArray, styles.initialSettingsUsernameEmoji) : currentUserPersonalDetails?.displayName}
+                                    {currentUserPersonalDetails?.displayName}
                                 </Text>
                                 {!!canSwitchAccounts && (
                                     <View style={styles.justifyContentCenter}>

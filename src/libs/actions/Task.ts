@@ -1,3 +1,4 @@
+import {Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
@@ -22,6 +23,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type {ReportActions} from '@src/types/onyx/ReportAction';
 import type ReportAction from '@src/types/onyx/ReportAction';
+import type {OnyxData} from '@src/types/onyx/Request';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getMostRecentReportID, navigateToConciergeChatAndDeleteReport, notifyNewAction} from './Report';
 
@@ -84,6 +86,12 @@ Onyx.connect({
     callback: (value) => {
         allReports = value;
     },
+});
+
+let introSelected: OnyxEntry<OnyxTypes.IntroSelected> = {};
+Onyx.connect({
+    key: ONYXKEYS.NVP_INTRO_SELECTED,
+    callback: (val) => (introSelected = val),
 });
 
 /**
@@ -369,11 +377,11 @@ function getOutstandingChildTask(taskReport: OnyxEntry<OnyxTypes.Report>) {
 /**
  * Complete a task
  */
-function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string) {
+function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromAction?: string): OnyxData {
     const taskReportID = taskReport?.reportID ?? reportIDFromAction;
 
     if (!taskReportID) {
-        return;
+        return {};
     }
 
     const message = `marked as complete`;
@@ -454,6 +462,7 @@ function completeTask(taskReport: OnyxEntry<OnyxTypes.Report>, reportIDFromActio
 
     playSound(SOUNDS.SUCCESS);
     API.write(WRITE_COMMANDS.COMPLETE_TASK, parameters, {optimisticData, successData, failureData});
+    return {optimisticData, successData, failureData};
 }
 
 /**
@@ -1265,6 +1274,40 @@ function clearTaskErrors(reportID: string | undefined) {
     });
 }
 
+function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected): OnyxData {
+    const taskReportID = introSelected?.[taskName];
+    if (taskReportID) {
+        const taskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${taskReportID}`];
+        if (taskReport) {
+            if (taskReport.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || taskReport.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+                return completeTask(taskReport);
+            }
+        }
+    }
+
+    return {};
+}
+function completeTestDriveTask() {
+    const onboardingReport = ReportUtils.getChatUsedForOnboarding();
+    if (!onboardingReport) {
+        return;
+    }
+
+    const onboardingReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onboardingReport.reportID}`];
+    if (!onboardingReportActions) {
+        return;
+    }
+
+    const testDriveTaskParentReport = Object.values(onboardingReportActions).find(
+        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && Str.stripHTML(reportAction.childReportName ?? '') === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
+    );
+
+    const testDriveTaskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskParentReport?.childReportID}`];
+    if (testDriveTaskReport?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || testDriveTaskReport?.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+        completeTask(testDriveTaskReport);
+    }
+}
+
 export {
     createTaskAndNavigate,
     editTask,
@@ -1290,4 +1333,6 @@ export {
     setNewOptimisticAssignee,
     getNavigationUrlOnTaskDelete,
     canActionTask,
+    getFinishOnboardingTaskOnyxData,
+    completeTestDriveTask,
 };
