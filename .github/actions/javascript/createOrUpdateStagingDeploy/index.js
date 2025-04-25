@@ -11652,6 +11652,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 const child_process_1 = __nccwpck_require__(2081);
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
+const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const sanitizeStringForJSONParse_1 = __importDefault(__nccwpck_require__(3902));
 const versionUpdater_1 = __nccwpck_require__(8982);
 /**
@@ -11797,6 +11798,31 @@ function getCommitHistoryAsJSON(fromTag, toTag) {
     });
 }
 /**
+ * Get commits between two tags via the GitHub API
+ */
+async function getCommitHistoryBetweenTags(fromTag, toTag) {
+    console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
+    try {
+        const { data: comparison } = await GithubUtils_1.default.octokit.repos.compareCommits({
+            owner: CONST_1.default.GITHUB_OWNER,
+            repo: CONST_1.default.APP_REPO,
+            base: fromTag,
+            head: toTag,
+        });
+        // Map API response to our CommitType format
+        return comparison.commits.map((commit) => ({
+            commit: commit.sha,
+            subject: commit.commit.message,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+            authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
+        }));
+    }
+    catch (error) {
+        console.error('Error getting commit history from GitHub API:', error);
+        throw error;
+    }
+}
+/**
  * Parse merged PRs, excluding those from irrelevant branches.
  */
 function getValidMergedPRs(commits) {
@@ -11826,7 +11852,7 @@ function getValidMergedPRs(commits) {
  */
 async function getPullRequestsMergedBetween(fromTag, toTag) {
     console.log(`Looking for commits made between ${fromTag} and ${toTag}...`);
-    const commitList = await getCommitHistoryAsJSON(fromTag, toTag);
+    const commitList = await getCommitHistoryBetweenTags(fromTag, toTag);
     console.log(`Commits made between ${fromTag} and ${toTag}:`, commitList);
     // Find which commit messages correspond to merged PR's
     const pullRequestNumbers = getValidMergedPRs(commitList).sort((a, b) => a - b);
@@ -11837,6 +11863,7 @@ exports["default"] = {
     getPreviousExistingTag,
     getValidMergedPRs,
     getPullRequestsMergedBetween,
+    getCommitHistoryBetweenTags,
 };
 
 
