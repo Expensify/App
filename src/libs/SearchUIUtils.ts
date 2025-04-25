@@ -319,7 +319,14 @@ function getProcessedTransaction(
     doesDataContainAPastYearTransaction: boolean,
     shouldShowBlankTo: boolean,
 ): TransactionListItemType {
-    const cacheKey = `${key}-${shouldShowMerchant}-${doesDataContainAPastYearTransaction}-${shouldShowBlankTo}`;
+    if (!isTransactionEntry(key)) {
+        throw new Error(`Invalid transaction key format: ${key}. Expected key to start with ${ONYXKEYS.COLLECTION.TRANSACTION}`);
+    }
+
+    const transactionItem = data[key];
+    const report = data[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem?.reportID}`] as SearchReport | undefined;
+    const action = getAction(data, key);
+    const cacheKey = `${key}-${shouldShowMerchant}-${doesDataContainAPastYearTransaction}-${shouldShowBlankTo}-${action}-${report?.stateNum}`;
     const cachedTransaction = processedTransactionsCache.get(cacheKey);
     if (cachedTransaction) {
         return cachedTransaction;
@@ -1000,5 +1007,6 @@ export {
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
+    processedTransactionsCache,
 };
 export type {SavedSearchMenuItem, SearchTypeMenuItem};
