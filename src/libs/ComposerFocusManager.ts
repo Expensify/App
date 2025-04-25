@@ -35,6 +35,7 @@ const promiseMap = new Map<ModalId, PromiseMapValue>();
  * react-native-web doesn't support `currentlyFocusedInput`, so we need to make it compatible by using `currentlyFocusedField` instead.
  */
 function getActiveInput() {
+    // eslint-disable-next-line deprecation/deprecation
     return (TextInput.State.currentlyFocusedInput ? TextInput.State.currentlyFocusedInput() : TextInput.State.currentlyFocusedField()) as InputElement;
 }
 
@@ -221,8 +222,6 @@ function isReadyToFocus(id?: ModalId) {
 function refocusAfterModalFullyClosed(id: ModalId, restoreType: RestoreFocusType, isInUploadingContext?: boolean) {
     isReadyToFocus(id)?.then(() => restoreFocusState(id, false, restoreType, isInUploadingContext));
 }
-
-export type {InputElement};
 
 export default {
     getId,
