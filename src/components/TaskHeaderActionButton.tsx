@@ -24,6 +24,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
     const session = useSession();
     const parentReport = useParentReport(report.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskActionable = canActionTask(report, session?.accountID, parentReport, isParentReportArchived);
 
     if (!canWriteInReport(report)) {
         return null;
@@ -33,7 +34,7 @@ function TaskHeaderActionButton({report}: TaskHeaderActionButtonProps) {
         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd]}>
             <Button
                 success
-                isDisabled={!canActionTask(report, session?.accountID, parentReport, isParentReportArchived)}
+                isDisabled={!isTaskActionable}
                 text={translate(isCompletedTaskReport(report) ? 'task.markAsIncomplete' : 'task.markAsComplete')}
                 onPress={callFunctionIfActionIsAllowed(() => {
                     // If we're already navigating to these task editing pages, early return not to mark as completed, otherwise we would have not found page.
