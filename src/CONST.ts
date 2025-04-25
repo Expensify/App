@@ -121,6 +121,15 @@ const selfGuidedTourTask: OnboardingTask = {
     description: ({navatticURL}) => `[Take a self-guided product tour](${navatticURL}) and learn about everything Expensify has to offer.`,
 };
 
+const getTestDriveTaskName = (testDriveURL?: string) => (testDriveURL ? `Take a [test drive](${testDriveURL})` : 'Take a test drive');
+const testDriveTask: OnboardingTask = {
+    type: 'viewTour',
+    autoCompleted: false,
+    mediaAttributes: {},
+    title: ({testDriveURL}) => getTestDriveTaskName(testDriveURL),
+    description: ({testDriveURL}) => `[Take a quick product tour](${testDriveURL}) to see why Expensify is the fastest way to do your expenses.`,
+};
+
 const createWorkspaceTask: OnboardingTask = {
     type: 'createWorkspace',
     autoCompleted: true,
@@ -290,6 +299,7 @@ type OnboardingTaskLinks = Partial<{
     workspaceMembersLink: string;
     workspaceAccountingLink: string;
     navatticURL: string;
+    testDriveURL: string;
     corporateCardLink: string;
 }>;
 
@@ -1098,6 +1108,12 @@ const CONST = {
         EMPLOYEE_TOUR_STAGING: 'https://expensify.navattic.com/cf15002s',
         COMPLETED: 'completed',
     },
+    STORYLANE: {
+        ADMIN_TOUR_PRODUCTION: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE_PRODUCTION: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+        ADMIN_TOUR_STAGING: 'https://app.storylane.io/demo/0bhwdna0isb3?embed=inline',
+        ADMIN_TOUR_MOBILE_STAGING: 'https://app.storylane.io/demo/sfzzu3s6l3ov?embed=inline',
+    },
     OLD_DOT_PUBLIC_URLS: {
         TERMS_URL: `${EXPENSIFY_URL}/terms`,
         PRIVACY_URL: `${EXPENSIFY_URL}/privacy`,
@@ -1517,6 +1533,7 @@ const CONST = {
             BOTTOM_DOCKED: 'bottom_docked',
             POPOVER: 'popover',
             RIGHT_DOCKED: 'right_docked',
+            FULLSCREEN: 'fullscreen',
         },
         ANCHOR_ORIGIN_VERTICAL: {
             TOP: 'top',
@@ -5380,8 +5397,7 @@ const CONST = {
             message: ({onboardingCompanySize: companySize}) => `Here is a task list I’d recommend for a company of your size with ${companySize} submitters:`,
             tasks: [
                 createWorkspaceTask,
-                selfGuidedTourTask,
-
+                testDriveTask,
                 {
                     type: 'addAccountingIntegration',
                     autoCompleted: false,
@@ -6421,6 +6437,7 @@ const CONST = {
         DATA_TYPES: {
             EXPENSE: 'expense',
             INVOICE: 'invoice',
+            TASK: 'task',
             TRIP: 'trip',
             CHAT: 'chat',
         },
@@ -6489,6 +6506,11 @@ const CONST = {
                 LINKS: 'links',
                 PINNED: 'pinned',
             },
+            TASK: {
+                ALL: 'all',
+                OUTSTANDING: 'outstanding',
+                COMPLETED: 'completed',
+            },
         },
         TABLE_COLUMNS: {
             RECEIPT: 'receipt',
@@ -6503,6 +6525,10 @@ const CONST = {
             TYPE: 'type',
             ACTION: 'action',
             TAX_AMOUNT: 'taxAmount',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
+            IN: 'in',
         },
         SYNTAX_OPERATORS: {
             AND: 'and',
@@ -6543,6 +6569,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'createdBy',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
             POLICY_ID: 'policyID',
@@ -6581,6 +6610,9 @@ const CONST = {
             PAID: 'paid',
             EXPORTED: 'exported',
             POSTED: 'posted',
+            TITLE: 'title',
+            ASSIGNEE: 'assignee',
+            CREATED_BY: 'created-by',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
         },
@@ -7011,6 +7043,12 @@ const CONST = {
     BILLING: {
         TYPE_FAILED_2018: 'failed_2018',
     },
+
+    TEST_DRIVE: {
+        ONBOARDING_TASK_NAME: getTestDriveTaskName(),
+        EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
+        EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
@@ -7030,6 +7068,7 @@ export type {
     IOUType,
     OnboardingPurpose,
     OnboardingCompanySize,
+    OnboardingTaskLinks,
     IOURequestType,
     SubscriptionType,
     FeedbackSurveyOptionID,
@@ -7038,5 +7077,7 @@ export type {
     OnboardingAccounting,
     IOUActionParams,
 };
+
+export {getTestDriveTaskName};
 
 export default CONST;
