@@ -115,8 +115,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReport = useParentReport(viewTourTaskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
-    const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
+    const isTaskModifiable = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const content = useMemo(() => {
         switch (type) {
@@ -143,7 +143,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                              if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -183,7 +183,7 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
                                           buttonAction: () => {
                                               openExternalLink(navatticURL);
                                               setSelfTourViewed();
-                                              if (viewTourTaskReport && canModifyTheTask && canActionTheTask) {
+                                              if (viewTourTaskReport && isTaskModifiable && isTaskActionable) {
                                                   completeTask(viewTourTaskReport);
                                               }
                                           },
@@ -232,8 +232,8 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
         shouldRedirectToExpensifyClassic,
         hasResults,
         viewTourTaskReport,
-        canModifyTheTask,
-        canActionTheTask,
+        isTaskModifiable,
+        isTaskActionable,
     ]);
 
     return (
