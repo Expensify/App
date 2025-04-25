@@ -9,6 +9,7 @@ import ScreenWrapper from '@components/ScreenWrapper';
 import TabSelector from '@components/TabSelector/TabSelector';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -68,15 +69,17 @@ function IOURequestStartPage({
         [transaction?.iouRequestType, shouldUseTab, selectedTab],
     );
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
+    const prevTransactionReportID = usePrevious(transaction?.reportID);
 
     // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
     useFocusEffect(
         useCallback(() => {
-            if (transaction?.reportID === reportID || isLoadingSelectedTab) {
+            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
+            if (transaction?.reportID === reportID || isLoadingSelectedTab || prevTransactionReportID !== transaction?.reportID) {
                 return;
             }
             initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
+        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
     );
 
     useEffect(() => {

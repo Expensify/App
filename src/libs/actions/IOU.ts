@@ -944,8 +944,13 @@ function setMoneyRequestBillable(transactionID: string, billable: boolean) {
     Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {billable});
 }
 
-function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isFromGlobalCreate = false) {
-    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {participants, isFromGlobalCreate: isFromGlobalCreate ? true : undefined});
+function setMoneyRequestParticipants(transactionID: string, participants: Participant[] = [], isTestTransaction = false) {
+    // We should change the reportID and isFromGlobalCreate of the test transaction since this flow can start inside an existing report
+    return Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
+        participants,
+        isFromGlobalCreate: isTestTransaction ? true : undefined,
+        reportID: isTestTransaction ? participants?.at(0)?.reportID : undefined,
+    });
 }
 
 function setSplitPayer(transactionID: string, payerAccountID: number) {
