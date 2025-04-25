@@ -239,10 +239,6 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         [setSelection, setTextInputValue],
     );
 
-    const handleSearchAction = (value: string) => {
-        searchInServer(value);
-    };
-
     const onListItemPress = useCallback(
         (item: OptionData | SearchQueryItem) => {
             if (isSearchQueryItem(item)) {
@@ -351,7 +347,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     />
                     <SearchAutocompleteList
                         autocompleteQueryValue={autocompleteQueryValue || textInputValue}
-                        handleSearch={handleSearchAction}
+                        handleSearch={searchInServer}
                         searchQueryItem={searchQueryItem}
                         getAdditionalSections={getAdditionalSections}
                         onListItemPress={onListItemPress}

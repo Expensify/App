@@ -508,9 +508,7 @@ function SearchAutocompleteList(
             return;
         }
         handleSearch(autocompleteQueryValue);
-        // eslint-disable-next-line react-compiler/react-compiler
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [autocompleteQueryValue]);
+    }, [autocompleteQueryValue, handleSearch]);
 
     /* Sections generation */
     const sections: Array<SectionListDataType<OptionData | SearchQueryItem>> = [];

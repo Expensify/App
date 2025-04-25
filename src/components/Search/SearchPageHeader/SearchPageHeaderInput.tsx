@@ -119,6 +119,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
 
     useEffect(() => {
         setTextInputValue(isDefaultQuery ? '' : queryText);
+        setAutocompleteQueryValue(isDefaultQuery ? '' : queryText);
     }, [isDefaultQuery, queryText]);
 
     useEffect(() => {
