@@ -65,9 +65,15 @@ function IOURequestStepDescription({
     const {inputCallbackRef} = useAutoFocusInput(true);
     // In the split flow, when editing we use SPLIT_TRANSACTION_DRAFT to save draft value
     const isEditingSplitBill = iouType === CONST.IOU.TYPE.SPLIT && action === CONST.IOU.ACTION.EDIT;
-    const currentDescriptionInMarkdown = Parser.htmlToMarkdown(
-        isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '',
-    );
+    const isTransactionDraft = shouldUseTransactionDraft(action);
+
+    const currentDescriptionInMarkdown = useMemo(() => {
+        if (!isTransactionDraft) {
+            return Parser.htmlToMarkdown(isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '');
+        }
+        return isEditingSplitBill && !lodashIsEmpty(splitDraftTransaction) ? splitDraftTransaction?.comment?.comment ?? '' : transaction?.comment?.comment ?? '';
+    }, [isTransactionDraft, isEditingSplitBill, splitDraftTransaction, transaction?.comment?.comment]);
+
     const descriptionRef = useRef(currentDescriptionInMarkdown);
     const isSavedRef = useRef(false);
 
@@ -119,7 +125,6 @@ function IOURequestStepDescription({
             navigateBack();
             return;
         }
-        const isTransactionDraft = shouldUseTransactionDraft(action);
 
         setMoneyRequestDescription(transaction?.transactionID, newComment, isTransactionDraft);
 
