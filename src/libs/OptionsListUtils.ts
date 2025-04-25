@@ -44,7 +44,7 @@ import Performance from './Performance';
 import Permissions from './Permissions';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
-import {canSendInvoiceFromWorkspace, getSubmitToAccountID} from './PolicyUtils';
+import {canSendInvoiceFromWorkspace, getSubmitToAccountID, isUserInvitedToWorkspace} from './PolicyUtils';
 import {
     getCombinedReportActions,
     getExportIntegrationLastMessageText,
@@ -1642,10 +1642,6 @@ function getValidOptions(
     }: GetOptionsConfig = {},
 ): Options {
     const userHasReportWithManagerMcTest = Object.values(options.reports).some((report) => isManagerMcTestReport(report));
-    // If user has a workspace that he isn't owner, it means he was invited to it.
-    const isUserInvitedToWorkspace = Object.values(policies ?? {}).some(
-        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
-    );
 
     // Gather shared configs:
     const loginsToExclude: Record<string, boolean> = {
@@ -1656,7 +1652,7 @@ function getValidOptions(
             !canShowManagerMcTest ||
             (getIsUserSubmittedExpenseOrScannedReceipt() && !userHasReportWithManagerMcTest) ||
             !Permissions.canUseManagerMcTest(config.betas) ||
-            isUserInvitedToWorkspace,
+            isUserInvitedToWorkspace(),
     };
     // If we're including selected options from the search results, we only want to exclude them if the search input is empty
     // This is because on certain pages, we show the selected options at the top when the search input is empty
@@ -2374,4 +2370,4 @@ export {
     shouldShowLastActorDisplayName,
 };
 
-export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, PayeePersonalDetails, Option, OptionTree, ReportAndPersonalDetailOptions, GetUserToInviteConfig};
+export type {Section, SectionBase, MemberForList, Options, OptionList, SearchOption, Option, OptionTree, ReportAndPersonalDetailOptions};

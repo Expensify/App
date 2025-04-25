@@ -667,7 +667,7 @@ function getProcessedText(processedTextArray: TextWithEmoji[], style: StyleProp<
     );
 }
 
-export type {HeaderIndices, EmojiPickerList, EmojiSpacer, EmojiPickerListItem};
+export type {HeaderIndices, EmojiPickerList, EmojiPickerListItem};
 
 export {
     findEmojiByName,

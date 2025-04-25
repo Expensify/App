@@ -48,5 +48,4 @@ function BulletList({items, header}: BulletListProps) {
 
 BulletList.displayName = 'BulletList';
 
-export type {BulletListProps};
 export default BulletList;

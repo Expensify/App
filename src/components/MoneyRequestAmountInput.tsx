@@ -15,8 +15,6 @@ import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 import type {TextInputWithCurrencySymbolProps} from './TextInputWithCurrencySymbol/types';
 
-type CurrentMoney = {amount: string; currency: string};
-
 type MoneyRequestAmountInputRef = {
     setNewAmount: (amountValue: string) => void;
     changeSelection: (newSelection: Selection) => void;
@@ -352,4 +350,4 @@ function MoneyRequestAmountInput(
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default React.forwardRef(MoneyRequestAmountInput);
-export type {CurrentMoney, MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
