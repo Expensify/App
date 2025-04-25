@@ -445,8 +445,9 @@ function getAction(data: OnyxTypes.SearchResults['data'], key: string): SearchTr
 function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemType[] {
     return Object.keys(data)
         .filter(isReportEntry)
+        .filter((key) => isTaskListItemType(data[key] as SearchListItem))
         .map((key) => {
-            const taskItem = data[key] as SearchTask;
+            const taskItem = data[key] as TaskListItemType;
             const personalDetails = data.personalDetailsList;
 
             const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
