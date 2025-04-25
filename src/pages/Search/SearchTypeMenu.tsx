@@ -52,7 +52,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
     const {singleExecution} = useSingleExecution();
     const {translate} = useLocalize();
     const {canUseLeftHandBar} = usePermissions();
-    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES);
+    const [savedSearches] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {canBeMissing: true});
     const {isOffline} = useNetwork();
     const shouldShowSavedSearchesMenuItemTitle = Object.values(savedSearches ?? {}).filter((s) => s.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline).length > 0;
     const isFocused = useIsFocused();
@@ -61,12 +61,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         shouldShowSavedSearchesMenuItemTitle && isFocused,
     );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST);
-    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
+    const [userCardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: true});
+    const [workspaceCardFeeds] = useOnyx(ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST, {canBeMissing: true});
     const allCards = useMemo(() => mergeCardListWithWorkspaceFeeds(workspaceCardFeeds ?? CONST.EMPTY_OBJECT, userCardList), [userCardList, workspaceCardFeeds]);
     const taxRates = getAllTaxRates();
     const {clearSelectedTransactions} = useSearchContext();
@@ -214,7 +214,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                     const onPress = singleExecution(() => {
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
+                        Navigation.navigate(item.getRoute());
                     });
 
                     return (

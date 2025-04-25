@@ -164,7 +164,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUsePDFExport} = usePermissions();
+    const {canUsePDFExport, canUseTableReportView} = usePermissions();
     const theme = useTheme();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -409,9 +409,9 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             return;
         }
 
-        cancelPaymentAction(moneyRequestReport, chatReport, backTo);
+        cancelPaymentAction(moneyRequestReport, chatReport);
         setIsConfirmModalVisible(false);
-    }, [moneyRequestReport, chatReport, backTo]);
+    }, [moneyRequestReport, chatReport]);
 
     const beginPDFExport = useCallback(() => {
         setIsPDFModalVisible(true);
@@ -547,7 +547,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             }
         }
 
-        if (shouldShowCancelPaymentButton) {
+        if (!canUseTableReportView && shouldShowCancelPaymentButton) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.CANCEL_PAYMENT,
                 icon: Expensicons.Trashcan,
@@ -574,6 +574,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     });
                 },
             });
+
             if (canUsePDFExport) {
                 items.push({
                     key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
@@ -603,7 +604,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             });
         }
 
-        if (canUnapproveIOU(report, policy)) {
+        if (!canUseTableReportView && canUnapproveIOU(report, policy)) {
             items.push({
                 key: CONST.REPORT_DETAILS_MENU_ITEM.UNAPPROVE,
                 icon: Expensicons.CircularArrowBackwards,
@@ -659,8 +660,6 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return items;
     }, [
-        beginPDFExport,
-        canUsePDFExport,
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
@@ -679,15 +678,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         isInvoiceReport,
         isTaskReport,
         isCanceledTaskReport,
+        canUseTableReportView,
         shouldShowCancelPaymentButton,
-        shouldShowLeaveButton,
+        caseID,
         policy,
         connectedIntegration,
         isPolicyAdmin,
         isSingleTransactionView,
         isExpenseReport,
-        isDebugModeEnabled,
         shouldShowGoToWorkspace,
+        shouldShowLeaveButton,
+        isDebugModeEnabled,
         activeChatMembers.length,
         shouldOpenRoomMembersPage,
         backTo,
@@ -697,12 +698,13 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         session,
         canModifyTask,
         canActionTask,
-        isRootGroupChat,
-        leaveChat,
+        canUsePDFExport,
         isOffline,
         transactionIDList,
+        beginPDFExport,
         unapproveExpenseReportOrShowModal,
-        caseID,
+        isRootGroupChat,
+        leaveChat,
     ]);
 
     const displayNamesWithTooltips = useMemo(() => {
@@ -790,7 +792,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
             result.push(PromotedActions.join(report));
         }
 
-        if (isExpenseReport && shouldShowHoldAction) {
+        if (!canUseTableReportView && isExpenseReport && shouldShowHoldAction) {
             result.push(
                 PromotedActions.hold({
                     isTextHold: canHoldUnholdReportAction.canHoldRequest,
@@ -811,16 +813,17 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return result;
     }, [
-        report,
-        moneyRequestAction,
-        currentSearchHash,
         canJoin,
+        canUseTableReportView,
         isExpenseReport,
         shouldShowHoldAction,
+        report,
+        backTo,
         canHoldUnholdReportAction.canHoldRequest,
+        moneyRequestAction,
         transactionThreadReportID,
         isDelegateAccessRestricted,
-        backTo,
+        currentSearchHash,
     ]);
 
     const nameSectionExpenseIOU = (
@@ -1104,17 +1107,19 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     confirmText={translate('common.leave')}
                     cancelText={translate('common.cancel')}
                 />
-                <ConfirmModal
-                    title={translate('iou.cancelPayment')}
-                    isVisible={isConfirmModalVisible}
-                    onConfirm={cancelPayment}
-                    onCancel={() => setIsConfirmModalVisible(false)}
-                    prompt={translate('iou.cancelPaymentConfirmation')}
-                    confirmText={translate('iou.cancelPayment')}
-                    cancelText={translate('common.dismiss')}
-                    danger
-                    shouldEnableNewFocusManagement
-                />
+                {!canUseTableReportView && (
+                    <ConfirmModal
+                        title={translate('iou.cancelPayment')}
+                        isVisible={isConfirmModalVisible}
+                        onConfirm={cancelPayment}
+                        onCancel={() => setIsConfirmModalVisible(false)}
+                        prompt={translate('iou.cancelPaymentConfirmation')}
+                        confirmText={translate('iou.cancelPayment')}
+                        cancelText={translate('common.dismiss')}
+                        danger
+                        shouldEnableNewFocusManagement
+                    />
+                )}
                 <ConfirmModal
                     title={caseID === CASES.DEFAULT ? translate('task.deleteTask') : translate('iou.deleteExpense', {count: 1})}
                     isVisible={isDeleteModalVisible}
@@ -1130,10 +1135,12 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     shouldEnableNewFocusManagement
                     onModalHide={navigateToTargetUrl}
                 />
-                <DelegateNoAccessModal
-                    isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
-                    onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                />
+                {!canUseTableReportView && (
+                    <DelegateNoAccessModal
+                        isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
+                        onClose={() => setIsNoDelegateAccessMenuVisible(false)}
+                    />
+                )}
                 <ConfirmModal
                     title={translate('iou.unapproveReport')}
                     isVisible={isUnapproveModalVisible}
