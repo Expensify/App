@@ -14,6 +14,7 @@ import type {ThemeColors} from '@styles/theme/types';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type {Transaction} from '@src/types/onyx';
+import type Nullable from '@src/types/utils/Nullable';
 import {defaultStyles} from '..';
 import type {ThemeStyles} from '..';
 import shouldPreventScrollOnAutoCompleteSuggestion from './autoCompleteSuggestion';
@@ -610,7 +611,7 @@ function getModalPaddingStyles({
         marginTop: getCombinedSpacing(modalContainerStyle.marginTop, safeAreaPaddingTop, shouldAddTopSafeAreaMargin),
         marginBottom: getCombinedSpacing(modalContainerStyle.marginBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaMargin),
         paddingTop: getCombinedSpacing(modalContainerStyle.paddingTop, safeAreaPaddingTop, shouldAddTopSafeAreaPadding),
-        paddingBottom: getCombinedSpacing(modalContainerStyle.paddingBottom, safeAreaPaddingBottomWithFallback, shouldAddBottomSafeAreaPadding),
+        paddingBottom: getCombinedSpacing(modalContainerStyle.paddingBottom, safeAreaPaddingBottom, shouldAddBottomSafeAreaPadding),
         paddingLeft: safeAreaPaddingLeft ?? 0,
         paddingRight: safeAreaPaddingRight ?? 0,
     };
@@ -1630,6 +1631,11 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
             case CONST.SEARCH.TABLE_COLUMNS.MERCHANT:
             case CONST.SEARCH.TABLE_COLUMNS.FROM:
             case CONST.SEARCH.TABLE_COLUMNS.TO:
+            case CONST.SEARCH.TABLE_COLUMNS.ASSIGNEE:
+            case CONST.SEARCH.TABLE_COLUMNS.CREATED_BY:
+            case CONST.SEARCH.TABLE_COLUMNS.TITLE:
+            case CONST.SEARCH.TABLE_COLUMNS.DESCRIPTION:
+            case CONST.SEARCH.TABLE_COLUMNS.IN:
                 columnWidth = styles.flex1;
                 break;
             case CONST.SEARCH.TABLE_COLUMNS.CATEGORY:
@@ -1769,6 +1775,12 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     getRowChildWidth: (columnCount: number, gap: number, containerWidth: number): StyleProp<ViewStyle> => ({
         width: (containerWidth - gap) / columnCount
     }),
+    getResetStyle: <K extends TextStyle | ViewStyle>(keys: Array<keyof K>) =>
+        keys.reduce((styleobj: Nullable<K>, key) => {
+            // eslint-disable-next-line no-param-reassign
+            styleobj[key] = null;
+            return styleobj;
+        }, {} as Nullable<K>) as K,
 });
 
 type StyleUtilsType = ReturnType<typeof createStyleUtils>;

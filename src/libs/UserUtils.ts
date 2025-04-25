@@ -278,4 +278,4 @@ export {
     getContactMethod,
     isCurrentUserValidated,
 };
-export type {AvatarSource, LoginListIndicator};
+export type {AvatarSource};

@@ -14,7 +14,6 @@ import Log from '@libs/Log';
 import {hasCompletedGuidedSetupFlowSelector, wasInvitedToNewDotSelector} from '@libs/onboardingSelectors';
 import {getPathFromURL} from '@libs/Url';
 import {updateLastVisitedPath} from '@userActions/App';
-import * as Session from '@userActions/Session';
 import {updateOnboardingLastVisitedPath} from '@userActions/Welcome';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 import CONFIG from '@src/CONFIG';
@@ -92,17 +91,18 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
 
     const currentReportIDValue = useCurrentReportID();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [user] = useOnyx(ONYXKEYS.USER);
-    const isPrivateDomain = Session.isUserOnPrivateDomain();
+    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
 
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
     const [isOnboardingCompleted = true] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasCompletedGuidedSetupFlowSelector,
+        canBeMissing: true,
     });
     const [wasInvitedToNewDot = false] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
         selector: wasInvitedToNewDotSelector,
+        canBeMissing: true,
     });
-    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
+    const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY, {canBeMissing: true});
 
     const previousAuthenticated = usePrevious(authenticated);
 
@@ -126,7 +126,7 @@ function NavigationRoot({authenticated, lastVisitedPath, initialUrl, onReady}: N
         // If the user haven't completed the flow, we want to always redirect them to the onboarding flow.
         // We also make sure that the user is authenticated, isn't part of a group workspace, isn't in the transition flow & wasn't invited to NewDot.
         if (!CONFIG.IS_HYBRID_APP && !hasNonPersonalPolicy && !isOnboardingCompleted && !wasInvitedToNewDot && authenticated && !isTransitioning) {
-            return getAdaptedStateFromPath(getOnboardingInitialPath(isPrivateDomain), linkingConfig.config);
+            return getAdaptedStateFromPath(getOnboardingInitialPath(), linkingConfig.config);
         }
 
         // If there is no lastVisitedPath, we can do early return. We won't modify the default behavior.
