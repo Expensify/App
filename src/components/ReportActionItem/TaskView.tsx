@@ -26,7 +26,7 @@ import {getDisplayNameForParticipant, getDisplayNamesWithTooltips, isCompletedTa
 import StringUtils from '@libs/StringUtils';
 import {isActiveTaskEditRoute} from '@libs/TaskUtils';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
-import {canActionTask as canActionTaskUtil, canModifyTask as canModifyTaskUtil, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
+import {canActionTask, canModifyTask, clearTaskErrors, completeTask, reopenTask, setTaskReport} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';

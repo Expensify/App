@@ -37,9 +37,9 @@ function AnchorRenderer({tnode, style, key}: AnchorRendererProps) {
         selector: hasSeenTourSelector,
         canBeMissing: true,
     });
-    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID);
     const parentReport = useParentReport(report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const canModifyViewTourTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
     const canActionViewTourTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const styles = useThemeStyles();
