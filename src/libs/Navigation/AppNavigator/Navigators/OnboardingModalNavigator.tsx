@@ -38,9 +38,9 @@ function OnboardingModalNavigator() {
     const styles = useThemeStyles();
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
-    const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
+    // const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: true});
 
-    const isOnPrivateDomainAndHasAccessiblePolicies = !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
+    const isOnPrivateDomainAndHasAccessiblePolicies = false; // !user?.isFromPublicDomain && user?.hasAccessibleDomainPolicies;
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: (session) => session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
