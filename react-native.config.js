@@ -18,3 +18,5 @@ if (!isHybrid) {
         },
     };
 }
+
+module.exports = config;
