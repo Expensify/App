@@ -136,7 +136,7 @@ function MoneyRequestParticipantsSelector({
                 shouldSeparateSelfDMChat: iouType !== CONST.IOU.TYPE.INVOICE,
                 shouldSeparateWorkspaceChat: true,
                 includeSelfDM: !isMovingTransactionFromTrackExpense(action) && iouType !== CONST.IOU.TYPE.INVOICE,
-                canShowManagerMcTest: iouType !== 'submit',
+                canShowManagerMcTest: iouType !== CONST.IOU.TYPE.SUBMIT,
             },
         );
 
