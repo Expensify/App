@@ -177,6 +177,7 @@ async function getCommitHistoryBetweenTags(fromTag: string, toTag: string): Prom
         return comparison.commits.map(commit => ({
             commit: commit.sha,
             subject: commit.commit.message,
+            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             authorName: commit.commit.author?.name || commit.author?.login || 'Unknown',
         }));
     } catch (error) {
