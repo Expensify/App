@@ -28,4 +28,5 @@ type SortableItemProps = {
     children: React.ReactNode | React.ReactNode[];
 };
 
-export type {DraggableListProps, RenderItemParams, DraggableListData, SortableItemProps};
+export default DraggableListProps;
+export type {SortableItemProps};
