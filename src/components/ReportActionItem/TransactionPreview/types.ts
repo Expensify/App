@@ -63,6 +63,9 @@ type TransactionPreviewProps = {
 
     /** The action to be displayed in the preview */
     reportPreviewAction?: ReportAction;
+
+    /** Whether to show payer/receiver data in the preview */
+    shouldShowIOUData?: boolean;
 };
 
 type TransactionPreviewContentProps = {
@@ -122,6 +125,9 @@ type TransactionPreviewContentProps = {
 
     /** The action to be displayed in the preview */
     reportPreviewAction?: ReportAction;
+
+    /** Whether to show payer/receiver data in the preview */
+    shouldShowIOUData?: boolean;
 };
 
-export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};
+export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};

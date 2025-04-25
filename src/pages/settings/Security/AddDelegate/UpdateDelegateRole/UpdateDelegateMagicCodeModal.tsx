@@ -9,6 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 type UpdateDelegateMagicCodeModalProps = {
     login: string;
@@ -18,8 +19,8 @@ type UpdateDelegateMagicCodeModalProps = {
 };
 function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVisible, onClose}: UpdateDelegateMagicCodeModalProps) {
     const {translate} = useLocalize();
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [validateCodeAction] = useOnyx(ONYXKEYS.VALIDATE_ACTION_CODE, {canBeMissing: true});
     const currentDelegate = account?.delegatedAccess?.delegates?.find((d) => d.email === login);
     const updateDelegateErrors = account?.delegatedAccess?.errorFields?.updateDelegateRole?.[login];
 
@@ -37,7 +38,7 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
     };
 
     const clearError = () => {
-        if (!updateDelegateErrors) {
+        if (isEmptyObject(updateDelegateErrors) && isEmptyObject(validateCodeAction?.errorFields)) {
             return;
         }
         clearDelegateErrorsByField(currentDelegate?.email ?? '', 'updateDelegateRole');
@@ -47,12 +48,12 @@ function UpdateDelegateMagicCodeModal({login, role, isValidateCodeActionModalVis
         <ValidateCodeActionModal
             clearError={clearError}
             onClose={onBackButtonPress}
+            validateCodeActionErrorField="updateDelegateRole"
             isLoading={currentDelegate?.isLoading}
             validateError={updateDelegateErrors}
             isVisible={isValidateCodeActionModalVisible}
             title={translate('delegate.makeSureItIsYou')}
             sendValidateCode={() => requestValidateCodeAction()}
-            hasMagicCodeBeenSent={validateCodeAction?.validateCodeSent}
             handleSubmitForm={(validateCode) => updateDelegateRole(login, role, validateCode)}
             descriptionPrimary={translate('delegate.enterMagicCode', {contactMethod: account?.primaryLogin ?? ''})}
         />
