@@ -102,10 +102,10 @@ import {
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getEffectiveDisplayName,
+    getLoginByAccountID,
     getLoginsByAccountIDs,
     getPersonalDetailByEmail,
     getPersonalDetailsByIDs,
-    getLoginByAccountID,
     getShortMentionIfFound,
 } from './PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
@@ -10327,7 +10327,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     const payerLogin = report?.managerID ? getLoginByAccountID(report?.managerID) : undefined;
-    if (isIOU && (!isPolicyAdminPolicyUtils(newPolicy, payerLogin) && newPolicy?.achAccount?.reimburser !== payerLogin)) {
+    if (isIOU && !isPolicyAdminPolicyUtils(newPolicy, payerLogin) && newPolicy?.achAccount?.reimburser !== payerLogin) {
         return false;
     }
 
@@ -10337,17 +10337,17 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
 
     const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
     const isExpenseReportType = isExpenseReport(report);
-    if (isExpenseReportType && !isCurrentUserMember) {
+    if (!isCurrentUserMember) {
         return false;
     }
 
     const isAdmin = isPolicyAdminPolicyUtils(newPolicy, currentUserLogin);
-    if (isExpenseReportType && report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
         return false;
     }
 
     const reportActions = getAllReportActions(report?.reportID);
-    if (isExpenseReportType && isExported(reportActions)) {
+    if (isExported(reportActions)) {
         return false;
     }
 
