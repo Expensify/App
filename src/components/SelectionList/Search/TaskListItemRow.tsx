@@ -72,6 +72,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
     const {translate} = useLocalize();
     const parentReport = useParentReport(taskItem?.report?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskActionable = canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived);
     const isTaskCompleted = taskItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED && taskItem.stateNum === CONST.REPORT.STATE_NUM.APPROVED;
 
     if (isTaskCompleted) {
@@ -103,7 +104,7 @@ function ActionCell({taskItem, isLargeScreenWidth}: TaskCellProps) {
             success
             text={translate('task.action')}
             style={[styles.w100]}
-            isDisabled={!canActionTask(taskItem.report, session?.accountID, parentReport, isParentReportArchived)}
+            isDisabled={!isTaskActionable}
             onPress={callFunctionIfActionIsAllowed(() => {
                 completeTask(taskItem, taskItem.reportID);
             })}
