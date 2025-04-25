@@ -16,7 +16,6 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
     const attachmentsContext = useContext(AttachmentModalContext);
     const [shouldDisableAnimationAfterInitialMount, setShouldDisableAnimationAfterInitialMount] = useState(false);
 
-    const [isReplaceReceipt, navigateToReplaceReceipt] = useNavigateToReplaceReceipt();
     /**
      * Closes the modal.
      * @param {boolean} [shouldCallDirectly] If true, directly calls `onModalClose`.
@@ -25,9 +24,9 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
      * This ensures smooth modal closing behavior without causing delays in closing.
      */
     const closeModal = useCallback(
-        ({shouldCallDirectly, navigate}: OnCloseOptions) => {
+        (options?: OnCloseOptions) => {
             if (typeof onClose === 'function') {
-                if (shouldCallDirectly) {
+                if (options?.shouldCallDirectly) {
                     onClose();
                 } else {
                     attachmentModalHandler.handleModalClose(onClose);
@@ -37,8 +36,8 @@ function AttachmentModalContainer({contentProps, modalType, onShow, onClose}: At
             attachmentsContext.setCurrentAttachment(undefined);
 
             // If a custom navigation callback is provided, call it instead of navigating back
-            if (navigate) {
-                navigate();
+            if (options?.navigate) {
+                options?.navigate();
                 return;
             }
 

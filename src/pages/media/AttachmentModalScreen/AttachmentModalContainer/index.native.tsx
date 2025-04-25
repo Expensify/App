@@ -11,13 +11,13 @@ function AttachmentModalContainer({contentProps, navigation, onShow, onClose}: A
     const testID = typeof contentProps.source === 'string' ? contentProps.source : contentProps.source?.toString() ?? '';
 
     const closeScreen = useCallback(
-        ({navigate}: OnCloseOptions) => {
+        (options?: OnCloseOptions) => {
             onClose?.();
             attachmentsContext.setCurrentAttachment(undefined);
 
             // If a custom navigation callback is provided, call it instead of navigating back
-            if (navigate) {
-                navigate();
+            if (options?.navigate) {
+                options?.navigate();
                 return;
             }
 
