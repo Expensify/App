@@ -151,7 +151,7 @@ function WorkspaceWorkflowsPayerPage({route, policy, personalDetails, isLoadingR
             return;
         }
 
-        setWorkspacePayer(policy?.id ?? '-1', authorizedPayerEmail);
+        setWorkspacePayer(policy?.id, authorizedPayerEmail);
         Navigation.goBack();
     };
 

@@ -35,7 +35,7 @@ function AssigneeStep({policy}: AssigneeStepProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const policyID = policy?.id;
-    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`);
+    const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
 
     const isEditing = issueNewCard?.isEditing;
 
