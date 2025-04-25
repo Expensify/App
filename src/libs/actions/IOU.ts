@@ -9905,7 +9905,6 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
     const newViolation = {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true};
     const transactionViolations = allTransactionViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`] ?? [];
     const updatedViolations = [...transactionViolations, newViolation];
-    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(reportID, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
     const transaction = allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
     const iouReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`];
     const iouAction = getIOUActionForReportID(transaction?.reportID, transactionID);
@@ -9917,6 +9916,8 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
         const moneyRequestReport = getReportOrDraftReport(transaction?.reportID);
         report = buildTransactionThread(iouAction, moneyRequestReport, undefined, reportID);
     }
+
+    const parentReportActionOptimistic = getOptimisticDataForParentReportAction(report, createdReportActionComment.created, CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
 
     const optimisticCreatedAction = buildOptimisticCreatedReportAction(currentUserEmail);
 
@@ -10026,7 +10027,7 @@ function putOnHold(transactionID: string, comment: string, initialReportID: stri
                 },
             },
             {
-                onyxMethod: Onyx.METHOD.SET,
+                onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`,
                 value: {[optimisticCreatedAction.reportActionID]: optimisticCreatedAction},
             },
