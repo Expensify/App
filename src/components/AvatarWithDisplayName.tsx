@@ -143,7 +143,6 @@ function AvatarWithDisplayName({
             Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS.getRoute(report.reportID));
         }
     }, [report, shouldEnableDetailPageNavigation, goToDetailsPage]);
-    debugger;
     const headerView = (
         <View style={[styles.appContentHeaderTitle, styles.flex1]}>
             {!!report && !!title && (

@@ -99,7 +99,6 @@ function HeaderWithBackButton({
                 </>
             );
         }
-        debugger;
         if (shouldShowReportAvatarWithDisplay) {
             return (
                 <AvatarWithDisplayName
