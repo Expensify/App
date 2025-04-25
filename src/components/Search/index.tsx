@@ -328,7 +328,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         }
     }, [isFocused, data, searchResults?.search?.hasMoreResults, selectedTransactions, setExportMode, setShouldShowExportModeOption, shouldGroupByReports]);
 
-    const toggleTransaction = (item: SearchListItem) => {
+    const toggleTransaction = useCallback((item: SearchListItem) => {
         if (isReportActionListItemType(item)) {
             return;
         }
@@ -362,7 +362,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
             },
             data,
         );
-    };
+    }, [data, selectedTransactions, setSelectedTransactions]);
 
     const openReport = useCallback(
         (item: SearchListItem, isOpenedAsReport?: boolean) => {
