@@ -33,12 +33,10 @@ function ReportVirtualCardFraudPage({
 }: ReportVirtualCardFraudPageProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
     const [formData] = useOnyx(ONYXKEYS.FORMS.REPORT_VIRTUAL_CARD_FRAUD, {canBeMissing: true});
     const primaryLogin = account?.primaryLogin ?? '';
-    const loginData = loginList?.[primaryLogin];
 
     const virtualCard = cardList?.[cardID];
     const latestIssuedVirtualCardID = Object.keys(cardList ?? {})?.pop();
@@ -81,14 +79,6 @@ function ReportVirtualCardFraudPage({
         [virtualCard],
     );
 
-    const sendValidateCode = () => {
-        if (loginData?.validateCodeSent) {
-            return;
-        }
-
-        requestValidateCodeAction();
-    };
-
     const handleSubmit = useCallback(() => {
         setIsValidateCodeActionModalVisible(true);
     }, [setIsValidateCodeActionModalVisible]);
@@ -115,7 +105,8 @@ function ReportVirtualCardFraudPage({
                     />
                     <ValidateCodeActionModal
                         handleSubmitForm={handleValidateCodeEntered}
-                        sendValidateCode={sendValidateCode}
+                        sendValidateCode={requestValidateCodeAction}
+                        validateCodeActionErrorField="reportVirtualCard"
                         validateError={validateError}
                         clearError={() => {
                             if (!virtualCard?.cardID) {
@@ -127,7 +118,6 @@ function ReportVirtualCardFraudPage({
                         isVisible={isValidateCodeActionModalVisible}
                         title={translate('cardPage.validateCardTitle')}
                         descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
-                        hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                         isLoading={formData?.isLoading}
                     />
                 </View>

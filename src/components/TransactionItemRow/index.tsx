@@ -4,6 +4,7 @@ import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -43,6 +44,8 @@ function TransactionItemRow({
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
+    const {selectionMode} = useMobileSelectionMode();
+
     return (
         <View style={styles.flex1}>
             {shouldUseNarrowLayout ? (
@@ -50,6 +53,17 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
+                                {!!selectionMode?.isEnabled && (
+                                    <View style={[styles.mr2, styles.justifyContentCenter]}>
+                                        <Checkbox
+                                            onPress={() => {
+                                                onCheckboxPress(transactionItem.transactionID);
+                                            }}
+                                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                            isChecked={isSelected}
+                                        />
+                                    </View>
+                                )}
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
