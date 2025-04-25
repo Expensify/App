@@ -80,9 +80,6 @@ type ValidateCodeFormProps = {
     /** Whether the form is loading or not */
     isLoading?: boolean;
 
-    /** Whether to allow auto submit again after the previous attempt fails */
-    allowResubmit?: boolean;
-
     /** Whether to show skip button */
     shouldShowSkipButton?: boolean;
 
@@ -104,7 +101,6 @@ function BaseValidateCodeForm({
     hideSubmitButton,
     submitButtonText,
     isLoading,
-    allowResubmit,
     shouldShowSkipButton = false,
     handleSkipButtonPress,
 }: ValidateCodeFormProps) {
@@ -271,7 +267,6 @@ function BaseValidateCodeForm({
                 hasError={canShowError && !isEmptyObject(finalValidateError)}
                 onFulfill={validateAndSubmitForm}
                 autoFocus={false}
-                allowResubmit={allowResubmit}
             />
             {shouldShowTimer && (
                 <Text style={[styles.mt5]}>
