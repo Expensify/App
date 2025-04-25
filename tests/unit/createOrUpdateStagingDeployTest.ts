@@ -308,6 +308,7 @@ describe('createOrUpdateStagingDeployCash', () => {
             expect(result).toStrictEqual({
                 owner: CONST.GITHUB_OWNER,
                 repo: CONST.APP_REPO,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 issue_number: openStagingDeployCashBefore.number,
                 // eslint-disable-next-line max-len, @typescript-eslint/naming-convention
                 html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openStagingDeployCashBefore.number}`,

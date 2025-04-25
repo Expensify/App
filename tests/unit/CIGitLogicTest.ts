@@ -24,6 +24,7 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Oktokit GithubAPI
 const mockGetInput = jest.fn()
+// eslint-disable @typescript-eslint/naming-convention
 const mockCompareCommitsResponseBase = {
     data: {
         url: '',
@@ -31,7 +32,9 @@ const mockCompareCommitsResponseBase = {
         permalink_url: '',
         diff_url: '',
         patch_url: '',
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         base_commit: {} as any,
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         merge_base_commit: {} as any,
         status: 'ahead' as const,
         ahead_by: 0,
