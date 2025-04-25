@@ -764,6 +764,28 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                         />
                     </OfflineWithFeedback>
                 )}
+                {!!parentReportID && !!canUseTableReportView && (
+                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
+                        <MenuItemWithTopDescription
+                            shouldShowRightIcon={canEditReport}
+                            title={getReportName(parentReport) || parentReport?.reportName}
+                            description={translate('common.report')}
+                            style={[styles.moneyRequestMenuItem]}
+                            titleStyle={styles.flex1}
+                            onPress={() => {
+                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
+                                    return;
+                                }
+                                Navigation.navigate(
+                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
+                                );
+                            }}
+                            interactive={canEditReport}
+                            shouldRenderAsHTML
+                        />
+                    </OfflineWithFeedback>
+                )}
+                {/* Note: "Billable" toggle and "View trip details" should be always the last two items */}
                 {shouldShowBillable && (
                     <View style={[styles.flexRow, styles.optionRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.ml5, styles.mr8]}>
                         <View>
@@ -785,27 +807,6 @@ function MoneyRequestView({report, shouldShowAnimatedBackground, readonly = fals
                             disabled={!canEdit}
                         />
                     </View>
-                )}
-                {!!parentReportID && !!canUseTableReportView && (
-                    <OfflineWithFeedback pendingAction={getPendingFieldAction('reportID')}>
-                        <MenuItemWithTopDescription
-                            shouldShowRightIcon={canEditReport}
-                            title={getReportName(parentReport) || parentReport?.reportName}
-                            description={translate('common.report')}
-                            style={[styles.moneyRequestMenuItem]}
-                            titleStyle={styles.flex1}
-                            onPress={() => {
-                                if (!canEditReport || !report?.reportID || !transaction?.transactionID) {
-                                    return;
-                                }
-                                Navigation.navigate(
-                                    ROUTES.MONEY_REQUEST_STEP_REPORT.getRoute(CONST.IOU.ACTION.EDIT, iouType, transaction?.transactionID, report.reportID, getReportRHPActiveRoute()),
-                                );
-                            }}
-                            interactive={canEditReport}
-                            shouldRenderAsHTML
-                        />
-                    </OfflineWithFeedback>
                 )}
                 {shouldShowViewTripDetails && (
                     <MenuItem
