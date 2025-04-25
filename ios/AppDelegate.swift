@@ -17,8 +17,14 @@ import Expo
 class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     self.moduleName = "NewExpensify"
-    self.dependencyProvider = RCTAppDependencyProvider()
     self.initialProps = [:]
+    
+    let delegate = ReactNativeDelegate()
+    let factory = ExpoReactNativeFactory(delegate: delegate)
+    delegate.dependencyProvider = RCTAppDependencyProvider()
+    
+    reactNativeFactoryDelegate = delegate
+    reactNativeFactory = factory
     
     // Configure firebase
     FirebaseApp.configure()
@@ -65,6 +71,17 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
                                            restorationHandler: restorationHandler)
   }
  
+  // This methods is needed to support the hardware keyboard shortcuts
+  func keyCommands() -> [Any]? {
+    return HardwareShortcuts.sharedInstance().keyCommands()
+  }
+
+  func handleKeyCommand(_ keyCommand: UIKeyCommand) {
+      HardwareShortcuts.sharedInstance().handleKeyCommand(keyCommand)
+  }
+}
+
+class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
   override func sourceURL(for bridge: RCTBridge) -> URL? {
     return self.bundleURL()
   }
@@ -77,12 +94,4 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
 #endif
   }
   
-  // This methods is needed to support the hardware keyboard shortcuts
-  func keyCommands() -> [Any]? {
-    return HardwareShortcuts.sharedInstance().keyCommands()
-  }
-
-  func handleKeyCommand(_ keyCommand: UIKeyCommand) {
-      HardwareShortcuts.sharedInstance().handleKeyCommand(keyCommand)
-  }
 }
