@@ -611,32 +611,36 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
         ...quickActionMenuItems,
     ];
 
+    const shouldShowPopoverMenu = isCreateMenuActive && (!shouldUseNarrowLayout || isFocused);
+
     return (
         <View style={[styles.flexGrow1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-            <PopoverMenu
-                onClose={hideCreateMenu}
-                shouldEnableMaxHeight={false}
-                isVisible={isCreateMenuActive && (!shouldUseNarrowLayout || isFocused)}
-                anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
-                onItemSelected={hideCreateMenu}
-                fromSidebarMediumScreen={!shouldUseNarrowLayout}
-                animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
-                animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
-                shouldUseNewModal
-                menuItems={menuItems.map((item) => {
-                    return {
-                        ...item,
-                        onSelected: () => {
-                            if (!item.onSelected) {
-                                return;
-                            }
-                            navigateAfterInteraction(item.onSelected);
-                        },
-                    };
-                })}
-                withoutOverlay
-                anchorRef={fabRef}
-            />
+            {shouldShowPopoverMenu && (
+                <PopoverMenu
+                    onClose={hideCreateMenu}
+                    shouldEnableMaxHeight={false}
+                    isVisible
+                    anchorPosition={canUseLeftHandBar ? styles.createLHBMenuPositionSidebar(windowHeight) : styles.createMenuPositionSidebar(windowHeight)}
+                    onItemSelected={hideCreateMenu}
+                    fromSidebarMediumScreen={!shouldUseNarrowLayout}
+                    animationInTiming={CONST.MODAL.ANIMATION_TIMING.FAB_IN}
+                    animationOutTiming={CONST.MODAL.ANIMATION_TIMING.FAB_OUT}
+                    shouldUseNewModal
+                    menuItems={menuItems.map((item) => {
+                        return {
+                            ...item,
+                            onSelected: () => {
+                                if (!item.onSelected) {
+                                    return;
+                                }
+                                navigateAfterInteraction(item.onSelected);
+                            },
+                        };
+                    })}
+                    withoutOverlay
+                    anchorRef={fabRef}
+                />
+            )}
             <ConfirmModal
                 prompt={translate('sidebarScreen.redirectToExpensifyClassicModal.description')}
                 isVisible={modalVisible}
