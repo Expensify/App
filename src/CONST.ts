@@ -5306,6 +5306,7 @@ const CONST = {
 
     REPORT_VIOLATIONS: {
         FIELD_REQUIRED: 'fieldRequired',
+        RBR_MESSAGE_MAX_CHARACTERS: 20,
     },
 
     REPORT_VIOLATIONS_EXCLUDED_FIELDS: {
