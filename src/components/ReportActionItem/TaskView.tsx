@@ -16,6 +16,8 @@ import {ShowContextMenuContext} from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useParentReport from '@hooks/useParentReport';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import getButtonState from '@libs/getButtonState';
@@ -57,11 +59,13 @@ function TaskView({report, action}: TaskViewProps) {
 
     const isOpen = isOpenTaskReport(report);
     const isCompleted = isCompletedTaskReport(report);
-    const canModifyTask = canModifyTaskUtil(report, currentUserPersonalDetails.accountID);
-    const canActionTask = canActionTaskUtil(report, currentUserPersonalDetails.accountID);
+    const parentReport = useParentReport(report?.reportID);
+    const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
-    const disableState = !canModifyTask;
-    const isDisableInteractive = !canModifyTask || !isOpen;
+    const disableState = !isTaskModifiable;
+    const isDisableInteractive = !isTaskModifiable || !isOpen;
     const {translate} = useLocalize();
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextValue = useMemo(
@@ -133,7 +137,7 @@ function TaskView({report, action}: TaskViewProps) {
                                                 containerBorderRadius={8}
                                                 caretSize={16}
                                                 accessibilityLabel={taskTitle || translate('task.task')}
-                                                disabled={!canActionTask}
+                                                disabled={!isTaskActionable}
                                             />
                                             <View style={[styles.flexRow, styles.flex1]}>
                                                 <RenderHTML html={taskTitle} />
