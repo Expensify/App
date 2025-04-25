@@ -475,7 +475,6 @@ function AdvancedSearchFilters() {
                     return availableCategories.length > 0;
                 }),
             ),
-        canBeMissing: false,
     });
     const singlePolicyCategories = allPolicyCategories[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`];
     const [allPolicyTagLists = {}] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {canBeMissing: false});
