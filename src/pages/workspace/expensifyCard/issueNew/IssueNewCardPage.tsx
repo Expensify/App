@@ -1,7 +1,8 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import DelegateNoAccessWrapper from '@components/DelegateNoAccessWrapper';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useInitial from '@hooks/useInitial';
 import {startIssueNewCardFlow} from '@libs/actions/Card';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -26,13 +27,8 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
     const [issueNewCard] = useOnyx(`${ONYXKEYS.COLLECTION.ISSUE_NEW_EXPENSIFY_CARD}${policyID}`, {canBeMissing: true});
     const {currentStep} = issueNewCard ?? {};
     const backTo = route?.params?.backTo;
-    /* eslint-disable react-compiler/react-compiler */
-    const firstAssigneeEmail = useRef(issueNewCard?.data?.assigneeEmail);
-    if (!firstAssigneeEmail.current) {
-        firstAssigneeEmail.current = issueNewCard?.data?.assigneeEmail;
-    }
-    const shouldUseBackToParam = !firstAssigneeEmail.current || firstAssigneeEmail.current === issueNewCard?.data?.assigneeEmail;
-    /* eslint-enable react-compiler/react-compiler */
+    const firstAssigneeEmail = useInitial(issueNewCard?.data?.assigneeEmail);
+    const shouldUseBackToParam = !firstAssigneeEmail || firstAssigneeEmail === issueNewCard?.data?.assigneeEmail;
     const [isActingAsDelegate] = useOnyx(ONYXKEYS.ACCOUNT, {selector: (account) => !!account?.delegatedAccess?.delegate, canBeMissing: true});
 
     useEffect(() => {
@@ -55,7 +51,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
                 return (
                     <ConfirmationStep
                         policyID={policyID}
-                        // eslint-disable-next-line react-compiler/react-compiler
                         backTo={shouldUseBackToParam ? backTo : undefined}
                     />
                 );
@@ -85,7 +80,6 @@ function IssueNewCardPage({policy, route}: IssueNewCardPageProps) {
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_EXPENSIFY_CARDS_ENABLED}
         >
-            {/* eslint-disable-next-line react-compiler/react-compiler */}
             {getCurrentStep()}
         </AccessOrNotFoundWrapper>
     );
