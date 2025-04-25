@@ -1,11 +1,11 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-import {renderHook, act} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+import type {SearchQueryJSON} from '@components/Search/types';
+import * as usePreviousModule from '@hooks/usePrevious';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
 import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScroll';
-import * as usePreviousModule from '@hooks/usePrevious';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {SearchQueryJSON} from '@components/Search/types';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {SearchResults} from '@src/types/onyx';
 
 // Mock the usePrevious hook
@@ -46,7 +46,7 @@ describe('useSearchHighlightAndScroll', () => {
         it('should initialize with null newSearchResultKey when searchResults is empty', () => {
             const initialProps: UseSearchHighlightAndScroll = {
                 searchResults: {
-                    data: { personalDetailsList: {} },
+                    data: {personalDetailsList: {}},
                     search: {
                         columnsToShow: {
                             shouldShowCategoryColumn: true,
@@ -72,7 +72,7 @@ describe('useSearchHighlightAndScroll', () => {
             // Initial search results with transaction1
             const initialSearchResults = {
                 data: {
-                    'transaction1': {transactionID: 'transaction1'},
+                    transaction1: {transactionID: 'transaction1'},
                     personalDetailsList: {},
                 },
                 search: {
@@ -93,8 +93,8 @@ describe('useSearchHighlightAndScroll', () => {
             // Updated search results with transaction2 added
             const updatedSearchResults = {
                 data: {
-                    'transaction1': {transactionID: 'transaction1'},
-                    'transaction2': {transactionID: 'transaction2'},
+                    transaction1: {transactionID: 'transaction1'},
+                    transaction2: {transactionID: 'transaction2'},
                     personalDetailsList: {},
                 },
                 search: {
@@ -147,7 +147,7 @@ describe('useSearchHighlightAndScroll', () => {
             // Initial search results
             const initialSearchResults = {
                 data: {
-                    'transaction1': {transactionID: 'transaction1'},
+                    transaction1: {transactionID: 'transaction1'},
                     personalDetailsList: {},
                 },
                 search: {
@@ -168,8 +168,8 @@ describe('useSearchHighlightAndScroll', () => {
             // Updated search results with transaction2 added
             const updatedSearchResults = {
                 data: {
-                    'transaction1': {transactionID: 'transaction1'},
-                    'transaction2': {transactionID: 'transaction2'},
+                    transaction1: {transactionID: 'transaction1'},
+                    transaction2: {transactionID: 'transaction2'},
                     personalDetailsList: {},
                 },
                 search: {
@@ -190,9 +190,9 @@ describe('useSearchHighlightAndScroll', () => {
             // Another update adding transaction3
             const furtherUpdatedSearchResults = {
                 data: {
-                    'transaction1': {transactionID: 'transaction1'},
-                    'transaction2': {transactionID: 'transaction2'},
-                    'transaction3': {transactionID: 'transaction3'},
+                    transaction1: {transactionID: 'transaction1'},
+                    transaction2: {transactionID: 'transaction2'},
+                    transaction3: {transactionID: 'transaction3'},
                     personalDetailsList: {},
                 },
                 search: {
@@ -253,11 +253,9 @@ describe('useSearchHighlightAndScroll', () => {
             // Initial search results with nested transactions
             const initialSearchResults = {
                 data: {
-                    'report1': {
+                    report1: {
                         reportID: 'report1',
-                        transactions: [
-                            {transactionID: 'transaction1'}
-                        ]
+                        transactions: [{transactionID: 'transaction1'}],
                     },
                     personalDetailsList: {},
                 },
@@ -279,12 +277,9 @@ describe('useSearchHighlightAndScroll', () => {
             // Updated search results with a new nested transaction
             const updatedSearchResults = {
                 data: {
-                    'report1': {
+                    report1: {
                         reportID: 'report1',
-                        transactions: [
-                            {transactionID: 'transaction1'},
-                            {transactionID: 'transaction2'}
-                        ]
+                        transactions: [{transactionID: 'transaction1'}, {transactionID: 'transaction2'}],
                     },
                     personalDetailsList: {},
                 },
