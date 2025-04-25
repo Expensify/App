@@ -12,6 +12,7 @@ import TextInput from '@components/TextInput';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,7 @@ import updateMultilineInputRange from '@libs/updateMultilineInputRange';
 import withReportOrNotFound from '@pages/home/report/withReportOrNotFound';
 import type {WithReportOrNotFoundProps} from '@pages/home/report/withReportOrNotFound';
 import variables from '@styles/variables';
-import {canModifyTask as canModifyTaskAction, editTask} from '@userActions/Task';
+import {canModifyTask, editTask} from '@userActions/Task';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -76,8 +77,9 @@ function TaskTitlePage({report, currentUserPersonalDetails}: TaskTitlePageProps)
 
     const inputRef = useRef<AnimatedTextInputRef | null>(null);
     const isOpen = isOpenTaskReport(report);
-    const canModifyTask = canModifyTaskAction(report, currentUserPersonalDetails.accountID);
-    const isTaskNonEditable = isTaskReport(report) && (!canModifyTask || !isOpen);
+    const isParentReportArchived = useReportIsArchived(report?.parentReportID);
+    const isTaskModifiable = canModifyTask(report, currentUserPersonalDetails.accountID, isParentReportArchived);
+    const isTaskNonEditable = isTaskReport(report) && (!isTaskModifiable || !isOpen);
 
     return (
         <ScreenWrapper
