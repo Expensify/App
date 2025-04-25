@@ -7,8 +7,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type AttachmentModalRouteProps from './types';
 
 function WorkspaceAvatarModalContent({navigation, policyID}: AttachmentModalRouteProps) {
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true});
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {initialValue: true, canBeMissing: true});
 
     const contentProps = useMemo(
         () =>
