@@ -22,6 +22,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {requestValidateCodeAction} from '@libs/actions/User';
 import {formatCardExpiration, getDomainCards, maskCard} from '@libs/CardUtils';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
+import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -35,6 +36,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {ExpensifyCardDetails} from '@src/types/onyx/Card';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import RedDotCardSection from './RedDotCardSection';
 import CardDetails from './WalletPage/CardDetails';
 
@@ -66,7 +68,6 @@ function ExpensifyCardPage({
     },
 }: ExpensifyCardPageProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
-    const [loginList] = useOnyx(ONYXKEYS.LOGIN_LIST, {canBeMissing: false});
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST, {canBeMissing: false});
 
     const styles = useThemeStyles();
@@ -105,6 +106,7 @@ function ExpensifyCardPage({
     const [cardsDetails, setCardsDetails] = useState<Record<number, ExpensifyCardDetails | null>>({});
     const [isCardDetailsLoading, setIsCardDetailsLoading] = useState<Record<number, boolean>>({});
     const [cardsDetailsErrors, setCardsDetailsErrors] = useState<Record<number, string>>({});
+    const [validateError, setValidateError] = useState<Errors>({});
 
     const openValidateCodeModal = (revealedCardID: number) => {
         setCurrentCardID(revealedCardID);
@@ -127,16 +129,23 @@ function ExpensifyCardPage({
                     ...prevState,
                     [currentCardID]: '',
                 }));
+                setIsValidateCodeActionModalVisible(false);
             })
             .catch((error: string) => {
+                // Displaying magic code errors is handled in the modal, no need to set it on the card
+                // TODO: remove setValidateError once backend deploys https://github.com/Expensify/Web-Expensify/pull/46007
+                if (error === 'validateCodeForm.error.incorrectMagicCode') {
+                    setValidateError(() => getMicroSecondOnyxErrorWithTranslationKey('validateCodeForm.error.incorrectMagicCode'));
+                    return;
+                }
                 setCardsDetailsErrors((prevState) => ({
                     ...prevState,
                     [currentCardID]: error,
                 }));
+                setIsValidateCodeActionModalVisible(false);
             })
             .finally(() => {
                 setIsCardDetailsLoading((prevState: Record<number, boolean>) => ({...prevState, [currentCardID]: false}));
-                setIsValidateCodeActionModalVisible(false);
             });
     };
 
@@ -148,7 +157,6 @@ function ExpensifyCardPage({
     const {limitNameKey, limitTitleKey} = getLimitTypeTranslationKeys(cardsToShow?.at(0)?.nameValuePairs?.limitType);
 
     const primaryLogin = account?.primaryLogin ?? '';
-    const loginData = loginList?.[primaryLogin];
     const isSignedInAsdelegate = !!account?.delegatedAccess?.delegate || false;
 
     if (isNotFound) {
@@ -363,11 +371,12 @@ function ExpensifyCardPage({
             )}
             <ValidateCodeActionModal
                 handleSubmitForm={handleRevealDetails}
-                clearError={() => {}}
+                clearError={() => setValidateError({})}
+                validateError={validateError}
+                validateCodeActionErrorField="revealExpensifyCardDetails"
                 sendValidateCode={() => requestValidateCodeAction()}
                 onClose={() => setIsValidateCodeActionModalVisible(false)}
                 isVisible={isValidateCodeActionModalVisible}
-                hasMagicCodeBeenSent={!!loginData?.validateCodeSent}
                 title={translate('cardPage.validateCardTitle')}
                 descriptionPrimary={translate('cardPage.enterMagicCode', {contactMethod: primaryLogin})}
             />
