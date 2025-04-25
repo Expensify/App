@@ -447,7 +447,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
         .filter(isReportEntry)
         .filter((key) => isTaskListItemType(data[key] as SearchListItem))
         .map((key) => {
-            const taskItem = data[key] as TaskListItemType;
+            const taskItem = data[key] as SearchTask;
             const personalDetails = data.personalDetailsList;
 
             const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
