@@ -127,6 +127,7 @@ function MoneyRequestReportPreview({
             onLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
+            currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
