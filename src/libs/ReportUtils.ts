@@ -10336,7 +10336,6 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     const isCurrentUserMember = !!currentUserLogin && !!newPolicy?.employeeList?.[currentUserLogin];
-    const isExpenseReportType = isExpenseReport(report);
     if (!isCurrentUserMember) {
         return false;
     }
