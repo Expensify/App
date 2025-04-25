@@ -1,19 +1,34 @@
 import {renderHook} from '@testing-library/react-native';
 import Onyx from 'react-native-onyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
-import {canModifyTask} from '@libs/actions/Task';
+import {canModifyTask, completeTestDriveTask} from '@libs/actions/Task';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as API from '@libs/API';
+import {WRITE_COMMANDS} from '@libs/API/types';
+import Parser from '@libs/Parser';
+// eslint-disable-next-line no-restricted-syntax -- this is required to allow mocking
+import * as ReportUtils from '@libs/ReportUtils';
+import initOnyxDerivedValues from '@userActions/OnyxDerived';
+import CONST, {getTestDriveTaskName} from '@src/CONST';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
+import type {Report, ReportAction} from '@src/types/onyx';
+import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
+import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@components/ConfirmedRoute.tsx');
 
 OnyxUpdateManager();
 describe('actions/Task', () => {
-    beforeAll(() => {
+    beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
         });
+        initOnyxDerivedValues();
+        await waitForBatchedUpdates();
     });
 
     describe('canModifyTask', () => {
@@ -76,6 +91,54 @@ describe('actions/Task', () => {
         it('returns true if the user modifying the task is the author and the parent report is not archived or cancelled', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.parentReportID));
             expect(canModifyTask(report, managerAccountID, isReportArchived.current)).toBe(true);
+        });
+    });
+
+    describe('completeTestDriveTask', () => {
+        const accountID = 2;
+        const conciergeChatReport: Report = LHNTestUtils.getFakeReport([accountID, CONST.ACCOUNT_ID.CONCIERGE]);
+        const testDriveTaskReport: Report = LHNTestUtils.getFakeReport();
+        const testDriveTaskAction: ReportAction = {
+            ...LHNTestUtils.getFakeReportAction(),
+            childType: CONST.REPORT.TYPE.TASK,
+            childReportName: Parser.replace(getTestDriveTaskName(`${CONST.STAGING_NEW_EXPENSIFY_URL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`)),
+            childReportID: testDriveTaskReport.reportID,
+        };
+
+        const reportCollectionDataSet: ReportCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskReport.reportID}`]: testDriveTaskReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${conciergeChatReport.reportID}`]: conciergeChatReport,
+        };
+
+        const reportActionsCollectionDataSet: ReportActionsCollectionDataSet = {
+            [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${conciergeChatReport.reportID}`]: {
+                [testDriveTaskAction.reportActionID]: testDriveTaskAction,
+            },
+        };
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.multiSet({
+                ...reportCollectionDataSet,
+                ...reportActionsCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+        });
+
+        it('Uses concierge room', () => {
+            const getChatUsedForOnboardingSpy = jest.spyOn(ReportUtils, 'getChatUsedForOnboarding');
+
+            completeTestDriveTask();
+
+            expect(getChatUsedForOnboardingSpy).toHaveReturnedWith(conciergeChatReport);
+        });
+
+        it('Completes test drive task', () => {
+            const writeSpy = jest.spyOn(API, 'write');
+
+            completeTestDriveTask();
+
+            expect(writeSpy).toHaveBeenCalledWith(WRITE_COMMANDS.COMPLETE_TASK, expect.anything(), expect.anything());
         });
     });
 });
