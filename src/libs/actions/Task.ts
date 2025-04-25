@@ -1,7 +1,7 @@
+import {Str} from 'expensify-common';
 import {InteractionManager} from 'react-native';
 import type {NullishDeep, OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import * as Expensicons from '@components/Icon/Expensicons';
 import * as API from '@libs/API';
 import type {CancelTaskParams, CompleteTaskParams, CreateTaskParams, EditTaskAssigneeParams, EditTaskParams, ReopenTaskParams} from '@libs/API/parameters';
@@ -40,7 +40,6 @@ type ShareDestination = {
     displayNamesWithTooltips: ReportUtils.DisplayNameWithTooltips;
     shouldUseFullTitleToDisplay: boolean;
 };
-type PolicyValue = ValueOf<typeof CONST.POLICY.ROLE>;
 
 let currentUserEmail = '';
 let currentUserAccountID = -1;
@@ -641,7 +640,7 @@ function editTaskAssignee(report: OnyxTypes.Report, sessionAccountID: number, as
     const assigneeChatReportID = assigneeChatReport?.reportID;
     const assigneeChatReportMetadata = ReportUtils.getReportMetadata(assigneeChatReportID);
     const parentReport = getParentReport(report);
-    const taskOwnerAccountID = getTaskOwnerAccountID(report);
+    const taskOwnerAccountID = report?.ownerAccountID;
     const optimisticReport: OptimisticReport = {
         reportName,
         managerID: assigneeAccountID ?? report.managerID,
@@ -1218,16 +1217,9 @@ function getTaskAssigneeAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): numb
 }
 
 /**
- * Returns Task owner accountID
- */
-function getTaskOwnerAccountID(taskReport: OnyxEntry<OnyxTypes.Report>): number | undefined {
-    return taskReport?.ownerAccountID;
-}
-
-/**
  * Check if you're allowed to modify the task - only the author can modify the task
  */
-function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, taskOwnerAccountID?: number, isParentReportArchived = false): boolean {
+function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID: number, isParentReportArchived = false): boolean {
     if (ReportUtils.isCanceledTaskReport(taskReport)) {
         return false;
     }
@@ -1236,8 +1228,7 @@ function canModifyTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
-    return sessionAccountID === ownerAccountID;
+    return sessionAccountID === taskReport?.ownerAccountID;
 }
 
 /**
@@ -1257,7 +1248,7 @@ function canActionTask(taskReport: OnyxEntry<OnyxTypes.Report>, sessionAccountID
         return false;
     }
 
-    const ownerAccountID = getTaskOwnerAccountID(taskReport) ?? taskOwnerAccountID;
+    const ownerAccountID = taskReport?.ownerAccountID ?? taskOwnerAccountID;
     const assigneeAccountID = getTaskAssigneeAccountID(taskReport) ?? taskAssigneeAccountID;
     return sessionAccountID === ownerAccountID || sessionAccountID === assigneeAccountID;
 }
@@ -1296,6 +1287,26 @@ function getFinishOnboardingTaskOnyxData(taskName: keyof OnyxTypes.IntroSelected
 
     return {};
 }
+function completeTestDriveTask() {
+    const onboardingReport = ReportUtils.getChatUsedForOnboarding();
+    if (!onboardingReport) {
+        return;
+    }
+
+    const onboardingReportActions = allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${onboardingReport.reportID}`];
+    if (!onboardingReportActions) {
+        return;
+    }
+
+    const testDriveTaskParentReport = Object.values(onboardingReportActions).find(
+        (reportAction) => reportAction.childType === CONST.REPORT.TYPE.TASK && Str.stripHTML(reportAction.childReportName ?? '') === CONST.TEST_DRIVE.ONBOARDING_TASK_NAME,
+    );
+
+    const testDriveTaskReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${testDriveTaskParentReport?.childReportID}`];
+    if (testDriveTaskReport?.stateNum !== CONST.REPORT.STATE_NUM.APPROVED || testDriveTaskReport?.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
+        completeTask(testDriveTaskReport);
+    }
+}
 
 export {
     createTaskAndNavigate,
@@ -1323,6 +1334,5 @@ export {
     getNavigationUrlOnTaskDelete,
     canActionTask,
     getFinishOnboardingTaskOnyxData,
+    completeTestDriveTask,
 };
-
-export type {PolicyValue, Assignee, ShareDestination};

@@ -160,7 +160,7 @@ function getOnboardingAdaptedState(state: PartialState<NavigationState>): Partia
     }
 
     const routes = [];
-    routes.push({name: SCREENS.ONBOARDING.PURPOSE});
+    routes.push({name: onboardingRoute.name === SCREENS.ONBOARDING.WORKSPACES ? SCREENS.ONBOARDING.PERSONAL_DETAILS : SCREENS.ONBOARDING.PURPOSE});
     if (onboardingRoute.name === SCREENS.ONBOARDING.ACCOUNTING) {
         routes.push({name: SCREENS.ONBOARDING.EMPLOYEES});
     }
