@@ -2396,7 +2396,7 @@ describe('ReportUtils', () => {
                             inserted: DateUtils.subtractMillisecondsFromDateTime(testDate, 2),
                         };
 
-                        Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                        return Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
                             transactions_1: transaction1,
                             transactions_2: transaction2,
                             transactions_3: transaction3,
