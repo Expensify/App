@@ -24,7 +24,6 @@ import type {
     Report,
     ReportAction,
     ReportActions,
-    ReportAttributes,
     ReportNameValuePairs,
     TransactionViolation,
 } from '@src/types/onyx';
@@ -362,14 +361,6 @@ Onyx.connect({
     waitForCollectionCallback: true,
     callback: (value) => {
         allReportNameValuePairs = value;
-    },
-});
-
-let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
-Onyx.connect({
-    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
-    callback: (value) => {
-        reportAttributes = value;
     },
 });
 
