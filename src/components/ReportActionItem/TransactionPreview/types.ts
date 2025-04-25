@@ -20,7 +20,7 @@ type TransactionPreviewProps = {
     /** The ID of the current report */
     reportID: string | undefined;
 
-    /** Callback for the preview pressed */
+    /** Callback called when the preview is pressed  */
     onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent) => void;
 
     /** All the data of the action, used for showing context menu */
@@ -35,8 +35,8 @@ type TransactionPreviewProps = {
     /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyle: TransactionPreviewStyleType;
+    /** Width to use for skeleton loader of transaction preview */
+    transactionPreviewWidth: TransactionPreviewStyleType['width'];
 
     /** True if this IOU has a type of split */
     isBillSplit: boolean;
@@ -63,20 +63,17 @@ type TransactionPreviewProps = {
 
     /** The action to be displayed in the preview */
     reportPreviewAction?: ReportAction;
+
+    /** Whether to show payer/receiver data in the preview */
+    shouldShowIOUData?: boolean;
 };
 
 type TransactionPreviewContentProps = {
-    /** Function to display the context menu in response to an event. */
-    showContextMenu: (event: GestureResponderEvent) => void;
-
     /** Handles the UI response and data clean-up when the transaction goes offline. */
     offlineWithFeedbackOnClose: () => void;
 
     /** Navigates the user to a separate view or component for reviewing or editing transaction fields. */
     navigateToReviewFields: () => void;
-
-    /** General callback for handling presses on the preview component, can also handle keyboard events. */
-    onPreviewPressed?: (event?: GestureResponderEvent | KeyboardEvent | undefined) => void;
 
     /** Whether the transaction is whisper. */
     isWhisper?: boolean;
@@ -87,8 +84,8 @@ type TransactionPreviewContentProps = {
     /** Optional custom styles to be applied to container component. */
     containerStyles?: StyleProp<ViewStyle>;
 
-    /** Optional custom styles to be applied to wrapper component. */
-    wrapperStyle: TransactionPreviewStyleType;
+    /** Width to use for skeleton loader of transaction preview */
+    transactionPreviewWidth: TransactionPreviewStyleType['width'];
 
     /** Records any errors related to wallet terms. */
     walletTermsErrors: Errors | undefined;
@@ -128,6 +125,9 @@ type TransactionPreviewContentProps = {
 
     /** The action to be displayed in the preview */
     reportPreviewAction?: ReportAction;
+
+    /** Whether to show payer/receiver data in the preview */
+    shouldShowIOUData?: boolean;
 };
 
-export type {TransactionPreviewProps, TransactionPreviewContentProps, TransactionPreviewStyleType};
+export type {TransactionPreviewContentProps, TransactionPreviewProps, TransactionPreviewStyleType};

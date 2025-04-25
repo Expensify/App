@@ -8,7 +8,7 @@ import type {NavigationPartialRoute} from '@libs/Navigation/types';
 import {shouldDisplayPolicyNotFoundPage} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
-import type {SplitNavigatorRouterOptions} from './types';
+import type SplitNavigatorRouterOptions from './types';
 import {getPreservedNavigatorState} from './usePreserveNavigatorState';
 
 type StackState = StackNavigationState<ParamListBase> | PartialState<StackNavigationState<ParamListBase>>;

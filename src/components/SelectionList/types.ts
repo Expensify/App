@@ -20,10 +20,10 @@ import type {BrickRoad} from '@libs/WorkspacesSettingsUtils';
 // eslint-disable-next-line no-restricted-imports
 import type CursorStyles from '@styles/utils/cursor/types';
 import type CONST from '@src/CONST';
-import type {Policy} from '@src/types/onyx';
+import type {Policy, Report} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
 import type {Errors, Icon, PendingAction} from '@src/types/onyx/OnyxCommon';
-import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTransaction} from '@src/types/onyx/SearchResults';
+import type {SearchPersonalDetails, SearchReport, SearchReportAction, SearchTask, SearchTransaction} from '@src/types/onyx/SearchResults';
 import type {ReceiptErrors} from '@src/types/onyx/Transaction';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -273,6 +273,39 @@ type ReportActionListItemType = ListItem &
         keyForList: string;
     };
 
+type TaskListItemType = ListItem &
+    SearchTask & {
+        /** The personal details of the user who is assigned to the task */
+        assignee: SearchPersonalDetails;
+
+        /** The personal details of the user who created the task */
+        createdBy: SearchPersonalDetails;
+
+        /** final and formatted "assignee" value used for displaying and sorting */
+        formattedAssignee: string;
+
+        /** final and formatted "createdBy" value used for displaying and sorting */
+        formattedCreatedBy: string;
+
+        /** The name of the parent report room */
+        parentReportName?: string;
+
+        /** The icon of the parent  report room */
+        parentReportIcon?: Icon;
+
+        /** The report details of the task */
+        report?: Report;
+
+        /** Key used internally by React */
+        keyForList: string;
+
+        /**
+         * Whether we should show the task year.
+         * This is true if at least one task in the dataset was created in past years
+         */
+        shouldShowYear: boolean;
+    };
+
 type ReportListItemType = ListItem &
     SearchReport & {
         /** The personal details of the user requesting money */
@@ -360,6 +393,11 @@ type TransactionListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     isLoading?: boolean;
 };
 
+type TaskListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
+    /** Whether the item's action is loading */
+    isLoading?: boolean;
+};
+
 type ReportListItemProps<TItem extends ListItem> = ListItemProps<TItem> & {
     /** Callback to fire when the item is pressed */
     onSelectRow: (item: TItem, isOpenedAsReport?: boolean) => void;
@@ -401,10 +439,6 @@ type Section<TItem extends ListItem> = {
 type SectionWithIndexOffset<TItem extends ListItem> = Section<TItem> & {
     /** The initial index of this section given the total number of options in each section's data array */
     indexOffset?: number;
-};
-
-type SkeletonViewProps = {
-    shouldAnimate: boolean;
 };
 
 type SelectionListProps<TItem extends ListItem> = Partial<ChildrenProps> & {
@@ -730,32 +764,32 @@ type SectionListDataType<TItem extends ListItem> = ExtendedSectionListData<TItem
 
 type SortableColumnName = SearchColumnType | typeof CONST.REPORT.TRANSACTION_LIST.COLUMNS.COMMENTS;
 
+type SearchListItem = TransactionListItemType | ReportListItemType | ReportActionListItemType | TaskListItemType;
+
 export type {
     BaseListItemProps,
     SelectionListProps,
     ButtonOrCheckBoxRoles,
-    CommonListItemProps,
     ExtendedTargetedEvent,
     FlattenedSectionsReturn,
     InviteMemberListItemProps,
-    ItemLayout,
     ListItem,
     ListItemFocusEventHandler,
-    ListItemProps,
     RadioListItemProps,
     ReportListItemProps,
     ReportListItemType,
     Section,
-    SkeletonViewProps,
     SectionListDataType,
     SectionWithIndexOffset,
     SelectionListHandle,
     TableListItemProps,
+    TaskListItemType,
+    TaskListItemProps,
     TransactionListItemProps,
     TransactionListItemType,
     UserListItemProps,
-    ValidListItem,
     ReportActionListItemType,
     ChatListItemProps,
     SortableColumnName,
+    SearchListItem,
 };
