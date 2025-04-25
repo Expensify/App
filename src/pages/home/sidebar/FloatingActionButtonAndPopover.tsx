@@ -512,24 +512,24 @@ function FloatingActionButtonAndPopover({onHideCreateMenu, onShowCreateMenu, isT
                                   return;
                               }
 
+                              let workspaceIDForReportCreation: string | undefined;
+
                               // If the user's default workspace is a paid group workspace with chat enabled, we create a report with it by default
                               if (activePolicy && activePolicy.isPolicyExpenseChatEnabled && isPaidGroupPolicy(activePolicy)) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, activePolicyID);
+                                  workspaceIDForReportCreation = activePolicyID;
+                              } else if (groupPoliciesWithChatEnabled.length === 1) {
+                                  workspaceIDForReportCreation = groupPoliciesWithChatEnabled.at(0)?.id;
+                              }
+
+                              if (workspaceIDForReportCreation && !shouldRestrictUserBillableActions(workspaceIDForReportCreation)) {
+                                  const createdReportID = createNewReport(currentUserPersonalDetails, workspaceIDForReportCreation);
                                   Navigation.setNavigationActionToMicrotaskQueue(() => {
                                       Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
                                   });
                                   return;
                               }
 
-                              if (groupPoliciesWithChatEnabled.length === 1) {
-                                  const createdReportID = createNewReport(currentUserPersonalDetails, groupPoliciesWithChatEnabled.at(0)?.id);
-                                  Navigation.setNavigationActionToMicrotaskQueue(() => {
-                                      Navigation.navigate(ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({reportID: createdReportID, backTo: Navigation.getActiveRoute()}));
-                                  });
-                                  return;
-                              }
-
-                              // If the user's default workspace is personal and the user has more than one group workspace which is paid and has chat enabled, we need to redirect them to the workspace selection screen
+                              // If the user's default workspace is personal and the user has more than one group workspace, which is paid and has chat enabled, or a chosen workspace is past the grace period, we need to redirect them to the workspace selection screen
                               Navigation.navigate(ROUTES.NEW_REPORT_WORKSPACE_SELECTION);
                           });
                       },
