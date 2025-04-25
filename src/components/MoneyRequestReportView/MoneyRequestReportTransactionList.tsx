@@ -54,7 +54,7 @@ type MoneyRequestReportTransactionListProps = {
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
-    shouldHighlight?: boolean;
+    shouldBeHighlighted?: boolean;
 };
 
 const sortableColumnNames = [
@@ -131,7 +131,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
         }
         return transactions
             .filter((transaction) => !prevTransactions.some((prevTransaction) => prevTransaction.transactionID === transaction.transactionID))
-            .map((trans) => trans.transactionID);
+            .map((transaction) => transaction.transactionID);
         // eslint-disable-next-line react-compiler/react-compiler
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [transactions]);
@@ -139,15 +139,10 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const sortedTransactions: TransactionWithOptionalHighlight[] = useMemo(() => {
         return [...transactions]
             .sort((a, b) => compareValues(a[getTransactionKey(a, sortBy)], b[getTransactionKey(b, sortBy)], sortOrder, sortBy))
-            .map((transaction) => {
-                if (newTransactionsIDs.includes(transaction.transactionID)) {
-                    return {
-                        ...transaction,
-                        shouldHighlight: true,
-                    };
-                }
-                return transaction;
-            });
+            .map((transaction) => ({
+                ...transaction,
+                shouldBeHighlighted: newTransactionsIDs.includes(transaction.transactionID),
+            }));
     }, [newTransactionsIDs, sortBy, sortOrder, transactions]);
 
     const navigateToTransaction = useCallback(
@@ -257,7 +252,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 shouldUseNarrowLayout={displayNarrowVersion}
                                 shouldShowChatBubbleComponent
                                 onCheckboxPress={toggleTransaction}
-                                shouldHighlight={transaction.shouldHighlight}
                             />
                         </PressableWithFeedback>
                     );
@@ -322,3 +316,4 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
 MoneyRequestReportTransactionList.displayName = 'MoneyRequestReportTransactionList';
 
 export default memo(MoneyRequestReportTransactionList);
+export type {TransactionWithOptionalHighlight};

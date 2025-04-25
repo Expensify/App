@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import Animated from 'react-native-reanimated';
 import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
+import type {TransactionWithOptionalHighlight} from '@components/MoneyRequestReportView/MoneyRequestReportTransactionList';
 import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
@@ -12,7 +13,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
-import type Transaction from '@src/types/onyx/Transaction';
 import CategoryCell from './DataCells/CategoryCell';
 import ChatBubbleCell from './DataCells/ChatBubbleCell';
 import DateCell from './DataCells/DateCell';
@@ -31,16 +31,14 @@ function TransactionItemRow({
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
     onCheckboxPress,
-    shouldHighlight,
 }: {
-    transactionItem: Transaction;
+    transactionItem: TransactionWithOptionalHighlight;
     shouldUseNarrowLayout: boolean;
     isSelected: boolean;
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
     onCheckboxPress: (transactionID: string) => void;
-    shouldHighlight?: boolean;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -51,7 +49,7 @@ function TransactionItemRow({
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
-        shouldHighlight: shouldHighlight ?? false,
+        shouldHighlight: transactionItem.shouldBeHighlighted ?? false,
         borderRadius: variables.componentBorderRadius,
         highlightColor: theme.messageHighlightBG,
         backgroundColor: theme.highlightBG,
