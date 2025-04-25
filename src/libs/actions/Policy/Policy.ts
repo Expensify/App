@@ -5240,6 +5240,7 @@ export {
     openPolicyExpensifyCardsPage,
     openPolicyEditCardLimitTypePage,
     requestExpensifyCardLimitIncrease,
+    getAdminPolicies,
     getAdminPoliciesConnectedToNetSuite,
     getAdminPoliciesConnectedToSageIntacct,
     hasInvoicingDetails,

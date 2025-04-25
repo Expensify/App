@@ -31,6 +31,7 @@ import type {
 } from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 import {canApproveIOU, canIOUBePaid, canSubmitReport} from './actions/IOU';
+import {getAdminPolicies} from './actions/Policy/Policy';
 import {convertToDisplayString} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
@@ -38,7 +39,7 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {getPolicy} from './PolicyUtils';
+import {getAllPoliciesLength, getAllSharedPolicies, getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
@@ -889,9 +890,9 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
         },
     ];
 
-    const showSubmitSuggestion = 'test';
+    const showSubmitSuggestion = getAllSharedPolicies().length > 0;
     const showApproveSuggestion = 'test';
-    const showPaySuggestion = 'test';
+    const showPaySuggestion = getAdminPolicies().length > 0;
     const showExportSuggestion = 'test';
 
     const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;

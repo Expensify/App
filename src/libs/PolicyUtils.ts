@@ -1247,6 +1247,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
     return policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.OPTIONAL || !!policy?.errorFields?.approvalMode;
 }
 
+function getAllSharedPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => p?.type !== CONST.POLICY.TYPE.PERSONAL);
+}
+
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
@@ -1543,6 +1547,7 @@ export {
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
     getAllPolicies,
+    getAllSharedPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
