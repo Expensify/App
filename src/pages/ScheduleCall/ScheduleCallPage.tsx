@@ -99,12 +99,20 @@ function ScheduleCallPage() {
         return timeSlotMap;
     }, [calendlySchedule]);
 
-    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
     const firstDate =  selectableDates.at(0);
     const lastDate =  selectableDates.at(selectableDates.length - 1);
     const minDate = firstDate ? parse(firstDate,  CONST.DATE.FNS_FORMAT_STRING, new Date()): undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
+    const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
+
+    useEffect(() => {
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        if (calendlySchedule?.isLoading || !firstDate || scheduleCallDraft?.date) {
+            return;
+        }
+        saveBookingDraft({date: firstDate});
+    }, [firstDate, calendlySchedule?.isLoading, scheduleCallDraft?.date]);
 
     return (
         <ScreenWrapper
@@ -126,7 +134,7 @@ function ScheduleCallPage() {
                             collapsable={false}
                         >
                             <CalendarPicker
-                                value={scheduleCallDraft?.date ?? firstDate}
+                                value={scheduleCallDraft?.date}
                                 minDate={minDate}
                                 maxDate={maxDate}
                                 selectedableDates={Object.keys(timeSlotDateMap)}
