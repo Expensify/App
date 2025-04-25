@@ -67,7 +67,8 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     }, [reportIDFromRoute]);
 
     const backTo = route.params.backTo ?? '';
-    const q = new URLSearchParams(backTo.split('?')[1]).get('q') ?? '';
+    const queryString = backTo.split('?').at(1) ?? '';
+    const q = new URLSearchParams(queryString).get('q') ?? '';
     const queryJSON = useMemo(() => {
         return buildSearchQueryJSON(q);
     }, [q]);
