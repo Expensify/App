@@ -17,6 +17,7 @@ import StringUtils from './StringUtils';
 import {
     compareDuplicateTransactionFields,
     getFormattedCreated,
+    getTransaction,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
     hasPendingRTERViolation,
@@ -41,11 +42,16 @@ const emptyPersonalDetails: OnyxTypes.PersonalDetails = {
     login: undefined,
 };
 
-function getIOUData(managerID: number, ownerAccountID: number, personalDetails: OnyxTypes.PersonalDetailsList | undefined) {
-    const fromID = managerID;
-    const toID = ownerAccountID;
+function getIOUData(managerID: number, ownerAccountID: number, isIOUReport: boolean, personalDetails: OnyxTypes.PersonalDetailsList | undefined, amount: number) {
+    let fromID = ownerAccountID;
+    let toID = managerID;
 
-    return fromID && toID
+    if (amount < 0) {
+        fromID = managerID;
+        toID = ownerAccountID;
+    }
+
+    return fromID && toID && isIOUReport
         ? {
               from: personalDetails ? personalDetails[fromID] : emptyPersonalDetails,
               to: personalDetails ? personalDetails[toID] : emptyPersonalDetails,
@@ -101,6 +107,22 @@ type TranslationPathOrText = {
 };
 
 const dotSeparator: TranslationPathOrText = {text: ` ${CONST.DOT_SEPARATOR} `};
+
+const getOriginalTransactionIfBillIsSplit = (transaction: OnyxEntry<OnyxTypes.Transaction>) => {
+    const {originalTransactionID, source, splits} = transaction?.comment ?? {};
+
+    if (splits && splits.length > 0) {
+        return {isBillSplit: true, originalTransaction: getTransaction(originalTransactionID) ?? transaction};
+    }
+
+    if (!originalTransactionID || source !== CONST.IOU.TYPE.SPLIT) {
+        return {isBillSplit: false, originalTransaction: transaction};
+    }
+
+    const originalTransaction = getTransaction(originalTransactionID);
+
+    return {isBillSplit: !!originalTransaction, originalTransaction: originalTransaction ?? transaction};
+};
 
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
@@ -218,7 +240,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(requestAmount, requestCurrency)};
+    const amount = isBillSplit ? getOriginalTransactionIfBillIsSplit(transaction).originalTransaction?.amount : requestAmount;
+    let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
     }
@@ -231,7 +254,6 @@ function getTransactionPreviewTextAndTranslationPaths({
         displayAmountText,
         displayDeleteAmountText,
         previewHeaderText,
-        showCashOrCard,
     };
 }
 
@@ -272,7 +294,6 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldDisableOnPress = isBillSplit && isEmptyObject(transaction);
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
     const shouldShowCategory = !!category && isReportAPolicyExpenseChat;
@@ -300,7 +321,6 @@ function createTransactionPreviewConditionals({
     const shouldShowDescription = !!description && !shouldShowMerchant && !isScanning(transaction);
 
     return {
-        shouldDisableOnPress,
         shouldShowSkeleton,
         shouldShowTag,
         shouldShowRBR,
@@ -312,5 +332,5 @@ function createTransactionPreviewConditionals({
     };
 }
 
-export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals};
+export {getReviewNavigationRoute, getIOUData, getTransactionPreviewTextAndTranslationPaths, createTransactionPreviewConditionals, getOriginalTransactionIfBillIsSplit};
 export type {TranslationPathOrText};

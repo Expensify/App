@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import type {LayoutChangeEvent, ListRenderItem} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import TransactionPreview from '@components/ReportActionItem/TransactionPreview';
@@ -9,9 +9,15 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
+import Performance from '@libs/Performance';
 import {getIOUActionForReportID, isSplitBillAction as isSplitBillActionReportActionsUtils, isTrackExpenseAction as isTrackExpenseActionReportActionsUtils} from '@libs/ReportActionsUtils';
+import {isIOUReport} from '@libs/ReportUtils';
+import Navigation from '@navigation/Navigation';
+import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES from '@src/ROUTES';
 import type {Transaction} from '@src/types/onyx';
 import MoneyRequestReportPreviewContent from './MoneyRequestReportPreviewContent';
 import type {MoneyRequestReportPreviewProps} from './types';
@@ -30,6 +36,7 @@ function MoneyRequestReportPreview({
     onPaymentOptionsHide,
     shouldDisplayContextMenu = true,
     isInvoice = false,
+    shouldShowBorder,
 }: MoneyRequestReportPreviewProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -57,6 +64,25 @@ function MoneyRequestReportPreview({
         [StyleUtils, currentWidth, shouldUseNarrowLayout, transactions.length],
     );
 
+    const shouldShowIOUData = useMemo(() => {
+        if (!isIOUReport(iouReport) && action.childType !== CONST.REPORT.TYPE.IOU) {
+            return false;
+        }
+
+        // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+        return transactions.some((transaction) => (transaction?.modifiedAmount || transaction?.amount) < 0);
+    }, [transactions, action.childType, iouReport]);
+
+    const openReportFromPreview = useCallback(() => {
+        if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {
+            return;
+        }
+
+        Performance.markStart(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Timing.start(CONST.TIMING.OPEN_REPORT_FROM_PREVIEW);
+        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(iouReportID));
+    }, [iouReportID]);
+
     const renderItem: ListRenderItem<Transaction> = ({item}) => (
         <TransactionPreview
             chatReportID={chatReportID}
@@ -68,16 +94,21 @@ function MoneyRequestReportPreview({
             isWhisper={isWhisper}
             isHovered={isHovered}
             iouReportID={iouReportID}
-            onPreviewPressed={() => {}}
-            wrapperStyle={reportPreviewStyles.transactionPreviewStyle}
-            containerStyles={[styles.h100, containerStyles]}
+            containerStyles={[styles.h100, reportPreviewStyles.transactionPreviewStyle, containerStyles]}
+            transactionPreviewWidth={reportPreviewStyles.transactionPreviewStyle.width}
             transactionID={item.transactionID}
             reportPreviewAction={action}
+            shouldShowIOUData={shouldShowIOUData}
         />
     );
 
     return (
         <MoneyRequestReportPreviewContent
+            iouReportID={iouReportID}
+            chatReportID={chatReportID}
+            iouReport={iouReport}
+            chatReport={chatReport}
+            action={action}
             containerStyles={[reportPreviewStyles.componentStyle, containerStyles]}
             contextMenuAnchor={contextMenuAnchor}
             isHovered={isHovered}
@@ -85,26 +116,23 @@ function MoneyRequestReportPreview({
             checkIfContextMenuActive={checkIfContextMenuActive}
             onPaymentOptionsShow={onPaymentOptionsShow}
             onPaymentOptionsHide={onPaymentOptionsHide}
-            action={action}
-            chatReportID={chatReportID}
-            iouReportID={iouReportID}
-            policyID={undefined}
-            iouReport={iouReport}
             transactions={transactions}
             violations={violations}
-            chatReport={chatReport}
             policy={policy}
             invoiceReceiverPersonalDetail={invoiceReceiverPersonalDetail}
             invoiceReceiverPolicy={invoiceReceiverPolicy}
             lastTransactionViolations={lastTransactionViolations}
             isDelegateAccessRestricted={isDelegateAccessRestricted}
-            renderItem={renderItem}
-            getCurrentWidth={(e: LayoutChangeEvent) => {
+            renderTransactionItem={renderItem}
+            onLayout={(e: LayoutChangeEvent) => {
                 setCurrentWidth(e.nativeEvent.layout.width ?? 255);
             }}
+            currentWidth={currentWidth}
             reportPreviewStyles={reportPreviewStyles}
             shouldDisplayContextMenu={shouldDisplayContextMenu}
             isInvoice={isInvoice}
+            onPress={openReportFromPreview}
+            shouldShowBorder={shouldShowBorder}
         />
     );
 }

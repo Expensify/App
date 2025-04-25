@@ -5,16 +5,21 @@ import {View} from 'react-native';
 import type {TupleToUnion} from 'type-fest';
 import {getButtonRole} from '@components/Button/utils';
 import Checkbox from '@components/Checkbox';
+import * as Expensicons from '@components/Icon/Expensicons';
+import MenuItem from '@components/MenuItem';
+import Modal from '@components/Modal';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import type {SortOrder} from '@components/Search/types';
 import Text from '@components/Text';
 import TransactionItemRow from '@components/TransactionItemRow';
 import useHover from '@hooks/useHover';
 import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import {useMouseContext} from '@hooks/useMouseContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {convertToDisplayString} from '@libs/CurrencyUtils';
 import {getThreadReportIDsForTransactions} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
@@ -74,6 +79,8 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const displayNarrowVersion = isMediumScreenWidth || shouldUseNarrowLayout;
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedTransactionID, setSelectedTransactionID] = useState<string>('');
 
     const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
     const formattedOutOfPocketAmount = convertToDisplayString(reimbursableSpend, report?.currency);
@@ -84,6 +91,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const {isMouseDownOnInput, setMouseUp} = useMouseContext();
 
     const {selectedTransactionsID, setSelectedTransactionsID, toggleTransaction, isTransactionSelected} = useMoneyRequestReportContext();
+    const {selectionMode} = useMobileSelectionMode();
 
     useFocusEffect(
         useCallback(() => {
@@ -141,7 +149,6 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
     const pressableStyle = [styles.overflowHidden];
 
     const listHorizontalPadding = styles.ph5;
-
     return !isEmpty(transactions) ? (
         <>
             {!displayNarrowVersion && (
@@ -156,6 +163,7 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                                 }
                             }}
                             accessibilityLabel={CONST.ROLE.CHECKBOX}
+                            isIndeterminate={selectedTransactionsID.length > 0 && selectedTransactionsID.length !== transactions.length}
                             isChecked={selectedTransactionsID.length === transactions.length}
                         />
                     </View>
@@ -174,13 +182,20 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     />
                 </View>
             )}
-            <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && styles.pt4]}>
+
+            <View style={[listHorizontalPadding, styles.gap2, styles.pb4, displayNarrowVersion && !selectionMode?.isEnabled && styles.pt4]}>
                 {sortedTransactions.map((transaction) => {
                     return (
                         <PressableWithFeedback
+                            key={transaction.transactionID}
                             onPress={(e) => {
                                 if (isMouseDownOnInput) {
                                     e?.stopPropagation();
+                                    return;
+                                }
+
+                                if (selectionMode?.isEnabled) {
+                                    toggleTransaction(transaction.transactionID);
                                     return;
                                 }
 
@@ -194,7 +209,17 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                             id={transaction.transactionID}
                             style={[pressableStyle]}
                             onMouseLeave={handleMouseLeave}
-                            key={transaction.transactionID}
+                            onLongPress={() => {
+                                if (!displayNarrowVersion) {
+                                    return;
+                                }
+                                if (selectionMode?.isEnabled) {
+                                    toggleTransaction(transaction.transactionID);
+                                    return;
+                                }
+                                setSelectedTransactionID(transaction.transactionID);
+                                setIsModalVisible(true);
+                            }}
                         >
                             <TransactionItemRow
                                 transactionItem={transaction}
@@ -241,6 +266,24 @@ function MoneyRequestReportTransactionList({report, transactions, reportActions,
                     </Text>
                 </View>
             </View>
+            <Modal
+                isVisible={isModalVisible}
+                type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                onClose={() => setIsModalVisible(false)}
+                shouldPreventScrollOnFocus
+            >
+                <MenuItem
+                    title={translate('common.select')}
+                    icon={Expensicons.CheckSquare}
+                    onPress={() => {
+                        if (!selectionMode?.isEnabled) {
+                            turnOnMobileSelectionMode();
+                        }
+                        toggleTransaction(selectedTransactionID);
+                        setIsModalVisible(false);
+                    }}
+                />
+            </Modal>
         </>
     ) : (
         <SearchMoneyRequestReportEmptyState />

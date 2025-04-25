@@ -112,7 +112,7 @@ jest.mock('../modules/hybrid-app/src/NativeReactNativeHybridApp', () => ({
 jest.mock(
     '@react-native/virtualized-lists/Interaction/Batchinator',
     () =>
-        class SyncBachinator {
+        class SyncBatchinator {
             #callback: () => void;
 
             constructor(callback: () => void) {
