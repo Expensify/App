@@ -214,12 +214,12 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
         >
-            <View style={[styles.pb4, styles.mh3, styles.mt3]}>
+            <View style={[styles.pb4, styles.mh3]}>
                 {typeMenuSections.map((section, i) => (
                     <React.Fragment key={section.translationPath}>
-                        <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate(section.translationPath)}</Text>
+                        <Text style={[styles.sectionTitle, styles.pb1, styles.mt3]}>{translate(section.translationPath)}</Text>
                         {section.menuItems.map((item, j) => {
-                            const flattenedIndex = (i + 1) * (j + 1);
+                            const flattenedIndex = (i + 1) * j;
 
                             const onPress = singleExecution(() => {
                                 clearAllFilters();

@@ -28,7 +28,7 @@ import {
     isCannedSearchQuery,
     isCannedSearchQueryWithPolicyIDCheck,
 } from '@libs/SearchQueryUtils';
-import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, createTypeMenuSections, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -57,7 +57,6 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const {hash, groupBy} = queryJSON;
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const personalDetails = usePersonalDetails();
     const [reports = {}] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
     const taxRates = getAllTaxRates();
@@ -93,10 +92,17 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         return buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType);
     }, [allCards, allPolicies, canUseLeftHandBar, cardFeedNamesWithType, personalDetails, queryJSON, reports, taxRates]);
 
-    const typeMenuItems = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
+    const typeMenuSections = useMemo(() => createTypeMenuSections(), []);
     const isCannedQuery = canUseLeftHandBar ? isCannedSearchQueryWithPolicyIDCheck(queryJSON) : isCannedSearchQuery(queryJSON);
     const title = searchName ?? (isCannedQuery ? undefined : getBuildUserReadableQueryString());
-    const activeItemIndex = isCannedQuery ? typeMenuItems.findIndex((item) => item.type === queryJSON.type) : -1;
+
+    const activeItemIndex = useMemo(() => {
+        if (!isCannedQuery) {
+            return -1;
+        }
+        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
+        return flattenedMenuItems.findIndex((item) => item.type === queryJSON.type);
+    }, [isCannedQuery, typeMenuSections, queryJSON.type]);
 
     const getOverflowMenu = useCallback(
         (itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal, true, closeMenu),
@@ -156,32 +162,48 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
     const currentSavedSearch = savedSearchItems.find((item) => Number(item.hash) === hash);
 
     const popoverMenuItems = useMemo(() => {
-        const items = typeMenuItems.map((item, index) => {
-            let isSelected = false;
-            if (!title) {
-                if (shouldGroupByReports) {
-                    isSelected = item.translationPath === 'common.expenseReports';
-                } else {
-                    isSelected = index === activeItemIndex;
-                }
-            }
+        const items = typeMenuSections
+            .map((section, index) => {
+                const sectionItems: PopoverMenuItem[] = [
+                    {
+                        text: translate(section.translationPath),
+                        style: [styles.textSupporting],
+                        disabled: true,
+                    },
+                ];
 
-            return {
-                text: translate(item.translationPath),
-                onSelected: singleExecution(() => {
-                    clearAllFilters();
-                    Navigation.navigate(item.getRoute());
-                }),
-                isSelected,
-                icon: item.icon,
-                iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
-                iconRight: Expensicons.Checkmark,
-                shouldShowRightIcon: isSelected,
-                success: isSelected,
-                containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
-                shouldCallAfterModalHide: true,
-            };
-        });
+                section.menuItems.forEach((item, itemIndex) => {
+                    const flattenedIndex = (index + 1) * itemIndex;
+                    let isSelected = false;
+
+                    if (!title) {
+                        if (shouldGroupByReports) {
+                            isSelected = item.translationPath === 'common.expenseReports';
+                        } else {
+                            isSelected = flattenedIndex === activeItemIndex;
+                        }
+                    }
+
+                    sectionItems.push({
+                        text: translate(item.translationPath),
+                        isSelected,
+                        icon: item.icon,
+                        iconFill: isSelected ? theme.iconSuccessFill : theme.icon,
+                        iconRight: Expensicons.Checkmark,
+                        shouldShowRightIcon: isSelected,
+                        success: isSelected,
+                        containerStyle: isSelected ? [{backgroundColor: theme.border}] : undefined,
+                        shouldCallAfterModalHide: true,
+                        onSelected: singleExecution(() => {
+                            clearAllFilters();
+                            Navigation.navigate(item.getRoute());
+                        }),
+                    });
+                });
+
+                return sectionItems;
+            })
+            .flat();
 
         if (title && !currentSavedSearch) {
             items.push({
@@ -199,7 +221,20 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
         }
 
         return items;
-    }, [typeMenuItems, title, currentSavedSearch, activeItemIndex, translate, singleExecution, theme.iconSuccessFill, theme.icon, theme.border, closeMenu, shouldGroupByReports]);
+    }, [
+        typeMenuSections,
+        title,
+        currentSavedSearch,
+        translate,
+        styles.textSupporting,
+        singleExecution,
+        theme.iconSuccessFill,
+        theme.icon,
+        theme.border,
+        shouldGroupByReports,
+        activeItemIndex,
+        closeMenu,
+    ]);
 
     const allMenuItems = useMemo(() => {
         const items = [];
