@@ -38,14 +38,13 @@ import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 import Parser from './Parser';
 import {getDisplayNameOrDefault} from './PersonalDetailsUtils';
-import {canSendInvoice, getPolicy} from './PolicyUtils';
+import {getPolicy} from './PolicyUtils';
 import {getOriginalMessage, isCreatedAction, isDeletedAction, isMoneyRequestAction, isResolvedActionableWhisper, isWhisperActionTargetedToOthers} from './ReportActionsUtils';
 import {
     getIcons,
     getReportName,
     getReportOrDraftReport,
     getSearchReportName,
-    hasInvoiceReports,
     hasOnlyHeldExpenses,
     hasViolations,
     isAllowedToApproveExpenseReport as isAllowedToApproveExpenseReportUtils,
@@ -114,6 +113,11 @@ type SavedSearchMenuItem = MenuItemWithLink & {
     hash: string;
     query: string;
     styles?: Array<ViewStyle | TextStyle>;
+};
+
+type SearchTypeMenuSection = {
+    translationPath: TranslationPaths;
+    menuItems: SearchTypeMenuItem[];
 };
 
 type SearchTypeMenuItem = {
@@ -849,69 +853,43 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuItems(allPolicies: OnyxCollection<OnyxTypes.Policy> | null, email: string | undefined): SearchTypeMenuItem[] {
-    const typeMenuItems: SearchTypeMenuItem[] = [
+function createTypeMenuSections(): SearchTypeMenuSection[] {
+    const typeMenuSections: SearchTypeMenuSection[] = [
         {
-            translationPath: 'common.expenses',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Receipt,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
-        {
-            translationPath: 'common.expenseReports',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            icon: Expensicons.Document,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
-        {
-            translationPath: 'common.chats',
-            type: CONST.SEARCH.DATA_TYPES.CHAT,
-            icon: Expensicons.ChatBubbles,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        },
-        {
-            translationPath: 'common.tasks',
-            type: CONST.SEARCH.DATA_TYPES.TASK,
-            icon: Expensicons.Task,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TASK, status: CONST.SEARCH.STATUS.TASK.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
+            translationPath: 'common.explore',
+            menuItems: [
+                {
+                    translationPath: 'common.expenses',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: Expensicons.Receipt,
+                    getRoute: (policyID?: string) => {
+                        const query = buildCannedSearchQuery({policyID});
+                        return ROUTES.SEARCH_ROOT.getRoute({query});
+                    },
+                },
+                {
+                    translationPath: 'common.expenseReports',
+                    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+                    icon: Expensicons.Document,
+                    getRoute: (policyID?: string) => {
+                        const query = buildCannedSearchQuery({groupBy: CONST.SEARCH.GROUP_BY.REPORTS, policyID});
+                        return ROUTES.SEARCH_ROOT.getRoute({query});
+                    },
+                },
+                {
+                    translationPath: 'common.chats',
+                    type: CONST.SEARCH.DATA_TYPES.CHAT,
+                    icon: Expensicons.ChatBubbles,
+                    getRoute: (policyID?: string) => {
+                        const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.CHAT, status: CONST.SEARCH.STATUS.CHAT.ALL, policyID});
+                        return ROUTES.SEARCH_ROOT.getRoute({query});
+                    },
+                },
+            ],
         },
     ];
 
-    if (canSendInvoice(allPolicies, email) || hasInvoiceReports()) {
-        typeMenuItems.push({
-            translationPath: 'workspace.common.invoices',
-            type: CONST.SEARCH.DATA_TYPES.INVOICE,
-            icon: Expensicons.InvoiceGeneric,
-            getRoute: (policyID?: string) => {
-                const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.INVOICE, status: CONST.SEARCH.STATUS.INVOICE.ALL, policyID});
-                return ROUTES.SEARCH_ROOT.getRoute({query});
-            },
-        });
-    }
-
-    typeMenuItems.push({
-        translationPath: 'travel.trips',
-        type: CONST.SEARCH.DATA_TYPES.TRIP,
-        icon: Expensicons.Suitcase,
-        getRoute: (policyID?: string) => {
-            const query = buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.TRIP, status: CONST.SEARCH.STATUS.TRIP.ALL, policyID});
-            return ROUTES.SEARCH_ROOT.getRoute({query});
-        },
-    });
-
-    return typeMenuItems;
+    return typeMenuSections;
 }
 
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
@@ -962,10 +940,10 @@ export {
     isReportActionEntry,
     isTaskListItemType,
     getAction,
-    createTypeMenuItems,
+    createTypeMenuSections,
     createBaseSavedSearchMenuItem,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,
 };
-export type {SavedSearchMenuItem, SearchTypeMenuItem};
+export type {SavedSearchMenuItem, SearchTypeMenuSection, SearchTypeMenuItem};

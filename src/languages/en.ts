@@ -554,6 +554,8 @@ const translations = {
         comments: 'Comments',
         sharedIn: 'Shared in',
         unreported: 'Unreported',
+        explore: 'Explore',
+        todo: 'To-do',
     },
     supportalNoAccess: {
         title: 'Not so fast',

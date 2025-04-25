@@ -545,6 +545,8 @@ const translations = {
         comments: 'Comentarios',
         sharedIn: 'Compartido en',
         unreported: 'No reportado',
+        explore: 'Explorar',
+        todo: 'Tereas',
     },
     supportalNoAccess: {
         title: 'No tan rápido',

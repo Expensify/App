@@ -32,8 +32,8 @@ import {
     isCannedSearchQuery,
     isCannedSearchQueryWithPolicyIDCheck,
 } from '@libs/SearchQueryUtils';
-import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
-import type {SavedSearchMenuItem, SearchTypeMenuItem} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, createTypeMenuSections, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import type {SavedSearchMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import * as Expensicons from '@src/components/Icon/Expensicons';
 import CONST from '@src/CONST';
@@ -61,7 +61,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         shouldShowSavedSearchesMenuItemTitle && isFocused,
     );
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -74,7 +73,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
 
-    const typeMenuItems: SearchTypeMenuItem[] = useMemo(() => createTypeMenuItems(allPolicies, session?.email), [allPolicies, session?.email]);
+    const typeMenuSections: SearchTypeMenuSection[] = useMemo(() => createTypeMenuSections(), []);
 
     const getOverflowMenu = useCallback((itemName: string, itemHash: number, itemQuery: string) => getOverflowMenuUtil(itemName, itemHash, itemQuery, showDeleteModal), [showDeleteModal]);
     const createSavedSearchMenuItem = useCallback(
@@ -194,14 +193,20 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         }
     }
 
-    const activeItemIndex = isCannedQuery
-        ? typeMenuItems.findIndex((item) => {
-              if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-                  return item.translationPath === 'common.expenseReports' && item.type === type;
-              }
-              return item.type === type;
-          })
-        : -1;
+    const activeItemIndex = useMemo(() => {
+        if (!isCannedQuery) {
+            return -1;
+        }
+
+        const flattenedMenuItems = typeMenuSections.map((section) => section.menuItems).flat();
+
+        return flattenedMenuItems.findIndex((item) => {
+            if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
+                return item.translationPath === 'common.expenseReports' && item.type === type;
+            }
+            return item.type === type;
+        });
+    }, [isCannedQuery, groupBy, type, typeMenuSections]);
 
     return (
         <ScrollView
@@ -210,29 +215,36 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.mt3]}>
-                {typeMenuItems.map((item, index) => {
-                    const onPress = singleExecution(() => {
-                        clearAllFilters();
-                        clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute());
-                    });
+                {typeMenuSections.map((section, i) => (
+                    <React.Fragment key={section.translationPath}>
+                        <Text style={[styles.sectionTitle, styles.pb1, styles.mh3, styles.mt3]}>{translate(section.translationPath)}</Text>
+                        {section.menuItems.map((item, j) => {
+                            const flattenedIndex = (i + 1) * (j + 1);
 
-                    return (
-                        <MenuItem
-                            key={item.translationPath}
-                            disabled={false}
-                            interactive
-                            title={translate(item.translationPath)}
-                            icon={item.icon}
-                            iconWidth={variables.iconSizeNormal}
-                            iconHeight={variables.iconSizeNormal}
-                            wrapperStyle={styles.sectionMenuItem}
-                            focused={index === activeItemIndex}
-                            onPress={onPress}
-                            shouldIconUseAutoWidthStyle
-                        />
-                    );
-                })}
+                            const onPress = singleExecution(() => {
+                                clearAllFilters();
+                                clearSelectedTransactions();
+                                Navigation.navigate(item.getRoute());
+                            });
+
+                            return (
+                                <MenuItem
+                                    key={item.translationPath}
+                                    disabled={false}
+                                    interactive
+                                    title={translate(item.translationPath)}
+                                    icon={item.icon}
+                                    iconWidth={variables.iconSizeNormal}
+                                    iconHeight={variables.iconSizeNormal}
+                                    wrapperStyle={styles.sectionMenuItem}
+                                    focused={flattenedIndex === activeItemIndex}
+                                    onPress={onPress}
+                                    shouldIconUseAutoWidthStyle
+                                />
+                            );
+                        })}
+                    </React.Fragment>
+                ))}
             </View>
             {shouldShowSavedSearchesMenuItemTitle && (
                 <>
