@@ -494,6 +494,9 @@ function BaseVideoPlayer({
                                                 videoPlayerRef.current?.setStatusAsync?.({rate: currentPlaybackSpeed});
                                             }}
                                             onLoad={() => {
+                                                if (hasError) {
+                                                    setHasError(false);
+                                                }
                                                 if (!isCurrentlyURLSet || isUploading) {
                                                     return;
                                                 }
@@ -502,6 +505,9 @@ function BaseVideoPlayer({
                                             onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
                                             onFullscreenUpdate={handleFullscreenUpdate}
                                             onError={() => {
+                                                if (isOffline) {
+                                                    return;
+                                                }
                                                 setHasError(true);
                                             }}
                                             testID={CONST.VIDEO_PLAYER_TEST_ID}
