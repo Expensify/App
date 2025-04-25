@@ -26,7 +26,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
-import {isConnectionInProgress} from '@libs/actions/connections';
+import {isConnectionInProgress, isConnectionUnverified} from '@libs/actions/connections';
 import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {clearTaxRateError, deletePolicyTaxes, setPolicyTaxesEnabled} from '@libs/actions/TaxRate';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -34,7 +34,13 @@ import {getLatestErrorFieldForAnyField} from '@libs/ErrorUtils';
 import goBackFromWorkspaceCentralScreen from '@libs/Navigation/helpers/goBackFromWorkspaceCentralScreen';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canEditTaxRate as canEditTaxRatePolicyUtils, getCurrentConnectionName, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, shouldShowSyncError} from '@libs/PolicyUtils';
+import {
+    canEditTaxRate as canEditTaxRatePolicyUtils,
+    getConnectedIntegration,
+    getCurrentConnectionName,
+    hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
+    shouldShowSyncError,
+} from '@libs/PolicyUtils';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import type {WithPolicyAndFullscreenLoadingProps} from '@pages/workspace/withPolicyAndFullscreenLoading';
@@ -70,7 +76,8 @@ function WorkspaceTaxesPage({
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress);
 
-    const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
+    const connectedIntegration = getConnectedIntegration(policy) ?? connectionSyncProgress?.connectionName;
+    const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
     const currentConnectionName = getCurrentConnectionName(policy);
     const canSelectMultiple = shouldUseNarrowLayout ? selectionMode?.isEnabled : true;
 
@@ -328,7 +335,7 @@ function WorkspaceTaxesPage({
 
     const getHeaderText = () => (
         <View style={[styles.ph5, styles.pb5, styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
-            {!hasSyncError && isConnectedToAccounting ? (
+            {!hasSyncError && isConnectionVerified ? (
                 <Text>
                     <Text style={[styles.textNormal, styles.colorMuted]}>{`${translate('workspace.taxes.importedFromAccountingSoftware')} `}</Text>
                     <TextLink
