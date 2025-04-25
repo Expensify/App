@@ -1,6 +1,5 @@
-import {ContactsNitroModule} from '@expensify/nitro-utils';
+import {CONTACT_FIELDS, ContactsNitroModule} from '@expensify/nitro-utils';
 import type {Contact} from '@expensify/nitro-utils';
-import {CONTACT_FIELDS} from '@expensify/nitro-utils/src/specs/ContactsModule.nitro';
 import {RESULTS} from 'react-native-permissions';
 import type {PermissionStatus} from 'react-native-permissions';
 import {requestContactPermission} from '@libs/ContactPermission';
@@ -21,7 +20,14 @@ function contactImport(): Promise<ContactImportResult> {
         .then((deviceContacts) => ({
             contactList: Array.isArray(deviceContacts) ? deviceContacts : [],
             permissionStatus,
-        }));
+        }))
+        .catch((error) => {
+            console.error('Error importing contacts:', error);
+            return {
+                contactList: [],
+                permissionStatus,
+            };
+        });
 }
 
 export default contactImport;

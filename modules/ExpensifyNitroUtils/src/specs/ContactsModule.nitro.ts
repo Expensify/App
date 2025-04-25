@@ -22,7 +22,7 @@ type Contact = {
     thumbnailImageData?: string;
 };
 
-type ContactFields = 'FIRST_NAME' | 'LAST_NAME' | 'PHONE_NUMBERS' | 'EMAIL_ADDRESSES' | 'IMAGE_DATA';
+type ContactFields = keyof typeof CONTACT_FIELDS;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 interface ContactsModule extends HybridObject<{ios: 'swift'; android: 'kotlin'}> {

@@ -21,9 +21,7 @@
             "@pages/*": ["./src/pages/*"],
             "@styles/*": ["./src/styles/*"],
             "@src/*": ["./src/*"],
-            "@userActions/*": ["./src/libs/actions/*"],
-            "@expensify/nitro-utils": ["modules/ExpensifyNitroUtils"],
-            "@expensify/nitro-utils/*": ["modules/ExpensifyNitroUtils/*"]
+            "@userActions/*": ["./src/libs/actions/*"]
         }
     },
     "include": [
