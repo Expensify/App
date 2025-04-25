@@ -215,11 +215,11 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             showsVerticalScrollIndicator={false}
         >
             <View style={[styles.pb4, styles.mh3, styles.gap4]}>
-                {typeMenuSections.map((section, i) => (
+                {typeMenuSections.map((section, sectionIndex) => (
                     <View key={section.translationPath}>
                         <Text style={[styles.sectionTitle, styles.pb2]}>{translate(section.translationPath)}</Text>
-                        {section.menuItems.map((item, j) => {
-                            const flattenedIndex = (i + 1) * j;
+                        {section.menuItems.map((item, itemIndex) => {
+                            const flattenedIndex = sectionIndex * section.menuItems.length + itemIndex;
 
                             const onPress = singleExecution(() => {
                                 clearAllFilters();

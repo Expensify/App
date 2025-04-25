@@ -889,6 +889,66 @@ function createTypeMenuSections(): SearchTypeMenuSection[] {
         },
     ];
 
+    const showSubmitSuggestion = 'test';
+    const showApproveSuggestion = 'test';
+    const showPaySuggestion = 'test';
+    const showExportSuggestion = 'test';
+
+    const showTodoSection = showSubmitSuggestion || showApproveSuggestion || showPaySuggestion || showExportSuggestion;
+
+    if (showTodoSection) {
+        const section: SearchTypeMenuSection = {
+            translationPath: 'common.todo',
+            menuItems: [],
+        };
+
+        if (showSubmitSuggestion) {
+            section.menuItems.push({
+                translationPath: 'common.submit',
+                type: CONST.SEARCH.DATA_TYPES.SUBMIT,
+                icon: Expensicons.Pencil,
+                getRoute: () => {
+                    return '';
+                },
+            });
+        }
+
+        if (showApproveSuggestion) {
+            section.menuItems.push({
+                translationPath: 'search.bulkActions.approve',
+                type: CONST.SEARCH.DATA_TYPES.APPROVE,
+                icon: Expensicons.ThumbsUp,
+                getRoute: () => {
+                    return '';
+                },
+            });
+        }
+
+        if (showPaySuggestion) {
+            section.menuItems.push({
+                translationPath: 'search.bulkActions.pay',
+                type: CONST.SEARCH.DATA_TYPES.PAY,
+                icon: Expensicons.MoneyBag,
+                getRoute: () => {
+                    return '';
+                },
+            });
+        }
+
+        if (showExportSuggestion) {
+            section.menuItems.push({
+                translationPath: 'common.export',
+                type: CONST.SEARCH.DATA_TYPES.EXPORT,
+                icon: Expensicons.CheckCircle,
+                getRoute: () => {
+                    return '';
+                },
+            });
+        }
+
+        typeMenuSections.push(section);
+    }
+
     return typeMenuSections;
 }
 
