@@ -36,7 +36,6 @@ function BaseSidebarScreen() {
     const isLoading = isLoadingOnyxValue(activeWorkspaceResult);
     const {canUseLeftHandBar} = usePermissions();
     const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
-    const shouldDisplayNavigationTabBarOnBottom = shouldUseNarrowLayout || !canUseLeftHandBar;
 
     useEffect(() => {
         Performance.markStart(CONST.TIMING.SIDEBAR_LOADED);
@@ -75,7 +74,7 @@ function BaseSidebarScreen() {
             shouldEnableKeyboardAvoidingView={false}
             style={[styles.sidebar, isMobile() ? styles.userSelectNone : {}]}
             testID={BaseSidebarScreen.displayName}
-            bottomContent={shouldDisplayNavigationTabBarOnBottom && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.HOME} />}
         >
             {({insets}) => (
                 <>

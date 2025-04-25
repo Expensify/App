@@ -106,7 +106,6 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
     const {setRootStatusBarEnabled} = useContext(CustomStatusBarAndBackgroundContext);
     const {canUseLeftHandBar} = usePermissions();
     const shouldDisplayLHB = !!canUseLeftHandBar && !shouldUseNarrowLayout;
-    const shouldDisplayNavigationTabBarOnBottom = shouldUseNarrowLayout || !canUseLeftHandBar;
 
     const [privateSubscription] = useOnyx(ONYXKEYS.NVP_PRIVATE_SUBSCRIPTION, {canBeMissing: true});
     const subscriptionPlan = useSubscriptionPlan();
@@ -442,7 +441,7 @@ function InitialSettingsPage({currentUserPersonalDetails}: InitialSettingsPagePr
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             testID={InitialSettingsPage.displayName}
-            bottomContent={shouldDisplayNavigationTabBarOnBottom && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
+            bottomContent={!shouldDisplayLHB && <NavigationTabBar selectedTab={NAVIGATION_TABS.SETTINGS} />}
             shouldEnableKeyboardAvoidingView={false}
         >
             {headerContent}
