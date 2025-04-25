@@ -107,17 +107,17 @@ function MoneyRequestPreviewContent({
     const {windowWidth} = useWindowDimensions();
     const route = useRoute<PlatformStackRouteProp<TransactionDuplicateNavigatorParamList, typeof SCREENS.TRANSACTION_DUPLICATE.REVIEW>>();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
-    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: true});
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`, {canBeMissing: true});
     const {isOnSearch} = useSearchContext();
 
     const policy = usePolicy(iouReport?.policyID);
     const isMoneyRequestAction = isMoneyRequestActionReportActionsUtils(action);
     const transactionID = isMoneyRequestAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
-    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS);
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
+    const [walletTerms] = useOnyx(ONYXKEYS.WALLET_TERMS, {canBeMissing: true});
     const violations = useTransactionViolations(transaction?.transactionID);
 
     const sessionAccountID = session?.accountID;
@@ -186,7 +186,7 @@ function MoneyRequestPreviewContent({
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
 
-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`);
+    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${route.params?.threadReportID}`, {canBeMissing: true});
     const parentReportAction = getReportAction(report?.parentReportID, report?.parentReportActionID);
     const reviewingTransactionID = isMoneyRequestActionReportActionsUtils(parentReportAction) ? getOriginalMessage(parentReportAction)?.IOUTransactionID : undefined;
 
