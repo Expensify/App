@@ -1,223 +1,289 @@
 ---
-title: Netsuite Troubleshooting.md
-description: Troubleshoot common NetSuite sync and export errors.
-keywords: [NetSuite, sync, export, troubleshooting, errors, Expensify integration]
+title: Netsuite-Troubleshooting.md
+description: Troubleshoot common NetSuite sync and export errors in Expensify and learn how to fix each issue.
+keywords: [NetSuite, Expensify, export errors, sync issues, ExpensiError, integrations, accounting, troubleshooting]
+---
+<div id="expensify-classic" markdown="1">
+
+This guide helps you fix common sync and export issues between Expensify and NetSuite. Each section covers an error code, explains what it means, and walks you through how to resolve it.
+
 ---
 
-Synchronizing and exporting data between **Expensify** and **NetSuite** helps streamline your financial workflows. However, you might encounter errors due to discrepancies in settings, missing data, or configuration issues in either **NetSuite** or **Expensify**. 
+# ExpensiError NS0005: Please enter value(s) for Department, Location, or Class
 
-This troubleshooting guide helps you identify and resolve common sync and export issues, ensuring seamless integration and efficient expense reporting.
+## Vendor bills
 
----
+This error occurs when required classification fields are missing in the vendor bill form.
 
-# ExpensiError NS0005: Please Enter Value(s) for Department, Location, or Class
-
-This error occurs when **NetSuite** requires classifications (like **Department**, **Location**, or **Class**) at the header level in your transaction form.
-
-## Vendor Bills:
-For **vendor bills**, **Expensify** pulls information from the **vendor record**, not the employee record, so employee defaults don’t apply.
-
-**Fix for Vendor Bills**:
-1. Go to **Customization > Forms > Transaction Forms**.
-2. Click **Edit** on the relevant vendor bill form.
+**How to fix:**
+1. Go to **Customization > Forms > Transaction Forms** in NetSuite.
+2. Click **Edit** next to the vendor bill form used.
 3. Go to **Screen Fields > Main**.
-4. Uncheck **Show** and **Mandatory** for the listed fields.
-5. Sync the workspace in Expensify (**Settings > Workspaces > Workspace Name > Connections > Sync**).
+4. Uncheck both **Show** and **Mandatory** for Department, Location, and Class.
+5. In Expensify, go to **Settings > Workspaces > [Workspace Name] > Connections** and click **Sync**.
 6. Retry the export.
 
-## Journal Entries and Expense Reports:
-If this error occurs when exporting a **Journal Entry** or **Expense Report**, it likely means the report submitter lacks default **Department**, **Class**, or **Location** settings.
+## Journal entries and expense reports
 
-**Fix for Journal Entries and Expense Reports**:
-1. Go to **Lists > Employees** in **NetSuite**.
-2. Edit the employee's record.
-3. Set default **Department**, **Class**, and **Location**.
+This version of the error means the employee doesn’t have default classifications set.
+
+**How to fix:**
+1. In NetSuite, go to **Lists > Employees**.
+2. Edit the employee's profile.
+3. Set default values for **Department**, **Class**, and **Location**.
 4. Save and sync the connection in Expensify.
 
 ---
 
-# ExpensiError NS0012: Currency Does Not Exist in NetSuite
+# ExpensiError NS0012: Currency does not exist in NetSuite
 
-This error occurs when a foreign currency is not recognized in your **NetSuite** subsidiary.
+## Scenario 1
 
-## Scenario One:
-If **Expensify** sends a currency that isn't listed in **NetSuite**, you’ll see this error.
+The currency being used isn’t available in the NetSuite subsidiary.
 
-**Fix**:
-1. Ensure the currency in **Expensify** matches your **NetSuite** subsidiary.
-2. Re-sync your connection in Expensify and retry.
+**How to fix:**
+1. Confirm the report currency in Expensify matches what’s available in NetSuite.
+2. Sync your connection and re-export.
 
-## Scenario Two:
-This error can occur if you’re using a non-OneWorld **NetSuite** instance and exporting a currency other than **EUR**, **GBP**, **USD**, or **CAD**.
+## Scenario 2
 
-**Fix**:
-1. In **NetSuite**, go to **Setup > Enable Features**.
-2. Check **Multiple Currencies**.
-3. Add the required currency in the global search.
+Non-OneWorld NetSuite instances only support **EUR**, **GBP**, **USD**, and **CAD** by default.
+
+**How to fix:**
+1. In NetSuite, go to **Setup > Enable Features**.
+2. Enable **Multiple Currencies**.
+3. Add the required currency using the global search bar.
 
 ---
 
 # ExpensiError NS0021: Invalid Tax Code Reference Key
 
-This error typically indicates an issue with **NetSuite's Tax Group settings**.
+Usually caused by incorrect tax group mapping in NetSuite.
 
-## Fix:
-Ensure that **Tax Codes** are correctly mapped to the appropriate **Tax Group**. For **Australian Taxes**:
+**How to fix:**
 - **GST 10%** should map to **NCT-AU**, not **TS-AU**.
 - **No GST 0%** should map to **NCF-AU**, not **TFS-AU**.
 
 ---
 
-# ExpensiError NS0023: Employee Does Not Exist in NetSuite (Invalid Employee)
+# ExpensiError NS0023: Employee does not exist in NetSuite (Invalid employee)
 
-This happens if the **employee’s subsidiary** in **NetSuite** doesn’t match what's listed in **Expensify**.
+The employee’s subsidiary or email doesn’t match between NetSuite and Expensify.
 
-## Fix:
-1. Check the employee's subsidiary in **NetSuite** and ensure it matches **Expensify's workspace settings**.
-2. Ensure that the employee's email in **NetSuite** matches the one in **Expensify**.
-3. Sync the **NetSuite** connection in **Expensify**.
-
----
-
-# ExpensiError NS0024: Invalid Customer or Project Tag
-
-This error happens if an employee isn't listed as a resource on the **customer/project** in **NetSuite**.
-
-## Fix:
-1. Go to **Lists > Relationships > Customer/Projects** in **NetSuite**.
-2. Edit the relevant **Customer/Project** and add the employee as a resource.
-3. Sync with **Expensify** and retry the export.
+**How to fix:**
+1. In NetSuite, confirm the employee's subsidiary matches the Expensify workspace.
+2. Make sure the employee’s email matches in both systems.
+3. Sync your NetSuite connection.
 
 ---
 
-# ExpensiError NS0034: This Record Already Exists
+# ExpensiError NS0024: Invalid customer or project tag
 
-This error occurs if the report has already been exported to **NetSuite**.
+This means the employee isn’t listed as a resource on the customer or project.
 
-## Fix:
-1. In **NetSuite**, search for the **Report ID**.
-2. Delete the existing report and re-export it from **Expensify**.
-
----
-
-# ExpensiError NS0046: Billable Expenses Not Coded with a NetSuite Customer or Billable Project
-
-This error occurs when **billable expenses** are not tagged with a valid **Customer** or **Billable Project**.
-
-## Fix:
-1. In **Expensify**, ensure **billable expenses** have a valid **Customer** or **Project** tag.
-2. Re-export the report.
+**How to fix:**
+1. In NetSuite, go to **Lists > Relationships > Customer/Projects**.
+2. Edit the relevant customer or project and add the employee as a resource.
+3. Sync and retry the export.
 
 ---
 
-# ExpensiError NS0059: No Credit Card Account Selected for Corporate Card Expenses
+# ExpensiError NS0034: This record already exists
 
-This error arises when no **corporate card account** is selected for the report.
+The report has already been exported to NetSuite.
 
-## Fix:
-1. In **NetSuite**, go to **Subsidiaries** and set the **Default Account for Corporate Card Expenses**.
-2. Sync with **Expensify** and retry the export.
-
----
-
-# ExpensiError NS0085: Expense Does Not Have Appropriate Permissions for Setting an Exchange Rate in NetSuite
-
-This error occurs when exchange rate settings in **NetSuite** aren't correctly configured.
-
-## Fix:
-1. In **NetSuite**, ensure the **Exchange Rate** field is shown for the relevant form.
-2. Sync the **Expensify** connection and retry.
+**How to fix:**
+1. Search for the **Report ID** in NetSuite.
+2. Delete the duplicate and re-export from Expensify.
 
 ---
 
-# ExpensiError NS0079: The Transaction Date is Not Within the Date Range of Your Accounting Period
+# ExpensiError NS0046: Billable expenses not coded with a NetSuite customer or billable project
 
-This error happens when the transaction date is outside the allowed period.
-
-## Fix:
-1. In **NetSuite**, go to **Accounting Preferences** and ensure the field **Allow Transaction Date Outside of the Posting Period** is set to **Warn**.
-2. In **Expensify**, enable **Export to Next Open Period** and sync.
+**How to fix:**
+1. In Expensify, tag all billable expenses with a valid **Customer** or **Project**.
+2. Retry the export.
 
 ---
 
-# ExpensiError NS0055: Vendor Doesn't Have Access to the Currency
+# ExpensiError NS0059: No credit card account selected for corporate card expenses
 
-This error occurs when a **vendor** does not have access to a **currency** on the report.
-
-## Fix:
-1. In **NetSuite**, add the necessary currencies to the vendor's **Financial tab**.
-2. Sync the **Expensify** connection and retry.
+**How to fix:**
+1. In NetSuite, go to **Subsidiaries** and set the **Default Account for Corporate Card Expenses**.
+2. Sync with Expensify.
 
 ---
 
-# ExpensiError NS0068: You Do Not Have Permission to Set a Value for Element - “Created From”
+# ExpensiError NS0085: Expense does not have appropriate permissions for setting an exchange rate
 
-This error occurs if **NetSuite** restricts access to the **"Created From"** field.
-
-## Fix:
-1. In **NetSuite**, ensure the **Created From** field is visible for the relevant forms.
-2. Sync with **Expensify** and retry.
+**How to fix:**
+1. In NetSuite, ensure the **Exchange Rate** field is visible on the relevant form.
+2. Sync and retry.
 
 ---
 
-# ExpensiError NS0037: You Do Not Have Permission to Set a Value for Element - “Receipt URL”
+# ExpensiError NS0079: The transaction date is not within the date range of your accounting period
 
-This error occurs when **NetSuite** restricts access to the **Receipt URL** field.
-
-## Fix:
-1. In **NetSuite**, ensure the **Receipt URL** field is visible for the relevant forms.
-2. Sync with **Expensify** and retry.
-
----
-
-# ExpensiError NS0042: Error Creating Vendor - This Entity Already Exists
-
-This error happens when **Expensify** cannot find an existing **vendor** in **NetSuite**.
-
-## Fix:
-1. Ensure the **email** and **subsidiary** of the **vendor** match the details in **Expensify**.
-2. Sync the **Expensify** connection and retry.
+**How to fix:**
+1. In NetSuite, go to **Accounting Preferences**.
+2. Set **Allow Transaction Date Outside of the Posting Period** to **Warn**.
+3. In Expensify, enable **Export to Next Open Period** and sync.
 
 ---
 
-# ExpensiError NS0109: Failed to Login to NetSuite, Please Verify Your Credentials
+# ExpensiError NS0055: Vendor doesn't have access to the currency
 
-This error indicates an issue with the **NetSuite** credentials.
-
-## Fix:
-1. Review the [Connect to NetSuite](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite) guide to ensure correct credentials.
-2. If needed, create a new token for the connection.
+**How to fix:**
+1. In NetSuite, add the correct currency to the vendor's **Financial tab**.
+2. Sync and retry.
 
 ---
 
-# ExpensiError NS0123: Login Error: Please Make Sure That the Expensify Integration is Enabled
+# ExpensiError NS0068: You do not have permission to set a value for element “Created From”
 
-This error occurs when the **Expensify integration** is not enabled in **NetSuite**.
-
-## Fix:
-1. In **NetSuite**, go to **Setup > Integrations > Manage Integrations**.
-2. Ensure the **Expensify Integration** is enabled.
+**How to fix:**
+1. In NetSuite, ensure the **Created From** field is visible in the transaction form.
+2. Sync with Expensify.
 
 ---
 
-# ExpensiError NS0045: Expenses Not Categorized with a NetSuite Account
+# ExpensiError NS0037: You do not have permission to set a value for element “Receipt URL”
 
-This error happens when an **expense category** is missing or incorrectly configured.
+**How to fix:**
+1. Make sure the **Receipt URL** field is visible in NetSuite.
+2. Sync and retry.
 
-## Fix:
-1. In **NetSuite**, ensure the **expense category** is active and correctly named.
-2. Sync with **Expensify** and retry.
+---
+
+# ExpensiError NS0042: Error creating vendor – This entity already exists
+
+**How to fix:**
+1. In NetSuite, check that the vendor's email and subsidiary match what's in Expensify.
+2. Sync your connection and retry.
+
+---
+
+# ExpensiError NS0109: Failed to login to NetSuite – Please verify your credentials
+
+**How to fix:**
+1. Review [this guide](https://help.expensify.com/articles/expensify-classic/integrations/accounting-integrations/NetSuite) to ensure credentials are valid.
+2. If needed, generate a new token for the connection.
+
+---
+
+# ExpensiError NS0123: Login error – Please make sure that the Expensify integration is enabled
+
+**How to fix:**
+1. In NetSuite, go to **Setup > Integrations > Manage Integrations**.
+2. Enable the **Expensify Integration**.
+
+---
+
+# ExpensiError NS0045: Expenses not categorized with a NetSuite account
+
+**How to fix:**
+1. In NetSuite, confirm the **expense category** is active and properly named.
+2. Sync your connection and try again.
+
+---
+
+# ExpensiError NS0056: You do not have permissions to set a value for element...
+
+Common elements include:
+- `class`
+- `location`
+- `memo`
+- `amount`
+- `isnonreimbursable`
+- `department`
+- `exchangerate`
+- `entityID`
+- `supervisor approval`
+
+**How to fix:**
+1. Go to **Customization > Forms > Transaction Forms**.
+2. Search for the correct form type (Expense Report, Journal Entry, Vendor Bill).
+3. Edit the form with the **Preferred** checkbox selected.
+4. Go to:
+   - **Screen Fields > Lines** for Journal Entries
+   - **Screen Fields > Main** for Vendor Bills
+5. Make sure the listed field is marked as **Show**.
+
+Additional fixes by element:
+
+## `line.entity`
+
+1. Edit your **Journal Entry** form.
+2. Under **Screen Fields > Main**, ensure the **Name** field is shown.
+
+## `entityid`
+
+1. Go to **Customization > Forms > Entry Forms** and edit the preferred **Vendor** form.
+2. Set **Vendor ID** to:
+   - Show
+   - Quick Add
+   - Mandatory
+3. Search **Auto-Generated Numbers** in NetSuite and:
+   - Disable them, or
+   - Enable **Allow Override**.
+
+## `approvalstatus`
+
+1. Edit your form and make sure **Approval Status** is shown.
+2. Optional: Disable approval routing under **Setup > Accounting > Accounting Preferences > Approval Routing**.
+3. Add missing permissions under **Setup > Users/Roles > Manage Roles > Expensify Integration > Edit**.
+4. Under **Permissions > Transactions**, add **Approve Vendor Payments** with **Full** access.
+5. Review **Customization > Workflows** and category-specific settings if issues persist.
+
+## `expense.foreignamount`
+
+1. In NetSuite, open each **Expense Category** and disable **Rate is Required**.
+2. Sync and retry.
+
+## `tranid`
+
+1. In NetSuite, search **Auto-Generated Numbers**.
+2. Enable **Allow Override** for Invoices.
+
+## `memo`
+
+Can appear if the report has a negative reimbursable total. Only positive reimbursable reports can export.
+
+## `nexus`
+
+1. Go to **Setup > Users/Roles > Manage Roles > Expensify Integration > Edit**.
+2. Under **Permissions > Lists**, set **Tax Details Tab** to **Full**.
 
 ---
 
 # FAQ
 
-## Why are Reports Exporting as `Accounting Approved` Instead of `Paid in Full`?
+## Why am I seeing “You do not have permissions to set a value for element…” errors?
 
-This can occur due to missing **Location**, **Class**, or **Department** settings or incorrect **Expensify Workspace Configuration**.
+Usually, this means a required field is hidden or restricted in NetSuite. Edit the preferred form and check that the field is visible.
+
+## What if I’ve made all changes and still see the error?
+
+- Check your Expensify bundle version in NetSuite.
+- Review **Customization > Workflows** for blockers.
+- Ask your NetSuite admin to confirm no custom scripts are interfering.
+
+## Why are reports exporting as "Accounting Approved" instead of "Paid in Full"?
+
+This may be due to missing **Location**, **Class**, or **Department** info, or misconfigured Expensify workspace settings.
+
+**How to fix:**
+1. Update your **Bill Payment Form** in NetSuite.
+2. Verify **Expensify workspace connection settings** under **Connections > Accounting Integrations > Advanced**.
+
+## "Invite Employees & Set Approval Workflow" is enabled, why are NetSuite approvers not being set as Expensify approvers?
+
+The Invite Employees & Set Approval Workflow setting will not overwrite manual changes to the approval table so if an employee was added before this setting was enabled, the integration will not automatically update their approver to their NetSuite approver/supervisor.
 
 **Fix**:
-1. Update the **Bill Payment Form** in **NetSuite**.
-2. Verify **Expensify's workspace connection settings** for proper configuration.
+1. Remove the employee from the workspace from **Settings > Workspaces > Group > [Workspace Name] > Members**.
+2. Sync the connection from **Settings > Workspaces > Group > [Workspace Name] > Connections > Sync Now** to import the employee and their designated NetSuite approver.
 
----
+**Alternative fix:**
+1. Manually update the employee's approver in **Settings > Workspaces > Group > [Workspace Name] > Members**.
+</div>

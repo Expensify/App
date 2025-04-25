@@ -12,6 +12,7 @@ import PopoverMenu from '@components/PopoverMenu';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
@@ -20,11 +21,11 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getIconForAction from '@libs/getIconForAction';
 import Navigation from '@libs/Navigation/Navigation';
-import {canCreateTaskInReport, getPayeeName, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
+import {canCreateTaskInReport, getPayeeName, isPaidGroupPolicy, isPolicyExpenseChat, isReportOwner, temporary_getMoneyRequestOptions} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {startMoneyRequest} from '@userActions/IOU';
 import {close} from '@userActions/Modal';
-import {setIsComposerFullSize} from '@userActions/Report';
+import {createNewReport, setIsComposerFullSize} from '@userActions/Report';
 import {clearOutTaskInfoAndNavigate} from '@userActions/Task';
 import DelegateNoAccessModal from '@src/components/DelegateNoAccessModal';
 import type {IOUType} from '@src/CONST';
@@ -39,6 +40,9 @@ type MoneyRequestOptions = Record<Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST
 type AttachmentPickerWithMenuItemsProps = {
     /** The report currently being looked at */
     report: OnyxEntry<OnyxTypes.Report>;
+
+    /** The personal details of the current user */
+    currentUserPersonalDetails: OnyxTypes.PersonalDetails;
 
     /** Callback to open the file in the modal */
     displayFileInModal: (url: FileObject) => void;
@@ -97,6 +101,7 @@ type AttachmentPickerWithMenuItemsProps = {
  */
 function AttachmentPickerWithMenuItems({
     report,
+    currentUserPersonalDetails,
     reportParticipantIDs,
     displayFileInModal,
     isFullComposerAvailable,
@@ -123,7 +128,8 @@ function AttachmentPickerWithMenuItems({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
     const [isNoDelegateAccessMenuVisible, setIsNoDelegateAccessMenuVisible] = useState(false);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`, {canBeMissing: true});
+    const {canUseTableReportView, canUseLeftHandBar} = usePermissions();
 
     /**
      * Returns the list of IOU Options
@@ -185,6 +191,22 @@ function AttachmentPickerWithMenuItems({
 
         return moneyRequestOptionsList.filter((item, index, self) => index === self.findIndex((t) => t.text === item.text));
     }, [translate, report, policy, reportParticipantIDs, isDelegateAccessRestricted, shouldUseNarrowLayout]);
+
+    const createReportOption: PopoverMenuItem[] = useMemo(() => {
+        if (!canUseTableReportView || !isPolicyExpenseChat(report) || !isPaidGroupPolicy(report) || !isReportOwner(report)) {
+            return [];
+        }
+
+        return [
+            {
+                icon: Expensicons.Document,
+                text: translate('report.newReport.createReport'),
+                onSelected: () => {
+                    createNewReport(currentUserPersonalDetails, report?.policyID);
+                },
+            },
+        ];
+    }, [canUseTableReportView, currentUserPersonalDetails, report, translate]);
 
     /**
      * Determines if we can show the task option
@@ -262,6 +284,7 @@ function AttachmentPickerWithMenuItems({
                 };
                 const menuItems = [
                     ...moneyRequestOptions,
+                    ...createReportOption,
                     ...taskOption,
                     {
                         icon: Expensicons.Paperclip,
@@ -378,7 +401,11 @@ function AttachmentPickerWithMenuItems({
                                     });
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
+                            anchorPosition={
+                                canUseLeftHandBar
+                                    ? styles.createMenuPositionReportActionComposeWhenLhbIsVisible(shouldUseNarrowLayout, windowHeight, windowWidth)
+                                    : styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)
+                            }
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay

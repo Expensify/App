@@ -1,8 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
+import Checkbox from '@components/Checkbox';
 import Hoverable from '@components/Hoverable';
 import type {TableColumnSize} from '@components/Search/types';
 import Text from '@components/Text';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
@@ -24,6 +26,7 @@ function TransactionItemRow({
     shouldShowTooltip,
     dateColumnSize,
     shouldShowChatBubbleComponent = false,
+    onCheckboxPress,
 }: {
     transactionItem: Transaction;
     shouldUseNarrowLayout: boolean;
@@ -31,6 +34,7 @@ function TransactionItemRow({
     shouldShowTooltip: boolean;
     dateColumnSize: TableColumnSize;
     shouldShowChatBubbleComponent?: boolean;
+    onCheckboxPress: (transactionID: string) => void;
 }) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -40,6 +44,8 @@ function TransactionItemRow({
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
 
+    const {selectionMode} = useMobileSelectionMode();
+
     return (
         <View style={styles.flex1}>
             {shouldUseNarrowLayout ? (
@@ -47,10 +53,21 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.expenseWidgetRadius, styles.justifyContentEvenly, styles.gap3]}>
                             <View style={[styles.flexRow, styles.mt3, styles.mr3, styles.ml3]}>
+                                {!!selectionMode?.isEnabled && (
+                                    <View style={[styles.mr2, styles.justifyContentCenter]}>
+                                        <Checkbox
+                                            onPress={() => {
+                                                onCheckboxPress(transactionItem.transactionID);
+                                            }}
+                                            accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                            isChecked={isSelected}
+                                        />
+                                    </View>
+                                )}
                                 <View style={[styles.mr3]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
-                                        isSelected
+                                        isSelected={isSelected}
                                     />
                                 </View>
                                 <View style={[styles.flex2, styles.flexColumn, styles.justifyContentEvenly]}>
@@ -109,10 +126,19 @@ function TransactionItemRow({
                     {(hovered) => (
                         <View style={[hovered ? styles.hoveredComponentBG : backgroundColor, styles.p3, styles.expenseWidgetRadius, styles.gap2]}>
                             <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter, styles.gap3]}>
+                                <View style={[styles.mr1]}>
+                                    <Checkbox
+                                        onPress={() => {
+                                            onCheckboxPress(transactionItem.transactionID);
+                                        }}
+                                        accessibilityLabel={CONST.ROLE.CHECKBOX}
+                                        isChecked={isSelected}
+                                    />
+                                </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.RECEIPT)]}>
                                     <ReceiptCell
                                         transactionItem={transactionItem}
-                                        isSelected
+                                        isSelected={isSelected}
                                     />
                                 </View>
                                 <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.TYPE)]}>

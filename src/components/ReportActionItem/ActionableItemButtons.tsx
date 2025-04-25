@@ -9,13 +9,16 @@ type ActionableItem = {
     isPrimary?: boolean;
     key: string;
     onPress: () => void;
-    text: TranslationPaths;
+    text: string;
     isMediumSized?: boolean;
+    shouldUseLocalization?: boolean;
+    isDisabled?: boolean;
 };
 
 type ActionableItemButtonsProps = {
     items: ActionableItem[];
     layout?: 'horizontal' | 'vertical';
+    shouldUseLocalization?: boolean;
 };
 
 function ActionableItemButtons(props: ActionableItemButtonsProps) {
@@ -28,10 +31,11 @@ function ActionableItemButtons(props: ActionableItemButtonsProps) {
                 <Button
                     key={item.key}
                     onPress={item.onPress}
-                    text={translate(item.text)}
+                    text={props.shouldUseLocalization ? translate(item.text as TranslationPaths) : item.text}
                     small={!item.isMediumSized}
                     medium={item.isMediumSized}
                     success={item.isPrimary}
+                    isDisabled={item.isDisabled}
                 />
             ))}
         </View>

@@ -20,7 +20,7 @@ function ReportAttachmentsProvider({children}: ChildrenProps) {
         // We only want to store the attachment visibility for the current report.
         // If the current report ID changes, clear the ref.
         hiddenAttachments.current = {};
-    }, [currentReportID]);
+    }, [currentReportID?.currentReportID]);
 
     const contextValue = useMemo(
         () => ({

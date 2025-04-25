@@ -12,6 +12,7 @@ import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackgro
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import FullScreenBlockingViewContextProvider from './components/FullScreenBlockingViewContextProvider';
+import FullScreenLoaderContextProvider from './components/FullScreenLoaderContext';
 import HTMLEngineProvider from './components/HTMLEngineProvider';
 import InitialURLContextProvider from './components/InitialURLContextProvider';
 import {InputBlurContextProvider} from './components/InputBlurContext';
@@ -111,6 +112,7 @@ function App({url, hybridAppSettings, timestamp}: AppProps) {
                                 ProductTrainingContextProvider,
                                 InputBlurContextProvider,
                                 FullScreenBlockingViewContextProvider,
+                                FullScreenLoaderContextProvider,
                             ]}
                         >
                             <CustomStatusBarAndBackground />
