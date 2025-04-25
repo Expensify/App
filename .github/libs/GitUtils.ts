@@ -1,9 +1,9 @@
 import {execSync, spawn} from 'child_process';
 import CONST from './CONST';
+import GithubUtils from './GithubUtils';
 import sanitizeStringForJSONParse from './sanitizeStringForJSONParse';
 import {getPreviousVersion, SEMANTIC_VERSION_LEVELS} from './versionUpdater';
 import type {SemverLevel} from './versionUpdater';
-import GithubUtils from './GithubUtils';
 
 type CommitType = {
     commit: string;
@@ -164,7 +164,7 @@ function getCommitHistoryAsJSON(fromTag: string, toTag: string): Promise<CommitT
  */
 async function getCommitHistoryBetweenTags(fromTag: string, toTag: string): Promise<CommitType[]> {
     console.log('Getting pull requests merged between the following tags:', fromTag, toTag);
-    
+
     try {
         const {data: comparison} = await GithubUtils.octokit.repos.compareCommits({
             owner: CONST.GITHUB_OWNER,
@@ -174,7 +174,7 @@ async function getCommitHistoryBetweenTags(fromTag: string, toTag: string): Prom
         });
 
         // Map API response to our CommitType format
-        return comparison.commits.map(commit => ({
+        return comparison.commits.map((commit) => ({
             commit: commit.sha,
             subject: commit.commit.message,
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
