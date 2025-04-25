@@ -5,7 +5,7 @@ import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction} from '@libs/ReportUtils';
+import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, isExpenseReport, isIOUReport} from '@libs/ReportUtils';
 import {getTransaction, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -30,8 +30,11 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
         const anyTransactionOnHold = selectedTransactions.some(isOnHold);
         const allTransactionOnHold = selectedTransactions.every(isOnHold);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+        const isExpense = isExpenseReport(report);
+        const isIOU = isIOUReport(report);
+        const iouOrExpenseReport = isExpense || isIOU;
 
-        if (!anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
+        if (iouOrExpenseReport && !anyTransactionOnHold && selectedTransactions.length === 1 && !isReportReimbursed) {
             options.push({
                 text: translate('iou.hold'),
                 icon: Expensicons.Stopwatch,
@@ -45,7 +48,7 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             });
         }
 
-        if (allTransactionOnHold && selectedTransactions.length === 1) {
+        if (iouOrExpenseReport && allTransactionOnHold && selectedTransactions.length === 1) {
             options.push({
                 text: translate('iou.unhold'),
                 icon: Expensicons.Stopwatch,
