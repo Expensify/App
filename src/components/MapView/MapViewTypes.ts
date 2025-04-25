@@ -66,12 +66,6 @@ type WayPoint = {
     markerComponent: () => ReactNode;
 };
 
-// Style used for the line that displays direction
-type DirectionStyle = {
-    width?: number;
-    color?: string;
-};
-
 // Represents a handle to interact with a map view.
 type MapViewHandle = {
     // Fly to a location on the map
@@ -80,4 +74,4 @@ type MapViewHandle = {
     fitBounds: (ne: Coordinate, sw: Coordinate, paddingConfig?: number | number[], animationDuration?: number) => void;
 };
 
-export type {DirectionStyle, WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
+export type {WayPoint, MapViewProps, DirectionProps, PendingMapViewProps, MapViewHandle, Coordinate};
