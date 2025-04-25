@@ -1,5 +1,5 @@
 ---
-title: Workday-Integration.md
+title: Integrate Workday with Expensify
 description: Learn how to integrate Workday with Expensify to automatically sync employees and manage user provisioning.
 keywords: [Expensify Classic, Workday, Expensify, integration, employee sync, API, HR integrations]
 ---
