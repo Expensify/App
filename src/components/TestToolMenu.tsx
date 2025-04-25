@@ -26,9 +26,9 @@ const ACCOUNT_DEFAULT: AccountOnyx = {
 };
 
 function TestToolMenu() {
-    const [network] = useOnyx(ONYXKEYS.NETWORK);
-    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE);
+    const [network] = useOnyx(ONYXKEYS.NETWORK, {canBeMissing: true});
+    const [account = ACCOUNT_DEFAULT] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: true});
+    const [isUsingImportedState] = useOnyx(ONYXKEYS.IS_USING_IMPORTED_STATE, {canBeMissing: true});
     const shouldUseStagingServer = account?.shouldUseStagingServer ?? isUsingStagingApi();
     const isDebugModeEnabled = !!account?.isDebugModeEnabled;
     const styles = useThemeStyles();
