@@ -21,7 +21,7 @@ function IOURequestStepAccountant({
         params: {transactionID, reportID, iouType, backTo, action},
     },
 }: IOURequestStepAccountantProps) {
-    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email});
+    const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: (session) => session?.email, canBeMissing: false});
     const {translate} = useLocalize();
 
     const setAccountant = useCallback(
