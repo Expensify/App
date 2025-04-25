@@ -10340,8 +10340,15 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
-    const isAdmin = isPolicyAdminPolicyUtils(newPolicy, currentUserLogin);
-    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+    const submitterLogin = report?.ownerAccountID ? getLoginByAccountID(report?.ownerAccountID) : undefined;
+    const isCurrentUserAdmin = isPolicyAdminPolicyUtils(newPolicy, currentUserLogin);
+    const isSubmitterMember = !!submitterLogin && !!newPolicy?.employeeList?.[submitterLogin];
+
+    if (!isSubmitterMember && !isCurrentUserAdmin) {
+        return false;
+    }
+
+    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isCurrentUserAdmin) {
         return false;
     }
 
