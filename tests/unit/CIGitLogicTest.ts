@@ -4,6 +4,7 @@
  */
 
 /* eslint-disable no-console */
+/* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {execSync} from 'child_process';
 import fs from 'fs';
@@ -24,7 +25,6 @@ const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Oktokit GithubAPI
 const mockGetInput = jest.fn()
-// eslint-disable @typescript-eslint/naming-convention
 const mockCompareCommitsResponseBase = {
     data: {
         url: '',
@@ -32,9 +32,9 @@ const mockCompareCommitsResponseBase = {
         permalink_url: '',
         diff_url: '',
         patch_url: '',
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
         base_commit: {} as any,
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
         merge_base_commit: {} as any,
         status: 'ahead' as const,
         ahead_by: 0,

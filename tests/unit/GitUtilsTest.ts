@@ -1,7 +1,7 @@
+import * as core from '@actions/core';
 import type {CommitType} from '../../.github/libs/GitUtils';
 import GitUtils from '../../.github/libs/GitUtils';
 import GithubUtils from '../../.github/libs/GithubUtils';
-import * as core from '@actions/core';
 
 type ExampleDataType = {
     input: CommitType[];
