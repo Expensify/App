@@ -25,16 +25,21 @@ import type {Timezone} from '@src/types/onyx/PersonalDetails';
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
+    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: false});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
     const personalDetails = usePersonalDetails();
 
     const confirm = useCallback(() => {
-        if (!scheduleCallDraft?.slotTime || !scheduleCallDraft?.date) {
+        if (!scheduleCallDraft?.slotTime || !scheduleCallDraft?.date || !scheduleCallDraft.guide || !scheduleCallDraft.reportID) {
             return;
         }
-        confirmBooking(scheduleCallDraft, currentUserPersonalDetails);
+        confirmBooking({
+            date: scheduleCallDraft.date,
+            slotTime: scheduleCallDraft.slotTime,
+            guide: scheduleCallDraft.guide,
+            reportID: scheduleCallDraft.reportID,
+        }, currentUserPersonalDetails);
     }, [currentUserPersonalDetails, scheduleCallDraft]);
 
     const guideDetails = useMemo(

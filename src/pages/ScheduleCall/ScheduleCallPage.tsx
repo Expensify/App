@@ -1,8 +1,8 @@
 import {useRoute} from '@react-navigation/native';
-import {compareAsc, format, getMonth, parse} from 'date-fns';
+import {compareAsc, format, parse} from 'date-fns';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
-import Onyx, {useOnyx} from 'react-native-onyx';
+import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
@@ -45,14 +45,15 @@ function ScheduleCallPage() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const timezone: Timezone = currentUserPersonalDetails?.timezone ?? CONST.DEFAULT_TIME_ZONE;
 
-    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`);
+    const [scheduleCallDraft] = useOnyx(`${ONYXKEYS.SCHEDULE_CALL_DRAFT}`, {canBeMissing: true});
     const reportID = route.params?.reportID;
     const [adminReportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`, {
         selector: (data) => ({
             calendlySchedule: data?.calendlySchedule,
         }),
+        canBeMissing: true,
     });
-    const [adminRoomsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [adminRoomsReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {canBeMissing: false});
     const calendlySchedule = adminReportNameValuePairs?.calendlySchedule;
 
     const [containerWidth, setContainerWidth] = useState(0);
@@ -73,7 +74,7 @@ function ScheduleCallPage() {
         if (!calendlySchedule?.data) {
             return {};
         }
-        const guides = Object.keys(calendlySchedule?.data);
+        const guides =  Object.keys(calendlySchedule?.data);
 
         const allTimeSlots = guides?.reduce((allSlots, guideAccountID) => {
             const guideSchedule = calendlySchedule?.data?.[guideAccountID];
@@ -100,9 +101,9 @@ function ScheduleCallPage() {
     }, [calendlySchedule]);
 
     const selectableDates = Object.keys(timeSlotDateMap).sort(compareAsc);
-    const firstDate = selectableDates.at(0);
-    const lastDate = selectableDates.at(selectableDates.length - 1);
-    const minDate = firstDate ? parse(firstDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
+    const firstDate =  selectableDates.at(0);
+    const lastDate =  selectableDates.at(selectableDates.length - 1);
+    const minDate = firstDate ? parse(firstDate,  CONST.DATE.FNS_FORMAT_STRING, new Date()): undefined;
     const maxDate = lastDate ? parse(lastDate, CONST.DATE.FNS_FORMAT_STRING, new Date()) : undefined;
     const timeSlotsForSelectedData = scheduleCallDraft?.date ? timeSlotDateMap?.[scheduleCallDraft?.date] ?? [] : [];
 
