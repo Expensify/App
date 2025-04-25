@@ -1,15 +1,14 @@
-import type {AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet';
+import type {AndroidCardData, AndroidWalletData, IOSEncryptPayload} from '@expensify/react-native-wallet';
 import type {OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import * as API from '@libs/API';
 import type {AcceptWalletTermsParams, AnswerQuestionsForWalletParams, UpdatePersonalDetailsForWalletParams, VerifyIdentityParams} from '@libs/API/parameters';
-import type {CreateDigitalGoogleWalletParams} from '@libs/API/parameters/CreateDigitalWalletParams';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import Log from '@libs/Log';
 import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {WalletAdditionalQuestionDetails} from '@src/types/onyx';
+import type {CardAddedToWallet, WalletAdditionalQuestionDetails} from '@src/types/onyx';
 import pkg from '../../../package.json';
 
 type WalletQuestionAnswer = {
@@ -280,53 +279,37 @@ function issuerEncryptPayloadCallback(nonce: string, nonceSignature: string, cer
  * @param walletAcountID ID of the wallet on user's phone
  * @param deviceID ID of user's phone
  */
-function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletData) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_ADDED_TO_WALLET,
-            value: {
-                isLoading: true,
-            },
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_ADDED_TO_WALLET,
-            value: {
-                errors: null,
-                isLoading: false,
-            },
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.CARD_ADDED_TO_WALLET,
-            value: {
-                isLoading: false,
-            },
-        },
-    ];
-
-    const requestParams: CreateDigitalGoogleWalletParams = {
+function createDigitalGoogleWallet({walletAccountID, deviceID}: AndroidWalletData): Promise<AndroidCardData> {
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.CREATE_DIGITAL_WALLET, {
         platform: 'android',
         appVersion: pkg.version,
         walletAccountID,
         deviceID,
-    };
-
-    API.write(WRITE_COMMANDS.CREATE_DIGITAL_WALLET, requestParams, {optimisticData, successData, failureData});
-}
-
-/**
- * Remove data from Onyx for new card added after use
- */
-function clearNewCardOnyxData() {
-    Onyx.set(ONYXKEYS.CARD_ADDED_TO_WALLET, null);
+    })
+        .then((response) => {
+            const data = response as unknown as CardAddedToWallet;
+            return {
+                network: data.network,
+                opaquePaymentCard: data.opaquePaymentCard,
+                cardHolderName: '',
+                lastDigits: data.lastDigits,
+                userAddress: {
+                    name: data.userAddress.name,
+                    addressOne: data.userAddress.address1,
+                    addressTwo: data.userAddress.address2,
+                    administrativeArea: data.userAddress.state,
+                    locality: data.userAddress.city,
+                    countryCode: data.userAddress.country,
+                    postalCode: data.userAddress.postal_code,
+                    phoneNumber: data.userAddress.phone,
+                },
+            } as AndroidCardData;
+        })
+        .catch((error) => {
+            Log.warn(`createDigitalGoogleWallet error: ${error}`);
+            return {} as AndroidCardData;
+        });
 }
 
 export {
@@ -334,7 +317,6 @@ export {
     openInitialSettingsPage,
     openEnablePaymentsPage,
     setAdditionalDetailsQuestions,
-    clearNewCardOnyxData,
     updateCurrentStep,
     answerQuestionsForWallet,
     updatePersonalDetails,
