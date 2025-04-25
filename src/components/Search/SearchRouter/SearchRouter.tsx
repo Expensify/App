@@ -270,7 +270,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const trimmedUserSearchQuery = getQueryWithoutAutocompletedPart(textInputValue);
                     const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
-                    onSearchQueryChange(newSearchQuery);
+                    onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     if (item.mapKey && item.autocompleteID) {
