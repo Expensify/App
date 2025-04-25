@@ -15,6 +15,7 @@ import usePermissions from '@hooks/usePermissions';
 import usePrevious from '@hooks/usePrevious';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchHighlightAndScroll from '@hooks/useSearchHighlightAndScroll';
+import useSearchPusherUpdates from '@hooks/useSearchPusherUpdates';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {search, updateSearchResultsWithTransactionThreadReportID} from '@libs/actions/Search';
@@ -154,9 +155,7 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
     const {type, status, sortBy, sortOrder, hash, groupBy} = queryJSON;
 
     const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: true});
-    const previousTransactions = usePrevious(transactions);
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const previousReportActions = usePrevious(reportActions);
     const {translate} = useLocalize();
     const shouldGroupByReports = groupBy === CONST.SEARCH.GROUP_BY.REPORTS;
 
@@ -202,14 +201,17 @@ function Search({queryJSON, currentSearchResults, lastNonEmptySearchResults, onS
         search({queryJSON, offset});
     }, [isOffline, offset, queryJSON]);
 
-    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll({
-        searchResults,
-        transactions,
-        previousTransactions,
+    // Use custom hook to detect and handle Pusher updates
+    useSearchPusherUpdates({
+        isOffline,
         queryJSON,
-        offset,
+        transactions,
         reportActions,
-        previousReportActions,
+    });
+
+    const {newSearchResultKey, handleSelectionListScroll} = useSearchHighlightAndScroll<SearchListItem>({
+        searchResults,
+        queryJSON,
     });
 
     // There's a race condition in Onyx which makes it return data from the previous Search, so in addition to checking that the data is loaded
