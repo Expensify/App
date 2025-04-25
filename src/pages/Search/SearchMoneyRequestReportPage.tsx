@@ -66,12 +66,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
     }, [reportIDFromRoute]);
 
-    const backTo = route.params.backTo ?? '';
-    const queryString = backTo.split('?').at(1) ?? '';
-    const q = new URLSearchParams(queryString).get('q') ?? '';
     const queryJSON = useMemo(() => {
+        const backTo = route.params.backTo ?? '';
+        const queryString = backTo.split('?').at(1) ?? '';
+        const q = new URLSearchParams(queryString).get('q') ?? '';
         return buildSearchQueryJSON(q);
-    }, [q]);
+    }, [route.params.backTo]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
