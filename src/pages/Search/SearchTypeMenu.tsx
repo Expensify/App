@@ -67,7 +67,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         hideProductTrainingTooltip: hideExpenseReportsTypeTooltip,
     } = useProductTrainingContext(CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.EXPENSE_REPORTS_FILTER, true);
     const {showDeleteModal, DeleteConfirmModal} = useDeleteSavedSearch();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: true});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: true});
     const personalDetails = usePersonalDetails();
     const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: true});
@@ -225,7 +225,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
                         }
                         clearAllFilters();
                         clearSelectedTransactions();
-                        Navigation.navigate(item.getRoute(queryJSON?.policyID));
+                        Navigation.navigate(item.getRoute());
                     });
 
                     return (

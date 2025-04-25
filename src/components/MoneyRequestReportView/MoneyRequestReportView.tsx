@@ -3,14 +3,18 @@ import {InteractionManager, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import {useOnyx} from 'react-native-onyx';
 import HeaderGap from '@components/HeaderGap';
+import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyReportHeader from '@components/MoneyReportHeader';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 import ReportHeaderSkeletonView from '@components/ReportHeaderSkeletonView';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import useLocalize from '@hooks/useLocalize';
+import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {removeFailedReport} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
@@ -29,6 +33,7 @@ import ROUTES from '@src/ROUTES';
 import type {ThemeStyles} from '@src/styles';
 import type * as OnyxTypes from '@src/types/onyx';
 import MoneyRequestReportActionsList from './MoneyRequestReportActionsList';
+import {useMoneyRequestReportContext} from './MoneyRequestReportContext';
 
 type MoneyRequestReportViewProps = {
     /** The report */
@@ -87,6 +92,7 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {activeWorkspaceID} = useActiveWorkspace();
+    const {translate} = useLocalize();
 
     const reportID = report?.reportID;
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP, {canBeMissing: true});
@@ -114,6 +120,10 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
         goBackFromSearchMoneyRequest(activeWorkspaceID);
         InteractionManager.runAfterInteractions(() => removeFailedReport(reportID));
     }, [activeWorkspaceID, reportID]);
+
+    const {selectionMode} = useMobileSelectionMode();
+
+    const {setSelectedTransactionsID} = useMoneyRequestReportContext();
 
     if (isLoadingInitialReportActions && reportActions.length === 0 && !isOffline) {
         return <InitialLoadingSkeleton styles={styles} />;
@@ -163,20 +173,30 @@ function MoneyRequestReportView({report, policy, reportMetadata, shouldDisplayRe
                 errorRowStyles={[styles.ph5, styles.mv2]}
             >
                 <HeaderGap />
-                <MoneyReportHeader
-                    report={report}
-                    policy={policy}
-                    reportActions={reportActions}
-                    transactionThreadReportID={transactionThreadReportID}
-                    shouldDisplayBackButton
-                    onBackButtonPress={() => {
-                        if (!backToRoute) {
-                            goBackFromSearchMoneyRequest(activeWorkspaceID);
-                            return;
-                        }
-                        Navigation.goBack(backToRoute);
-                    }}
-                />
+                {selectionMode?.isEnabled ? (
+                    <HeaderWithBackButton
+                        title={translate('common.selectMultiple')}
+                        onBackButtonPress={() => {
+                            setSelectedTransactionsID([]);
+                            turnOffMobileSelectionMode();
+                        }}
+                    />
+                ) : (
+                    <MoneyReportHeader
+                        report={report}
+                        policy={policy}
+                        reportActions={reportActions}
+                        transactionThreadReportID={transactionThreadReportID}
+                        shouldDisplayBackButton
+                        onBackButtonPress={() => {
+                            if (!backToRoute) {
+                                goBackFromSearchMoneyRequest(activeWorkspaceID);
+                                return;
+                            }
+                            Navigation.goBack(backToRoute);
+                        }}
+                    />
+                )}
                 <View style={[styles.overflowHidden, styles.flex1]}>
                     {isTransactionThreadView ? (
                         <ReportActionsView
