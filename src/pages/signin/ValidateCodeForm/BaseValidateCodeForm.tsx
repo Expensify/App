@@ -20,13 +20,13 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import AccountUtils from '@libs/AccountUtils';
 import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
-import * as ErrorUtils from '@libs/ErrorUtils';
-import * as ValidationUtils from '@libs/ValidationUtils';
+import {getLatestErrorMessage} from '@libs/ErrorUtils';
+import {isValidRecoveryCode, isValidTwoFactorCode, isValidValidateCode} from '@libs/ValidationUtils';
 import ChangeExpensifyLoginLink from '@pages/signin/ChangeExpensifyLoginLink';
 import Terms from '@pages/signin/Terms';
 import * as HybridAppActions from '@userActions/HybridApp';
-import * as SessionActions from '@userActions/Session';
-import * as User from '@userActions/User';
+import {clearAccountMessages, clearSignInData as sessionActionsClearSignInData, signIn, signInWithValidateCode} from '@userActions/Session';
+import {resendValidateCode as userActionsResendValidateCode} from '@userActions/User';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -49,9 +49,9 @@ type ValidateCodeFormVariant = 'validateCode' | 'twoFactorAuthCode' | 'recoveryC
 type FormError = Partial<Record<ValidateCodeFormVariant, TranslationPaths>>;
 
 function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingRecoveryCode, isVisible}: BaseValidateCodeFormProps, forwardedRef: ForwardedRef<BaseValidateCodeFormRef>) {
-    const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS);
-    const [session] = useOnyx(ONYXKEYS.SESSION);
+    const [account] = useOnyx(ONYXKEYS.ACCOUNT, {canBeMissing: false});
+    const [credentials] = useOnyx(ONYXKEYS.CREDENTIALS, {canBeMissing: false});
+    const [session] = useOnyx(ONYXKEYS.SESSION, {canBeMissing: false});
     const [hybridApp] = useOnyx(ONYXKEYS.HYBRID_APP);
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -148,7 +148,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         setFormError((prevError) => ({...prevError, [key]: undefined}));
 
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
         }
     };
 
@@ -160,7 +160,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             HybridAppActions.resetSignInFlow();
         }
 
-        User.resendValidateCode(credentials?.login ?? '');
+        userActionsResendValidateCode(credentials?.login ?? '');
         inputValidateCodeRef.current?.clear();
         // Give feedback to the user to let them know the email was sent so that they don't spam the button.
         setTimeRemaining(CONST.REQUEST_CODE_DELAY);
@@ -182,7 +182,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
      */
     const clearSignInData = useCallback(() => {
         clearLocalSignInData();
-        SessionActions.clearSignInData();
+        sessionActionsClearSignInData();
     }, [clearLocalSignInData]);
 
     useImperativeHandle(forwardedRef, () => ({
@@ -195,7 +195,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         }
 
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
             return;
         }
         setNeedToClearError(false);
@@ -213,7 +213,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         setFormError((prevError) => ({...prevError, recoveryCode: undefined, twoFactorAuthCode: undefined}));
 
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
         }
     };
 
@@ -246,7 +246,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
             HybridAppActions.resetSignInFlow();
         }
         if (account?.errors) {
-            SessionActions.clearAccountMessages();
+            clearAccountMessages();
         }
         const requiresTwoFactorAuth = account?.requiresTwoFactorAuth;
         if (requiresTwoFactorAuth) {
@@ -261,7 +261,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     setFormError({twoFactorAuthCode: 'validateCodeForm.error.pleaseFillTwoFactorAuth'});
                     return;
                 }
-                if (!ValidationUtils.isValidTwoFactorCode(twoFactorAuthCode)) {
+                if (!isValidTwoFactorCode(twoFactorAuthCode)) {
                     setFormError({twoFactorAuthCode: 'passwordForm.error.incorrect2fa'});
                     return;
                 }
@@ -270,7 +270,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                     setFormError({recoveryCode: 'recoveryCodeForm.error.pleaseFillRecoveryCode'});
                     return;
                 }
-                if (!ValidationUtils.isValidRecoveryCode(recoveryCode)) {
+                if (!isValidRecoveryCode(recoveryCode)) {
                     setFormError({recoveryCode: 'recoveryCodeForm.error.incorrectRecoveryCode'});
                     return;
                 }
@@ -283,7 +283,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 setFormError({validateCode: 'validateCodeForm.error.pleaseFillMagicCode'});
                 return;
             }
-            if (!ValidationUtils.isValidValidateCode(validateCode)) {
+            if (!isValidValidateCode(validateCode)) {
                 setFormError({validateCode: 'validateCodeForm.error.incorrectMagicCode'});
                 return;
             }
@@ -295,9 +295,9 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
         HybridAppActions.setNewDotSignInState(CONST.HYBRID_APP_SIGN_IN_STATE.STARTED);
         const accountID = credentials?.accountID;
         if (accountID) {
-            SessionActions.signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
+            signInWithValidateCode(accountID, validateCode, recoveryCodeOr2faCode);
         } else {
-            SessionActions.signIn(validateCode, recoveryCodeOr2faCode);
+            signIn(validateCode, recoveryCodeOr2faCode);
         }
     }, [
         account?.isLoading,
@@ -320,7 +320,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                 <View style={[styles.mv3]}>
                     {isUsingRecoveryCode ? (
                         <TextInput
-                            shouldDelayFocus
                             accessibilityLabel={translate('recoveryCodeForm.recoveryCode')}
                             value={recoveryCode}
                             onChangeText={(text) => onTextInput(text, 'recoveryCode')}
@@ -333,7 +332,6 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         />
                     ) : (
                         <MagicCodeInput
-                            shouldDelayFocus
                             autoComplete={autoComplete}
                             ref={(magicCodeInput) => {
                                 if (!magicCodeInput) {
@@ -352,7 +350,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                             key="twoFactorAuthCode"
                         />
                     )}
-                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <PressableWithFeedback
                         key={isUsingRecoveryCode.toString()}
                         style={[styles.mt2]}
@@ -385,7 +383,7 @@ function BaseValidateCodeForm({autoComplete, isUsingRecoveryCode, setIsUsingReco
                         key="validateCode"
                         testID="validateCode"
                     />
-                    {hasError && <FormHelpMessage message={ErrorUtils.getLatestErrorMessage(account)} />}
+                    {hasError && <FormHelpMessage message={getLatestErrorMessage(account)} />}
                     <View style={[styles.alignItemsStart]}>
                         {timeRemaining > 0 && !isOffline ? (
                             <Text style={[styles.mt2]}>

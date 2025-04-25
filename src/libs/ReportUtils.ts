@@ -10,14 +10,20 @@ import lodashMaxBy from 'lodash/maxBy';
 import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import type {SvgProps} from 'react-native-svg';
-import type {OriginalMessageChangePolicy, OriginalMessageIOU, OriginalMessageModifiedExpense} from 'src/types/onyx/OriginalMessage';
+import type {
+    OriginalMessageChangePolicy,
+    OriginalMessageIOU,
+    OriginalMessageModifiedExpense,
+    OriginalMessageMovedTransaction,
+    OriginalMessageUnreportedTransaction,
+} from 'src/types/onyx/OriginalMessage';
 import type {SetRequired, TupleToUnion, ValueOf} from 'type-fest';
 import type {FileObject} from '@components/AttachmentModal';
 import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} from '@components/Icon/Expensicons';
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {IOUAction, IOUType, OnboardingAccounting, OnboardingPurpose} from '@src/CONST';
+import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -37,6 +43,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
+    ReportAttributes,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -139,6 +146,7 @@ import {
     getPolicyChangeLogDefaultBillableMessage,
     getPolicyChangeLogDefaultTitleEnforcedMessage,
     getPolicyChangeLogMaxExpesnseAmountNoReceiptMessage,
+    getRenamedAction,
     getReportAction,
     getReportActionHtml,
     getReportActionMessage as getReportActionMessageReportUtils,
@@ -169,6 +177,7 @@ import {
     isPendingRemove,
     isPolicyChangeLogAction,
     isReimbursementQueuedAction,
+    isRenamedAction,
     isReportActionAttachment,
     isReportPreviewAction,
     isReversedTransaction,
@@ -347,6 +356,7 @@ type BuildOptimisticIOUReportActionParams = {
     isOwnPolicyExpenseChat?: boolean;
     created?: string;
     linkedExpenseReportAction?: OnyxEntry<ReportAction>;
+    isPersonalTrackingExpense?: boolean;
 };
 
 type OptimisticIOUReportAction = Pick<
@@ -1029,10 +1039,29 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
+let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+Onyx.connect({
+    key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        reportAttributes = value;
+    },
+});
+
 let newGroupChatDraft: OnyxEntry<NewGroupChatDraft>;
 Onyx.connect({
     key: ONYXKEYS.NEW_GROUP_CHAT_DRAFT,
     callback: (value) => (newGroupChatDraft = value),
+});
+
+let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
+Onyx.connect({
+    key: ONYXKEYS.ONBOARDING_COMPANY_SIZE,
+    callback: (value) => {
+        onboardingCompanySize = value;
+    },
 });
 
 function getCurrentUserAvatar(): AvatarSource | undefined {
@@ -1105,6 +1134,7 @@ function getReport(reportID: string, reports: SearchReport[] | OnyxCollection<Re
 
 /**
  * Returns the report
+ * @deprecated Get the data straight from Onyx
  */
 function getReportNameValuePairs(reportID?: string, reportNameValuePairs: OnyxCollection<ReportNameValuePairs> = allReportNameValuePair): OnyxEntry<ReportNameValuePairs> {
     return reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
@@ -1900,6 +1930,9 @@ function isArchivedNonExpenseReportWithID(reportOrID?: string | SearchReport) {
     }
 
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = typeof reportOrID === 'string' ? getReportNameValuePairs(reportOrID) : getReportNameValuePairs(reportOrID.reportID);
     return isArchivedNonExpenseReport(report, reportNameValuePairs);
 }
@@ -1912,6 +1945,8 @@ function isArchivedReportWithID(reportOrID?: string | SearchReport) {
         return false;
     }
 
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = typeof reportOrID === 'string' ? getReportNameValuePairs(reportOrID) : getReportNameValuePairs(reportOrID.reportID);
     return isArchivedReport(reportNameValuePairs);
 }
@@ -2185,6 +2220,13 @@ function isOneTransactionThread(reportID: string | undefined, parentReportID: st
 }
 
 /**
+ * Checks if given report is a transaction thread
+ */
+function isReportTransactionThread(report: OnyxEntry<Report>) {
+    return isMoneyRequest(report) || isTrackExpenseReport(report);
+}
+
+/**
  * Get displayed report ID, it will be parentReportID if the report is one transaction thread
  */
 function getDisplayedReportID(reportID: string): string {
@@ -2221,8 +2263,14 @@ function isPayer(session: OnyxEntry<Session>, iouReport: OnyxEntry<Report>, only
     const isManager = iouReport?.managerID === session?.accountID;
     if (isPaidGroupPolicy(iouReport)) {
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES) {
+            // If we get here without a reimburser only show the pay button if we are the manager.
+            if (!policy?.achAccount?.reimburser) {
+                return isManager;
+            }
+
+            // If we are the reimburser and the report is approved or we are the manager then we can pay it.
             const isReimburser = session?.email === policy?.achAccount?.reimburser;
-            return (!policy?.achAccount?.reimburser || isReimburser) && (isApproved || isManager);
+            return isReimburser && (isApproved || isManager);
         }
         if (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL || onlyShowPayElsewhere) {
             return isAdmin && (isApproved || isManager);
@@ -2888,6 +2936,9 @@ function getIcons(
         };
         return [domainIcon];
     }
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isAdminRoom(report) || isAnnounceRoom(report) || isChatRoom(report) || isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         const icons = [getWorkspaceIcon(report, policy)];
 
@@ -3284,6 +3335,8 @@ function getReasonAndReportActionThatRequiresAttention(
         };
     }
 
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID)) || isArchivedReport(getReportNameValuePairs(optionOrReport?.reportID))) {
         return null;
     }
@@ -3434,6 +3487,8 @@ function getPolicyExpenseChatName({
 
     // If this user is not admin and this policy expense chat has been archived because of account merging, this must be an old workspace chat
     // of the account which was merged into the current user's account. Use the name of the policy as the name of the report.
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         const lastAction = getLastVisibleActionReportActionsUtils(report?.reportID);
         const archiveReason = isClosedAction(lastAction) ? getOriginalMessage(lastAction)?.reason : CONST.REPORT.ARCHIVE_REASON.DEFAULT;
@@ -3751,6 +3806,7 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
         CONST.EDIT_REQUEST_FIELD.RECEIPT,
         CONST.EDIT_REQUEST_FIELD.DISTANCE,
         CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE,
+        CONST.EDIT_REQUEST_FIELD.REPORT,
     ];
 
     if (!isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction)) {
@@ -3807,6 +3863,10 @@ function canEditFieldOfMoneyRequest(reportAction: OnyxInputOrEntry<ReportAction>
     if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.DISTANCE_RATE) {
         // The distance rate can be modified only on the distance expense reports
         return isExpenseReport(moneyRequestReport) && isDistanceRequest(transaction);
+    }
+
+    if (fieldToEdit === CONST.EDIT_REQUEST_FIELD.REPORT) {
+        return getOutstandingReports(moneyRequestReport?.policyID, allReports ?? {}).length > 0;
     }
 
     return true;
@@ -4175,6 +4235,10 @@ function getReportPreviewMessage(
         let actualPayerName = report.managerID === currentUserAccountID ? '' : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: true});
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
+        if (isForListPreview && report?.parentReportID != null) {
+            const payerText = isDM(parentReport) && translatePhraseKey === 'iou.payerPaidAmount' ? '' : payerDisplayName;
+            return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerText});
+        }
 
         return translateLocal(translatePhraseKey, {amount: formattedAmount, payer: payerDisplayName ?? ''});
     }
@@ -4504,13 +4568,6 @@ function getInvoicesChatName({
     return getPolicyName({report, policy: invoiceReceiverPolicy, policies});
 }
 
-const reportNameCache = new Map<string, {lastVisibleActionCreated: string; reportName: string}>();
-
-/**
- * Get a cache key for the report name.
- */
-const getCacheKey = (report: OnyxEntry<Report>): string => `${report?.reportID}-${report?.lastVisibleActionCreated}-${report?.reportName}`;
-
 /**
  * Get the title for a report using only participant names. This may be used for 1:1 DMs and other non-categorized chats.
  */
@@ -4528,6 +4585,13 @@ function buildReportNameFromParticipantNames({report, personalDetails}: {report:
         .join(', ');
 }
 
+function generateReportName(report: OnyxEntry<Report>): string {
+    if (!report) {
+        return '';
+    }
+    return getReportNameInternal({report});
+}
+
 /**
  * Get the title for a report.
  */
@@ -4538,6 +4602,12 @@ function getReportName(
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
 ): string {
+    // Check if we can use report name in derived values - only when we have report but no other params
+    const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
+
+    if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
+        return reportAttributes[report.reportID].reportName;
+    }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
 }
 
@@ -4567,15 +4637,6 @@ function getReportNameInternal({
     policies,
 }: GetReportNameParams): string {
     const reportID = report?.reportID;
-    const cacheKey = getCacheKey(report);
-
-    if (reportID) {
-        const reportNameFromCache = reportNameCache.get(cacheKey);
-
-        if (reportNameFromCache?.reportName && reportNameFromCache.reportName === report?.reportName && reportNameFromCache.reportName !== CONST.REPORT.DEFAULT_REPORT_NAME) {
-            return reportNameFromCache.reportName;
-        }
-    }
 
     let formattedName: string | undefined;
     let parentReportAction: OnyxEntry<ReportAction>;
@@ -4667,6 +4728,9 @@ function getReportNameInternal({
     if (isChatThread(report)) {
         if (!isEmptyObject(parentReportAction) && isTransactionThread(parentReportAction)) {
             formattedName = getTransactionReportName({reportAction: parentReportAction, transactions, reports});
+
+            // This will get removed as part of https://github.com/Expensify/App/issues/59961
+            // eslint-disable-next-line deprecation/deprecation
             if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
                 formattedName += ` (${translateLocal('common.archived')})`;
             }
@@ -4675,6 +4739,10 @@ function getReportNameInternal({
 
         if (!isEmptyObject(parentReportAction) && isOldDotReportAction(parentReportAction)) {
             return getMessageOfOldDotReportAction(parentReportAction);
+        }
+
+        if (isRenamedAction(parentReportAction)) {
+            return getRenamedAction(parentReportAction);
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {
@@ -4706,6 +4774,9 @@ function getReportNameInternal({
         if (isAdminRoom(report) || isUserCreatedPolicyRoom(report)) {
             return getAdminRoomInvitedParticipants(parentReportAction, reportActionMessage);
         }
+
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         if (reportActionMessage && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID, reportNameValuePairs))) {
             return `${reportActionMessage} (${translateLocal('common.archived')})`;
         }
@@ -4750,6 +4821,8 @@ function getReportNameInternal({
         formattedName = getInvoicesChatName({report, receiverPolicy: invoiceReceiverPolicy, personalDetails, policies});
     }
 
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         formattedName += ` (${translateLocal('common.archived')})`;
     }
@@ -4759,19 +4832,11 @@ function getReportNameInternal({
     }
 
     if (formattedName) {
-        if (reportID) {
-            reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
-        }
-
         return formatReportLastMessageText(formattedName);
     }
 
     // Not a room or PolicyExpenseChat, generate title from first 5 other participants
     formattedName = buildReportNameFromParticipantNames({report, personalDetails});
-
-    if (reportID) {
-        reportNameCache.set(cacheKey, {lastVisibleActionCreated: report?.lastVisibleActionCreated ?? '', reportName: formattedName});
-    }
 
     return formattedName;
 }
@@ -4846,6 +4911,9 @@ function getChatRoomSubtitle(report: OnyxEntry<Report>, config: GetChatRoomSubti
 
         return `${getReportSubtitlePrefix(report)}${translateLocal('iou.submitsTo', {name: subtitle ?? ''})}`;
     }
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isArchivedReport(getReportNameValuePairs(report?.reportID))) {
         return report?.oldPolicyName ?? '';
     }
@@ -4872,6 +4940,8 @@ function getParentNavigationSubtitle(report: OnyxEntry<Report>, invoiceReceiverP
     if (isInvoiceReport(report) || isInvoiceRoom(parentReport)) {
         let reportName = `${getPolicyName({report: parentReport})} & ${getInvoicePayerName(parentReport, invoiceReceiverPolicy)}`;
 
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         if (isArchivedNonExpenseReport(parentReport, getReportNameValuePairs(parentReport?.reportID))) {
             reportName += ` (${translateLocal('common.archived')})`;
         }
@@ -5505,7 +5575,7 @@ function buildOptimisticExpenseReport(
     return expenseReport;
 }
 
-function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, policy: OnyxEntry<Policy>, timeOfCreation: string) {
+function buildOptimisticEmptyReport(reportID: string, accountID: number, parentReport: OnyxEntry<Report>, parentReportActionID: string, policy: OnyxEntry<Policy>, timeOfCreation: string) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy);
     const titleReportField = getTitleReportField(getReportFieldsByPolicyID(policy?.id) ?? {});
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -5523,6 +5593,7 @@ function buildOptimisticEmptyReport(reportID: string, accountID: number, parentR
         lastVisibleActionCreated: timeOfCreation,
         pendingFields: {createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         parentReportID: parentReport?.reportID,
+        parentReportActionID,
         chatReportID: parentReport?.reportID,
         managerID: getSubmitToAccountID(policy, undefined),
     };
@@ -5560,30 +5631,32 @@ function getFormattedAmount(reportAction: ReportAction, report?: Report | null) 
     return formattedAmount;
 }
 
+function getActorDisplayName(action: ReportAction) {
+    const actorAccountID = getReportActionActorAccountID(action, undefined, undefined, undefined);
+
+    return getDisplayNameForParticipant({accountID: actorAccountID});
+}
+
 function getReportAutomaticallySubmittedMessage(
     reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
-    report?: Report,
 ) {
-    return translateLocal('iou.automaticallySubmittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
+    return translateLocal('iou.automaticallySubmitted', {displayName: getActorDisplayName(reportAction)});
 }
 
-function getIOUSubmittedMessage(
-    reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>,
-    report?: Report,
-) {
-    return translateLocal('iou.submittedAmount', {formattedAmount: getFormattedAmount(reportAction, report)});
+function getIOUSubmittedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED> | ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.SUBMITTED_AND_CLOSED>) {
+    return translateLocal('iou.submittedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
 }
 
-function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
-    return translateLocal('iou.automaticallyApprovedAmount', {amount: getFormattedAmount(reportAction, report)});
+function getReportAutomaticallyApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
+    return translateLocal('iou.automaticallyApproved', {displayName: getActorDisplayName(reportAction)});
 }
 
-function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>, report?: Report) {
-    return translateLocal('iou.unapprovedAmount', {amount: getFormattedAmount(reportAction, report)});
+function getIOUUnapprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNAPPROVED>) {
+    return translateLocal('iou.unapproved', {displayName: getActorDisplayName(reportAction)});
 }
 
-function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>, report?: Report) {
-    return translateLocal('iou.approvedAmount', {amount: getFormattedAmount(reportAction, report)});
+function getIOUApprovedMessage(reportAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.APPROVED>) {
+    return translateLocal('iou.approvedWithDisplayName', {displayName: getActorDisplayName(reportAction)});
 }
 
 /**
@@ -5654,6 +5727,36 @@ function getDeletedTransactionMessage(action: ReportAction) {
     const message = translateLocal('iou.deletedTransaction', {
         amount: formattedAmount,
         merchant: deletedTransactionOriginalMessage.merchant ?? '',
+    });
+    return message;
+}
+
+function getReportDetails(reportID: string): {reportName: string; reportUrl: string} {
+    const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    return {
+        reportName: report?.reportName ?? '',
+        reportUrl: `${environmentURL}/r/${reportID}`,
+    };
+}
+
+function getMovedTransactionMessage(action: ReportAction) {
+    const movedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION>) ?? {};
+    const {toReportID} = movedTransactionOriginalMessage as OriginalMessageMovedTransaction;
+    const {reportName, reportUrl} = getReportDetails(toReportID);
+    const message = translateLocal('iou.movedTransaction', {
+        reportUrl,
+        reportName,
+    });
+    return message;
+}
+
+function getUnreportedTransactionMessage(action: ReportAction) {
+    const unreportedTransactionOriginalMessage = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION>) ?? {};
+    const {fromReportID} = unreportedTransactionOriginalMessage as OriginalMessageUnreportedTransaction;
+    const {reportName, reportUrl} = getReportDetails(fromReportID);
+    const message = translateLocal('iou.unreportedTransaction', {
+        reportUrl,
+        reportName,
     });
     return message;
 }
@@ -5769,9 +5872,10 @@ function buildOptimisticIOUReportAction(params: BuildOptimisticIOUReportActionPa
         isOwnPolicyExpenseChat = false,
         created = DateUtils.getDBTime(),
         linkedExpenseReportAction,
+        isPersonalTrackingExpense = false,
     } = params;
 
-    const IOUReportID = iouReportID || generateReportID();
+    const IOUReportID = isPersonalTrackingExpense ? undefined : iouReportID || generateReportID();
 
     const originalMessage: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>['originalMessage'] = {
         amount,
@@ -6012,6 +6116,57 @@ function buildOptimisticChangePolicyReportAction(fromPolicyID: string | undefine
         shouldShow: true,
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
+}
+
+function buildOptimisticTransactionAction(type: 'MOVEDTRANSACTION' | 'UNREPORTEDTRANSACTION', transactionThreadReportID: string | undefined, targetReportID: string): ReportAction {
+    const reportName = allReports?.[targetReportID]?.reportName ?? '';
+    const url = `${environmentURL}/r/${targetReportID}`;
+    const [actionText, messageHtml] =
+        type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION
+            ? [`moved this expense to ${reportName}`, `moved this expense to <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`]
+            : [`removed this expense from ${reportName}`, `removed this expense from <a href='${url}' target='_blank' rel='noreferrer noopener'>${reportName}</a>`];
+
+    return {
+        actionName: type,
+        reportID: transactionThreadReportID,
+        actorAccountID: currentUserAccountID,
+        avatar: getCurrentUserAvatar(),
+        created: DateUtils.getDBTime(),
+        originalMessage: type === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION ? {toReportID: targetReportID} : {fromReportID: targetReportID},
+        message: [
+            {
+                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
+                html: messageHtml,
+                text: actionText,
+            },
+        ],
+        person: [
+            {
+                style: 'strong',
+                text: getCurrentUserDisplayNameOrEmail(),
+                type: 'TEXT',
+            },
+        ],
+        reportActionID: rand64(),
+        shouldShow: true,
+        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+    };
+}
+
+/**
+ * Builds an optimistic MOVED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we change the workspace of a report.
+ */
+function buildOptimisticMovedTransactionAction(transactionThreadReportID: string | undefined, toReportID: string) {
+    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, transactionThreadReportID, toReportID);
+}
+
+/**
+ * Builds an optimistic UNREPORTED_TRANSACTION report action with a randomly generated reportActionID.
+ * This action is used when we unreport a transaction.
+ */
+function buildOptimisticUnreportedTransactionAction(transactionThreadReportID: string | undefined, fromReportID: string) {
+    return buildOptimisticTransactionAction(CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION, transactionThreadReportID, fromReportID);
 }
 
 /**
@@ -7206,7 +7361,8 @@ function buildOptimisticMoneyRequestEntities({
         participants,
         transactionID,
         paymentType,
-        iouReportID: isPersonalTrackingExpense ? '0' : iouReport.reportID,
+        iouReportID: iouReport.reportID,
+        isPersonalTrackingExpense,
         isSettlingUp,
         isSendMoneyFlow,
         isOwnPolicyExpenseChat,
@@ -7279,6 +7435,8 @@ function isIOUOwnedByCurrentUser(report: OnyxEntry<Report>, allReportsDict?: Ony
  */
 function canSeeDefaultRoom(report: OnyxEntry<Report>, policies: OnyxCollection<Policy>, betas: OnyxEntry<Beta[]>): boolean {
     // Include archived rooms
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         return true;
     }
@@ -7544,6 +7702,8 @@ function reasonForReportToBeInOptionList({
             // So we allow showing rooms with no participants–in any other circumstances we should never have these reports with no participants in Onyx.
             !isChatRoom(report) &&
             !isChatThread(report) &&
+            // This will get removed as part of https://github.com/Expensify/App/issues/59961
+            // eslint-disable-next-line deprecation/deprecation
             !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
             !isMoneyRequestReport(report) &&
             !isTaskReport(report) &&
@@ -7640,6 +7800,8 @@ function reasonForReportToBeInOptionList({
     }
 
     // Archived reports should always be shown when in default (most recent) mode. This is because you should still be able to access and search for the chats to find them.
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isInDefaultMode && isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
         return CONST.REPORT_IN_LHN_REASONS.IS_ARCHIVED;
     }
@@ -7811,6 +7973,8 @@ function canFlagReportAction(reportAction: OnyxInputOrEntry<ReportAction>, repor
 function shouldShowFlagComment(reportAction: OnyxInputOrEntry<ReportAction>, report: OnyxInputOrEntry<Report>): boolean {
     return (
         canFlagReportAction(reportAction, report?.reportID) &&
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)) &&
         !chatIncludesChronos(report) &&
         !isConciergeChatReport(report) &&
@@ -8124,6 +8288,8 @@ function canLeaveInvoiceRoom(report: OnyxEntry<Report>): boolean {
  */
 function canLeaveRoom(report: OnyxEntry<Report>, isPolicyEmployee: boolean): boolean {
     if (isInvoiceRoom(report)) {
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID))) {
             return false;
         }
@@ -8195,6 +8361,8 @@ function getWhisperDisplayNames(participantAccountIDs?: number[]): string | unde
  * Show subscript on workspace chats / threads and expense requests
  */
 function shouldReportShowSubscript(report: OnyxEntry<Report>): boolean {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     if (isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID)) && !isWorkspaceThread(report)) {
         return false;
     }
@@ -8297,6 +8465,8 @@ function canUserPerformWriteAction(report: OnyxEntry<Report>) {
         return false;
     }
 
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
     return !isArchivedNonExpenseReport(report, reportNameValuePairs) && isEmptyObject(reportErrors) && report && isAllowedToComment(report) && !isAnonymousUser && canWriteInReport(report);
 }
@@ -8374,6 +8544,8 @@ function getAllWorkspaceReports(policyID?: string): Array<OnyxEntry<Report>> {
 function shouldDisableRename(report: OnyxEntry<Report>): boolean {
     if (
         isDefaultRoom(report) ||
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         isArchivedReport(getReportNameValuePairs(report?.reportID)) ||
         isPublicRoom(report) ||
         isThread(report) ||
@@ -8405,6 +8577,8 @@ function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
     return (
         isPolicyAdminPolicyUtils(policy) &&
         !isAdminRoom(report) &&
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
         !isThread(report) &&
         !isInvoiceRoom(report) &&
@@ -8416,6 +8590,8 @@ function canEditWriteCapability(report: OnyxEntry<Report>, policy: OnyxEntry<Pol
  * @param policy - the workspace the report is on, null if the user isn't a member of the workspace
  */
 function canEditRoomVisibility(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     return isPolicyAdminPolicyUtils(policy) && !isArchivedNonExpenseReport(report, getReportNameValuePairs(report?.reportID));
 }
 
@@ -8647,6 +8823,8 @@ function isDeprecatedGroupDM(report: OnyxEntry<Report>): boolean {
         !isTaskReport(report) &&
         !isInvoiceReport(report) &&
         !isMoneyRequestReport(report) &&
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
         !Object.values(CONST.REPORT.CHAT_TYPE).some((chatType) => chatType === getChatType(report)) &&
         Object.keys(report.participants ?? {})
@@ -8711,6 +8889,8 @@ function getRoom(type: ValueOf<typeof CONST.REPORT.CHAT_TYPE>, policyID: string)
 function canEditReportDescription(report: OnyxEntry<Report>, policy: OnyxEntry<Policy>): boolean {
     return (
         !isMoneyRequestReport(report) &&
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
         !isArchivedReport(getReportNameValuePairs(report?.reportID)) &&
         isChatRoom(report) &&
         !isChatThread(report) &&
@@ -8873,6 +9053,9 @@ function shouldDisableThread(reportAction: OnyxInputOrEntry<ReportAction>, repor
     const isReportPreviewActionLocal = isReportPreviewAction(reportAction);
     const isIOUAction = isMoneyRequestAction(reportAction);
     const isWhisperActionLocal = isWhisperAction(reportAction) || isActionableTrackExpense(reportAction);
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     const isArchived = isArchivedNonExpenseReport(getReportOrDraftReport(reportID), getReportNameValuePairs(reportID));
     const isActionDisabled = CONST.REPORT.ACTIONS.THREAD_DISABLED.some((action: string) => action === reportAction?.actionName);
 
@@ -9339,6 +9522,49 @@ function createDraftTransactionAndNavigateToParticipantSelector(
 }
 
 /**
+ * Check if a report has any forwarded actions
+ */
+function hasForwardedAction(reportID: string): boolean {
+    const reportActions = getAllReportActions(reportID);
+    return Object.values(reportActions).some((action) => action?.actionName === CONST.REPORT.ACTIONS.TYPE.FORWARDED);
+}
+
+function isReportOutstanding(iouReport: OnyxInputOrEntry<Report>, policyID: string | undefined): boolean {
+    if (!iouReport || isEmptyObject(iouReport)) {
+        return false;
+    }
+    const policy = getPolicy(iouReport.policyID);
+    const shouldIncludeSubmitted = policy?.harvesting?.enabled;
+    if (
+        isExpenseReport(iouReport) &&
+        iouReport?.stateNum !== undefined &&
+        iouReport?.statusNum !== undefined &&
+        iouReport?.policyID === policyID &&
+        (shouldIncludeSubmitted ? iouReport?.stateNum <= CONST.REPORT.STATE_NUM.SUBMITTED : iouReport?.stateNum < CONST.REPORT.STATE_NUM.SUBMITTED) &&
+        (shouldIncludeSubmitted ? iouReport?.statusNum <= CONST.REPORT.STATUS_NUM.SUBMITTED : iouReport?.statusNum < CONST.REPORT.STATUS_NUM.SUBMITTED) &&
+        !hasForwardedAction(iouReport.reportID)
+    ) {
+        return true;
+    }
+    return false;
+}
+
+/**
+ * Get outstanding expense reports for a given policy ID
+ * @param policyID - The policy ID to filter reports by
+ * @param reports - Collection of reports to filter
+ * @returns Array of outstanding expense reports sorted by name
+ */
+function getOutstandingReports(policyID: string | undefined, reports: OnyxCollection<Report> = allReports): Array<OnyxEntry<Report>> {
+    if (!reports) {
+        return [];
+    }
+    return Object.values(reports)
+        .filter((report) => isReportOutstanding(report, policyID))
+        .sort((a, b) => a?.reportName?.localeCompare(b?.reportName?.toLowerCase() ?? '') ?? 0);
+}
+
+/**
  * @returns the object to update `report.hasOutstandingChildRequest`
  */
 function getOutstandingChildRequest(iouReport: OnyxInputOrEntry<Report>): OutstandingChildRequest {
@@ -9381,6 +9607,7 @@ function prepareOnboardingOnyxData(
     onboardingPolicyID?: string,
     userReportedIntegration?: OnboardingAccounting,
     wasInvited?: boolean,
+    companySize?: OnboardingCompanySize,
 ) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -9427,23 +9654,26 @@ function prepareOnboardingOnyxData(
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
-    // Text message
-    const textComment = buildOptimisticAddCommentReportAction(onboardingMessage.message, undefined, actorAccountID, 1);
-    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
-    const textMessage: AddCommentOrAttachementParams = {
-        reportID: targetChatReportID,
-        reportActionID: textCommentAction.reportActionID,
-        reportComment: textComment.commentText,
-    };
-
     const onboardingTaskParams = {
         integrationName,
+        onboardingCompanySize: companySize ?? onboardingCompanySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
         workspaceCategoriesLink: `${environmentURL}/${ROUTES.WORKSPACE_CATEGORIES.getRoute(onboardingPolicyID)}`,
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
+        corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
+    };
+
+    // Text message
+    const message = typeof onboardingMessage.message === 'function' ? onboardingMessage.message(onboardingTaskParams) : onboardingMessage.message;
+    const textComment = buildOptimisticAddCommentReportAction(message, undefined, actorAccountID, 1);
+    const textCommentAction: OptimisticAddCommentReportAction = textComment.reportAction;
+    const textMessage: AddCommentOrAttachementParams = {
+        reportID: targetChatReportID,
+        reportActionID: textCommentAction.reportActionID,
+        reportComment: textComment.commentText,
     };
 
     let createWorkspaceTaskReportID;
@@ -9509,7 +9739,9 @@ function prepareOnboardingOnyxData(
         });
 
     // Sign-off welcome message
-    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(translateLocal('onboarding.welcomeSignOffTitle'), undefined, actorAccountID, tasksData.length + 3);
+    const welcomeSignOffText =
+        engagementChoice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM ? translateLocal('onboarding.welcomeSignOffTitleManageTeam') : translateLocal('onboarding.welcomeSignOffTitle');
+    const welcomeSignOffComment = buildOptimisticAddCommentReportAction(welcomeSignOffText, undefined, actorAccountID, tasksData.length + 3);
     const welcomeSignOffCommentAction: OptimisticAddCommentReportAction = welcomeSignOffComment.reportAction;
     const welcomeSignOffMessage = {
         reportID: targetChatReportID,
@@ -10510,6 +10742,7 @@ export {
     isInvoiceReport,
     isNewDotInvoice,
     isOpenInvoiceReport,
+    isReportTransactionThread,
     getDefaultNotificationPreferenceForReport,
     canWriteInReport,
     navigateToDetailsPage,
@@ -10558,6 +10791,9 @@ export {
     getReportLastVisibleActionCreated,
     getMostRecentlyVisitedReport,
     getSourceIDFromReportAction,
+
+    // This will get removed as part of https://github.com/Expensify/App/issues/59961
+    // eslint-disable-next-line deprecation/deprecation
     getReportNameValuePairs,
     hasReportViolations,
     isPayAtEndExpenseReport,
@@ -10582,15 +10818,22 @@ export {
     isTestTransactionReport,
     getReportSubtitlePrefix,
     getPolicyChangeMessage,
+    getMovedTransactionMessage,
+    getUnreportedTransactionMessage,
     getExpenseReportStateAndStatus,
+    generateReportName,
     navigateToLinkedReportAction,
+    buildOptimisticUnreportedTransactionAction,
     buildOptimisticResolvedDuplicatesReportAction,
-    populateOptimisticReportFormula,
     getTitleReportField,
     getReportFieldsByPolicyID,
     getGroupChatDraft,
     getInvoiceReportName,
     getChatListItemReportName,
+    buildOptimisticMovedTransactionAction,
+    populateOptimisticReportFormula,
+    getOutstandingReports,
+    isReportOutstanding,
 };
 
 export type {

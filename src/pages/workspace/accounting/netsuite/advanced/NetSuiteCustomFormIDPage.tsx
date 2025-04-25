@@ -73,7 +73,6 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={[styles.flex1]}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
-            shouldIncludeSafeAreaPaddingBottom
             shouldBeBlocked={!config?.customFormIDOptions?.enabled}
             shouldUseScrollView={false}
         >
@@ -87,6 +86,7 @@ function NetSuiteCustomFormIDPage({policy}: WithPolicyConnectionsProps) {
                     shouldValidateOnBlur
                     shouldValidateOnChange
                     shouldHideFixErrorsAlert
+                    addBottomSafeAreaPadding
                 >
                     <OfflineWithFeedback
                         pendingAction={settingsPendingAction([customFormIDKey], config?.pendingFields)}

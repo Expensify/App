@@ -3,6 +3,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import type {NativeSyntheticEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import useLocalize from '@hooks/useLocalize';
 import {useMouseContext} from '@hooks/useMouseContext';
+import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import {convertToFrontendAmountAsString, getCurrencyDecimals} from '@libs/CurrencyUtils';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -13,8 +14,6 @@ import isTextInputFocused from './TextInput/BaseTextInput/isTextInputFocused';
 import type {BaseTextInputRef} from './TextInput/BaseTextInput/types';
 import TextInputWithCurrencySymbol from './TextInputWithCurrencySymbol';
 import type {TextInputWithCurrencySymbolProps} from './TextInputWithCurrencySymbol/types';
-
-type CurrentMoney = {amount: string; currency: string};
 
 type MoneyRequestAmountInputRef = {
     setNewAmount: (amountValue: string) => void;
@@ -137,6 +136,7 @@ function MoneyRequestAmountInput(
     }: MoneyRequestAmountInputProps,
     forwardedRef: ForwardedRef<BaseTextInputRef>,
 ) {
+    const styles = useThemeStyles();
     const {toLocaleDigit, numberFormat} = useLocalize();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -335,7 +335,7 @@ function MoneyRequestAmountInput(
             style={props.inputStyle}
             containerStyle={props.containerStyle}
             prefixStyle={props.prefixStyle}
-            prefixContainerStyle={props.prefixContainerStyle}
+            prefixContainerStyle={[styles.pb2half, props.prefixContainerStyle]}
             touchableInputWrapperStyle={props.touchableInputWrapperStyle}
             maxLength={maxLength}
             hideFocusedState={hideFocusedState}
@@ -350,4 +350,4 @@ function MoneyRequestAmountInput(
 MoneyRequestAmountInput.displayName = 'MoneyRequestAmountInput';
 
 export default React.forwardRef(MoneyRequestAmountInput);
-export type {CurrentMoney, MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};
+export type {MoneyRequestAmountInputProps, MoneyRequestAmountInputRef};

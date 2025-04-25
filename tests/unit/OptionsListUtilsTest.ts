@@ -710,10 +710,18 @@ describe('OptionsListUtils', () => {
             // Manager McTest should be included to recipients when the user has already submitted an expense
             options = getValidOptions(
                 {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
-                {includeP2P: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+                {includeP2P: true, canShowManagerMcTest: true, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
             );
 
             expect(options.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
+
+            // Manager McTest should not be included if we set canShowManagerMcTest to false
+            options = getValidOptions(
+                {reports: OPTIONS_WITH_MANAGER_MCTEST.reports, personalDetails: OPTIONS_WITH_MANAGER_MCTEST.personalDetails},
+                {includeP2P: true, canShowManagerMcTest: false, betas: [CONST.BETAS.NEWDOT_MANAGER_MCTEST]},
+            );
+
+            expect(options.personalDetails).not.toEqual(expect.arrayContaining([expect.objectContaining({login: CONST.EMAIL.MANAGER_MCTEST})]));
 
             return waitForBatchedUpdates()
                 .then(() =>
