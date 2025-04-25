@@ -35,6 +35,7 @@ import type {Card, WorkspaceCardsList} from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import EmptyCardView from './EmptyCardView';
 import WorkspaceCardListHeader from './WorkspaceCardListHeader';
+import WorkspaceCardListLabels from './WorkspaceCardListLabels';
 import WorkspaceCardListRow from './WorkspaceCardListRow';
 
 type WorkspaceExpensifyCardListPageProps = {
@@ -147,19 +148,11 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
         [personalDetails, policyCurrency, policyID, workspaceAccountID, styles],
     );
 
-    const renderListHeader = useCallback(
-        () => (
-            <WorkspaceCardListHeader
-                policyID={policyID}
-                cardSettings={cardSettings}
-            />
-        ),
-        [policyID, cardSettings],
-    );
+    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
+
+    const renderListHeader = useCallback(() => <WorkspaceCardListHeader cardSettings={cardSettings} />, [cardSettings]);
 
     const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle();
-
-    const isSearchEmpty = filteredSortedCards.length === 0 && inputValue.length > 0;
 
     return (
         <ScreenWrapper
@@ -194,14 +187,21 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                 <EmptyCardView isBankAccountVerified={isBankAccountVerified} />
             ) : (
                 <>
-                    {sortedCards.length > 15 && (
-                        <SearchBar
-                            inputValue={inputValue}
-                            onChangeText={setInputValue}
-                            shouldShowEmptyState={isSearchEmpty}
-                            label={translate('workspace.expensifyCard.findCard')}
+                    <View style={styles.appBG}>
+                        <WorkspaceCardListLabels
+                            policyID={policyID}
+                            cardSettings={cardSettings}
                         />
-                    )}
+                        {sortedCards.length > 15 && (
+                            <SearchBar
+                                label={translate('workspace.expensifyCard.findCard')}
+                                inputValue={inputValue}
+                                onChangeText={setInputValue}
+                                shouldShowEmptyState={isSearchEmpty}
+                                style={[styles.mb0, styles.mt5]}
+                            />
+                        )}
+                    </View>
                     <FlatList
                         data={filteredSortedCards}
                         renderItem={renderItem}

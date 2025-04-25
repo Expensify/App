@@ -124,12 +124,13 @@ function WorkspaceCompanyCardsList({cardsList, policyID, handleAssignCard, isDis
 
     return (
         <>
-            {sortedCards.length > 15 && (
+            {sortedCards.length > 0 && (
                 <SearchBar
                     label={translate('workspace.companyCards.findCard')}
                     inputValue={inputValue}
                     onChangeText={setInputValue}
                     shouldShowEmptyState={isSearchEmpty}
+                    style={[styles.mt5]}
                 />
             )}
             <FlatList
