@@ -1125,6 +1125,11 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
         return false;
     }
 
+    const isAdmin = isUserPolicyAdmin(newPolicy, currentUserLogin);
+    if (report?.stateNum && report?.stateNum > CONST.REPORT.STATE_NUM.SUBMITTED && !isAdmin) {
+        return false;
+    }
+
     // Submitters: workspaces where the submitter is a member of
     const isCurrentUserSubmitter = report?.ownerAccountID === currentUserAccountID;
     if (isCurrentUserSubmitter) {
@@ -1141,7 +1146,7 @@ const isWorkspaceEligibleForReportChange = (newPolicy: OnyxEntry<Policy>, report
     }
 
     // Admins: same as approvers OR workspaces where the admin is an admin of (note that the submitter is invited to the workspace in this case)
-    if (isPolicyOwner(newPolicy, currentUserAccountID) || isUserPolicyAdmin(newPolicy, currentUserLogin)) {
+    if (isPolicyOwner(newPolicy, currentUserAccountID) || isAdmin) {
         return true;
     }
 
@@ -1251,6 +1256,10 @@ function getWorkflowApprovalsUnavailable(policy: OnyxEntry<Policy>) {
 
 function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
+}
+
+function getAllPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => !!p);
 }
 
 function getActivePolicy(): OnyxEntry<Policy> {
@@ -1406,16 +1415,14 @@ function isPrefferedExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
+/**
+ * Checks if the user is invited to any workspace.
+ */
+function isUserInvitedToWorkspace(): boolean {
+    const currentUserAccountID = getCurrentUserAccountID();
+    return Object.values(allPolicies ?? {}).some(
+        (policy) => policy?.ownerAccountID !== currentUserAccountID && policy?.isPolicyExpenseChatEnabled && policy?.id && policy.id !== CONST.POLICY.ID_FAKE,
+    );
 }
 
 export {
@@ -1543,6 +1550,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
+    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1558,8 +1566,8 @@ export {
     isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
-    isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
+    isUserInvitedToWorkspace,
 };
 
 export type {MemberEmailsToAccountIDs};

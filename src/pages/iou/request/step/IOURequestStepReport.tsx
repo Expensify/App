@@ -44,12 +44,12 @@ const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
 function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
     const {backTo, action} = route.params;
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector)});
+    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector), canBeMissing: true});
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
     const policyID = Object.values(allReports ?? {}).find(
-        (report) => report?.reportID === transaction?.reportID || report?.reportID === transaction?.participants?.at(0)?.reportID,
+        (report) => report?.reportID === transaction?.reportID || (transaction?.participants && report?.reportID === transaction.participants.at(0)?.reportID),
     )?.policyID;
     const expenseReports = getOutstandingReports(policyID, allReports ?? {});
 
@@ -97,6 +97,7 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
             shouldShowWrapper
             testID={IOURequestStepReport.displayName}
             includeSafeAreaPaddingBottom
+            shouldShowNotFoundPage={expenseReports.length === 0}
         >
             <SelectionList
                 sections={[{data: reportOptions}]}

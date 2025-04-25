@@ -78,3 +78,11 @@ allprojects {
 }
 
 apply plugin: "com.facebook.react.rootproject"
+
+task buildReactNativeArtifacts {
+    dependsOn(gradle.includedBuild('react-native').task(':packages:react-native:ReactAndroid:build'))
+}
+
+task publishReactNativeArtifacts {
+    dependsOn(gradle.includedBuild('react-native').task(':packages:react-native:ReactAndroid:publishReleasePublicationToMavenRepository'))
+}
