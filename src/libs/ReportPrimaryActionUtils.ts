@@ -15,6 +15,7 @@ import {
 } from './PolicyUtils';
 import {getAllReportActions, getOneTransactionThreadReportID} from './ReportActionsUtils';
 import {
+    canAddTransaction as canAddTransactionUtil,
     getMoneyRequestSpendBreakdown,
     getParentReport,
     getReportNameValuePairs,
@@ -45,9 +46,9 @@ import {
 function isAddExpenseAction(report: Report, reportTransactions: Transaction[]) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportSubmitter = isCurrentUserSubmitter(report.reportID);
-    const isOpenReport = isOpenReportUtils(report);
+    const canAddTransaction = canAddTransactionUtil(report);
 
-    return isExpenseReport && isReportSubmitter && isOpenReport && reportTransactions.length === 0;
+    return isExpenseReport && canAddTransaction && isReportSubmitter && reportTransactions.length === 0;
 }
 
 function isSubmitAction(report: Report, reportTransactions: Transaction[], policy?: Policy) {
