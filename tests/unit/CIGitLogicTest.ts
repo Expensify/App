@@ -17,14 +17,13 @@ import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
-import asMutable from '@src/types/utils/asMutable';
 import * as Log from '../../scripts/utils/Logger';
 
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Oktokit GithubAPI
-const mockGetInput = jest.fn()
+const mockGetInput = jest.fn<string | undefined, [string]>();
 const mockCompareCommitsResponseBase = {
     data: {
         url: '',
@@ -85,19 +84,20 @@ function getVersion(): string {
 }
 
 function initGithubAPIMocking() {
-    jest.spyOn(core, 'getInput').mockImplementation((name) => {
+    jest.spyOn(core, 'getInput').mockImplementation((name): string => {
         if (name === 'GITHUB_TOKEN') {
             return 'mock-token';
         }
-        return mockGetInput(name) || '';
+        return mockGetInput(name) ?? '';
     });
     jest.spyOn(GithubUtils.octokit.repos, 'compareCommits')
-        .mockImplementation(async (params) => {
+        .mockImplementation((params) => {
             const base = params?.base;
             const head = params?.head;
             const tagPairKey = `${base}...${head}`;
             console.log(`Mock compareCommits called with: ${tagPairKey}`);
 
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             const mockCommits: any[] = (() => {
                 switch (tagPairKey) {
                     case '2.0.0-0...2.0.0-1-staging':
@@ -212,7 +212,7 @@ function initGithubAPIMocking() {
                 }
             })();
 
-            return {
+            return Promise.resolve({
                 ...mockCompareCommitsResponseBase,
                 data: {
                     ...mockCompareCommitsResponseBase.data,
@@ -221,7 +221,7 @@ function initGithubAPIMocking() {
                     ahead_by: mockCommits.length,
                     status: mockCommits.length > 0 ? 'ahead' : 'identical',
                 },
-            };
+            });
         });
 }
 
@@ -519,9 +519,6 @@ describe('CIGitLogic', () => {
         initGitServer();
         checkoutRepo();
         Log.success('Setup complete!');
-
-        // Mock core module
-        asMutable(core).getInput = mockGetInput;
     });
 
     afterAll(() => {
