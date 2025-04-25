@@ -4,7 +4,7 @@ import createOnyxDerivedValueConfig from '@userActions/OnyxDerived/createOnyxDer
 import hasKeyTriggeredCompute from '@userActions/OnyxDerived/utils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportAttributes} from '@src/types/onyx';
+import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 
 let isFullyComputed = false;
 
@@ -32,7 +32,10 @@ export default createOnyxDerivedValueConfig({
             (dependency) => dependency !== undefined,
         );
         if (!areAllDependenciesSet) {
-            return {};
+            return {
+                reports: {},
+                locale: null,
+            };
         }
         // if any of those keys changed, reset the isFullyComputed flag to recompute all reports
         if (hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, sourceValues) || hasKeyTriggeredCompute(ONYXKEYS.PERSONAL_DETAILS_LIST, sourceValues)) {
@@ -43,12 +46,12 @@ export default createOnyxDerivedValueConfig({
 
         // if we already computed the report attributes and there is no new reports data, return the current value
         if ((isFullyComputed && reportUpdates === undefined) || !reports) {
-            return currentValue ?? {};
+            return currentValue ?? {reports: {}, locale: null};
         }
 
         const dataToIterate = isFullyComputed && reportUpdates !== undefined ? reportUpdates : reports ?? {};
 
-        const reportAttributes = Object.keys(dataToIterate).reduce<Record<string, ReportAttributes>>((acc, reportID) => {
+        const reportAttributes = Object.keys(dataToIterate).reduce<ReportAttributesDerivedValue['reports']>((acc, reportID) => {
             // source value sends partial data, so we need an entire report object to do computations
             const report = reports[reportID];
 
@@ -78,13 +81,16 @@ export default createOnyxDerivedValueConfig({
             };
 
             return acc;
-        }, currentValue ?? {});
+        }, currentValue?.reports ?? {});
 
         // mark the report attributes as fully computed after first iteration to avoid unnecessary recomputations on all objects
         if (reportUpdates === undefined && Object.keys(reports ?? {}).length > 0 && !isFullyComputed) {
             isFullyComputed = true;
         }
 
-        return reportAttributes;
+        return {
+            reports: reportAttributes,
+            locale: preferredLocale ?? null,
+        };
     },
 });
