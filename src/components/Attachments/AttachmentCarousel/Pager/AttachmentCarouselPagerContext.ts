@@ -49,4 +49,3 @@ type AttachmentCarouselPagerContextValue = {
 const AttachmentCarouselPagerContext = createContext<AttachmentCarouselPagerContextValue | null>(null);
 
 export default AttachmentCarouselPagerContext;
-export type {AttachmentCarouselPagerContextValue};

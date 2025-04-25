@@ -274,4 +274,4 @@ function sortCategories(categories: Record<string, Category>): Category[] {
 
 export {getCategoryListSections, getCategoryOptionTree, sortCategories};
 
-export type {Category, SectionBase as CategorySectionBase, CategoryTreeSection, Hierarchy};
+export type {Category, CategoryTreeSection};

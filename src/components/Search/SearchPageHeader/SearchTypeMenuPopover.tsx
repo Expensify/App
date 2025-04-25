@@ -227,7 +227,7 @@ function SearchTypeMenuPopover({queryJSON, searchName}: SearchTypeMenuNarrowProp
                 <PopoverMenu
                     menuItems={allMenuItems as PopoverMenuItem[]}
                     isVisible={isPopoverVisible}
-                    anchorPosition={styles.createMenuPositionSidebar(windowHeight)}
+                    anchorPosition={canUseLeftHandBar ? styles.createLHBMenuPositionSidebar(windowHeight) : styles.createMenuPositionSidebar(windowHeight)}
                     onClose={closeMenu}
                     onItemSelected={closeMenu}
                     anchorRef={buttonRef}

@@ -3,8 +3,8 @@ name: Cherry-pick a pull request
 on:
   workflow_dispatch:
     inputs:
-      PULL_REQUEST_NUMBER:
-        description: The number of a pull request to CP
+      PULL_REQUEST_URL:
+        description: The full URL of the Expensify/App pull request to cherry-pick
         required: true
 
 jobs:
@@ -15,11 +15,37 @@ jobs:
   cherryPick:
     needs: createNewVersion
     runs-on: ubuntu-latest
-    env:
-      # The name of the branch created if there are conflicts when CPing the PR.
-      CONFLICT_BRANCH_NAME: cherry-pick-staging-${{ github.event.inputs.PULL_REQUEST_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}
     steps:
-      - name: Checkout staging branch
+      - name: Extract PR information
+        id: getPRInfo
+        run: |
+          echo "REPO_FULL_NAME=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
+          echo "PR_NUMBER=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')" >> "$GITHUB_OUTPUT"
+
+      - name: Verify repository
+        run: |
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]]; then
+            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
+            exit 1
+          fi
+
+      - name: Set conflict branch name
+        id: getBranchName
+        run: echo "CONFLICT_BRANCH_NAME=cherry-pick-staging-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout staging branch with full history if cherry picking Mobile-Expensify
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' }}
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+          # Only fetch depth 0 for Mobile-Expensify, because it's a submodule and we need more history to cherry pick successfully
+          fetch-depth: 0
+      
+      - name: Checkout staging branch without full history if cherry picking App
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
         # v4
         uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
         with:
@@ -50,7 +76,8 @@ jobs:
         with:
           SEMVER_LEVEL: "PATCH"
 
-      - name: Fetch history of relevant refs
+      - name: Fetch history of relevant refs if cherry picking an App change
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
         run: |
           # Temporary hack during transition when -staging suffix is being added to tags
           if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
@@ -58,7 +85,6 @@ jobs:
           else
             git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
           fi
-
           cd Mobile-Expensify
           # Temporary hack during transition when -staging suffix is being added to tags
           if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
@@ -94,13 +120,14 @@ jobs:
           fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
-      - name: Get merge commit for E/App pull request to CP
+      - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
-        uses: ./.github/actions/javascript/getPullRequestDetails
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USER: ${{ github.actor }}
-          PULL_REQUEST_NUMBER: ${{ github.event.inputs.PULL_REQUEST_NUMBER }}
+        run: |
+          read -r MERGE_COMMIT_SHA MERGE_ACTOR <<< "$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json mergeCommit,author --jq '"\(.mergeCommit.oid) \(.author.login)"')"
+          echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "MERGE_ACTOR=$MERGE_ACTOR" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
         working-directory: Mobile-Expensify
@@ -121,6 +148,8 @@ jobs:
 
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
+        # If cherry picking a Mobile-Expensify change, we need to run the cherry pick in the Mobile-Expensify directory
+        working-directory: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' && 'Mobile-Expensify' || '.' }}
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
@@ -137,9 +166,21 @@ jobs:
       - name: Push changes
         run: |
           if [[ ${{steps.cherryPick.outputs.HAS_CONFLICTS}} == 'true' ]]; then
-            git checkout -b ${{ env.CONFLICT_BRANCH_NAME }}
-            git push --set-upstream origin ${{ env.CONFLICT_BRANCH_NAME }}
+            git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
+            git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
+            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
+              # Push Mobile-Expensify changes first
+              cd Mobile-Expensify
+              git push origin staging
+              cd ..
+              
+              # Update and commit the submodule reference in E/App
+              git add Mobile-Expensify
+              git commit -m "Update Mobile-Expensify submodule to include cherry-picked PR #${{ steps.getPRInfo.outputs.PR_NUMBER }}"
+            fi
+            
+            # Push E/App changes
             git push origin staging
           fi
 
@@ -150,13 +191,13 @@ jobs:
           AUTHOR_CHECKLIST=$(sed -n '/### PR Author Checklist/,$p' .github/PULL_REQUEST_TEMPLATE.md)
 
           PR_DESCRIPTION=$(cat <<EOF
-          🍒 Cherry pick https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒
+          🍒 Cherry pick ${{ github.event.inputs.PULL_REQUEST_URL }} to staging 🍒
 
           This PR had conflicts when we tried to cherry-pick it to staging. You'll need to manually perform the cherry-pick, using the following steps:
 
           \`\`\`bash
           git fetch
-          git checkout ${{ env.CONFLICT_BRANCH_NAME }}
+          git checkout ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}
           \`\`\`
 
@@ -166,7 +207,7 @@ jobs:
           git commit --amend -m "\$(git log -1 --pretty=%B)" -m "(CP triggered by ${{ github.actor }})"
           \`\`\`
 
-          That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ env.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
+          That will help us keep track of who triggered this CP. Once all that's done, push your changes with \`git push origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}\`, and then open this PR for review.
 
           Note that you **must** test this PR, and both the author and reviewer checklist should be completed, just as if you were merging the PR to main.
 
@@ -178,7 +219,7 @@ jobs:
 
           # Create PR
           gh pr create \
-            --title "🍒 Cherry pick PR #${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 🍒" \
+            --title "🍒 Cherry pick PR #${{ steps.getPRInfo.outputs.PR_NUMBER }} to staging 🍒" \
             --body "$PR_DESCRIPTION" \
             --label "Engineering,Hourly" \
             --base "staging"
@@ -190,7 +231,7 @@ jobs:
         if: fromJSON(steps.cherryPick.outputs.HAS_CONFLICTS)
         run: |
           gh pr edit --add-assignee "${{ github.actor }},${{ steps.getCPMergeCommit.outputs.MERGE_ACTOR }}"
-          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_NUMBER }} --json author --jq .author.login)"
+          ORIGINAL_PR_AUTHOR="$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json author --jq .author.login)"
           gh pr edit --add-assignee "$ORIGINAL_PR_AUTHOR"
         env:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
@@ -198,9 +239,9 @@ jobs:
         continue-on-error: true
 
       - name: Label original PR with CP Staging
-        run: gh pr edit ${{ inputs.PULL_REQUEST_NUMBER }} --add-label 'CP Staging'
+        run: gh pr edit ${{ github.event.inputs.PULL_REQUEST_URL }} --add-label 'CP Staging'
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: "Announces a CP failure in the #announce Slack room"
         # v3
@@ -214,7 +255,7 @@ jobs:
               attachments: [{
                 color: "#DB4545",
                 pretext: `<!subteam^S4TJJ3PSL>`,
-                text: `💥 Failed to CP https://github.com/Expensify/App/pull/${{ github.event.inputs.PULL_REQUEST_NUMBER }} to staging 💥`,
+                text: `💥 Failed to CP ${{ github.event.inputs.PULL_REQUEST_URL }} to staging 💥`,
               }]
             }
         env:
