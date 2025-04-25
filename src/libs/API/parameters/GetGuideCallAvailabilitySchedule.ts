@@ -3,7 +3,7 @@ type GetGuideCallAvailabilityScheduleParams = {
     policyID: string;
 
     /** Month to get the availability for */
-    month: number;
+    month?: number;
 
     /** Admins room reportID */
     reportID: string;

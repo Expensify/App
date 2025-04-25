@@ -3,18 +3,57 @@ import type { GetGuideCallAvailabilityScheduleParams } from '@libs/API/parameter
 import { READ_COMMANDS } from '@libs/API/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type { PersonalDetails, ScheduleCallDraft } from '@src/types/onyx';
+import type { OnyxUpdate } from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import * as NetworkStore from '@libs/Network/NetworkStore';
 import { openExternalLink } from './Link';
 
 
-function getGuideCallAvailabilitySchedule(policyID: string | undefined, reportID: string, accountID: number, month: number) {
+function getGuideCallAvailabilitySchedule(policyID: string | undefined, reportID: string, accountID: number, month?: number) {
     const authToken = NetworkStore.getAuthToken();
 
     if (!policyID || !authToken) {
         return;
     }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                calendlySchedule: {
+                    isLoading: true,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                calendlySchedule: {
+                    isLoading: false,
+                    errors: null,
+                },
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`,
+            value: {
+                calendlySchedule: {
+                    isLoading: false,
+                },
+            },
+        },
+    ];
 
     const params: GetGuideCallAvailabilityScheduleParams = {
         policyID,
@@ -24,7 +63,7 @@ function getGuideCallAvailabilitySchedule(policyID: string | undefined, reportID
         reportID,
     };
 
-    API.read(READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE, params);
+    API.read(READ_COMMANDS.GET_GUIDE_CALL_AVAILABILITY_SCHEDULE, params, {optimisticData, successData, failureData});
 }
 
 function saveBookingDraft(data: ScheduleCallDraft) {
@@ -36,9 +75,8 @@ function clearBookingDraft() {
 }
 
 function confirmBooking(data: Required<ScheduleCallDraft>, currentUser: PersonalDetails){
-    const scheduleUrl = `${data?.guide?.scheduleUrl}?name=${encodeURIComponent(currentUser.displayName ?? '')}&email=${encodeURIComponent(currentUser?.login ?? '')}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}&utm_campaign=91234ebaaffc89-SJC`;
+    const scheduleUrl = `${data.guide.scheduleUrl}?name=${encodeURIComponent(currentUser.displayName ?? '')}&email=${encodeURIComponent(currentUser?.login ?? '')}&utm_source=newDot&utm_medium=report&utm_content=${data.reportID}&utm_campaign=91234ebaaffc89-SJC`;
 
-    console.debug('data', data);
 
     openExternalLink(scheduleUrl);
     clearBookingDraft();

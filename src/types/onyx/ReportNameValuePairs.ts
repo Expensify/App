@@ -43,14 +43,12 @@ type GuideCalendlySchedule = {
         /**
          * Calendly event scheduling url
          */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        scheduling_url: string;
+        schedulingURL: string;
 
         /**
          * Start time for the slow
          */
-        // eslint-disable-next-line @typescript-eslint/naming-convention
-        start_time: string;
+        startTime: string;
     }>;
 };
 
@@ -68,7 +66,16 @@ type ReportNameValuePairs = OnyxCommon.OnyxValueWithOfflineFeedback<{
     calendlyCalls?: CalendlyCall[];
 
     /** Guides Call schedule */
-    calendlySchedule?: Record<GuideAccountID, GuideCalendlySchedule>;
+    calendlySchedule?: {
+        /** Whether the API call is loading */
+        isLoading?: boolean;
+
+        /** Whether the account was merged successfully */
+        data?: Record<GuideAccountID, GuideCalendlySchedule>;
+
+        /** Errors while merging the account */
+        errors: OnyxCommon.Errors;
+    }
 
     /** The time the report export failed */
     exportFailedTime?: string;
