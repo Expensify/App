@@ -112,11 +112,10 @@ function EmptySearchView({type, hasResults}: EmptySearchViewProps) {
     });
     const viewTourTaskReportID = introSelected?.viewTour;
     const [viewTourTaskReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${viewTourTaskReportID}`, {canBeMissing: false});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const parentReport = useParentReport(viewTourTaskReport?.reportID);
     const isParentReportArchived = useReportIsArchived(parentReport?.reportID);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const isReportArchived = useReportIsArchived(viewTourTaskReport?.parentReportID);
-    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isReportArchived);
+    const canModifyTheTask = canModifyTask(viewTourTaskReport, currentUserPersonalDetails.accountID, isParentReportArchived);
     const canActionTheTask = canActionTask(viewTourTaskReport, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const content = useMemo(() => {
