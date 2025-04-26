@@ -38,7 +38,7 @@ function AnimatedSettlementButton({
     const height = useSharedValue<number>(variables.componentSizeNormal);
     const [canShow, setCanShow] = React.useState(true);
     const [minWidth, setMinWidth] = React.useState<number>(0);
-    const viewRef = useRef<HTMLElement | null>();
+    const viewRef = useRef<HTMLElement | null>(null);
 
     const containerStyles = useAnimatedStyle(() => ({
         height: height.get(),

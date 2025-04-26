@@ -43,7 +43,7 @@ jobs:
           submodules: true
           # Only fetch depth 0 for Mobile-Expensify, because it's a submodule and we need more history to cherry pick successfully
           fetch-depth: 0
-      
+
       - name: Checkout staging branch without full history if cherry picking App
         if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
         # v4
@@ -79,19 +79,9 @@ jobs:
       - name: Fetch history of relevant refs if cherry picking an App change
         if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
         run: |
-          # Temporary hack during transition when -staging suffix is being added to tags
-          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          else
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          fi
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
           cd Mobile-Expensify
-          # Temporary hack during transition when -staging suffix is being added to tags
-          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          else
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          fi
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit
