@@ -260,7 +260,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.CONTEXTUAL_SUGGESTION) {
                     const searchQuery = getContextualSearchQuery(item);
                     const newSearchQuery = `${searchQuery}\u00A0`;
-                    onSearchQueryChange(newSearchQuery);
+                    onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
                     const autocompleteKey = getContextualSearchAutocompleteKey(item);
