@@ -298,7 +298,23 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             success
                             text={translate('productTrainingTooltip.scanTestTooltip.tryItOut')}
                             style={[styles.flex1]}
-                            onPress={config.onConfirm}
+                            // On some Samsung devices, `onPress` is never triggered.
+                            // So, we use `onPressIn` for Android to ensure the button is pressable.
+                            onPressIn={
+                                getPlatform() === CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          config.onConfirm?.();
+                                      }
+                                    : undefined
+                            }
+                            // For other platforms, we stick with `onPress`.
+                            onPress={
+                                getPlatform() !== CONST.PLATFORM.ANDROID
+                                    ? () => {
+                                          config.onConfirm?.();
+                                      }
+                                    : undefined
+                            }
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
