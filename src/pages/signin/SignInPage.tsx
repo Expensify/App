@@ -31,6 +31,7 @@ import ChooseSSOOrMagicCode from './ChooseSSOOrMagicCode';
 import EmailDeliveryFailurePage from './EmailDeliveryFailurePage';
 import LoginForm from './LoginForm';
 import type {InputHandle} from './LoginForm/types';
+import {LoginProvider} from './SignInLoginContext';
 import SignInPageLayout from './SignInPageLayout';
 import type {SignInPageLayoutRef} from './SignInPageLayout/types';
 import SignUpWelcomeForm from './SignUpWelcomeForm';
@@ -178,8 +179,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
      *  if we need to clear their sign in details so they can enter a login */
     const [hasInitiatedSAMLLogin, setHasInitiatedSAMLLogin] = useState(false);
 
-    const [login, setLogin] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
-
     const isClientTheLeader = !!activeClients && isClientTheLeaderActiveClientManager();
     // We need to show "Another login page is opened" message if the page isn't active and visible
     // eslint-disable-next-line rulesdir/no-negated-variables
@@ -323,8 +322,6 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
                 <LoginForm
                     ref={loginFormRef}
                     isVisible={shouldShowLoginForm}
-                    login={login}
-                    onLoginChanged={setLogin}
                     blurOnSubmit={isAccountValidated === false}
                     // eslint-disable-next-line react-compiler/react-compiler
                     scrollPageToTop={signInPageLayoutRef.current?.scrollPageToTop}
@@ -354,13 +351,29 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 type SignInPageProps = SignInPageInnerProps;
 const SignInPageWithRef = forwardRef(SignInPage);
 
+function SignInPageLoginWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+    return (
+        <LoginProvider>
+            <SignInPageWithRef
+                ref={ref}
+                // eslint-disable-next-line react/jsx-props-no-spreading
+                {...props}
+            />
+        </LoginProvider>
+    );
+}
+
+SignInPageLoginWrapper.displayName = 'SignInPage';
+
+const SignInPageLoginWrapperWithRef = forwardRef(SignInPageLoginWrapper);
+
 function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPageWithRef
+                    <SignInPageLoginWrapperWithRef
                         ref={ref}
                         // eslint-disable-next-line react/jsx-props-no-spreading
                         {...props}

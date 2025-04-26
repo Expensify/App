@@ -27,6 +27,7 @@ import * as LoginUtils from '@libs/LoginUtils';
 import {parsePhoneNumber} from '@libs/PhoneNumber';
 import * as ValidationUtils from '@libs/ValidationUtils';
 import Visibility from '@libs/Visibility';
+import {useLogin} from '@pages/signin/SignInLoginContext';
 import * as CloseAccount from '@userActions/CloseAccount';
 import * as Session from '@userActions/Session';
 import CONFIG from '@src/CONFIG';
@@ -40,7 +41,8 @@ import type {InputHandle} from './types';
 
 type BaseLoginFormProps = WithToggleVisibilityViewProps & LoginFormProps;
 
-function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+function BaseLoginForm({blurOnSubmit = false, isVisible}: BaseLoginFormProps, ref: ForwardedRef<InputHandle>) {
+    const {login, setLogin} = useLogin();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [closeAccount] = useOnyx(ONYXKEYS.FORMS.CLOSE_ACCOUNT_FORM);
     const styles = useThemeStyles();
@@ -89,7 +91,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
      */
     const onTextInput = useCallback(
         (text: string) => {
-            onLoginChanged(text);
+            setLogin(text);
             if (firstBlurred.current) {
                 validate(text);
             }
@@ -103,7 +105,7 @@ function BaseLoginForm({login, onLoginChanged, blurOnSubmit = false, isVisible}:
                 CloseAccount.setDefaultData();
             }
         },
-        [account, closeAccount, input, onLoginChanged, validate],
+        [account, closeAccount, input, setLogin, validate],
     );
 
     function getSignInWithStyles() {
