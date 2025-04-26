@@ -300,26 +300,15 @@ const useProductTrainingContext = (tooltipName: ProductTrainingTooltipName, shou
                             style={[styles.flex1]}
                             // On some Samsung devices, `onPress` is never triggered.
                             // So, we use `onPressIn` for Android to ensure the button is pressable.
-                            onPressIn={
-                                getPlatform() === CONST.PLATFORM.ANDROID
-                                    ? () => {
-                                          config.onConfirm?.();
-                                      }
-                                    : undefined
-                            }
+                            onPressIn={getPlatform() === CONST.PLATFORM.ANDROID ? config.onConfirm : undefined}
                             // For other platforms, we stick with `onPress`.
-                            onPress={
-                                getPlatform() !== CONST.PLATFORM.ANDROID
-                                    ? () => {
-                                          config.onConfirm?.();
-                                      }
-                                    : undefined
-                            }
+                            onPress={getPlatform() !== CONST.PLATFORM.ANDROID ? config.onConfirm : undefined}
                         />
                         <Button
                             text={translate('productTrainingTooltip.scanTestTooltip.noThanks')}
                             style={[styles.flex1]}
-                            onPress={config.onDismiss}
+                            onPressIn={getPlatform() === CONST.PLATFORM.ANDROID ? config.onDismiss : undefined}
+                            onPress={getPlatform() !== CONST.PLATFORM.ANDROID ? config.onDismiss : undefined}
                         />
                     </View>
                 )}
