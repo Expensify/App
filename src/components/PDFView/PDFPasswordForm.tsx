@@ -43,7 +43,7 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
     const [shouldShowForm, setShouldShowForm] = useState(false);
     const textInputRef = useRef<BaseTextInputRef>(null);
 
-    const focusTimeoutRef = useRef<NodeJS.Timeout>();
+    const focusTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
     const errorText = useMemo(() => {
         if (isPasswordInvalid) {
