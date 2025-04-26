@@ -5126,12 +5126,11 @@ const translations = {
         billcom: 'BILLCOM',
     },
     workspaceActions: {
-        addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
-            `agregó a ${approverName} (${approverEmail}) como aprobador para el/la ${field} "${name}"`,
+        addApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) => `agregó a ${approverName} (${approverEmail}) como aprobador de ${field} "${name}"`,
         deleteApprovalRule: ({approverEmail, approverName, field, name}: AddedPolicyApprovalRuleParams) =>
-            `eliminó a ${approverName} (${approverEmail}) como aprobador para el campo ${field} "${name}"`,
+            `eliminó a ${approverName} (${approverEmail}) como aprobador de ${field} "${name}"`,
         updateApprovalRule: ({field, name, newApproverEmail, newApproverName, oldApproverEmail, oldApproverName}: UpdatedPolicyApprovalRuleParams) =>
-            `actualizó el aprobador para el campo ${field} "${name}" a ${newApproverName} (${newApproverEmail}) (previamente ${oldApproverName} (${oldApproverEmail}))`,
+            `actualizó el aprobador de ${field} "${name}" a ${newApproverName} (${newApproverEmail}) (previamente ${oldApproverName} (${oldApproverEmail}))`,
         addCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `añadió la categoría "${categoryName}""`,
         deleteCategory: ({categoryName}: UpdatedPolicyCategoryParams) => `eliminó la categoría "${categoryName}"`,
         updateCategory: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => `${oldValue ? 'deshabilitó' : 'habilitó'} la categoría "${categoryName}"`,
@@ -5140,18 +5139,18 @@ const translations = {
                 return `actualizó la categoría "${categoryName}" añadiendo un Código de Nómina de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código de Nómina (previamente "${oldValue}")`;
+                return `actualizó la categoría "${categoryName}" eliminando el Código de Nómina (previamente "${oldValue}")`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el código de Nómina a ${newValue} (previamente "${oldValue}")`;
+            return `actualizó la categoría "${categoryName}" cambiando el Código de Nómina a ${newValue} (previamente "${oldValue}")`;
         },
         updateCategoryGLCode: ({oldValue, categoryName, newValue}: UpdatedPolicyCategoryGLCodeParams) => {
             if (!oldValue) {
-                return `actualizó la categoría "${categoryName}" añadiendo un código GL de ${newValue}`;
+                return `actualizó la categoría "${categoryName}" añadiendo un Código GL de ${newValue}`;
             }
             if (!newValue && oldValue) {
-                return `actualizó la categoría "${categoryName}" eliminando el código GL (previamente "${oldValue}")`;
+                return `actualizó la categoría "${categoryName}" eliminando el Código GL (previamente "${oldValue}")`;
             }
-            return `actualizó la categoría "${categoryName}" cambiando el código GL a ${newValue} (previamente "${oldValue}")`;
+            return `actualizó la categoría "${categoryName}" cambiando el Código GL a ${newValue} (previamente "${oldValue}")`;
         },
         updateAreCommentsRequired: ({oldValue, categoryName}: UpdatedPolicyCategoryParams) => {
             return `actualizó la categoría "${categoryName}" cambiando la descripción a ${!oldValue ? 'Obligatoria' : 'No obligatoria'} (previamente ${
@@ -5210,7 +5209,7 @@ const translations = {
             }
             return `añadió la parte recuperable de impuestos "${newValue}" a la tasa de distancia "${customUnitRateName}"`;
         },
-        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `añadió una nueva tasa de "${rateName}" para "${customUnitName}"`,
+        deleteCustomUnitRate: ({customUnitName, rateName}: AddOrDeletePolicyCustomUnitRateParams) => `eliminó una nueva tasa de "${rateName}" para "${customUnitName}"`,
         addedReportField: ({fieldType, fieldName}: AddedOrDeletedPolicyReportFieldParams) => `añadió el campo de informe ${fieldType} "${fieldName}"`,
         updateReportFieldDefaultValue: ({defaultValue, fieldName}: UpdatedPolicyReportFieldDefaultValueParams) =>
             `estableció el valor predeterminado del campo de informe "${fieldName}" en "${defaultValue}"`,
@@ -5579,7 +5578,7 @@ const translations = {
                 leftWorkspace: ({nameOrEmail}: LeftWorkspaceParams) => `${nameOrEmail} salió del espacio de trabajo`,
                 removeMember: ({email, role}: AddEmployeeParams) => `eliminado ${role} ${email}`,
                 removedConnection: ({connectionName}: ConnectionNameParams) => `eliminó la conexión a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
-                addedConnection: ({connectionName}: ConnectionNameParams) => `conectado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
+                addedConnection: ({connectionName}: ConnectionNameParams) => `se conectó a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}`,
             },
         },
     },
