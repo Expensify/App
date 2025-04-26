@@ -6384,47 +6384,6 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 }
 
 /**
- * Builds an optimistic modified expense action for a tracked expense move with a randomly generated reportActionID.
- * @param transactionThreadID - The reportID of the transaction thread
- * @param movedToReportID - The reportID of the report the transaction is moved to
- */
-function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string | undefined, movedToReportID: string | undefined): OptimisticModifiedExpenseReportAction {
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
-
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-        actorAccountID: currentUserAccountID,
-        automatic: false,
-        avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
-        isAttachmentOnly: false,
-        message: [
-            {
-                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
-                text: 'You',
-                style: 'strong',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-        ],
-        originalMessage: {
-            movedToReportID,
-        },
-        person: [
-            {
-                style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
-                type: 'TEXT',
-            },
-        ],
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        reportActionID: rand64(),
-        reportID: transactionThreadID,
-        shouldShow: true,
-        delegateAccountID: delegateAccountDetails?.accountID,
-    };
-}
-
-/**
  * Updates a report preview action that exists for an IOU report.
  *
  * @param [comment] - User comment for the IOU.
@@ -10502,7 +10461,6 @@ export {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
     buildOptimisticChangePolicyReportAction,
-    buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticReportPreview,

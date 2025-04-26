@@ -809,6 +809,7 @@ const CONST = {
         LEFT_HAND_BAR: 'leftHandBar',
         WALLET: 'newdotWallet',
         GLOBAL_REIMBURSEMENTS_ON_ND: 'globalReimbursementsOnND',
+        PRIVATE_DOMAIN_ONBOARDING: 'privateDomainOnboarding',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -3447,6 +3448,7 @@ const CONST = {
         SSN_LAST_FOUR: /^(?!0000)[0-9]{4}$/,
         SSN_FULL_NINE: /^(?!0000)[0-9]{9}$/,
         NUMBER: /^[0-9]+$/,
+        PHONE_NUMBER: /^\+?[0-9]{4,17}$/,
         CARD_NUMBER: /^[0-9]{15,16}$/,
         CARD_SECURITY_CODE: /^[0-9]{3,4}$/,
         CARD_EXPIRATION_DATE: /^(0[1-9]|1[0-2])([^0-9])?([0-9]{4}|([0-9]{2}))$/,
