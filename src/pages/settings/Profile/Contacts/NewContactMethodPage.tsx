@@ -16,6 +16,7 @@ import ValidateCodeActionModal from '@components/ValidateCodeActionModal';
 import useAccountValidation from '@hooks/useAccountValidation';
 import useBeforeRemove from '@hooks/useBeforeRemove';
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage, getLatestErrorField} from '@libs/ErrorUtils';
 import {getPhoneLogin, validateNumber} from '@libs/LoginUtils';
@@ -73,6 +74,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
         },
         [pendingContactAction?.contactMethod],
     );
+    const prevPendingContactAction = usePrevious(pendingContactAction);
 
     useBeforeRemove(() => setIsValidateCodeActionModalVisible(false));
 
@@ -81,7 +83,7 @@ function NewContactMethodPage({route, navigation}: NewContactMethodPageProps) {
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.route);
+        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(addSMSDomainIfPhoneNumber(prevPendingContactAction?.contactMethod ?? ''), navigateBackTo, true));
         clearUnvalidatedNewContactMethodAction();
     }, [pendingContactAction?.actionVerified]);
 
