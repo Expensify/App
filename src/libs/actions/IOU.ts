@@ -229,6 +229,7 @@ type BaseTransactionParams = {
     taxCode?: string;
     taxAmount?: number;
     billable?: boolean;
+    reimbursable?: boolean;
     customUnitRateID?: string;
 };
 
@@ -246,6 +247,7 @@ type MoneyRequestInformation = {
     createdReportActionIDForThread: string | undefined;
     onyxData: OnyxData;
     billable?: boolean;
+    reimbursable?: boolean;
 };
 
 type TrackExpenseInformation = {
@@ -395,7 +397,6 @@ type RequestMoneyInformation = {
     policyParams?: BasePolicyParams;
     gpsPoints?: GPSPoint;
     action?: IOUAction;
-    reimbursable?: boolean;
     transactionParams: RequestMoneyTransactionParams;
     isRetry?: boolean;
 };
@@ -583,6 +584,7 @@ type StartSplitBilActionParams = {
     receipt: Receipt;
     existingSplitChatReportID?: string;
     billable?: boolean;
+    reimbursable?: boolean;
     category: string | undefined;
     tag: string | undefined;
     currency: string;
@@ -3274,7 +3276,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {parentChatReport, transactionParams, participantParams, policyParams = {}, moneyRequestReportID = ''} = perDiemExpenseInformation;
     const {payeeAccountID = userAccountID, payeeEmail = currentUserEmail, participant} = participantParams;
     const {policy, policyCategories, policyTagList} = policyParams;
-    const {comment = '', currency, created, category, tag, customUnit, billable} = transactionParams;
+    const {comment = '', currency, created, category, tag, customUnit, billable, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
     const merchant = computePerDiemExpenseMerchant(customUnit, policy);
@@ -3352,6 +3354,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             tag,
             customUnit,
             billable,
+            reimbursable,
             pendingFields: {subRates: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
         },
     });
@@ -3468,6 +3471,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
             failureData,
         },
         billable,
+        reimbursable,
     };
 }
 
@@ -4900,7 +4904,7 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  * Submit expense to another user
  */
 function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
-    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action, reimbursable} = requestMoneyInformation;
+    const {report, participantParams, policyParams = {}, transactionParams, gpsPoints, action} = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
     transactionParams.comment = parsedComment;
@@ -4915,6 +4919,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation) {
         taxCode = '',
         taxAmount = 0,
         billable,
+        reimbursable,
         created,
         attendees,
         actionableWhisperReportActionID,
@@ -5117,6 +5122,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         createdReportActionIDForThread,
         onyxData,
         billable,
+        reimbursable,
     } = getPerDiemExpenseInformation({
         parentChatReport: currentChatReport,
         participantParams,
@@ -5148,6 +5154,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         transactionThreadReportID,
         createdReportActionIDForThread,
         billable,
+        reimbursable,
     };
 
     API.write(WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST, parameters, onyxData);
@@ -6010,6 +6017,7 @@ type SplitBillActionsParams = {
     category?: string;
     tag?: string;
     billable?: boolean;
+    reimbursable?: boolean;
     iouRequestType?: IOURequestType;
     existingSplitChatReportID?: string;
     splitShares?: SplitShares;
@@ -6035,6 +6043,7 @@ function splitBill({
     category = '',
     tag = '',
     billable = false,
+    reimbursable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     existingSplitChatReportID,
     splitShares = {},
@@ -6058,6 +6067,7 @@ function splitBill({
             tag,
             splitShares,
             billable,
+            reimbursable,
             iouRequestType,
             taxCode,
             taxAmount,
@@ -6075,6 +6085,7 @@ function splitBill({
         created,
         tag,
         billable,
+        reimbursable,
         transactionID: splitData.transactionID,
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
@@ -6109,6 +6120,7 @@ function splitBillAndOpenReport({
     category = '',
     tag = '',
     billable = false,
+    reimbursable = false,
     iouRequestType = CONST.IOU.REQUEST_TYPE.MANUAL,
     splitShares = {},
     splitPayerAccountIDs = [],
@@ -6132,6 +6144,7 @@ function splitBillAndOpenReport({
             tag,
             splitShares,
             billable,
+            reimbursable,
             iouRequestType,
             taxCode,
             taxAmount,
@@ -6149,6 +6162,7 @@ function splitBillAndOpenReport({
         category,
         tag,
         billable,
+        reimbursable,
         transactionID: splitData.transactionID,
         reportActionID: splitData.reportActionID,
         createdReportActionID: splitData.createdReportActionID,
@@ -6180,6 +6194,7 @@ function startSplitBill({
     receipt,
     existingSplitChatReportID,
     billable = false,
+    reimbursable = false,
     category = '',
     tag = '',
     currency,
@@ -6209,6 +6224,7 @@ function startSplitBill({
             taxCode,
             taxAmount,
             billable,
+            reimbursable,
             filename,
         },
     });
@@ -6344,6 +6360,7 @@ function startSplitBill({
         receipt: receiptObject,
         existingSplitChatReportID,
         billable,
+        reimbursable,
         category,
         tag,
         currency,
@@ -6493,6 +6510,7 @@ function startSplitBill({
         currency,
         isFromGroupDM: !existingSplitChatReport,
         billable,
+        reimbursable,
         ...(existingSplitChatReport ? {} : {createdReportActionID: splitChatCreatedReportAction.reportActionID}),
         chatType: splitChatReport?.chatType,
         taxCode,
@@ -6806,7 +6824,22 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     const {policy, policyCategories, policyTagList} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
     transactionParams.comment = parsedComment;
-    const {amount, comment, currency, created, category, tag, taxAmount, taxCode, merchant, billable, validWaypoints, customUnitRateID = '', splitShares = {}} = transactionParams;
+    const {
+        amount,
+        comment,
+        currency,
+        created,
+        category,
+        tag,
+        taxAmount,
+        taxCode,
+        merchant,
+        billable,
+        reimbursable,
+        validWaypoints,
+        customUnitRateID = '',
+        splitShares = {},
+    } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
     const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
@@ -6864,6 +6897,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             taxCode,
             taxAmount,
             billable,
+            reimbursable,
             splits: JSON.stringify(splits),
             chatType: splitData.chatType,
             description: parsedComment,
@@ -6908,6 +6942,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
                 taxCode,
                 taxAmount,
                 billable,
+                reimbursable,
             },
         });
 
@@ -6929,6 +6964,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             taxCode,
             taxAmount,
             billable,
+            reimbursable,
             transactionThreadReportID,
             createdReportActionIDForThread,
             payerEmail,

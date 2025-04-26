@@ -212,6 +212,11 @@ function IOURequestStepConfirmation({
         setMoneyRequestBillable(transactionID, defaultBillable);
     }, [transactionID, defaultBillable]);
 
+    const defaultReimbursable = !!policy?.defaultReimbursable;
+    useEffect(() => {
+        setMoneyRequestReimbursable(transactionID, defaultReimbursable);
+    }, [transactionID, defaultReimbursable]);
+
     useEffect(() => {
         // Exit early if the transaction is still loading
         if (isLoadingTransaction) {
@@ -405,7 +410,6 @@ function IOURequestStepConfirmation({
                 },
                 gpsPoints,
                 action,
-                reimbursable: transaction.reimbursable ?? policy?.defaultReimbursable,
                 transactionParams: {
                     amount: isTestReceipt ? CONST.TEST_RECEIPT.AMOUNT : transaction.amount,
                     attendees: transaction.comment?.attendees,
@@ -419,6 +423,7 @@ function IOURequestStepConfirmation({
                     taxCode: transactionTaxCode,
                     taxAmount: transactionTaxAmount,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                     actionableWhisperReportActionID: transaction.actionableWhisperReportActionID,
                     linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
                     linkedTrackedExpenseReportID: transaction.linkedTrackedExpenseReportID,
@@ -472,6 +477,7 @@ function IOURequestStepConfirmation({
                     tag: transaction.tag,
                     customUnit: transaction.comment?.customUnit,
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                 },
             });
         },
@@ -569,6 +575,7 @@ function IOURequestStepConfirmation({
                     splitShares: transaction.splitShares,
                     validWaypoints: getValidWaypoints(transaction.comment?.waypoints, true),
                     billable: transaction.billable,
+                    reimbursable: transaction.reimbursable,
                 },
             });
         },
@@ -617,6 +624,7 @@ function IOURequestStepConfirmation({
                         receipt: receiptFile,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         category: transaction.category,
                         tag: transaction.tag,
                         currency: transaction.currency,
@@ -644,6 +652,7 @@ function IOURequestStepConfirmation({
                         tag: transaction.tag,
                         existingSplitChatReportID: report?.reportID,
                         billable: transaction.billable,
+                        reimbursable: transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs ?? [],
@@ -669,6 +678,7 @@ function IOURequestStepConfirmation({
                         category: transaction.category,
                         tag: transaction.tag,
                         billable: !!transaction.billable,
+                        reimbursable: !!transaction.reimbursable,
                         iouRequestType: transaction.iouRequestType,
                         splitShares: transaction.splitShares,
                         splitPayerAccountIDs: transaction.splitPayerAccountIDs,
@@ -984,7 +994,7 @@ function IOURequestStepConfirmation({
                         shouldPlaySound={iouType === CONST.IOU.TYPE.PAY}
                         isConfirmed={isConfirmed}
                         isConfirming={isConfirming}
-                        iouIsReimbursable={transaction?.reimbursable ?? policy?.defaultReimbursable}
+                        iouIsReimbursable={transaction?.reimbursable}
                         onToggleReimbursable={setReimbursable}
                         isReceiptEditable
                     />
