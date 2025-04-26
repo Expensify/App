@@ -247,7 +247,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (!textInputRef.current) {
                         return;
                     }
-                    textInputRef.current.focus()
+                    textInputRef.current.focus();
                     scrollToRight(textInputRef.current);
                 });
             };
