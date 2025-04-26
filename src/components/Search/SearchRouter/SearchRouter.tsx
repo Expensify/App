@@ -244,10 +244,13 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
         (item: OptionData | SearchQueryItem) => {
             const setFocusAndScrollToRight = () => {
                 InteractionManager.runAfterInteractions(() => {
-                    textInputRef.current?.focus();
-                    textInputRef?.current && scrollToRight(textInputRef?.current);
+                    if (!textInputRef.current) {
+                        return;
+                    }
+                    textInputRef.current.focus()
+                    scrollToRight(textInputRef.current);
                 });
-            }
+            };
 
             if (isSearchQueryItem(item)) {
                 if (!item.searchQuery) {
