@@ -69,16 +69,6 @@ function IOURequestStartPage({
     );
     const isFromGlobalCreate = isEmptyObject(report?.reportID);
 
-    // Clear out the temporary expense if the reportID in the URL has changed from the transaction's reportID.
-    useFocusEffect(
-        useCallback(() => {
-            if (transaction?.reportID === reportID || isLoadingSelectedTab) {
-                return;
-            }
-            initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, transactionRequestType);
-        }, [transaction, policy, reportID, isFromGlobalCreate, transactionRequestType, isLoadingSelectedTab]),
-    );
-
     useEffect(() => {
         Performance.markEnd(CONST.TIMING.OPEN_CREATE_EXPENSE);
     }, []);
@@ -95,6 +85,15 @@ function IOURequestStartPage({
             initMoneyRequest(reportID, policy, isFromGlobalCreate, transaction?.iouRequestType, newIOUType);
         },
         [policy, reportID, isFromGlobalCreate, transaction],
+    );
+
+    useFocusEffect(
+        useCallback(() => {
+            if (isLoadingSelectedTab) {
+                return;
+            }
+            resetIOUTypeIfChanged(transactionRequestType);
+        }, [resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
