@@ -182,7 +182,14 @@ function SearchAutocompleteInput(
 
     // Parse Fullstory attributes on initial render
     useLayoutEffect(parseFSAttributes, []);
-
+    const onClearInput = () => {
+        clearAdvancedFilters();
+        Navigation.navigate(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: buildCannedSearchQuery(),
+            }),
+        );
+    };
     return (
         <View style={[outerWrapperStyle]}>
             <Animated.View
@@ -233,14 +240,7 @@ function SearchAutocompleteInput(
                         selection={selection}
                         shouldHideClearButton={false}
                         shouldAddMarginTopToClearButton={false}
-                        onClearInput={() => {
-                            clearAdvancedFilters();
-                            Navigation.navigate(
-                                ROUTES.SEARCH_ROOT.getRoute({
-                                    query: buildCannedSearchQuery(),
-                                }),
-                            );
-                        }}
+                        onClearInput={onClearInput}
                     />
                 </View>
                 {!!rightComponent && (
