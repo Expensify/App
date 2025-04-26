@@ -307,7 +307,7 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
             shouldShowOfflineIndicator={false}
             shouldEnableMaxHeight={shouldEnableMaxHeight}
             style={[styles.signInPage, StyleUtils.getPlatformSafeAreaPadding({...safeAreaInsets, bottom: 0, top: isInNarrowPaneModal ? 0 : safeAreaInsets.top}, 1)]}
-            testID={SignInPageThemeWrapper.displayName}
+            testID={SignInPageWrapper.displayName}
         >
             <SignInPageLayout
                 welcomeHeader={welcomeHeader}
@@ -351,41 +351,27 @@ function SignInPage({shouldEnableMaxHeight = true}: SignInPageInnerProps, ref: F
 type SignInPageProps = SignInPageInnerProps;
 const SignInPageWithRef = forwardRef(SignInPage);
 
-function SignInPageLoginWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
-    return (
-        <LoginProvider>
-            <SignInPageWithRef
-                ref={ref}
-                // eslint-disable-next-line react/jsx-props-no-spreading
-                {...props}
-            />
-        </LoginProvider>
-    );
-}
-
-SignInPageLoginWrapper.displayName = 'SignInPage';
-
-const SignInPageLoginWrapperWithRef = forwardRef(SignInPageLoginWrapper);
-
-function SignInPageThemeWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
+function SignInPageWrapper(props: SignInPageProps, ref: ForwardedRef<SignInPageRef>) {
     return (
         <ThemeProvider theme={CONST.THEME.DARK}>
             <ThemeStylesProvider>
                 <ColorSchemeWrapper>
                     <CustomStatusBarAndBackground isNested />
-                    <SignInPageLoginWrapperWithRef
-                        ref={ref}
-                        // eslint-disable-next-line react/jsx-props-no-spreading
-                        {...props}
-                    />
+                    <LoginProvider>
+                        <SignInPageWithRef
+                            ref={ref}
+                            // eslint-disable-next-line react/jsx-props-no-spreading
+                            {...props}
+                        />
+                    </LoginProvider>
                 </ColorSchemeWrapper>
             </ThemeStylesProvider>
         </ThemeProvider>
     );
 }
 
-SignInPageThemeWrapper.displayName = 'SignInPage';
+SignInPageWrapper.displayName = 'SignInPage';
 
-export default forwardRef(SignInPageThemeWrapper);
+export default forwardRef(SignInPageWrapper);
 
 export type {SignInPageRef};
