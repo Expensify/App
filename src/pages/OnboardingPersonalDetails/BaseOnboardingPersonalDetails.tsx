@@ -138,7 +138,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
-            shouldShowOfflineIndicator={false}
+            shouldShowOfflineIndicator={isSmallScreenWidth}
             includeSafeAreaPaddingBottom
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
@@ -193,7 +193,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     />
                 </View>
             </FormProvider>
-            {isSmallScreenWidth && <OfflineIndicator />}
         </ScreenWrapper>
     );
 }
