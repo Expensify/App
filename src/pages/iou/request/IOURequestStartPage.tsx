@@ -90,11 +90,12 @@ function IOURequestStartPage({
 
     useFocusEffect(
         useCallback(() => {
+            // The test transaction can change the reportID of the transaction on the flow so we should prevent the reportID from being reverted again.
             if (isLoadingSelectedTab || prevTransactionReportID !== transaction?.reportID) {
                 return;
             }
             resetIOUTypeIfChanged(transactionRequestType);
-        }, [resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab]),
+        }, [resetIOUTypeIfChanged, transactionRequestType, isLoadingSelectedTab, prevTransactionReportID]),
     );
 
     const [headerWithBackBtnContainerElement, setHeaderWithBackButtonContainerElement] = useState<HTMLElement | null>(null);
