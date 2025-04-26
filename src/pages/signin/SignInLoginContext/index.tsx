@@ -21,7 +21,7 @@ function LoginProvider({children}: ChildrenProps) {
     const [login, setLoginState] = useState(() => Str.removeSMSDomain(credentials?.login ?? ''));
 
     const setLogin = useCallback((newLogin: string) => {
-        setLoginState(Str.removeSMSDomain(newLogin));
+        setLoginState(newLogin);
     }, []);
 
     const loginContext = useMemo<LoginContextType>(
