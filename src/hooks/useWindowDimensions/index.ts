@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import type WindowDimensions from './types';
 
 const initalViewportHeight = window.visualViewport?.height ?? window.innerHeight;
-const tagNamesOpenKeyboard = ['INPUT', 'TEXTAREA'];
+const tagNamesOpenKeyboard = [CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[];
 const isMobile = Browser.isMobile();
 
 /**

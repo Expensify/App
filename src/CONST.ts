@@ -382,6 +382,10 @@ const CONST = {
         IN: 'in',
         OUT: 'out',
     },
+    ELEMENT_NAME: {
+        INPUT: 'INPUT',
+        TEXTAREA: 'TEXTAREA',
+    },
     POPOVER_ACCOUNT_SWITCHER_POSITION: {
         horizontal: 12,
         vertical: 80,

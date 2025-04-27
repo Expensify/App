@@ -604,7 +604,7 @@ function ComposerWithSuggestions(
             }
 
             // if we're typing on another input/text area, do not focus
-            if (['INPUT', 'TEXTAREA'].includes((e.target as Element | null)?.nodeName ?? '')) {
+            if (([CONST.ELEMENT_NAME.INPUT, CONST.ELEMENT_NAME.TEXTAREA] as string[]).includes((e.target as Element | null)?.nodeName ?? '')) {
                 return;
             }
 
