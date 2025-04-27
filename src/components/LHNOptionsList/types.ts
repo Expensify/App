@@ -17,7 +17,7 @@ type CustomLHNOptionsListProps = {
     contentContainerStyles?: StyleProp<ContentStyle>;
 
     /** Sections for the section list */
-    data: string[];
+    data: Report[];
 
     /** Callback to fire when a row is selected */
     onSelectRow?: (optionItem: OptionData, popoverAnchor: RefObject<View>) => void;
@@ -129,6 +129,6 @@ type OptionRowLHNProps = {
     onLayout?: (event: LayoutChangeEvent) => void;
 };
 
-type RenderItemProps = {item: string};
+type RenderItemProps = {item: Report};
 
 export type {LHNOptionsListProps, OptionRowLHNDataProps, OptionRowLHNProps, RenderItemProps};

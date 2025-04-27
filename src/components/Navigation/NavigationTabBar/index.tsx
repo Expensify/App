@@ -15,7 +15,7 @@ import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import {useSidebarOrderedReportIDs} from '@hooks/useSidebarOrderedReportIDs';
+import {useSidebarOrderedReports} from '@hooks/useSidebarOrderedReportIDs';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,13 +51,9 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {activeWorkspaceID} = useActiveWorkspace();
-    const {orderedReportIDs} = useSidebarOrderedReportIDs();
+    const {orderedReports} = useSidebarOrderedReports();
     const [user] = useOnyx(ONYXKEYS.USER, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: true});
-    const [reports = []] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (values) => orderedReportIDs.map((reportID) => values?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]),
-        canBeMissing: true,
-    });
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [chatTabBrickRoad, setChatTabBrickRoad] = useState<BrickRoad>(undefined);
     const platform = getPlatform();
@@ -70,10 +66,10 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false}: NavigationTab
     const {canUseLeftHandBar} = usePermissions();
 
     useEffect(() => {
-        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, reports));
+        setChatTabBrickRoad(getChatTabBrickRoad(activeWorkspaceID, orderedReports));
         // We need to get a new brick road state when report actions are updated, otherwise we'll be showing an outdated brick road.
         // That's why reportActions is added as a dependency here
-    }, [activeWorkspaceID, reports, reportActions]);
+    }, [activeWorkspaceID, orderedReports, reportActions]);
 
     const navigateToChats = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.HOME) {

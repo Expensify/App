@@ -27,20 +27,19 @@ import {canUserPerformWriteAction} from '@libs/ReportUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetails} from '@src/types/onyx';
+import type {PersonalDetails, Report} from '@src/types/onyx';
 import OptionRowLHNData from './OptionRowLHNData';
 import OptionRowRendererComponent from './OptionRowRendererComponent';
 import type {LHNOptionsListProps, RenderItemProps} from './types';
 
-const keyExtractor = (item: string) => `report_${item}`;
+const keyExtractor = (item: Report) => `report_${item.reportID}`;
 
-function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
+function LHNOptionsList({style, contentContainerStyles, data: reports, onSelectRow, optionMode, shouldDisableFocusOptions = false, onFirstItemRendered = () => {}}: LHNOptionsListProps) {
     const {saveScrollOffset, getScrollOffset, saveScrollIndex, getScrollIndex} = useContext(ScrollOffsetContext);
     const {isOffline} = useNetwork();
-    const flashListRef = useRef<FlashList<string>>(null);
+    const flashListRef = useRef<FlashList<Report>>(null);
     const route = useRoute();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
     const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
     const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
@@ -53,7 +52,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const estimatedListSize = useLHNEstimatedListSize();
-    const shouldShowEmptyLHN = data.length === 0;
+    const shouldShowEmptyLHN = reports.length === 0;
     const estimatedItemSize = optionMode === CONST.OPTION_MODE.COMPACT ? variables.optionRowHeightCompact : variables.optionRowHeight;
     const platform = getPlatform();
     const isWebOrDesktop = platform === CONST.PLATFORM.WEB || platform === CONST.PLATFORM.DESKTOP;
@@ -128,12 +127,12 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
      * Function which renders a row in the list
      */
     const renderItem = useCallback(
-        ({item: reportID}: RenderItemProps): ReactElement => {
-            const itemFullReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-            const itemParentReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${itemFullReport?.parentReportID}`];
+        ({item: itemFullReport}: RenderItemProps): ReactElement => {
+            const reportID = itemFullReport.reportID;
+            const itemParentReport = reports.find((report) => report.reportID === itemFullReport.parentReportID);
             const itemReportNameValuePairs = reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}`];
             const itemReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`];
-            const itemOneTransactionThreadReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${getOneTransactionThreadReportID(reportID, itemReportActions, isOffline)}`];
+            const itemOneTransactionThreadReport = reports.find((report) => report.reportID === getOneTransactionThreadReportID(reportID, itemReportActions, isOffline));
             const itemParentReportActions = reportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${itemFullReport?.parentReportID}`];
             const itemParentReportAction = itemFullReport?.parentReportActionID ? itemParentReportActions?.[itemFullReport?.parentReportActionID] : undefined;
 
@@ -232,14 +231,14 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactionViolations,
             policy,
             personalDetails,
-            data.length,
+            reports.length,
             draftComments,
             optionMode,
             preferredLocale,
             transactions,
             isOffline,
         ],
-        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, transactions, isOffline],
+        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, draftComments, optionMode, preferredLocale, transactions, isOffline],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -298,10 +297,10 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 policyCount: Object.keys(policy ?? {}).length,
                 personalDetailsCount: Object.keys(personalDetails ?? {}).length,
                 route,
-                reportsIDsFromUseReportsCount: data.length,
+                reportsIDsFromUseReportsCount: reports.length,
             });
         }
-    }, [data, shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
+    }, [shouldShowEmptyLHN, route, reports, reportActions, policy, personalDetails]);
 
     return (
         <View style={[style ?? styles.flex1, shouldShowEmptyLHN ? styles.emptyLHNWrapper : undefined]}>
@@ -322,7 +321,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                     keyboardShouldPersistTaps="always"
                     CellRendererComponent={OptionRowRendererComponent}
                     contentContainerStyle={StyleSheet.flatten(contentContainerStyles)}
-                    data={data}
+                    data={reports}
                     testID="lhn-options-list"
                     keyExtractor={keyExtractor}
                     renderItem={renderItem}
