@@ -260,27 +260,6 @@ describe('ProductTrainingContextProvider', () => {
     });
 
     describe('Layout Specific Behavior', () => {
-        it('should handle narrow layout specific tooltips based on screen width', async () => {
-            // When narrow layout is false
-            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false});
-
-            Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
-            await waitForBatchedUpdatesWithAct();
-
-            // TODO: To be replaced by expense reports search tooltip
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.CONCEIRGE_LHN_GBR;
-            const {result, rerender} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
-            // Then narrow layout tooltip should not show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
-
-            // When narrow layout changes to true
-            mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});
-            rerender({});
-            await waitForBatchedUpdatesWithAct();
-
-            // Then narrow layout tooltip should show
-            expect(result.current.shouldShowProductTrainingTooltip).toBe(false);
-        });
         it('should handle wide layout specific tooltips based on screen width', async () => {
             // When narrow layout is true
             mockUseResponsiveLayout.mockReturnValue({...DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: true});

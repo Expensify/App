@@ -1257,6 +1257,10 @@ function getAllPoliciesLength() {
     return Object.keys(allPolicies ?? {}).length;
 }
 
+function getAllPolicies() {
+    return Object.values(allPolicies ?? {}).filter((p) => !!p);
+}
+
 function getActivePolicy(): OnyxEntry<Policy> {
     return getPolicy(activePolicyId);
 }
@@ -1410,18 +1414,6 @@ function isPrefferedExporter(policy: Policy) {
     return exporters.some((exporter) => exporter && exporter === user);
 }
 
-function isAutoSyncEnabled(policy: Policy) {
-    const values = [
-        policy.connections?.intacct?.config?.autoSync?.enabled,
-        policy.connections?.netsuite?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksDesktop?.config?.autoSync?.enabled,
-        policy.connections?.quickbooksOnline?.config?.autoSync?.enabled,
-        policy.connections?.xero?.config?.autoSync?.enabled,
-    ];
-
-    return values.some((value) => !!value);
-}
-
 /**
  * Checks if the user is invited to any workspace.
  */
@@ -1556,6 +1548,7 @@ export {
     getWorkflowApprovalsUnavailable,
     getNetSuiteImportCustomFieldLabel,
     getAllPoliciesLength,
+    getAllPolicies,
     getActivePolicy,
     getUserFriendlyWorkspaceType,
     isPolicyAccessible,
@@ -1571,7 +1564,6 @@ export {
     isWorkspaceEligibleForReportChange,
     getManagerAccountID,
     isPrefferedExporter,
-    isAutoSyncEnabled,
     areAllGroupPoliciesExpenseChatDisabled,
     getActiveEmployeeWorkspaces,
     isUserInvitedToWorkspace,
