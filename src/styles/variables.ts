@@ -217,7 +217,7 @@ export default {
     sectionIllustrationHeight: 220,
     restrictedActionIllustrationHeight: 136,
     photoUploadPopoverWidth: 335,
-    onboardingModalWidth: 500,
+    onboardingModalWidth: 640,
     onboardingAccountingModalWidth: 800,
     holdEducationModalWidth: 400,
     changePolicyEducationModalWidth: 400,

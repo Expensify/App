@@ -1,17 +1,19 @@
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useContext, useEffect, useMemo, useState} from 'react';
-import {InteractionManager} from 'react-native';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import {InteractionManager, View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import Button from '@components/Button';
 import CustomStatusBarAndBackgroundContext from '@components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContext';
+import FixedFooter from '@components/FixedFooter';
+import FlatList from '@components/FlatList';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
+import OfflineIndicator from '@components/OfflineIndicator';
+import RadioButtonWithLabel from '@components/RadioButtonWithLabel';
 import ScreenWrapper from '@components/ScreenWrapper';
-import SelectionList from '@components/SelectionList';
-import RadioListItem from '@components/SelectionList/RadioListItem';
-import type {ListItem} from '@components/SelectionList/types';
+import {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
 import useLocalize from '@hooks/useLocalize';
@@ -32,10 +34,9 @@ import Navigation from '@libs/Navigation/Navigation';
 import {isPaidGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 import variables from '@styles/variables';
 import CONFIG from '@src/CONFIG';
-import CONST from '@src/CONST';
 import type {OnboardingAccounting} from '@src/CONST';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {} from '@src/types/onyx/Bank';
 import type {BaseOnboardingAccountingProps} from './types';
 
 type OnboardingListItem = ListItem & {
@@ -175,124 +176,155 @@ function BaseOnboardingAccounting({shouldUseNativeStyles}: BaseOnboardingAccount
         return [...policyAccountingOptions, noneAccountingOption];
     }, [StyleUtils, styles.mr3, styles.onboardingSmallIcon, theme.success, translate, userReportedIntegration]);
 
-    const footerContent = (
-        <>
-            {!!error && (
-                <FormHelpMessage
-                    style={[styles.ph1, styles.mb2]}
-                    isError
-                    message={error}
+    const renderOption = useCallback(
+        ({item}: {item: OnboardingListItem}) => (
+            <View style={[styles.onboardingAccountingItem, isSmallScreenWidth && styles.flexBasis100]}>
+                <RadioButtonWithLabel
+                    isChecked={!!item.isSelected}
+                    onPress={() => {
+                        setUserReportedIntegration(item.keyForList);
+                        setError('');
+                    }}
+                    radioOnRight
+                    LabelComponent={() => (
+                        <View style={[styles.flexRow, styles.alignItemsCenter]}>
+                            {item.leftElement}
+                            <Text style={styles.textStrong}>{item.text}</Text>
+                        </View>
+                    )}
                 />
-            )}
-            <Button
-                success
-                large
-                text={translate('common.continue')}
-                onPress={() => {
-                    if (userReportedIntegration === undefined) {
-                        setError(translate('onboarding.errorSelection'));
-                        return;
-                    }
-
-                    if (!onboardingPurposeSelected || !onboardingCompanySize) {
-                        return;
-                    }
-
-                    const shouldStayInNewDot = [
-                        CONST.POLICY.CONNECTIONS.NAME.QBO,
-                        CONST.POLICY.CONNECTIONS.NAME.QBD,
-                        CONST.POLICY.CONNECTIONS.NAME.XERO,
-                        CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
-                        CONST.POLICY.CONNECTIONS.NAME.OTHER,
-                        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
-                    ].includes(userReportedIntegration);
-
-                    if (!shouldStayInNewDot) {
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                        return;
-                    }
-
-                    const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
-
-                    // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
-                    // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
-                    const {adminsChatReportID, policyID} = shouldCreateWorkspace
-                        ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize)
-                        : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
-
-                    if (shouldCreateWorkspace) {
-                        setOnboardingAdminsChatReportID(adminsChatReportID);
-                        setOnboardingPolicyID(policyID);
-                    }
-
-                    completeOnboarding({
-                        engagementChoice: onboardingPurposeSelected,
-                        onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
-                        adminsChatReportID,
-                        onboardingPolicyID: policyID,
-                        companySize: onboardingCompanySize,
-                        userReportedIntegration,
-                    });
-
-                    if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
-                        if (CONFIG.IS_HYBRID_APP) {
-                            return;
-                        }
-                        openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
-                    }
-                    // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
-                    InteractionManager.runAfterInteractions(() => {
-                        setOnboardingAdminsChatReportID();
-                        setOnboardingPolicyID();
-                    });
-
-                    // We need to wait the policy is created before navigating out the onboarding flow
-                    Navigation.setNavigationActionToMicrotaskQueue(() => {
-                        navigateAfterOnboarding(
-                            isSmallScreenWidth,
-                            canUseDefaultRooms,
-                            policyID,
-                            activeWorkspaceID,
-                            adminsChatReportID,
-                            // Onboarding tasks would show in Concierge instead of admins room for testing accounts, we should open where onboarding tasks are located
-                            // See https://github.com/Expensify/App/issues/57167 for more details
-                            (session?.email ?? '').includes('+'),
-                        );
-                    });
-                }}
-                isLoading={isLoading}
-                isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
-                pressOnEnter
-            />
-        </>
+            </View>
+        ),
+        [styles, StyleUtils, isSmallScreenWidth],
     );
+
+    const supportedIntegrationsInNewDot = [
+        CONST.POLICY.CONNECTIONS.NAME.QBO,
+        CONST.POLICY.CONNECTIONS.NAME.QBD,
+        CONST.POLICY.CONNECTIONS.NAME.XERO,
+        CONST.POLICY.CONNECTIONS.NAME.NETSUITE,
+        CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT,
+        CONST.POLICY.CONNECTIONS.NAME.OTHER,
+    ];
+
+    const handleContinue = useCallback(() => {
+        if (userReportedIntegration === undefined) {
+            setError(translate('onboarding.errorSelection'));
+            return;
+        }
+
+        if (!onboardingPurposeSelected || !onboardingCompanySize) {
+            return;
+        }
+
+        const shouldStayInNewDot = supportedIntegrationsInNewDot.includes(userReportedIntegration as (typeof supportedIntegrationsInNewDot)[number]);
+        if (!shouldStayInNewDot) {
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+            return;
+        }
+
+        const shouldCreateWorkspace = !onboardingPolicyID && !paidGroupPolicy;
+
+        // We need `adminsChatReportID` for `completeOnboarding`, but at the same time, we don't want to call `createWorkspace` more than once.
+        // If we have already created a workspace, we want to reuse the `onboardingAdminsChatReportID` and `onboardingPolicyID`.
+        const {adminsChatReportID, policyID} = shouldCreateWorkspace
+            ? createWorkspace(undefined, true, '', generatePolicyID(), CONST.ONBOARDING_CHOICES.MANAGE_TEAM, '', undefined, false, onboardingCompanySize)
+            : {adminsChatReportID: onboardingAdminsChatReportID, policyID: onboardingPolicyID};
+
+        if (shouldCreateWorkspace) {
+            setOnboardingAdminsChatReportID(adminsChatReportID);
+            setOnboardingPolicyID(policyID);
+        }
+
+        completeOnboarding({
+            engagementChoice: onboardingPurposeSelected,
+            onboardingMessage: CONST.ONBOARDING_MESSAGES[onboardingPurposeSelected],
+            adminsChatReportID,
+            onboardingPolicyID: policyID,
+            companySize: onboardingCompanySize,
+            userReportedIntegration,
+        });
+
+        if (onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && getPlatform() !== CONST.PLATFORM.DESKTOP) {
+            if (CONFIG.IS_HYBRID_APP) {
+                return;
+            }
+            openOldDotLink(CONST.OLDDOT_URLS.INBOX, true);
+        }
+        // Avoid creating new WS because onboardingPolicyID is cleared before unmounting
+        InteractionManager.runAfterInteractions(() => {
+            setOnboardingAdminsChatReportID();
+            setOnboardingPolicyID();
+        });
+
+        // We need to wait the policy is created before navigating out the onboarding flow
+        Navigation.setNavigationActionToMicrotaskQueue(() => {
+            navigateAfterOnboarding(isSmallScreenWidth, canUseDefaultRooms, policyID, activeWorkspaceID, adminsChatReportID, (session?.email ?? '').includes('+'));
+        });
+    }, [
+        userReportedIntegration,
+        translate,
+        onboardingPurposeSelected,
+        onboardingCompanySize,
+        onboardingPolicyID,
+        paidGroupPolicy,
+        onboardingAdminsChatReportID,
+        isSmallScreenWidth,
+        canUseDefaultRooms,
+        activeWorkspaceID,
+        session,
+    ]);
+
+    const numColumns = isSmallScreenWidth ? 1 : 2;
 
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom={false}
+            shouldEnableKeyboardAvoidingView={false}
             testID="BaseOnboardingAccounting"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
+            shouldShowOfflineIndicator={false}
         >
             <HeaderWithBackButton
                 shouldShowBackButton
                 progressBarPercentage={80}
                 onBackButtonPress={Navigation.goBack}
             />
-            <Text style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
-                {translate('onboarding.accounting.title')}
-            </Text>
-            <SelectionList
-                sections={[{data: accountingOptions}]}
-                onSelectRow={(item) => {
-                    setUserReportedIntegration(item.keyForList);
-                    setError('');
-                }}
-                shouldUpdateFocusedIndex
-                ListItem={RadioListItem}
-                footerContent={footerContent}
-                shouldShowTooltips={false}
-                listItemWrapperStyle={onboardingIsMediumOrLargerScreenWidth ? [styles.pl8, styles.pr8] : []}
-            />
+            <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
+                <Text style={[styles.textHeadlineH1, styles.mb5]}>{translate('onboarding.accounting.title')}</Text>
+                <FlatList
+                    data={accountingOptions}
+                    numColumns={numColumns}
+                    key={numColumns}
+                    keyExtractor={(item) => item.keyForList ?? 'none'}
+                    renderItem={renderOption}
+                    showsVerticalScrollIndicator
+                    scrollEnabled
+                    columnWrapperStyle={numColumns > 1 ? [styles.columnGap3] : undefined}
+                />
+            </View>
+
+            <View style={[styles.pt3, styles.ph5, isSmallScreenWidth && styles.flex1]}>
+                <FixedFooter>
+                    {!!error && (
+                        <FormHelpMessage
+                            style={[styles.mb2]}
+                            isError
+                            message={error}
+                        />
+                    )}
+
+                    <Button
+                        success
+                        large
+                        text={translate('common.continue')}
+                        onPress={handleContinue}
+                        isLoading={isLoading}
+                        isDisabled={isOffline && onboardingCompanySize !== CONST.ONBOARDING_COMPANY_SIZE.MICRO && CONFIG.IS_HYBRID_APP}
+                    />
+                    {isSmallScreenWidth && <OfflineIndicator />}
+                </FixedFooter>
+            </View>
         </ScreenWrapper>
     );
 }

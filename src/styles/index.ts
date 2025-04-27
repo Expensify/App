@@ -1848,9 +1848,9 @@ const styles = (theme: ThemeColors) =>
             alignItems: 'center',
         },
 
-        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean, isAccountingStep: boolean) =>
+        OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
             ({
-                width: shouldUseNarrowLayout ? (isAccountingStep ? variables.onboardingAccountingModalWidth : variables.onboardingModalWidth) : '100%',
+                width: shouldUseNarrowLayout ? variables.onboardingModalWidth : '100%',
                 height: shouldUseNarrowLayout ? 732 : '100%',
                 maxHeight: '100%',
                 borderRadius: shouldUseNarrowLayout ? 16 : 0,
@@ -5140,6 +5140,14 @@ const styles = (theme: ThemeColors) =>
             flexShrink: 1,
             // Choosing a lowest value just above the threshold for the items to adjust width against the various screens. Only 2 items are shown 35 * 2 = 70 thus third item of 35% width can't fit forcing a two column layout.
             flexBasis: '35%',
+            marginTop: 12,
+        },
+        onboardingAccountingItem: {
+            backgroundColor: theme.cardBG,
+            borderRadius: variables.componentBorderRadiusNormal,
+            paddingHorizontal: 16,
+            paddingVertical: 20,
+            flex: 0.5,
             marginTop: 12,
         },
 

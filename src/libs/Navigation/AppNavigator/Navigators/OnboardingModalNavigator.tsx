@@ -1,4 +1,3 @@
-import {useNavigationState} from '@react-navigation/native';
 import {CardStyleInterpolators} from '@react-navigation/stack';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
@@ -48,9 +47,6 @@ function OnboardingModalNavigator() {
         canBeMissing: false,
     });
 
-    const currentRoute = useNavigationState((state) => state.routes[state.index]);
-    const lastRouteName = currentRoute?.state?.routes?.[currentRoute?.state?.routes?.length - 1]?.name;
-
     // Publish a sign_up event when we start the onboarding flow. This should track basic sign ups
     // as well as Google and Apple SSO.
     useEffect(() => {
@@ -78,7 +74,7 @@ function OnboardingModalNavigator() {
                 <FocusTrapForScreens>
                     <View
                         onClick={(e) => e.stopPropagation()}
-                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth, lastRouteName === SCREENS.ONBOARDING.ACCOUNTING)}
+                        style={styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth)}
                     >
                         <Stack.Navigator screenOptions={defaultScreenOptions}>
                             {/* The OnboardingPurpose screen is shown after the workspace step when the user is on a private domain and has accessible policies.
