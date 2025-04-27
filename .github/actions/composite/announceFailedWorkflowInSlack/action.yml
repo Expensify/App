@@ -5,6 +5,10 @@ inputs:
   SLACK_WEBHOOK:
     description: 'URL of the slack webhook'
     required: true
+  CHANNEL:
+    description: 'Slack channel to post announcement in'
+    required: false
+    default: '#announce'
 
 runs:
   using: composite
@@ -16,7 +20,7 @@ runs:
         fields: workflow, repo
         custom_payload: |
           {
-            channel: '#announce',
+            channel: '${{ inputs.CHANNEL }}',
             attachments: [{
               color: "#DB4545",
               pretext: `<!subteam^S4TJJ3PSL>`,

@@ -1,9 +1,11 @@
 import React from 'react';
+import {InteractionManager} from 'react-native';
 import FastTrack from '@assets/images/fast-track-cover.jpg';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import FeatureTrainingModal from './FeatureTrainingModal';
 
 function TestDriveModal() {
@@ -14,7 +16,11 @@ function TestDriveModal() {
         Navigation.dismissModal();
     };
 
-    const navigateTestDriveDemo = () => {};
+    const navigateTestDriveDemo = () => {
+        InteractionManager.runAfterInteractions(() => {
+            Navigation.navigate(ROUTES.TEST_DRIVE_DEMO_ROOT);
+        });
+    };
 
     return (
         <FeatureTrainingModal

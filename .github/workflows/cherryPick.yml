@@ -16,30 +16,42 @@ jobs:
     needs: createNewVersion
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout staging branch
-        # v4
-        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
-        with:
-          ref: staging
-          token: ${{ secrets.OS_BOTIFY_TOKEN }}
-          submodules: true
-
       - name: Extract PR information
         id: getPRInfo
         run: |
-          echo "REPO_FULL_NAME=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|https://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
+          echo "REPO_FULL_NAME=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|https?://github.com/([^/]+/[^/]+)/pull/.*|\1|')" >> "$GITHUB_OUTPUT"
           echo "PR_NUMBER=$(echo '${{ github.event.inputs.PULL_REQUEST_URL }}' | sed -E 's|.*/pull/([0-9]+).*|\1|')" >> "$GITHUB_OUTPUT"
 
       - name: Verify repository
         run: |
-          if [ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/App" ]; then
-            echo "::error::❌ Cherry picks are only supported for the Expensify/App repository. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
+          if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != ${{ github.repository }} ]] && [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" != "Expensify/Mobile-Expensify" ]]; then
+            echo "::error::❌ Cherry picks are only supported for the Expensify/App and Expensify/Mobile-Expensify repositories. Found: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}"
             exit 1
           fi
 
       - name: Set conflict branch name
         id: getBranchName
         run: echo "CONFLICT_BRANCH_NAME=cherry-pick-staging-${{ steps.getPRInfo.outputs.PR_NUMBER }}-${{ github.run_id }}-${{ github.run_attempt }}" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout staging branch with full history if cherry picking Mobile-Expensify
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' }}
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
+          # Only fetch depth 0 for Mobile-Expensify, because it's a submodule and we need more history to cherry pick successfully
+          fetch-depth: 0
+
+      - name: Checkout staging branch without full history if cherry picking App
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
+        # v4
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          ref: staging
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+          submodules: true
 
       # This command is necessary to fetch any branch other than main in the submodule.
       # See https://github.com/actions/checkout/issues/1815#issuecomment-2777836442 for further context.
@@ -64,22 +76,12 @@ jobs:
         with:
           SEMVER_LEVEL: "PATCH"
 
-      - name: Fetch history of relevant refs
+      - name: Fetch history of relevant refs if cherry picking an App change
+        if: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/App' }}
         run: |
-          # Temporary hack during transition when -staging suffix is being added to tags
-          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          else
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          fi
-
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
           cd Mobile-Expensify
-          # Temporary hack during transition when -staging suffix is being added to tags
-          if git ls-remote origin refs/tags/${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }} | grep -q . ; then
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
-          else
-            git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}-staging
-          fi
+          git fetch origin main staging --no-recurse-submodules --no-tags --shallow-exclude ${{ steps.getPreviousVersion.outputs.PREVIOUS_VERSION }}
 
       - name: Get E/App version bump commit
         id: getVersionBumpCommit
@@ -108,13 +110,14 @@ jobs:
           fi
           echo "VERSION_BUMP_SHA=$VERSION_BUMP_COMMIT" >> "$GITHUB_OUTPUT"
 
-      - name: Get merge commit for E/App pull request to CP
+      - name: Get merge commit for pull request to CP
         id: getCPMergeCommit
-        uses: ./.github/actions/javascript/getPullRequestDetails
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          USER: ${{ github.actor }}
-          PULL_REQUEST_NUMBER: ${{ steps.getPRInfo.outputs.PR_NUMBER }}
+        run: |
+          read -r MERGE_COMMIT_SHA MERGE_ACTOR <<< "$(gh pr view ${{ github.event.inputs.PULL_REQUEST_URL }} --json mergeCommit,author --jq '"\(.mergeCommit.oid) \(.author.login)"')"
+          echo "MERGE_COMMIT_SHA=$MERGE_COMMIT_SHA" >> "$GITHUB_OUTPUT"
+          echo "MERGE_ACTOR=$MERGE_ACTOR" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: Cherry-pick the Mobile-Expensify version bump to Mobile-Expensify staging
         working-directory: Mobile-Expensify
@@ -135,6 +138,8 @@ jobs:
 
       - name: Cherry-pick the merge commit of target PR
         id: cherryPick
+        # If cherry picking a Mobile-Expensify change, we need to run the cherry pick in the Mobile-Expensify directory
+        working-directory: ${{ steps.getPRInfo.outputs.REPO_FULL_NAME == 'Expensify/Mobile-Expensify' && 'Mobile-Expensify' || '.' }}
         run: |
           echo "Attempting to cherry-pick ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}"
           if git cherry-pick -S -x --mainline 1 ${{ steps.getCPMergeCommit.outputs.MERGE_COMMIT_SHA }}; then
@@ -154,6 +159,18 @@ jobs:
             git checkout -b ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
             git push --set-upstream origin ${{ steps.getBranchName.outputs.CONFLICT_BRANCH_NAME }}
           else
+            if [[ "${{ steps.getPRInfo.outputs.REPO_FULL_NAME }}" == "Expensify/Mobile-Expensify" ]]; then
+              # Push Mobile-Expensify changes first
+              cd Mobile-Expensify
+              git push origin staging
+              cd ..
+              
+              # Update and commit the submodule reference in E/App
+              git add Mobile-Expensify
+              git commit -m "Update Mobile-Expensify submodule to include cherry-picked PR #${{ steps.getPRInfo.outputs.PR_NUMBER }}"
+            fi
+            
+            # Push E/App changes
             git push origin staging
           fi
 
@@ -212,9 +229,9 @@ jobs:
         continue-on-error: true
 
       - name: Label original PR with CP Staging
-        run: gh pr edit ${{  github.event.inputs.PULL_REQUEST_URL }} --add-label 'CP Staging'
+        run: gh pr edit ${{ github.event.inputs.PULL_REQUEST_URL }} --add-label 'CP Staging'
         env:
-          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ secrets.OS_BOTIFY_TOKEN }}
 
       - name: "Announces a CP failure in the #announce Slack room"
         # v3
