@@ -19,6 +19,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import variables from '@styles/variables';
@@ -64,6 +65,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useEffect(() => {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
     }, [reportIDFromRoute]);
+
+    const queryJSON = useMemo(() => {
+        const backTo = route.params.backTo ?? '';
+        const queryString = backTo.split('?').at(1) ?? '';
+        const q = new URLSearchParams(queryString).get('q') ?? '';
+        return buildSearchQueryJSON(q);
+    }, [route.params.backTo]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -134,7 +142,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                                     shouldDisplaySearch={false}
                                     shouldShowLoadingBar={false}
                                 />
-                                <SearchTypeMenu queryJSON={undefined} />
+                                <SearchTypeMenu queryJSON={queryJSON} />
                             </View>
                             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>

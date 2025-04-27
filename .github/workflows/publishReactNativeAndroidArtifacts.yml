@@ -1,0 +1,147 @@
+name: Publish React Native Android Artifacts
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - package.json
+      - patches/react-native+*.patch
+      - patches/@react-native+*.patch
+      - Mobile-Expensify
+
+jobs:
+  publish:
+    runs-on: ${{ github.repository_owner == 'Expensify' && 'ubuntu-latest-xl' || 'ubuntu-latest' }}
+    strategy:
+      matrix:
+        is_hybrid: [true, false]
+    steps:
+      # v4
+      - name: Checkout
+        uses: actions/checkout@8ade135a41bc03ea155e62e844d188df1ea18608
+        with:
+          submodules: ${{ matrix.is_hybrid }}
+          ref: ${{ github.event.before }}
+          token: ${{ secrets.OS_BOTIFY_TOKEN }}
+
+      - name: Get previous App commit hash
+        id: getOldAppHash
+        run: echo "HASH=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Get previous Mobile-Expensify commit hash
+        if: ${{ matrix.is_hybrid == 'true' }}
+        id: getOldMobileExpensifyHash
+        run: echo "HASH=$(git rev-parse :Mobile-Expensify)" >> "$GITHUB_OUTPUT"
+
+      - name: Get previous react-native version
+        id: getOldVersion
+        run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout new ref
+        run: |
+          git fetch origin ${{ github.event.after }} --depth=1
+          git checkout ${{ github.event.after }}
+          git submodule update
+
+      - name: Get new App commit hash
+        id: getNewAppHash
+        run: echo "HASH=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+      - name: Get new Mobile-Expensify commit hash
+        if: ${{ matrix.is_hybrid == 'true' }}
+        id: getNewMobileExpensifyHash
+        run: echo "HASH=$(git rev-parse :Mobile-Expensify)" >> "$GITHUB_OUTPUT"
+
+      - name: Get new react-native version
+        id: getNewVersion
+        run: echo "VERSION=$(jq -r '.dependencies["react-native"]' package.json)" >> "$GITHUB_OUTPUT"
+
+      - name: Check if version changed
+        id: didVersionChange
+        run: |
+          readonly DID_VERSION_CHANGE=${{ steps.getOldVersion.outputs.VERSION != steps.getNewVersion.outputs.VERSION && 'true' || 'false' }}
+          echo "DID_VERSION_CHANGE=$DID_VERSION_CHANGE" >> "$GITHUB_OUTPUT"
+          if [[ "$DID_VERSION_CHANGE" == 'true' ]]; then
+            echo "::notice::Detected react-native version bump (${{ steps.getOldVersion.outputs.VERSION }} -> ${{ steps.getNewVersion.outputs.VERSION }})"
+          fi
+
+      - name: Check if patches changed
+        id: didPatchesChange
+        run: |
+          if git diff --exit-code --name-only ${{ steps.getOldAppHash.outputs.HASH }}..${{ steps.getNewAppHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
+            echo "::notice::Detected changes in patches"
+            echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          if [[ '${{ matrix.is_hybrid }}' == 'true' ]]; then
+            if git -C Mobile-Expensify diff --exit-code --name-only ${{ steps.getOldMobileExpensifyHash.outputs.HASH }}..${{ steps.getNewMobileExpensifyHash.outputs.HASH }} -- patches/react-native+*.patch patches/@react-native+*.patch; then
+              echo "::notice::Detected changes in patches"
+              echo "DID_PATCHES_CHANGE=true" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+          fi
+
+          echo "DID_PATCHES_CHANGE=false" >> "$GITHUB_OUTPUT"
+
+      - name: Check if we should build and publish the package
+        id: shouldPublish
+        run: |
+          if [[ '${{ steps.didVersionChange.outputs.DID_VERSION_CHANGE }}' == 'true' || '${{ steps.didPatchesChange.outputs.DID_PATCHES_CHANGE }}' == 'true' ]]; then
+            echo "SHOULD_PUBLISH=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::No relevant changes, skipping publishing a new React Native build"
+            echo "SHOULD_PUBLISH=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup Node
+        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
+        uses: ./.github/actions/composite/setupNode
+        with:
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      # v4
+      - name: Setup Java
+        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
+        uses: actions/setup-java@3a4f6e1af504cf6a31855fa899c6aa5355ba6c12
+        with:
+          distribution: oracle
+          java-version: 17
+
+      # v4
+      - name: Setup Gradle
+        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
+        uses: gradle/actions/setup-gradle@06832c7b30a0129d7fb559bcc6e43d26f6374244
+
+      - name: Determine new patched RN version
+        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
+        id: getNewPatchedVersion
+        run: echo "NEW_PATCHED_VERSION=$(./.github/scripts/getNewPatchedRNVersion.sh)" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+
+      - name: Build and publish RN artifacts
+        if: ${{ steps.shouldPublish.outputs.SHOULD_PUBLISH == 'true' }}
+        working-directory: ${{ matrix.is_hybrid == 'true' && 'Mobile-Expensify/Android' || 'android' }}
+        run: |
+          echo "Starting artifacts build for ${{ matrix.is_hybrid == 'true' && 'HybridApp' || 'NewDot Standalone' }}"
+          echo "Version: ${{ env.PATCHED_VERSION }}"
+          echo "Commit hash: ${{ env.COMMIT_HASH }}"
+          export ORG_GRADLE_PROJECT_reactNativeArchitectures="armeabi-v7a,arm64-v8a,x86,x86_64"
+          ./gradlew buildReactNativeArtifacts -x lint -x test -x check
+          ./gradlew publishReactNativeArtifacts
+        env:
+          GH_PUBLISH_ACTOR: ${{ github.actor }}
+          GH_PUBLISH_TOKEN: ${{ github.token }}
+          IS_HYBRID_BUILD: ${{ matrix.is_hybrid }}
+          PATCHED_VERSION: ${{ steps.getNewPatchedVersion.outputs.NEW_PATCHED_VERSION }}
+          COMMIT_HASH: ${{ github.event.after }}
+
+      - name: Announce failed workflow in Slack
+        if: ${{ failure() }}
+        uses: ./.github/actions/composite/announceFailedWorkflowInSlack
+        with:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          CHANNEL: '#expensify-open-source'
