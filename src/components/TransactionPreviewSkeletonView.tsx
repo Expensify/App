@@ -13,11 +13,10 @@ type TransactionPreviewSkeletonViewProps = {
 function TransactionPreviewSkeletonView({transactionPreviewWidth}: TransactionPreviewSkeletonViewProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
+
     const isWidthANumber = typeof transactionPreviewWidth === 'number';
-    const {width, height} = {
-        width: isWidthANumber ? transactionPreviewWidth - styles.p4.padding * 2 : transactionPreviewWidth,
-        height: variables.transactionPreviewSkeletonHeight,
-    };
+    const width = isWidthANumber ? transactionPreviewWidth - styles.p4.padding * 2 : transactionPreviewWidth;
+    const height = variables.transactionPreviewSkeletonHeight;
 
     return (
         <View style={[styles.p4, styles.mtn1]}>

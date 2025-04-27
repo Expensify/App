@@ -23,7 +23,7 @@ import type Credentials from './Credentials';
 import type Currency from './Currency';
 import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
-import type ReportAttributes from './DerivedValues';
+import type ReportAttributesDerivedValue from './DerivedValues';
 import type DismissedProductTraining from './DismissedProductTraining';
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type Download from './Download';
@@ -35,7 +35,6 @@ import type Fund from './Fund';
 import type ImportedSpreadsheet from './ImportedSpreadsheet';
 import type IntroSelected from './IntroSelected';
 import type InvitedEmailsToAccountIDs from './InvitedEmailsToAccountIDs';
-import type IOU from './IOU';
 import type JoinablePolicies from './JoinablePolicies';
 import type LastExportMethod from './LastExportMethod';
 import type {LastPaymentMethod, LastPaymentMethodType} from './LastPaymentMethod';
@@ -66,8 +65,6 @@ import type PolicyEmployee from './PolicyEmployee';
 import type PolicyJoinMember from './PolicyJoinMember';
 import type PolicyOwnershipChangeChecks from './PolicyOwnershipChangeChecks';
 import type {PolicyTag, PolicyTagLists, PolicyTags} from './PolicyTag';
-import type PreferredTheme from './PreferredTheme';
-import type PriorityMode from './PriorityMode';
 import type PrivatePersonalDetails from './PrivatePersonalDetails';
 import type PrivateSubscription from './PrivateSubscription';
 import type PurchaseList from './PurchaseList';
@@ -115,6 +112,7 @@ import type UserLocation from './UserLocation';
 import type UserMetadata from './UserMetadata';
 import type UserWallet from './UserWallet';
 import type ValidateMagicCodeAction from './ValidateMagicCodeAction';
+import type ValidateUserAndGetAccessiblePolicies from './ValidateUserAndGetAccessiblePolicies';
 import type WalletAdditionalDetails from './WalletAdditionalDetails';
 import type {WalletAdditionalQuestionDetails} from './WalletAdditionalDetails';
 import type WalletOnfido from './WalletOnfido';
@@ -149,7 +147,6 @@ export type {
     FundID,
     FundList,
     IntroSelected,
-    IOU,
     IssueNewCard,
     AddNewCompanyCardFeed,
     CompanyCardFeed,
@@ -181,8 +178,6 @@ export type {
     PolicyTag,
     PolicyTags,
     PolicyTagLists,
-    PreferredTheme,
-    PriorityMode,
     PrivatePersonalDetails,
     QuickAction,
     RecentWaypoint,
@@ -263,7 +258,8 @@ export type {
     TravelProvisioning,
     SidePanel,
     LastPaymentMethodType,
-    ReportAttributes,
+    ReportAttributesDerivedValue,
     TalkToAISales,
+    ValidateUserAndGetAccessiblePolicies,
     BillingReceiptDetails,
 };

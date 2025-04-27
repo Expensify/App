@@ -273,7 +273,7 @@ function getOriginalMessage<T extends ReportActionName>(reportAction: OnyxInputO
 }
 
 function isExportIntegrationAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
-    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION;
+    return reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.INTEGRATIONS_MESSAGE && !!getOriginalMessage(reportAction as ReportAction<'INTEGRATIONSMESSAGE'>)?.result?.success;
 }
 
 /**
@@ -515,6 +515,11 @@ function getCombinedReportActions(
     return getSortedReportActions(filteredReportActions, true);
 }
 
+const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [CONST.IOU.REPORT_ACTION_TYPE.CREATE, CONST.IOU.REPORT_ACTION_TYPE.SPLIT, CONST.IOU.REPORT_ACTION_TYPE.TRACK];
+
+// Get all IOU report actions for the report.
+const iouRequestTypesSet = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([...iouRequestTypes, CONST.IOU.REPORT_ACTION_TYPE.PAY]);
+
 /**
  * Finds most recent IOU request action ID.
  */
@@ -522,11 +527,6 @@ function getMostRecentIOURequestActionID(reportActions: ReportAction[] | null): 
     if (!Array.isArray(reportActions)) {
         return null;
     }
-    const iouRequestTypes: Array<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>> = [
-        CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-        CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-        CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-    ];
     const iouRequestActions =
         reportActions?.filter((action) => {
             if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.IOU)) {
@@ -585,7 +585,7 @@ function findPreviousAction(reportActions: ReportAction[], actionIndex: number):
  * @param actionIndex - index of the action
  */
 function findNextAction(reportActions: ReportAction[], actionIndex: number): OnyxEntry<ReportAction> {
-    for (let i = actionIndex - 1; i > 0; i--) {
+    for (let i = actionIndex - 1; i >= 0; i--) {
         // Find the next non-pending deletion report action, as the pending delete action means that it is not displayed in the UI, but still is in the report actions list.
         // If we are offline, all actions are pending but shown in the UI, so we take the previous action, even if it is a delete.
         if (isNetworkOffline || reportActions.at(i)?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
@@ -745,10 +745,6 @@ function isReportActionDeprecated(reportAction: OnyxEntry<ReportAction>, key: st
         CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_SETUP_REQUESTED,
         CONST.REPORT.ACTIONS.TYPE.DONATION,
         CONST.REPORT.ACTIONS.TYPE.REIMBURSED,
-
-        // We're temporarily deprecating the actions below since the feature is still WIP and these actions are being shown as duplicated
-        CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-        CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
     ];
     if (deprecatedOldDotReportActions.includes(reportAction.actionName)) {
         Log.info('Front end filtered out reportAction for being an older, deprecated report action', false, reportAction);
@@ -1160,6 +1156,11 @@ function isSplitBillAction(reportAction: OnyxInputOrEntry<ReportAction>): report
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.SPLIT;
 }
 
+function isIOURequestReportAction(reportAction: OnyxInputOrEntry<ReportAction>): boolean {
+    const type = isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.type;
+    return !!type && iouRequestTypes.includes(type);
+}
+
 function isTrackExpenseAction(reportAction: OnyxEntry<ReportAction | OptimisticIOUReportAction>): reportAction is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> {
     return isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.IOU) && getOriginalMessage(reportAction)?.type === CONST.IOU.REPORT_ACTION_TYPE.TRACK;
 }
@@ -1193,14 +1194,6 @@ function isTagModificationAction(actionName: string): boolean {
     );
 }
 
-// Get all IOU report actions for the report.
-const iouRequestTypes = new Set<ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE>>([
-    CONST.IOU.REPORT_ACTION_TYPE.CREATE,
-    CONST.IOU.REPORT_ACTION_TYPE.SPLIT,
-    CONST.IOU.REPORT_ACTION_TYPE.PAY,
-    CONST.IOU.REPORT_ACTION_TYPE.TRACK,
-]);
-
 /**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and null otherwise.
@@ -1232,7 +1225,7 @@ function getOneTransactionThreadReportID(
         const actionType = originalMessage?.type;
         if (
             actionType &&
-            iouRequestTypes.has(actionType) &&
+            iouRequestTypesSet.has(actionType) &&
             action.childReportID &&
             // Include deleted IOU reportActions if:
             // - they have an assocaited IOU transaction ID or
@@ -2418,6 +2411,7 @@ export {
     isResolvedConciergeCategoryOptions,
     isAddCommentAction,
     isApprovedOrSubmittedReportAction,
+    isIOURequestReportAction,
     isChronosOOOListAction,
     isClosedAction,
     isConsecutiveActionMadeByPreviousActor,

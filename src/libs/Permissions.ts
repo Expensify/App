@@ -66,6 +66,14 @@ function canUseInAppProvisioning(betas: OnyxEntry<Beta[]>): boolean {
     return !!betas?.includes(CONST.BETAS.WALLET) || canUseAllBetas(betas);
 }
 
+function canUseGlobalReimbursementsOnND(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.GLOBAL_REIMBURSEMENTS_ON_ND) || canUseAllBetas(betas);
+}
+
+function canUsePrivateDomainOnboarding(betas: OnyxEntry<Beta[]>): boolean {
+    return !!betas?.includes(CONST.BETAS.PRIVATE_DOMAIN_ONBOARDING) || canUseAllBetas(betas);
+}
+
 export default {
     canUseDefaultRooms,
     canUseLinkPreviews,
@@ -81,4 +89,6 @@ export default {
     canUseProhibitedExpenses,
     canUseLeftHandBar,
     canUseInAppProvisioning,
+    canUseGlobalReimbursementsOnND,
+    canUsePrivateDomainOnboarding,
 };
