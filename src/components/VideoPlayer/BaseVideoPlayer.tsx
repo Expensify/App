@@ -336,7 +336,7 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
-    const isCurrentlyURLSetRef = useRef<boolean>();
+    const isCurrentlyURLSetRef = useRef<boolean | undefined>(undefined);
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
 
     useEffect(

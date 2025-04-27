@@ -8,6 +8,4 @@ type CursorPositionParamsType = {
     positionOnWeb?: {positionX?: number; positionY?: number};
 };
 
-type GetCursorPositionType = (params: CursorPositionParamsType) => PositionType;
-
-export type {PositionType, CursorPositionParamsType, GetCursorPositionType};
+export type {PositionType, CursorPositionParamsType};

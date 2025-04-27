@@ -40,5 +40,3 @@ export default function withViewportOffsetTop<TProps extends ViewportOffsetTopPr
 
     return forwardRef(WithViewportOffsetTop);
 }
-
-export type {ViewportOffsetTopProps};

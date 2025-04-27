@@ -5,7 +5,6 @@ import {View} from 'react-native';
 import {useOnyx} from 'react-native-onyx';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
-import HeaderGap from '@components/HeaderGap';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
 import NavigationTabBar from '@components/Navigation/NavigationTabBar';
 import NAVIGATION_TABS from '@components/Navigation/NavigationTabBar/NAVIGATION_TABS';
@@ -20,13 +19,14 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isValidReportIDFromPath} from '@libs/ReportUtils';
+import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import Navigation from '@navigation/Navigation';
 import ReactionListWrapper from '@pages/home/ReactionListWrapper';
 import variables from '@styles/variables';
 import {openReport} from '@userActions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type {ActionListContextType, ScrollPosition} from '@src/pages/home/ReportScreenContext';
+import {ActionListContext} from '@src/pages/home/ReportScreenContext';
 import type SCREENS from '@src/SCREENS';
 import SearchTypeMenu from './SearchTypeMenu';
 
@@ -65,6 +65,13 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     useEffect(() => {
         openReport(reportIDFromRoute, '', [], undefined, undefined, false, [], undefined, true);
     }, [reportIDFromRoute]);
+
+    const queryJSON = useMemo(() => {
+        const backTo = route.params.backTo ?? '';
+        const queryString = backTo.split('?').at(1) ?? '';
+        const q = new URLSearchParams(queryString).get('q') ?? '';
+        return buildSearchQueryJSON(q);
+    }, [route.params.backTo]);
 
     // eslint-disable-next-line rulesdir/no-negated-variables
     const shouldShowNotFoundPage = useMemo(
@@ -130,13 +137,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                     <View style={[styles.searchSplitContainer, canUseLeftHandBar && {marginLeft: variables.navigationTabBarSize}]}>
                         <View style={canUseLeftHandBar ? styles.searchSidebarWithLHB : styles.searchSidebar}>
                             <View style={styles.flex1}>
-                                <HeaderGap />
                                 <TopBar
                                     breadcrumbLabel={translate('common.reports')}
                                     shouldDisplaySearch={false}
                                     shouldShowLoadingBar={false}
                                 />
-                                <SearchTypeMenu queryJSON={undefined} />
+                                <SearchTypeMenu queryJSON={queryJSON} />
                             </View>
                             <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />
                         </View>
