@@ -11,7 +11,6 @@ import {translateLocal} from './Localize';
 import Log from './Log';
 import Parser from './Parser';
 import {getCleanedTagName, getSortedTagKeys} from './PolicyUtils';
-// eslint-disable-next-line import/no-cycle
 import {getOriginalMessage, isModifiedExpenseAction} from './ReportActionsUtils';
 // eslint-disable-next-line import/no-cycle
 import {buildReportNameFromParticipantNames, getPolicyExpenseChatName, getPolicyName, getRootParentReport, isPolicyExpenseChat, isSelfDM} from './ReportUtils';

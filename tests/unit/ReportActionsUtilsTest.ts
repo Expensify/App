@@ -1,5 +1,6 @@
 import type {KeyValueMapping} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
+import {isExpenseReport} from '@libs/ReportUtils';
 import CONST from '../../src/CONST';
 import * as ReportActionsUtils from '../../src/libs/ReportActionsUtils';
 import ONYXKEYS from '../../src/ONYXKEYS';
@@ -958,7 +959,7 @@ describe('ReportActionsUtils', () => {
                 created: '1',
             };
             const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.CHAT};
-            expect(ReportActionsUtils.getRenamedAction(reportAction, report, 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
+            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed this room to "New name" (previously "Old name")');
         });
 
         it('should return the correct translated message for a renamed action in expense report', () => {
@@ -976,7 +977,7 @@ describe('ReportActionsUtils', () => {
             };
             const report = {...createRandomReport(2), type: CONST.REPORT.TYPE.EXPENSE};
 
-            expect(ReportActionsUtils.getRenamedAction(reportAction, report, 'John')).toBe('John renamed to "New name" (previously "Old name")');
+            expect(ReportActionsUtils.getRenamedAction(reportAction, isExpenseReport(report), 'John')).toBe('John renamed to "New name" (previously "Old name")');
         });
     });
 });

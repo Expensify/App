@@ -126,7 +126,6 @@ import {
     isSubmitAndClose,
     shouldShowPolicy,
 } from './PolicyUtils';
-// eslint-disable-next-line import/no-cycle
 import {
     formatLastMessageText,
     getActionableJoinRequestPendingReportAction,
@@ -4745,7 +4744,7 @@ function getReportNameInternal({
         }
 
         if (isRenamedAction(parentReportAction)) {
-            return getRenamedAction(parentReportAction, getReport(report.parentReportID, allReports));
+            return getRenamedAction(parentReportAction, isExpenseReport(getReport(report.parentReportID, allReports)));
         }
 
         if (parentReportActionMessage?.isDeletedParentAction) {

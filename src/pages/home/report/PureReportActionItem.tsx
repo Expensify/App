@@ -138,6 +138,7 @@ import {
     isArchivedNonExpenseReport,
     isChatThread,
     isCompletedTaskReport,
+    isExpenseReport,
     isTaskReport,
     shouldDisplayThreadReplies as shouldDisplayThreadRepliesUtils,
 } from '@libs/ReportUtils';
@@ -1099,7 +1100,7 @@ function PureReportActionItem({
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION)) {
             children = <ExportIntegration action={action} />;
         } else if (isRenamedAction(action)) {
-            const message = getRenamedAction(action, report);
+            const message = getRenamedAction(action, isExpenseReport(report));
             children = <ReportActionItemBasicMessage message={message} />;
         } else if (isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED)) {
             const {label, errorMessage} = getOriginalMessage(action) ?? {label: '', errorMessage: ''};
