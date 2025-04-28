@@ -21,6 +21,7 @@ import Name from './subSteps/Name';
 import PaymentVolume from './subSteps/PaymentVolume';
 import RegistrationNumber from './subSteps/RegistrationNumber';
 import TaxIDEINNumber from './subSteps/TaxIDEINNumber';
+import Website from './subSteps/Website';
 
 type BusinessInfoProps = {
     /** Handles back button press */
@@ -32,6 +33,7 @@ type BusinessInfoProps = {
 
 const bodyContent: Array<ComponentType<SubStepProps>> = [
     Name,
+    Website,
     Address,
     ContactInformation,
     RegistrationNumber,
@@ -45,6 +47,7 @@ const bodyContent: Array<ComponentType<SubStepProps>> = [
 
 const INPUT_KEYS = {
     NAME: INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_NAME,
+    WEBSITE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_WEBSITE,
     STREET: INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STREET,
     CITY: INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_CITY,
     STATE: INPUT_IDS.ADDITIONAL_DATA.CORPAY.COMPANY_STATE,
@@ -65,10 +68,10 @@ const INPUT_KEYS = {
 function BusinessInfo({onBackButtonPress, onSubmit}: BusinessInfoProps) {
     const {translate} = useLocalize();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
-    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
+    const [reimbursementAccountDraft] = useOnyx(ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM_DRAFT, {canBeMissing: true});
     const policyID = reimbursementAccount?.achData?.policyID;
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
+    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {canBeMissing: false});
     const currency = policy?.outputCurrency ?? '';
     const businessInfoStepValues = useMemo(() => getSubStepValues(INPUT_KEYS, reimbursementAccountDraft, reimbursementAccount), [reimbursementAccount, reimbursementAccountDraft]);
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
