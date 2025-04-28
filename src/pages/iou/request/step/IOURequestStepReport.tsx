@@ -4,11 +4,12 @@ import {useOnyx} from 'react-native-onyx';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import UserListItem from '@components/SelectionList/UserListItem';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useLocalize from '@hooks/useLocalize';
 import {changeTransactionsReport, setTransactionReport} from '@libs/actions/Transaction';
 import Navigation from '@libs/Navigation/Navigation';
-import {getOutstandingReports} from '@libs/ReportUtils';
+import {getOutstandingReportsForUser} from '@libs/ReportUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
@@ -33,6 +34,7 @@ type IOURequestStepReportProps = WithWritableReportOrNotFoundProps<typeof SCREEN
  */
 const reportSelector = (report: OnyxEntry<Report>): OnyxEntry<Report> =>
     report && {
+        ownerAccountID: report.ownerAccountID,
         reportID: report.reportID,
         policyID: report.policyID,
         reportName: report.reportName,
@@ -45,14 +47,14 @@ function IOURequestStepReport({route, transaction}: IOURequestStepReportProps) {
     const {translate} = useLocalize();
     const {backTo, action} = route.params;
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (c) => mapOnyxCollectionItems(c, reportSelector), canBeMissing: true});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [searchValue, debouncedSearchValue, setSearchValue] = useDebouncedState('');
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     // We need to get the policyID because it's not defined in the transaction object before we select a report manually.
-    const policyID = Object.values(allReports ?? {}).find(
-        (report) => report?.reportID === transaction?.reportID || (transaction?.participants && report?.reportID === transaction.participants.at(0)?.reportID),
-    )?.policyID;
-    const expenseReports = getOutstandingReports(policyID, allReports ?? {});
-
+    const transactionReport = Object.values(allReports ?? {}).find(
+        (report) => report?.reportID === transaction?.reportID || (transaction?.participants && report?.reportID === transaction?.participants?.at(0)?.reportID),
+    );
+    const expenseReports = getOutstandingReportsForUser(transactionReport?.policyID, transactionReport?.ownerAccountID ?? currentUserPersonalDetails.accountID, allReports ?? {});
     const reportOptions: ReportListItem[] = useMemo(() => {
         if (!allReports) {
             return [];
