@@ -250,7 +250,7 @@ function ReportPreview({
 
     const isArchived = isArchivedReportWithID(iouReport?.reportID);
 
-    // The submit button should be success green colour only if the user is submitter and the policy does not have Scheduled Submit turned on
+    // The submit button should be success green color only if the user is submitter and the policy does not have Scheduled Submit turned on
     const isWaitingForSubmissionFromCurrentUser = useMemo(() => isWaitingForSubmissionFromCurrentUserReportUtils(chatReport, policy), [chatReport, policy]);
 
     const {isDelegateAccessRestricted} = useDelegateUserDetails();
@@ -490,7 +490,7 @@ function ReportPreview({
             return;
         }
 
-        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBSUP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBSUP_DURATION})) : 1);
+        thumbsUpScale.set(isApprovedAnimationRunning ? withDelay(CONST.ANIMATION_THUMBS_UP_DELAY, withSpring(1, {duration: CONST.ANIMATION_THUMBS_UP_DURATION})) : 1);
     }, [isApproved, isApprovedAnimationRunning, thumbsUpScale]);
     const openReportFromPreview = useCallback(() => {
         if (!iouReportID || contextMenuRef.current?.isContextMenuOpening) {

@@ -52,7 +52,7 @@ function signInAppAndEnterTestFlow(dismissedValue?: boolean): Promise<void> {
             await act(async () => {
                 await TestHelper.signInWithTestUser(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined, undefined, 'A');
             });
-            await Onyx.set(ONYXKEYS.NVP_TRYNEWDOT, {
+            await Onyx.set(ONYXKEYS.NVP_TRY_NEW_DOT, {
                 classicRedirect: {
                     dismissed: dismissedValue,
                 },

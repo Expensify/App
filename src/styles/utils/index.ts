@@ -98,7 +98,7 @@ const avatarBorderSizes: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.DEFAULT]: variables.componentBorderRadiusNormal,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE]: variables.componentBorderRadiusLarge,
-    [CONST.AVATAR_SIZE.XLARGE]: variables.componentBorderRadiusLarge,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.componentBorderRadiusLarge,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.componentBorderRadiusRounded,
     [CONST.AVATAR_SIZE.SMALL_NORMAL]: variables.componentBorderRadiusMedium,
 };
@@ -111,7 +111,7 @@ const avatarSizes: Record<AvatarSizeName, AvatarSizeValue> = {
     [CONST.AVATAR_SIZE.SMALL]: variables.avatarSizeSmall,
     [CONST.AVATAR_SIZE.SMALLER]: variables.avatarSizeSmaller,
     [CONST.AVATAR_SIZE.LARGE]: variables.avatarSizeLarge,
-    [CONST.AVATAR_SIZE.XLARGE]: variables.avatarSizeXLarge,
+    [CONST.AVATAR_SIZE.X_LARGE]: variables.avatarSizeXLarge,
     [CONST.AVATAR_SIZE.MEDIUM]: variables.avatarSizeMedium,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: variables.avatarSizeLargeBordered,
     [CONST.AVATAR_SIZE.HEADER]: variables.avatarSizeHeader,
@@ -139,7 +139,7 @@ const avatarBorderWidths: Partial<Record<AvatarSizeName, number>> = {
     [CONST.AVATAR_SIZE.SMALL]: 2,
     [CONST.AVATAR_SIZE.SMALLER]: 2,
     [CONST.AVATAR_SIZE.LARGE]: 4,
-    [CONST.AVATAR_SIZE.XLARGE]: 4,
+    [CONST.AVATAR_SIZE.X_LARGE]: 4,
     [CONST.AVATAR_SIZE.MEDIUM]: 3,
     [CONST.AVATAR_SIZE.LARGE_BORDERED]: 4,
 };
