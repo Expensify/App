@@ -16,12 +16,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-            - scheme: 'New Expensify Dev'
-              configuration: 'DebugDevelopment'
+          - scheme: 'New Expensify Dev'
+            configuration: 'DebugDevelopment'
 
-            - scheme: 'Expensify Dev'
-              configuration: 'Debug'
-              is_hybrid_build: true
+          - scheme: 'Expensify Dev'
+            configuration: 'Debug'
+            is_hybrid_build: true
     steps:
       - name: Checkout
         # v4
