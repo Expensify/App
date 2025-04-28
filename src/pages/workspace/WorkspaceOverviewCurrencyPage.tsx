@@ -31,7 +31,7 @@ const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 function WorkspaceOverviewCurrencyPage({policy}: WorkspaceOverviewCurrencyPageProps) {
     const {translate} = useLocalize();
     const {canUseGlobalReimbursementsOnND} = usePermissions();
-    const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY);
+    const [isForcedToChangeCurrency] = useOnyx(ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY, {canBeMissing: true});
 
     const onSelectCurrency = (item: CurrencyListItem) => {
         if (!policy) {

@@ -28,7 +28,7 @@ function EnterEmail({onSubmit, isUserDirector}: EnterEmailProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
+    const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT, {canBeMissing: false});
     const policyID = reimbursementAccount?.achData?.policyID;
     const policy = usePolicy(policyID);
     const currency = policy?.outputCurrency ?? '';
