@@ -1,58 +1,106 @@
-import RNFS from 'react-native-fs';
 import Onyx, {OnyxCollection} from 'react-native-onyx';
-import CONST from '@src/CONST';
+import {isLocalFile} from '@libs/fileDownload/FileUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type * as OnyxTypes from '@src/types/onyx';
-import {CacheAttachmentProps} from './types';
+import type {Attachment} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import {CacheAttachmentProps, FetchFileProps, UploadAttachmentProps} from './types';
 
-let attachments: OnyxCollection<OnyxTypes.Attachment> | undefined;
+let attachments: OnyxCollection<Attachment> | undefined;
 Onyx.connect({
     key: ONYXKEYS.COLLECTION.ATTACHMENT,
     waitForCollectionCallback: true,
     callback: (value) => (attachments = value),
 });
 
-function getAttachmentSource(attachmentID: number) {
-    const attachment: OnyxTypes.Attachment | undefined = attachments?.[attachmentID];
-    const localVersion = attachment?.localVersion;
-    const cachedVersion = attachment?.cachedVersion;
-    const remoteVersion = attachment?.remoteVersion;
-    if (attachment?.localSource && localVersion === remoteVersion) {
-        return attachment?.localSource;
-    }
-    if (attachment?.cachedSource && cachedVersion === remoteVersion) {
-        return attachment?.localSource;
-    }
-    return attachment?.source;
-}
-
-function cacheAttachment({attachmentID, src, fileName}: CacheAttachmentProps) {
-    const attachment = attachments?.[attachmentID];
-    // Exit from the function if the cachedSource is exist and the img version is same to remote source version
-    if (attachment?.cachedSource && attachment.cachedVersion === attachment.remoteVersion) {
+function uploadAttachment({attachmentID, url}: UploadAttachmentProps) {
+    if (!attachmentID || !url) {
         return;
     }
-    fetch(src)
-        .then((response) => response.blob())
-        .then((blob) => {
-            const fileUrl = URL.createObjectURL(blob);
-            const finalFileName = fileName ? fileName : `${attachmentID}.${blob.type}`;
-            const cachePath = `file://${RNFS.PicturesDirectoryPath}/${finalFileName}`;
-            RNFS.exists(cachePath).then((isExists) => {
-                if (isExists) {
-                    // If the cache file path is exist, remove it and create new one
-                    RNFS.unlink(cachePath).then(() => {
-                        RNFS.writeFile(cachePath, fileUrl);
-                    });
-                } else {
-                    RNFS.writeFile(cachePath, fileUrl);
-                }
-                Onyx.merge(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
-                    cachedSource: fileUrl,
-                    cachedVersion: attachment?.remoteVersion,
-                });
-            });
-        });
+    Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+        source: url,
+    });
 }
 
-export {getAttachmentSource, cacheAttachment};
+function getAttachmentSource(attachmentID: string, src: string) {
+    const attachment: Attachment | undefined = attachments?.[`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`];
+    if (attachment && attachment.source) {
+        if (attachment.source instanceof Blob) {
+            const imageUrl = URL.createObjectURL(attachment.source);
+            return imageUrl;
+        } else {
+            return attachment.source;
+        }
+    }
+    return attachment?.remoteSource || src;
+}
+
+function fetchFile({url, file}: FetchFileProps): Promise<ArrayBuffer | undefined> {
+    return new Promise((resolve) => {
+        if (!url && !file?.uri) {
+            resolve(undefined);
+            return;
+        }
+
+        const isLocal = isLocalFile(file?.uri);
+        const hasFileAndIsLocal = !isEmptyObject(file) && file.uri && isLocal;
+
+        if (hasFileAndIsLocal) {
+            const reader = new FileReader();
+
+            reader.onload = (e) => {
+                if (e.target && e.target.result instanceof ArrayBuffer) {
+                    resolve(e.target.result);
+                }
+                resolve(undefined);
+            };
+
+            reader.onerror = (err) => {
+                console.error('Failed to read file', err);
+                resolve(undefined);
+            };
+
+            // Use array buffer for better perfomance i.e large attachment
+            reader.readAsArrayBuffer(file);
+
+            return;
+        }
+        if (!url) {
+            resolve(undefined);
+            return;
+        }
+        fetch(url)
+            .then((res) => {
+                if (!res.ok) {
+                    console.error('Failed to fetch file');
+                    resolve(undefined);
+                }
+                const fileBuffer = res.arrayBuffer();
+                resolve(fileBuffer);
+            })
+            .catch((err) => {
+                console.error('Failed to fetch file', err);
+                resolve(undefined);
+            });
+    });
+}
+
+function cacheAttachment({attachmentID, url, file}: CacheAttachmentProps) {
+    const attachment = attachments?.[attachmentID];
+
+    // Exit from the function if the image is not changed or the image has already been cached
+    // if (attachment && attachment.remoteSource === src && attachment.localSource) {
+    //     return;
+    // }
+    const attachmentUrl = url ?? file?.uri ?? '';
+    fetchFile({
+        url: attachmentUrl,
+    })?.then((arrayBuffer) => {
+        const uint8Array = new Uint8Array(arrayBuffer ?? []);
+        const fileData = new Blob([uint8Array], {type: file?.type ?? ''});
+        Onyx.merge(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
+            source: fileData,
+        });
+    });
+}
+
+export {uploadAttachment, fetchFile, getAttachmentSource, cacheAttachment};

@@ -1,11 +1,7 @@
-type NestedNumberArray = number | NestedNumberArray[];
-
 type Attachment = {
     attachmentID?: string;
 
-    localSource?: NestedNumberArray[];
-
-    localSourceType?: string;
+    source?: string | Blob;
 
     remoteSource?: string;
 };
