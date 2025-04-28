@@ -1,7 +1,7 @@
 import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
-import type {Policy, Report, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Policy, Report, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
 import {isApprover as isApproverUtils} from './actions/Policy/Member';
 import {getCurrentUserAccountID} from './actions/Report';
 import {
@@ -18,7 +18,6 @@ import {
     canAddTransaction as canAddTransactionUtil,
     getMoneyRequestSpendBreakdown,
     getParentReport,
-    getReportNameValuePairs,
     isArchivedReport,
     isClosedReport as isClosedReportUtils,
     isCurrentUserSubmitter,
@@ -101,7 +100,7 @@ function isApproveAction(report: Report, reportTransactions: Transaction[], poli
     return false;
 }
 
-function isPayAction(report: Report, policy?: Policy) {
+function isPayAction(report: Report, policy?: Policy, reportNameValuePairs?: ReportNameValuePairs) {
     const isExpenseReport = isExpenseReportUtils(report);
     const isReportPayer = isPayer(getSession(), report, false, policy);
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
@@ -115,7 +114,6 @@ function isPayAction(report: Report, policy?: Policy) {
     const isReportFinished = (isReportApproved && !report.isWaitingOnBankAccount) || isSubmittedWithoutApprovalsEnabled || isReportClosed;
     const {reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
 
-    const reportNameValuePairs = getReportNameValuePairs(report.chatReportID);
     const isChatReportArchived = isArchivedReport(reportNameValuePairs);
 
     if (isChatReportArchived) {
@@ -257,6 +255,7 @@ function getReportPrimaryAction(
     reportTransactions: Transaction[],
     violations: OnyxCollection<TransactionViolation[]>,
     policy?: Policy,
+    reportNameValuePairs?: ReportNameValuePairs,
 ): ValueOf<typeof CONST.REPORT.PRIMARY_ACTIONS> | '' {
     if (isAddExpenseAction(report, reportTransactions)) {
         return CONST.REPORT.PRIMARY_ACTIONS.ADD_EXPENSE;
@@ -278,7 +277,7 @@ function getReportPrimaryAction(
         return CONST.REPORT.PRIMARY_ACTIONS.APPROVE;
     }
 
-    if (isPayAction(report, policy)) {
+    if (isPayAction(report, policy, reportNameValuePairs)) {
         return CONST.REPORT.PRIMARY_ACTIONS.PAY;
     }
 
