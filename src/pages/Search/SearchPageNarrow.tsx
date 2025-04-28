@@ -52,7 +52,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
     const {windowHeight} = useWindowDimensions();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE);
+    const [selectionMode] = useOnyx(ONYXKEYS.MOBILE_SELECTION_MODE, {canBeMissing: true});
     const {clearSelectedTransactions} = useSearchContext();
     const [searchRouterListVisible, setSearchRouterListVisible] = useState(false);
     const {canUseLeftHandBar} = usePermissions();
@@ -145,7 +145,7 @@ function SearchPageNarrow({queryJSON, policyID, searchName, headerButtonsOptions
             testID={SearchPageNarrow.displayName}
             shouldEnableMaxHeight
             offlineIndicatorStyle={styles.mtAuto}
-            extraContent={!searchRouterListVisible && <NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
+            extraContent={<NavigationTabBar selectedTab={NAVIGATION_TABS.SEARCH} />}
             headerGapStyles={styles.searchHeaderGap}
             shouldShowOfflineIndicator={!!searchResults}
         >
