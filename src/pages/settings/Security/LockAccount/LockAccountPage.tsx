@@ -41,11 +41,11 @@ function LockAccountPage() {
         >
             <View style={[styles.flex1, styles.gap4, styles.mh5]}>
                 <Text>{translate('lockAccountPage.compromisedDescription')}</Text>
-                <View style={styles.dInline}>
+                <Text>
                     <Text>{translate('lockAccountPage.domainAdminsDescriptionPartOne')}</Text>
                     <Text style={styles.textBold}>{translate('lockAccountPage.domainAdminsDescriptionPartTwo')}</Text>
                     <Text>{translate('lockAccountPage.domainAdminsDescriptionPartThree')}</Text>
-                </View>
+                </Text>
             </View>
             <ConfirmModal
                 danger
