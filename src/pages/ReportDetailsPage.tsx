@@ -36,8 +36,6 @@ import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
-import usePermissions from '@hooks/usePermissions';
-import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -140,6 +138,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 import type {WithReportOrNotFoundProps} from './home/report/withReportOrNotFound';
 import withReportOrNotFound from './home/report/withReportOrNotFound';
+import useReportIsArchived from '@hooks/useReportIsArchived';
 
 type ReportDetailsPageMenuItem = {
     key: DeepValueOf<typeof CONST.REPORT_DETAILS_MENU_ITEM>;
@@ -165,7 +164,7 @@ type CaseID = ValueOf<typeof CASES>;
 function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDetailsPageProps) {
     const {translate} = useLocalize();
     const {isOffline} = useNetwork();
-    const {canUsePDFExport, canUseTableReportView} = usePermissions();
+    const {canUseTableReportView} = usePermissions();
     const theme = useTheme();
     const styles = useThemeStyles();
     const backTo = route.params.backTo;
@@ -582,22 +581,19 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     });
                 },
             });
-
-            if (canUsePDFExport) {
-                items.push({
-                    key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
-                    translationKey: 'common.downloadAsPDF',
-                    icon: Expensicons.Document,
-                    isAnonymousAction: false,
-                    action: () => {
-                        if (isOffline) {
-                            setOfflineModalVisible(true);
-                        } else {
-                            beginPDFExport();
-                        }
-                    },
-                });
-            }
+            items.push({
+                key: CONST.REPORT_DETAILS_MENU_ITEM.DOWNLOAD_PDF,
+                translationKey: 'common.downloadAsPDF',
+                icon: Expensicons.Document,
+                isAnonymousAction: false,
+                action: () => {
+                    if (isOffline) {
+                        setOfflineModalVisible(true);
+                    } else {
+                        beginPDFExport();
+                    }
+                },
+            });
         }
 
         if (policy && connectedIntegration && isPolicyAdmin && !isSingleTransactionView && isExpenseReport) {
@@ -668,6 +664,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
 
         return items;
     }, [
+        beginPDFExport,
         isSelfDM,
         isArchivedRoom,
         isGroupChat,
@@ -706,10 +703,8 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
         session,
         isTaskModifiable,
         isTaskActionable,
-        canUsePDFExport,
         isOffline,
         transactionIDList,
-        beginPDFExport,
         unapproveExpenseReportOrShowModal,
         isRootGroupChat,
         leaveChat,
@@ -757,7 +752,7 @@ function ReportDetailsPage({policies, report, route, reportMetadata}: ReportDeta
                     source={icons.at(0)?.source}
                     avatarID={icons.at(0)?.id}
                     isUsingDefaultAvatar={!report.avatarUrl}
-                    size={CONST.AVATAR_SIZE.XLARGE}
+                    size={CONST.AVATAR_SIZE.X_LARGE}
                     avatarStyle={styles.avatarXLarge}
                     onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                     onImageRemoved={() => {

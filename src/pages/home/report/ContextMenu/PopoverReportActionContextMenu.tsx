@@ -65,7 +65,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
     const [hasUnreadMessages, setHasUnreadMessages] = useState(false);
     const [isThreadReportParentAction, setIsThreadReportParentAction] = useState(false);
     const [disabledActions, setDisabledActions] = useState<ContextMenuAction[]>([]);
-    const [shoudSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
+    const [shouldSwitchPositionIfOverflow, setShoudSwitchPositionIfOverflow] = useState(false);
 
     const contentRef = useRef<View>(null);
     const anchorRef = useRef<View | HTMLDivElement | null>(null);
@@ -340,7 +340,7 @@ function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<Repor
                 withoutOverlay
                 anchorDimensions={contextMenuDimensions.current}
                 anchorRef={anchorRef}
-                shoudSwitchPositionIfOverflow={shoudSwitchPositionIfOverflow}
+                shouldSwitchPositionIfOverflow={shouldSwitchPositionIfOverflow}
                 shouldUseNewModal
             >
                 <BaseReportActionContextMenu

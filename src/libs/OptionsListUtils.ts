@@ -282,7 +282,7 @@ type OrderOptionsConfig =
       };
 
 type OrderReportOptionsConfig = {
-    preferChatroomsOverThreads?: boolean;
+    preferChatRoomsOverThreads?: boolean;
     preferPolicyExpenseChat?: boolean;
     preferRecentExpenseReports?: boolean;
 };
@@ -790,7 +790,7 @@ function getLastMessageTextForReport(
         lastMessageTextFromReport = getDowngradeWorkspaceMessage();
     } else if (isActionableAddPaymentCard(lastReportAction) || isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.CHANGE_POLICY)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
-    } else if (lastReportAction?.actionName === 'EXPORTINTEGRATION') {
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
         lastMessageTextFromReport = getExportIntegrationLastMessageText(lastReportAction);
     } else if (lastReportAction?.actionName && isOldDotReportAction(lastReportAction)) {
         lastMessageTextFromReport = getMessageOfOldDotReportAction(lastReportAction, false);
@@ -1200,7 +1200,7 @@ function orderReportOptions(options: OptionData[]) {
 function orderReportOptionsWithSearch(
     options: OptionData[],
     searchValue: string,
-    {preferChatroomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
+    {preferChatRoomsOverThreads = false, preferPolicyExpenseChat = false, preferRecentExpenseReports = false}: OrderReportOptionsConfig = {},
 ) {
     const orderedByDate = orderReportOptions(options);
 
@@ -1222,7 +1222,7 @@ function orderReportOptionsWithSearch(
                 if (preferRecentExpenseReports && option.isPolicyExpenseChat) {
                     return 1;
                 }
-                if (preferChatroomsOverThreads && option.isThread) {
+                if (preferChatRoomsOverThreads && option.isThread) {
                     return 4;
                 }
                 if (!!option.isChatRoom || option.private_isArchived) {

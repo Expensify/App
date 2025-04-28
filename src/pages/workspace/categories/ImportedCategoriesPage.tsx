@@ -1,13 +1,13 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {useOnyx} from 'react-native-onyx';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+import useCloseImportPage from '@hooks/useCloseImportPage';
 import useLocalize from '@hooks/useLocalize';
 import usePolicy from '@hooks/usePolicy';
-import {closeImportPage} from '@libs/actions/ImportSpreadsheet';
 import {importPolicyCategories} from '@libs/actions/Policy/Category';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -25,15 +25,15 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 type ImportedCategoriesPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.CATEGORIES_IMPORTED>;
 function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     const {translate} = useLocalize();
-    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
+    const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET, {canBeMissing: true});
     const [isImportingCategories, setIsImportingCategories] = useState(false);
     const {containsHeader = true} = spreadsheet ?? {};
     const [isValidationEnabled, setIsValidationEnabled] = useState(false);
     const policyID = route.params.policyID;
     const backTo = route.params.backTo;
-    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`, {canBeMissing: true});
 
-    const isClosing = useRef(false);
+    const {setIsClosing} = useCloseImportPage();
 
     const policy = usePolicy(policyID);
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
@@ -120,7 +120,7 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     }, [validate, spreadsheet, containsHeader, policyID, policyCategories]);
 
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
-    if (isClosing.current || (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata))) {
+    if (!spreadsheet && isLoadingOnyxValue(spreadsheetMetadata)) {
         return;
     }
 
@@ -131,9 +131,8 @@ function ImportedCategoriesPage({route}: ImportedCategoriesPageProps) {
     }
 
     const closeImportPageAndModal = () => {
-        isClosing.current = true;
+        setIsClosing(true);
         setIsImportingCategories(false);
-        closeImportPage();
         Navigation.goBack(isQuickSettingsFlow ? ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, backTo) : ROUTES.WORKSPACE_CATEGORIES.getRoute(policyID));
     };
 
