@@ -514,6 +514,7 @@ function MenuItem(
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
             shouldBreakWord ? styles.breakWord : {},
+            styles.mw100,
         ],
         titleStyle ?? {},
     );
