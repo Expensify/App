@@ -120,17 +120,19 @@ type AddNewCompanyCardFeed = {
     isEditing: boolean;
 };
 
+/** Card fund ID */
+type FundID = number;
+
 export default CardFeeds;
 export type {
     AddNewCardFeedStep,
     AddNewCompanyCardFeed,
     AddNewCardFeedData,
-    CardFeedData,
-    CustomCardFeedData,
     CompanyCardFeed,
     DirectCardFeedData,
     CardFeedProvider,
     CompanyFeeds,
     CompanyCardNicknames,
     CompanyCardFeedWithNumber,
+    FundID,
 };

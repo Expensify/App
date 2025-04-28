@@ -514,6 +514,7 @@ function MenuItem(
             styles.ltr,
             isDeleted ? styles.offlineFeedback.deleted : {},
             shouldBreakWord ? styles.breakWord : {},
+            styles.mw100,
         ],
         titleStyle ?? {},
     );
@@ -970,5 +971,5 @@ function MenuItem(
 
 MenuItem.displayName = 'MenuItem';
 
-export type {AvatarProps, IconProps, MenuItemBaseProps, MenuItemProps, NoIcon};
+export type {MenuItemBaseProps, MenuItemProps};
 export default forwardRef(MenuItem);

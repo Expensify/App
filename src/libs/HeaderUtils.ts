@@ -4,7 +4,6 @@ import ROUTES from '@src/ROUTES';
 import type OnyxReport from '@src/types/onyx/Report';
 import {togglePinnedState} from './actions/Report';
 import {callFunctionIfActionIsAllowed} from './actions/Session';
-import {translateLocal} from './Localize';
 import Navigation from './Navigation/Navigation';
 
 function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
@@ -12,7 +11,7 @@ function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
 
     return {
         icon: Expensicons.Pin,
-        text: translateLocal(isPinned ? 'common.unPin' : 'common.pin'),
+        translationKey: isPinned ? 'common.unPin' : 'common.pin',
         onSelected: callFunctionIfActionIsAllowed(() => togglePinnedState(report.reportID, isPinned)),
     };
 }
@@ -20,7 +19,7 @@ function getPinMenuItem(report: OnyxReport): ThreeDotsMenuItem {
 function getShareMenuItem(report: OnyxReport, backTo?: string): ThreeDotsMenuItem {
     return {
         icon: Expensicons.QrCode,
-        text: translateLocal('common.share'),
+        translationKey: 'common.share',
         onSelected: () => Navigation.navigate(ROUTES.REPORT_WITH_ID_DETAILS_SHARE_CODE.getRoute(report?.reportID, backTo)),
     };
 }

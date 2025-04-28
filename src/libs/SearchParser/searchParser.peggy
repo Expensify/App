@@ -130,6 +130,11 @@ key "key"
       / exported
       / posted
       / feed
+      / title
+      / assignee
+      / createdBy
+      / reimbursable
+      / billable
     )
 
 filterKey
