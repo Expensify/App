@@ -573,8 +573,6 @@ function saveCorpayOnboardingDirectorInformation(parameters: SaveCorpayOnboardin
     return API.write(WRITE_COMMANDS.SAVE_CORPAY_ONBOARDING_DIRECTOR_INFORMATION, parameters, onyxData);
 }
 
-    return API.write(WRITE_COMMANDS.FINISH_CORPAY_BANK_ACCOUNT_ONBOARDING, parameters, onyxData);
-    
 function askForCorpaySignerInformation(parameters: AskForCorpaySignerInformationParams) {
     const onyxData: OnyxData = {
         optimisticData: [
@@ -968,4 +966,5 @@ export {
     finishCorpayBankAccountOnboarding,
     clearReimbursementAccountFinishCorpayBankAccountOnboarding,
     askForCorpaySignerInformation,
+    clearReimbursementAccount,
 };
