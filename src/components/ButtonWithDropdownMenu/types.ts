@@ -1,5 +1,5 @@
 import type {RefObject} from 'react';
-import type {GestureResponderEvent, StyleProp, View, ViewStyle} from 'react-native';
+import type {GestureResponderEvent, StyleProp, TextStyle, View, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
@@ -33,6 +33,9 @@ type DropdownOption<TValueType> = {
     numberOfLinesTitle?: number;
     titleStyle?: ViewStyle;
     shouldCloseModalOnSelect?: boolean;
+    description?: string;
+    descriptionTextStyle?: StyleProp<TextStyle>;
+    wrapperStyle?: StyleProp<ViewStyle>;
 };
 
 type ButtonWithDropdownMenuProps<TValueType> = {
@@ -122,6 +125,9 @@ type ButtonWithDropdownMenuProps<TValueType> = {
 
     /** The second line text displays under the first line */
     secondLineText?: string;
+
+    /** Icon for main button */
+    icon?: IconAsset;
 };
 
 export type {

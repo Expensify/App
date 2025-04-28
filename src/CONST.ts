@@ -7047,6 +7047,12 @@ const CONST = {
         EMBEDDED_DEMO_WHITELIST: ['http://', 'https://', 'about:'] as string[],
         EMBEDDED_DEMO_IFRAME_TITLE: 'Test Drive',
     },
+
+    SCHEDULE_CALL_STATUS: {
+        CREATED:  'created',
+        RESCHEDULED: 'rescheduled',
+        CANCELLED: 'cancelled',
+    },
 } as const;
 
 type Country = keyof typeof CONST.ALL_COUNTRIES;
