@@ -261,7 +261,7 @@ function isMarkAsExportedAction(report: Report, policy?: Policy): boolean {
 
     const isExporter = isPrefferedExporter(policy);
 
-    return isAdmin && syncEnabled || isExporter && !syncEnabled;
+    return (isAdmin && syncEnabled) || (isExporter && !syncEnabled);
 }
 
 function isHoldAction(report: Report, reportTransactions: Transaction[]): boolean {
