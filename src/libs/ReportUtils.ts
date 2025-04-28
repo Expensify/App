@@ -4570,10 +4570,9 @@ function getInvoicesChatName({
 const buildReportNameFromParticipantNames = ({report, personalDetails: personalDetailsData}: {report: OnyxEntry<Report>; personalDetails?: Partial<PersonalDetailsList>}) =>
     Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((id) => id !== currentUserAccountID) // Exclude the current user's ID
-        .slice(0, 5) // Limit the number of participants to 5
+        .filter((id) => id !== currentUserAccountID)
+        .slice(0, 5)
         .map((accountID) => ({
-            // Retrieve the display name for each participant
             accountID,
             name: getDisplayNameForParticipant({
                 accountID,
@@ -4581,7 +4580,7 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
                 personalDetailsData,
             }),
         }))
-        .filter((participant) => participant.name) // Filter out any participants without a name
+        .filter((participant) => participant.name)
         .reduce((formattedNames, {name, accountID}, _, array) => {
             // If there is only one participant (if it is 0 or less the function will return empty string), return their full name
             if (array.length < 2) {
@@ -4590,7 +4589,6 @@ const buildReportNameFromParticipantNames = ({report, personalDetails: personalD
                     personalDetailsData,
                 });
             }
-            // Concatenate names for a comma-separated list
             return formattedNames ? `${formattedNames}, ${name}` : name;
         }, '');
 
