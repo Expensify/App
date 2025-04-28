@@ -23,6 +23,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 TestHelper.setupGlobalFetchMock();
 jest.mock('@components/ConfirmedRoute.tsx');
 
+jest.unmock('react-native-reanimated');
+
 const Stack = createPlatformStackNavigator<WorkspaceSplitNavigatorParamList>();
 
 const renderPage = (initialRouteName: typeof SCREENS.WORKSPACE.TAGS, initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.TAGS]) => {

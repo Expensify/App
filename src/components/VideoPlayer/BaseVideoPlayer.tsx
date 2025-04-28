@@ -54,7 +54,7 @@ function BaseVideoPlayer({
     isVideoHovered = false,
     isPreview,
     reportID,
-}: VideoPlayerProps) {
+}: VideoPlayerProps & {reportID: string}) {
     const styles = useThemeStyles();
     const {
         pauseVideo,
@@ -336,7 +336,7 @@ function BaseVideoPlayer({
         currentVideoPlayerRef.current = videoPlayerRef.current;
     }, [url, currentVideoPlayerRef, isUploading, pauseVideo]);
 
-    const isCurrentlyURLSetRef = useRef<boolean>();
+    const isCurrentlyURLSetRef = useRef<boolean | undefined>(undefined);
     isCurrentlyURLSetRef.current = isCurrentlyURLSet;
 
     useEffect(
@@ -504,6 +504,7 @@ function BaseVideoPlayer({
                                             onError={() => {
                                                 setHasError(true);
                                             }}
+                                            testID={CONST.VIDEO_PLAYER_TEST_ID}
                                         />
                                     </View>
                                 )}
