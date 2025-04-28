@@ -97,10 +97,11 @@ export default {
     iosSafeAreaInsetsPercentage: 0.7,
     androidSafeAreaInsetsPercentage: 1,
     sideBarWidth: 375,
+    sideBarWithLHBWidth: 344,
+    navigationTabBarSize: 72,
     pdfPageMaxWidth: 992,
     tooltipzIndex: 10050,
     gutterWidth: 12,
-    popoverMenuShadow: '0px 4px 12px 0px rgba(0, 0, 0, 0.06)',
     optionRowHeight: 64,
     optionRowHeightCompact: 52,
     optionsListSectionHeaderHeight: getValueUsingPixelRatio(32, 38),
@@ -114,6 +115,7 @@ export default {
     lineHeightXXXLarge: getValueUsingPixelRatio(32, 37),
     lineHeightSizeh1: getValueUsingPixelRatio(28, 32),
     lineHeightSizeh2: getValueUsingPixelRatio(24, 28),
+    lineHeighTaskTitle: getValueUsingPixelRatio(26, 30),
     lineHeightSignInHeroXSmall: getValueUsingPixelRatio(32, 37),
     inputHeight: getValueUsingPixelRatio(52, 72),
     inputHeightSmall: 28,
@@ -136,6 +138,7 @@ export default {
     emptyListIconHeight: 144,
     modalTopIconWidth: 200,
     modalTopIconHeight: 164,
+    twoFAIconHeight: 140,
     modalTopMediumIconHeight: 203,
     modalTopBigIconHeight: 244,
     modalWordmarkWidth: 154,
@@ -227,7 +230,6 @@ export default {
     fontSizeOnlyEmojisHeight: 35,
     emojiSize: 20,
     emojiLineHeight: 28,
-    fontSizeUsernameEmoji: 19,
     fontSizeEmojisWithinText: getValueUsingPixelRatio(17, 19),
 
     // The height of the empty list is 14px (2px for borders and 12px for vertical padding)
@@ -240,6 +242,7 @@ export default {
     menuIconSize: 48,
 
     moneyRequestSkeletonHeight: 107,
+    transactionPreviewSkeletonHeight: 66,
 
     distanceScrollEventThrottle: 16,
 
@@ -269,10 +272,12 @@ export default {
     gbrTooltipShiftHorizontal: -15,
     gbrTooltipShiftVertical: -10,
     fabTooltipShiftHorizontal: -11,
+    lhbFabTooltipShiftHorizontal: 4,
     workspaceLHNTooltipShiftHorizontal: 23,
     savedSearchShiftHorizontal: -10,
     savedSearchShiftVertical: 6,
-    bottomTabInboxTooltipShiftHorizontal: 36,
+    navigationTabBarInboxTooltipShiftHorizontal: 36,
+    expenseReportsTypeTooltipShiftHorizontal: 10,
 
     inlineImagePreviewMinSize: 64,
     inlineImagePreviewMaxSize: 148,
@@ -284,12 +289,17 @@ export default {
     searchTopBarHeight: 52,
     searchRouterInputMargin: 52,
 
+    errorPageIconWidth: 116,
+    errorPageIconHeight: 168,
+
     h20: 20,
     h28: 28,
     h36: 36,
     h40: 40,
+    h70: 70,
     h112: 112,
     h172: 172,
+    w12: 12,
     w20: 20,
     w28: 28,
     w36: 36,

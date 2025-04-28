@@ -36,13 +36,14 @@ import {dismissProductTraining} from '@libs/actions/Welcome';
 import {isMobile, isMobileWebKit} from '@libs/Browser';
 import {base64ToFile, readFileAsync, resizeImageIfNeeded, validateReceipt} from '@libs/fileDownload/FileUtils';
 import getCurrentPosition from '@libs/getCurrentPosition';
+import getPlatform from '@libs/getPlatform';
 import {shouldStartLocationPermissionFlow} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsUserSubmittedExpenseOrScannedReceipt, getManagerMcTestParticipant, getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import Permissions from '@libs/Permissions';
-import {isPaidGroupPolicy} from '@libs/PolicyUtils';
-import {getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
+import {isPaidGroupPolicy, isUserInvitedToWorkspace} from '@libs/PolicyUtils';
+import {generateReportID, getPolicyExpenseChat, isArchivedReport, isPolicyExpenseChat} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {getDefaultTaxCode} from '@libs/TransactionUtils';
@@ -72,6 +73,9 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import {getLocationPermission} from './LocationPermission';
 import NavigationAwareCamera from './NavigationAwareCamera/WebCamera';
 import type IOURequestStepScanProps from './types';
+
+const SMALL_SCREEN_TOOLTIP_OFFSET = 10;
+const DEFAULT_TOOLTIP_OFFSET = 8;
 
 function IOURequestStepScan({
     report,
@@ -107,13 +111,13 @@ function IOURequestStepScan({
     const [elementTop, setElementTop] = useState(0);
 
     const getScreenshotTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`, {canBeMissing: true});
     const policy = usePolicy(report?.policyID);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`);
-    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
-    const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [skipConfirmation] = useOnyx(`${ONYXKEYS.COLLECTION.SKIP_CONFIRMATION}${transactionID}`, {canBeMissing: true});
+    const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID, {canBeMissing: false});
+    const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`, {canBeMissing: true});
+    const [betas] = useOnyx(ONYXKEYS.BETAS, {canBeMissing: false});
     const [isLoadingReceipt, setIsLoadingReceipt] = useState(false);
 
     const [videoConstraints, setVideoConstraints] = useState<MediaTrackConstraints>();
@@ -123,6 +127,8 @@ function IOURequestStepScan({
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
+
+    const platform = getPlatform(true);
 
     // For quick button actions, we'll skip the confirmation page unless the report is archived or this is a workspace
     // request and the workspace requires a category or a tag
@@ -273,7 +279,7 @@ function IOURequestStepScan({
     }, [iouType, reportID, transactionID]);
 
     const navigateToConfirmationPage = useCallback(
-        (isTestTransaction = false) => {
+        (isTestTransaction = false, reportIDParam: string | undefined = undefined) => {
             switch (iouType) {
                 case CONST.IOU.TYPE.REQUEST:
                     Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, transactionID, reportID));
@@ -283,7 +289,13 @@ function IOURequestStepScan({
                     break;
                 default:
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType, transactionID, reportID),
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            isTestTransaction ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+                            reportIDParam || reportID,
+                        ),
                     );
             }
         },
@@ -318,7 +330,7 @@ function IOURequestStepScan({
                     },
                     transactionParams: {
                         amount: 0,
-                        attendees: transaction?.attendees,
+                        attendees: transaction?.comment?.attendees,
                         currency: transaction?.currency ?? 'USD',
                         created: transaction?.created ?? '',
                         merchant: '',
@@ -327,7 +339,7 @@ function IOURequestStepScan({
                 });
             }
         },
-        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.attendees, transaction?.created, transaction?.currency],
+        [currentUserPersonalDetails.accountID, currentUserPersonalDetails.login, iouType, report, transaction?.comment?.attendees, transaction?.created, transaction?.currency],
     );
 
     const navigateToConfirmationStep = useCallback(
@@ -337,150 +349,158 @@ function IOURequestStepScan({
                 return;
             }
 
-            // If the transaction was created from the global create, the person needs to select participants, so take them there.
-            // If the user started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
-            // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-            if ((transaction?.isFromGlobalCreate && iouType !== CONST.IOU.TYPE.TRACK && !report?.reportID) || iouType === CONST.IOU.TYPE.CREATE) {
-                if (activePolicy && isPaidGroupPolicy(activePolicy) && !shouldRestrictUserBillableActions(activePolicy.id)) {
-                    const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
-                    setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
-                        Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
-                                CONST.IOU.ACTION.CREATE,
-                                iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
-                                transactionID,
-                                activePolicyExpenseChat?.reportID,
-                            ),
-                        );
-                    });
-                } else {
-                    if (isTestTransaction) {
-                        const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
-                        setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, selected: true}]);
-                        navigateToConfirmationPage(true);
-                        return;
-                    }
-                    navigateToParticipantPage();
+            if (isTestTransaction) {
+                const managerMcTestParticipant = getManagerMcTestParticipant() ?? {};
+                let reportIDParam = managerMcTestParticipant.reportID;
+                if (!managerMcTestParticipant.reportID && report?.reportID) {
+                    reportIDParam = generateReportID();
                 }
+                setMoneyRequestParticipants(transactionID, [{...managerMcTestParticipant, reportID: reportIDParam, selected: true}], true).then(() => {
+                    navigateToConfirmationPage(true, reportIDParam);
+                });
                 return;
             }
 
-            // If the transaction was created from the + menu from the composer inside of a chat, the participants can automatically
-            // be added to the transaction (taken from the chat report participants) and then the person is taken to the confirmation step.
-            const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
-            const participants = selectedParticipants.map((participant) => {
-                const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
-                return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
-            });
+            // If a reportID exists in the report object, it's because either:
+            // - The user started this flow from using the + button in the composer inside a report.
+            // - The user started this flow from using the global create menu by selecting the Track expense option.
+            // In this case, the participants can be automatically assigned from the report and the user can skip the participants step and go straight
+            // to the confirm step.
+            // If the user is started this flow using the Create expense option (combined submit/track flow), they should be redirected to the participants page.
+            if (report?.reportID && !isArchivedReport(reportNameValuePairs) && iouType !== CONST.IOU.TYPE.CREATE) {
+                const selectedParticipants = getMoneyRequestParticipantsFromReport(report);
+                const participants = selectedParticipants.map((participant) => {
+                    const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
+                    return participantAccountID ? getParticipantsOption(participant, personalDetails) : getReportOption(participant);
+                });
 
-            if (shouldSkipConfirmation) {
-                const receipt: Receipt = file;
-                receipt.source = source;
-                receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
-                if (iouType === CONST.IOU.TYPE.SPLIT) {
-                    playSound(SOUNDS.DONE);
-                    startSplitBill({
-                        participants,
-                        currentUserLogin: currentUserPersonalDetails?.login ?? '',
-                        currentUserAccountID: currentUserPersonalDetails.accountID,
-                        comment: '',
-                        receipt,
-                        existingSplitChatReportID: reportID,
-                        billable: false,
-                        category: '',
-                        tag: '',
-                        currency: transaction?.currency ?? 'USD',
-                        taxCode: transactionTaxCode,
-                        taxAmount: transactionTaxAmount,
-                    });
-                    return;
-                }
-                const participant = participants.at(0);
-                if (!participant) {
-                    return;
-                }
-                if (locationPermissionGranted) {
-                    getCurrentPosition(
-                        (successData) => {
-                            playSound(SOUNDS.DONE);
-                            if (iouType === CONST.IOU.TYPE.TRACK && report) {
-                                trackExpense({
-                                    report,
-                                    isDraftPolicy: false,
-                                    participantParams: {
-                                        payeeEmail: currentUserPersonalDetails.login,
-                                        payeeAccountID: currentUserPersonalDetails.accountID,
-                                        participant,
-                                    },
-                                    policyParams: {
-                                        policy,
-                                    },
-                                    transactionParams: {
-                                        amount: 0,
-                                        currency: transaction?.currency ?? 'USD',
-                                        created: transaction?.created,
-                                        receipt,
-                                        billable: false,
+                if (shouldSkipConfirmation) {
+                    const receipt: Receipt = file;
+                    receipt.source = source;
+                    receipt.state = CONST.IOU.RECEIPT_STATE.SCANREADY;
+                    if (iouType === CONST.IOU.TYPE.SPLIT) {
+                        playSound(SOUNDS.DONE);
+                        startSplitBill({
+                            participants,
+                            currentUserLogin: currentUserPersonalDetails?.login ?? '',
+                            currentUserAccountID: currentUserPersonalDetails.accountID,
+                            comment: '',
+                            receipt,
+                            existingSplitChatReportID: reportID,
+                            billable: false,
+                            category: '',
+                            tag: '',
+                            currency: transaction?.currency ?? 'USD',
+                            taxCode: transactionTaxCode,
+                            taxAmount: transactionTaxAmount,
+                        });
+                        return;
+                    }
+                    const participant = participants.at(0);
+                    if (!participant) {
+                        return;
+                    }
+                    if (locationPermissionGranted) {
+                        getCurrentPosition(
+                            (successData) => {
+                                playSound(SOUNDS.DONE);
+                                if (iouType === CONST.IOU.TYPE.TRACK && report) {
+                                    trackExpense({
+                                        report,
+                                        isDraftPolicy: false,
+                                        participantParams: {
+                                            payeeEmail: currentUserPersonalDetails.login,
+                                            payeeAccountID: currentUserPersonalDetails.accountID,
+                                            participant,
+                                        },
+                                        policyParams: {
+                                            policy,
+                                        },
+                                        transactionParams: {
+                                            amount: 0,
+                                            currency: transaction?.currency ?? 'USD',
+                                            created: transaction?.created,
+                                            receipt,
+                                            billable: false,
+                                            gpsPoints: {
+                                                lat: successData.coords.latitude,
+                                                long: successData.coords.longitude,
+                                            },
+                                        },
+                                    });
+                                } else {
+                                    requestMoney({
+                                        report,
+                                        participantParams: {
+                                            payeeEmail: currentUserPersonalDetails.login,
+                                            payeeAccountID: currentUserPersonalDetails.accountID,
+                                            participant,
+                                        },
+                                        policyParams: {
+                                            policy,
+                                        },
                                         gpsPoints: {
                                             lat: successData.coords.latitude,
                                             long: successData.coords.longitude,
                                         },
-                                    },
-                                });
-                            } else {
-                                requestMoney({
-                                    report,
-                                    participantParams: {
-                                        payeeEmail: currentUserPersonalDetails.login,
-                                        payeeAccountID: currentUserPersonalDetails.accountID,
-                                        participant,
-                                    },
-                                    policyParams: {
-                                        policy,
-                                    },
-                                    gpsPoints: {
-                                        lat: successData.coords.latitude,
-                                        long: successData.coords.longitude,
-                                    },
-                                    transactionParams: {
-                                        amount: 0,
-                                        attendees: transaction?.attendees,
-                                        currency: transaction?.currency ?? 'USD',
-                                        created: transaction?.created ?? '',
-                                        merchant: '',
-                                        receipt,
-                                        billable: false,
-                                    },
-                                });
-                            }
-                        },
-                        (errorData) => {
-                            Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
-                            // When there is an error, the money can still be requested, it just won't include the GPS coordinates
-                            playSound(SOUNDS.DONE);
-                            createTransaction(receipt, participant);
-                        },
-                        {
-                            maximumAge: CONST.GPS.MAX_AGE,
-                            timeout: CONST.GPS.TIMEOUT,
-                        },
-                    );
+                                        transactionParams: {
+                                            amount: 0,
+                                            attendees: transaction?.comment?.attendees,
+                                            currency: transaction?.currency ?? 'USD',
+                                            created: transaction?.created ?? '',
+                                            merchant: '',
+                                            receipt,
+                                            billable: false,
+                                        },
+                                    });
+                                }
+                            },
+                            (errorData) => {
+                                Log.info('[IOURequestStepScan] getCurrentPosition failed', false, errorData);
+                                // When there is an error, the money can still be requested, it just won't include the GPS coordinates
+                                playSound(SOUNDS.DONE);
+                                createTransaction(receipt, participant);
+                            },
+                            {
+                                maximumAge: CONST.GPS.MAX_AGE,
+                                timeout: CONST.GPS.TIMEOUT,
+                            },
+                        );
+                        return;
+                    }
+                    playSound(SOUNDS.DONE);
+                    createTransaction(receipt, participant);
                     return;
                 }
-                playSound(SOUNDS.DONE);
-                createTransaction(receipt, participant);
+                setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
+                    navigateToConfirmationPage();
+                });
                 return;
             }
-            setMoneyRequestParticipantsFromReport(transactionID, report).then(() => {
-                navigateToConfirmationPage();
-            });
+
+            // If there was no reportID, then that means the user started this flow from the global + menu
+            // and an optimistic reportID was generated. In that case, the next step is to select the participants for this expense.
+            if (iouType === CONST.IOU.TYPE.CREATE && isPaidGroupPolicy(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && !shouldRestrictUserBillableActions(activePolicy.id)) {
+                const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, activePolicy?.id);
+                setMoneyRequestParticipantsFromReport(transactionID, activePolicyExpenseChat).then(() => {
+                    Navigation.navigate(
+                        ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(
+                            CONST.IOU.ACTION.CREATE,
+                            iouType === CONST.IOU.TYPE.CREATE ? CONST.IOU.TYPE.SUBMIT : iouType,
+                            transactionID,
+                            activePolicyExpenseChat?.reportID,
+                        ),
+                    );
+                });
+            } else {
+                navigateToParticipantPage();
+            }
         },
         [
             backTo,
-            transaction?.isFromGlobalCreate,
             transaction?.currency,
             transaction?.created,
-            transaction?.attendees,
+            transaction?.comment?.attendees,
             iouType,
             report,
             transactionID,
@@ -496,12 +516,13 @@ function IOURequestStepScan({
             transactionTaxCode,
             transactionTaxAmount,
             policy,
+            reportNameValuePairs,
         ],
     );
 
     const updateScanAndNavigate = useCallback(
         (file: FileObject, source: string) => {
-            replaceReceipt(transactionID, file as File, source);
+            replaceReceipt({transactionID, file: file as File, source});
             navigateBack();
         },
         [transactionID, navigateBack],
@@ -568,13 +589,13 @@ function IOURequestStepScan({
                 filename,
                 (file) => {
                     const source = URL.createObjectURL(file);
-                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, undefined);
+                    setMoneyRequestReceipt(transactionID, source, filename, !isEditing, CONST.TEST_RECEIPT.FILE_TYPE, true);
                     navigateToConfirmationStep(file, source, false, true);
                 },
                 (error) => {
                     console.error('Error reading test receipt:', error);
                 },
-                'image/png',
+                CONST.TEST_RECEIPT.FILE_TYPE,
             );
         } catch (error) {
             console.error('Error in setTestReceiptAndNavigate:', error);
@@ -583,7 +604,7 @@ function IOURequestStepScan({
 
     const {shouldShowProductTrainingTooltip, renderProductTrainingTooltip} = useProductTrainingContext(
         CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP,
-        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive,
+        !getIsUserSubmittedExpenseOrScannedReceipt() && Permissions.canUseManagerMcTest(betas) && isTabActive && !isUserInvitedToWorkspace(),
         {
             onConfirm: setTestReceiptAndNavigate,
             onDismiss: () => {
@@ -859,6 +880,18 @@ function IOURequestStepScan({
         </>
     );
 
+    const elementTopOffset = useMemo(() => {
+        if (platform === CONST.PLATFORM.MOBILEWEB) {
+            return SMALL_SCREEN_TOOLTIP_OFFSET;
+        }
+
+        if (isSmallScreenWidth) {
+            return -variables.tabSelectorButtonHeight + SMALL_SCREEN_TOOLTIP_OFFSET;
+        }
+
+        return -variables.tabSelectorButtonHeight + DEFAULT_TOOLTIP_OFFSET;
+    }, [isSmallScreenWidth, platform]);
+
     return (
         <StepScreenDragAndDropWrapper
             headerTitle={translate('common.receipt')}
@@ -870,9 +903,7 @@ function IOURequestStepScan({
                 <>
                     {isLoadingReceipt && <FullScreenLoadingIndicator />}
                     <View
-                        onLayout={(e) => {
-                            setElementTop(isSmallScreenWidth ? e.nativeEvent.layout.height + 10 : e.nativeEvent.layout.height - (variables.tabSelectorButtonHeight - 8));
-                        }}
+                        onLayout={(e) => setElementTop(e.nativeEvent.layout.height + elementTopOffset)}
                         style={[styles.flex1, !isMobile() && styles.uploadFileView(isSmallScreenWidth)]}
                     >
                         <EducationalTooltip

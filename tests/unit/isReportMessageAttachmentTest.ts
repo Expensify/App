@@ -1,5 +1,5 @@
 import type {Message} from '@src/types/onyx/ReportAction';
-import isReportMessageAttachment from '../../src/libs/isReportMessageAttachment';
+import {isReportMessageAttachment} from '../../src/libs/isReportMessageAttachment';
 
 describe('isReportMessageAttachment', () => {
     it('returns true if a report action is attachment', () => {

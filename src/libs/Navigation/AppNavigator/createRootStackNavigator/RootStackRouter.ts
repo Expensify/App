@@ -2,6 +2,8 @@ import type {CommonActions, RouterConfigOptions, StackActionType, StackNavigatio
 import {findFocusedRoute, StackRouter} from '@react-navigation/native';
 import type {ParamListBase} from '@react-navigation/routers';
 import useActiveWorkspace from '@hooks/useActiveWorkspace';
+import usePermissions from '@hooks/usePermissions';
+import {updateLastAccessedWorkspaceSwitcher} from '@libs/actions/Policy/Policy';
 import * as Localize from '@libs/Localize';
 import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import isSideModalNavigator from '@libs/Navigation/helpers/isSideModalNavigator';
@@ -14,6 +16,7 @@ import {
     handleOpenWorkspaceSplitAction,
     handlePushReportSplitAction,
     handlePushSearchPageAction,
+    handlePushSettingsSplitAction,
     handleReplaceReportsSplitNavigatorAction,
     handleSwitchPolicyIDAction,
 } from './GetStateForActionHandlers';
@@ -78,7 +81,12 @@ function isNavigatingToModalFromModal(state: StackNavigationState<ParamListBase>
 
 function RootStackRouter(options: RootStackNavigatorRouterOptions) {
     const stackRouter = StackRouter(options);
-    const {setActiveWorkspaceID} = useActiveWorkspace();
+    const {setActiveWorkspaceID: setActiveWorkspaceIDUtils} = useActiveWorkspace();
+    const setActiveWorkspaceID = (workspaceID: string | undefined) => {
+        setActiveWorkspaceIDUtils?.(workspaceID);
+        updateLastAccessedWorkspaceSwitcher(workspaceID);
+    };
+    const {canUseLeftHandBar} = usePermissions();
 
     return {
         ...stackRouter,
@@ -101,11 +109,15 @@ function RootStackRouter(options: RootStackNavigatorRouterOptions) {
 
             if (isPushAction(action)) {
                 if (action.payload.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR) {
-                    return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                    return handlePushReportSplitAction(state, action, configOptions, stackRouter, setActiveWorkspaceID, !!canUseLeftHandBar);
                 }
 
                 if (action.payload.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR) {
                     return handlePushSearchPageAction(state, action, configOptions, stackRouter, setActiveWorkspaceID);
+                }
+
+                if (action.payload.name === NAVIGATORS.SETTINGS_SPLIT_NAVIGATOR) {
+                    return handlePushSettingsSplitAction(state, action, configOptions, stackRouter);
                 }
             }
 

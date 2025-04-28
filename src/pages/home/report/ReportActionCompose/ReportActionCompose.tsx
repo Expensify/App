@@ -168,7 +168,7 @@ function ReportActionCompose({
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef>();
+    const composerRef = useRef<ComposerRef | undefined>(undefined);
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})
@@ -418,6 +418,7 @@ function ReportActionCompose({
                             onModalShow={() => setIsAttachmentPreviewActive(true)}
                             onModalHide={onAttachmentPreviewClose}
                             shouldDisableSendButton={!!exceededMaxLength}
+                            reportID={reportID}
                         >
                             {({displayFileInModal}) => (
                                 <>
@@ -425,6 +426,7 @@ function ReportActionCompose({
                                         displayFileInModal={displayFileInModal}
                                         reportID={reportID}
                                         report={report}
+                                        currentUserPersonalDetails={currentUserPersonalDetails}
                                         reportParticipantIDs={reportParticipantIDs}
                                         isFullComposerAvailable={isFullComposerAvailable}
                                         isComposerFullSize={isComposerFullSize}

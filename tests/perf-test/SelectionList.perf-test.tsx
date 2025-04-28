@@ -84,6 +84,8 @@ jest.mock('../../src/hooks/useScreenWrapperTransitionStatus', () => ({
     })),
 }));
 
+jest.mock('@src/components/ConfirmedRoute.tsx');
+
 function SelectionListWrapper({canSelectMultiple}: SelectionListWrapperProps) {
     const [selectedIds, setSelectedIds] = useState<string[]>([]);
 

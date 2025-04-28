@@ -1,6 +1,6 @@
 type GraphiteParams = {
     type: 'timer' | 'counter';
-    name: string;
+    statName: string;
     value: number;
 };
 

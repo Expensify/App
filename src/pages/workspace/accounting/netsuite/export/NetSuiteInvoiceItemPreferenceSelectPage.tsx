@@ -75,7 +75,6 @@ function NetSuiteInvoiceItemPreferenceSelectPage({policy}: WithPolicyConnections
             policyID={policyID}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
             shouldUseScrollView={false}
-            shouldIncludeSafeAreaPaddingBottom
         >
             <OfflineWithFeedback
                 pendingAction={settingsPendingAction([CONST.NETSUITE_CONFIG.INVOICE_ITEM_PREFERENCE], config?.pendingFields)}

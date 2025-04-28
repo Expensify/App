@@ -5,6 +5,9 @@ const HybridAppModule: HybridAppModuleType = {
     isHybridApp() {
         return ReactNativeHybridApp.isHybridApp();
     },
+    shouldUseStaging(isStaging) {
+        ReactNativeHybridApp.shouldUseStaging(isStaging);
+    },
     closeReactNativeApp({shouldSignOut, shouldSetNVP}) {
         ReactNativeHybridApp.closeReactNativeApp(shouldSignOut, shouldSetNVP);
     },
@@ -13,6 +16,9 @@ const HybridAppModule: HybridAppModuleType = {
     },
     switchAccount({newDotCurrentAccountEmail, authToken, policyID, accountID}) {
         ReactNativeHybridApp.switchAccount(newDotCurrentAccountEmail, authToken, policyID, accountID);
+    },
+    sendAuthToken({authToken}) {
+        ReactNativeHybridApp.sendAuthToken(authToken);
     },
 };
 

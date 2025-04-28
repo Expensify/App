@@ -60,6 +60,7 @@ function RegistrationNumber({onNext, isEditing}: RegistrationNumberProps) {
             onSubmit={handleSubmit}
             validate={validate}
             style={[styles.mh5, styles.flexGrow1]}
+            shouldHideFixErrorsAlert
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate('businessInfoStep.whatsTheBusinessRegistrationNumber')}</Text>
             <InputWrapper

@@ -9,6 +9,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Policy, Report, ReportAction, ReportActions, ReportNameValuePairs, Transaction, TransactionViolation} from '@src/types/onyx';
+import type {Comment} from '@src/types/onyx/Transaction';
 import {getLinkedTransactionID} from './ReportActionsUtils';
 import {getReasonAndReportActionThatRequiresAttention, reasonForReportToBeInOptionList, shouldDisplayViolationsRBRInLHN} from './ReportUtils';
 import SidebarUtils from './SidebarUtils';
@@ -479,6 +480,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'isWaitingOnBankAccount':
         case 'isCancelledIOU':
             return validateBoolean(value);
+        case 'exportFailedTime':
         case 'lastReadSequenceNumber':
         case 'managerID':
         case 'lastActorAccountID':
@@ -626,6 +628,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 preview: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 welcomeMessage: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 errors: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                createReport: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                exportFailedTime: CONST.RED_BRICK_ROAD_PENDING_ACTION,
             });
     }
 }
@@ -753,6 +757,7 @@ function validateReportActionDraftProperty(key: keyof ReportAction, value: strin
                 source: 'string',
                 filename: 'string',
                 reservationList: 'string',
+                isTestReceipt: 'boolean',
             });
         case 'childRecentReceiptTransactionIDs':
             return validateObject<ObjectElement<ReportAction, 'childRecentReceiptTransactionIDs'>>(value, {}, 'string');
@@ -1059,6 +1064,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 state: CONST.IOU.RECEIPT_STATE,
                 receiptID: 'number',
                 reservationList: 'array',
+                isTestReceipt: 'boolean',
             });
         case 'taxRate':
             return validateObject<ObjectElement<Transaction, 'taxRate'>>(value, {
@@ -1073,6 +1079,7 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 comment: 'string',
                 hold: 'string',
                 waypoints: 'object',
+                attendees: 'array',
                 isLoading: 'boolean',
                 type: CONST.TRANSACTION.TYPE,
                 customUnit: 'object',
@@ -1082,21 +1089,8 @@ function validateTransactionDraftProperty(key: keyof Transaction, value: string)
                 splits: 'array',
                 dismissedViolations: 'object',
             });
-        case 'attendees':
-            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
-                email: 'string',
-                displayName: 'string',
-                avatarUrl: 'string',
-                accountID: 'number',
-                text: 'string',
-                login: 'string',
-                searchText: 'string',
-                selected: 'boolean',
-                iouType: CONST.IOU.TYPE,
-                reportID: 'string',
-            });
         case 'modifiedAttendees':
-            return validateArray<ArrayElement<Transaction, 'attendees'>>(value, {
+            return validateArray<ArrayElement<Comment, 'attendees'>>(value, {
                 email: 'string',
                 displayName: 'string',
                 avatarUrl: 'string',

@@ -58,7 +58,7 @@ const fakeWorkspace: Record<string, WorkspaceCardsList> = {
 
 describe('Card Feed Utils', () => {
     it('returns display name of workspace & domain cards', () => {
-        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, userCardList: {}, translate: translateLocal});
+        const cardFeedNamesWithType = getCardFeedNamesWithType({workspaceCardFeeds: fakeWorkspace, translate: translateLocal});
         expect(Object.keys(cardFeedNamesWithType).length).toBe(2);
         expect(Object.values(cardFeedNamesWithType).every((cardFeedName) => cardFeedName.name === 'All Expensify')).toBe(true);
     });
@@ -71,7 +71,7 @@ describe('Card Feed Utils', () => {
     });
 
     it('returns empty object when workspaceCardFeeds is empty', () => {
-        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, userCardList: {}, translate: translateLocal});
+        const names = getCardFeedNamesWithType({workspaceCardFeeds: {key: {}}, translate: translateLocal});
         expect(names).toEqual({});
     });
 
