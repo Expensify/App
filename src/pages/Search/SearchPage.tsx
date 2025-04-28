@@ -38,7 +38,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {hasVBBA} from '@libs/PolicyUtils';
-import {buildCannedSearchQuery, buildSearchQueryJSON, getPolicyIDFromSearchQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -71,12 +71,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const {q, name} = route.params;
 
-    const {queryJSON, policyID} = useMemo(() => {
-        const parsedQuery = buildSearchQueryJSON(q);
-        const extractedPolicyID = parsedQuery && getPolicyIDFromSearchQuery(parsedQuery);
-
-        return {queryJSON: parsedQuery, policyID: extractedPolicyID};
-    }, [q]);
+    const queryJSON = useMemo(() => buildSearchQueryJSON(q), [q]);
 
     // eslint-disable-next-line rulesdir/no-default-id-values
     const [currentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON?.hash ?? CONST.DEFAULT_NUMBER_ID}`, {canBeMissing: true});
@@ -395,7 +390,6 @@ function SearchPage({route}: SearchPageProps) {
             <>
                 <SearchPageNarrow
                     queryJSON={queryJSON}
-                    policyID={policyID}
                     searchName={searchName}
                     headerButtonsOptions={headerButtonsOptions}
                     lastNonEmptySearchResults={lastNonEmptySearchResults}
@@ -458,7 +452,6 @@ function SearchPage({route}: SearchPageProps) {
                                 <View style={styles.flex1}>
                                     <TopBar
                                         shouldShowLoadingBar={shouldShowLoadingState}
-                                        activeWorkspaceID={policyID}
                                         breadcrumbLabel={translate('common.reports')}
                                         shouldDisplaySearch={false}
                                         shouldDisplayHelpButton={false}

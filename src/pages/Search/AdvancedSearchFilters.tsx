@@ -26,7 +26,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {createDisplayName} from '@libs/PersonalDetailsUtils';
 import {getAllTaxRates, getCleanedTagName, getTagNamesFromTagsLists, isPolicyFeatureEnabled} from '@libs/PolicyUtils';
 import {getReportName} from '@libs/ReportUtils';
-import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildQueryStringFromFilterFormValues, buildSearchQueryJSON, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import {getExpenseTypeTranslationKey} from '@libs/SearchUIUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -593,7 +593,7 @@ function AdvancedSearchFilters() {
                 .filter((filter): filter is NonNullable<typeof filter> => !!filter);
         })
         .filter((section) => !!section.length);
-    const displaySearchButton = queryJSON && !isCannedSearchQueryWithPolicyIDCheck(queryJSON);
+    const displaySearchButton = queryJSON && !isCannedSearchQuery(queryJSON);
 
     return (
         <>

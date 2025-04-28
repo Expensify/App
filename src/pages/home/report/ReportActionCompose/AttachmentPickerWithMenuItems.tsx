@@ -401,7 +401,7 @@ function AttachmentPickerWithMenuItems({
                                     });
                                 }
                             }}
-                            anchorPosition={styles.createMenuPositionReportActionComposeWhenLhbIsVisible(shouldUseNarrowLayout, windowHeight, windowWidth)}
+                            anchorPosition={styles.createMenuPositionReportActionCompose(shouldUseNarrowLayout, windowHeight, windowWidth)}
                             anchorAlignment={{horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.LEFT, vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.BOTTOM}}
                             menuItems={menuItems}
                             withoutOverlay

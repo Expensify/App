@@ -31,7 +31,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getQueryWithoutAutocompletedPart} from '@libs/SearchAutocompleteUtils';
-import {buildUserReadableQueryStringWithPolicyID, getQueryWithUpdatedValuesWithoutPolicy, isDefaultExpensesQueryWithPolicyIDCheck, sanitizeSearchValue} from '@libs/SearchQueryUtils';
+import {buildUserReadableQueryString, getQueryWithUpdatedValues, isDefaultExpensesQuery, sanitizeSearchValue} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import variables from '@styles/variables';
 import CONST from '@src/CONST';
@@ -69,9 +69,9 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
         return getCardFeedNamesWithType({workspaceCardFeeds, translate});
     }, [translate, workspaceCardFeeds]);
     const {inputQuery: originalInputQuery} = queryJSON;
-    const isDefaultQuery = isDefaultExpensesQueryWithPolicyIDCheck(queryJSON);
+    const isDefaultQuery = isDefaultExpensesQuery(queryJSON);
     const [shouldUseAnimation, setShouldUseAnimation] = useState(false);
-    const queryText = buildUserReadableQueryStringWithPolicyID(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
+    const queryText = buildUserReadableQueryString(queryJSON, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, policies);
 
     // The actual input text that the user sees
     const [textInputValue, setTextInputValue] = useState(isDefaultQuery ? '' : queryText);
@@ -156,7 +156,7 @@ function SearchPageHeaderInput({queryJSON, searchRouterListVisible, hideSearchRo
     const submitSearch = useCallback(
         (queryString: SearchQueryString) => {
             const queryWithSubstitutions = getQueryWithSubstitutions(queryString, autocompleteSubstitutions);
-            const updatedQuery = getQueryWithUpdatedValuesWithoutPolicy(queryWithSubstitutions);
+            const updatedQuery = getQueryWithUpdatedValues(queryWithSubstitutions);
 
             if (!updatedQuery) {
                 return;

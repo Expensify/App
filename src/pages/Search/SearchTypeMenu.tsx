@@ -24,7 +24,7 @@ import {getCardFeedNamesWithType} from '@libs/CardFeedUtils';
 import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
-import {buildSearchQueryJSON, buildUserReadableQueryStringWithPolicyID, isCannedSearchQueryWithPolicyIDCheck} from '@libs/SearchQueryUtils';
+import {buildSearchQueryJSON, buildUserReadableQueryString, isCannedSearchQuery} from '@libs/SearchQueryUtils';
 import type {SavedSearchMenuItem, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 import {createBaseSavedSearchMenuItem, createTypeMenuItems, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
 import variables from '@styles/variables';
@@ -80,7 +80,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
             let title = item.name;
             if (title === item.query) {
                 const jsonQuery = buildSearchQueryJSON(item.query) ?? ({} as SearchQueryJSON);
-                title = buildUserReadableQueryStringWithPolicyID(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
+                title = buildUserReadableQueryString(jsonQuery, personalDetails, reports, taxRates, allCards, cardFeedNamesWithType, allPolicies);
             }
 
             const isItemFocused = Number(key) === hash;
@@ -177,7 +177,7 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
         [styles],
     );
 
-    const isCannedQuery = queryJSON ? isCannedSearchQueryWithPolicyIDCheck(queryJSON) : false;
+    const isCannedQuery = queryJSON ? isCannedSearchQuery(queryJSON) : false;
 
     const activeItemIndex = isCannedQuery
         ? typeMenuItems.findIndex((item) => {

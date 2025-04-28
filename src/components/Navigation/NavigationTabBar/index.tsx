@@ -86,16 +86,12 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
         Navigation.navigate(ROUTES.HOME);
     }, [hideProductTrainingTooltip, selectedTab]);
 
-    // When users do not have access to the leftHandBar beta, then we should take into account the activeWorkspaceID.
-    // Since the introduction of LHB, the workspace switcher is no longer available.
     const navigateToSearch = useCallback(() => {
         if (selectedTab === NAVIGATION_TABS.SEARCH) {
             return;
         }
         clearSelectedText();
         interceptAnonymousUser(() => {
-            const defaultCannedQuery = buildCannedSearchQuery();
-
             const rootState = navigationRef.getRootState() as State<RootNavigatorParamList>;
             const lastSearchNavigator = rootState.routes.findLast((route) => route.name === NAVIGATORS.SEARCH_FULLSCREEN_NAVIGATOR);
             const lastSearchNavigatorState = lastSearchNavigator && lastSearchNavigator.key ? getPreservedNavigatorState(lastSearchNavigator?.key) : undefined;
@@ -116,7 +112,7 @@ function NavigationTabBar({selectedTab, isTooltipAllowed = false, isTopLevelBar 
                 }
             }
 
-            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: defaultCannedQuery}));
+            Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery()}));
         });
     }, [selectedTab]);
 
