@@ -854,7 +854,7 @@ function isCorrectSearchUserName(displayName?: string) {
     return displayName && displayName.toUpperCase() !== CONST.REPORT.OWNER_EMAIL_FAKE;
 }
 
-function createTypeMenuSections(session: OnyxTypes.Session): SearchTypeMenuSection[] {
+function createTypeMenuSections(): SearchTypeMenuSection[] {
     const typeMenuSections: SearchTypeMenuSection[] = [
         {
             translationPath: 'common.explore',
