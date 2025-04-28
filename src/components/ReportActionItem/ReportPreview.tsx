@@ -1,21 +1,21 @@
 import truncate from 'lodash/truncate';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
-import Animated, {useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming} from 'react-native-reanimated';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import type { StyleProp, ViewStyle } from 'react-native';
+import { View } from 'react-native';
+import Animated, { useAnimatedStyle, useSharedValue, withDelay, withSpring, withTiming } from 'react-native-reanimated';
 import Button from '@components/Button';
-import {getButtonRole} from '@components/Button/utils';
+import { getButtonRole } from '@components/Button/utils';
 import DelegateNoAccessModal from '@components/DelegateNoAccessModal';
 import Icon from '@components/Icon';
 import * as Expensicons from '@components/Icon/Expensicons';
-import type {PaymentMethod} from '@components/KYCWall/types';
+import type { PaymentMethod } from '@components/KYCWall/types';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
+import type { ActionHandledType } from '@components/ProcessMoneyReportHoldMenu';
 import ProcessMoneyReportHoldMenu from '@components/ProcessMoneyReportHoldMenu';
-import {useSearchContext} from '@components/Search/SearchContext';
+import { useSearchContext } from '@components/Search/SearchContext';
 import AnimatedSettlementButton from '@components/SettlementButton/AnimatedSettlementButton';
-import {showContextMenuForReport} from '@components/ShowContextMenuContext';
+import { showContextMenuForReport } from '@components/ShowContextMenuContext';
 import Text from '@components/Text';
 import useDelegateUserDetails from '@hooks/useDelegateUserDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -28,74 +28,33 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionViolations from '@hooks/useTransactionViolations';
 import ControlSelection from '@libs/ControlSelection';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
-import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import { convertToDisplayString } from '@libs/CurrencyUtils';
+import { canUseTouchScreen } from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
 import Performance from '@libs/Performance';
-import {getConnectedIntegration} from '@libs/PolicyUtils';
-import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
-import {getReportActionText} from '@libs/ReportActionsUtils';
+import { getConnectedIntegration } from '@libs/PolicyUtils';
+import { getThumbnailAndImageURIs } from '@libs/ReceiptUtils';
+import { getReportActionText } from '@libs/ReportActionsUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
-import {
-    areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils,
-    getArchiveReason,
-    getBankAccountRoute,
-    getDisplayNameForParticipant,
-    getInvoicePayerName,
-    getMoneyRequestSpendBreakdown,
-    getNonHeldAndFullAmount,
-    getPolicyName,
-    getTransactionsWithReceipts,
-    hasActionsWithErrors,
-    hasHeldExpenses as hasHeldExpensesReportUtils,
-    hasMissingInvoiceBankAccount,
-    hasMissingPaymentMethod,
-    hasMissingSmartscanFields as hasMissingSmartscanFieldsReportUtils,
-    hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils,
-    hasNoticeTypeViolations,
-    hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils,
-    hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils,
-    hasReportViolations,
-    hasUpdatedTotal,
-    hasViolations,
-    hasWarningTypeViolations,
-    isArchivedReportWithID,
-    isInvoiceReport as isInvoiceReportUtils,
-    isInvoiceRoom as isInvoiceRoomReportUtils,
-    isPayAtEndExpenseReport,
-    isPolicyExpenseChat as isPolicyExpenseChatReportUtils,
-    isReportApproved,
-    isReportOwner,
-    isSettled,
-    isTripRoom as isTripRoomReportUtils,
-    isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils,
-} from '@libs/ReportUtils';
+import { areAllRequestsBeingSmartScanned as areAllRequestsBeingSmartScannedReportUtils, getArchiveReason, getBankAccountRoute, getDisplayNameForParticipant, getInvoicePayerName, getMoneyRequestSpendBreakdown, getNonHeldAndFullAmount, getPolicyName, getTransactionsWithReceipts, hasActionsWithErrors, hasHeldExpenses as hasHeldExpensesReportUtils, hasMissingInvoiceBankAccount, hasMissingPaymentMethod, hasMissingSmartscanFields as hasMissingSmartscanFieldsReportUtils, hasNonReimbursableTransactions as hasNonReimbursableTransactionsReportUtils, hasNoticeTypeViolations, hasOnlyHeldExpenses as hasOnlyHeldExpensesReportUtils, hasOnlyTransactionsWithPendingRoutes as hasOnlyTransactionsWithPendingRoutesReportUtils, hasReportViolations, hasUpdatedTotal, hasViolations, hasWarningTypeViolations, isArchivedReportWithID, isInvoiceReport as isInvoiceReportUtils, isInvoiceRoom as isInvoiceRoomReportUtils, isPayAtEndExpenseReport, isPolicyExpenseChat as isPolicyExpenseChatReportUtils, isReportApproved, isReportOwner, isSettled, isTripRoom as isTripRoomReportUtils, isWaitingForSubmissionFromCurrentUser as isWaitingForSubmissionFromCurrentUserReportUtils } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
-import {
-    getDescription,
-    getMerchant,
-    hasPendingUI,
-    isCardTransaction,
-    isPartialMerchant,
-    isPending,
-    isReceiptBeingScanned,
-    shouldShowBrokenConnectionViolationForMultipleTransactions,
-} from '@libs/TransactionUtils';
-import {contextMenuRef} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
-import type {ContextMenuAnchor} from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import { getDescription, getMerchant, hasPendingUI, isCardTransaction, isPartialMerchant, isPending, isReceiptBeingScanned, shouldShowBrokenConnectionViolationForMultipleTransactions } from '@libs/TransactionUtils';
+import { contextMenuRef } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
+import type { ContextMenuAnchor } from '@pages/home/report/ContextMenu/ReportActionContextMenu';
 import variables from '@styles/variables';
-import {approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport} from '@userActions/IOU';
+import { approveMoneyRequest, canIOUBePaid as canIOUBePaidIOUActions, payInvoice, payMoneyRequest, submitReport } from '@userActions/IOU';
 import Timing from '@userActions/Timing';
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
+import type { TranslationPaths } from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {ReportAction} from '@src/types/onyx';
-import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
+import type { ReportAction } from '@src/types/onyx';
+import type { PaymentMethodType } from '@src/types/onyx/OriginalMessage';
 import ExportWithDropdownMenu from './ExportWithDropdownMenu';
-import type {PendingMessageProps} from './MoneyRequestPreview/types';
+import type { PendingMessageProps } from './MoneyRequestPreview/types';
 import ReportActionItemImages from './ReportActionItemImages';
+
 
 type ReportPreviewProps = {
     /** All the data of the action */
@@ -150,13 +109,13 @@ function ReportPreview({
     shouldDisplayContextMenu = true,
 }: ReportPreviewProps) {
     const policy = usePolicy(policyID);
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
+    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`, {canBeMissing: true});
     const [iouReport, transactions, violations] = useReportWithTransactionsAndViolations(iouReportID);
     const lastTransaction = transactions?.at(0);
     const transactionIDList = transactions?.map((reportTransaction) => reportTransaction.transactionID) ?? [];
-    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET);
+    const [userWallet] = useOnyx(ONYXKEYS.USER_WALLET, {canBeMissing: true});
     const [invoiceReceiverPolicy] = useOnyx(
-        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : CONST.DEFAULT_NUMBER_ID}`,
+        `${ONYXKEYS.COLLECTION.POLICY}${chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined}`,
     );
     const [invoiceReceiverPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails) =>
@@ -200,7 +159,7 @@ function ReportPreview({
 
     const managerID = iouReport?.managerID ?? action.childManagerAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const {totalDisplaySpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(iouReport);
-    const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`);
+    const [reports] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}`, {canBeMissing: true});
     const iouSettled = isSettled(iouReportID, isOnSearch ? reports : undefined) || action?.childStatusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
     const previewMessageOpacity = useSharedValue(1);
     const previewMessageStyle = useAnimatedStyle(() => ({
@@ -413,7 +372,7 @@ function ReportPreview({
     const shouldShowSubtitle = !isScanning && (shouldShowSingleRequestMerchantOrDescription || numberOfRequests > 1) && !isDisplayAmountZero(getDisplayAmount());
 
     const isPayAtEndExpense = isPayAtEndExpenseReport(iouReportID, transactions);
-    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason});
+    const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`, {selector: getArchiveReason, canBeMissing: true});
 
     const getPendingMessageProps: () => PendingMessageProps = () => {
         if (isPayAtEndExpense) {
