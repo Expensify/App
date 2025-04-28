@@ -76,7 +76,6 @@ import * as PhoneNumber from '@libs/PhoneNumber';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {goBackWhenEnableFeature, navigateToExpensifyCardPage} from '@libs/PolicyUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import {prepareOnboardingOnyxData} from '@libs/ReportUtils';
 import type {PolicySelector} from '@pages/home/sidebar/FloatingActionButtonAndPopover';
 import * as PaymentMethods from '@userActions/PaymentMethods';
 import * as PersistedRequests from '@userActions/PersistedRequests';
@@ -125,13 +124,6 @@ type OptimisticCustomUnits = {
     customUnitID: string;
     customUnitRateID: string;
     outputCurrency: string;
-};
-
-type NewCustomUnit = {
-    customUnitID: string;
-    name: string;
-    attributes: Attributes;
-    rates: Rate;
 };
 
 type WorkspaceFromIOUCreationData = {
@@ -2086,7 +2078,7 @@ function buildPolicyData(
     };
 
     if (introSelected !== undefined && !introSelected?.createWorkspace && engagementChoice && shouldAddOnboardingTasks) {
-        const onboardingData = prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
+        const onboardingData = ReportUtils.prepareOnboardingOnyxData(introSelected, engagementChoice, CONST.ONBOARDING_MESSAGES[engagementChoice], adminsChatReportID, policyID);
         if (!onboardingData) {
             return {successData, optimisticData, failureData, params};
         }
@@ -2444,6 +2436,7 @@ function buildOptimisticRecentlyUsedCurrencies(currency?: string) {
  *
  * @returns policyID of the workspace we have created
  */
+// eslint-disable-next-line rulesdir/no-call-actions-from-actions
 function createWorkspaceFromIOUPayment(iouReport: OnyxEntry<Report>): WorkspaceFromIOUCreationData | undefined {
     // This flow only works for IOU reports
     if (!ReportUtils.isIOUReportUsingReport(iouReport)) {
@@ -3258,6 +3251,7 @@ function enablePolicyWorkflows(policyID: string, enabled: boolean) {
                             ? {
                                   approvalMode: null,
                                   autoReporting: null,
+                                  autoReportingFrequency: null,
                                   harvesting: null,
                                   reimbursementChoice: null,
                               }
@@ -4055,7 +4049,6 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customRules: parsedCustomRules,
-                    isLoading: true,
                 },
             },
         ],
@@ -4068,7 +4061,6 @@ function updateCustomRules(policyID: string, customRules: string) {
                         // TODO
                         // maxExpenseAge: null,
                     },
-                    isLoading: false,
                 },
             },
         ],
@@ -4078,7 +4070,6 @@ function updateCustomRules(policyID: string, customRules: string) {
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     customRules: originalCustomRules,
-                    isLoading: false,
                     // TODO
                     // pendingFields: {maxExpenseAge: null},
                     // errorFields: {maxExpenseAge: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage')},
@@ -5207,5 +5198,3 @@ export {
     clearQuickbooksOnlineAutoSyncErrorField,
     updateLastAccessedWorkspaceSwitcher,
 };
-
-export type {NewCustomUnit};
