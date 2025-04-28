@@ -3,6 +3,7 @@ import {View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import Checkbox from '@components/Checkbox';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import ReportSearchHeader from '@components/ReportSearchHeader';
 import {useSearchContext} from '@components/Search/SearchContext';
 import type {ListItem, ReportListItemType} from '@components/SelectionList/types';
 import TextWithTooltip from '@components/TextWithTooltip';
@@ -72,7 +73,6 @@ function ReportListItemHeader<TItem extends ListItem>({
 }: ReportListItemHeaderProps<TItem>) {
     const styles = useThemeStyles();
     const shouldDisplaySearchRouter = false;
-    const shouldShowBackButton = false;
     const StyleUtils = useStyleUtils();
     const reportItem = item as unknown as ReportListItemType;
     const {currentSearchHash} = useSearchContext();
@@ -93,17 +93,10 @@ function ReportListItemHeader<TItem extends ListItem>({
                         shouldStopMouseDownPropagation
                         style={[styles.cursorUnset, StyleUtils.getCheckboxPressableStyle(), item.isDisabledCheckbox && styles.cursorDisabled]}
                     />
-                    <HeaderWithBackButton
-                        shouldShowReportAvatarWithDisplay
-                        shouldEnableDetailPageNavigation
-                        shouldShowPinButton={false}
+                    <ReportSearchHeader
                         report={moneyRequestReport}
                         policy={policy}
-                        shouldShowBackButton={shouldShowBackButton}
-                        shouldDisplaySearchRouter={shouldDisplaySearchRouter}
-                        onBackButtonPress={onBackButtonPress}
                         style={[{maxWidth: 700}]}
-                        useCustomSearchTitleName
                         transactions={reportItem.transactions}
                     />
                 </View>

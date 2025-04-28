@@ -39,7 +39,7 @@ function EReceipt({transactionID, transactionItem, isThumbnail = false}: EReceip
     const {translate} = useLocalize();
     const theme = useTheme();
 
-    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: false});
+    const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {canBeMissing: true});
 
     const {primaryColor, secondaryColor, titleColor, MCCIcon, tripIcon, backgroundImage} = useEReceipt(transactionItem ?? transaction);
 

@@ -512,14 +512,19 @@ function MoneyRequestReportPreviewContent({
                     onPressIn={() => canUseTouchScreen() && ControlSelection.block()}
                     onPressOut={() => ControlSelection.unblock()}
                     onLongPress={(event) => {
-                            if (!shouldDisplayContextMenu) {
-                                return;
-                            }
-                            showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
-                        }}
+                        if (!shouldDisplayContextMenu) {
+                            return;
+                        }
+                        showContextMenuForReport(event, contextMenuAnchor, chatReportID, action, checkIfContextMenuActive);
+                    }}
                     shouldUseHapticsOnLongPress
-                    style={[styles.flexRow, styles.justifyContentBetween, StyleUtils.getBackgroundColorStyle(theme.cardBG),shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
-                    ]}role={getButtonRole(true)}
+                    style={[
+                        styles.flexRow,
+                        styles.justifyContentBetween,
+                        StyleUtils.getBackgroundColorStyle(theme.cardBG),
+                        shouldShowBorder ? styles.borderedContentCardLarge : styles.reportContainerBorderRadius,
+                    ]}
+                    role={getButtonRole(true)}
                     isNested
                     accessibilityLabel={translate('iou.viewDetails')}
                 >
@@ -596,7 +601,6 @@ function MoneyRequestReportPreviewContent({
                                             </View>
                                         )}
                                     </View>
-
                                 </View>
                                 <View style={[styles.flex1, styles.flexColumn, styles.overflowVisible, styles.mtn1]}>
                                     <FlatList
@@ -632,9 +636,7 @@ function MoneyRequestReportPreviewContent({
                                         ))}
                                     </View>
                                 )}
-                                <View
-                                        style={[buttonMaxWidth]}
-                                        >{reportPreviewActions[reportPreviewAction]}</View>
+                                {!shouldShowEmptyPlaceholder && <View style={[buttonMaxWidth]}>{reportPreviewActions[reportPreviewAction]}</View>}
                             </View>
                         </View>
                         {shouldShowEmptyPlaceholder && <EmptyMoneyRequestReportPreview />}
@@ -644,7 +646,7 @@ function MoneyRequestReportPreviewContent({
             <DelegateNoAccessModal
                 isNoDelegateAccessMenuVisible={isNoDelegateAccessMenuVisible}
                 onClose={() => setIsNoDelegateAccessMenuVisible(false)}
-                />
+            />
             {isHoldMenuVisible && !!iouReport && !!requestType && (
                 <ProcessMoneyReportHoldMenu
                     nonHeldAmount={!hasOnlyHeldExpenses && hasValidNonHeldAmount ? nonHeldAmount : undefined}

@@ -176,7 +176,6 @@ function AvatarWithDisplayName({
                                 displayNamesWithTooltips={displayNamesWithTooltips}
                                 shouldUseFullTitle={isMoneyRequestOrReport || isAnonymous}
                                 transactions={transactions}
-                                tooltipEnabled
                             />
                         ) : (
                             <DisplayNames

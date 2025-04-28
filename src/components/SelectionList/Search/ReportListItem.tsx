@@ -113,7 +113,7 @@ function ReportListItem<TItem extends ListItem>({
                         />
                     ))
                 ) : (
-                    <View style={[{paddingRight: 8, paddingLeft: 8, paddingTop: 16, paddingBottom: 16, alignItems: 'center', justifyContent: 'center'}]}>
+                    <View style={[styles.pt5, styles.pb5, styles.pr2, styles.pl2, styles.alignItemsCenter, styles.justifyContentCenter]}>
                         <Text
                             style={[styles.textLabelSupporting]}
                             numberOfLines={1}

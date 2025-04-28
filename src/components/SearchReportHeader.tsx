@@ -16,7 +16,7 @@ type SearchReportHeaderProps = {
     tooltipEnabled: boolean;
 };
 
-function SearchReportHeader({report, title, displayNamesWithTooltips, shouldUseFullTitle, transactions, tooltipEnabled}: SearchReportHeaderProps) {
+function SearchReportHeader({report, title, displayNamesWithTooltips, shouldUseFullTitle, transactions}: SearchReportHeaderProps) {
     const styles = useThemeStyles();
     const reportName = report?.reportName ?? CONST.REPORT.DEFAULT_REPORT_NAME;
 
