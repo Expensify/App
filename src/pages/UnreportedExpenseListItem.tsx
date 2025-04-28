@@ -55,7 +55,7 @@ function UnreportedExpenseListItem<TItem extends ListItem>({item, isFocused, sho
                     onCheckboxPress={() => {}}
                     containerStyles={emptyStylesArray}
                 />
-                <View style={[styles.pb3, styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
+                <View style={[styles.justifyContentCenter, styles.alignItemsCenter, styles.expenseWidgetSelectCircle, styles.mln2, styles.pr2]}>
                     <SelectCircle isChecked={isSelected} />
                 </View>
             </View>

@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+import {getMerchant} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
 import CategoryCell from './DataCells/CategoryCell';
@@ -49,6 +50,9 @@ function TransactionItemRow({
 
     const {selectionMode} = useMobileSelectionMode();
 
+    const merchantName = getMerchant(transactionItem);
+    const isMernchantEmpty = merchantName === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
+
     return (
         <View style={styles.flex1}>
             {shouldUseNarrowLayout ? (
@@ -87,19 +91,30 @@ function TransactionItemRow({
                                             shouldShowTooltip={shouldShowTooltip}
                                             shouldUseNarrowLayout={shouldUseNarrowLayout}
                                         />
+                                        {isMernchantEmpty && (
+                                            <View style={[styles.mlAuto]}>
+                                                <TotalCell
+                                                    transactionItem={transactionItem}
+                                                    shouldShowTooltip={shouldShowTooltip}
+                                                    shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                                />
+                                            </View>
+                                        )}
                                     </View>
-                                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
-                                        <MerchantCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                        <TotalCell
-                                            transactionItem={transactionItem}
-                                            shouldShowTooltip={shouldShowTooltip}
-                                            shouldUseNarrowLayout={shouldUseNarrowLayout}
-                                        />
-                                    </View>
+                                    {!isMernchantEmpty && (
+                                        <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
+                                            <MerchantCell
+                                                transactionItem={transactionItem}
+                                                shouldShowTooltip={shouldShowTooltip}
+                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            />
+                                            <TotalCell
+                                                transactionItem={transactionItem}
+                                                shouldShowTooltip={shouldShowTooltip}
+                                                shouldUseNarrowLayout={shouldUseNarrowLayout}
+                                            />
+                                        </View>
+                                    )}
                                 </View>
                             </View>
                             <View style={[styles.flexRow, styles.justifyContentBetween, styles.mh3, styles.mb3]}>
