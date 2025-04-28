@@ -520,6 +520,9 @@ const ONYXKEYS = {
      * This is later used to redirect user directly back to the VBBA flow */
     IS_FORCED_TO_CHANGE_CURRENCY: 'isForcedToChangeCurrency',
 
+    /** Set this gets redirected from global reimbursements flow */
+    IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW: 'isComingFromGlobalReimbursementsFlow',
+
     /** Collection Keys */
     COLLECTION: {
         DOWNLOAD: 'download_',
@@ -1149,6 +1152,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.BILLING_RECEIPT_DETAILS]: OnyxTypes.BillingReceiptDetails;
     [ONYXKEYS.NVP_SIDE_PANEL]: OnyxTypes.SidePanel;
     [ONYXKEYS.IS_FORCED_TO_CHANGE_CURRENCY]: boolean | undefined;
+    [ONYXKEYS.IS_COMING_FROM_GLOBAL_REIMBURSEMENTS_FLOW]: boolean | undefined;
 };
 
 type OnyxDerivedValuesMapping = {

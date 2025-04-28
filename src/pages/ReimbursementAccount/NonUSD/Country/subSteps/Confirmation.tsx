@@ -18,6 +18,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
+import {setIsComingFromGlobalReimbursementsFlow} from '@userActions/Policy/Policy';
 
 const {COUNTRY} = INPUT_IDS.ADDITIONAL_DATA;
 
@@ -48,6 +49,7 @@ function Confirmation({onNext, policyID}: ConfirmationStepProps) {
             return;
         }
 
+        setIsComingFromGlobalReimbursementsFlow(true);
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW.getRoute(policyID));
     };
 
