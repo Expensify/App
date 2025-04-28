@@ -1520,14 +1520,6 @@ function lockAccount() {
     API.write(WRITE_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
 }
 
-function unlockAccount() {
-    if (currentUserAccountID === -1) {
-        return;
-    }
-
-    API.write(WRITE_COMMANDS.UNLOCK_ACCOUNT, null);
-}
-
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1566,5 +1558,4 @@ export {
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
     lockAccount,
-    unlockAccount,
 };

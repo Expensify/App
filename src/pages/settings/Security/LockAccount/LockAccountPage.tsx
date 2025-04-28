@@ -8,6 +8,8 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
+import {lockAccount} from '@userActions/User';
+import ROUTES from '@src/ROUTES';
 
 function LockAccountPage() {
     const {translate} = useLocalize();
@@ -48,7 +50,11 @@ function LockAccountPage() {
             <ConfirmModal
                 danger
                 title={translate('lockAccountPage.lockAccount')}
-                onConfirm={() => {}}
+                onConfirm={() => {
+                    lockAccount();
+                    setWarningModalVisible(false);
+                    Navigation.navigate(ROUTES.SETTINGS_UNLOCK_ACCOUNT);
+                }}
                 onCancel={() => setWarningModalVisible(false)}
                 isVisible={isWarningModalVisible}
                 prompt={translate('lockAccountPage.warning')}

@@ -15,7 +15,7 @@ function UnlockAccountPage() {
     return (
         <>
             <HeaderWithBackButton
-                onBackButtonPress={() => Navigation.goBack()}
+                onBackButtonPress={() => Navigation.dismissModal()}
                 title={translate('lockAccountPage.lockAccount')}
             />
             <ScrollView contentContainerStyle={styles.flexGrow1}>
