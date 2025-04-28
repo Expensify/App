@@ -93,7 +93,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.IS_LOADING_APP, true);
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -105,7 +105,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: false});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should not show
@@ -117,7 +117,7 @@ describe('ProductTrainingContextProvider', () => {
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
             await waitForBatchedUpdatesWithAct();
 
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const {result} = renderHook(() => useProductTrainingContext(testTooltip), {wrapper});
 
             // Then tooltip should show
@@ -125,7 +125,7 @@ describe('ProductTrainingContextProvider', () => {
         });
 
         it('should keep tooltip visible when another tooltip with shouldShow=false is unmounted', async () => {
-            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.BOTTOM_NAV_INBOX_TOOLTIP;
+            const testTooltip = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES.SCAN_TEST_TOOLTIP;
             const ref = createRef<ProductTrainingRef>();
 
             // When multiple tooltips with the same name but different shouldShow values are rendered
@@ -345,6 +345,7 @@ describe('ProductTrainingContextProvider', () => {
         it('should transition to next priority tooltip when current is dismissed', async () => {
             // When starting with all tooltips visible
             Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
+            Onyx.merge(ONYXKEYS.NVP_TRYNEWDOT, {nudgeMigration: {timestamp: new Date()}});
             const date = new Date();
             Onyx.merge(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {
                 migratedUserWelcomeModal: {
