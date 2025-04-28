@@ -189,10 +189,6 @@ function SearchTypeMenu({queryJSON}: SearchTypeMenuProps) {
 
         return flattenedMenuItems.findIndex((item) => {
             const searchQueryJSON = buildSearchQueryJSON(item.getSearchQuery());
-
-            // if (groupBy === CONST.SEARCH.GROUP_BY.REPORTS) {
-            //     return item.translationPath === 'common.expenseReports' && item.type === type;
-            // }
             return searchQueryJSON?.hash === hash;
         });
     }, [hash, typeMenuSections]);

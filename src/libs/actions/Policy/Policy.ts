@@ -4294,11 +4294,11 @@ function getExporterPolicies(): Policy[] {
             return false;
         }
 
-        const isIntacctExporter = policy.connections?.intacct?.config.export.exporter === sessionEmail;
-        const isNetSuiteExporter = policy.connections?.netsuite?.options.config.exporter === sessionEmail;
-        const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config.export.exporter === sessionEmail;
-        const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config.export.exporter === sessionEmail;
-        const isXeroExporter = policy.connections?.xero?.config.export.exporter === sessionEmail;
+        const isIntacctExporter = policy.connections?.intacct?.config?.export.exporter === sessionEmail;
+        const isNetSuiteExporter = policy.connections?.netsuite?.options.config?.exporter === sessionEmail;
+        const isQuickbooksDesktopExporter = policy.connections?.quickbooksDesktop?.config?.export.exporter === sessionEmail;
+        const isQuickbooksOnlineExporter = policy.connections?.quickbooksOnline?.config?.export.exporter === sessionEmail;
+        const isXeroExporter = policy.connections?.xero?.config?.export.exporter === sessionEmail;
 
         return isIntacctExporter || isNetSuiteExporter || isQuickbooksDesktopExporter || isQuickbooksOnlineExporter || isXeroExporter;
     });
