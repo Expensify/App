@@ -1517,7 +1517,7 @@ const createStyleUtils = (theme: ThemeColors, styles: ThemeStyles) => ({
     /**
      * Return the height of magic code input container
      */
-    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.minHeight - styles.textInputContainer.borderWidth}),
+    getHeightOfMagicCodeInput: (): ViewStyle => ({height: styles.magicCodeInputContainer.height - styles.textInputContainer.borderWidth}),
 
     /**
      * Generate fill color of an icon based on its state.

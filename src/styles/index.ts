@@ -3345,7 +3345,7 @@ const styles = (theme: ThemeColors) =>
         magicCodeInputContainer: {
             flexDirection: 'row',
             justifyContent: 'space-between',
-            minHeight: variables.inputHeight,
+            height: variables.inputHeight,
         },
 
         magicCodeInput: {
