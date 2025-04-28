@@ -162,7 +162,10 @@ function WorkspaceReportFieldsPage({
     };
 
     const toggleAllReportFields = () => {
-        const availableReportFields = Object.values(filteredPolicyFieldList).filter((reportField) => reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const availableReportFields = Object.values(filteredPolicyFieldList).filter(
+            (reportField) =>
+                reportField.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && filteredReportFieldsSections.at(0)?.data.find((item) => item.fieldID === reportField.fieldID),
+        );
         setSelectedReportFields(selectedReportFields.length > 0 ? [] : availableReportFields);
     };
 

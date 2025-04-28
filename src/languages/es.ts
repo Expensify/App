@@ -3033,6 +3033,7 @@ const translations = {
                 other: 'Eliminar tasas',
             }),
             deletePerDiemRate: 'Eliminar tasa per diem',
+            findPerDiemRate: 'Encontrar tasa per diem',
             areYouSureDelete: () => ({
                 one: '¿Estás seguro de que quieres eliminar esta tasa?',
                 other: '¿Estás seguro de que quieres eliminar estas tasas?',

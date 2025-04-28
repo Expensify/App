@@ -3006,6 +3006,7 @@ const translations = {
                 other: 'Delete rates',
             }),
             deletePerDiemRate: 'Delete per diem rate',
+            findPerDiemRate: 'Find per diem rate',
             areYouSureDelete: () => ({
                 one: 'Are you sure you want to delete this rate?',
                 other: 'Are you sure you want to delete these rates?',
