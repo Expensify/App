@@ -1498,11 +1498,16 @@ const translations = {
         mergeFailureUnvalidatedAccount: {
             description: "You can't merge into other accounts because it's not validated. Please validate the account and try again.",
         },
-        mergeFailureGenericHeading: 'Can’t merge accounts',        
+        mergeFailureGenericHeading: 'Can’t merge accounts',
     },
     lockAccountPage: {
         lockAccount: 'Lock account',
         unlockAccount: 'Unlock account',
+        compromisedDescription: 'If you think your Expensify account is compromised, you can lock it to prevent any changes and block new transactions on your Expensify Card(s).',
+        domainAdminsDescriptionPartOne: 'For domain admins, ',
+        domainAdminsDescriptionPartTwo: 'this action will lock all Expensify Card activity across your domain(s) ',
+        domainAdminsDescriptionPartThree: 'and prevent any admin actions from being taken with your account.',
+        warning: `Once your account is locked, our team will review it to remove any unauthorized access. After that, you'll need to work with Concierge to help secure the account and restore your access.`,
     },
     passwordPage: {
         changePassword: 'Change password',

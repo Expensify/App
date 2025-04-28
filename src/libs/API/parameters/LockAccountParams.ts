@@ -1,5 +1,5 @@
 type LockAccountParams = {
-    todo: string;
+    accountID: number;
 };
 
 export default LockAccountParams;

@@ -23,6 +23,7 @@ import type {
     UpdateThemeParams,
     ValidateSecondaryLoginParams,
 } from '@libs/API/parameters';
+import type LockAccountParams from '@libs/API/parameters/LockAccountParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
@@ -1482,6 +1483,51 @@ function setIsDebugModeEnabled(isDebugModeEnabled: boolean) {
     Onyx.merge(ONYXKEYS.USER, {isDebugModeEnabled});
 }
 
+function lockAccount() {
+    if (currentUserAccountID === -1) {
+        return;
+    }
+
+    const optimisticData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: true},
+        },
+    ];
+
+    const successData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {
+                isLoading: false,
+            },
+        },
+    ];
+
+    const failureData: OnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.ACCOUNT,
+            value: {isLoading: false},
+        },
+    ];
+    const params: LockAccountParams = {
+        accountID: currentUserAccountID,
+    };
+
+    API.write(WRITE_COMMANDS.LOCK_ACCOUNT, params, {optimisticData, successData, failureData});
+}
+
+function unlockAccount() {
+    if (currentUserAccountID === -1) {
+        return;
+    }
+
+    API.write(WRITE_COMMANDS.UNLOCK_ACCOUNT, null);
+}
+
 export {
     clearFocusModeNotification,
     closeAccount,
@@ -1519,4 +1565,6 @@ export {
     clearValidateCodeActionError,
     setIsDebugModeEnabled,
     resetValidateActionCodeSent,
+    lockAccount,
+    unlockAccount,
 };
