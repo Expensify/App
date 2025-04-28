@@ -34,13 +34,13 @@ function extractPointerEvent(event: GestureResponderEvent | MouseEvent): MouseEv
 
 function PopoverReportActionContextMenu(_props: unknown, ref: ForwardedRef<ReportActionContextMenu>) {
     const {translate} = useLocalize();
-    const reportIDRef = useRef<string | undefined>();
-    const typeRef = useRef<ContextMenuType>();
+    const reportIDRef = useRef<string | undefined>(undefined);
+    const typeRef = useRef<ContextMenuType | undefined>(undefined);
     const reportActionRef = useRef<NonNullable<OnyxEntry<ReportAction>> | null>(null);
-    const reportActionIDRef = useRef<string | undefined>();
-    const originalReportIDRef = useRef<string | undefined>();
+    const reportActionIDRef = useRef<string | undefined>(undefined);
+    const originalReportIDRef = useRef<string | undefined>(undefined);
     const selectionRef = useRef('');
-    const reportActionDraftMessageRef = useRef<string>();
+    const reportActionDraftMessageRef = useRef<string | undefined>(undefined);
 
     const cursorRelativePosition = useRef({
         horizontal: 0,

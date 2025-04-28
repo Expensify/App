@@ -23,7 +23,7 @@ import {FallbackAvatar, IntacctSquare, NetSuiteSquare, QBOSquare, XeroSquare} fr
 import * as defaultGroupAvatars from '@components/Icon/GroupDefaultAvatars';
 import * as defaultWorkspaceAvatars from '@components/Icon/WorkspaceDefaultAvatars';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
-import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose} from '@src/CONST';
+import type {IOUAction, IOUType, OnboardingAccounting, OnboardingCompanySize, OnboardingPurpose, OnboardingTaskLinks} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {ParentNavigationSummaryParams} from '@src/languages/params';
 import type {TranslationPaths} from '@src/languages/types';
@@ -43,7 +43,7 @@ import type {
     PolicyReportField,
     Report,
     ReportAction,
-    ReportAttributes,
+    ReportAttributesDerivedValue,
     ReportMetadata,
     ReportNameValuePairs,
     ReportViolationName,
@@ -1039,14 +1039,14 @@ Onyx.connect({
     callback: (value) => (activePolicyID = value),
 });
 
-let reportAttributes: OnyxEntry<Record<string, ReportAttributes>>;
+let reportAttributes: ReportAttributesDerivedValue['reports'];
 Onyx.connect({
     key: ONYXKEYS.DERIVED.REPORT_ATTRIBUTES,
     callback: (value) => {
         if (!value) {
             return;
         }
-        reportAttributes = value;
+        reportAttributes = value.reports;
     },
 });
 
@@ -1924,17 +1924,11 @@ function isArchivedReport(reportNameValuePairs?: OnyxInputOrEntry<ReportNameValu
 /**
  * Whether the report with the provided reportID is an archived non-expense report
  */
-function isArchivedNonExpenseReportWithID(reportOrID?: string | SearchReport) {
-    if (!reportOrID) {
+function isArchivedNonExpenseReportWithID(report?: OnyxInputOrEntry<Report>, isReportArchived = false) {
+    if (!report) {
         return false;
     }
-
-    const report = typeof reportOrID === 'string' ? getReport(reportOrID, allReports) : reportOrID;
-
-    // This will get removed as part of https://github.com/Expensify/App/issues/59961
-    // eslint-disable-next-line deprecation/deprecation
-    const reportNameValuePairs = typeof reportOrID === 'string' ? getReportNameValuePairs(reportOrID) : getReportNameValuePairs(reportOrID.reportID);
-    return isArchivedNonExpenseReport(report, reportNameValuePairs);
+    return !(isExpenseReport(report) || isExpenseRequest(report)) && isReportArchived;
 }
 
 /**
@@ -2706,9 +2700,15 @@ function getDisplayNameForParticipant({
     return shouldUseShortForm ? shortName : longName;
 }
 
-function getParticipantsAccountIDsForDisplay(report: OnyxEntry<Report>, shouldExcludeHidden = false, shouldExcludeDeleted = false, shouldForceExcludeCurrentUser = false): number[] {
+function getParticipantsAccountIDsForDisplay(
+    report: OnyxEntry<Report>,
+    shouldExcludeHidden = false,
+    shouldExcludeDeleted = false,
+    shouldForceExcludeCurrentUser = false,
+    reportMetadataParam?: OnyxEntry<ReportMetadata>,
+): number[] {
     const reportParticipants = report?.participants ?? {};
-    const reportMetadata = getReportMetadata(report?.reportID);
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
     let participantsEntries = Object.entries(reportParticipants);
 
     // We should not show participants that have an optimistic entry with the same login in the personal details
@@ -2803,13 +2803,13 @@ function buildParticipantsFromAccountIDs(accountIDs: number[]): Participants {
 /**
  * Returns the report name if the report is a group chat
  */
-function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>): string | undefined {
+function getGroupChatName(participants?: SelectedParticipant[], shouldApplyLimit = false, report?: OnyxEntry<Report>, reportMetadataParam?: OnyxEntry<ReportMetadata>): string | undefined {
     // If we have a report always try to get the name from the report.
     if (report?.reportName) {
         return report.reportName;
     }
 
-    const reportMetadata = getReportMetadata(report?.reportID);
+    const reportMetadata = reportMetadataParam ?? getReportMetadata(report?.reportID);
 
     const pendingMemberAccountIDs = new Set(
         reportMetadata?.pendingChatMembers?.filter((member) => member.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE).map((member) => member.accountID),
@@ -4601,12 +4601,14 @@ function getReportName(
     parentReportActionParam?: OnyxInputOrEntry<ReportAction>,
     personalDetails?: Partial<PersonalDetailsList>,
     invoiceReceiverPolicy?: OnyxEntry<Policy>,
+    reportAttributesParam?: ReportAttributesDerivedValue['reports'],
 ): string {
     // Check if we can use report name in derived values - only when we have report but no other params
     const canUseDerivedValue = report && policy === undefined && parentReportActionParam === undefined && personalDetails === undefined && invoiceReceiverPolicy === undefined;
-
-    if (canUseDerivedValue && reportAttributes?.[report.reportID]) {
-        return reportAttributes[report.reportID].reportName;
+    const attributes = reportAttributesParam ?? reportAttributes;
+    const derivedNameExists = report && !!attributes?.[report.reportID]?.reportName;
+    if (canUseDerivedValue && derivedNameExists) {
+        return attributes[report.reportID].reportName;
     }
     return getReportNameInternal({report, policy, parentReportActionParam, personalDetails, invoiceReceiverPolicy});
 }
@@ -6381,47 +6383,6 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 }
 
 /**
- * Builds an optimistic modified expense action for a tracked expense move with a randomly generated reportActionID.
- * @param transactionThreadID - The reportID of the transaction thread
- * @param movedToReportID - The reportID of the report the transaction is moved to
- */
-function buildOptimisticMovedTrackedExpenseModifiedReportAction(transactionThreadID: string | undefined, movedToReportID: string | undefined): OptimisticModifiedExpenseReportAction {
-    const delegateAccountDetails = getPersonalDetailByEmail(delegateEmail);
-
-    return {
-        actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
-        actorAccountID: currentUserAccountID,
-        automatic: false,
-        avatar: getCurrentUserAvatar(),
-        created: DateUtils.getDBTime(),
-        isAttachmentOnly: false,
-        message: [
-            {
-                // Currently we are composing the message from the originalMessage and message is only used in OldDot and not in the App
-                text: 'You',
-                style: 'strong',
-                type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-            },
-        ],
-        originalMessage: {
-            movedToReportID,
-        },
-        person: [
-            {
-                style: 'strong',
-                text: currentUserPersonalDetails?.displayName ?? String(currentUserAccountID),
-                type: 'TEXT',
-            },
-        ],
-        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-        reportActionID: rand64(),
-        reportID: transactionThreadID,
-        shouldShow: true,
-        delegateAccountID: delegateAccountDetails?.accountID,
-    };
-}
-
-/**
  * Updates a report preview action that exists for an IOU report.
  *
  * @param [comment] - User comment for the IOU.
@@ -7877,7 +7838,11 @@ function getChatByParticipants(
  */
 function getInvoiceChatByParticipants(receiverID: string | number, receiverType: InvoiceReceiverType, policyID?: string, reports: OnyxCollection<Report> = allReports): OnyxEntry<Report> {
     return Object.values(reports ?? {}).find((report) => {
-        if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReportWithID(report?.reportID)) {
+        // This will get removed as part of https://github.com/Expensify/App/issues/59961
+        // eslint-disable-next-line deprecation/deprecation
+        const reportNameValuePairs = getReportNameValuePairs(report?.reportID);
+        const isReportArchived = isArchivedReport(reportNameValuePairs);
+        if (!report || !isInvoiceRoom(report) || isArchivedNonExpenseReportWithID(report, isReportArchived)) {
             return false;
         }
 
@@ -9654,7 +9619,7 @@ function prepareOnboardingOnyxData(
     }
     const actorAccountID = shouldPostTasksInAdminsRoom ? assignedGuideAccountID : CONST.ACCOUNT_ID.CONCIERGE;
 
-    const onboardingTaskParams = {
+    const onboardingTaskParams: OnboardingTaskLinks = {
         integrationName,
         onboardingCompanySize: companySize ?? onboardingCompanySize,
         workspaceSettingsLink: `${environmentURL}/${ROUTES.WORKSPACE_INITIAL.getRoute(onboardingPolicyID)}`,
@@ -9662,6 +9627,7 @@ function prepareOnboardingOnyxData(
         workspaceMembersLink: `${environmentURL}/${ROUTES.WORKSPACE_MEMBERS.getRoute(onboardingPolicyID)}`,
         workspaceMoreFeaturesLink: `${environmentURL}/${ROUTES.WORKSPACE_MORE_FEATURES.getRoute(onboardingPolicyID)}`,
         navatticURL: getNavatticURL(environment, engagementChoice),
+        testDriveURL: `${environmentURL}/${ROUTES.TEST_DRIVE_DEMO_ROOT}`,
         workspaceAccountingLink: `${environmentURL}/${ROUTES.POLICY_ACCOUNTING.getRoute(onboardingPolicyID)}`,
         corporateCardLink: `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(onboardingPolicyID)}`,
     };
@@ -10302,10 +10268,15 @@ function canBeExported(report: OnyxEntry<Report>) {
     return isExpenseReport(report) && isCorrectState;
 }
 
-function isExported(reportActions: OnyxEntry<ReportActions>) {
+function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[]) {
     if (!reportActions) {
         return false;
     }
+
+    if (Array.isArray(reportActions)) {
+        return reportActions.some((action) => isExportIntegrationAction(action));
+    }
+
     return Object.values(reportActions).some((action) => isExportIntegrationAction(action));
 }
 
@@ -10489,7 +10460,6 @@ export {
     buildOptimisticMoneyRequestEntities,
     buildOptimisticMovedReportAction,
     buildOptimisticChangePolicyReportAction,
-    buildOptimisticMovedTrackedExpenseModifiedReportAction,
     buildOptimisticRenamedRoomReportAction,
     buildOptimisticRoomDescriptionUpdatedReportAction,
     buildOptimisticReportPreview,
@@ -10613,6 +10583,7 @@ export {
     getReportParticipantsTitle,
     getReportPreviewMessage,
     getReportRecipientAccountIDs,
+    getParentReport,
     getReportOrDraftReport,
     getRoom,
     getRootParentReport,
@@ -10657,7 +10628,6 @@ export {
     isAdminsOnlyPostingRoom,
     isAllowedToApproveExpenseReport,
     isAllowedToComment,
-    isAllowedToSubmitDraftExpenseReport,
     isAnnounceRoom,
     isArchivedNonExpenseReport,
     isArchivedReport,
@@ -10834,6 +10804,7 @@ export {
     populateOptimisticReportFormula,
     getOutstandingReports,
     isReportOutstanding,
+    isAllowedToSubmitDraftExpenseReport,
 };
 
 export type {
