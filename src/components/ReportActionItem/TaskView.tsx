@@ -65,7 +65,7 @@ function TaskView({report, action}: TaskViewProps) {
     const isTaskActionable = canActionTask(report, currentUserPersonalDetails.accountID, parentReport, isParentReportArchived);
 
     const disableState = !isTaskModifiable;
-    const isDisableInteractive = !isTaskModifiable || !isOpen;
+    const isDisableInteractive = disableState || !isOpen;
     const {translate} = useLocalize();
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const contextValue = useMemo(

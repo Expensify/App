@@ -25,6 +25,7 @@ import type {
     SearchPersonalDetails,
     SearchPolicy,
     SearchReport,
+    SearchTask,
     SearchTransaction,
     SearchTransactionAction,
 } from '@src/types/onyx/SearchResults';
@@ -445,11 +446,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
     return Object.keys(data)
         .filter(isReportEntry)
         .map((key) => {
-            const taskItem = data[key] as SearchListItem;
-            if (!isTaskListItemType(taskItem)) {
-                return taskItem;
-            }
-
+            const taskItem = data[key] as SearchTask;
             const personalDetails = data.personalDetailsList;
 
             const assignee = personalDetails?.[taskItem.managerID] ?? emptyPersonalDetails;
@@ -491,8 +488,7 @@ function getTaskSections(data: OnyxTypes.SearchResults['data']): TaskListItemTyp
             }
 
             return result;
-        })
-        .filter(isTaskListItemType);
+        });
 }
 
 /**
