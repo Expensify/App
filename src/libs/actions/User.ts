@@ -335,6 +335,12 @@ function clearUnvalidatedNewContactMethodAction() {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, null);
 }
 
+function clearPendingContactActionErrors() {
+    Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
+        errorFields: null,
+    });
+}
+
 /**
  * When user adds a new contact method, they need to verify the magic code first
  * So we add the temporary contact method to Onyx to use it later, after user verified magic code.
@@ -343,76 +349,6 @@ function addPendingContactMethod(contactMethod: string) {
     Onyx.merge(ONYXKEYS.PENDING_CONTACT_ACTION, {
         contactMethod,
     });
-}
-
-/**
- * Validates the action to add secondary contact method
- */
-function saveNewContactMethodAndRequestValidationCode(contactMethod: string) {
-    const optimisticData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                contactMethod,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: true},
-        },
-    ];
-
-    const successData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: true,
-                errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    const failureData: OnyxUpdate[] = [
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
-            value: {
-                validateCodeSent: null,
-                errorFields: {
-                    actionVerified: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.requestContactMethodValidateCode'),
-                },
-                pendingFields: {
-                    actionVerified: null,
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.FORMS.NEW_CONTACT_METHOD_FORM,
-            value: {isLoading: false},
-        },
-    ];
-
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
 }
 
 /**
@@ -430,9 +366,6 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
                     errorFields: {
                         addedLogin: null,
                     },
-                    pendingFields: {
-                        addedLogin: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
-                    },
                 },
             },
         },
@@ -445,26 +378,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const successData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.PENDING_CONTACT_ACTION,
             value: {
                 contactMethod: null,
                 validateCodeSent: null,
                 actionVerified: true,
                 errorFields: {
-                    actionVerified: null,
-                },
-                pendingFields: {
                     actionVerified: null,
                 },
             },
@@ -478,26 +397,12 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
     const failureData: OnyxUpdate[] = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.LOGIN_LIST,
-            value: {
-                [contactMethod]: {
-                    errorFields: {
-                        addedLogin: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('contacts.genericFailureMessages.addContactMethod'),
-                    },
-                    pendingFields: {
-                        addedLogin: null,
-                    },
-                },
-            },
-        },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.ACCOUNT,
             value: {isLoading: false},
         },
         {
             onyxMethod: Onyx.METHOD.MERGE,
-            key: ONYXKEYS.PENDING_CONTACT_ACTION,
+            key: ONYXKEYS.VALIDATE_ACTION_CODE,
             value: {validateCodeSent: null},
         },
     ];
@@ -1512,8 +1417,8 @@ export {
     updateDraftCustomStatus,
     clearDraftCustomStatus,
     requestRefund,
-    saveNewContactMethodAndRequestValidationCode,
     clearUnvalidatedNewContactMethodAction,
+    clearPendingContactActionErrors,
     requestValidateCodeAction,
     addPendingContactMethod,
     clearValidateCodeActionError,

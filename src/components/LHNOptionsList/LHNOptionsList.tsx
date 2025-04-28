@@ -40,14 +40,15 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
     const flashListRef = useRef<FlashList<string>>(null);
     const route = useRoute();
 
-    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
-    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION);
-    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
-    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
+    const [reports] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {canBeMissing: false});
+    const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: (attributes) => attributes?.reports, canBeMissing: false});
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {canBeMissing: false});
+    const [reportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {canBeMissing: false});
+    const [policy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {canBeMissing: false});
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {canBeMissing: false});
+    const [transactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {canBeMissing: false});
+    const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT, {canBeMissing: false});
+    const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {canBeMissing: false});
 
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -184,6 +185,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
                 <OptionRowLHNData
                     reportID={reportID}
                     fullReport={itemFullReport}
+                    reportAttributes={reportAttributes ?? {}}
                     oneTransactionThreadReport={itemOneTransactionThreadReport}
                     reportNameValuePairs={itemReportNameValuePairs}
                     reportActions={itemReportActions}
@@ -215,6 +217,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             preferredLocale,
             reportActions,
             reports,
+            reportAttributes,
             reportNameValuePairs,
             shouldDisableFocusOptions,
             transactions,
@@ -228,6 +231,7 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
         () => [
             reportActions,
             reports,
+            reportAttributes,
             reportNameValuePairs,
             transactionViolations,
             policy,
@@ -239,7 +243,21 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
             transactions,
             isOffline,
         ],
-        [reportActions, reports, reportNameValuePairs, transactionViolations, policy, personalDetails, data.length, draftComments, optionMode, preferredLocale, transactions, isOffline],
+        [
+            reportActions,
+            reports,
+            reportAttributes,
+            reportNameValuePairs,
+            transactionViolations,
+            policy,
+            personalDetails,
+            data.length,
+            draftComments,
+            optionMode,
+            preferredLocale,
+            transactions,
+            isOffline,
+        ],
     );
 
     const previousOptionMode = usePrevious(optionMode);
@@ -343,5 +361,3 @@ function LHNOptionsList({style, contentContainerStyles, data, onSelectRow, optio
 LHNOptionsList.displayName = 'LHNOptionsList';
 
 export default memo(LHNOptionsList);
-
-export type {LHNOptionsListProps};
