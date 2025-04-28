@@ -4,7 +4,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 
 const {
-    CONCEIRGE_LHN_GBR,
+    CONCIERGE_LHN_GBR,
     RENAME_SAVED_SEARCH,
     BOTTOM_NAV_INBOX_TOOLTIP,
     LHN_WORKSPACE_CHAT_TOOLTIP,
@@ -12,13 +12,16 @@ const {
     SCAN_TEST_TOOLTIP,
     SCAN_TEST_TOOLTIP_MANAGER,
     SCAN_TEST_CONFIRMATION,
+    EXPENSE_REPORTS_FILTER,
     SCAN_TEST_DRIVE_CONFIRMATION,
 } = CONST.PRODUCT_TRAINING_TOOLTIP_NAMES;
 
 type ProductTrainingTooltipName = ValueOf<typeof CONST.PRODUCT_TRAINING_TOOLTIP_NAMES>;
 
 type ShouldShowConditionProps = {
-    shouldUseNarrowLayout?: boolean;
+    shouldUseNarrowLayout: boolean;
+    isUserPolicyAdmin: boolean;
+    hasBeenAddedToNudgeMigration: boolean;
 };
 
 type TooltipData = {
@@ -31,15 +34,15 @@ type TooltipData = {
 };
 
 const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
-    [CONCEIRGE_LHN_GBR]: {
+    [CONCIERGE_LHN_GBR]: {
         content: [
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part1', isBold: false},
-            {text: 'productTrainingTooltip.conciergeLHNGBR.part2', isBold: true},
+            {text: 'productTrainingTooltip.conciergeLHNGbr.part1', isBold: false},
+            {text: 'productTrainingTooltip.conciergeLHNGbr.part2', isBold: true},
         ],
-        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCEIRGE_LHN_GBR, isDismissedUsingCloseButton),
-        name: CONCEIRGE_LHN_GBR,
+        onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(CONCIERGE_LHN_GBR, isDismissedUsingCloseButton),
+        name: CONCIERGE_LHN_GBR,
         priority: 1300,
-        // TODO: CONCEIRGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
+        // TODO: CONCIERGE_LHN_GBR tooltip will be replaced by a tooltip in the #admins room
         // https://github.com/Expensify/App/issues/57045#issuecomment-2701455668
         shouldShow: () => false,
     },
@@ -66,14 +69,15 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
     },
     [BOTTOM_NAV_INBOX_TOOLTIP]: {
         content: [
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: true},
-            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part1', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part2', isBold: true},
             {text: 'productTrainingTooltip.bottomNavInboxTooltip.part3', isBold: false},
+            {text: 'productTrainingTooltip.bottomNavInboxTooltip.part4', isBold: true},
         ],
         onHideTooltip: (isDismissedUsingCloseButton = false) => dismissProductTraining(BOTTOM_NAV_INBOX_TOOLTIP, isDismissedUsingCloseButton),
         name: BOTTOM_NAV_INBOX_TOOLTIP,
-        priority: 900,
-        shouldShow: () => true,
+        priority: 1700,
+        shouldShow: ({hasBeenAddedToNudgeMigration}) => hasBeenAddedToNudgeMigration,
     },
     [LHN_WORKSPACE_CHAT_TOOLTIP]: {
         content: [
@@ -85,6 +89,18 @@ const TOOLTIPS: Record<ProductTrainingTooltipName, TooltipData> = {
         name: LHN_WORKSPACE_CHAT_TOOLTIP,
         priority: 800,
         shouldShow: () => true,
+    },
+    [EXPENSE_REPORTS_FILTER]: {
+        content: [
+            {text: 'productTrainingTooltip.expenseReportsFilter.part1', isBold: false},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part2', isBold: true},
+            {text: 'productTrainingTooltip.expenseReportsFilter.part3', isBold: false},
+        ],
+        onHideTooltip: () => dismissProductTraining(EXPENSE_REPORTS_FILTER),
+        name: EXPENSE_REPORTS_FILTER,
+        priority: 2000,
+        shouldShow: ({shouldUseNarrowLayout, isUserPolicyAdmin, hasBeenAddedToNudgeMigration}: ShouldShowConditionProps) =>
+            !shouldUseNarrowLayout && isUserPolicyAdmin && hasBeenAddedToNudgeMigration,
     },
     [SCAN_TEST_TOOLTIP]: {
         content: [

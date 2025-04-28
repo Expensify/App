@@ -31,7 +31,7 @@ function TopLevelNavigationTabBar({state}: TopLevelNavigationTabBarProps) {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {paddingBottom} = useSafeAreaPaddings();
     const [isAfterClosingTransition, setIsAfterClosingTransition] = useState(false);
-    const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>();
+    const cancelAfterInteractions = useRef<ReturnType<typeof InteractionManager.runAfterInteractions> | undefined>(undefined);
     const {isBlockingViewVisible} = useContext(FullScreenBlockingViewContext);
     const {canUseLeftHandBar} = usePermissions();
     const StyleUtils = useStyleUtils();
