@@ -168,7 +168,7 @@ function ReportActionCompose({
     const [exceededMaxLength, setExceededMaxLength] = useState<number | null>(null);
 
     const suggestionsRef = useRef<SuggestionsRef>(null);
-    const composerRef = useRef<ComposerRef>();
+    const composerRef = useRef<ComposerRef | undefined>(undefined);
     const reportParticipantIDs = useMemo(
         () =>
             Object.keys(report?.participants ?? {})

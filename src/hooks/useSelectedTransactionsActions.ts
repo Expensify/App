@@ -5,8 +5,8 @@ import {deleteMoneyRequest, unholdRequest} from '@libs/actions/IOU';
 import {exportReportToCSV} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, canHoldUnholdReportAction} from '@libs/ReportUtils';
-import {getTransaction} from '@libs/TransactionUtils';
+import {canDeleteCardTransactionByLiabilityType, canDeleteTransaction, canHoldUnholdReportAction, isMoneyRequestReport as isMoneyRequestReportUtils} from '@libs/ReportUtils';
+import {getTransaction, isOnHold} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {OriginalMessageIOU, Report, ReportAction, Session} from '@src/types/onyx';
@@ -25,10 +25,11 @@ function useSelectedTransactionsActions({report, reportActions, session, onExpor
             return [];
         }
         const options = [];
+        const isMoneyRequestReport = isMoneyRequestReportUtils(report);
         const selectedTransactions = selectedTransactionsID.map((transactionID) => getTransaction(transactionID)).filter((t) => !!t);
         const isReportReimbursed = report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-        let canHoldTransactions = !isReportReimbursed;
-        let canUnholdTransactions = true;
+        let canHoldTransactions = isMoneyRequestReport && !isReportReimbursed;
+        let canUnholdTransactions = isMoneyRequestReport;
 
         selectedTransactions.forEach((selectedTransaction) => {
             if (!selectedTransaction?.transactionID) {
